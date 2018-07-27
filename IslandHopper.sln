@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IslandHopper", "IslandHopper\IslandHopper.csproj", "{D7CF48EC-8F6B-4FAB-ABC6-921916EA8B9C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7CF48EC-8F6B-4FAB-ABC6-921916EA8B9C}.Debug|x86.ActiveCfg = Debug|x86
+		{D7CF48EC-8F6B-4FAB-ABC6-921916EA8B9C}.Debug|x86.Build.0 = Debug|x86
+		{D7CF48EC-8F6B-4FAB-ABC6-921916EA8B9C}.Release|x86.ActiveCfg = Release|x86
+		{D7CF48EC-8F6B-4FAB-ABC6-921916EA8B9C}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {433D7B7B-5996-47FA-AEB9-01C7D75B7294}
+	EndGlobalSection
+EndGlobal

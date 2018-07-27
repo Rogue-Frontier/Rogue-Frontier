@@ -1,0 +1,59 @@
+<!--
+Item
+	name=				name of the item
+	desc=				description of the item
+	mass=				mass in kg. If the mass is lower than the user's one-hand strength, then the user can hold it in one hand. If greater than the user's one-hand strength but lower than two-handed strength, then requires two-handed grip. Otherwise too heavy to hold.
+	explosive=			if this item or its user takes explosive damage, then this item will explode
+	Head				can be worn on the head
+		defense=			The amount of reduction in damage taken to the head while equipped
+		durability=			How much damage this item can take before breaking
+	Arm
+	Back
+	Weapon				can be fired when held in hands or equipped as gear
+		attack=			the type of attack that this weapon has
+			"beam"			this weapon fires beams; damage falls off with distance
+			"bullet"		this weapon fires bullets
+			"melee"			
+		difficulty=			the average difficulty of aiming this weapon. User skill and weapon difficulty determine the accuracy and time it takes to aim
+			"none"				no aiming skill needed
+			"easy"				
+			"medium"			
+			"hard"				
+			"expert"		
+		recoil=				the strength of recoil on this weapon
+	Mount				can hold a weapon for the user, leaving hands free
+-->
+
+<Item
+	name=			"laser helmet"
+	desc=			"This futuristic helmet comes with a laser turret mounted on top and guide-goggles for easy firing"
+	mass=			"3"
+	>
+	<Head
+		defense=			"2"
+		durability=			"10"
+		/>
+	<Weapon
+		attack=				"laser"
+		difficulty=			"none"
+		/>
+</Item>
+<Item
+	name=			"The Blockhead"
+	desc=			"Originally marketed as &quot;combat goggles,&quot; this modified metal block serves as effective all-around head protection"
+	mass=			"3"
+	>
+	<Head
+		defense=			"4d5"
+		durability=			"40"
+		/>
+</Item>
+<Item
+	name=			"arm mount"
+	desc=			"This arm brace comes with a mount to hold one weapon"
+	mass=			"2"
+	>
+	<Mount
+		
+		/>
+</Item>
