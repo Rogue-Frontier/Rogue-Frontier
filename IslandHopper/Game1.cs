@@ -7,28 +7,19 @@ using SadConsole;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SadConsole.Themes;
+using SadConsole.Controls;
 
 namespace IslandHopper {
-	public static class Helper {
-		public static int LineLength(this string lines) {
-			return lines.IndexOf('\n');
-		}
-		public static void PrintLines(this SadConsole.Console console, int x, int y, string lines, Color? foreground = null, Color? background = null, SpriteEffects? mirror = null) {
-			foreach (var line in lines.Replace("\r\n", "\n").Split('\n')) {
-				console.Print(x, y, line, foreground, background, mirror);
-				y++;
-			}
-		}
-	}
 	/// <summary>
 	/// This is the main type for your game.
 	/// </summary>
 	public class Game1 : SadConsole.Game {
 
-		public Game1() : base("IBM.font", 240, 63, null) {
+		public Game1() : base("IBM.font", 240, 64, null) {
 			Content.RootDirectory = "Content";
 		}
-
+		
 		/// <summary>
 		/// Allows the game to perform any initialization it needs to before starting to run.
 		/// This is where it can query for any required services and load any non-graphic
@@ -42,7 +33,8 @@ namespace IslandHopper {
 			base.Initialize();
 			//Settings.ToggleFullScreen();
 			// Create your console    
-			var firstConsole = new TitleConsole(180, 180);
+			var firstConsole = new TitleConsole(240, 64);
+			firstConsole.Position = new Point(0, 0);
 			SadConsole.Global.CurrentScreen.Children.Add(firstConsole);
 		}
 
@@ -67,7 +59,6 @@ namespace IslandHopper {
 		/// </summary>
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Update(GameTime gameTime) {
-
 			base.Update(gameTime);
 		}
 
@@ -80,57 +71,149 @@ namespace IslandHopper {
 			base.Draw(gameTime);
 		}
 	}
-	class TitleConsole : SadConsole.Console {
-		private const double waterLineInterval = 0.4;
-		private double waterLineNext = 0;
-		private const double waterLineSpeed = 36.0;
-		private List<PointD> waterLines = new List<PointD>();
+	class TitleConsole : SadConsole.ControlsConsole {
+		private double time = 0;
 
-		private double waterTrailNext = 0;
-		private const double waterTrailLifespan = 2;
+		private int waterLevel;
+		private const int waterHeight = 10;
+		private const double waterLineInterval = 0.2;
+		private const double waterLineSpeed = 36.0;
+		private List<Point2> waterLines = new List<Point2>();
+
+		private double waterTrailInterval = 1.0 / waterLineSpeed;
+		private const double waterTrailLifespan = 8;
 		private List<WaterTrail> waterTrails = new List<WaterTrail>();
 
-		//List<Timer> timers = new List<Timer>();
+		const string PLANE =  @"<\_______ " + "\n"
+							+ @" \\__>__O\";
+
+		private const double planeInterval = 5;
+		private const double planeSpeed = 10;
+		private const int planeLevel = 18;
+		private List<Point2> planes = new List<Point2>();
+
+		/*
+		const string player = @"/=\" + "\n"
+							+ @"@&_";
+		*/
+		const string PLAYER = @" *" + "\n"
+							+ @"@&";
+		private const double playerInterval = Math.PI/2.5;
+		private const double playerFallSpeed = 2;
+		private List<Point2> players = new List<Point2>();
+
+		private const double landSpeed = 10.0;
+		private const double landSpawnTime = 2;
+		List<Point2> land = new List<Point2>();
+		bool[,] landGrid;
+
+		private List<Timer> timers;
+
+		private Random Random = Global.Random;
+
+		ButtonTheme BUTTON_THEME = new SadConsole.Themes.ButtonTheme() {
+			Normal = new SadConsole.Cell(Color.Yellow, Color.Transparent),
+			Disabled = new Cell(Color.Gray, Color.Transparent),
+			Focused = new Cell(Color.Red, Color.Transparent),
+			MouseClicking = new Cell(Color.White, Color.Transparent),
+			MouseOver = new Cell(Color.Red, Color.Transparent)
+		};
+
+		Button start, quit;
 
 		public TitleConsole(int width, int height) : base(width, height) {
+			landGrid = new bool[Width, Height];
+
+			start = new SadConsole.Controls.Button(10) {
+				Position = new Point(5, 5),
+				Text = "START",
+				Theme = BUTTON_THEME
+			};
+			start.Click += (btn, args) => {
+				Global.CurrentScreen.Children.Remove(this);
+				var game = new GameConsole(180, 60);
+				Global.CurrentScreen.Children.Add(game);
+				game.IsFocused = true;
+			};
+			start.IsFocused = true;
+			Add(start);
+
+			quit = new SadConsole.Controls.Button(10) {
+				Position = new Point(5, 6),
+				Text = "QUIT",
+				Theme = BUTTON_THEME
+			};
+			quit.Click += (btn, args) => {
+				Environment.Exit(0);
+			};
+			Add(quit);
+
+
+			waterLevel = 50;
+
+			timers = new List<Timer> {
+				new Timer(waterLineInterval, () => {
+					waterLines.Add(new Point2(0, waterLevel + Global.Random.Next(waterHeight)));
+				}),
+				new Timer(waterTrailInterval, () => {
+					waterLines.ForEach(line => waterTrails.Add(new WaterTrail(line.x, line.y, waterTrailLifespan)));
+				}),
+				new Timer(planeInterval, () => {
+					planes.Add(new Point2(0, planeLevel + Global.Random.Next(10)));
+				}),
+				new Timer(playerInterval, () => {
+					planes.ForEach(plane => {
+						if (Helper.InRange(plane.x + PLANE.LineLength(), Width/2, 30) && Global.Random.Next(2) < 1)
+							players.Add(plane.clone() + new Point2(8, 1));
+					});
+				}),
+				new Timer(0.05, () => {
+					if(time < landSpawnTime)
+						for(int i = 0; i < 25; i++)
+							land.Add(new Point2(Width/2 + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15), planeLevel));
+				})
+			};
 		}
 		public override void Update(TimeSpan delta) {
 			base.Update(delta);
-			UpdateWater(delta);
-			UpdatePlanes();
-			
-			Clear();
-			PrintWater();
-			PrintTitle();
-		}
-		public void UpdateWater(TimeSpan delta) {
-			waterLineNext -= delta.TotalSeconds;
-			waterTrailNext -= delta.TotalSeconds;
-			while(waterLineNext < 0) {
-				waterLineNext += waterLineInterval;
-				waterLines.Add(new PointD(0, 30 + Global.Random.Next(10)));
-			}
-			while(waterTrailNext < 0) {
-				waterTrailNext += 1.0 / waterLineSpeed;
-				waterLines.ForEach(line => waterTrails.Add(new WaterTrail(line.x, line.y, waterTrailLifespan)));
-			}
-			waterLines.ForEach(water => water.x += delta.TotalSeconds * waterLineSpeed);
-			waterTrails.ForEach(water => water.lifetime -= delta.TotalSeconds);
-		}
-		
-		private void UpdatePlanes() {
+			double sec = delta.TotalSeconds;
+			time += sec;
+			timers.ForEach(timer => timer.Update(sec));
 
-		}
-		private void PrintWater() {
+			waterLines.ForEach(line => line.x += sec * waterLineSpeed);
+			waterTrails.ForEach(trail => trail.lifetime -= sec);
+			planes.ForEach(plane => plane.x += sec * planeSpeed);
+			players.ForEach(player => player.y += sec * playerFallSpeed);
+
+
+			//Clear grid for collision checking
+			Array.Clear(landGrid, 0, landGrid.Length);
+			land.ForEach(p => landGrid[p.xi, p.yi] = true);
+
+			//Make the land points fall towards sea level and settle
+			land.ForEach(l => {
+				if(l.yi < waterLevel) {
+					if(!landGrid[l.xi, l.yi+1]) {
+						l.y += sec * landSpeed;
+					}
+				}
+			});
+
+
 			waterLines.RemoveAll(line => line.x > Width - 1);
 			waterTrails.RemoveAll(trail => trail.lifetime < 0);
+			planes.RemoveAll(plane => plane.x + PLANE.LineLength() > Width - 1);
+			players.RemoveAll(player => player.y > waterLevel - 5);
 
-			foreach (var trail in waterTrails) {
-				Print((int)trail.x, (int)trail.y, "=", new Color(Color.Blue, (int) (255 * trail.lifetime / trail.lifespan)));
-			}
-			foreach (var line in waterLines) {
-				Print((int)line.x, (int)line.y, "=", Color.Blue);
-			}
+		}
+		public override void Draw(TimeSpan delta) {
+			Clear();
+			PrintTitle();
+			PrintWater();
+			PrintPlanes();
+			PrintLand();
+			PrintPlayers();
+			base.Draw(delta);
 		}
 		private void PrintTitle() {
 			string title = Properties.Resources.Title;
@@ -138,13 +221,40 @@ namespace IslandHopper {
 			int titleY = 0;
 			this.PrintLines(titleX, titleY, title, Color.Gold);
 		}
-	}
-	class PointD {
-		public double x;
-		public double y;
-		public PointD(double x, double y) {
-			this.x = x;
-			this.y = y;
+		private void PrintWater() {
+
+			foreach (var trail in waterTrails) {
+				Print((int)trail.x, (int)trail.y, "=", new Color(Color.Blue, (int)(255 * trail.lifetime / trail.lifespan)));
+			}
+			foreach (var line in waterLines) {
+				Print((int)line.x, (int)line.y, "=", Color.Blue);
+			}
+		}
+		private void PrintPlanes() {
+			foreach(var p in planes) {
+				Color c = Color.Green;
+				if(p.xi < 10) {
+					c = new Color(c, 255 * p.xi / 10);
+				} else if(p.xi > Width - (10 + PLANE.LineLength())) {
+					c = new Color(c, 255 * (Width - p.xi - PLANE.LineLength()) / 10);
+				}
+				this.PrintLines(p.xi, p.yi, PLANE, c);
+
+			}
+		}
+		private void PrintPlayers() {
+			foreach(var p in players) {
+				if(p.xi > 0) {
+					Color c = Color.White;
+					if(p.yi > waterLevel - 10) {
+						c = new Color(c, 255 * (waterLevel - p.yi) / 10);
+					}
+					this.PrintLines(p.xi, p.yi, PLAYER, c);
+				}
+			}
+		}
+		private void PrintLand() {
+			land.ForEach(l => this.Print(l.xi, l.yi, "=", Color.Green));
 		}
 	}
 	class WaterTrail {
@@ -172,8 +282,25 @@ namespace IslandHopper {
 		}
 		public void Update(double passed) {
 			time -= passed;
-			while(time < 0) {
-				time += interval;
+			if(time < 0) {
+				time = interval;
+				action.Invoke();
+			}
+		}
+	}
+	class RandomTimer {
+		private Action action;
+		Func<double> intervalSource;
+		private double time;
+		public RandomTimer(Func<double> intervalSource, Action action) {
+			this.action = action;
+			this.intervalSource = intervalSource;
+			this.time = intervalSource.Invoke();
+		}
+		public void Update(double passed) {
+			time -= passed;
+			if(time < 0) {
+				time = intervalSource.Invoke();
 				action.Invoke();
 			}
 		}

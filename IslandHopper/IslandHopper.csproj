@@ -41,7 +41,12 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Debug.cs" />
+    <Compile Include="Entity.cs" />
     <Compile Include="Game1.cs" />
+    <Compile Include="GameConsole.cs" />
+    <Compile Include="Grid.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="program-example.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -50,6 +55,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Voxel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">
