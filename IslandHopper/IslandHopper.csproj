@@ -41,8 +41,10 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Constants.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Entity.cs" />
+    <Compile Include="EntityAction.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GameConsole.cs" />
     <Compile Include="Grid.cs" />

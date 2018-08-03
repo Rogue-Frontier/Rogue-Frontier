@@ -55,34 +55,15 @@ namespace IslandHopper {
 			this.z = 0;
 		}
 
-		public static Point3 operator +(Point3 p1, Point3 p2) {
-			return new Point3(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
-		}
-		public static Point3 operator -(Point3 p1, Point3 p2) {
-			return p1 + (-p2);
-		}
-		public static Point3 operator -(Point3 p1) {
-			return new Point3(-p1.x, -p1.y, -p1.z);
-		}
-		public static explicit operator Point(Point3 p) {
-			return new Point(p.xi, p.yi);
-		}
-
-		public Point3 PlusX(double x) {
-			return new Point3(this.x + x, y, z);
-		}
-		public Point3 PlusY(double y) {
-			return new Point3(x, this.y + y, z);
-		}
-		public Point3 PlusZ(double z) {
-			return new Point3(x, y, this.z + z);
-		}
-		public static Point3 operator*(Point3 p, double s) {
-			return new Point3(p.x * s, p.y * s, p.z * s);
-		}
-		public static Point3 operator /(Point3 p, double s) {
-			return new Point3(p.x / s, p.y / s, p.z / s);
-		}
+		public static Point3 operator +(Point3 p1, Point3 p2) => new Point3(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
+		public static Point3 operator -(Point3 p1, Point3 p2) => p1 + (-p2);
+		public static Point3 operator -(Point3 p1) => new Point3(-p1.x, -p1.y, -p1.z);
+		public static explicit operator Point(Point3 p) => new Point(p.xi, p.yi);
+		public Point3 PlusX(double x) => new Point3(this.x + x, y, z);
+		public Point3 PlusY(double y) => new Point3(x, this.y + y, z);
+		public Point3 PlusZ(double z) => new Point3(x, y, this.z + z);
+		public static Point3 operator*(Point3 p, double s) => new Point3(p.x * s, p.y * s, p.z * s);
+		public static Point3 operator /(Point3 p, double s) => new Point3(p.x / s, p.y / s, p.z / s);
 		public double Magnitude() => Math.Sqrt(x * x + y * y + z * z);
 		public Point3 Normal() {
 			double magnitude = Magnitude();
@@ -105,9 +86,9 @@ namespace IslandHopper {
 			this.Height = Height;
 			grid = new T[Width, Height];
 		}
-		public void Clear() {
-			Array.Clear(grid, 0, grid.Length);
-		}
+		public void Clear() => Array.Clear(grid, 0, grid.Length);
+		public T Try(Point p) => InBounds(p) ? this[p] : default(T);
+		public bool InBounds(Point p) => (p.X > -1 && p.X < Width && p.Y > -1 && p.Y < Height);
 	}
 	//	2D array helper; allows multiple items per point and tracks all items globally
 	public class Grid<T> {
@@ -139,16 +120,15 @@ namespace IslandHopper {
 			all.Add(t);
 			Place(locator.Invoke(t), t);
 		}
-		public bool Contains(T t) {
-			return all.Contains(t);
-		}
+		public bool Contains(T t) => all.Contains(t);
 		public void Place(Point p, T t) {
 			if(Initialize(p)) {
 				this[p].Add(t);
 			}
 		}
+		public HashSet<T> Try(Point p) => Initialize(p) ? this[p] : null;
 		private bool Initialize(Point p) {
-			if(p.X > -1 && p.X < Width && p.Y > -1 && p.Y < Height) {
+			if(InBounds(p)) {
 				if (this[p] == null) {
 					this[p] = new HashSet<T>();
 				}
@@ -157,6 +137,7 @@ namespace IslandHopper {
 				return false;
 			}
 		}
+		public bool InBounds(Point p) => (p.X > -1 && p.X < Width && p.Y > -1 && p.Y < Height);
 	}
 	//	3D array wrapper; allows one item per point
 	public class ArraySpace<T> {
@@ -175,9 +156,7 @@ namespace IslandHopper {
 			space = new T[Width, Height, Depth];
 		}
 
-		public void Clear() {
-			Array.Clear(space, 0, space.Length);
-		}
+		public void Clear() => Array.Clear(space, 0, space.Length);
 		public Grid<T> GetGrid(int z) {
 			Grid<T> grid = new Grid<T>(Width, Height, null);
 			for(int x = 0; x < Width; x++) {
@@ -196,6 +175,7 @@ namespace IslandHopper {
 				}
 			}
 		}
+		public T Try(Point3 p) => InBounds(p) ? this[p] : default(T);
 		public bool InBounds(Point3 p) => p.xi > -1 && p.xi < Width && p.yi > -1 && p.yi < Height && p.zi > -1 && p.zi < Depth;
 	}
 	//	3D array helper; allows multiple items per point and tracks all items globally
@@ -238,22 +218,20 @@ namespace IslandHopper {
 			all.ToList().ForEach(t => Place(locator.Invoke(t), t));
 		}
 		public void Place(T t) {
-			all.Add(t);
-			Place(locator.Invoke(t), t);
+			if(all.Add(t))
+				Place(locator.Invoke(t), t);
 		}
-		public bool Contains(T t) {
-			return all.Contains(t);
+		public void Remove(T t) {
+			all.Remove(t);
+			UpdateSpace();
 		}
+		public bool Contains(T t) => all.Contains(t);
 		private void Place(Point3 p, T t) {
 			if (Initialize(p)) {
 				this[p].Add(t);
 			}
 		}
-		public HashSet<T> Get(Point3 p) {
-			if (Initialize(p))
-				return this[p];
-			return null;
-		}
+		public HashSet<T> Try(Point3 p) => Initialize(p) ? this[p] : null;
 		private bool Initialize(Point3 p) {
 			if (InBounds(p)) {
 				if (this[p] == null) {

@@ -43,7 +43,7 @@ Mount
 	
 IDEAS
 	Player can undeploy parachute while falling, likely leading to death
-	
+EASTER EGGS
 -->
 
 
@@ -63,16 +63,6 @@ IDEAS
 	<Gun
 		projectile=				"laser"
 		difficulty=			"none"
-		/>
-</Item>
-<Item
-	name=			"Laser Dart gun"
-	desc=			"This toy gun shoots red plastic rods (dubbed 'Lasers') at a velocity that is not safe for a kids' toy."
-	mass=			"1"
-	>
-	<Gun
-		projectile=			"bullet"
-		difficulty=			"easy"
 		/>
 </Item>
 <Item
@@ -98,6 +88,16 @@ IDEAS
 	name=			"Parashooter"
 	desc=			"This gun-on-a-parachute is designed to let you fight from the air."
 	>
+</Item>
+<Item
+	name=			"Laser Dart gun"
+	desc=			"This toy gun shoots red plastic rods (dubbed 'Lasers') at a velocity that is not safe for a kids' toy."
+	mass=			"1"
+	>
+	<Gun
+		projectile=			"bullet"
+		difficulty=			"easy"
+		/>
 </Item>
 <Item
 	name=			"Passive Pipsqueak Pistol"

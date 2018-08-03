@@ -7,14 +7,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static IslandHopper.Constants;
 
 namespace IslandHopper {
 	
 	class GameConsole : SadConsole.Console {
 		public Space<Entity> entities { get; private set; }		//	3D entity grid used for collision detection
 		public ArraySpace<Voxel> voxels { get; private set; }	//	3D voxel grid used for collision detection
-		public Point3 camera { get; private set; }				//	Point3 representing the location of the center of the screen
+		public Point3 camera { get; set; }				//	Point3 representing the location of the center of the screen
 		public Player player { get; private set; }              //	Player object that controls the game
+		public Stack<GameMenu> controller;
 		public GameConsole(int Width, int Height) : base(Width, Height) {
 			UseKeyboard = true;
 			UseMouse = true;
@@ -37,7 +39,15 @@ namespace IslandHopper {
 			}
 			camera = new Point3(0, 0, 0);
 			player = new Player(this, new Point3(80, 80, 20));
+
+			for(int i = 5; i < 300; i++) {
+				entities.Place(new Gun(this, new Point3(78, 78, 1 + i/30)));
+			}
+			
 			entities.Place(player);
+
+			controller = new Stack<GameMenu>();
+			controller.Push(new PlayerMain(this, player));
 		}
 		public override void Update(TimeSpan delta) {
 			base.Update(delta);
@@ -55,6 +65,9 @@ namespace IslandHopper {
 			}
 
 			entities.all.RemoveWhere(e => !e.IsActive());
+			controller.Peek().Update(delta);
+			while (controller.Peek().Done())
+				controller.Pop();
 		}
 		private int HalfWidth { get => Width / 2; }
 		private int HalfHeight { get => Height / 2; }
@@ -64,7 +77,7 @@ namespace IslandHopper {
 				for(int y = -HalfHeight; y < HalfHeight; y++) {
 					Point3 location = camera + new Point3(x, y, 0);
 					ColoredString s = new ColoredString(" ", new Cell(Color.Transparent, Color.Transparent));
-					if (entities.InBounds(location) && entities.Get(location).Count > 0) {
+					if (entities.InBounds(location) && entities.Try(location).Count > 0) {
 						s = entities[location].ToList()[0].GetSymbolCenter();
 					} else if (voxels.InBounds(location) && !(voxels[location] is Air)) {
 						s = voxels[location].GetCharCenter();
@@ -79,12 +92,44 @@ namespace IslandHopper {
 			}
 			Print(1, 1, "" + player.Position.z, Color.White);
 			Print(1, 2, "" + camera.z, Color.White);
+			controller.Peek().Draw(delta);
 			base.Draw(delta);
 		}
 		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
 			Debug.Print(info.IsKeyDown(Keys.RightShift), "shift");
 			Debug.Print(info.IsKeyPressed(Keys.Up), "up_pressed");
 
+			//For now, we don't let the player stack actions (i.e. they must be idle)
+			if(!player.AllowUpdate()) {
+				controller.Peek().ProcessKeyboard(info);
+			}
+
+			
+
+			return base.ProcessKeyboard(info);
+		}
+	}
+	interface GameMenu {
+		void Update(TimeSpan delta);
+		void Draw(TimeSpan delta);
+		bool Done();
+		void ProcessKeyboard(SadConsole.Input.Keyboard info);
+	}
+	class PlayerMain : GameMenu {
+		GameConsole Console;
+		Player player;
+		public PlayerMain(GameConsole Console, Player player) {
+			this.Console = Console;
+			this.player = player;
+		}
+		public void Update(TimeSpan delta) {
+
+		}
+		public void Draw(TimeSpan delta) {
+			
+		}
+		public bool Done() => false;
+		public void ProcessKeyboard(SadConsole.Input.Keyboard info) {
 			if (info.IsKeyPressed(Keys.Up)) {
 				if (info.IsKeyDown(Keys.RightShift)) {
 					if (player.OnGround()) ;
@@ -92,24 +137,214 @@ namespace IslandHopper {
 				} else {
 					player.Actions.Add(new WalkAction(player, new Point3(0, -1)));
 				}
-			} else if(info.IsKeyPressed(Keys.Down)) {
-				if(info.IsKeyDown(Keys.RightShift)) {
-					if(player.OnGround())
+			} else if (info.IsKeyPressed(Keys.Down)) {
+				if (info.IsKeyDown(Keys.RightShift)) {
+					if (player.OnGround())
 						player.Actions.Add(new Impulse(player, new Point3(0, 0, -2)));
 				} else {
 					player.Actions.Add(new WalkAction(player, new Point3(0, 1)));
 				}
-			} else if(info.IsKeyPressed(Keys.Left)) {
+			} else if (info.IsKeyPressed(Keys.Left)) {
 				player.Actions.Add(new WalkAction(player, new Point3(-1, 0)));
 			} else if (info.IsKeyPressed(Keys.Right)) {
 				player.Actions.Add(new WalkAction(player, new Point3(1, 0)));
-			}
-
-			if (info.IsKeyPressed(Keys.OemPeriod)) {
+			} else if (info.IsKeyPressed(Keys.D)) {
+				Console.controller.Push(new ItemMenu(Console, player, "Select inventory items to drop. Press ESC to finish.", new HashSet<Item>(player.inventory.OfType<Item>()), item => {
+					//Just drop the item for now
+					player.inventory.Remove(item);
+					Console.entities.Place(item);
+					return true;
+				}));
+			} else if (info.IsKeyPressed(Keys.G)) {
+				Console.controller.Push(new ItemMenu(Console, player, "Select items to get. Press ESC to finish.", new HashSet<Item>(Console.entities[player.Position].OfType<Item>()), item => {
+					//Just take the item for now
+					player.inventory.Add(item);
+					Console.entities.Remove(item);
+					return true;
+				}));
+			} else if (info.IsKeyPressed(Keys.I)) {
+				Console.controller.Push(new ItemMenu(Console, player, "Select inventory items to examine. Press ESC to finish.", new HashSet<Item>(player.inventory.OfType<Item>()), item => {
+					//	Later, we might have a chance of identifying the item upon selecting it in the inventory
+					return false;
+				}));
+			} else if(info.IsKeyPressed(Keys.L)) {
+				Console.controller.Push(new LookMenu(Console, player));
+			} else if (info.IsKeyPressed(Keys.OemPeriod)) {
 				Debug.Print("waiting");
-				player.Actions.Add(new WaitAction(30));
+				player.Actions.Add(new WaitAction(STEPS_PER_SECOND));
 			}
-			return base.ProcessKeyboard(info);
 		}
+	}
+
+	class ItemMenu : GameMenu {
+		SadConsole.Console Console;
+		Player Player;
+		string hint;
+		HashSet<Item> Items;
+		Func<Item, bool> select;		//Fires when we select an item. If true, then we remove the item from the selections
+		bool done;
+		int startIndex;
+		public ItemMenu(SadConsole.Console Console, Player Player, string hint, HashSet<Item> Items, Func<Item, bool> select) {
+			this.Console = Console;
+			this.Player = Player;
+			this.hint = hint;
+			this.Items = Items;
+			this.select = select;
+			done = false;
+			startIndex = 0;
+		}
+		public void Update(TimeSpan delta) {
+
+		}
+		public void Draw(TimeSpan delta) {
+			int x = 5;
+			int y = 5;
+			Console.Print(x, y, hint, Color.White, Color.Black);
+			y++;
+			if (Items.Count > 0) {
+				string UP = ((char)24).ToString();
+				string LEFT = ((char)27).ToString();
+				Console.Print(x, y, "    ", background: Color.Black);
+				if (CanScrollUp) {
+					Console.Print(x, y, UP, Color.White, Color.Black);
+					if (CanPageUp)
+						Console.Print(x + 2, y, LEFT, Color.White, Color.Black);
+					Console.Print(x + 4, y, startIndex.ToString(), Color.White, Color.Black);
+				} else {
+					Console.Print(x, y, "-", Color.White, Color.Black);
+				}
+				y++;
+
+				List<Item> list = Items.ToList();
+				for (int i = startIndex; i < startIndex + 26; i++) {
+					if(i < Items.Count) {
+						char binding = (char)('a' + (i - startIndex));
+						Console.Print(x, y, "" + binding, Color.LimeGreen, Color.Transparent);
+						Console.Print(x + 1, y, " ", Color.Black, Color.Black);
+						Console.Print(x + 2, y, list[i].GetSymbolCenter());
+						Console.Print(x + 3, y, " ", Color.Black, Color.Black);
+						Console.Print(x + 4, y, list[i].GetName());
+					} else {
+						Console.Print(x, y, ".", Color.Gray, Color.Black);
+					}
+					y++;
+				}
+
+				string DOWN = ((char)25).ToString();
+				string RIGHT = ((char)26).ToString();
+				Console.Print(x, y, "    ", background: Color.Black);
+				if (CanScrollDown) {
+					Console.Print(x, y, DOWN, Color.White, Color.Black);
+					if (CanPageDown)
+						Console.Print(x + 2, y, RIGHT, Color.White, Color.Black);
+					Console.Print(x + 4, y, ((Items.Count - 26) - startIndex).ToString(), Color.White, Color.Black);
+				} else {
+					Console.Print(x, y, "-", Color.White, Color.Black);
+				}
+				
+				y++;
+			} else {
+				Console.Print(x, y, "There are no items here.", Color.Red, Color.Black);
+			}
+		}
+		private bool CanScrollUp => startIndex > 0;
+		private bool CanPageUp => startIndex - 25 > 0;
+		private bool CanScrollDown => startIndex + 26 < Items.Count;
+		private bool CanPageDown => startIndex + 26 + 25 < Items.Count;
+		public void ProcessKeyboard(SadConsole.Input.Keyboard info) {
+			if (info.IsKeyPressed(Keys.Escape)) {
+				done = true;
+			} else if (info.IsKeyPressed(Keys.Up)) {
+				if (CanScrollUp)
+					startIndex--;
+			} else if (info.IsKeyPressed(Keys.Down)) {
+				if (CanScrollDown)
+					startIndex++;
+			} else if (info.IsKeyPressed(Keys.Left)) {
+				if (CanPageUp)
+					startIndex -= 26;
+				else
+					startIndex = 0;
+			} else if (info.IsKeyPressed(Keys.Right)) {
+				if (CanPageDown)
+					startIndex += 26;
+				else
+					startIndex = Items.Count - 26;
+			} else {
+				//If this key represents an item, then we select it
+				foreach(var k in info.KeysPressed) {
+					var key = k.Key;
+					if(Keys.A <= key && key <= Keys.Z) {
+						//A represents the first displayed item (i.e. the one at startIndex). Z represents the last displayed item (startIndex + 25)
+						int index = (key - Keys.A) + startIndex;
+						if(index < Items.Count) {
+							//Select the item
+							Item taken = Items.ToList()[index];
+							if(select.Invoke(taken)) {
+								Items.Remove(taken);
+
+								//If we're at the bottom of the menu and we're removing an item here, move the list view up so that we don't have empty slots
+								if(Items.Count > 25 && !CanPageDown) {
+									startIndex = Items.Count - 26;
+								}
+							}
+								
+						}
+						break;
+					}
+				}
+			}
+		}
+		public bool Done() => done;
+	}
+	class LookMenu : GameMenu {
+		GameConsole console;
+		Player player;
+		bool done;
+		Timer cursorBlink;
+		bool cursorVisible;
+		readonly ColoredString cursor = new ColoredString("+", Color.Yellow, Color.Black);
+		public LookMenu(GameConsole console, Player player) {
+			this.console = console;
+			this.player = player;
+			done = false;
+			cursorBlink = new Timer(0.4, () => {
+				cursorVisible = !cursorVisible;
+			});
+		}
+
+		public bool Done() => done;
+
+		public void Draw(TimeSpan delta) {
+			if(cursorVisible) {
+				console.Print(console.Width / 2, console.Height / 2, cursor);
+			}
+		}
+
+		public void ProcessKeyboard(SadConsole.Input.Keyboard info) {
+			const int delta = 1;	//Distance moved by camera
+			if (info.IsKeyPressed(Keys.Up)) {
+				if (info.IsKeyDown(Keys.RightShift)) {
+					console.camera += new Point3(0, 0, delta);
+				} else {
+					console.camera += new Point3(0, -delta);
+				}
+			} else if (info.IsKeyPressed(Keys.Down)) {
+				if (info.IsKeyDown(Keys.RightShift)) {
+					console.camera += new Point3(0, 0, -delta);
+				} else {
+					console.camera += new Point3(0, delta);
+				}
+			} else if (info.IsKeyPressed(Keys.Left)) {
+				console.camera += new Point3(-delta, 0);
+			} else if (info.IsKeyPressed(Keys.Right)) {
+				console.camera += new Point3(delta, 0);
+			} else if(info.IsKeyPressed(Keys.Escape)) {
+				console.camera = player.Position;
+				done = true;
+			}
+		}
+
+		public void Update(TimeSpan delta) => cursorBlink.Update(delta.TotalSeconds);
 	}
 }
