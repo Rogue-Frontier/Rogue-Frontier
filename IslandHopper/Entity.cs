@@ -15,6 +15,7 @@ namespace IslandHopper {
 		void UpdateRealtime();				//	For step-independent effects
 		void UpdateStep();					//	The number of steps per one in-game second is defined in Constants as STEPS_PER_SECOND
 		ColoredString GetSymbolCenter();
+		ColoredString GetName();
 	}
 	static class SGravity {
 		public static bool OnGround(this IGravity g) => (g.World.voxels[g.Position] is Floor || g.World.voxels[g.Position.PlusZ(-1)] is Grass);
@@ -77,6 +78,7 @@ namespace IslandHopper {
 
 		public readonly ColoredString symbol = new ColoredString("@", Color.White, Color.Transparent);
 		public ColoredString GetSymbolCenter() => symbol;
+		public ColoredString GetName() => new ColoredString("Player", Color.White, Color.Black);
 	}
 	class Parachute : Entity {
 		public Entity user { get; private set; }
@@ -99,17 +101,20 @@ namespace IslandHopper {
 		}
 		public readonly ColoredString symbol = new ColoredString("*", Color.White, Color.Transparent);
 		public ColoredString GetSymbolCenter() => symbol;
+		public ColoredString GetName() => new ColoredString("Parachute", Color.White, Color.Black);
 	}
-
 	interface Item : Entity {
-		ColoredString GetName();
+		Gun AsGun();
 	}
-	class Gun : Item, IGravity {
+	interface Gun {
+
+	}
+	class Gun1 : Item, Gun, IGravity {
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
 		public GameConsole World { get; set; }
 
-		public Gun(GameConsole World, Point3 Position) {
+		public Gun1(GameConsole World, Point3 Position) {
 			this.World = World;
 			this.Position = Position;
 			this.Velocity = new Point3();
@@ -127,6 +132,8 @@ namespace IslandHopper {
 
 		public ColoredString GetName() => new ColoredString("Gun", new Cell(Color.Gray, Color.Transparent));
 		public ColoredString GetSymbolCenter() => new ColoredString("r", new Cell(Color.Gray, Color.Transparent));
+
+		public Gun AsGun() => this;
 	}
 
 	/*

@@ -58,6 +58,7 @@ namespace IslandHopper {
 		public static Point3 operator +(Point3 p1, Point3 p2) => new Point3(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
 		public static Point3 operator -(Point3 p1, Point3 p2) => p1 + (-p2);
 		public static Point3 operator -(Point3 p1) => new Point3(-p1.x, -p1.y, -p1.z);
+
 		public static explicit operator Point(Point3 p) => new Point(p.xi, p.yi);
 		public Point3 PlusX(double x) => new Point3(this.x + x, y, z);
 		public Point3 PlusY(double y) => new Point3(x, this.y + y, z);

@@ -41,7 +41,7 @@ namespace IslandHopper {
 			player = new Player(this, new Point3(80, 80, 20));
 
 			for(int i = 5; i < 300; i++) {
-				entities.Place(new Gun(this, new Point3(78, 78, 1 + i/30)));
+				entities.Place(new Gun1(this, new Point3(78, 78, 1 + i/30)));
 			}
 			
 			entities.Place(player);
@@ -66,7 +66,7 @@ namespace IslandHopper {
 
 			entities.all.RemoveWhere(e => !e.IsActive());
 			controller.Peek().Update(delta);
-			while (controller.Peek().Done())
+			while (controller.Peek().Done)
 				controller.Pop();
 		}
 		private int HalfWidth { get => Width / 2; }
@@ -110,9 +110,10 @@ namespace IslandHopper {
 		}
 	}
 	interface GameMenu {
+		bool Done { get; }
 		void Update(TimeSpan delta);
 		void Draw(TimeSpan delta);
-		bool Done();
+		
 		void ProcessKeyboard(SadConsole.Input.Keyboard info);
 	}
 	class PlayerMain : GameMenu {
@@ -128,7 +129,7 @@ namespace IslandHopper {
 		public void Draw(TimeSpan delta) {
 			
 		}
-		public bool Done() => false;
+		public bool Done => false;
 		public void ProcessKeyboard(SadConsole.Input.Keyboard info) {
 			if (info.IsKeyPressed(Keys.Up)) {
 				if (info.IsKeyDown(Keys.RightShift)) {
@@ -149,21 +150,21 @@ namespace IslandHopper {
 			} else if (info.IsKeyPressed(Keys.Right)) {
 				player.Actions.Add(new WalkAction(player, new Point3(1, 0)));
 			} else if (info.IsKeyPressed(Keys.D)) {
-				Console.controller.Push(new ItemMenu(Console, player, "Select inventory items to drop. Press ESC to finish.", new HashSet<Item>(player.inventory.OfType<Item>()), item => {
+				Console.controller.Push(new ListMenu<Item>(Console, "Select inventory items to drop. Press ESC to finish.", player.inventory.OfType<Item>().Select(Item => new ListItem(Item)), item => {
 					//Just drop the item for now
 					player.inventory.Remove(item);
 					Console.entities.Place(item);
 					return true;
 				}));
 			} else if (info.IsKeyPressed(Keys.G)) {
-				Console.controller.Push(new ItemMenu(Console, player, "Select items to get. Press ESC to finish.", new HashSet<Item>(Console.entities[player.Position].OfType<Item>()), item => {
+				Console.controller.Push(new ListMenu<Item>(Console, "Select items to get. Press ESC to finish.", Console.entities[player.Position].OfType<Item>().Select(Item => new ListItem(Item)), item => {
 					//Just take the item for now
 					player.inventory.Add(item);
 					Console.entities.Remove(item);
 					return true;
 				}));
 			} else if (info.IsKeyPressed(Keys.I)) {
-				Console.controller.Push(new ItemMenu(Console, player, "Select inventory items to examine. Press ESC to finish.", new HashSet<Item>(player.inventory.OfType<Item>()), item => {
+				Console.controller.Push(new ListMenu<Item>(Console, "Select inventory items to examine. Press ESC to finish.", player.inventory.OfType<Item>().Select(Item => new ListItem(Item)), item => {
 					//	Later, we might have a chance of identifying the item upon selecting it in the inventory
 					return false;
 				}));
@@ -175,22 +176,43 @@ namespace IslandHopper {
 			}
 		}
 	}
-
-	class ItemMenu : GameMenu {
+	interface ListChoice<T> {
+		T Value { get; }
+		ColoredString GetSymbolCenter();
+		ColoredString GetName();
+	}
+	class ListItem : ListChoice<Item> {
+		public Item Value { get; }
+		public ListItem(Item Value) {
+			this.Value = Value;
+		}
+		public ColoredString GetSymbolCenter() => Value.GetSymbolCenter();
+		public ColoredString GetName() => Value.GetName();
+	}
+	class ListEntity : ListChoice<Entity> {
+		public Entity Value { get; }
+		public ListEntity(Entity Value) {
+			this.Value = Value;
+		}
+		public ColoredString GetSymbolCenter() => Value.GetSymbolCenter();
+		public ColoredString GetName() => Value.GetName();
+	}
+	class ListMenu<T> : GameMenu {
 		SadConsole.Console Console;
-		Player Player;
 		string hint;
-		HashSet<Item> Items;
-		Func<Item, bool> select;		//Fires when we select an item. If true, then we remove the item from the selections
-		bool done;
+		HashSet<ListChoice<T>> Choices;
+		Func<T, bool> select;		//Fires when we select an item. If true, then we remove the item from the selections
+		public bool Done { get; private set; }
 		int startIndex;
-		public ItemMenu(SadConsole.Console Console, Player Player, string hint, HashSet<Item> Items, Func<Item, bool> select) {
+		public static ListMenu<Item> itemSelector(SadConsole.Console Console, string hint, IEnumerable<Item> Items, Func<Item, bool> select) {
+			return new ListMenu<Item>(Console, hint, Items.Select(item => new ListItem(item)), select);
+		}
+		public ListMenu(SadConsole.Console Console, string hint, IEnumerable<ListChoice<T>> Choices, Func<T, bool> select) {
 			this.Console = Console;
-			this.Player = Player;
 			this.hint = hint;
-			this.Items = Items;
+			this.Choices = new HashSet<ListChoice<T>>(Choices);
 			this.select = select;
-			done = false;
+			Done = false;
 			startIndex = 0;
 		}
 		public void Update(TimeSpan delta) {
@@ -201,7 +223,7 @@ namespace IslandHopper {
 			int y = 5;
 			Console.Print(x, y, hint, Color.White, Color.Black);
 			y++;
-			if (Items.Count > 0) {
+			if (Choices.Count > 0) {
 				string UP = ((char)24).ToString();
 				string LEFT = ((char)27).ToString();
 				Console.Print(x, y, "    ", background: Color.Black);
@@ -215,9 +237,9 @@ namespace IslandHopper {
 				}
 				y++;
 
-				List<Item> list = Items.ToList();
+				List<ListChoice<T>> list = Choices.ToList();
 				for (int i = startIndex; i < startIndex + 26; i++) {
-					if(i < Items.Count) {
+					if(i < Choices.Count) {
 						char binding = (char)('a' + (i - startIndex));
 						Console.Print(x, y, "" + binding, Color.LimeGreen, Color.Transparent);
 						Console.Print(x + 1, y, " ", Color.Black, Color.Black);
@@ -237,24 +259,29 @@ namespace IslandHopper {
 					Console.Print(x, y, DOWN, Color.White, Color.Black);
 					if (CanPageDown)
 						Console.Print(x + 2, y, RIGHT, Color.White, Color.Black);
-					Console.Print(x + 4, y, ((Items.Count - 26) - startIndex).ToString(), Color.White, Color.Black);
+					Console.Print(x + 4, y, ((Choices.Count - 26) - startIndex).ToString(), Color.White, Color.Black);
 				} else {
 					Console.Print(x, y, "-", Color.White, Color.Black);
 				}
 				
 				y++;
 			} else {
-				Console.Print(x, y, "There are no items here.", Color.Red, Color.Black);
+				Console.Print(x, y, "There is nothing here.", Color.Red, Color.Black);
 			}
 		}
 		private bool CanScrollUp => startIndex > 0;
 		private bool CanPageUp => startIndex - 25 > 0;
-		private bool CanScrollDown => startIndex + 26 < Items.Count;
-		private bool CanPageDown => startIndex + 26 + 25 < Items.Count;
+		private bool CanScrollDown => startIndex + 26 < Choices.Count;
+		private bool CanPageDown => startIndex + 26 + 25 < Choices.Count;
 		public void ProcessKeyboard(SadConsole.Input.Keyboard info) {
 			if (info.IsKeyPressed(Keys.Escape)) {
-				done = true;
-			} else if (info.IsKeyPressed(Keys.Up)) {
+				Done = true;
+			} else {
+				ListControls(info);
+			}
+		}
+		public void ListControls(SadConsole.Input.Keyboard info) {
+			if (info.IsKeyPressed(Keys.Up)) {
 				if (CanScrollUp)
 					startIndex--;
 			} else if (info.IsKeyPressed(Keys.Down)) {
@@ -269,82 +296,177 @@ namespace IslandHopper {
 				if (CanPageDown)
 					startIndex += 26;
 				else
-					startIndex = Items.Count - 26;
+					startIndex = Choices.Count - 26;
 			} else {
 				//If this key represents an item, then we select it
-				foreach(var k in info.KeysPressed) {
+				foreach (var k in info.KeysPressed) {
 					var key = k.Key;
-					if(Keys.A <= key && key <= Keys.Z) {
+					if (Keys.A <= key && key <= Keys.Z) {
 						//A represents the first displayed item (i.e. the one at startIndex). Z represents the last displayed item (startIndex + 25)
 						int index = (key - Keys.A) + startIndex;
-						if(index < Items.Count) {
+						if (index < Choices.Count) {
 							//Select the item
-							Item taken = Items.ToList()[index];
-							if(select.Invoke(taken)) {
-								Items.Remove(taken);
+							ListChoice<T> selected = Choices.ToList()[index];
+							if (select.Invoke(selected.Value)) {
+								Choices.Remove(selected);
 
 								//If we're at the bottom of the menu and we're removing an item here, move the list view up so that we don't have empty slots
-								if(Items.Count > 25 && !CanPageDown) {
-									startIndex = Items.Count - 26;
+								if (Choices.Count > 25 && !CanPageDown) {
+									startIndex = Choices.Count - 26;
 								}
 							}
-								
+
 						}
 						break;
 					}
 				}
 			}
 		}
-		public bool Done() => done;
 	}
 	class LookMenu : GameMenu {
 		GameConsole console;
 		Player player;
-		bool done;
+		string hint;
+		Func<Entity, bool> select;
+
+		public bool Done { get; private set; }
 		Timer cursorBlink;
 		bool cursorVisible;
-		readonly ColoredString cursor = new ColoredString("+", Color.Yellow, Color.Black);
+
+		ListMenu<Entity> examineMenu;
+
+		readonly ColoredString cursor = new ColoredString("?", Color.Yellow, Color.Black);
 		public LookMenu(GameConsole console, Player player) {
 			this.console = console;
 			this.player = player;
-			done = false;
+			this.hint = "Select an entity to examine";
+			this.select = e => false;
+
+			Done = false;
 			cursorBlink = new Timer(0.4, () => {
 				cursorVisible = !cursorVisible;
 			});
+			UpdateExamine();
 		}
-
-		public bool Done() => done;
+		public LookMenu(GameConsole console, Player player, string hint, Func<Entity, bool> select) {
+			this.console = console;
+			this.player = player;
+			this.hint = hint;
+			this.select = select;
+			Done = false;
+			cursorBlink = new Timer(0.4, () => {
+				cursorVisible = !cursorVisible;
+			});
+			UpdateExamine();
+		}
 
 		public void Draw(TimeSpan delta) {
 			if(cursorVisible) {
 				console.Print(console.Width / 2, console.Height / 2, cursor);
 			}
+			examineMenu.Draw(delta);
 		}
 
 		public void ProcessKeyboard(SadConsole.Input.Keyboard info) {
 			const int delta = 1;	//Distance moved by camera
-			if (info.IsKeyPressed(Keys.Up)) {
+			if(info.IsKeyDown(Keys.RightControl)) {
+				examineMenu.ListControls(info);
+			} else if (info.IsKeyPressed(Keys.Up)) {
 				if (info.IsKeyDown(Keys.RightShift)) {
 					console.camera += new Point3(0, 0, delta);
 				} else {
 					console.camera += new Point3(0, -delta);
 				}
+				UpdateExamine();
 			} else if (info.IsKeyPressed(Keys.Down)) {
 				if (info.IsKeyDown(Keys.RightShift)) {
 					console.camera += new Point3(0, 0, -delta);
 				} else {
 					console.camera += new Point3(0, delta);
 				}
+				UpdateExamine();
 			} else if (info.IsKeyPressed(Keys.Left)) {
 				console.camera += new Point3(-delta, 0);
+				UpdateExamine();
 			} else if (info.IsKeyPressed(Keys.Right)) {
 				console.camera += new Point3(delta, 0);
-			} else if(info.IsKeyPressed(Keys.Escape)) {
+				UpdateExamine();
+			} else if (info.IsKeyPressed(Keys.Escape)) {
 				console.camera = player.Position;
-				done = true;
+				Done = true;
 			}
 		}
 
-		public void Update(TimeSpan delta) => cursorBlink.Update(delta.TotalSeconds);
+		public void Update(TimeSpan delta) {
+			examineMenu.Update(delta);
+			cursorBlink.Update(delta.TotalSeconds);
+		}
+
+		public void UpdateExamine() => examineMenu = new ListMenu<Entity>(console, hint, console.entities[console.camera].Select(e => new ListEntity(e)), select);
+	}
+
+	class AimMenu {
+		//To do: Make a grid of changing accuracy values and let the player navigate around it. The player's current selection influences the delta of other values
+
+		Queue<double> accuracies;
+		SadConsole.Console console;
+		public bool Done { get; private set; }
+
+		Random r = new Random();
+
+		Func<Point3> target;
+
+		//double skill_difficulty_ratio;
+		public AimMenu() {
+			for(int i = 0; i < 10; i++) {
+				accuracies.Enqueue(r.NextDouble() /* r.NextDouble() * skill_difficulty_ratio */);
+			}
+		}
+		public void Update(TimeSpan deltaTime) {
+			accuracies.Enqueue(accuracies.Dequeue());
+
+			for (int i = 0; i < accuracies.Count; i++) {
+				double entry = accuracies.Dequeue();
+
+				//Player's current aim improves or worsens over time based on skill vs difficulty
+
+				double aiming = r.NextDouble() /* r.NextDouble() * skill_difficulty_ratio */;
+				if (aiming < entry) {
+					entry = Math.Max(0, entry - 0.1);
+				} else if (aiming > entry) {
+					entry = Math.Min(1, entry + 0.1);
+				}
+				accuracies.Enqueue(entry);
+			}
+		}
+		public void Draw(TimeSpan deltaTime) {
+			int x = 5;
+			int y = 5;
+			for(int i = 0; i < accuracies.Count; i++) {
+				double entry = accuracies.Dequeue();
+				console.Print(x, y, GetColor(entry));
+				accuracies.Enqueue(entry);
+				y++;
+			}
+		}
+		public static ColoredString GetColor(double accuracy) {
+			if(accuracy < 0.5) {
+				accuracy = accuracy / 0.5;
+				return new ColoredString(" ", Color.Black, new Color(1, (float) accuracy, 0));
+			} else {
+				return new ColoredString(" ", Color.Black, new Color((float) accuracy, 1, 0));
+			}
+		}
+		public void ProcessKeyboard(SadConsole.Input.Keyboard info) {
+			const int delta = 1;    //Distance moved by camera
+			if (info.IsKeyPressed(Keys.Enter)) {
+				Fire();
+			} else if(info.IsKeyPressed(Keys.Escape)) {
+				Done = true;
+			}
+		}
+		private void Fire() {
+			Done = true;
+		}
 	}
 }

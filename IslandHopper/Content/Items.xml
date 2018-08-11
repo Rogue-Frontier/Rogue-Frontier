@@ -111,5 +111,18 @@ EASTER EGGS
 	>
 </Item>
 <Item
+	name=			"Springbow"
+	desc=			"Someone had the great idea of taking a crossbow and replacing the firing mechanism with a spring."
+	>
+</Item>
+<Item
+	name=			"Crossy Bow"
+	desc=			"This crossbow is always ready to shoot an arrow across the road."
+	>
+</Item>
+<Item
 	name=			"Kill switchblade"
 	desc=			"This dagger has a spring-loaded blade that can be fired as a single-use projectile by pressing the red button on the side of the grip."
+	>
+
+</Item>
