@@ -74,6 +74,8 @@ namespace IslandHopper {
 	class TitleConsole : SadConsole.ControlsConsole {
 		private double time = 0;
 
+		private int titleLines;
+
 		private int waterLevel;
 		private const int waterHeight = 10;
 		private const double waterLineInterval = 0.2;
@@ -107,7 +109,7 @@ namespace IslandHopper {
 		List<Point2> land = new List<Point2>();
 		bool[,] landGrid;
 
-		private List<Timer> timers;
+		private List<ITimer> timers;
 
 		private Random Random = Global.Random;
 
@@ -148,37 +150,43 @@ namespace IslandHopper {
 			};
 			Add(quit);
 
-
+			titleLines = 0;
 			waterLevel = 50;
 
-			timers = new List<Timer> {
-				new Timer(waterLineInterval, () => {
-					waterLines.Add(new Point2(0, waterLevel + Global.Random.Next(waterHeight)));
+			timers = new List<ITimer> {
+				new TimerLimited(0.25, () => {
+					titleLines++;
+				}, 25),
+				new TimerLimited(5, () => {
+					timers = new List<ITimer> {
+						new Timer(waterLineInterval, () => {
+							waterLines.Add(new Point2(0, waterLevel + Global.Random.Next(waterHeight)));
+						}),
+						new Timer(waterTrailInterval, () => {
+							waterLines.ForEach(line => waterTrails.Add(new WaterTrail(line.x, line.y, waterTrailLifespan)));
+						}),
+						new Timer(planeInterval, () => {
+							planes.Add(new Point2(0, planeLevel + Global.Random.Next(10)));
+						}),
+						new Timer(playerInterval, () => {
+							planes.ForEach(plane => {
+								if (Helper.InRange(plane.x + PLANE.LineLength(), Width/2, 30) && Global.Random.Next(2) < 1)
+									players.Add(plane.clone() + new Point2(8, 1));
+							});
+						}),
+						new TimerLimited(0.05, () => {
+							for(int i = 0; i < 25; i++)
+								land.Add(new Point2(Width/2 + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15), planeLevel));
+						}, (int) (landSpawnTime / 0.05))
+					};
 				}),
-				new Timer(waterTrailInterval, () => {
-					waterLines.ForEach(line => waterTrails.Add(new WaterTrail(line.x, line.y, waterTrailLifespan)));
-				}),
-				new Timer(planeInterval, () => {
-					planes.Add(new Point2(0, planeLevel + Global.Random.Next(10)));
-				}),
-				new Timer(playerInterval, () => {
-					planes.ForEach(plane => {
-						if (Helper.InRange(plane.x + PLANE.LineLength(), Width/2, 30) && Global.Random.Next(2) < 1)
-							players.Add(plane.clone() + new Point2(8, 1));
-					});
-				}),
-				new Timer(0.05, () => {
-					if(time < landSpawnTime)
-						for(int i = 0; i < 25; i++)
-							land.Add(new Point2(Width/2 + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15), planeLevel));
-				})
 			};
 		}
 		public override void Update(TimeSpan delta) {
 			base.Update(delta);
 			double sec = delta.TotalSeconds;
 			time += sec;
-			timers.ForEach(timer => timer.Update(sec));
+			new List<ITimer>(timers).ForEach(timer => timer.Update(sec));
 
 			waterLines.ForEach(line => line.x += sec * waterLineSpeed);
 			waterTrails.ForEach(trail => trail.lifetime -= sec);
@@ -216,10 +224,18 @@ namespace IslandHopper {
 			base.Draw(delta);
 		}
 		private void PrintTitle() {
-			string title = Properties.Resources.Title;
+			var title = Properties.Resources.Title;
+			title = title.Replace("\r\n", "\n");
+			var lines = title.Split('\n');
+
 			int titleX = Width / 2 - title.LineLength() / 2;
 			int titleY = 0;
-			this.PrintLines(titleX, titleY, title, Color.Gold);
+
+			int end = Math.Min(titleLines, lines.Length);
+			for (int i = 0; i < end; i++) {
+				this.Print(titleX, titleY + i, lines[i], Color.Gold);
+			}
+			//this.PrintLines(titleX, titleY, title, Color.Gold);
 		}
 		private void PrintWater() {
 
@@ -271,7 +287,32 @@ namespace IslandHopper {
 			lifetime -= time;
 		}
 	}
-	class Timer {
+	interface ITimer {
+		void Update(double passed);
+	}
+	class TimerLimited : ITimer {
+		private Action action;
+		private double interval;
+		private double time;
+		private int timesLeft;
+		public TimerLimited(double interval, Action action, int timesLeft = 1) {
+			this.action = action;
+			this.interval = interval;
+			this.time = interval;
+			this.timesLeft = timesLeft;
+		}
+		public void Update(double passed) {
+			if (timesLeft == 0)
+				return;
+			time -= passed;
+			if (time < 0) {
+				action.Invoke();
+				timesLeft--;
+				time = interval;
+			}
+		}
+	}
+	class Timer : ITimer {
 		private Action action;
 		private double interval;
 		private double time;
