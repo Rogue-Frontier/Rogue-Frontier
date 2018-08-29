@@ -42,18 +42,18 @@ namespace IslandHopper {
 		}
 	}
 	interface IGravity {
-		GameConsole World { get; set; }
+		World World { get; set; }
 		Point3 Position { get; set; }
 		Point3 Velocity { get; set; }
 	}
 	class Player : Entity, IGravity {
 		public Point3 Velocity { get; set; }
 		public Point3 Position { get; set; }
-		public GameConsole World { get; set; }
+		public World World { get; set; }
 		public HashSet<EntityAction> Actions { get; private set; }
 		public HashSet<Item> inventory { get; private set; }
 
-		public Player(GameConsole World, Point3 Position) {
+		public Player(World World, Point3 Position) {
 			this.World = World;
 			this.Position = Position;
 			this.Velocity = new Point3(0, 0, 0);
@@ -98,23 +98,33 @@ namespace IslandHopper {
 		public void UpdateStep() {
 			Position = user.Position + new Point3(0, 0, 1);
 			Velocity = user.Velocity;
+
+			Point3 forward = user.Position - Position;
+			Point3 backward = -forward;
+			double speed = forward * user.Velocity;
+			if(speed > 3.8/30) {
+				double deceleration = speed * 0.1;
+
+				user.Velocity += backward * deceleration;
+			}
 		}
 		public readonly ColoredString symbol = new ColoredString("*", Color.White, Color.Transparent);
 		public ColoredString GetSymbolCenter() => symbol;
 		public ColoredString GetName() => new ColoredString("Parachute", Color.White, Color.Black);
 	}
 	interface Item : Entity {
-		Gun AsGun();
+		Gun Gun { get; set; }
 	}
 	interface Gun {
 
 	}
-	class Gun1 : Item, Gun, IGravity {
+	class Gun1 : Item, IGravity {
+		public Gun Gun {get; set;}
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
-		public GameConsole World { get; set; }
+		public World World { get; set; }
 
-		public Gun1(GameConsole World, Point3 Position) {
+		public Gun1(World World, Point3 Position) {
 			this.World = World;
 			this.Position = Position;
 			this.Velocity = new Point3();
@@ -132,8 +142,6 @@ namespace IslandHopper {
 
 		public ColoredString GetName() => new ColoredString("Gun", new Cell(Color.Gray, Color.Transparent));
 		public ColoredString GetSymbolCenter() => new ColoredString("r", new Cell(Color.Gray, Color.Transparent));
-
-		public Gun AsGun() => this;
 	}
 
 	/*

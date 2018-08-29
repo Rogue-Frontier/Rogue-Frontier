@@ -33,9 +33,9 @@ namespace IslandHopper {
 			base.Initialize();
 			//Settings.ToggleFullScreen();
 			// Create your console    
-			var firstConsole = new TitleConsole(240, 64);
-			firstConsole.Position = new Point(0, 0);
-			SadConsole.Global.CurrentScreen.Children.Add(firstConsole);
+			var title = new TitleConsole(240, 64);
+			title.Position = new Point(0, 0);
+			title.Show();
 		}
 
 		/// <summary>
@@ -71,7 +71,7 @@ namespace IslandHopper {
 			base.Draw(gameTime);
 		}
 	}
-	class TitleConsole : SadConsole.ControlsConsole {
+	class TitleConsole : Window {
 		private double time = 0;
 
 		private int titleLines;
@@ -132,10 +132,8 @@ namespace IslandHopper {
 				Theme = BUTTON_THEME
 			};
 			start.Click += (btn, args) => {
-				Global.CurrentScreen.Children.Remove(this);
-				var game = new GameConsole(180, 60);
-				Global.CurrentScreen.Children.Add(game);
-				game.IsFocused = true;
+				Hide();
+				new GameConsole(180, 60).Show(true);
 			};
 			start.IsFocused = true;
 			Add(start);

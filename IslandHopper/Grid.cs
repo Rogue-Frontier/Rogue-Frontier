@@ -58,12 +58,13 @@ namespace IslandHopper {
 		public static Point3 operator +(Point3 p1, Point3 p2) => new Point3(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
 		public static Point3 operator -(Point3 p1, Point3 p2) => p1 + (-p2);
 		public static Point3 operator -(Point3 p1) => new Point3(-p1.x, -p1.y, -p1.z);
+		public static double operator *(Point3 p1, Point3 p2) => (p1.x * p2.x) + (p1.y * p2.y) + (p1.z * p2.z);
 
 		public static explicit operator Point(Point3 p) => new Point(p.xi, p.yi);
 		public Point3 PlusX(double x) => new Point3(this.x + x, y, z);
 		public Point3 PlusY(double y) => new Point3(x, this.y + y, z);
 		public Point3 PlusZ(double z) => new Point3(x, y, this.z + z);
-		public static Point3 operator*(Point3 p, double s) => new Point3(p.x * s, p.y * s, p.z * s);
+		public static Point3 operator *(Point3 p, double s) => new Point3(p.x * s, p.y * s, p.z * s);
 		public static Point3 operator /(Point3 p, double s) => new Point3(p.x / s, p.y / s, p.z / s);
 		public double Magnitude() => Math.Sqrt(x * x + y * y + z * z);
 		public Point3 Normal() {
@@ -155,6 +156,15 @@ namespace IslandHopper {
 			this.Height = Height;
 			this.Depth = Depth;
 			space = new T[Width, Height, Depth];
+		}
+		public ArraySpace(int Width, int Height, int Depth, T fill) : this(Width, Height, Depth) {
+			for(int x = 0; x < Width; x++) {
+				for(int y = 0; y < Height; y++) {
+					for(int z = 0; z < Depth; z++) {
+						this[new Point3(x, y, z)] = fill;
+					}
+				}
+			}
 		}
 
 		public void Clear() => Array.Clear(space, 0, space.Length);

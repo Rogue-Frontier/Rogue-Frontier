@@ -5,6 +5,7 @@ using SadConsole;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Linq;
 
 namespace IslandHopper {
 	public static class Helper {
@@ -56,6 +57,50 @@ namespace IslandHopper {
 			}
 		}
 		public static int Amplitude(this Random random, int amplitude) => random.Next(-amplitude, amplitude);
+
+		public static int ParseInt(this string s, int fallback = 0) {
+			return int.TryParse(s, out int result) ? result : fallback;
+		}
+		public static int ParseIntMin(this string s, int min, int fallback = 0) {
+			return Math.Max(s.ParseInt(fallback), min);
+		}
+		public static int ParseIntMax(this string s, int max, int fallback = 0) {
+			return Math.Min(s.ParseInt(fallback), max);
+		}
+		public static int ParseIntBounded(this string s, int min, int max, int fallback = 0) {
+			return Range(min, s.ParseInt(fallback), max);
+		}
+		public static int Range(int min, int max, int n) {
+			return Math.Min(max, Math.Max(min, n));
+		}
+		public static bool ParseBool(this string s, bool fallback = false) {
+			return s == "true" || fallback;
+		}
+		public static bool? ParseBool(this string s, bool? fallback = null) {
+			switch(s) {
+				case "true":
+					return true;
+				case "false":
+					return false;
+				default:
+					return null;
+			}
+		}
+		/*
+		public static Func<int> ParseIntGenerator(string s) {
+
+		}
+		*/
+		public static TEnum ParseEnum<TEnum>(this XAttribute a, TEnum fallback = default) where TEnum : struct {
+			if(a == null) {
+				return fallback;
+			} else if(Enum.TryParse<TEnum>(a.Value, out TEnum result)) {
+				return result;
+			} else {
+				return fallback;
+			}
+			
+		}
 	}
 }
 
