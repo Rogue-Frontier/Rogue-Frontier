@@ -57,6 +57,15 @@ namespace IslandHopper {
 			}
 		}
 		public static int Amplitude(this Random random, int amplitude) => random.Next(-amplitude, amplitude);
+		public static bool HasElement(this XElement e, string key, out XElement result) {
+			return (result = e.Element(key)) != null;
+		}
+		public static string TryAttribute(this XElement e, string attribute, string fallback = "") {
+			return e.Attribute(attribute)?.Value ?? fallback;
+		}
+		public static int TryAttributeInt(this XElement e, string attribute, int fallback = 0) {
+			return e.TryAttribute(attribute).ParseInt(fallback);
+		}
 
 		public static int ParseInt(this string s, int fallback = 0) {
 			return int.TryParse(s, out int result) ? result : fallback;
@@ -74,8 +83,12 @@ namespace IslandHopper {
 			return Math.Min(max, Math.Max(min, n));
 		}
 		public static bool ParseBool(this string s, bool fallback = false) {
-			return s == "true" || fallback;
+			return s == "true" ? true : s == "false" ? false : fallback;
 		}
+		public static bool TryAttributeBool(this XElement e, string attribute, bool fallback = false) {
+			return e.TryAttribute("attribute").ParseBool(fallback);
+		}
+		/*
 		public static bool? ParseBool(this string s, bool? fallback = null) {
 			switch(s) {
 				case "true":
@@ -86,6 +99,7 @@ namespace IslandHopper {
 					return null;
 			}
 		}
+		*/
 		/*
 		public static Func<int> ParseIntGenerator(string s) {
 
@@ -100,6 +114,26 @@ namespace IslandHopper {
 				return fallback;
 			}
 			
+		}
+		public static TValue TryLookup<TKey, TValue>(this Dictionary<TKey, TValue> d, TKey key, TValue fallback = default) {
+			if(d.ContainsKey(key)) {
+				return d[key];
+			} else {
+				return fallback;
+			}
+		}
+
+		public static int CalcAccuracy(int difficulty, int skill, Random karma) {
+			if(skill > difficulty) {
+				return 100;
+			} else {
+				int miss = difficulty - skill;
+				return 100 - karma.Next(miss);
+			}
+		}
+		//Chance that the shot is blocked by an obstacle
+		public static bool CalcBlocked(int coverage, int accuracy, Random karma) {
+			return karma.Next(coverage) > karma.Next(accuracy);
 		}
 	}
 }
