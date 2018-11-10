@@ -14,6 +14,7 @@ using static IslandHopper.Constants;
 namespace IslandHopper {
 	
 	class World {
+		public Random karma;
 		public Space<Entity> entities { get; set; }     //	3D entity grid used for collision detection
 		public ArraySpace<Voxel> voxels { get; set; }   //	3D voxel grid used for collision detection
 		public Point3 camera { get; set; }              //	Point3 representing the location of the center of the screen
@@ -38,10 +39,12 @@ namespace IslandHopper {
 			Theme.ModalTint = Color.Transparent;
 			System.Console.WriteLine("Width: " + Width);
 			System.Console.WriteLine("Height: " + Height);
-			World = new World();
-			World.entities = new Space<Entity>(100, 100, 30, e => e.Position);
-			World.voxels = new ArraySpace<Voxel>(100, 100, 30, new Air());
-			World.camera = new Point3(0, 0, 0);
+			World = new World() {
+				karma = new Random(0),
+				entities = new Space<Entity>(100, 100, 30, e => e.Position),
+				voxels = new ArraySpace<Voxel>(100, 100, 30, new Air()),
+				camera = new Point3(0, 0, 0)
+			};
 			World.player = new Player(World, new Point3(80, 80, 20));
 
 			for (int x = 0; x < World.voxels.Width; x++) {
@@ -73,7 +76,7 @@ namespace IslandHopper {
 					Point3 location = World.camera + new Point3(x, y, 0);
 					ColoredString s = new ColoredString(" ", new Cell(Color.Transparent, Color.Transparent));
 					if (World.entities.InBounds(location) && World.entities.Try(location).Count > 0) {
-						s = World.entities[location].ToList()[0].GetSymbolCenter();
+						s = World.entities[location].ToList()[0].SymbolCenter;
 					} else if (World.voxels.InBounds(location) && !(World.voxels[location] is Air)) {
 						s = World.voxels[location].GetCharCenter();
 					} else {
@@ -130,7 +133,7 @@ namespace IslandHopper {
 				//System.Console.WriteLine("not updating");
 			}
 
-			World.entities.all.RemoveWhere(e => !e.IsActive());
+			World.entities.all.RemoveWhere(e => !e.Active);
 		}
 		public override void Draw(TimeSpan delta) {
 			base.Draw(delta);
@@ -156,21 +159,21 @@ namespace IslandHopper {
 			} else if (info.IsKeyPressed(Keys.Right)) {
 				World.player.Actions.Add(new WalkAction(World.player, new Point3(1, 0)));
 			} else if (info.IsKeyPressed(Keys.D)) {
-				new ListMenu<Item>(Width, Height, "Select inventory items to drop. Press ESC to finish.", World.player.inventory.OfType<Item>().Select(Item => new ListItem(Item)), item => {
+				new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", World.player.inventory.OfType<IItem>().Select(Item => new ListItem(Item)), item => {
 					//Just drop the item for now
 					World.player.inventory.Remove(item);
 					World.entities.Place(item);
 					return true;
 				}).Show(true);
 			} else if (info.IsKeyPressed(Keys.G)) {
-				new ListMenu<Item>(Width, Height, "Select items to get. Press ESC to finish.", World.entities[World.player.Position].OfType<Item>().Select(Item => new ListItem(Item)), item => {
+				new ListMenu<IItem>(Width, Height, "Select items to get. Press ESC to finish.", World.entities[World.player.Position].OfType<IItem>().Select(Item => new ListItem(Item)), item => {
 					//Just take the item for now
 					World.player.inventory.Add(item);
 					World.entities.Remove(item);
 					return true;
 				}).Show(true);
 			} else if (info.IsKeyPressed(Keys.I)) {
-				new ListMenu<Item>(Width, Height, "Select inventory items to examine. Press ESC to finish.", World.player.inventory.OfType<Item>().Select(Item => new ListItem(Item)), item => {
+				new ListMenu<IItem>(Width, Height, "Select inventory items to examine. Press ESC to finish.", World.player.inventory.OfType<IItem>().Select(Item => new ListItem(Item)), item => {
 					//	Later, we might have a chance of identifying the item upon selecting it in the inventory
 					return false;
 				}).Show(true);
@@ -188,29 +191,29 @@ namespace IslandHopper {
 		ColoredString GetSymbolCenter();
 		ColoredString GetName();
 	}
-	class ListItem : ListChoice<Item> {
-		public Item Value { get; }
-		public ListItem(Item Value) {
+	class ListItem : ListChoice<IItem> {
+		public IItem Value { get; }
+		public ListItem(IItem Value) {
 			this.Value = Value;
 		}
-		public ColoredString GetSymbolCenter() => Value.GetSymbolCenter();
-		public ColoredString GetName() => Value.GetName();
+		public ColoredString GetSymbolCenter() => Value.SymbolCenter;
+		public ColoredString GetName() => Value.Name;
 	}
 	class ListEntity : ListChoice<Entity> {
 		public Entity Value { get; }
 		public ListEntity(Entity Value) {
 			this.Value = Value;
 		}
-		public ColoredString GetSymbolCenter() => Value.GetSymbolCenter();
-		public ColoredString GetName() => Value.GetName();
+		public ColoredString GetSymbolCenter() => Value.SymbolCenter;
+		public ColoredString GetName() => Value.Name;
 	}
 	class ListMenu<T> : Window {
 		string hint;
 		HashSet<ListChoice<T>> Choices;
 		Func<T, bool> select;		//Fires when we select an item. If true, then we remove the item from the selections
 		int startIndex;
-		public static ListMenu<Item> itemSelector(int Width, int Height, string hint, IEnumerable<Item> Items, Func<Item, bool> select) {
-			return new ListMenu<Item>(Width, Height, hint, Items.Select(item => new ListItem(item)), select);
+		public static ListMenu<IItem> itemSelector(int Width, int Height, string hint, IEnumerable<IItem> Items, Func<IItem, bool> select) {
+			return new ListMenu<IItem>(Width, Height, hint, Items.Select(item => new ListItem(item)), select);
 		}
 		public ListMenu(int Width, int Height, string hint, IEnumerable<ListChoice<T>> Choices, Func<T, bool> select) : base(Width, Height) {
 			this.hint = hint;

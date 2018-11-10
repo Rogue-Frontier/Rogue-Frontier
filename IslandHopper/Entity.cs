@@ -11,11 +11,11 @@ namespace IslandHopper {
 	interface Entity {
 		Point3 Position { get; set; }
 		Point3 Velocity { get; set; }
-		bool IsActive();					//	When this is inactive, we remove it
+		bool Active { get; }					//	When this is inactive, we remove it
 		void UpdateRealtime();				//	For step-independent effects
 		void UpdateStep();					//	The number of steps per one in-game second is defined in Constants as STEPS_PER_SECOND
-		ColoredString GetSymbolCenter();
-		ColoredString GetName();
+		ColoredString SymbolCenter { get; }
+		ColoredString Name { get; }
 	}
 	static class SGravity {
 		public static bool OnGround(this IGravity g) => (g.World.voxels[g.Position] is Floor || g.World.voxels[g.Position.PlusZ(-1)] is Grass);
@@ -51,17 +51,17 @@ namespace IslandHopper {
 		public Point3 Position { get; set; }
 		public World World { get; set; }
 		public HashSet<EntityAction> Actions { get; private set; }
-		public HashSet<Item> inventory { get; private set; }
+		public HashSet<IItem> inventory { get; private set; }
 
 		public Player(World World, Point3 Position) {
 			this.World = World;
 			this.Position = Position;
 			this.Velocity = new Point3(0, 0, 0);
 			Actions = new HashSet<EntityAction>();
-			inventory = new HashSet<Item>();
+			inventory = new HashSet<IItem>();
 		}
 		public bool AllowUpdate() => Actions.Count > 0;
-		public bool IsActive() => true;
+		public bool Active => true;
 		public void UpdateRealtime() {
 
 		}
@@ -75,10 +75,9 @@ namespace IslandHopper {
 				i.Velocity = Velocity;
 			}
 		}
-
-		public readonly ColoredString symbol = new ColoredString("@", Color.White, Color.Transparent);
-		public ColoredString GetSymbolCenter() => symbol;
-		public ColoredString GetName() => new ColoredString("Player", Color.White, Color.Black);
+		
+		public ColoredString SymbolCenter => new ColoredString("@", Color.White, Color.Transparent);
+		public ColoredString Name => new ColoredString("Player", Color.White, Color.Black);
 	}
 	class Parachute : Entity {
 		public Entity user { get; private set; }
@@ -90,8 +89,6 @@ namespace IslandHopper {
 			this.Position = user.Position + new Point3(0, 0, 1);
 			this.Velocity = user.Velocity;
 		}
-
-		public bool IsActive() => Active;
 
 		public void UpdateRealtime() {}
 
@@ -109,20 +106,37 @@ namespace IslandHopper {
 			}
 		}
 		public readonly ColoredString symbol = new ColoredString("*", Color.White, Color.Transparent);
-		public ColoredString GetSymbolCenter() => symbol;
-		public ColoredString GetName() => new ColoredString("Parachute", Color.White, Color.Black);
+		public ColoredString SymbolCenter => symbol;
+		public ColoredString Name => new ColoredString("Parachute", Color.White, Color.Black);
 	}
-	interface Item : Entity {
+	interface IItem : Entity {
 		Gun Gun { get; set; }
 	}
 	interface Gun {
 
 	}
-	class Gun1 : Item, IGravity {
-		public Gun Gun {get; set;}
+	class Item : IItem, IGravity {
+		public World World { get; set; }
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
+
+		public Gun Gun { get; set; }
+
+		public ColoredString SymbolCenter => throw new NotImplementedException();
+
+		public ColoredString Name => throw new NotImplementedException();
+
+		public bool Active => true;
+		public void UpdateRealtime() {}
+		public void UpdateStep() {}
+	}
+
+	class Gun1 : IItem, IGravity {
 		public World World { get; set; }
+		public Point3 Position { get; set; }
+		public Point3 Velocity { get; set; }
+
+		public Gun Gun { get; set; }
 
 		public Gun1(World World, Point3 Position) {
 			this.World = World;
@@ -130,7 +144,7 @@ namespace IslandHopper {
 			this.Velocity = new Point3();
 		}
 
-		public bool IsActive() => true;
+		public bool Active => true;
 
 		public void UpdateRealtime() { }
 
@@ -140,8 +154,8 @@ namespace IslandHopper {
 		}
 
 
-		public ColoredString GetName() => new ColoredString("Gun", new Cell(Color.Gray, Color.Transparent));
-		public ColoredString GetSymbolCenter() => new ColoredString("r", new Cell(Color.Gray, Color.Transparent));
+		public ColoredString Name => new ColoredString("Gun", new Cell(Color.Gray, Color.Transparent));
+		public ColoredString SymbolCenter => new ColoredString("r", new Cell(Color.Gray, Color.Transparent));
 	}
 
 	/*

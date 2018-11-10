@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace IslandHopper {
+	static class Parse {
+		static int ParseInt(string s, int fallback) {
+			return String.IsNullOrWhiteSpace(s) ? fallback : int.TryParse(s, out int result) ? result : fallback;
+		}
+	}
 	class ItemType {
 		string name, desc;
 		int mass;
@@ -15,17 +20,18 @@ namespace IslandHopper {
 		Identity identity;
 		GunType gun;
 		public ItemType(XElement e) {
-			name = e.Attribute("name")?.Value ?? "[name]";
-			desc = e.Attribute("desc")?.Value ?? "[desc]";
-			mass = e.Attribute("mass")?.Value.ParseInt() ?? 0;
-			explosive = e.Attribute("explosive")?.Value.ParseBool(false) ?? false;
+			name = e.TryAttribute("name", "[name]");
+			desc = e.TryAttribute("desc", "[desc]");
+			mass = e.TryAttributeInt("mass", 0);
+			explosive = e.TryAttributeBool("explosive", false);
 			identity = new Identity(e);
-			if(e.Element("gun") is var g && g != null) {
+			if(e.HasElement("gun", out XElement g)) {
 				gun = new GunType(g);
 			}
 		}
 		class Identity {
 			int knownChance;
+			string unknownType;
 			public Identity(XElement e) {
 				switch(e.Attribute("known")?.Value) {
 					case "true":
@@ -47,43 +53,48 @@ namespace IslandHopper {
 						knownChance = 0;
 						break;
 				}
+				unknownType = e.TryAttribute("unknownType");
 			}
 		}
 		class GunType {
 			enum ProjectileType {
 				beam, bullet
 			}
-			enum Difficulty {
-				none = 0,
-				easy = 20,
-				medium = 40,
-				hard = 60,
-				expert = 80
-			}
+			Dictionary<string, int> difficultyMap = new Dictionary<string, int> {
+				{ "none", 0 },
+				{ "easy", 20 },
+				{ "medium", 40 },
+				{ "hard", 60 },
+				{ "expert", 80 },
+				{ "master", 100 },
+			};
 			ProjectileType projectile;
 			int recoil;
 			int difficulty;
-			int noise;
+			int noiseRange;
+			int damage;
+			int speed;
+
 			public GunType(XElement e) {
-				if(!Enum.TryParse(e.Attribute("projectile")?.Value ?? "", out projectile)) {
+				if(!Enum.TryParse(e.TryAttribute("projectile"), out projectile)) {
 					projectile = ProjectileType.bullet;
 				}
-				recoil = e.Attribute("recoil")?.Value.ParseInt() ?? 0;
-				if(Enum.TryParse(e.Attribute("difficulty")?.Value ?? "", out Difficulty d)) {
-					difficulty = (int) d;
-				}
-				noise = e.Attribute("noise")?.Value.ParseInt() ?? 0;
+				recoil = e.TryAttributeInt("recoil", 0);
+				difficulty = difficultyMap.TryLookup(e.TryAttribute("difficulty"), 0);
+				noiseRange = e.TryAttributeInt("noise", 0);
+				damage = e.TryAttributeInt("damage", 0);
+				speed = e.TryAttributeInt("speed", 0);
 			}
 		}
 		class Symbol {
 			private string c;
 			private Color background, foreground;
 			public Symbol(XElement e) {
-				c = e.Attribute("char")?.Value ?? "?";
-				background = (Color)typeof(Color).GetProperty(e.Attribute("background")?.Value ?? "").GetValue(null, null);
-				foreground = (Color)typeof(Color).GetProperty(e.Attribute("foreground")?.Value ?? "").GetValue(null, null);
+				c = e.TryAttribute("char", "?");
+				background = (Color)typeof(Color).GetProperty(e.TryAttribute("background", "black")).GetValue(null, null);
+				foreground = (Color)typeof(Color).GetProperty(e.TryAttribute("foreground", "red")).GetValue(null, null);
 			}
-			public ColoredString ToColored() => new ColoredString(c, background, foreground);
+			public ColoredString String => new ColoredString(c, background, foreground);
 		}
 	}
 }
