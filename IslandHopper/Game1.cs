@@ -169,7 +169,7 @@ namespace IslandHopper {
 						new Timer(playerInterval, () => {
 							planes.ForEach(plane => {
 								if (Helper.InRange(plane.x + PLANE.LineLength(), Width/2, 30) && Global.Random.Next(2) < 1)
-									players.Add(plane.clone() + new Point2(8, 1));
+									players.Add(plane.clone + new Point2(8, 1));
 							});
 						}),
 						new TimerLimited(0.05, () => {
@@ -181,9 +181,13 @@ namespace IslandHopper {
 			};
 		}
 		public override void Update(TimeSpan delta) {
+
 			base.Update(delta);
 			double sec = delta.TotalSeconds;
 			time += sec;
+			if(time < 10) {
+				return;
+			}
 			new List<ITimer>(timers).ForEach(timer => timer.Update(sec));
 
 			waterLines.ForEach(line => line.x += sec * waterLineSpeed);

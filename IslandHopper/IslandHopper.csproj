@@ -51,6 +51,7 @@
     <Compile Include="GameConsole.cs" />
     <Compile Include="Grid.cs" />
     <Compile Include="Helper.cs" />
+    <Compile Include="Item.cs" />
     <Compile Include="program-example.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

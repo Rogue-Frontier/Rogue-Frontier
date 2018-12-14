@@ -24,14 +24,14 @@ namespace IslandHopper {
 			if (g.Velocity.z < 0 && g.OnGround()) {
 				g.Velocity.z = 0;
 			} else {
-				System.Console.WriteLine("fall");
+				Debug.Print("fall");
 				g.Velocity += new Point3(0, 0, -9.8 / STEPS_PER_SECOND);
 			}
 		}
 		public static void UpdateMotion(this IGravity g) {
-			Point3 normal = g.Velocity.Normal();
+			Point3 normal = g.Velocity.Normal;
 			Point3 dest = g.Position;
-			for (Point3 p = g.Position + normal; (g.Position - p).Magnitude() < g.Velocity.Magnitude(); p += normal) {
+			for (Point3 p = g.Position + normal; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += normal) {
 				if (g.World.voxels[p] is Air) {
 					dest = p;
 				} else {
@@ -53,17 +53,22 @@ namespace IslandHopper {
 		public HashSet<EntityAction> Actions { get; private set; }
 		public HashSet<IItem> inventory { get; private set; }
 
+		public int frameCounter = 0;
+
 		public Player(World World, Point3 Position) {
 			this.World = World;
 			this.Position = Position;
 			this.Velocity = new Point3(0, 0, 0);
 			Actions = new HashSet<EntityAction>();
 			inventory = new HashSet<IItem>();
+
+			World.AddEntity(new Parachute(this));
 		}
-		public bool AllowUpdate() => Actions.Count > 0;
+		public bool AllowUpdate() => Actions.Count > 0 && frameCounter == 0;
 		public bool Active => true;
 		public void UpdateRealtime() {
-
+			if(frameCounter > 0)
+				frameCounter--;
 		}
 		public void UpdateStep() {
 			this.UpdateGravity();
@@ -74,88 +79,12 @@ namespace IslandHopper {
 				i.Position = Position;
 				i.Velocity = Velocity;
 			}
+			if(!this.OnGround())
+				frameCounter = 20;
 		}
 		
 		public ColoredString SymbolCenter => new ColoredString("@", Color.White, Color.Transparent);
 		public ColoredString Name => new ColoredString("Player", Color.White, Color.Black);
-	}
-	class Parachute : Entity {
-		public Entity user { get; private set; }
-		public bool Active { get; private set; }
-		public Point3 Position { get; set; }
-		public Point3 Velocity { get; set; }
-		public Parachute(Entity user) {
-			this.user = user;
-			this.Position = user.Position + new Point3(0, 0, 1);
-			this.Velocity = user.Velocity;
-		}
-
-		public void UpdateRealtime() {}
-
-		public void UpdateStep() {
-			Position = user.Position + new Point3(0, 0, 1);
-			Velocity = user.Velocity;
-
-			Point3 forward = user.Position - Position;
-			Point3 backward = -forward;
-			double speed = forward * user.Velocity;
-			if(speed > 3.8/30) {
-				double deceleration = speed * 0.1;
-
-				user.Velocity += backward * deceleration;
-			}
-		}
-		public readonly ColoredString symbol = new ColoredString("*", Color.White, Color.Transparent);
-		public ColoredString SymbolCenter => symbol;
-		public ColoredString Name => new ColoredString("Parachute", Color.White, Color.Black);
-	}
-	interface IItem : Entity {
-		Gun Gun { get; set; }
-	}
-	interface Gun {
-
-	}
-	class Item : IItem, IGravity {
-		public World World { get; set; }
-		public Point3 Position { get; set; }
-		public Point3 Velocity { get; set; }
-
-		public Gun Gun { get; set; }
-
-		public ColoredString SymbolCenter => throw new NotImplementedException();
-
-		public ColoredString Name => throw new NotImplementedException();
-
-		public bool Active => true;
-		public void UpdateRealtime() {}
-		public void UpdateStep() {}
-	}
-
-	class Gun1 : IItem, IGravity {
-		public World World { get; set; }
-		public Point3 Position { get; set; }
-		public Point3 Velocity { get; set; }
-
-		public Gun Gun { get; set; }
-
-		public Gun1(World World, Point3 Position) {
-			this.World = World;
-			this.Position = Position;
-			this.Velocity = new Point3();
-		}
-
-		public bool Active => true;
-
-		public void UpdateRealtime() { }
-
-		public void UpdateStep() {
-			this.UpdateGravity();
-			this.UpdateMotion();
-		}
-
-
-		public ColoredString Name => new ColoredString("Gun", new Cell(Color.Gray, Color.Transparent));
-		public ColoredString SymbolCenter => new ColoredString("r", new Cell(Color.Gray, Color.Transparent));
 	}
 
 	/*

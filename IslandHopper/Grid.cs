@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace IslandHopper {
-	class Point2 {
+	public class Point2 {
 		public double x;
 		public double y;
 		public int xi { get => (int)x; set => x = value; }
@@ -19,18 +19,21 @@ namespace IslandHopper {
 			this.x = x;
 			this.y = y;
 		}
-		public static Point2 operator +(Point2 p, Point2 other) {
-			return new Point2(p.x + other.x, p.y + other.y);
+		public static Point2 operator +(Point2 p, Point2 other) => new Point2(p.x + other.x, p.y + other.y);
+		public Point2 clone {
+			get => new Point2(x, y);
 		}
-		public Point2 clone() {
-			return new Point2(x, y);
+		public Point2 PlusX(double x) => new Point2(this.x + x, y);
+		public Point2 PlusY(double y) => new Point2(x, this.y + y);
+
+		public double Magnitude => Math.Sqrt(x * x + y * y + z * z);
+		public Point3 Normal {
+			get {
+				double magnitude = Magnitude;
+				return new Point3(x / magnitude, y / magnitude, z / magnitude);
+			}
 		}
-		public Point2 PlusX(double x) {
-			return new Point2(this.x + x, y);
-		}
-		public Point2 PlusY(double y) {
-			return new Point2(x, this.y + y);
-		}
+		public double Angle => Math.Atan2(y, x);
 	}
 	public class Point3 {
 		public double x, y, z;
@@ -43,22 +46,23 @@ namespace IslandHopper {
 			y = 0;
 			z = 0;
 		}
-		public Point3(double x, double y, double z) {
-			this.x = x;
-			this.y = y;
-			this.z = z;
-		}
-
 		public Point3(int x, int y) {
 			this.x = x;
 			this.y = y;
 			this.z = 0;
 		}
-
+		public Point3(double x, double y, double z) {
+			this.x = x;
+			this.y = y;
+			this.z = z;
+		}
+		public Point2 xy => new Point2(x, y);
 		public static Point3 operator +(Point3 p1, Point3 p2) => new Point3(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
 		public static Point3 operator -(Point3 p1, Point3 p2) => p1 + (-p2);
 		public static Point3 operator -(Point3 p1) => new Point3(-p1.x, -p1.y, -p1.z);
 		public static double operator *(Point3 p1, Point3 p2) => (p1.x * p2.x) + (p1.y * p2.y) + (p1.z * p2.z);
+
+		public static implicit operator double(Point3 p) => p.Magnitude;
 
 		public static explicit operator Point(Point3 p) => new Point(p.xi, p.yi);
 		public Point3 PlusX(double x) => new Point3(this.x + x, y, z);
@@ -66,10 +70,12 @@ namespace IslandHopper {
 		public Point3 PlusZ(double z) => new Point3(x, y, this.z + z);
 		public static Point3 operator *(Point3 p, double s) => new Point3(p.x * s, p.y * s, p.z * s);
 		public static Point3 operator /(Point3 p, double s) => new Point3(p.x / s, p.y / s, p.z / s);
-		public double Magnitude() => Math.Sqrt(x * x + y * y + z * z);
-		public Point3 Normal() {
-			double magnitude = Magnitude();
-			return new Point3(x / magnitude, y / magnitude, z / magnitude);
+		public double Magnitude => Math.Sqrt(x * x + y * y + z * z);
+		public Point3 Normal {
+			get {
+				double magnitude = Magnitude;
+				return new Point3(x / magnitude, y / magnitude, z / magnitude);
+			}
 		}
 	}
 	//	2D array wrapper; allows one item per point

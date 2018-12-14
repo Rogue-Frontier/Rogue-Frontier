@@ -9,6 +9,22 @@ using System.Xml.Linq;
 
 namespace IslandHopper {
 	public static class Helper {
+		public static bool CalcAim(Point3 difference, double speed, out double lower, out double higher) {
+			double horizontal = difference.xy.Magnitude;
+			double vertical = difference.z;
+			const double g = 9.8;
+			double part1 = speed * speed;
+			double part2 = Math.Sqrt(Math.Pow(speed, 4) - g * ((g * horizontal * horizontal) + (2 * vertical * speed * speed)));
+
+			if(double.IsNaN(part2)) {
+				lower = higher = 0;
+				return false;
+			} else {
+				lower = Math.Atan2(part1 - part2, (g * horizontal));
+				higher = Math.Atan2(part1 + part2, (g * horizontal));
+				return true;
+			}
+		}
 		public static bool InRange(double n, double center, double maxDistance) {
 			return n > center - maxDistance && n < center + maxDistance;
 		}

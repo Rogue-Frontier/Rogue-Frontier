@@ -19,6 +19,10 @@ namespace IslandHopper {
 		public ArraySpace<Voxel> voxels { get; set; }   //	3D voxel grid used for collision detection
 		public Point3 camera { get; set; }              //	Point3 representing the location of the center of the screen
 		public Player player { get; set; }              //	Player object that controls the game
+
+		public void AddEntity(Entity e) {
+			entities.all.Add(e);
+		}
 	}
 	static class Debugging {
 		public static void Info(this object o, params string[] message) {
@@ -53,7 +57,7 @@ namespace IslandHopper {
 				}
 			}
 
-			for(int i = 5; i < 300; i++) {
+			for(int i = 0; i < 1; i++) {
 				World.entities.Place(new Gun1(World, new Point3(78, 78, 1 + i/30)));
 			}
 			
@@ -126,6 +130,7 @@ namespace IslandHopper {
 
 			if (World.player.AllowUpdate()) {
 				World.entities.all.ToList().ForEach(e => {
+					Debug.Print(e.GetType().Name + " update");
 					e.UpdateStep();
 				});
 				World.camera = World.player.Position;
@@ -159,7 +164,7 @@ namespace IslandHopper {
 			} else if (info.IsKeyPressed(Keys.Right)) {
 				World.player.Actions.Add(new WalkAction(World.player, new Point3(1, 0)));
 			} else if (info.IsKeyPressed(Keys.D)) {
-				new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", World.player.inventory.OfType<IItem>().Select(Item => new ListItem(Item)), item => {
+				new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", World.player.inventory.Select(Item => new ListItem(Item)), item => {
 					//Just drop the item for now
 					World.player.inventory.Remove(item);
 					World.entities.Place(item);
@@ -173,12 +178,14 @@ namespace IslandHopper {
 					return true;
 				}).Show(true);
 			} else if (info.IsKeyPressed(Keys.I)) {
-				new ListMenu<IItem>(Width, Height, "Select inventory items to examine. Press ESC to finish.", World.player.inventory.OfType<IItem>().Select(Item => new ListItem(Item)), item => {
+				new ListMenu<IItem>(Width, Height, "Select inventory items to examine. Press ESC to finish.", World.player.inventory.Select(Item => new ListItem(Item)), item => {
 					//	Later, we might have a chance of identifying the item upon selecting it in the inventory
 					return false;
 				}).Show(true);
-			} else if(info.IsKeyPressed(Keys.L)) {
+			} else if (info.IsKeyPressed(Keys.L)) {
 				new LookMenu(Width, Height, World).Show(true);
+			} else if (info.IsKeyPressed(Keys.T)) {
+				new ThrowMenu(Width, Height, World, World.player).Show(true);
 			} else if (info.IsKeyPressed(Keys.OemPeriod)) {
 				Debug.Print("waiting");
 				World.player.Actions.Add(new WaitAction(STEPS_PER_SECOND));
@@ -308,7 +315,7 @@ namespace IslandHopper {
 				if (CanPageDown)
 					startIndex += 26;
 				else
-					startIndex = Choices.Count - 26;
+					startIndex = Math.Max(0, Choices.Count - 26);
 			} else {
 				//If this key represents an item, then we select it
 				foreach (var k in info.KeysPressed) {
@@ -331,6 +338,71 @@ namespace IslandHopper {
 						}
 						break;
 					}
+				}
+			}
+		}
+	}
+	class ThrowMenu : Window {
+		World w;
+		Player p;
+		ListMenu<IItem> itemSelector;
+		LookMenu targetSelector;
+		public ThrowMenu(int width, int height, World w, Player p) : base(width, height) {
+			this.w = w;
+			this.p = p;
+
+			this.Transparent();
+			Theme.ModalTint = Color.Transparent;
+		}
+		public override void Update(TimeSpan time) {
+			base.Update(time);
+			if(itemSelector == null) {
+				UpdateItemSelector();
+			}
+			if (targetSelector != null) {
+				targetSelector.Update(time);
+			} else {
+				itemSelector.Update(time);
+			}
+		}
+		public override void Draw(TimeSpan drawTime) {
+			this.Clear();
+			base.Draw(drawTime);
+			if(targetSelector != null) {
+				targetSelector.Draw(drawTime);
+			} else {
+				itemSelector.Draw(drawTime);
+			}
+		}
+		public void UpdateItemSelector() {
+			Hide();
+			itemSelector = new ListMenu<IItem>(Width, Height, "Select item to throw. ESC to cancel.", p.inventory.Select(Item => new ListItem(Item)), item => {
+				itemSelector.Hide();
+				targetSelector = new LookMenu(Width, Height, w, "Select target to throw item at. ESC to cancel.", target => {
+					targetSelector.Hide();
+
+					return false;
+				});
+				targetSelector.Show(true);
+				return false;
+			});
+			itemSelector.Show(true);
+		}
+		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
+			if(info.IsKeyDown(Keys.Escape)) {
+				if (targetSelector != null) {
+					targetSelector.Hide();
+					targetSelector = null;
+					UpdateItemSelector();
+				} else {
+					itemSelector.Hide();
+				}
+				return true;
+			} else {
+				if(targetSelector != null) {
+					return targetSelector.ProcessKeyboard(info);
+				} else {
+					return itemSelector.ProcessKeyboard(info);
 				}
 			}
 		}
@@ -368,15 +440,10 @@ namespace IslandHopper {
 			cursorBlink = new Timer(0.4, () => {
 				cursorVisible = !cursorVisible;
 			});
-			UpdateExamine();
-		}
 
-		public override void Draw(TimeSpan delta) {
-			this.Clear();
-			if(cursorVisible) {
-				Print(Width / 2, Height / 2, cursor);
-			}
-			base.Draw(delta);
+			this.Transparent();
+			Theme.ModalTint = Color.Transparent;
+			UpdateExamine();
 		}
 
 		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
@@ -411,19 +478,30 @@ namespace IslandHopper {
 			}
 			return true;
 		}
-
+		public override void Draw(TimeSpan delta) {
+			examineMenu?.Draw(delta);
+			if (cursorVisible) {
+				Print(Width / 2, Height / 2, cursor);
+			}
+			base.Draw(delta);
+		}
 		public override void Update(TimeSpan delta) {
-			examineMenu.Update(delta);
+			examineMenu?.Update(delta);
 			cursorBlink.Update(delta.TotalSeconds);
 			base.Update(delta);
 		}
-
+		public override void Hide() {
+			base.Hide();
+			examineMenu?.Hide();
+		}
 		public void UpdateExamine() {
 			examineMenu?.Hide();
-			examineMenu = new ListMenu<Entity>(Width, Height, hint, world.entities[world.camera].Select(e => new ListEntity(e)), select) {
-				IsVisible = true
-			};
-			examineMenu.Show();
+			var ent = world.entities[world.camera];
+			if (ent != null) {
+				examineMenu = new ListMenu<Entity>(Width, Height, hint, ent.Select(e => new ListEntity(e)), select) {
+					IsVisible = true
+				};
+			}
 		}
 	}
 }

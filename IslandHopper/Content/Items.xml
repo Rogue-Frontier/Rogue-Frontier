@@ -62,7 +62,7 @@ EASTER EGGS
 		/>
 	<Item
 		name=			"Softie Softcap"
-		desc=			""
+		desc=			"This cap makes you want to work extra hard just to prove that you're not a softie."
 		>
 	</Item>
 	<Item
@@ -146,8 +146,35 @@ EASTER EGGS
 	</Item>
 	<Item
 		name=			"Kill switchblade"
-		desc=			"This dagger has a spring-loaded blade that can be fired as a single-use projectile by pressing the red button on the side of the grip."
+		desc=			"This dagger has a spring-loaded blade that can be fired as a single-use projectile by pressing the red button on the side of the grip. Fire when lodged into a wound for extra damage!"
 		>
-
 	</Item>
+	<Item
+		name=			"The Cherry Picker"
+		desc=			"Shoot them in the weak spot for massive damage!"
+		>
+	</Item>
+	<Item
+		name=			"Scientific Railgun"
+		desc=			"Unlike other railguns, this railgun was made by scientists, FOR scientists!"
+		>
+	</Item>
+	<Item
+		name=			"Automassive Rifle"
+		desc=			"Somebody thought that a railgun could be made as fast and portable as a rifle. Someone really did not think this through."
+		>
+	</Item>
+	<Item
+		name=			"Killer Rail"
+		desc=			""
+		>
+	</Item>
+	<Item
+		name=			"Hand Rail"
+		desc=			"For anyone who has the strength to lift 50 kilograms or more, this railgun can be considered portable."
+		>
+	</Item>
+	<Item
+		name=			"Rail to Ruin"
+		desc=			""
 </Types>
