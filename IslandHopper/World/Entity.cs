@@ -9,17 +9,20 @@ using static IslandHopper.Constants;
 
 namespace IslandHopper {
 	interface Entity {
+		World World { get; }
 		Point3 Position { get; set; }
 		Point3 Velocity { get; set; }
-		bool Active { get; }					//	When this is inactive, we remove it
+		bool Active { get; }                    //	When this is inactive, we remove it
+		void OnRemoved();
 		void UpdateRealtime();				//	For step-independent effects
 		void UpdateStep();					//	The number of steps per one in-game second is defined in Constants as STEPS_PER_SECOND
+
 		ColoredString SymbolCenter { get; }
 		ColoredString Name { get; }
 	}
 	static class SGravity {
-		public static bool OnGround(this IGravity g) => (g.World.voxels[g.Position] is Floor || g.World.voxels[g.Position.PlusZ(-1)] is Grass);
-		public static void UpdateGravity(this IGravity g) {
+		public static bool OnGround(this Entity g) => (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-1)].Collision == VoxelType.Solid);
+		public static void UpdateGravity(this Entity g) {
 			//	Fall or hit the ground
 			if (g.Velocity.z < 0 && g.OnGround()) {
 				g.Velocity.z = 0;
@@ -28,11 +31,11 @@ namespace IslandHopper {
 				g.Velocity += new Point3(0, 0, -9.8 / STEPS_PER_SECOND);
 			}
 		}
-		public static void UpdateMotion(this IGravity g) {
+		public static void UpdateMotion(this Entity g) {
 			Point3 normal = g.Velocity.Normal;
 			Point3 dest = g.Position;
 			for (Point3 p = g.Position + normal; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += normal) {
-				if (g.World.voxels[p] is Air) {
+				if (g.World.voxels.Try(p) is Air) {
 					dest = p;
 				} else {
 					break;
@@ -40,13 +43,22 @@ namespace IslandHopper {
 			}
 			g.Position = dest;
 		}
+		public static void UpdateMotionCollision(this Entity g, Func<Entity, bool> ignoreCollision) {
+			Point3 normal = g.Velocity.Normal;
+			Point3 dest = g.Position;
+			for (Point3 p = g.Position + normal; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += normal) {
+				if (g.World.voxels.Try(p) is Air) {
+					if(g.World.entities.Try(p).All(ignoreCollision)) {
+						dest = p;
+					}
+				} else {
+					break;
+				}
+			}
+			g.Position = dest;
+		}
 	}
-	interface IGravity {
-		World World { get; set; }
-		Point3 Position { get; set; }
-		Point3 Velocity { get; set; }
-	}
-	class Player : Entity, IGravity {
+	class Player : Entity {
 		public Point3 Velocity { get; set; }
 		public Point3 Position { get; set; }
 		public World World { get; set; }
@@ -66,6 +78,7 @@ namespace IslandHopper {
 		}
 		public bool AllowUpdate() => Actions.Count > 0 && frameCounter == 0;
 		public bool Active => true;
+		public void OnRemoved() { }
 		public void UpdateRealtime() {
 			if(frameCounter > 0)
 				frameCounter--;
@@ -85,6 +98,45 @@ namespace IslandHopper {
 		
 		public ColoredString SymbolCenter => new ColoredString("@", Color.White, Color.Transparent);
 		public ColoredString Name => new ColoredString("Player", Color.White, Color.Black);
+	}
+	class ThrownItem : Entity {
+		public Entity thrower { get; private set; }
+		public IItem source { get; private set; }
+		public World World { get => source.World; }
+		public Point3 Position { get => source.Position; set => source.Position = value; }
+		public Point3 Velocity { get => source.Velocity; set => source.Velocity = value; }
+		public bool Active => flying && source.Active;
+		private bool flying;
+		public void OnRemoved() {
+			if (source.Active) {
+				source.World.AddEntity(source);
+			}
+		}
+		public ThrownItem(Entity thrower, IItem source) {
+			this.thrower = thrower;
+			this.source = source;
+			flying = true;
+	}
+		public ColoredString SymbolCenter => source.SymbolCenter;
+		public ColoredString Name => source.Name;
+
+		public void UpdateRealtime() => source.UpdateRealtime();
+		public void UpdateStep() {
+			source.UpdateGravity();
+			if(this.OnGround()) {
+				flying = false;
+			} else {
+				source.UpdateMotionCollision(e => {
+					if (e == thrower) {
+
+						return true;
+					} else {
+						flying = false;
+						return false;
+					}
+				});
+			}
+		}
 	}
 
 	/*

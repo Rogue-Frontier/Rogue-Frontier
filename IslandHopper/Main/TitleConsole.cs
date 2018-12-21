@@ -1,76 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using IslandHopper;
-
 using SadConsole;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using SadConsole.Themes;
 using SadConsole.Controls;
+using SadConsole.Themes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace IslandHopper {
-	/// <summary>
-	/// This is the main type for your game.
-	/// </summary>
-	public class Game1 : SadConsole.Game {
-
-		public Game1() : base("IBM.font", 240, 64, null) {
-			Content.RootDirectory = "Content";
-		}
-		
-		/// <summary>
-		/// Allows the game to perform any initialization it needs to before starting to run.
-		/// This is where it can query for any required services and load any non-graphic
-		/// related content.  Calling base.Initialize will enumerate through any components
-		/// and initialize them as well.
-		/// </summary>
-		protected override void Initialize() {
-			// Generally you don't want to hide the mouse from the user
-			IsMouseVisible = true;
-			// Finish the initialization of SadConsole    
-			base.Initialize();
-			//Settings.ToggleFullScreen();
-			// Create your console    
-			var title = new TitleConsole(240, 64);
-			title.Position = new Point(0, 0);
-			title.Show();
-		}
-
-		/// <summary>
-		/// LoadContent will be called once per game and is the place to load
-		/// all of your content.
-		/// </summary>
-		protected override void LoadContent() {
-			
-		}
-
-		/// <summary>
-		/// UnloadContent will be called once per game and is the place to unload
-		/// game-specific content.
-		/// </summary>
-		protected override void UnloadContent() {
-		}
-
-		/// <summary>
-		/// Allows the game to run logic such as updating the world,
-		/// checking for collisions, gathering input, and playing audio.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
-		protected override void Update(GameTime gameTime) {
-			base.Update(gameTime);
-		}
-
-		/// <summary>
-		/// This is called when the game should draw itself.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
-		protected override void Draw(GameTime gameTime) {
-			GraphicsDevice.Clear(Color.Black);
-			base.Draw(gameTime);
-		}
-	}
 	class TitleConsole : Window {
 		private double time = 0;
 
@@ -86,7 +24,7 @@ namespace IslandHopper {
 		private const double waterTrailLifespan = 8;
 		private List<WaterTrail> waterTrails = new List<WaterTrail>();
 
-		const string PLANE =  @"<\_______ " + "\n"
+		const string PLANE = @"<\_______ " + "\n"
 							+ @" \\__>__O\";
 
 		private const double planeInterval = 5;
@@ -100,7 +38,7 @@ namespace IslandHopper {
 		*/
 		const string PLAYER = @" *" + "\n"
 							+ @"@&";
-		private const double playerInterval = Math.PI/2.5;
+		private const double playerInterval = Math.PI / 2.5;
 		private const double playerFallSpeed = 2;
 		private List<Point2> players = new List<Point2>();
 
@@ -185,9 +123,6 @@ namespace IslandHopper {
 			base.Update(delta);
 			double sec = delta.TotalSeconds;
 			time += sec;
-			if(time < 10) {
-				return;
-			}
 			new List<ITimer>(timers).ForEach(timer => timer.Update(sec));
 
 			waterLines.ForEach(line => line.x += sec * waterLineSpeed);
@@ -202,8 +137,8 @@ namespace IslandHopper {
 
 			//Make the land points fall towards sea level and settle
 			land.ForEach(l => {
-				if(l.yi < waterLevel) {
-					if(!landGrid[l.xi, l.yi+1]) {
+				if (l.yi < waterLevel) {
+					if (!landGrid[l.xi, l.yi + 1]) {
 						l.y += sec * landSpeed;
 					}
 				}
@@ -249,11 +184,11 @@ namespace IslandHopper {
 			}
 		}
 		private void PrintPlanes() {
-			foreach(var p in planes) {
+			foreach (var p in planes) {
 				Color c = Color.Green;
-				if(p.xi < 10) {
+				if (p.xi < 10) {
 					c = new Color(c, 255 * p.xi / 10);
-				} else if(p.xi > Width - (10 + PLANE.LineLength())) {
+				} else if (p.xi > Width - (10 + PLANE.LineLength())) {
 					c = new Color(c, 255 * (Width - p.xi - PLANE.LineLength()) / 10);
 				}
 				this.PrintLines(p.xi, p.yi, PLANE, c);
@@ -261,10 +196,10 @@ namespace IslandHopper {
 			}
 		}
 		private void PrintPlayers() {
-			foreach(var p in players) {
-				if(p.xi > 0) {
+			foreach (var p in players) {
+				if (p.xi > 0) {
 					Color c = Color.White;
-					if(p.yi > waterLevel - 10) {
+					if (p.yi > waterLevel - 10) {
 						c = new Color(c, 255 * (waterLevel - p.yi) / 10);
 					}
 					this.PrintLines(p.xi, p.yi, PLAYER, c);
@@ -325,7 +260,7 @@ namespace IslandHopper {
 		}
 		public void Update(double passed) {
 			time -= passed;
-			if(time < 0) {
+			if (time < 0) {
 				time = interval;
 				action.Invoke();
 			}
@@ -342,11 +277,10 @@ namespace IslandHopper {
 		}
 		public void Update(double passed) {
 			time -= passed;
-			if(time < 0) {
+			if (time < 0) {
 				time = intervalSource.Invoke();
 				action.Invoke();
 			}
 		}
 	}
 }
-

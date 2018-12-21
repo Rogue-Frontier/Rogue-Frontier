@@ -13,17 +13,6 @@ using static IslandHopper.Constants;
 
 namespace IslandHopper {
 	
-	class World {
-		public Random karma;
-		public Space<Entity> entities { get; set; }     //	3D entity grid used for collision detection
-		public ArraySpace<Voxel> voxels { get; set; }   //	3D voxel grid used for collision detection
-		public Point3 camera { get; set; }              //	Point3 representing the location of the center of the screen
-		public Player player { get; set; }              //	Player object that controls the game
-
-		public void AddEntity(Entity e) {
-			entities.all.Add(e);
-		}
-	}
 	static class Debugging {
 		public static void Info(this object o, params string[] message) {
 			System.Console.Write(o.GetType().Name + ":");
@@ -138,7 +127,15 @@ namespace IslandHopper {
 				//System.Console.WriteLine("not updating");
 			}
 
-			World.entities.all.RemoveWhere(e => !e.Active);
+			var Removed = new List<Entity>();
+			World.entities.all.RemoveWhere(e => {
+				bool result = !e.Active;
+				if(result) {
+					Removed.Add(e);
+				}
+				return result;
+			});
+			Removed.ForEach(e => e.OnRemoved());
 		}
 		public override void Draw(TimeSpan delta) {
 			base.Draw(delta);
@@ -381,12 +378,21 @@ namespace IslandHopper {
 				targetSelector = new LookMenu(Width, Height, w, "Select target to throw item at. ESC to cancel.", target => {
 					targetSelector.Hide();
 
+					ThrowItem(target, item);
 					return false;
 				});
 				targetSelector.Show(true);
 				return false;
 			});
 			itemSelector.Show(true);
+		}
+		public void ThrowItem(Entity target, IItem item) {
+			if(Helper.CalcAim2(target.Position - p.Position, 30, out Point3 lower, out Point3 _)) {
+				item.Velocity = lower;
+				//Remove the item from the player's inventory and create a thrown item in the world
+				p.inventory.Remove(item);
+				w.AddEntity(new ThrownItem(p, item));
+			}
 		}
 		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
 			if(info.IsKeyDown(Keys.Escape)) {

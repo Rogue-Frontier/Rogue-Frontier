@@ -26,11 +26,11 @@ namespace IslandHopper {
 		public Point2 PlusX(double x) => new Point2(this.x + x, y);
 		public Point2 PlusY(double y) => new Point2(x, this.y + y);
 
-		public double Magnitude => Math.Sqrt(x * x + y * y + z * z);
-		public Point3 Normal {
+		public double Magnitude => Math.Sqrt(x * x + y * y);
+		public Point2 Normal {
 			get {
 				double magnitude = Magnitude;
-				return new Point3(x / magnitude, y / magnitude, z / magnitude);
+				return new Point2(x / magnitude, y / magnitude);
 			}
 		}
 		public double Angle => Math.Atan2(y, x);
@@ -56,6 +56,8 @@ namespace IslandHopper {
 			this.y = y;
 			this.z = z;
 		}
+		public double xyAngle => xy.Angle;
+		public double zAngle => Math.Atan2(z, xy.Magnitude);
 		public Point2 xy => new Point2(x, y);
 		public static Point3 operator +(Point3 p1, Point3 p2) => new Point3(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
 		public static Point3 operator -(Point3 p1, Point3 p2) => p1 + (-p2);

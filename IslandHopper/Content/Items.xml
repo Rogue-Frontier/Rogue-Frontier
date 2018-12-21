@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 Mount
 	Item
@@ -15,9 +16,10 @@ Mount
 		Arm
 		Back
 		Gun				can be fired when held in hands or equipped as gear
-			projectile=		the type of attack that this weapon has
+			shot=		the type of attack that this weapon has
 				"beam"			this weapon fires beams; damage falls off with distance
 				"bullet"		this weapon fires bullets; projectiles obey gravity
+				
 			difficulty=		the average difficulty of aiming this weapon. User skill and weapon difficulty determine the accuracy and time it takes to aim
 				"none"			no aiming skill needed
 				"easy"			
@@ -30,8 +32,8 @@ Mount
 			defense=			The amount of reduction in damage taken to the head while equipped
 			durability=			How much damage this item can take before breaking
 		Magazine			can be used to reload weapons. player can attempt to reload unidentified magazines into any weapon using 'Put'; if the gun/magazine is identified, the magazine is identified on success.
-			compatible=		the weapons that this magazine is compatible with
-		Mount				can hold a weapon for the user, leaving hands free. Mount a weapon with the 'Put' action
+			compatible=		the weapon types that this magazine is compatible with
+		Mount				can hold a weapon for the user, leaving hands free. Can also be used to attach a bayonet to a gun, allowing it to be used in melee. Mount a weapon with the 'Put' action
 		Parachute				this item spawns a parachute
 		
 		Symbol
@@ -44,28 +46,30 @@ IDEAS
 	Player can fire unidentified weapons; the recoil can throw the player off balance
 EASTER EGGS
 -->
-
-<?xml version="1.0"?>
-<Types>
+<IslandHopperModule>
 	<Player
 		
 		>
 	</Player>
-	<Item
+	<ItemType
 		name=			"baseball cap"
 		desc=			"The standard-issue hat for baseball-armed soldiers everywhere."
+		mass=			"0.1"
 		>
-	</Item>
-	<Item
+	</ItemType>
+	<ItemType
 		name=			"Hardy Hardhat"
-		desc=			""
-		/>
-	<Item
+		desc=			"WOW, ANOTHER PUN!!! HARDY HAR HAR!!! WHOEVER WRITES THESE DESCRIPTIONS OUGHT TO SHUT UP!!!"
+		mass=			"0.5"
+		>
+	</ItemType>
+	<ItemType
 		name=			"Softie Softcap"
 		desc=			"This cap makes you want to work extra hard just to prove that you're not a softie."
+		mass=			"0.2"
 		>
-	</Item>
-	<Item
+	</ItemType>
+	<ItemType
 		name=			"laser helmet"
 		desc=			"This futuristic helmet comes with a laser turret mounted on top and guide-goggles for easy firing"
 		mass=			"3"
@@ -78,8 +82,8 @@ EASTER EGGS
 			projectile=			"laser"
 			difficulty=			"none"
 			/>
-	</Item>
-	<Item
+	</ItemType>
+	<ItemType
 		name=			"The Blockhead"
 		desc=			"Originally marketed as &quot;combat goggles,&quot; this modified metal block serves as effective all-around head protection"
 		mass=			"5"
@@ -88,13 +92,13 @@ EASTER EGGS
 			defense=			"4d5"
 			durability=			"40"
 			/>
-	</Item>
-	<Item
+	</ItemType>
+	<ItemType
 		name=			"tinfoil hat"
-		desc=			"This tinfoil hat protects your brain from harmless radio waves"
+		desc=			"This tinfoil hat protects your brain from harmless radio waves. Not so good against not-so-harmless metal bullets, though."
 		>
-	</Item>
-	<Item
+	</ItemType>
+	<ItemType
 		name=			"arm mount"
 		desc=			"This arm brace comes with a mount to hold one weapon"
 		mass=			"2"
@@ -102,18 +106,18 @@ EASTER EGGS
 		<Mount
 			
 			/>
-	</Item>
-	<Item
-		name=			"Cookie Jar"
-		desc=			"This fiery grenade can cook your enemies to a crisp in a jarring explosion."
+	</ItemType>
+	<ItemType
+		name=			"The Cookie Jar"
+		desc=			"This little chip of a grenade will really cook your enemies to a chocolate crisp in a jarring explosion."
 		>
-	</Item>
-	<Item
-		name=			"Parashooter"
+	</ItemType>
+	<ItemType
+		name=			"The Parashooter"
 		desc=			"This gun-on-a-parachute is designed to let you fight from the air."
 		>
-	</Item>
-	<Item
+	</ItemType>
+	<ItemType
 		name=			"Laser Dart gun"
 		desc=			"This toy gun shoots red plastic rods (dubbed 'Lasers') at a velocity that is not safe for a kids' toy."
 		mass=			"1"
@@ -122,59 +126,104 @@ EASTER EGGS
 			projectile=			"bullet"
 			difficulty=			"easy"
 			/>
-	</Item>
-	<Item
-		name=			"Passive Pipsqueak Pistol"
+	</ItemType>
+	<ItemType
+		name=			"The Passive Pipsqueak Pistol"
 		desc=			"This wimpy pistol is too chicken to shoot anyone in the face. Be sure to aim from behind for most damage."
 		>
-	</Item>
-	<Item
+	</ItemType>
+	<ItemType
 		name=			"Ruby's Railgun"
-		desc=			"You don't know who Ruby is, but you do know that someone had to spend a lot of money to make this gem-encrusted experimental railgun that doesn't work."
+		desc=			"You don't know who Ruby is, but you do know that someone had to spend a lot of money to make this gem-encrusted experimental railgun."
 		mass=			"20"
 		>
-	</Item>
-	<Item
-		name=			"Springbow"
+	</ItemType>
+	<ItemType
+		name=			"The Springbow"
 		desc=			"Someone had the great idea of taking a crossbow and replacing the firing mechanism with a spring."
 		>
-	</Item>
-	<Item
-		name=			"Crossy Bow"
+	</ItemType>
+	<ItemType
+		name=			"The Crossy Bow"
 		desc=			"This crossbow is always ready to shoot an arrow across the road."
 		>
-	</Item>
-	<Item
-		name=			"Kill switchblade"
+	</ItemType>
+	<ItemType
+		name=			"The Killswitchblade"
 		desc=			"This dagger has a spring-loaded blade that can be fired as a single-use projectile by pressing the red button on the side of the grip. Fire when lodged into a wound for extra damage!"
 		>
-	</Item>
-	<Item
+	</ItemType>
+	<ItemType
 		name=			"The Cherry Picker"
 		desc=			"Shoot them in the weak spot for massive damage!"
 		>
-	</Item>
-	<Item
-		name=			"Scientific Railgun"
+	</ItemType>
+	<ItemType
+		name=			"The Scientific Railgun"
 		desc=			"Unlike other railguns, this railgun was made by scientists, FOR scientists!"
 		>
-	</Item>
-	<Item
-		name=			"Automassive Rifle"
+	</ItemType>
+	<ItemType
+		name=			"The Automassive Rifle"
 		desc=			"Somebody thought that a railgun could be made as fast and portable as a rifle. Someone really did not think this through."
 		>
-	</Item>
-	<Item
-		name=			"Killer Rail"
+	</ItemType>
+	<ItemType
+		name=			"The Killer Rail"
 		desc=			""
 		>
-	</Item>
-	<Item
-		name=			"Hand Rail"
+	</ItemType>
+	<ItemType
+		name=			"The Hand Rail"
 		desc=			"For anyone who has the strength to lift 50 kilograms or more, this railgun can be considered portable."
 		>
-	</Item>
-	<Item
-		name=			"Rail to Ruin"
+	</ItemType>
+	<ItemType
+		name=			"The Rail to Ruin"
 		desc=			""
-</Types>
+		>
+	</ItemType>
+	<ItemType
+		name=			"Same Old Shotgun"
+		desc=			""
+		>
+	</ItemType>
+	<ItemType
+		name=			"The Smart Gun"
+		desc=			"Just like its inventors, this futuristic high-tech gun spends way too much time on the internet and cannot function without it."
+		>
+	</ItemType>
+	<ItemType
+		name=			"The Civilian Casualty"
+		desc=			"The weapon of choice for serial killers, dictators, and serial dictators who know not to waste expensive armor-piercing ammo on soft targets."
+		>
+	</ItemType>
+	<ItemType
+		name=			"The Cheap Shot"
+		desc=			"This pistol may be rudimentary and unstylish, but at least it can get the dirty deeds done dirt cheap."
+		>
+	</ItemType>
+	<ItemType	type=	"itTheDust"
+		name=			"The Dust"
+		desc=			"Bite this bullet, I say! Bite it!"
+		>
+	</ItemType>
+	<ItemType	type=	"itLeadPipeDevice"
+		name=			"Lead Pipe Device"
+		desc=			"Whoever made this strange contraption apparently lived in a world where the only available chassis was a lead pipe."
+		>
+		<ItemType
+			name=			"Electronwave Generator"
+			desc=			"An experimental prototype of a possibly revolutionary energy weapon, built out of a lead pipe by who knows who."
+			known=			"false"
+			unknownType=	"itLeadPipeDevice"
+			>
+			<Gun
+				shot=			"beam"
+				difficulty=		"none"
+				recoil=			"0"
+				noise=			"0"
+				/>
+		</ItemType>
+	</ItemType>
+</IslandHopperModule>

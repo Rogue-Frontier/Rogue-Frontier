@@ -43,25 +43,29 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Constants.cs" />
-    <Compile Include="Debug.cs" />
-    <Compile Include="Entity.cs" />
-    <Compile Include="EntityAction.cs" />
-    <Compile Include="Game1.cs" />
-    <Compile Include="GameConsole.cs" />
-    <Compile Include="Grid.cs" />
-    <Compile Include="Helper.cs" />
-    <Compile Include="Item.cs" />
-    <Compile Include="program-example.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Misc\Constants.cs" />
+    <Compile Include="Misc\Debug.cs" />
+    <Compile Include="World\Damage.cs" />
+    <Compile Include="World\Entity.cs" />
+    <Compile Include="World\EntityAction.cs" />
+    <Compile Include="Main\IslandHopper.cs" />
+    <Compile Include="Main\GameConsole.cs" />
+    <Compile Include="Misc\Grid.cs" />
+    <Compile Include="Misc\Helper.cs" />
+    <Compile Include="World\Item.cs" />
+    <Compile Include="Main\ProgramExample.cs" />
+    <Compile Include="Main\Runner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Types.cs" />
-    <Compile Include="Voxel.cs" />
+    <Compile Include="Main\TitleConsole.cs" />
+    <Compile Include="Types\Types.cs" />
+    <Compile Include="World\Voxel.cs" />
+    <Compile Include="World\World.cs" />
+    <Compile Include="World\WorldEvent.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">

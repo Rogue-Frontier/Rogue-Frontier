@@ -25,6 +25,18 @@ namespace IslandHopper {
 				return true;
 			}
 		}
+		public static bool CalcAim2(Point3 difference, double speed, out Point3 lower, out Point3 higher) {
+			if(CalcAim(difference, speed, out var lowerAltitude, out var upperAltitude)) {
+				double azimuth = difference.xy.Angle;
+				lower = new Point3(speed * Math.Cos(azimuth) * Math.Cos(lowerAltitude), speed * Math.Sin(azimuth) * Math.Cos(lowerAltitude), speed * Math.Sin(lowerAltitude));
+				higher = new Point3(speed * Math.Cos(azimuth) * Math.Cos(upperAltitude), speed * Math.Sin(azimuth) * Math.Cos(upperAltitude), speed * Math.Sin(upperAltitude));
+				return true;
+			} else {
+				lower = null;
+				higher = null;
+				return false;
+			}
+		}
 		public static bool InRange(double n, double center, double maxDistance) {
 			return n > center - maxDistance && n < center + maxDistance;
 		}
@@ -75,6 +87,24 @@ namespace IslandHopper {
 		public static int Amplitude(this Random random, int amplitude) => random.Next(-amplitude, amplitude);
 		public static bool HasElement(this XElement e, string key, out XElement result) {
 			return (result = e.Element(key)) != null;
+		}
+		public static string ExpectAttribute(this XElement e, string attribute) {
+			string result = e.Attribute(attribute)?.Value;
+			if(result == null) {
+				throw new Exception($"<{e.Name}> requires {attribute} attribute");
+			} else {
+				return result;
+			}
+		}
+		public static XElement ExpectElement(this XElement e, string name) {
+			var result = e.Element(name);
+			if(result == null) {
+				throw new Exception($"Element <{e.Name}> requires subelement {name}");
+			}
+			return result;
+		}
+		public static bool TryAttribute(this XElement e, string attribute, out string result) {
+			return (result = e.Attribute(attribute)?.Value) != null;
 		}
 		public static string TryAttribute(this XElement e, string attribute, string fallback = "") {
 			return e.Attribute(attribute)?.Value ?? fallback;

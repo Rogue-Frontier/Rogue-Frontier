@@ -10,26 +10,36 @@ namespace IslandHopper {
 	interface IItem : Entity {
 		Gun Gun { get; set; }
 	}
-	interface Gun {
+	class Gun {
+		public int ReloadTime { get; private set; }
+		public int CooldownTime { get; private set; }
 
+		public int AmmoLeft { get; private set; }
+
+		public int NoiseRange { get; private set; }
+
+
+		public Gun() { }
 	}
-	class Item : IItem, IGravity {
+	class Item : IItem {
 		public World World { get; set; }
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
 
+		public ColoredString SymbolCenter { get; set; }
+		public ColoredString Name { get; set; }
+
+		public ItemType type;
 		public Gun Gun { get; set; }
 
-		public ColoredString SymbolCenter => throw new NotImplementedException();
-
-		public ColoredString Name => throw new NotImplementedException();
-
 		public bool Active => true;
+		public void OnRemoved() { }
+
 		public void UpdateRealtime() { }
 		public void UpdateStep() { }
 	}
 
-	class Gun1 : IItem, IGravity {
+	class Gun1 : IItem {
 		public World World { get; set; }
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
@@ -43,6 +53,7 @@ namespace IslandHopper {
 		}
 
 		public bool Active => true;
+		public void OnRemoved() { }
 
 		public void UpdateRealtime() { }
 
@@ -58,6 +69,8 @@ namespace IslandHopper {
 	class Parachute : Entity {
 		public Entity user { get; private set; }
 		public bool Active { get; private set; }
+		public void OnRemoved() { }
+		public World World => user.World;
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
 		public Parachute(Entity user) {
@@ -87,4 +100,5 @@ namespace IslandHopper {
 		public ColoredString SymbolCenter => symbol;
 		public ColoredString Name => new ColoredString("Parachute", Color.White, Color.Black);
 	}
+
 }
