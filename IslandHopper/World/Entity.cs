@@ -48,7 +48,9 @@ namespace IslandHopper {
 		}
 		public static void UpdateMotion(this Entity g) {
 			g.UpdateFriction();
-
+			if(g.Velocity < 0.1) {
+				return;
+			}
 			Point3 step = CalcMotionStep(g.Velocity);
 			Point3 final = g.Position;
 			for (Point3 p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
@@ -69,7 +71,9 @@ namespace IslandHopper {
 		}
 		public static void UpdateMotionCollision(this Entity g, Func<Entity, bool> ignoreCollision) {
 			g.UpdateFriction();
-
+			if (g.Velocity < 0.1) {
+				return;
+			}
 			Point3 step = CalcMotionStep(g.Velocity);
 			Point3 final = g.Position;
 			for (Point3 p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {

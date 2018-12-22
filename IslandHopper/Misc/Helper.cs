@@ -186,6 +186,11 @@ namespace IslandHopper {
 			result.GlyphCharacter = c;
 			return result;
 		}
+		public static ColoredString WithBackground(this ColoredString c, Color Background) {
+			var result = c.SubString(0, c.Count);
+			result.SetBackground(Color.Black);
+			return result;
+		}
 		public static ColoredString Adjust(this ColoredString c, Color foregroundInc) {
 			ColoredString result = c.SubString(0, c.Count);
 			foreach (var g in result) {

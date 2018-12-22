@@ -107,14 +107,16 @@ namespace IslandHopper {
 			base.Update(delta);
 
 			World.entities.UpdateSpace();       //	Update all entity positions on the grid
-			World.entities.all.ToList().ForEach(e => e.UpdateRealtime());
+			foreach(var e in World.entities.all) {
+				e.UpdateRealtime();
+			}
 
 			if (World.player.AllowUpdate()) {
 				this.Info("Global Update");
-				World.entities.all.ToList().ForEach(e => {
+				foreach(var e in World.entities.all) {
 					e.Info("UpdateStep() by world");
 					e.UpdateStep();
-				});
+				}
 				World.camera = World.player.Position;
 			} else {
 				//System.Console.WriteLine("not updating");
@@ -131,14 +133,15 @@ namespace IslandHopper {
 			Removed.ForEach(e => e.OnRemoved());
 		}
 		public override void Draw(TimeSpan delta) {
-			base.Draw(delta);
+			Clear();
 			Print(1, 1, "" + World.player.Position.z, Color.White);
 			Print(1, 2, "" + World.camera.z, Color.White);
 
 			for(int i = 0; i < 30 && i < World.player.HistoryRecent.Count(); i++) {
 				var entry = World.player.HistoryRecent[i];
-				Print(1, Height - i - 1, entry.ScreenTime > 30 ? entry.Desc : entry.Desc.Opacity(entry.ScreenTime / 30));
+				Print(1, (Height - 1) - i, entry.ScreenTime > 30 ? entry.Desc : entry.Desc.Brighten(-255 + 255 * entry.ScreenTime / 30));
 			}
+			base.Draw(delta);
 		}
 		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
 
@@ -165,6 +168,8 @@ namespace IslandHopper {
 					//Just drop the item for now
 					World.player.Inventory.Remove(item);
 					World.entities.Place(item);
+
+					World.player.Witness(new SelfEvent(new ColoredString("You drop: ") + item.Name.WithBackground(Color.Black)));
 					return true;
 				}).Show(true);
 			} else if (info.IsKeyPressed(Keys.G)) {
@@ -172,11 +177,15 @@ namespace IslandHopper {
 					//Just take the item for now
 					World.player.Inventory.Add(item);
 					World.entities.Remove(item);
+
+					World.player.Witness(new SelfEvent(new ColoredString("You get: ") + item.Name.WithBackground(Color.Black)));
 					return true;
 				}).Show(true);
 			} else if (info.IsKeyPressed(Keys.I)) {
 				new ListMenu<IItem>(Width, Height, "Select inventory items to examine. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
 					//	Later, we might have a chance of identifying the item upon selecting it in the inventory
+
+					//World.player.Witness(new SelfEvent(new ColoredString("You examine: ") + item.Name.WithBackground(Color.Black)));
 					return false;
 				}).Show(true);
 			} else if (info.IsKeyPressed(Keys.L)) {
@@ -186,6 +195,7 @@ namespace IslandHopper {
 			} else if (info.IsKeyPressed(Keys.OemPeriod)) {
 				Debug.Print("waiting");
 				World.player.Actions.Add(new WaitAction(STEPS_PER_SECOND));
+				World.player.Witness(new SelfEvent(new ColoredString("You wait")));
 			}
 			return base.ProcessKeyboard(info);
 		}
@@ -396,7 +406,7 @@ namespace IslandHopper {
 				//Remove the item from the player's inventory and create a thrown item in the world
 				p.Inventory.Remove(item);
 				w.AddEntity(new ThrownItem(p, item));
-				p.Witness(new SelfEvent(new ColoredString("You throw: ") + item.Name));
+				p.Witness(new SelfEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black)));
 			}
 		}
 		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
