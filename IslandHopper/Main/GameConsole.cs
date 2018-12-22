@@ -138,7 +138,7 @@ namespace IslandHopper {
 			Print(1, 2, "" + World.camera.z, Color.White);
 
 			for(int i = 0; i < 30 && i < World.player.HistoryRecent.Count(); i++) {
-				var entry = World.player.HistoryRecent[i];
+				var entry = World.player.HistoryRecent[World.player.HistoryRecent.Count() - 1 - i];
 				Print(1, (Height - 1) - i, entry.ScreenTime > 30 ? entry.Desc : entry.Desc.Brighten(-255 + 255 * entry.ScreenTime / 30));
 			}
 			base.Draw(delta);

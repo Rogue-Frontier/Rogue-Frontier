@@ -100,7 +100,7 @@ namespace IslandHopper {
 		public class HistoryEntry {
 			public ColoredString Desc { get; }
 			public int ScreenTime;
-			public HistoryEntry(ColoredString Desc, int ScreenTime = 90) {
+			public HistoryEntry(ColoredString Desc, int ScreenTime = 150) {
 				this.Desc = Desc;
 				this.ScreenTime = ScreenTime;
 			}
