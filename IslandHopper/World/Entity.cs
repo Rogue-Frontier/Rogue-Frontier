@@ -31,37 +31,57 @@ namespace IslandHopper {
 				g.Velocity += new Point3(0, 0, -9.8 / STEPS_PER_SECOND);
 			}
 		}
-		public static void UpdateMotion(this Entity g) {
+		//We attempt to enforce continuous collision detection by incrementing the motion in small steps
+		private static Point3 CalcMotionStep(Point3 Velocity) {
+			if (Velocity.Magnitude < 1) {
+				return Velocity / 4;
+			} else {
+				return Velocity.Normal;
+			}
+		}
+		private static void UpdateFriction(this Entity g) {
 			//Ground friction
-			if(g.OnGround()) {
+			if (g.OnGround()) {
 				g.Velocity.x *= 0.9;
 				g.Velocity.y *= 0.9;
 			}
+		}
+		public static void UpdateMotion(this Entity g) {
+			g.UpdateFriction();
 
-			Point3 normal = g.Velocity.Normal;
-			Point3 dest = g.Position;
-			for (Point3 p = g.Position + normal; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += normal) {
+			Point3 step = CalcMotionStep(g.Velocity);
+			Point3 final = g.Position;
+			for (Point3 p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
 				if (g.World.voxels.Try(p) is Air) {
-					dest = p;
+					final = p;
 				} else {
 					break;
 				}
 			}
-			g.Position = dest;
+			/*
+			//The velocity is the displacement that we were supposed to travel for this step
+			//This is the average velocity for the actual displacement we traveled in this step
+			Point3 velocityAverage = (final - g.Position);
+			//This is the displacement that we did not get to travel this tick
+			Point3 velocityDelta = velocityAverage - g.Velocity;
+			*/
+			g.Position = final;
 		}
 		public static void UpdateMotionCollision(this Entity g, Func<Entity, bool> ignoreCollision) {
-			Point3 normal = g.Velocity.Normal;
-			Point3 dest = g.Position;
-			for (Point3 p = g.Position + normal; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += normal) {
+			g.UpdateFriction();
+
+			Point3 step = CalcMotionStep(g.Velocity);
+			Point3 final = g.Position;
+			for (Point3 p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
 				if (g.World.voxels.Try(p) is Air) {
 					if(g.World.entities.Try(p).All(ignoreCollision)) {
-						dest = p;
+						final = p;
 					}
 				} else {
 					break;
 				}
 			}
-			g.Position = dest;
+			g.Position = final;
 		}
 	}
 	class Player : Entity {
@@ -69,10 +89,19 @@ namespace IslandHopper {
 		public Point3 Position { get; set; }
 		public World World { get; set; }
 		public HashSet<EntityAction> Actions { get; private set; }
-		public HashSet<IItem> inventory { get; private set; }
+		public HashSet<IItem> Inventory { get; private set; }
 
-		List<WorldEvent> history;	//All events that the player has witnessed
-		List<WorldEvent> current;	//Events that the player is currently witnessing
+		public List<ColoredString> HistoryLog { get; }	//All events that the player has witnessed
+		public List<HistoryEntry> HistoryRecent { get; }   //Events that the player is currently witnessing
+		public class HistoryEntry {
+			public ColoredString Desc { get; }
+			public int ScreenTime;
+			public HistoryEntry(ColoredString Desc, int ScreenTime = 90) {
+				this.Desc = Desc;
+				this.ScreenTime = ScreenTime;
+			}
+		}
+
 
 		public int frameCounter = 0;
 
@@ -81,10 +110,10 @@ namespace IslandHopper {
 			this.Position = Position;
 			this.Velocity = new Point3(0, 0, 0);
 			Actions = new HashSet<EntityAction>();
-			inventory = new HashSet<IItem>();
+			Inventory = new HashSet<IItem>();
 
-			history = new List<WorldEvent>();
-			current = new List<WorldEvent>();
+			HistoryLog = new List<ColoredString>();
+			HistoryRecent = new List<HistoryEntry>();
 
 			World.AddEntity(new Parachute(this));
 		}
@@ -92,7 +121,7 @@ namespace IslandHopper {
 		public bool Active => true;
 		public void OnRemoved() { }
 		public void UpdateRealtime() {
-			current.ForEach(e => e.ScreenTime--);
+			HistoryRecent.ForEach(e => e.ScreenTime--);
 			if(frameCounter > 0)
 				frameCounter--;
 		}
@@ -101,19 +130,19 @@ namespace IslandHopper {
 			this.UpdateMotion();
 			Actions.ToList().ForEach(a => a.Update());
 			Actions.RemoveWhere(a => a.Done());
-			foreach(var i in inventory) {
+			foreach(var i in Inventory) {
 				i.Position = Position;
 				i.Velocity = Velocity;
 			}
 			if(!this.OnGround())
 				frameCounter = 20;
 
-			current.RemoveAll(e => e.ScreenTime < 1);
+			HistoryRecent.RemoveAll(e => e.ScreenTime < 1);
 		}
 
 		public void Witness(WorldEvent e) {
-			history.Add(e);
-			current.Add(e);
+			HistoryLog.Add(e.Self);
+			HistoryRecent.Add(new HistoryEntry(e.Self));
 		}
 
 		public ColoredGlyph SymbolCenter => new ColoredString("@", Color.White, Color.Black)[0];

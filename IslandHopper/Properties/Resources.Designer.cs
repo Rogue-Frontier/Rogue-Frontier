@@ -61,12 +61,12 @@ namespace IslandHopper.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ************    ************    ****            ************    ****     ***    ********
-        ///*****  *****    *  *********    *  *            *  ******  *    * * *    * *    * ***** **
-        ///    *  *        *  *            *  *            *  *    *  *    * ** *   * *    * *    ** *
+        ///   Looks up a localized string similar to ************    ************    ****            ************    ****     ***    ********    
+        ///*****  *****    *  *********    *  *            *  ******  *    * * *    * *    * ***** **  
+        ///    *  *        *  *            *  *            *  *    *  *    * ** *   * *    * *    ** * 
         ///    *  *        *  *********    *  *            *  ******  *    * * * *  * *    * *      * *
         ///    *  *        *********  *    *  *            *  ******  *    * *  * * * *    * *      * *
-        ///    *  *                *  *    *  *            * [rest of string was truncated]&quot;;.
+        ///    *  *                *  *    *  *       [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Title {
             get {

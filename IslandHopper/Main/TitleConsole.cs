@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace IslandHopper {
@@ -55,16 +56,17 @@ namespace IslandHopper {
 			Normal = new SadConsole.Cell(Color.Yellow, Color.Transparent),
 			Disabled = new Cell(Color.Gray, Color.Transparent),
 			Focused = new Cell(Color.Red, Color.Transparent),
-			MouseClicking = new Cell(Color.White, Color.Transparent),
+			MouseDown = new Cell(Color.White, Color.Transparent),
 			MouseOver = new Cell(Color.Red, Color.Transparent)
 		};
 
-		Button start, quit;
-
 		public TitleConsole(int width, int height) : base(width, height) {
 			landGrid = new bool[Width, Height];
-
-			start = new SadConsole.Controls.Button(10) {
+			Theme = new WindowTheme {
+				ModalTint = Color.Transparent,
+				FillStyle = new Cell(Color.White, Color.Black)
+			};
+			var start = new SadConsole.Controls.Button(10, 1) {
 				Position = new Point(5, 5),
 				Text = "START",
 				Theme = BUTTON_THEME
@@ -73,16 +75,16 @@ namespace IslandHopper {
 				Hide();
 				new GameConsole(180, 60).Show(true);
 			};
-			start.IsFocused = true;
 			Add(start);
 
-			quit = new SadConsole.Controls.Button(10) {
+			var quit = new Button(10, 1) {
 				Position = new Point(5, 6),
 				Text = "QUIT",
-				Theme = BUTTON_THEME
+				Theme = BUTTON_THEME,
 			};
 			quit.Click += (btn, args) => {
-				Environment.Exit(0);
+				//Nuclear self destruct effect
+				//new ExitWindow(Width, Height).Show(true);
 			};
 			Add(quit);
 

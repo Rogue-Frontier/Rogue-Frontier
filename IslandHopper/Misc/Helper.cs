@@ -201,8 +201,11 @@ namespace IslandHopper {
 			}
 			return result;
 		}
+		public static ColoredString Opacity(this ColoredString s, double multiplier) {
+			return s.Adjust(new Color(0, 0, 0, (int) (-255 + 255 * multiplier)));
+		}
 		public static ColoredString Brighten(this ColoredString s, int intensity) {
-			return s.SubString(0, s.Count).Adjust(new Color(intensity, intensity, intensity, 0));
+			return s.Adjust(new Color(intensity, intensity, intensity, 0));
 		}
 		public static ColoredString ToColoredString(this ColoredGlyph c) {
 			return new ColoredString(new ColoredGlyph[] { c });

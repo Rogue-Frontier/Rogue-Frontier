@@ -1,25 +1,30 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using SadConsole;
-using SadConsole.Input;
-using SadConsole.Surfaces;
 using SadConsole.Themes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static IslandHopper.Constants;
 
 namespace IslandHopper {
+	static class Themes {
+		public static WindowTheme Main = new SadConsole.Themes.WindowTheme() {
+			ModalTint = Color.Transparent,
+			FillStyle = new Cell(Color.White, Color.Black),
+		};
+		public static WindowTheme Sub = new WindowTheme() {
+			ModalTint = Color.Transparent,
+			FillStyle = new Cell(Color.Transparent, Color.Transparent)
+		};
+	}
 	class GameConsole : Window {
 		World World;
 		public GameConsole(int Width, int Height) : base(Width, Height) {
+			Theme = Themes.Main;
 			UseKeyboard = true;
 			UseMouse = true;
-			Theme.ModalTint = Color.Transparent;
-			System.Console.WriteLine("Width: " + Width);
-			System.Console.WriteLine("Height: " + Height);
+			this.Info($"Width: {Width}", $"Height: {Height}");
 			World = new World() {
 				karma = new Random(0),
 				entities = new Space<Entity>(100, 100, 30, e => e.Position),
@@ -69,8 +74,6 @@ namespace IslandHopper {
 					Print(x + HalfWidth, y + HalfHeight, c.ToColoredString());
 				}
 			}
-			Print(1, 1, "" + World.player.Position.z, Color.White);
-			Print(1, 2, "" + World.camera.z, Color.White);
 			base.Draw(delta);
 		}
 		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
@@ -86,14 +89,15 @@ namespace IslandHopper {
 	}
 	static class Help {
 		public static void Transparent(this SadConsole.Console c) {
-			c.TextSurface.DefaultBackground = Color.Transparent;
-			c.TextSurface.DefaultForeground = Color.Transparent;
+			c.DefaultBackground = Color.Transparent;
+			c.DefaultForeground = Color.Transparent;
 			c.Clear();
 		}
 	}
 	class PlayerMain : Window {
 		World World;
 		public PlayerMain(int Width, int Height, World world) : base(Width, Height) {
+			Theme = Themes.Sub;
 			UseKeyboard = true;
 			UseMouse = true;
 			this.World = world;
@@ -128,6 +132,13 @@ namespace IslandHopper {
 		}
 		public override void Draw(TimeSpan delta) {
 			base.Draw(delta);
+			Print(1, 1, "" + World.player.Position.z, Color.White);
+			Print(1, 2, "" + World.camera.z, Color.White);
+
+			for(int i = 0; i < 30 && i < World.player.HistoryRecent.Count(); i++) {
+				var entry = World.player.HistoryRecent[i];
+				Print(1, Height - i - 1, entry.ScreenTime > 30 ? entry.Desc : entry.Desc.Opacity(entry.ScreenTime / 30));
+			}
 		}
 		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
 
@@ -150,21 +161,21 @@ namespace IslandHopper {
 			} else if (info.IsKeyPressed(Keys.Right)) {
 				World.player.Actions.Add(new WalkAction(World.player, new Point3(1, 0)));
 			} else if (info.IsKeyPressed(Keys.D)) {
-				new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", World.player.inventory.Select(Item => new ListItem(Item)), item => {
+				new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
 					//Just drop the item for now
-					World.player.inventory.Remove(item);
+					World.player.Inventory.Remove(item);
 					World.entities.Place(item);
 					return true;
 				}).Show(true);
 			} else if (info.IsKeyPressed(Keys.G)) {
 				new ListMenu<IItem>(Width, Height, "Select items to get. Press ESC to finish.", World.entities[World.player.Position].OfType<IItem>().Select(Item => new ListItem(Item)), item => {
 					//Just take the item for now
-					World.player.inventory.Add(item);
+					World.player.Inventory.Add(item);
 					World.entities.Remove(item);
 					return true;
 				}).Show(true);
 			} else if (info.IsKeyPressed(Keys.I)) {
-				new ListMenu<IItem>(Width, Height, "Select inventory items to examine. Press ESC to finish.", World.player.inventory.Select(Item => new ListItem(Item)), item => {
+				new ListMenu<IItem>(Width, Height, "Select inventory items to examine. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
 					//	Later, we might have a chance of identifying the item upon selecting it in the inventory
 					return false;
 				}).Show(true);
@@ -209,6 +220,7 @@ namespace IslandHopper {
 			return new ListMenu<IItem>(Width, Height, hint, Items.Select(item => new ListItem(item)), select);
 		}
 		public ListMenu(int Width, int Height, string hint, IEnumerable<ListChoice<T>> Choices, Func<T, bool> select) : base(Width, Height) {
+			Theme = Themes.Sub;
 			this.hint = hint;
 			this.Choices = new HashSet<ListChoice<T>>(Choices);
 			this.select = select;
@@ -335,6 +347,8 @@ namespace IslandHopper {
 		ListMenu<IItem> itemSelector;
 		LookMenu targetSelector;
 		public ThrowMenu(int width, int height, World w, Player p) : base(width, height) {
+			Theme = Themes.Sub;
+
 			this.w = w;
 			this.p = p;
 
@@ -363,7 +377,7 @@ namespace IslandHopper {
 		}
 		public void UpdateItemSelector() {
 			Hide();
-			itemSelector = new ListMenu<IItem>(Width, Height, "Select item to throw. ESC to cancel.", p.inventory.Select(Item => new ListItem(Item)), item => {
+			itemSelector = new ListMenu<IItem>(Width, Height, "Select item to throw. ESC to cancel.", p.Inventory.Select(Item => new ListItem(Item)), item => {
 				itemSelector.Hide();
 				targetSelector = new LookMenu(Width, Height, w, "Select target to throw item at. ESC to cancel.", target => {
 					targetSelector.Hide();
@@ -380,9 +394,9 @@ namespace IslandHopper {
 			if(Helper.CalcAim2(target.Position - p.Position, 30, out Point3 lower, out Point3 _)) {
 				item.Velocity = lower / STEPS_PER_SECOND;
 				//Remove the item from the player's inventory and create a thrown item in the world
-				p.inventory.Remove(item);
+				p.Inventory.Remove(item);
 				w.AddEntity(new ThrownItem(p, item));
-				p.Witness(new SelfEvent($"You throw: {item.Name}"));
+				p.Witness(new SelfEvent(new ColoredString("You throw: ") + item.Name));
 			}
 		}
 		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
@@ -417,6 +431,7 @@ namespace IslandHopper {
 
 		readonly ColoredString cursor = new ColoredString("?", Color.Yellow, Color.Black);
 		public LookMenu(int Width, int Height, World world) : base(Width, Height) {
+			Theme = Themes.Sub;
 
 			this.world = world;
 			this.hint = "Select an entity to examine";
