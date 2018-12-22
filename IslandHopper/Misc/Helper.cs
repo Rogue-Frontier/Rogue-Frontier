@@ -16,7 +16,7 @@ namespace IslandHopper {
 			double part1 = speed * speed;
 			double part2 = Math.Sqrt(Math.Pow(speed, 4) - g * ((g * horizontal * horizontal) + (2 * vertical * speed * speed)));
 
-			if(double.IsNaN(part2)) {
+			if (double.IsNaN(part2)) {
 				lower = higher = 0;
 				return false;
 			} else {
@@ -26,7 +26,7 @@ namespace IslandHopper {
 			}
 		}
 		public static bool CalcAim2(Point3 difference, double speed, out Point3 lower, out Point3 higher) {
-			if(CalcAim(difference, speed, out var lowerAltitude, out var upperAltitude)) {
+			if (CalcAim(difference, speed, out var lowerAltitude, out var upperAltitude)) {
 				double azimuth = difference.xy.Angle;
 				lower = new Point3(speed * Math.Cos(azimuth) * Math.Cos(lowerAltitude), speed * Math.Sin(azimuth) * Math.Cos(lowerAltitude), speed * Math.Sin(lowerAltitude));
 				higher = new Point3(speed * Math.Cos(azimuth) * Math.Cos(upperAltitude), speed * Math.Sin(azimuth) * Math.Cos(upperAltitude), speed * Math.Sin(upperAltitude));
@@ -41,7 +41,7 @@ namespace IslandHopper {
 			return n > center - maxDistance && n < center + maxDistance;
 		}
 		public static bool AreKeysPressed(this SadConsole.Input.Keyboard keyboard, params Keys[] keys) {
-			foreach(var key in keys) {
+			foreach (var key in keys) {
 				if (!keyboard.IsKeyPressed(key))
 					return false;
 			}
@@ -72,7 +72,7 @@ namespace IslandHopper {
 			var lines = new List<string>(s.Split('\n'));
 			lines.Reverse();
 			StringBuilder result = new StringBuilder(s.Length - s.LineCount());
-			for(int i = 0; i < lines.Count-1; i++) {
+			for (int i = 0; i < lines.Count - 1; i++) {
 				result.AppendLine(lines[i]);
 			}
 			result.Append(lines.LastItem());
@@ -90,7 +90,7 @@ namespace IslandHopper {
 		}
 		public static string ExpectAttribute(this XElement e, string attribute) {
 			string result = e.Attribute(attribute)?.Value;
-			if(result == null) {
+			if (result == null) {
 				throw new Exception($"<{e.Name}> requires {attribute} attribute");
 			} else {
 				return result;
@@ -98,7 +98,7 @@ namespace IslandHopper {
 		}
 		public static XElement ExpectElement(this XElement e, string name) {
 			var result = e.Element(name);
-			if(result == null) {
+			if (result == null) {
 				throw new Exception($"Element <{e.Name}> requires subelement {name}");
 			}
 			return result;
@@ -152,17 +152,17 @@ namespace IslandHopper {
 		}
 		*/
 		public static TEnum ParseEnum<TEnum>(this XAttribute a, TEnum fallback = default) where TEnum : struct {
-			if(a == null) {
+			if (a == null) {
 				return fallback;
-			} else if(Enum.TryParse<TEnum>(a.Value, out TEnum result)) {
+			} else if (Enum.TryParse<TEnum>(a.Value, out TEnum result)) {
 				return result;
 			} else {
 				return fallback;
 			}
-			
+
 		}
 		public static TValue TryLookup<TKey, TValue>(this Dictionary<TKey, TValue> d, TKey key, TValue fallback = default) {
-			if(d.ContainsKey(key)) {
+			if (d.ContainsKey(key)) {
 				return d[key];
 			} else {
 				return fallback;
@@ -170,7 +170,7 @@ namespace IslandHopper {
 		}
 
 		public static int CalcAccuracy(int difficulty, int skill, Random karma) {
-			if(skill > difficulty) {
+			if (skill > difficulty) {
 				return 100;
 			} else {
 				int miss = difficulty - skill;
@@ -180,6 +180,46 @@ namespace IslandHopper {
 		//Chance that the shot is blocked by an obstacle
 		public static bool CalcBlocked(int coverage, int accuracy, Random karma) {
 			return karma.Next(coverage) > karma.Next(accuracy);
+		}
+		public static ColoredGlyph Colored(char c, Color foreground, Color background) {
+			ColoredGlyph result = new ColoredGlyph(new Cell(foreground, background));
+			result.GlyphCharacter = c;
+			return result;
+		}
+		public static ColoredString Adjust(this ColoredString c, Color foregroundInc) {
+			ColoredString result = c.SubString(0, c.Count);
+			foreach (var g in result) {
+				g.Foreground = Sum(g.Foreground, foregroundInc);
+			}
+			return result;
+		}
+		public static ColoredString Adjust(this ColoredString c, Color foregroundInc, Color backgroundInc) {
+			ColoredString result = c.SubString(0, c.Count);
+			foreach (var g in result) {
+				g.Foreground = Sum(g.Foreground, foregroundInc);
+				g.Background = Sum(g.Background, backgroundInc);
+			}
+			return result;
+		}
+		public static ColoredString Brighten(this ColoredString s, int intensity) {
+			return s.SubString(0, s.Count).Adjust(new Color(intensity, intensity, intensity, 0));
+		}
+		public static ColoredString ToColoredString(this ColoredGlyph c) {
+			return new ColoredString(new ColoredGlyph[] { c });
+		}
+		public static ColoredGlyph Brighten(this ColoredGlyph c, int intensity) {
+			ColoredGlyph result = c.Clone();
+			result.Foreground = Sum(result.Foreground, new Color(intensity, intensity, intensity, 0));
+			return result;
+		}
+
+		public static ColoredGlyph Adjust(this ColoredGlyph c, Color foregroundInc) {
+			ColoredGlyph result = c.Clone();
+			result.Foreground = Sum(result.Foreground, foregroundInc);
+			return result;
+		}
+		public static Color Sum(Color c, Color c2) {
+			return new Color(Range(0, 255, c.R + c2.R), Range(0, 255, c.G + c2.G), Range(0, 255, c.B + c2.B), Range(0, 255, c.A + c2.A));
 		}
 	}
 }

@@ -10,14 +10,14 @@ using static IslandHopper.Constants;
 namespace IslandHopper {
 	interface Entity {
 		World World { get; }
-		Point3 Position { get; set; }
-		Point3 Velocity { get; set; }
+		Point3 Position { get; set; }			//Position in meters
+		Point3 Velocity { get; set; }			//Velocity in meters per step
 		bool Active { get; }                    //	When this is inactive, we remove it
 		void OnRemoved();
 		void UpdateRealtime();				//	For step-independent effects
 		void UpdateStep();					//	The number of steps per one in-game second is defined in Constants as STEPS_PER_SECOND
 
-		ColoredString SymbolCenter { get; }
+		ColoredGlyph SymbolCenter { get; }
 		ColoredString Name { get; }
 	}
 	static class SGravity {
@@ -32,6 +32,12 @@ namespace IslandHopper {
 			}
 		}
 		public static void UpdateMotion(this Entity g) {
+			//Ground friction
+			if(g.OnGround()) {
+				g.Velocity.x *= 0.9;
+				g.Velocity.y *= 0.9;
+			}
+
 			Point3 normal = g.Velocity.Normal;
 			Point3 dest = g.Position;
 			for (Point3 p = g.Position + normal; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += normal) {
@@ -65,6 +71,9 @@ namespace IslandHopper {
 		public HashSet<EntityAction> Actions { get; private set; }
 		public HashSet<IItem> inventory { get; private set; }
 
+		List<WorldEvent> history;	//All events that the player has witnessed
+		List<WorldEvent> current;	//Events that the player is currently witnessing
+
 		public int frameCounter = 0;
 
 		public Player(World World, Point3 Position) {
@@ -74,12 +83,16 @@ namespace IslandHopper {
 			Actions = new HashSet<EntityAction>();
 			inventory = new HashSet<IItem>();
 
+			history = new List<WorldEvent>();
+			current = new List<WorldEvent>();
+
 			World.AddEntity(new Parachute(this));
 		}
 		public bool AllowUpdate() => Actions.Count > 0 && frameCounter == 0;
 		public bool Active => true;
 		public void OnRemoved() { }
 		public void UpdateRealtime() {
+			current.ForEach(e => e.ScreenTime--);
 			if(frameCounter > 0)
 				frameCounter--;
 		}
@@ -94,9 +107,16 @@ namespace IslandHopper {
 			}
 			if(!this.OnGround())
 				frameCounter = 20;
+
+			current.RemoveAll(e => e.ScreenTime < 1);
 		}
-		
-		public ColoredString SymbolCenter => new ColoredString("@", Color.White, Color.Transparent);
+
+		public void Witness(WorldEvent e) {
+			history.Add(e);
+			current.Add(e);
+		}
+
+		public ColoredGlyph SymbolCenter => new ColoredString("@", Color.White, Color.Black)[0];
 		public ColoredString Name => new ColoredString("Player", Color.White, Color.Black);
 	}
 	class ThrownItem : Entity {
@@ -107,6 +127,7 @@ namespace IslandHopper {
 		public Point3 Velocity { get => source.Velocity; set => source.Velocity = value; }
 		public bool Active => flying && source.Active;
 		private bool flying;
+		private int tick = 0;
 		public void OnRemoved() {
 			if (source.Active) {
 				source.World.AddEntity(source);
@@ -116,25 +137,30 @@ namespace IslandHopper {
 			this.thrower = thrower;
 			this.source = source;
 			flying = true;
-	}
-		public ColoredString SymbolCenter => source.SymbolCenter;
-		public ColoredString Name => source.Name;
+		}
+		public ColoredGlyph SymbolCenter => tick % 20 < 10 ? source.SymbolCenter : source.SymbolCenter.Brighten(51);
+		public ColoredString Name => tick % 20 < 10 ? source.Name : source.Name.Brighten(51);
 
-		public void UpdateRealtime() => source.UpdateRealtime();
+		public void UpdateRealtime() {
+			tick++;
+			source.UpdateRealtime();
+		}
 		public void UpdateStep() {
+			this.Info("UpdateStep()");
 			source.UpdateGravity();
-			if(this.OnGround()) {
+			source.UpdateMotionCollision(e => {
+				if (e == thrower) {
+					this.Info("Ignore collision with thrower");
+					return true;
+				} else {
+					this.Info("Flying collision with object");
+					flying = false;
+					return false;
+				}
+			});
+			if (this.OnGround()) {
+				this.Info("Landed on ground");
 				flying = false;
-			} else {
-				source.UpdateMotionCollision(e => {
-					if (e == thrower) {
-
-						return true;
-					} else {
-						flying = false;
-						return false;
-					}
-				});
 			}
 		}
 	}

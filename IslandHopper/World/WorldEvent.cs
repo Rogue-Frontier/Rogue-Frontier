@@ -1,12 +1,26 @@
-﻿using System;
+﻿using SadConsole;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace IslandHopper {
-	interface WorldEvent {
-		string Seen { get; }
-		string Heard { get; }
+	public interface WorldEvent {
+		ColoredString Self { get; }
+		ColoredString Seen { get; }
+		ColoredString Heard { get; }
+		int ScreenTime { get; set; }
 	}
+	public class SelfEvent : WorldEvent {
+		public int ScreenTime { get; set; } = 90;
+		public ColoredString Self { get; }
+		public ColoredString Seen => Self;
+		public ColoredString Heard => Self;
+		public SelfEvent(ColoredString Self) {
+			this.Self = Self;
+			ScreenTime = 90;
+		}
+	}
+
 }

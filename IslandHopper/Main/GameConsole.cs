@@ -12,18 +12,6 @@ using System.Threading.Tasks;
 using static IslandHopper.Constants;
 
 namespace IslandHopper {
-	
-	static class Debugging {
-		public static void Info(this object o, params string[] message) {
-			System.Console.Write(o.GetType().Name + ":");
-			WriteLine(message);
-		}
-		public static void WriteLine(params string[] s) {
-			s.ToList().ForEach(str => System.Console.Write(str));
-			System.Console.WriteLine();
-		}
-	}
-
 	class GameConsole : Window {
 		World World;
 		public GameConsole(int Width, int Height) : base(Width, Height) {
@@ -67,18 +55,18 @@ namespace IslandHopper {
 			for(int x = -HalfWidth; x < HalfWidth; x++) {
 				for(int y = -HalfHeight; y < HalfHeight; y++) {
 					Point3 location = World.camera + new Point3(x, y, 0);
-					ColoredString s = new ColoredString(" ", new Cell(Color.Transparent, Color.Transparent));
+					ColoredGlyph c = new ColoredString(" ", new Cell(Color.Transparent, Color.Transparent))[0];
 					if (World.entities.InBounds(location) && World.entities.Try(location).Count > 0) {
-						s = World.entities[location].ToList()[0].SymbolCenter;
+						c = World.entities[location].ToList()[0].SymbolCenter;
 					} else if (World.voxels.InBounds(location) && !(World.voxels[location] is Air)) {
-						s = World.voxels[location].GetCharCenter();
+						c = World.voxels[location].CharCenter;
 					} else {
 						location = location + new Point3(0, 0, -1);
 						if (World.voxels.InBounds(location)) {
-							s = World.voxels[location].GetCharAbove();
+							c = World.voxels[location].CharAbove;
 						}
 					}
-					Print(x + HalfWidth, y + HalfHeight, s);
+					Print(x + HalfWidth, y + HalfHeight, c.ToColoredString());
 				}
 			}
 			Print(1, 1, "" + World.player.Position.z, Color.White);
@@ -118,8 +106,9 @@ namespace IslandHopper {
 			World.entities.all.ToList().ForEach(e => e.UpdateRealtime());
 
 			if (World.player.AllowUpdate()) {
+				this.Info("Global Update");
 				World.entities.all.ToList().ForEach(e => {
-					Debug.Print(e.GetType().Name + " update");
+					e.Info("UpdateStep() by world");
 					e.UpdateStep();
 				});
 				World.camera = World.player.Position;
@@ -192,7 +181,7 @@ namespace IslandHopper {
 	}
 	interface ListChoice<T> {
 		T Value { get; }
-		ColoredString GetSymbolCenter();
+		ColoredGlyph GetSymbolCenter();
 		ColoredString GetName();
 	}
 	class ListItem : ListChoice<IItem> {
@@ -200,7 +189,7 @@ namespace IslandHopper {
 		public ListItem(IItem Value) {
 			this.Value = Value;
 		}
-		public ColoredString GetSymbolCenter() => Value.SymbolCenter;
+		public ColoredGlyph GetSymbolCenter() => Value.SymbolCenter;
 		public ColoredString GetName() => Value.Name;
 	}
 	class ListEntity : ListChoice<Entity> {
@@ -208,7 +197,7 @@ namespace IslandHopper {
 		public ListEntity(Entity Value) {
 			this.Value = Value;
 		}
-		public ColoredString GetSymbolCenter() => Value.SymbolCenter;
+		public ColoredGlyph GetSymbolCenter() => Value.SymbolCenter;
 		public ColoredString GetName() => Value.Name;
 	}
 	class ListMenu<T> : Window {
@@ -232,6 +221,7 @@ namespace IslandHopper {
 			base.Update(delta);
 		}
 		public override void Draw(TimeSpan delta) {
+			this.Clear();
 			int x = 5;
 			int y = 5;
 			Print(x, y, hint, Color.White, Color.Black);
@@ -256,7 +246,7 @@ namespace IslandHopper {
 						char binding = (char)('a' + (i - startIndex));
 						Print(x, y, "" + binding, Color.LimeGreen, Color.Transparent);
 						Print(x + 1, y, " ", Color.Black, Color.Black);
-						Print(x + 2, y, list[i].GetSymbolCenter());
+						Print(x + 2, y, list[i].GetSymbolCenter().ToColoredString());
 						Print(x + 3, y, " ", Color.Black, Color.Black);
 						Print(x + 4, y, list[i].GetName());
 					} else {
@@ -388,10 +378,11 @@ namespace IslandHopper {
 		}
 		public void ThrowItem(Entity target, IItem item) {
 			if(Helper.CalcAim2(target.Position - p.Position, 30, out Point3 lower, out Point3 _)) {
-				item.Velocity = lower;
+				item.Velocity = lower / STEPS_PER_SECOND;
 				//Remove the item from the player's inventory and create a thrown item in the world
 				p.inventory.Remove(item);
 				w.AddEntity(new ThrownItem(p, item));
+				p.Witness(new SelfEvent($"You throw: {item.Name}"));
 			}
 		}
 		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {

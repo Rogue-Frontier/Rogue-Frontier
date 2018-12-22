@@ -26,7 +26,7 @@ namespace IslandHopper {
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
 
-		public ColoredString SymbolCenter { get; set; }
+		public ColoredGlyph SymbolCenter { get; set; }
 		public ColoredString Name { get; set; }
 
 		public ItemType type;
@@ -64,7 +64,7 @@ namespace IslandHopper {
 
 
 		public ColoredString Name => new ColoredString("Gun", new Cell(Color.Gray, Color.Transparent));
-		public ColoredString SymbolCenter => new ColoredString("r", new Cell(Color.Gray, Color.Transparent));
+		public ColoredGlyph SymbolCenter => new ColoredString("r", new Cell(Color.Gray, Color.Transparent))[0];
 	}
 	class Parachute : Entity {
 		public Entity user { get; private set; }
@@ -96,8 +96,8 @@ namespace IslandHopper {
 				user.Velocity -= down * deceleration;
 			}
 		}
-		public readonly ColoredString symbol = new ColoredString("*", Color.White, Color.Transparent);
-		public ColoredString SymbolCenter => symbol;
+		public readonly ColoredGlyph symbol = new ColoredString("*", Color.White, Color.Transparent)[0];
+		public ColoredGlyph SymbolCenter => symbol;
 		public ColoredString Name => new ColoredString("Parachute", Color.White, Color.Black);
 	}
 
