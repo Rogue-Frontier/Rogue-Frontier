@@ -84,6 +84,69 @@ namespace IslandHopper {
 				y++;
 			}
 		}
+		//This function calculates all the points on a hollow cube of given radius around an origin of (0, 0, 0)
+		public static List<Point3> GetSurrounding(int radius) {
+			//Cover all the corners
+			var result = new List<Point3>() {
+				new Point3( radius,  radius,  radius),	//NE Upper
+				new Point3( radius,  radius, -radius),	//NE Lower
+				new Point3( radius, -radius,  radius),	//SE Upper
+				new Point3( radius, -radius, -radius),	//SE Lower
+				new Point3(-radius,  radius,  radius),	//NW Uper
+				new Point3(-radius,  radius, -radius),	//NW Lower
+				new Point3(-radius, -radius,  radius),	//SW Upper
+				new Point3(-radius, -radius, -radius),	//SW Lower
+			};
+			//Fill in the sides of the cube
+			for(int y = -radius+1; y < radius; y++) {
+				for(int z = -radius+1; z < radius; z++) {
+					result.Add(new Point3(radius, y, z));	//East side
+					result.Add(new Point3(-radius, y, z));	//West side
+				}
+				//Add the top/bottom edges of each side
+				result.Add(new Point3(radius, y, radius));
+				result.Add(new Point3(radius, y, -radius));
+				result.Add(new Point3(-radius, y, radius));
+				result.Add(new Point3(-radius, y, -radius));
+			}
+			for(int x = -radius+1; x < radius; x++) {
+				for(int z = -radius+1; z < radius; z++) {
+					result.Add(new Point3(x,  radius, z));   //North side
+					result.Add(new Point3(x, -radius, z));   //South side
+				}
+
+				result.Add(new Point3(x, radius, radius));	//North upper
+				result.Add(new Point3(x, radius, -radius));	//North lower
+				result.Add(new Point3(x, -radius, radius));	//South upper
+				result.Add(new Point3(x, -radius, -radius));//South lower
+			}
+			for (int x = -radius+1; x < radius; x++) {
+				for (int y = -radius+1; y < radius; y++) {
+					result.Add(new Point3(x, y,  radius));   //Top side
+					result.Add(new Point3(x, y, -radius));   //Bottom side
+				}
+			}
+			//Vertical
+			for(int z = -radius+1; z < radius; z++) {
+				result.Add(new Point3(radius, radius, z));
+				result.Add(new Point3(radius, -radius, z));
+				result.Add(new Point3(-radius, radius, z));
+				result.Add(new Point3(-radius, -radius, z));
+			}
+			//Sort them based on distance from center
+			result.Sort((p1, p2) => {
+				double d1 = (p1).Magnitude;
+				double d2 = (p2).Magnitude;
+				if (d1 < d2) {
+					return -1;
+				} else if (d1 > d2) {
+					return 1;
+				} else {
+					return 0;
+				}
+			});
+			return result;
+		}
 		public static int Amplitude(this Random random, int amplitude) => random.Next(-amplitude, amplitude);
 		public static bool HasElement(this XElement e, string key, out XElement result) {
 			return (result = e.Element(key)) != null;
@@ -198,16 +261,12 @@ namespace IslandHopper {
 			}
 			return result;
 		}
-		public static ColoredString Adjust(this ColoredString c, Color foregroundInc, Color backgroundInc) {
-			ColoredString result = c.SubString(0, c.Count);
-			foreach (var g in result) {
-				g.Foreground = Sum(g.Foreground, foregroundInc);
-				g.Background = Sum(g.Background, backgroundInc);
-			}
-			return result;
-		}
-		public static ColoredString Opacity(this ColoredString s, double multiplier) {
-			return s.Adjust(new Color(0, 0, 0, (int) (-255 + 255 * multiplier)));
+		public static ColoredString Opacity(this ColoredString s, byte alpha) {
+            var result = s.SubString(0, s.Count);
+			foreach(var c in result) {
+                c.Foreground.A = alpha;
+            }
+            return result;
 		}
 		public static ColoredString Brighten(this ColoredString s, int intensity) {
 			return s.Adjust(new Color(intensity, intensity, intensity, 0));
@@ -220,8 +279,15 @@ namespace IslandHopper {
 			result.Foreground = Sum(result.Foreground, new Color(intensity, intensity, intensity, 0));
 			return result;
 		}
-
-		public static ColoredGlyph Adjust(this ColoredGlyph c, Color foregroundInc) {
+        public static ColoredString Adjust(this ColoredString c, Color foregroundInc, Color backgroundInc) {
+            ColoredString result = c.SubString(0, c.Count);
+            foreach (var g in result) {
+                g.Foreground = Sum(g.Foreground, foregroundInc);
+                g.Background = Sum(g.Background, backgroundInc);
+            }
+            return result;
+        }
+        public static ColoredGlyph Adjust(this ColoredGlyph c, Color foregroundInc) {
 			ColoredGlyph result = c.Clone();
 			result.Foreground = Sum(result.Foreground, foregroundInc);
 			return result;
@@ -229,6 +295,18 @@ namespace IslandHopper {
 		public static Color Sum(Color c, Color c2) {
 			return new Color(Range(0, 255, c.R + c2.R), Range(0, 255, c.G + c2.G), Range(0, 255, c.B + c2.B), Range(0, 255, c.A + c2.A));
 		}
+        public static Func<Entity, bool> Composite(params Func<Entity, bool>[] f) {
+            Func<Entity, bool> result = e => true;
+            foreach(Func<Entity, bool> condition in f) {
+                if (condition == null)
+                    continue;
+                result = e => result(e) && condition(e);
+            }
+            return result;
+        }
+        public static T Elvis<T>(this object o, T result) {
+            return o != null ? default(T) : result;
+        }
 	}
 }
 

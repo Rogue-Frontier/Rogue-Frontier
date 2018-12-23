@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace IslandHopper {
-	class World {
+	public class World {
 		public Random karma;
 		public Space<Entity> entities { get; set; }     //	3D entity grid used for collision detection
 		public ArraySpace<Voxel> voxels { get; set; }   //	3D voxel grid used for collision detection

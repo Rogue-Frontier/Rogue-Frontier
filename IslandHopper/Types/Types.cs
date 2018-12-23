@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace IslandHopper {
-	static class Parse {
+	public static class Parse {
 		static int ParseInt(string s, int fallback) {
 			return String.IsNullOrWhiteSpace(s) ? fallback : int.TryParse(s, out int result) ? result : fallback;
 		}
 	}
-	class TypeCollection {
+	public class TypeCollection {
 		Dictionary<string, XElement> sources;
 		Dictionary<string, DesignType> types;
 		enum InitState {
@@ -88,10 +88,10 @@ namespace IslandHopper {
 			return types.TryGetValue(type, out result);
 		}
 	}
-	interface DesignType {
+	public interface DesignType {
 		void Initialize(TypeCollection collection, XElement e);
 	}
-	class ItemType : DesignType {
+	public class ItemType : DesignType {
 		string name, desc;
 		int mass;
 		bool explosive;
@@ -173,6 +173,7 @@ namespace IslandHopper {
 			int speed;
 
 			public GunType(XElement e) {
+				
 				if(!Enum.TryParse(e.TryAttribute("projectile"), out projectile)) {
 					projectile = ProjectileType.bullet;
 				}

@@ -44,6 +44,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Main\GameMenu.cs" />
     <Compile Include="Misc\Constants.cs" />
     <Compile Include="Misc\Debug.cs" />
     <Compile Include="World\Damage.cs" />
@@ -64,6 +65,7 @@
     </Compile>
     <Compile Include="Main\TitleConsole.cs" />
     <Compile Include="Types\Types.cs" />
+    <Compile Include="World\Projectile.cs" />
     <Compile Include="World\Voxel.cs" />
     <Compile Include="World\World.cs" />
     <Compile Include="World\WorldEvent.cs" />

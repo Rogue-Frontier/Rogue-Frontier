@@ -1,10 +1,10 @@
 ﻿using static IslandHopper.Constants;
 namespace IslandHopper {
-	interface EntityAction {
+	public interface EntityAction {
 		void Update();
 		bool Done();
 	}
-	class WalkAction : EntityAction {
+	public class WalkAction : EntityAction {
 		private Entity player;
 		private Point3 displacement;
 		private Point3 delta;
@@ -21,7 +21,7 @@ namespace IslandHopper {
 		}
 		public bool Done() => ticks == 0;
 	}
-	class Impulse : EntityAction {
+	public class Impulse : EntityAction {
 		private Entity player;
 		private Point3 velocity;
 		private bool done;
@@ -37,7 +37,7 @@ namespace IslandHopper {
 		}
 		public bool Done() => done;
 	}
-	class WaitAction : EntityAction {
+	public class WaitAction : EntityAction {
 		private int ticks;
 		public WaitAction(int ticks) {
 			this.ticks = ticks;
@@ -45,7 +45,7 @@ namespace IslandHopper {
 		public void Update() => ticks--;
 		public bool Done() => ticks == 0;
 	}
-	class AlwaysUpdate : EntityAction {
+	public class AlwaysUpdate : EntityAction {
 		public void Update() { }
 		public bool Done() => false;
 	}

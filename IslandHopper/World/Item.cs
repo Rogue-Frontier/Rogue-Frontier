@@ -5,13 +5,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static IslandHopper.ItemType;
 
 namespace IslandHopper {
-	interface IItem : Entity {
+	public interface IItem : Entity {
 		Gun Gun { get; set; }
 	}
-	class Gun {
-		public int ReloadTime { get; private set; }
+	public class Gun {
+		public static Gun itLeadPipeDevice = new Gun() {
+			ReloadTime = -1,
+			CooldownTime = 30,
+			AmmoLeft = -1,
+			NoiseRange = -1
+		};
+		public int? ReloadTime { get; private set; }
 		public int CooldownTime { get; private set; }
 
 		public int AmmoLeft { get; private set; }
@@ -20,8 +27,12 @@ namespace IslandHopper {
 
 
 		public Gun() { }
+
+        public Bullet CreateShot(Entity Source, Entity Target, Point3 Velocity) {
+			return new Bullet(Source, Target, Velocity);
+        }
 	}
-	class Item : IItem {
+	public class Item : IItem {
 		public World World { get; set; }
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
@@ -35,11 +46,11 @@ namespace IslandHopper {
 		public bool Active => true;
 		public void OnRemoved() { }
 
-		public void UpdateRealtime() { }
+		public void UpdateRealtime(TimeSpan delta) { }
 		public void UpdateStep() { }
 	}
 
-	class Gun1 : IItem {
+	public class Gun1 : IItem {
 		public World World { get; set; }
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
@@ -55,7 +66,7 @@ namespace IslandHopper {
 		public bool Active => true;
 		public void OnRemoved() { }
 
-		public void UpdateRealtime() { }
+		public void UpdateRealtime(TimeSpan delta) { }
 
 		public void UpdateStep() {
 			this.UpdateGravity();
@@ -63,10 +74,10 @@ namespace IslandHopper {
 		}
 
 
-		public ColoredString Name => new ColoredString("Gun", new Cell(Color.Gray, Color.Transparent));
-		public ColoredGlyph SymbolCenter => new ColoredString("r", new Cell(Color.Gray, Color.Transparent))[0];
+		public ColoredString Name => new ColoredString("Gun", new Cell(Color.Gray, Color.Black));
+		public ColoredGlyph SymbolCenter => new ColoredString("r", new Cell(Color.Black, Color.White))[0];
 	}
-	class Parachute : Entity {
+	public class Parachute : Entity {
 		public Entity user { get; private set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
@@ -80,7 +91,7 @@ namespace IslandHopper {
 
 		}
 
-		public void UpdateRealtime() {
+		public void UpdateRealtime(TimeSpan delta) {
 		}
 		public void UpdateFromUser() {
 			Position = user.Position + new Point3(0, 0, 1);

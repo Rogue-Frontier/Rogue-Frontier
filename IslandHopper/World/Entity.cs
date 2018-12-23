@@ -8,19 +8,19 @@ using System.Threading.Tasks;
 using static IslandHopper.Constants;
 
 namespace IslandHopper {
-	interface Entity {
+	public interface Entity {
 		World World { get; }
 		Point3 Position { get; set; }			//Position in meters
 		Point3 Velocity { get; set; }			//Velocity in meters per step
 		bool Active { get; }                    //	When this is inactive, we remove it
 		void OnRemoved();
-		void UpdateRealtime();				//	For step-independent effects
+		void UpdateRealtime(TimeSpan delta);				//	For step-independent effects
 		void UpdateStep();					//	The number of steps per one in-game second is defined in Constants as STEPS_PER_SECOND
 
 		ColoredGlyph SymbolCenter { get; }
 		ColoredString Name { get; }
 	}
-	static class SGravity {
+	public static class SGravity {
 		public static bool OnGround(this Entity g) => (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-1)].Collision == VoxelType.Solid);
 		public static void UpdateGravity(this Entity g) {
 			//	Fall or hit the ground
@@ -88,7 +88,7 @@ namespace IslandHopper {
 			g.Position = final;
 		}
 	}
-	class Player : Entity {
+	public class Player : Entity {
 		public Point3 Velocity { get; set; }
 		public Point3 Position { get; set; }
 		public World World { get; set; }
@@ -99,8 +99,8 @@ namespace IslandHopper {
 		public List<HistoryEntry> HistoryRecent { get; }   //Events that the player is currently witnessing
 		public class HistoryEntry {
 			public ColoredString Desc { get; }
-			public int ScreenTime;
-			public HistoryEntry(ColoredString Desc, int ScreenTime = 150) {
+			public double ScreenTime;
+			public HistoryEntry(ColoredString Desc, double ScreenTime = 4) {
 				this.Desc = Desc;
 				this.ScreenTime = ScreenTime;
 			}
@@ -124,8 +124,8 @@ namespace IslandHopper {
 		public bool AllowUpdate() => Actions.Count > 0 && frameCounter == 0;
 		public bool Active => true;
 		public void OnRemoved() { }
-		public void UpdateRealtime() {
-			HistoryRecent.ForEach(e => e.ScreenTime--);
+		public void UpdateRealtime(TimeSpan delta) {
+            HistoryRecent.RemoveAll(e => (e.ScreenTime -= delta.TotalSeconds) < 0);
 			if(frameCounter > 0)
 				frameCounter--;
 		}
@@ -145,57 +145,12 @@ namespace IslandHopper {
 		}
 
 		public void Witness(WorldEvent e) {
-			HistoryLog.Add(e.Self);
-			HistoryRecent.Add(new HistoryEntry(e.Self));
-		}
+            HistoryLog.Add(e.Self);
+            HistoryRecent.Add(new HistoryEntry(e.Self));
+        }
 
 		public ColoredGlyph SymbolCenter => new ColoredString("@", Color.White, Color.Black)[0];
 		public ColoredString Name => new ColoredString("Player", Color.White, Color.Black);
-	}
-	class ThrownItem : Entity {
-		public Entity thrower { get; private set; }
-		public IItem source { get; private set; }
-		public World World { get => source.World; }
-		public Point3 Position { get => source.Position; set => source.Position = value; }
-		public Point3 Velocity { get => source.Velocity; set => source.Velocity = value; }
-		public bool Active => flying && source.Active;
-		private bool flying;
-		private int tick = 0;
-		public void OnRemoved() {
-			if (source.Active) {
-				source.World.AddEntity(source);
-			}
-		}
-		public ThrownItem(Entity thrower, IItem source) {
-			this.thrower = thrower;
-			this.source = source;
-			flying = true;
-		}
-		public ColoredGlyph SymbolCenter => tick % 20 < 10 ? source.SymbolCenter : source.SymbolCenter.Brighten(51);
-		public ColoredString Name => tick % 20 < 10 ? source.Name : source.Name.Brighten(51);
-
-		public void UpdateRealtime() {
-			tick++;
-			source.UpdateRealtime();
-		}
-		public void UpdateStep() {
-			this.Info("UpdateStep()");
-			source.UpdateGravity();
-			source.UpdateMotionCollision(e => {
-				if (e == thrower) {
-					this.Info("Ignore collision with thrower");
-					return true;
-				} else {
-					this.Info("Flying collision with object");
-					flying = false;
-					return false;
-				}
-			});
-			if (this.OnGround()) {
-				this.Info("Landed on ground");
-				flying = false;
-			}
-		}
 	}
 
 	/*
@@ -212,7 +167,7 @@ namespace IslandHopper {
 		}
 		public bool IsActive() => true;
 		public bool OnGround() => (World.voxels[Position] is Floor || World.voxels[Position.PlusZ(-1)] is Grass);
-		public void UpdateRealtime() {
+		public void UpdateRealtime(TimeSpan delta) {
 
 		}
 		public void UpdateStep() {

@@ -13,12 +13,14 @@ namespace IslandHopper {
 		int ScreenTime { get; set; }
 	}
 	public class SelfEvent : WorldEvent {
+        public int Count;
 		public int ScreenTime { get; set; } = 90;
-		public ColoredString Self { get; }
+        public ColoredString Self { get; }
 		public ColoredString Seen => Self;
 		public ColoredString Heard => Self;
 		public SelfEvent(ColoredString Self) {
-			this.Self = Self;
+            Count = 1;
+            this.Self = Self;
 			ScreenTime = 90;
 		}
 	}
