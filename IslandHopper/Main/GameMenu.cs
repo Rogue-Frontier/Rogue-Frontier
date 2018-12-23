@@ -84,7 +84,7 @@ namespace IslandHopper {
 					World.player.Inventory.Remove(item);
 					World.entities.Place(item);
 
-					World.player.Witness(new SelfEvent(new ColoredString("You drop: ") + item.Name.WithBackground(Color.Black)));
+					World.player.Witness(new InfoEvent(new ColoredString("You drop: ") + item.Name.WithBackground(Color.Black)));
 					return true;
 				}).Show(true);
 			} else if(info.IsKeyPressed(Keys.E)) {
@@ -95,7 +95,7 @@ namespace IslandHopper {
                     World.player.Inventory.Add(item);
                     World.entities.Remove(item);
 
-                    World.player.Witness(new SelfEvent(new ColoredString("You get: ") + item.Name.WithBackground(Color.Black)));
+                    World.player.Witness(new InfoEvent(new ColoredString("You get: ") + item.Name.WithBackground(Color.Black)));
                     return true;
                 }).Show(true);
             } else if (info.IsKeyPressed(Keys.I)) {
@@ -114,7 +114,7 @@ namespace IslandHopper {
             } else if (info.IsKeyPressed(Keys.OemPeriod)) {
                 Debug.Print("waiting");
                 World.player.Actions.Add(new WaitAction(Constants.STEPS_PER_SECOND));
-                World.player.Witness(new SelfEvent(new ColoredString("You wait")));
+                World.player.Witness(new InfoEvent(new ColoredString("You wait")));
             }
             return base.ProcessKeyboard(info);
         }
@@ -401,7 +401,7 @@ namespace IslandHopper {
                 //Remove the item from the player's inventory and create a thrown item in the world
                 p.Inventory.Remove(item);
                 w.AddEntity(new ThrownItem(p, item));
-                p.Witness(new SelfEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black)));
+                p.Witness(new InfoEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black)));
             }
         }
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {

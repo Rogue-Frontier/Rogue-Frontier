@@ -1,4 +1,5 @@
-﻿using SadConsole;
+﻿using Microsoft.Xna.Framework;
+using SadConsole;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,20 +8,18 @@ using System.Threading.Tasks;
 
 namespace IslandHopper {
 	public interface WorldEvent {
-		ColoredString Self { get; }
-		ColoredString Seen { get; }
-		ColoredString Heard { get; }
+		ColoredString Desc { get; }
 		int ScreenTime { get; set; }
 	}
-	public class SelfEvent : WorldEvent {
-        public int Count;
+	public class InfoEvent : WorldEvent {
 		public int ScreenTime { get; set; } = 90;
-        public ColoredString Self { get; }
-		public ColoredString Seen => Self;
-		public ColoredString Heard => Self;
-		public SelfEvent(ColoredString Self) {
-            Count = 1;
-            this.Self = Self;
+        public ColoredString Desc { get; }
+		public InfoEvent(ColoredString Desc) {
+			this.Desc = Desc;
+			ScreenTime = 90;
+		}
+		public InfoEvent(string Desc, Color? foreground = null) {
+            this.Desc = new ColoredString(Desc, foreground ?? Color.White, Color.Black);
 			ScreenTime = 90;
 		}
 	}

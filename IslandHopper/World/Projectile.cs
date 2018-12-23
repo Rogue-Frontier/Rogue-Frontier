@@ -5,43 +5,45 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static IslandHopper.Helper;
 
 namespace IslandHopper {
 	public class ThrownItem : Entity {
-        public Entity thrower { get; private set; }
-        public IItem source { get; private set; }
-        public World World { get => source.World; }
-        public Point3 Position { get => source.Position; set => source.Position = value; }
-        public Point3 Velocity { get => source.Velocity; set => source.Velocity = value; }
-        public bool Active => flying && source.Active;
+        public Entity Thrower { get; private set; }
+        public IItem Thrown { get; private set; }
+        public World World { get => Thrown.World; }
+        public Point3 Position { get => Thrown.Position; set => Thrown.Position = value; }
+        public Point3 Velocity { get => Thrown.Velocity; set => Thrown.Velocity = value; }
+        public bool Active => flying && Thrown.Active;
         private bool flying;
         private int tick = 0;
         public void OnRemoved() {
-            if (source.Active) {
-                source.World.AddEntity(source);
+            if (Thrown.Active) {
+                Thrown.World.AddEntity(Thrown);
             }
         }
         public ThrownItem(Entity thrower, IItem source) {
-            this.thrower = thrower;
-            this.source = source;
+            this.Thrower = thrower;
+            this.Thrown = source;
             flying = true;
         }
-        public ColoredGlyph SymbolCenter => tick % 20 < 10 ? source.SymbolCenter : source.SymbolCenter.Brighten(51);
-        public ColoredString Name => tick % 20 < 10 ? source.Name : source.Name.Brighten(51);
+        public ColoredGlyph SymbolCenter => tick % 20 < 10 ? Thrown.SymbolCenter : Thrown.SymbolCenter.Brighten(51);
+        public ColoredString Name => tick % 20 < 10 ? Thrown.Name : Thrown.Name.Brighten(51);
 
         public void UpdateRealtime(TimeSpan delta) {
             tick++;
-            source.UpdateRealtime(delta);
+            Thrown.UpdateRealtime(delta);
         }
         public void UpdateStep() {
             this.Info("UpdateStep()");
-            source.UpdateGravity();
-            source.UpdateMotionCollision(e => {
-                if (e == thrower) {
+            Thrown.UpdateGravity();
+            Thrown.UpdateMotionCollision(e => {
+				if (e == Thrower) {
                     this.Info("Ignore collision with thrower");
                     return true;
                 } else {
                     this.Info("Flying collision with object");
+					Thrower.Witness(new InfoEvent($"Thrown item {Thrown.Name} hits {e.Name}"));
                     flying = false;
                     return false;
                 }
@@ -53,23 +55,17 @@ namespace IslandHopper {
         }
     }
 	public class Beam : Entity {
-		private Entity Source;
-		private Entity Target;
-
-		private int tick;   //Used for sprite flashing
-
 		public World World { get; }
-
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
-
 		public bool Active { get; private set; }
-
+		public void OnRemoved() { }
 		public ColoredGlyph SymbolCenter => new ColoredString("~", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black)[0];
-
 		public ColoredString Name => new ColoredString("Beam", tick % 20 < 10 ? new Color(255, 0, 0, 255) : new Color(204, 0, 0, 255), Color.Black);
 
-		public void OnRemoved() { }
+		private Entity Source;
+		private Entity Target;
+		private int tick;   //Used for sprite flashing
 
 		public Beam(Entity Source, Entity Target, Point3 Velocity) {
 			this.Source = Source;
@@ -87,32 +83,32 @@ namespace IslandHopper {
 		public void UpdateStep() {
 			Func<Entity, bool> ignoreSource = e => e == Source;
 			Func<Entity, bool> filterTarget = e => e != Target;
+			//We only reach this if the other conditions were not met
+			Func<Entity, bool> onHit = e => {
+				Active = false;
+				Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
+				return false;
+			};
 
-			Func<Entity, bool> collisionFilter = Helper.Composite(Source.Elvis(ignoreSource), Target.Elvis(filterTarget));
+			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
 
 			this.UpdateMotionCollision(collisionFilter);
 		}
 	}
 	public class Bullet : Entity {
-        private Entity Source;
-        private Entity Target;
-
-        private int tick;   //Used for sprite flashing
-
-        public World World { get; }
-
+		public World World { get; }
         public Point3 Position { get; set; }
         public Point3 Velocity { get; set; }
-
         public bool Active { get; private set; }
-
-        public ColoredGlyph SymbolCenter => new ColoredString("*", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black)[0];
-
+		public void OnRemoved() { }
+		public ColoredGlyph SymbolCenter => new ColoredString("*", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black)[0];
         public ColoredString Name => new ColoredString("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
 
-        public void OnRemoved() {}
+		private Entity Source;
+		private Entity Target;
+		private int tick;   //Used for sprite flashing
 
-        public Bullet(Entity Source, Entity Target, Point3 Velocity) {
+		public Bullet(Entity Source, Entity Target, Point3 Velocity) {
             this.Source = Source;
             this.Target = Target;
             this.World = Source.World;
@@ -130,25 +126,61 @@ namespace IslandHopper {
 
             Func<Entity, bool> ignoreSource = e => e == Source;
             Func<Entity, bool> filterTarget = e => e != Target;
-
-            Func<Entity, bool> collisionFilter = Helper.Composite(Source.Elvis(ignoreSource), Target.Elvis(filterTarget));
+			Func<Entity, bool> onHit = e => {
+				Active = false;
+				Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
+				return false;
+			};
+			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
 
             this.UpdateMotionCollision(collisionFilter);
         }
     }
-	class ExplosionBlock : Entity {
+	public class Missile : Entity {
 		public World World { get; }
-
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
-
 		public bool Active { get; private set; }
-
-		public ColoredGlyph SymbolCenter => new ColoredString("*", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black)[0];
-
-		public ColoredString Name => new ColoredString("Explosion", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
-
 		public void OnRemoved() { }
+		public ColoredGlyph SymbolCenter => new ColoredString("M", tick % 8 < 4 ? Color.White : Color.Gray, Color.Black)[0];
+		public ColoredString Name => new ColoredString("Missile", tick % 8 < 4 ? Color.White : Color.Gray, Color.Black);
+
+		private Entity Source;
+		private Entity Target;
+		private int tick;   //Used for sprite flashing
+
+		public Missile(Entity Source, Entity Target, Point3 Velocity) {
+			this.Source = Source;
+			this.Target = Target;
+			this.World = Source.World;
+			this.Position = Source.Position;
+			this.Velocity = Velocity;
+			Active = true;
+			tick = 0;
+		}
+		public void UpdateRealtime(TimeSpan delta) {
+			tick++;
+		}
+
+		public void UpdateStep() {
+			this.UpdateGravity();
+
+			Func<Entity, bool> ignoreSource = e => e == Source;
+			Func<Entity, bool> filterTarget = e => e != Target;
+
+			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget));
+
+			this.UpdateMotionCollision(collisionFilter);
+		}
+	}
+	class ExplosionBlock : Entity {
+		public World World { get; }
+		public Point3 Position { get; set; }
+		public Point3 Velocity { get; set; }
+		public bool Active { get; private set; }
+		public void OnRemoved() { }
+		public ColoredGlyph SymbolCenter => new ColoredString("*", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black)[0];
+		public ColoredString Name => new ColoredString("Explosion", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 
 		private int tick;
 		private int lifetime;
@@ -170,20 +202,15 @@ namespace IslandHopper {
 		}
 	}
 	class ExplosionSource : Entity {
-		private int tick;   //Used for sprite flashing
-
 		public World World { get; }
-
 		public Point3 Position { get; set; }
 		public Point3 Velocity { get; set; }
-
 		public bool Active { get; private set; }
-
+		public void OnRemoved() { }
 		public ColoredGlyph SymbolCenter => new ColoredString("*", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black)[0];
-
 		public ColoredString Name => new ColoredString("Explosion", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 
-		public void OnRemoved() { }
+		private int tick;   //Used for sprite flashing
 
 		private List<Point3> explosionOffsets;	//List of points surrounding our center that we will expand to
 		private int tileIndex;

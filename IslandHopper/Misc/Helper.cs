@@ -295,12 +295,12 @@ namespace IslandHopper {
 		public static Color Sum(Color c, Color c2) {
 			return new Color(Range(0, 255, c.R + c2.R), Range(0, 255, c.G + c2.G), Range(0, 255, c.B + c2.B), Range(0, 255, c.A + c2.A));
 		}
-        public static Func<Entity, bool> Composite(params Func<Entity, bool>[] f) {
+        public static Func<Entity, bool> Or(params Func<Entity, bool>[] f) {
             Func<Entity, bool> result = e => true;
             foreach(Func<Entity, bool> condition in f) {
                 if (condition == null)
                     continue;
-                result = e => result(e) && condition(e);
+                result = e => result(e) || condition(e);
             }
             return result;
         }

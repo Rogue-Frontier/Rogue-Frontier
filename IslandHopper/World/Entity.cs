@@ -20,7 +20,7 @@ namespace IslandHopper {
 		ColoredGlyph SymbolCenter { get; }
 		ColoredString Name { get; }
 	}
-	public static class SGravity {
+	public static class EntityHelper {
 		public static bool OnGround(this Entity g) => (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-1)].Collision == VoxelType.Solid);
 		public static void UpdateGravity(this Entity g) {
 			//	Fall or hit the ground
@@ -69,7 +69,7 @@ namespace IslandHopper {
 			*/
 			g.Position = final;
 		}
-		public static void UpdateMotionCollision(this Entity g, Func<Entity, bool> ignoreCollision) {
+		public static void UpdateMotionCollision(this Entity g, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
 			g.UpdateFriction();
 			if (g.Velocity < 0.1) {
 				return;
@@ -77,8 +77,13 @@ namespace IslandHopper {
 			Point3 step = CalcMotionStep(g.Velocity);
 			Point3 final = g.Position;
 			for (Point3 p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
-				if (g.World.voxels.Try(p) is Air) {
-					if(g.World.entities.Try(p).All(ignoreCollision)) {
+				var v = g.World.voxels.Try(p);
+				if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
+					if(ignoreEntityCollision != null) {
+						if (g.World.entities.Try(p).All(ignoreEntityCollision)) {
+							final = p;
+						}
+					} else {
 						final = p;
 					}
 				} else {
@@ -87,8 +92,15 @@ namespace IslandHopper {
 			}
 			g.Position = final;
 		}
+		public static void Witness(this Entity e, WorldEvent we) {
+			if (e is Witness w)
+				w.Witness(we);
+		}
 	}
-	public class Player : Entity {
+	interface Witness {
+		void Witness(WorldEvent e);
+	}
+	public class Player : Entity, Witness {
 		public Point3 Velocity { get; set; }
 		public Point3 Position { get; set; }
 		public World World { get; set; }
@@ -105,7 +117,6 @@ namespace IslandHopper {
 				this.ScreenTime = ScreenTime;
 			}
 		}
-
 
 		public int frameCounter = 0;
 
@@ -145,8 +156,8 @@ namespace IslandHopper {
 		}
 
 		public void Witness(WorldEvent e) {
-            HistoryLog.Add(e.Self);
-            HistoryRecent.Add(new HistoryEntry(e.Self));
+            HistoryLog.Add(e.Desc);
+            HistoryRecent.Add(new HistoryEntry(e.Desc));
         }
 
 		public ColoredGlyph SymbolCenter => new ColoredString("@", Color.White, Color.Black)[0];

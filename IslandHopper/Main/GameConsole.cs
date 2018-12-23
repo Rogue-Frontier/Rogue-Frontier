@@ -32,6 +32,7 @@ namespace IslandHopper {
 				camera = new Point3(0, 0, 0)
 			};
 			World.player = new Player(World, new Point3(80, 80, 20));
+			//World.AddEntity(new Player(World, new Point3(85, 85, 20)));
 
 			for (int x = 0; x < World.voxels.Width; x++) {
 				for(int y = 0; y < World.voxels.Height; y++) {
