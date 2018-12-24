@@ -80,7 +80,8 @@ namespace IslandHopper {
 				var v = g.World.voxels.Try(p);
 				if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
 					if(ignoreEntityCollision != null) {
-						if (g.World.entities.Try(p).All(ignoreEntityCollision)) {
+						var entities = g.World.entities.Try(p).Where(e => !ReferenceEquals(e, g));
+						if (entities.All(ignoreEntityCollision)) {
 							final = p;
 						}
 					} else {

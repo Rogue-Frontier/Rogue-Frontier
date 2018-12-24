@@ -35,21 +35,25 @@ namespace IslandHopper {
             Thrown.UpdateRealtime(delta);
         }
         public void UpdateStep() {
-            this.Info("UpdateStep()");
+            this.DebugInfo("UpdateStep()");
             Thrown.UpdateGravity();
             Thrown.UpdateMotionCollision(e => {
-				if (e == Thrower) {
-                    this.Info("Ignore collision with thrower");
+				if (e == this) {
+					this.DebugInfo("Ignore collision with self");
+					return true;
+				} else if (e == Thrower) {
+                    this.DebugInfo("Ignore collision with thrower");
                     return true;
                 } else {
-                    this.Info("Flying collision with object");
+                    this.DebugInfo("Flying collision with object");
 					Thrower.Witness(new InfoEvent($"Thrown item {Thrown.Name} hits {e.Name}"));
                     flying = false;
                     return false;
                 }
             });
-            if (this.OnGround()) {
-                this.Info("Landed on ground");
+            if (this.OnGround() && Velocity.Magnitude < 0.2) {
+                this.DebugInfo("Landed on ground");
+				this.DebugExit();
                 flying = false;
             }
         }
@@ -253,8 +257,8 @@ namespace IslandHopper {
 				Active = false;
 			}
 
-			this.Info("UpdateStep");
-			this.Info($"Current Radius: {currentRadius}");
+			this.DebugInfo("UpdateStep");
+			this.DebugInfo($"Current Radius: {currentRadius}");
 
 			//See if we need to calculate more surrounding tiles now (the farthest tile calculated so far is within the current radius)
 			while (explosionOffsets.Last().Magnitude < currentRadius) {
@@ -263,14 +267,14 @@ namespace IslandHopper {
 					rectRadius++;
 					//Add the surrounding shell of tiles to our list.
 					explosionOffsets.AddRange(Helper.GetSurrounding(rectRadius));
-					this.Info($"Added surrounding tiles for radius: {rectRadius}");
+					this.DebugInfo($"Added surrounding tiles for radius: {rectRadius}");
 				}
 			}
 			while (explosionOffsets[tileIndex].Magnitude < currentRadius) {
 				//Expand to this tile
 				World.AddEntity(new ExplosionBlock(World, Position + explosionOffsets[tileIndex]));
 
-				this.Info($"Expanded to tile index: {tileIndex}");
+				this.DebugInfo($"Expanded to tile index: {tileIndex}");
 
 				//Increment the index since we covered this tile
 				//We do not remove elements because ignoring them is more efficient
