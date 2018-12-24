@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace IslandHopper {
 	public static class Debug {
@@ -15,13 +16,18 @@ namespace IslandHopper {
 			if (condition)
 				Print(state);
 		}
-		public static void Info(this object o, string message) {
+		public static void DebugInfo(this object o, string message) {
 			Print(o.GetType().Name + ">" + message);
 		}
-		public static void Info(this object o, params string[] message) {
+		public static void DebugInfo(this object o, params string[] message) {
 			Print(o.GetType().Name + ">");
 			foreach(string s in message) {
 				Print("\t" + s);
+			}
+		}
+		public static void DebugExit(this object o, bool enabled = true) {
+			if (enabled) {
+				Environment.Exit(0);
 			}
 		}
 		/*

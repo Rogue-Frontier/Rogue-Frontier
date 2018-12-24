@@ -172,10 +172,16 @@ namespace IslandHopper {
 		public static string TryAttribute(this XElement e, string attribute, string fallback = "") {
 			return e.Attribute(attribute)?.Value ?? fallback;
 		}
-		public static int TryAttributeInt(this XElement e, string attribute, int fallback = 0) {
-			return e.TryAttribute(attribute).ParseInt(fallback);
+		//We expect either no value or a valid value; an invalid value gets an exception
+		public static int TryAttributeInt(this XAttribute a, int fallback = 0) {
+			if(a == null) {
+				return fallback;
+			} else if(int.TryParse(a.Value, out int result)) {
+				return result;
+			} else {
+				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\"");
+			}
 		}
-
 		public static int ParseInt(this string s, int fallback = 0) {
 			return int.TryParse(s, out int result) ? result : fallback;
 		}
@@ -194,8 +200,18 @@ namespace IslandHopper {
 		public static bool ParseBool(this string s, bool fallback = false) {
 			return s == "true" ? true : s == "false" ? false : fallback;
 		}
+		//We expect either no value or a valid value; an invalid value gets an exception
+		public static bool TryAttributeBool(XAttribute a, bool fallback = false) {
+			if(a == null) {
+				return fallback;
+			} else if(bool.TryParse(a.Value, out bool result)) {
+				return result;
+			} else {
+				throw new Exception($"Bool value expected: {a.Name}=\"{a.Value}\"");
+			}
+		}
 		public static bool TryAttributeBool(this XElement e, string attribute, bool fallback = false) {
-			return e.TryAttribute("attribute").ParseBool(fallback);
+			return e.TryAttribute(attribute).ParseBool(fallback);
 		}
 		/*
 		public static bool? ParseBool(this string s, bool? fallback = null) {
@@ -214,15 +230,15 @@ namespace IslandHopper {
 
 		}
 		*/
+		//We expect either no value or a valid value; an invalid value gets an exception
 		public static TEnum ParseEnum<TEnum>(this XAttribute a, TEnum fallback = default) where TEnum : struct {
 			if (a == null) {
 				return fallback;
 			} else if (Enum.TryParse<TEnum>(a.Value, out TEnum result)) {
 				return result;
 			} else {
-				return fallback;
+				throw new Exception($"Enum value of {fallback.GetType().Name} expected: {a.Name}=\"{a.Value}\"");
 			}
-
 		}
 		public static TValue TryLookup<TKey, TValue>(this Dictionary<TKey, TValue> d, TKey key, TValue fallback = default) {
 			if (d.ContainsKey(key)) {
