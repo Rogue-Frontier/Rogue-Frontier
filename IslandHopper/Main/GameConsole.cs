@@ -24,7 +24,7 @@ namespace IslandHopper {
 			Theme = Themes.Main;
 			UseKeyboard = true;
 			UseMouse = true;
-			this.Info($"Width: {Width}", $"Height: {Height}");
+			this.DebugInfo($"Width: {Width}", $"Height: {Height}");
 			World = new World() {
 				karma = new Random(0),
 				entities = new Space<Entity>(100, 100, 30, e => e.Position),

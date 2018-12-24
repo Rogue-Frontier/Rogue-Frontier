@@ -26,9 +26,9 @@ namespace IslandHopper {
             }
 
             if (World.player.AllowUpdate()) {
-                this.Info("Global Update");
+                this.DebugInfo("Global Update");
                 foreach (var e in World.entities.all.ToList()) {
-                    e.Info("UpdateStep() by world");
+                    e.DebugInfo("UpdateStep() by world");
                     e.UpdateStep();
                 }
                 World.camera = World.player.Position;
