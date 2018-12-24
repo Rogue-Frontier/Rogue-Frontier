@@ -208,16 +208,46 @@ EASTER EGGS
 		desc=			"Bite this bullet, I say! Bite it!"
 		>
 	</ItemType>
-	<ItemType	type=	"itLeadPipeDevice"
-		name=			"Lead Pipe Device"
-		desc=			"Whoever made this strange contraption apparently lived in a world where the only available chassis was a lead pipe."
+	<!--	Rare weapons that can be identified by using them as Bludgeons	-->
+	<ItemType	type=	"itMetalPipeDevice"
+		name=			"Metal Pipe Device"
+		desc=			"Whoever made this strange contraption apparently lived in a world where the only available chassis was a metal pipe. If only you could know which kind of metal this Pipe Device was made of..."
 		>
 		<ItemType
-			name=			"Electronwave Generator"
-			desc=			"An experimental prototype of a possibly revolutionary energy weapon, built out of a lead pipe by who knows who."
+			name=			"Lead Pipe Device (Electronwave Generator)"
+			desc=			"An experimental prototype of a possibly revolutionary energy beam weapon, built out of a lead pipe by who knows who."
 			known=			"false"
-			unknownType=	"itLeadPipeDevice"
+			unknownType=	"itMetalPipeDevice"
 			>
+			<Bludgeon
+				strength=		"100"
+				>
+				<Noise>
+					<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
+					<Strong>The strike of the Metal Pipe Device sings a the signature clang of a Lead Pipe Device</Strong>
+				</Noise>
+			</Bludgeon>
+			<Gun
+				shot=			"beam"
+				difficulty=		"none"
+				recoil=			"0"
+				noise=			"0"
+				/>
+		</ItemType>
+		<ItemType
+			name=			"Wood Pipe Device (Napalm Thrower)"
+			desc=			"Normally, you would say, &quot;Why would you build a flamethrower from a metal pipe that is actually made out of wood?!&quot; But if you were a Crazy Idea Connoisseur, you would instead say, &quot;Because building a flamethrower from a metal pipe that is actually made out of wood is a brilliant idea!&quot; And if you were a thief, then you would sneak past the distracted Crazy Ideas Connoisseur into his house in order to steal his flamethrower built from a metal pipe that is actually made out of wood and die trying to use it in some pointless island war."
+			known=			"false"
+			unknownType=	"itMetalPipeDevice"
+			>
+			<Bludgeon
+				strength=		"40"
+				>
+				<Noise>
+					<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
+					<Strong>The strike of the Metal Pipe Device sings the signature clang of a Wood Pipe Device</Strong>
+				</Noise>
+			</Bludgeon>
 			<Gun
 				shot=			"beam"
 				difficulty=		"none"
