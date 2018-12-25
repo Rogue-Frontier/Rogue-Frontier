@@ -6,13 +6,13 @@ Mount
 		desc=				description of the item
 		mass=				mass in kg. If the mass is lower than the user's one-hand strength, then the user can hold it in one hand. If greater than the user's one-hand strength but lower than two-handed strength, then requires two-handed grip. Otherwise too heavy to hold.
 		explosive=			if this item or its user takes explosive damage, then this item will explode
-		known=			The chance that the player will recognize this item.
-			"true"				immediately known; default option
+		unknown=			The chance that the player will recognize this item.
+			"false"				immediately known; default option
 			"common"			80% chance known
 			"uncommon"			60% chance known
 			"rare"				40% chance known
 			"exotic"			20% chance known
-			"false"			0% chance known
+			"true"				0% chance known
 		Arm
 		Back
 		Gun				can be fired when held in hands or equipped as gear
@@ -211,12 +211,12 @@ EASTER EGGS
 	<!--	Rare weapons that can be identified by using them as Bludgeons	-->
 	<ItemType	type=	"itMetalPipeDevice"
 		name=			"Metal Pipe Device"
-		desc=			"Whoever made this strange contraption apparently lived in a world where the only available chassis was a metal pipe. If only you could know which kind of metal this Pipe Device was made of..."
+		desc=			"Whoever made this strange contraption apparently lived in a world where the only available chassis was a metal pipe. If only you could know which kind of metal the pipe was made of..."
 		>
 		<ItemType
-			name=			"Lead Pipe Device (Electronwave Generator)"
-			desc=			"An experimental prototype of a possibly revolutionary energy beam weapon, built out of a lead pipe by who knows who."
-			known=			"false"
+			name=			"Silicon Pipe Device (Electronwave Paralyzer)"
+			desc=			"An experimental prototype of a possibly revolutionary energy beam weapon, built out of a silicon pipe by who knows who."
+			unknown=		"true"
 			unknownType=	"itMetalPipeDevice"
 			>
 			<Bludgeon
@@ -224,20 +224,16 @@ EASTER EGGS
 				>
 				<Noise>
 					<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
-					<Strong>The strike of the Metal Pipe Device sings a the signature clang of a Lead Pipe Device</Strong>
+					<Strong>The strike of the Metal Pipe Device sings the signature clang of a Silicon Pipe Device</Strong>
 				</Noise>
 			</Bludgeon>
 			<Gun
-				shot=			"beam"
-				difficulty=		"none"
-				recoil=			"0"
-				noise=			"0"
 				/>
 		</ItemType>
 		<ItemType
-			name=			"Wood Pipe Device (Napalm Thrower)"
+			name=			"Wood Pipe Device (The Divine Inferno)"
 			desc=			"Normally, you would say, &quot;Why would you build a flamethrower from a metal pipe that is actually made out of wood?!&quot; But if you were a Crazy Idea Connoisseur, you would instead say, &quot;Because building a flamethrower from a metal pipe that is actually made out of wood is a brilliant idea!&quot; And if you were a thief, then you would sneak past the distracted Crazy Ideas Connoisseur into his house in order to steal his flamethrower built from a metal pipe that is actually made out of wood and die trying to use it in some pointless island war."
-			known=			"false"
+			unknown=		"true"
 			unknownType=	"itMetalPipeDevice"
 			>
 			<Bludgeon
@@ -249,11 +245,129 @@ EASTER EGGS
 				</Noise>
 			</Bludgeon>
 			<Gun
-				shot=			"beam"
-				difficulty=		"none"
-				recoil=			"0"
-				noise=			"0"
 				/>
+		</ItemType>
+		<ItemType
+			name=			"Brass Pipe Device (Brasswind Blowdart Gun)"
+			desc=			"Fool your enemies into thinking that you're totally not a poison-shooting secret-agent sniper assassin super soldier by carrying this totally innocuous war trumpet! Works best if you're a member of the battlefield marching band!"
+			unknown=			"true"
+			unknownType=	"itMetalPipeDevice"
+			>
+			<Bludgeon
+				strength=		"40"
+				>
+				<Noise>
+					<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
+					<Strong>The strike of the Metal Pipe Device sings the signature clang of a Brass Pipe Device</Strong>
+				</Noise>
+			</Bludgeon>
+			<Gun
+				/>
+		</ItemType>
+		<ItemType
+			name=			"Lead Pipe Device (Lead Pipe)"
+			desc=			"This Metal Pipe Device seems to be nothing more than an ordinary lead pipe that was taken from an Ancient Roman aqueduct."
+			unknown=		"true"
+			unknownType=	"itMetalPipeDevice"
+			>
+			<Bludgeon
+				strength=		"100"
+				>
+				<Noise>
+					<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
+					<Strong>The strike of the Metal Pipe Device sings the signature clang of a Lead Pipe Device</Strong>
+				</Noise>
+			</Bludgeon>
+		</ItemType>
+		<ItemType
+			name=			"Gold Pipe Device (Gold Bar)"
+			desc=			"Well, this is embarrassing. Looks like this Metal Pipe Device is not even a pipe; It’s just a useless bar of gold."
+			unknown=		"true"
+			unknownType=	"itMetalPipeDevice"
+			>
+			<Bludgeon
+				strength=		"100"
+				>
+				<Noise>
+					<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
+					<Strong>The strike of the Metal Pipe Device sings the signature clang of a Gold Pipe Device</Strong>
+				</Noise>
+			</Bludgeon>
+		</ItemType>
+		<ItemType
+			name=			"Steel Pipe Device (Steel Murderbar)"
+			desc=			"What you initially thought was an ordinary Metal Pipe Device turned out to be nothing more than a bundle of crowbars tied together to form one sharp and terrifying weapon."
+			unknown=		"true"
+			unknownType=	"itMetalPipeDevice"
+			>
+			<Bludgeon
+				strength=		"100"
+				>
+				<Noise>
+					<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
+					<Strong>The strike of the Metal Pipe Device sings the signature clang of a Steel Pipe Device</Strong>
+				</Noise>
+			</Bludgeon>
+		</ItemType>
+		<ItemType
+			name=			"Aluminum Pipe Device (Pipe Bomb)"
+			desc=			"Had you swung this Aluminum Pipe Device one more time, you could have badly disfigured an enemy soldier!"
+			unknown=		"true"
+			unknownType=	"itMetalPipeDevice"
+			>
+			<Bludgeon
+				strength=		"100"
+				>
+				<Noise>
+					<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
+					<Strong>The strike of the Metal Pipe Device sings the signature clang of a Aluminum Pipe Device</Strong>
+				</Noise>
+			</Bludgeon>
+		</ItemType>
+		<ItemType
+			name=			"Tungsten Pipe Device (The Tungsten Shot To Blow The Brain Stem Out)"
+			desc=			"This is just a Special Forces sniper rifle disguised as a tungsten pipe. Why a pipe and not something that would look less suspicious in the hands of the average civilian? Nobody knows."
+			unknown=		"true"
+			unknownType=	"itMetalPipeDevice"
+			>
+			<Bludgeon
+				strength=		"100"
+				>
+				<Noise>
+					<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
+					<Strong>The strike of the Metal Pipe Device sings the signature clang of a Tungsten Pipe Device</Strong>
+				</Noise>
+			</Bludgeon>
+		</ItemType>
+		<ItemType
+			name=			"Arsenic Pipe Device (The Forbidden Arsenal)"
+			desc=			"This is the first ever and last ever rocket launcher to be made out of the first ever and last ever arsenic pipe to be made. Drop it before it kills you!"
+			unknown=		"true"
+			unknownType=	"itMetalPipeDevice"
+			>
+			<Bludgeon
+				strength=		"100"
+				>
+				<Noise>
+					<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
+					<Strong>The strike of the Metal Pipe Device sings the signature clang of an Arsenic Pipe Device</Strong>
+				</Noise>
+			</Bludgeon>
+		</ItemType>
+		<ItemType
+			name=			"Radium Pipe Device (The Radioactive Romantic)"
+			desc=			"The creator of this weapon's radioactive chassis never lived to see anyone use it to spray deadly nerve gas, let alone go near it without dying a few days later."
+			unknown=		"true"
+			unknownType=	"itMetalPipeDevice"
+			>
+			<Bludgeon
+				strength=		"100"
+				>
+				<Noise>
+					<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
+					<Strong>The strike of the Metal Pipe Device sings the signature clang of a Radium Pipe Device</Strong>
+				</Noise>
+			</Bludgeon>
 		</ItemType>
 	</ItemType>
 </IslandHopperModule>
