@@ -28,14 +28,14 @@ namespace IslandHopper {
 
 		public Gun() { }
 
-        public Bullet CreateShot(Entity Source, Entity Target, Point3 Velocity) {
+        public Bullet CreateShot(Entity Source, Entity Target, XYZ Velocity) {
 			return new Bullet(Source, Target, Velocity);
         }
 	}
 	public class Item : IItem {
 		public World World { get; set; }
-		public Point3 Position { get; set; }
-		public Point3 Velocity { get; set; }
+		public XYZ Position { get; set; }
+		public XYZ Velocity { get; set; }
 
 		public ColoredGlyph SymbolCenter { get; set; }
 		public ColoredString Name { get; set; }
@@ -52,15 +52,15 @@ namespace IslandHopper {
 
 	public class Gun1 : IItem {
 		public World World { get; set; }
-		public Point3 Position { get; set; }
-		public Point3 Velocity { get; set; }
+		public XYZ Position { get; set; }
+		public XYZ Velocity { get; set; }
 
 		public Gun Gun { get; set; }
 
-		public Gun1(World World, Point3 Position) {
+		public Gun1(World World, XYZ Position) {
 			this.World = World;
 			this.Position = Position;
-			this.Velocity = new Point3();
+			this.Velocity = new XYZ();
 		}
 
 		public bool Active => true;
@@ -82,8 +82,8 @@ namespace IslandHopper {
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
 		public World World => user.World;
-		public Point3 Position { get; set; }
-		public Point3 Velocity { get; set; }
+		public XYZ Position { get; set; }
+		public XYZ Velocity { get; set; }
 		public Parachute(Entity user) {
 			this.user = user;
 			UpdateFromUser();
@@ -94,13 +94,13 @@ namespace IslandHopper {
 		public void UpdateRealtime(TimeSpan delta) {
 		}
 		public void UpdateFromUser() {
-			Position = user.Position + new Point3(0, 0, 1);
+			Position = user.Position + new XYZ(0, 0, 1);
 			Velocity = user.Velocity;
 		}
 		public void UpdateStep() {
 			Debug.Print(nameof(UpdateStep));
 			UpdateFromUser();
-			Point3 down = user.Position - Position;
+			XYZ down = user.Position - Position;
 			double speed = down * user.Velocity.Magnitude;
 			if (speed > 3.8 / 30) {
 				double deceleration = speed * 0.4;

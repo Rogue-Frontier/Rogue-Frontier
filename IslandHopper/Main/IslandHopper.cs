@@ -9,7 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using SadConsole.Themes;
 using SadConsole.Controls;
-
+using static SadConsole.Themes.Library;
 namespace IslandHopper {
 	/// <summary>
 	/// This is the main type for your game.
@@ -19,7 +19,6 @@ namespace IslandHopper {
 		public IslandHopper() : base("IBM.font", 240, 64, null) {
 			Content.RootDirectory = "Content";
 		}
-		
 		/// <summary>
 		/// Allows the game to perform any initialization it needs to before starting to run.
 		/// This is where it can query for any required services and load any non-graphic
@@ -31,8 +30,14 @@ namespace IslandHopper {
 			IsMouseVisible = true;
 			// Finish the initialization of SadConsole    
 			base.Initialize();
-			//Settings.ToggleFullScreen();
-			// Create your console    
+            //Settings.ToggleFullScreen();
+            // Create your console    
+
+            var def = Library.Default.Colors;
+            def.ControlBack = Color.Transparent;
+            def.ControlHostBack = Color.Transparent;
+            def.ModalBackground = Color.Transparent;
+
 			var title = new TitleConsole(240, 64);
 			title.Position = new Point(0, 0);
 			title.Show();

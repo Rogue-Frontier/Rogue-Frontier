@@ -10,8 +10,8 @@ using static IslandHopper.Constants;
 namespace IslandHopper {
 	public interface Entity {
 		World World { get; }
-		Point3 Position { get; set; }			//Position in meters
-		Point3 Velocity { get; set; }			//Velocity in meters per step
+		XYZ Position { get; set; }			//Position in meters
+		XYZ Velocity { get; set; }			//Velocity in meters per step
 		bool Active { get; }                    //	When this is inactive, we remove it
 		void OnRemoved();
 		void UpdateRealtime(TimeSpan delta);				//	For step-independent effects
@@ -21,22 +21,22 @@ namespace IslandHopper {
 		ColoredString Name { get; }
 	}
 	public static class EntityHelper {
-		public static bool OnGround(this Entity g) => (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-1)].Collision == VoxelType.Solid);
+		public static bool OnGround(this Entity g) => (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-1.25)].Collision == VoxelType.Solid);
 		public static void UpdateGravity(this Entity g) {
 			//	Fall or hit the ground
 			if (g.Velocity.z < 0 && g.OnGround()) {
 				g.Velocity.z = 0;
 			} else {
 				Debug.Print("fall");
-				g.Velocity += new Point3(0, 0, -9.8 / STEPS_PER_SECOND);
+				g.Velocity += new XYZ(0, 0, -9.8 / STEPS_PER_SECOND);
 			}
 		}
 		//We attempt to enforce continuous collision detection by incrementing the motion in small steps
-		private static Point3 CalcMotionStep(Point3 Velocity) {
+		private static XYZ CalcMotionStep(XYZ Velocity) {
 			if (Velocity.Magnitude < 1) {
 				return Velocity / 4;
 			} else {
-				return Velocity.Normal;
+				return Velocity.Normal / 4;
 			}
 		}
 		private static void UpdateFriction(this Entity g) {
@@ -51,9 +51,9 @@ namespace IslandHopper {
 			if(g.Velocity < 0.1) {
 				return;
 			}
-			Point3 step = CalcMotionStep(g.Velocity);
-			Point3 final = g.Position;
-			for (Point3 p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
+			XYZ step = CalcMotionStep(g.Velocity);
+			XYZ final = g.Position;
+			for (XYZ p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
 				if (g.World.voxels.Try(p) is Air) {
 					final = p;
 				} else {
@@ -74,9 +74,11 @@ namespace IslandHopper {
 			if (g.Velocity < 0.1) {
 				return;
 			}
-			Point3 step = CalcMotionStep(g.Velocity);
-			Point3 final = g.Position;
-			for (Point3 p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
+            //ignoreEntityCollision = ignoreEntityCollision ?? (e => true);
+            //ignoreTileCollision = ignoreTileCollision ?? (v => false);
+			XYZ step = CalcMotionStep(g.Velocity);
+			XYZ final = g.Position;
+			for (XYZ p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
 				var v = g.World.voxels.Try(p);
 				if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
 					if(ignoreEntityCollision != null) {
@@ -102,14 +104,15 @@ namespace IslandHopper {
 		void Witness(WorldEvent e);
 	}
 	public class Player : Entity, Witness {
-		public Point3 Velocity { get; set; }
-		public Point3 Position { get; set; }
+		public XYZ Velocity { get; set; }
+		public XYZ Position { get; set; }
 		public World World { get; set; }
 		public HashSet<EntityAction> Actions { get; private set; }
 		public HashSet<IItem> Inventory { get; private set; }
-
+        public HashSet<ThrownItem> Thrown { get; private set; }
 		public List<ColoredString> HistoryLog { get; }	//All events that the player has witnessed
 		public List<HistoryEntry> HistoryRecent { get; }   //Events that the player is currently witnessing
+
 		public class HistoryEntry {
 			public ColoredString Desc { get; }
 			public double ScreenTime;
@@ -121,12 +124,13 @@ namespace IslandHopper {
 
 		public int frameCounter = 0;
 
-		public Player(World World, Point3 Position) {
+		public Player(World World, XYZ Position) {
 			this.World = World;
 			this.Position = Position;
-			this.Velocity = new Point3(0, 0, 0);
+			this.Velocity = new XYZ(0, 0, 0);
 			Actions = new HashSet<EntityAction>();
 			Inventory = new HashSet<IItem>();
+            Thrown = new HashSet<ThrownItem>();
 
 			HistoryLog = new List<ColoredString>();
 			HistoryRecent = new List<HistoryEntry>();
@@ -150,6 +154,7 @@ namespace IslandHopper {
 				i.Position = Position;
 				i.Velocity = Velocity;
 			}
+            Thrown.RemoveWhere(t => !t.Active);
 			if(!this.OnGround())
 				frameCounter = 20;
 

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-
+using static IslandHopper.Helper;
 namespace IslandHopper {
 	public static class Parse {
 		static int ParseInt(string s, int fallback) {

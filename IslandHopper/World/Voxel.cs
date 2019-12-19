@@ -7,6 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace IslandHopper {
+    public enum VoxelDefaults {
+        Air, Grass
+    }
 	static class VoxelHelp {
 		public static Voxel FromString(string name) {
 			switch(name) {
@@ -15,7 +18,14 @@ namespace IslandHopper {
 				default: throw new Exception("Unknown voxel type");
 			}
 		}
-	}
+        public static Voxel Create(VoxelDefaults v) {
+            switch (v) {
+                case VoxelDefaults.Air: return new Air();
+                case VoxelDefaults.Grass: return new Grass();
+                default: throw new Exception("Unknown voxel type");
+            }
+        }
+    }
 	public enum VoxelType {
 		Empty,
 		Floor,
@@ -28,23 +38,23 @@ namespace IslandHopper {
 	}
 	public class Air : Voxel {
 		public VoxelType Collision => VoxelType.Empty;
-		ColoredGlyph s = new ColoredString("" + (char) 176, new Cell(Color.White, Color.Transparent))[0];
-		public ColoredGlyph CharAbove => s;
-		public ColoredGlyph CharCenter => s;
+
+        public ColoredGlyph CharAbove => new ColoredGlyph(176, Color.White, Color.Transparent);
+        public ColoredGlyph CharCenter => CharAbove;
 	}
 	public class Grass : Voxel {
 		public VoxelType Collision => VoxelType.Solid;
 		public Color color { get; private set; }
-		private string s;
-		private string[] symbols = {
-			"\"", "'", "w", "v", ",", ".", "`",
+		private char s;
+		private char[] symbols = {
+			'"', '\'', 'w', 'v', ',', '.', '`',
 		};
 		public Grass() {
 			color = new Color(Global.Random.Next(102), 153, Global.Random.Next(102));
 			s = symbols[Global.Random.Next(symbols.Length)];
 		}
-		public ColoredGlyph CharAbove => new ColoredString(s, new Cell(color, Color.Transparent))[0];
-		public ColoredGlyph CharCenter => new ColoredString(" ", new Cell(Color.Transparent, color))[0];
+		public ColoredGlyph CharAbove => new ColoredGlyph(s, color, Color.Transparent);
+		public ColoredGlyph CharCenter => new ColoredGlyph(' ', Color.Transparent, color);
 	}
 	public class Floor : Voxel {
 		public VoxelType Collision => VoxelType.Floor;
@@ -52,7 +62,7 @@ namespace IslandHopper {
 		public Floor(Color c) {
 			this.color = c;
 		}
-		public ColoredGlyph CharAbove => new ColoredString(".", new Cell(color, Color.Transparent))[0];
-		public ColoredGlyph CharCenter => new ColoredString("+", new Cell(Color.Transparent, color))[0];
+		public ColoredGlyph CharAbove => new ColoredGlyph('.', color, Color.Transparent);
+		public ColoredGlyph CharCenter => new ColoredGlyph('+', Color.Transparent, color);
 	}
 }

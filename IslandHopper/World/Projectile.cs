@@ -12,8 +12,8 @@ namespace IslandHopper {
         public Entity Thrower { get; private set; }
         public IItem Thrown { get; private set; }
         public World World { get => Thrown.World; }
-        public Point3 Position { get => Thrown.Position; set => Thrown.Position = value; }
-        public Point3 Velocity { get => Thrown.Velocity; set => Thrown.Velocity = value; }
+        public XYZ Position { get => Thrown.Position; set => Thrown.Position = value; }
+        public XYZ Velocity { get => Thrown.Velocity; set => Thrown.Velocity = value; }
         public bool Active => flying && Thrown.Active;
         private bool flying;
         private int tick = 0;
@@ -46,22 +46,23 @@ namespace IslandHopper {
                     return true;
                 } else {
                     this.DebugInfo("Flying collision with object");
-					Thrower.Witness(new InfoEvent($"Thrown item {Thrown.Name} hits {e.Name}"));
+					Thrower.Witness(new InfoEvent($"Thrown {Thrown.Name} hits {e.Name}"));
                     flying = false;
                     return false;
                 }
             });
             if (this.OnGround() && Velocity.Magnitude < 0.2) {
                 this.DebugInfo("Landed on ground");
-				this.DebugExit();
+                Thrower.Witness(new InfoEvent(new ColoredString($"Thrown {Thrown.Name} lands on the ground.")));
+				//this.DebugExit();
                 flying = false;
             }
         }
     }
 	public class Beam : Entity {
 		public World World { get; }
-		public Point3 Position { get; set; }
-		public Point3 Velocity { get; set; }
+		public XYZ Position { get; set; }
+		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
 		public ColoredGlyph SymbolCenter => new ColoredString("~", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black)[0];
@@ -71,7 +72,7 @@ namespace IslandHopper {
 		private Entity Target;
 		private int tick;   //Used for sprite flashing
 
-		public Beam(Entity Source, Entity Target, Point3 Velocity) {
+		public Beam(Entity Source, Entity Target, XYZ Velocity) {
 			this.Source = Source;
 			this.Target = Target;
 			this.World = Source.World;
@@ -101,8 +102,8 @@ namespace IslandHopper {
 	}
 	public class Bullet : Entity {
 		public World World { get; }
-        public Point3 Position { get; set; }
-        public Point3 Velocity { get; set; }
+        public XYZ Position { get; set; }
+        public XYZ Velocity { get; set; }
         public bool Active { get; private set; }
 		public void OnRemoved() { }
 		public ColoredGlyph SymbolCenter => new ColoredString("*", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black)[0];
@@ -112,7 +113,7 @@ namespace IslandHopper {
 		private Entity Target;
 		private int tick;   //Used for sprite flashing
 
-		public Bullet(Entity Source, Entity Target, Point3 Velocity) {
+		public Bullet(Entity Source, Entity Target, XYZ Velocity) {
             this.Source = Source;
             this.Target = Target;
             this.World = Source.World;
@@ -142,8 +143,8 @@ namespace IslandHopper {
     }
 	public class Missile : Entity {
 		public World World { get; }
-		public Point3 Position { get; set; }
-		public Point3 Velocity { get; set; }
+		public XYZ Position { get; set; }
+		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
 		public ColoredGlyph SymbolCenter => new ColoredString("M", tick % 8 < 4 ? Color.White : Color.Gray, Color.Black)[0];
@@ -153,7 +154,7 @@ namespace IslandHopper {
 		private Entity Target;
 		private int tick;   //Used for sprite flashing
 
-		public Missile(Entity Source, Entity Target, Point3 Velocity) {
+		public Missile(Entity Source, Entity Target, XYZ Velocity) {
 			this.Source = Source;
 			this.Target = Target;
 			this.World = Source.World;
@@ -179,19 +180,19 @@ namespace IslandHopper {
 	}
 	class ExplosionBlock : Entity {
 		public World World { get; }
-		public Point3 Position { get; set; }
-		public Point3 Velocity { get; set; }
+		public XYZ Position { get; set; }
+		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
 		public ColoredGlyph SymbolCenter => new ColoredString("*", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black)[0];
 		public ColoredString Name => new ColoredString("Explosion", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 
 		private int tick;
-		private int lifetime;
-		public ExplosionBlock(World World, Point3 Position) {
+		public int lifetime;
+		public ExplosionBlock(World World, XYZ Position) {
 			this.World = World;
 			this.Position = Position;
-			Velocity = new Point3(0, 0, 0);
+			Velocity = new XYZ(0, 0, 0);
 			tick = 0;
 			lifetime = 10;
 			Active = true;
@@ -207,8 +208,8 @@ namespace IslandHopper {
 	}
 	class ExplosionSource : Entity {
 		public World World { get; }
-		public Point3 Position { get; set; }
-		public Point3 Velocity { get; set; }
+		public XYZ Position { get; set; }
+		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
 		public ColoredGlyph SymbolCenter => new ColoredString("*", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black)[0];
@@ -216,24 +217,25 @@ namespace IslandHopper {
 
 		private int tick;   //Used for sprite flashing
 
-		private List<Point3> explosionOffsets;	//List of points surrounding our center that we will expand to
+		private List<XYZ> explosionOffsets;	//List of points surrounding our center that we will expand to
 		private int tileIndex;
 		private int rectRadius;
 
 		private double maxRadius;
 		private double currentRadius;
 		private double expansionRate;
+        private double expansionTime;
 		
-		public ExplosionSource(World World, Point3 Position, double maxRadius) {
+		public ExplosionSource(World World, XYZ Position, double maxRadius) {
 			this.World = World;
 			this.Position = Position;
-			Velocity = new Point3(0, 0, 0);
+			Velocity = new XYZ(0, 0, 0);
 			Active = true;
 			tick = 0;
 
 			//We calculate surrounding tiles as the explosion expands and fill them with explosion effects
-			explosionOffsets = new List<Point3>();
-			explosionOffsets.Add(new Point3(0, 0, 0));
+			explosionOffsets = new List<XYZ>();
+			explosionOffsets.Add(new XYZ(0, 0, 0));
 			tileIndex = 0;
 			rectRadius = 0;
 			//In case we want to pre-calculate everything at once
@@ -245,6 +247,7 @@ namespace IslandHopper {
 			this.maxRadius = maxRadius;
 			currentRadius = 0;
 			expansionRate = 1;
+            expansionTime = maxRadius / expansionRate;
 		}
 		public void UpdateRealtime(TimeSpan delta) {
 			tick++;
@@ -271,8 +274,10 @@ namespace IslandHopper {
 				}
 			}
 			while (explosionOffsets[tileIndex].Magnitude < currentRadius) {
-				//Expand to this tile
-				World.AddEntity(new ExplosionBlock(World, Position + explosionOffsets[tileIndex]));
+                //Expand to this tile
+                World.AddEntity(new ExplosionBlock(World, Position + explosionOffsets[tileIndex]) {
+                    lifetime = (int)(expansionTime * (1 - currentRadius / maxRadius) * 5 + World.karma.Next(0, 20))
+                });
 
 				this.DebugInfo($"Expanded to tile index: {tileIndex}");
 

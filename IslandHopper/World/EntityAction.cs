@@ -6,10 +6,10 @@ namespace IslandHopper {
 	}
 	public class WalkAction : EntityAction {
 		private Entity player;
-		private Point3 displacement;
-		private Point3 delta;
+		private XYZ displacement;
+		private XYZ delta;
 		private int ticks;
-		public WalkAction(Entity actor, Point3 displacement) {
+		public WalkAction(Entity actor, XYZ displacement) {
 			this.player = actor;
 			this.displacement = displacement;
 			this.delta = displacement / STEPS_PER_SECOND;
@@ -21,11 +21,34 @@ namespace IslandHopper {
 		}
 		public bool Done() => ticks == 0;
 	}
-	public class Impulse : EntityAction {
+    //Impulse that lasts for a while so that the player cannot jump multiple times at once
+    public class Jump : EntityAction {
+        private Entity player;
+        private XYZ velocity;
+        private int ticks;
+        private int lifetime;
+        private int deltaTime;
+        public Jump(Entity actor, XYZ velocity, int lifetime = 20, int deltaTime = 1) {
+            this.player = actor;
+            this.velocity = velocity;
+            ticks = 0;
+            this.lifetime = lifetime;
+            this.deltaTime = deltaTime;
+        }
+        public void Update() {
+            if(ticks < deltaTime) {
+                player.Velocity += velocity / deltaTime;
+                Debug.Print("JUMP");
+            }
+            ticks++;
+        }
+        public bool Done() => ticks > lifetime;
+    }
+    public class Impulse : EntityAction {
 		private Entity player;
-		private Point3 velocity;
+		private XYZ velocity;
 		private bool done;
-		public Impulse(Entity actor, Point3 velocity) {
+		public Impulse(Entity actor, XYZ velocity) {
 			this.player = actor;
 			this.velocity = velocity;
 			done = false;

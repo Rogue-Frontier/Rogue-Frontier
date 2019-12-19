@@ -6,10 +6,26 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
-
+using System.Linq;
 namespace IslandHopper {
 	public static class Helper {
-		public static bool CalcAim(Point3 difference, double speed, out double lower, out double higher) {
+        public static ColoredGlyph GetGlyph(this World World, XYZ location) {
+            ColoredGlyph c;
+            if (World.entities.InBounds(location) && World.entities.Try(location).Count > 0) {
+                c = World.entities[location].First().SymbolCenter;
+            } else if (World.voxels.InBounds(location) && !(World.voxels[location] is Air)) {
+                c = World.voxels[location].CharCenter;
+            } else {
+                location = location + new XYZ(0, 0, -1);
+                if (World.voxels.InBounds(location)) {
+                    c = World.voxels[location].CharAbove;
+                } else {
+                    c = new ColoredGlyph(' ', Color.Transparent, Color.Transparent);
+                }
+            }
+            return c;
+        }
+		public static bool CalcAim(XYZ difference, double speed, out double lower, out double higher) {
 			double horizontal = difference.xy.Magnitude;
 			double vertical = difference.z;
 			const double g = 9.8;
@@ -25,11 +41,11 @@ namespace IslandHopper {
 				return true;
 			}
 		}
-		public static bool CalcAim2(Point3 difference, double speed, out Point3 lower, out Point3 higher) {
+		public static bool CalcAim2(XYZ difference, double speed, out XYZ lower, out XYZ higher) {
 			if (CalcAim(difference, speed, out var lowerAltitude, out var upperAltitude)) {
 				double azimuth = difference.xy.Angle;
-				lower = new Point3(speed * Math.Cos(azimuth) * Math.Cos(lowerAltitude), speed * Math.Sin(azimuth) * Math.Cos(lowerAltitude), speed * Math.Sin(lowerAltitude));
-				higher = new Point3(speed * Math.Cos(azimuth) * Math.Cos(upperAltitude), speed * Math.Sin(azimuth) * Math.Cos(upperAltitude), speed * Math.Sin(upperAltitude));
+				lower = new XYZ(speed * Math.Cos(azimuth) * Math.Cos(lowerAltitude), speed * Math.Sin(azimuth) * Math.Cos(lowerAltitude), speed * Math.Sin(lowerAltitude));
+				higher = new XYZ(speed * Math.Cos(azimuth) * Math.Cos(upperAltitude), speed * Math.Sin(azimuth) * Math.Cos(upperAltitude), speed * Math.Sin(upperAltitude));
 				return true;
 			} else {
 				lower = null;
@@ -78,60 +94,60 @@ namespace IslandHopper {
 			result.Append(lines.LastItem());
 			return result.ToString();
 		}
-		public static void PrintLines(this SadConsole.Console console, int x, int y, string lines, Color? foreground = null, Color? background = null, SpriteEffects? mirror = null) {
+		public static void PrintLines(this SadConsole.Console console, int x, int y, string lines, Color? foreground = null, Color? background = null, SpriteEffects mirror = SpriteEffects.None) {
 			foreach (var line in lines.Replace("\r\n", "\n").Split('\n')) {
-				console.Print(x, y, line, foreground, background, mirror);
+				console.Print(x, y, line, foreground ?? Color.White, background ?? Color.Black, mirror);
 				y++;
 			}
 		}
 		//This function calculates all the points on a hollow cube of given radius around an origin of (0, 0, 0)
-		public static List<Point3> GetSurrounding(int radius) {
+		public static List<XYZ> GetSurrounding(int radius) {
 			//Cover all the corners
-			var result = new List<Point3>() {
-				new Point3( radius,  radius,  radius),	//NE Upper
-				new Point3( radius,  radius, -radius),	//NE Lower
-				new Point3( radius, -radius,  radius),	//SE Upper
-				new Point3( radius, -radius, -radius),	//SE Lower
-				new Point3(-radius,  radius,  radius),	//NW Uper
-				new Point3(-radius,  radius, -radius),	//NW Lower
-				new Point3(-radius, -radius,  radius),	//SW Upper
-				new Point3(-radius, -radius, -radius),	//SW Lower
+			var result = new List<XYZ>() {
+				new XYZ( radius,  radius,  radius),	//NE Upper
+				new XYZ( radius,  radius, -radius),	//NE Lower
+				new XYZ( radius, -radius,  radius),	//SE Upper
+				new XYZ( radius, -radius, -radius),	//SE Lower
+				new XYZ(-radius,  radius,  radius),	//NW Uper
+				new XYZ(-radius,  radius, -radius),	//NW Lower
+				new XYZ(-radius, -radius,  radius),	//SW Upper
+				new XYZ(-radius, -radius, -radius),	//SW Lower
 			};
 			//Fill in the sides of the cube
 			for(int y = -radius+1; y < radius; y++) {
 				for(int z = -radius+1; z < radius; z++) {
-					result.Add(new Point3(radius, y, z));	//East side
-					result.Add(new Point3(-radius, y, z));	//West side
+					result.Add(new XYZ(radius, y, z));	//East side
+					result.Add(new XYZ(-radius, y, z));	//West side
 				}
 				//Add the top/bottom edges of each side
-				result.Add(new Point3(radius, y, radius));
-				result.Add(new Point3(radius, y, -radius));
-				result.Add(new Point3(-radius, y, radius));
-				result.Add(new Point3(-radius, y, -radius));
+				result.Add(new XYZ(radius, y, radius));
+				result.Add(new XYZ(radius, y, -radius));
+				result.Add(new XYZ(-radius, y, radius));
+				result.Add(new XYZ(-radius, y, -radius));
 			}
 			for(int x = -radius+1; x < radius; x++) {
 				for(int z = -radius+1; z < radius; z++) {
-					result.Add(new Point3(x,  radius, z));   //North side
-					result.Add(new Point3(x, -radius, z));   //South side
+					result.Add(new XYZ(x,  radius, z));   //North side
+					result.Add(new XYZ(x, -radius, z));   //South side
 				}
 
-				result.Add(new Point3(x, radius, radius));	//North upper
-				result.Add(new Point3(x, radius, -radius));	//North lower
-				result.Add(new Point3(x, -radius, radius));	//South upper
-				result.Add(new Point3(x, -radius, -radius));//South lower
+				result.Add(new XYZ(x, radius, radius));	//North upper
+				result.Add(new XYZ(x, radius, -radius));	//North lower
+				result.Add(new XYZ(x, -radius, radius));	//South upper
+				result.Add(new XYZ(x, -radius, -radius));//South lower
 			}
 			for (int x = -radius+1; x < radius; x++) {
 				for (int y = -radius+1; y < radius; y++) {
-					result.Add(new Point3(x, y,  radius));   //Top side
-					result.Add(new Point3(x, y, -radius));   //Bottom side
+					result.Add(new XYZ(x, y,  radius));   //Top side
+					result.Add(new XYZ(x, y, -radius));   //Bottom side
 				}
 			}
 			//Vertical
 			for(int z = -radius+1; z < radius; z++) {
-				result.Add(new Point3(radius, radius, z));
-				result.Add(new Point3(radius, -radius, z));
-				result.Add(new Point3(-radius, radius, z));
-				result.Add(new Point3(-radius, -radius, z));
+				result.Add(new XYZ(radius, radius, z));
+				result.Add(new XYZ(radius, -radius, z));
+				result.Add(new XYZ(-radius, radius, z));
+				result.Add(new XYZ(-radius, -radius, z));
 			}
 			//Sort them based on distance from center
 			result.Sort((p1, p2) => {
@@ -172,6 +188,7 @@ namespace IslandHopper {
 		public static string TryAttribute(this XElement e, string attribute, string fallback = "") {
 			return e.Attribute(attribute)?.Value ?? fallback;
 		}
+        public static int TryAttributeInt(this XElement e, string attribute, int fallback = 0) => TryAttributeInt(e.Attribute(attribute), fallback);
 		//We expect either no value or a valid value; an invalid value gets an exception
 		public static int TryAttributeInt(this XAttribute a, int fallback = 0) {
 			if(a == null) {

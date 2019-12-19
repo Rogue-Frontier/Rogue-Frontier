@@ -6,77 +6,82 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace IslandHopper {
-	public class Point2 {
+	public class XY {
 		public double x;
 		public double y;
 		public int xi { get => (int)x; set => x = value; }
 		public int yi { get => (int)y; set => y = value; }
-		public Point2() {
+		public XY() {
 			x = 0;
 			y = 0;
 		}
-		public Point2(double x, double y) {
+		public XY(double x, double y) {
 			this.x = x;
 			this.y = y;
 		}
-		public static Point2 operator +(Point2 p, Point2 other) => new Point2(p.x + other.x, p.y + other.y);
-		public Point2 clone {
-			get => new Point2(x, y);
+		public static XY operator +(XY p, XY other) => new XY(p.x + other.x, p.y + other.y);
+		public XY clone {
+			get => new XY(x, y);
 		}
-		public Point2 PlusX(double x) => new Point2(this.x + x, y);
-		public Point2 PlusY(double y) => new Point2(x, this.y + y);
+		public XY PlusX(double x) => new XY(this.x + x, y);
+		public XY PlusY(double y) => new XY(x, this.y + y);
 
 		public double Magnitude => Math.Sqrt(x * x + y * y);
-		public Point2 Normal {
+		public XY Normal {
 			get {
 				double magnitude = Magnitude;
-				return new Point2(x / magnitude, y / magnitude);
+				return new XY(x / magnitude, y / magnitude);
 			}
 		}
 		public double Angle => Math.Atan2(y, x);
 	}
-	public class Point3 {
+	public class XYZ {
 		public double x, y, z;
 
 		public int xi { get => (int)x; set => x = value; }
 		public int yi { get => (int)y; set => y = value; }
 		public int zi { get => (int)z; set => z = value; }
-		public Point3() {
+		public XYZ() {
 			x = 0;
 			y = 0;
 			z = 0;
 		}
-		public Point3(int x, int y) {
+		public XYZ(int x, int y) {
 			this.x = x;
 			this.y = y;
 			this.z = 0;
 		}
-		public Point3(double x, double y, double z) {
+        public XYZ(double x, double y) {
+            this.x = x;
+            this.y = y;
+            this.z = 0;
+        }
+		public XYZ(double x, double y, double z) {
 			this.x = x;
 			this.y = y;
 			this.z = z;
 		}
 		public double xyAngle => xy.Angle;
 		public double zAngle => Math.Atan2(z, xy.Magnitude);
-		public Point2 xy => new Point2(x, y);
-		public static Point3 operator +(Point3 p1, Point3 p2) => new Point3(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
-		public static Point3 operator -(Point3 p1, Point3 p2) => p1 + (-p2);
-		public static Point3 operator -(Point3 p1) => new Point3(-p1.x, -p1.y, -p1.z);
-		public static double operator *(Point3 p1, Point3 p2) => (p1.x * p2.x) + (p1.y * p2.y) + (p1.z * p2.z);
+		public XY xy => new XY(x, y);
+		public static XYZ operator +(XYZ p1, XYZ p2) => new XYZ(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
+		public static XYZ operator -(XYZ p1, XYZ p2) => p1 + (-p2);
+		public static XYZ operator -(XYZ p1) => new XYZ(-p1.x, -p1.y, -p1.z);
+		public static double operator *(XYZ p1, XYZ p2) => (p1.x * p2.x) + (p1.y * p2.y) + (p1.z * p2.z);
 
-		public static implicit operator double(Point3 p) => p.Magnitude;
+		public static implicit operator double(XYZ p) => p.Magnitude;
 
-		public static explicit operator Point(Point3 p) => new Point(p.xi, p.yi);
-		public Point3 PlusX(double x) => new Point3(this.x + x, y, z);
-		public Point3 PlusY(double y) => new Point3(x, this.y + y, z);
-		public Point3 PlusZ(double z) => new Point3(x, y, this.z + z);
-		public static Point3 operator *(Point3 p, double s) => new Point3(p.x * s, p.y * s, p.z * s);
-		public static Point3 operator /(Point3 p, double s) => new Point3(p.x / s, p.y / s, p.z / s);
+		public static explicit operator Point(XYZ p) => new Point(p.xi, p.yi);
+		public XYZ PlusX(double x) => new XYZ(this.x + x, y, z);
+		public XYZ PlusY(double y) => new XYZ(x, this.y + y, z);
+		public XYZ PlusZ(double z) => new XYZ(x, y, this.z + z);
+		public static XYZ operator *(XYZ p, double s) => new XYZ(p.x * s, p.y * s, p.z * s);
+		public static XYZ operator /(XYZ p, double s) => new XYZ(p.x / s, p.y / s, p.z / s);
 		public double Magnitude => Math.Sqrt(x * x + y * y + z * z);
-		public Point3 Normal {
+		public XYZ Normal {
 			get {
 				double magnitude = Magnitude;
-				return new Point3(x / magnitude, y / magnitude, z / magnitude);
+				return new XYZ(x / magnitude, y / magnitude, z / magnitude);
 			}
 		}
 	}
@@ -155,7 +160,7 @@ namespace IslandHopper {
 		public int Height { get; private set; }
 		public int Depth { get; private set; }
 		public T[,,] space { get; private set; }
-		public T this[Point3 p] {
+		public T this[XYZ p] {
 			get => space[p.xi, p.yi, p.zi];
 			set => space[p.xi, p.yi, p.zi] = value;
 		}
@@ -169,7 +174,7 @@ namespace IslandHopper {
 			for(int x = 0; x < Width; x++) {
 				for(int y = 0; y < Height; y++) {
 					for(int z = 0; z < Depth; z++) {
-						this[new Point3(x, y, z)] = fill;
+						this[new XYZ(x, y, z)] = fill;
 					}
 				}
 			}
@@ -189,13 +194,13 @@ namespace IslandHopper {
 			for(int x = 0; x < Width; x++) {
 				for(int y = 0; y < Height; y++) {
 					for(int z = 0; z < Depth; z++) {
-						this[new Point3(x, y, z)] = t.Invoke();
+						this[new XYZ(x, y, z)] = t.Invoke();
 					}
 				}
 			}
 		}
-		public T Try(Point3 p) => InBounds(p) ? this[p] : default(T);
-		public bool InBounds(Point3 p) => p.xi > -1 && p.xi < Width && p.yi > -1 && p.yi < Height && p.zi > -1 && p.zi < Depth;
+		public T Try(XYZ p) => InBounds(p) ? this[p] : default(T);
+		public bool InBounds(XYZ p) => p.xi > -1 && p.xi < Width && p.yi > -1 && p.yi < Height && p.zi > -1 && p.zi < Depth;
 	}
 	//	3D array helper; allows multiple items per point and tracks all items globally
 	public class Space<T> {
@@ -204,12 +209,12 @@ namespace IslandHopper {
 		public int Depth { get; private set; }
 		public HashSet<T> all { get; private set; }
 		public HashSet<T>[,,] space { get; private set; }
-		private Func<T, Point3> locator;
-		public HashSet<T> this[Point3 p] {
+		private Func<T, XYZ> locator;
+		public HashSet<T> this[XYZ p] {
 			get => space[p.xi, p.yi, p.zi];
 			set => space[p.xi, p.yi, p.zi] = value;
 		}
-		public Space(int Width, int Height, int Depth, Func<T, Point3> locator) {
+		public Space(int Width, int Height, int Depth, Func<T, XYZ> locator) {
 			this.Width = Width;
 			this.Height = Height;
 			this.Depth = Depth;
@@ -225,7 +230,7 @@ namespace IslandHopper {
 		public Grid<T> GetGrid(int z) {
 			Grid<T> grid = new Grid<T>(Width, Height, null);
 			all.ToList().ForEach(t => {
-				Point3 p = locator.Invoke(t);
+				XYZ p = locator.Invoke(t);
 				if(p.zi == z) {
 					grid.Place((Point) p, t);
 				}
@@ -245,13 +250,13 @@ namespace IslandHopper {
 			UpdateSpace();
 		}
 		public bool Contains(T t) => all.Contains(t);
-		private void Place(Point3 p, T t) {
+		private void Place(XYZ p, T t) {
 			if (Initialize(p)) {
 				this[p].Add(t);
 			}
 		}
-		public HashSet<T> Try(Point3 p) => Initialize(p) ? this[p] : null;
-		private bool Initialize(Point3 p) {
+		public HashSet<T> Try(XYZ p) => Initialize(p) ? this[p] : null;
+		private bool Initialize(XYZ p) {
 			if (InBounds(p)) {
 				if (this[p] == null) {
 					this[p] = new HashSet<T>();
@@ -261,6 +266,6 @@ namespace IslandHopper {
 				return false;
 			}
 		}
-		public bool InBounds(Point3 p) => p.xi > -1 && p.xi < Width && p.yi > -1 && p.yi < Height && p.zi > -1 && p.zi < Depth;
+		public bool InBounds(XYZ p) => p.xi > -1 && p.xi < Width && p.yi > -1 && p.yi < Height && p.zi > -1 && p.zi < Depth;
 	}
 }

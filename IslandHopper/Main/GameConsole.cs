@@ -21,27 +21,30 @@ namespace IslandHopper {
 	class GameConsole : Window {
 		World World;
 		public GameConsole(int Width, int Height) : base(Width, Height) {
-			Theme = Themes.Main;
-			UseKeyboard = true;
+            Theme = new WindowTheme {
+                ModalTint = Color.Transparent,
+                FillStyle = new Cell(Color.White, Color.Black),
+            };
+            UseKeyboard = true;
 			UseMouse = true;
 			this.DebugInfo($"Width: {Width}", $"Height: {Height}");
 			World = new World() {
 				karma = new Random(0),
-				entities = new Space<Entity>(100, 100, 30, e => e.Position),
-				voxels = new ArraySpace<Voxel>(100, 100, 30, new Air()),
-				camera = new Point3(0, 0, 0)
+				entities = new Space<Entity>(100, 100, 100, e => e.Position),
+				voxels = new ArraySpace<Voxel>(100, 100, 100, new Air()),
+				camera = new XYZ(0, 0, 0)
 			};
-			World.player = new Player(World, new Point3(80, 80, 20));
+			World.player = new Player(World, new XYZ(80, 80, 20));
 			//World.AddEntity(new Player(World, new Point3(85, 85, 20)));
 
 			for (int x = 0; x < World.voxels.Width; x++) {
 				for(int y = 0; y < World.voxels.Height; y++) {
-					World.voxels[new Point3(x, y, 0)] = new Grass();
+					World.voxels[new XYZ(x, y, 0)] = new Grass();
 				}
 			}
 
 			for(int i = 0; i < 1; i++) {
-				World.entities.Place(new Gun1(World, new Point3(78, 78, 1 + i/30)));
+				World.entities.Place(new Gun1(World, new XYZ(78, 78, 1 + i/30)));
 			}
 			
 			World.entities.Place(World.player);
@@ -57,25 +60,16 @@ namespace IslandHopper {
 		private int HalfWidth { get => Width / 2; }
 		private int HalfHeight { get => Height / 2; }
 		public override void Draw(TimeSpan delta) {
-			Clear();
+            this.DebugInfo($"Draw({delta})");
+            Clear();
 			for(int x = -HalfWidth; x < HalfWidth; x++) {
 				for(int y = -HalfHeight; y < HalfHeight; y++) {
-					Point3 location = World.camera + new Point3(x, y, 0);
-					ColoredGlyph c = new ColoredString(" ", new Cell(Color.Transparent, Color.Transparent))[0];
-					if (World.entities.InBounds(location) && World.entities.Try(location).Count > 0) {
-						c = World.entities[location].ToList()[0].SymbolCenter;
-					} else if (World.voxels.InBounds(location) && !(World.voxels[location] is Air)) {
-						c = World.voxels[location].CharCenter;
-					} else {
-						location = location + new Point3(0, 0, -1);
-						if (World.voxels.InBounds(location)) {
-							c = World.voxels[location].CharAbove;
-						}
-					}
-					Print(x + HalfWidth, y + HalfHeight, c.ToColoredString());
+					XYZ location = World.camera + new XYZ(x, y, 0);
+					
+					Print(x + HalfWidth, y + HalfHeight, World.GetGlyph(location));
 				}
 			}
-			base.Draw(delta);
+            base.Draw(delta);
 		}
 		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
 			return base.ProcessKeyboard(info);

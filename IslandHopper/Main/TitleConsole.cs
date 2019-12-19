@@ -19,7 +19,7 @@ namespace IslandHopper {
 		private const int waterHeight = 10;
 		private const double waterLineInterval = 0.2;
 		private const double waterLineSpeed = 36.0;
-		private List<Point2> waterLines = new List<Point2>();
+		private List<XY> waterLines = new List<XY>();
 
 		private double waterTrailInterval = 1.0 / waterLineSpeed;
 		private const double waterTrailLifespan = 8;
@@ -31,7 +31,7 @@ namespace IslandHopper {
 		private const double planeInterval = 5;
 		private const double planeSpeed = 10;
 		private const int planeLevel = 18;
-		private List<Point2> planes = new List<Point2>();
+		private List<XY> planes = new List<XY>();
 
 		/*
 		const string player = @"/=\" + "\n"
@@ -41,11 +41,11 @@ namespace IslandHopper {
 							+ @"@&";
 		private const double playerInterval = Math.PI / 2.5;
 		private const double playerFallSpeed = 2;
-		private List<Point2> players = new List<Point2>();
+		private List<XY> players = new List<XY>();
 
 		private const double landSpeed = 10.0;
 		private const double landSpawnTime = 2;
-		List<Point2> land = new List<Point2>();
+		List<XY> land = new List<XY>();
 		bool[,] landGrid;
 
 		private List<ITimer> timers;
@@ -61,10 +61,11 @@ namespace IslandHopper {
 		};
 
 		public TitleConsole(int width, int height) : base(width, height) {
+
 			landGrid = new bool[Width, Height];
 			Theme = new WindowTheme {
 				ModalTint = Color.Transparent,
-				FillStyle = new Cell(Color.White, Color.Black)
+				FillStyle = new Cell(Color.White, Color.Black),
 			};
 			var start = new SadConsole.Controls.Button(10, 1) {
 				Position = new Point(5, 5),
@@ -98,23 +99,23 @@ namespace IslandHopper {
 				new TimerLimited(5, () => {
 					timers = new List<ITimer> {
 						new Timer(waterLineInterval, () => {
-							waterLines.Add(new Point2(0, waterLevel + Global.Random.Next(waterHeight)));
+							waterLines.Add(new XY(0, waterLevel + Global.Random.Next(waterHeight)));
 						}),
 						new Timer(waterTrailInterval, () => {
 							waterLines.ForEach(line => waterTrails.Add(new WaterTrail(line.x, line.y, waterTrailLifespan)));
 						}),
 						new Timer(planeInterval, () => {
-							planes.Add(new Point2(0, planeLevel + Global.Random.Next(10)));
+							planes.Add(new XY(0, planeLevel + Global.Random.Next(10)));
 						}),
 						new Timer(playerInterval, () => {
 							planes.ForEach(plane => {
 								if (Helper.InRange(plane.x + PLANE.LineLength(), Width/2, 30) && Global.Random.Next(2) < 1)
-									players.Add(plane.clone + new Point2(8, 1));
+									players.Add(plane.clone + new XY(8, 1));
 							});
 						}),
 						new TimerLimited(0.05, () => {
 							for(int i = 0; i < 25; i++)
-								land.Add(new Point2(Width/2 + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15), planeLevel));
+								land.Add(new XY(Width/2 + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15), planeLevel));
 						}, (int) (landSpawnTime / 0.05))
 					};
 				}),
