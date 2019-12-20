@@ -114,9 +114,9 @@ namespace IslandHopper {
                     if (info.IsKeyDown(Keys.RightControl)) {
                         //Run
                         if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump)) {
-                            double runAccel = 2.2;
+                            double runAccel = 2;
                             int runCooldown = 10;
-                            int runTime = 5;
+                            int runTime = 10;
                             World.player.Actions.Add(new Jump(World.player, direction * runAccel, runCooldown, runTime));
                         }
                     } else {
@@ -125,7 +125,10 @@ namespace IslandHopper {
                     }
                 }
                 
-            } else if (info.IsKeyDown(Keys.OemOpenBrackets)) {
+            }
+
+            //Other actions besides walking/running
+            if (info.IsKeyDown(Keys.OemOpenBrackets)) {
                 //Go up stairs
             } else if(info.IsKeyDown(Keys.OemCloseBrackets)) {
                 //Go down stairs
@@ -381,7 +384,7 @@ namespace IslandHopper {
             itemSelector.Show(true);
         }
         public void Shoot(Entity item, Entity target) {
-            var bulletSpeed = 10;
+            var bulletSpeed = 30;
             var bulletVel = (target.Position - p.Position).Normal * bulletSpeed;
             Bullet b = new Bullet(p, target, bulletVel);
             w.AddEntity(b);
@@ -389,7 +392,7 @@ namespace IslandHopper {
             p.Witness(new InfoEvent(new ColoredString("You shoot: ") + item.Name.WithBackground(Color.Black) + new ColoredString(" | at: ") + target.Name.WithBackground(Color.Black)));
         }
         public void Shoot(Entity item, XYZ target) {
-            var bulletSpeed = 10;
+            var bulletSpeed = 30;
             var bulletVel = (target - p.Position).Normal * bulletSpeed;
             Bullet b = new Bullet(p, null, bulletVel);
             w.AddEntity(b);
