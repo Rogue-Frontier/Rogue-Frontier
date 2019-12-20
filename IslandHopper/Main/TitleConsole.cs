@@ -74,8 +74,9 @@ namespace IslandHopper {
 			};
 			start.Click += (btn, args) => {
 				Hide();
-				new GameConsole(180, 60).Show(true);
-			};
+                //new GameConsole(180, 60).Show(true);
+                new GameConsole(Width, Height).Show(true);
+            };
 			Add(start);
 
 			var quit = new Button(10, 1) {

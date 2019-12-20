@@ -35,7 +35,12 @@ namespace IslandHopper {
 		}
 		public double Angle => Math.Atan2(y, x);
 	}
-	public class XYZ {
+    public class XYZGridComparer : IEqualityComparer<XYZ> {
+        public bool Equals(XYZ p1, XYZ p2) => (p1.xi == p2.xi && p1.yi == p2.yi && p1.zi == p2.zi);
+
+        public int GetHashCode(XYZ p) => p.i.GetHashCode();
+    }
+    public class XYZ {
 		public double x, y, z;
 
 		public int xi { get => (int)x; set => x = value; }

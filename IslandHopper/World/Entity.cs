@@ -95,7 +95,7 @@ namespace IslandHopper {
 			g.Position = final;
 		}
         public static void UpdateMotionCollisionTrail(this Entity g, out HashSet<XYZ> trail, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
-            trail = new HashSet<XYZ>();
+            trail = new HashSet<XYZ>(new XYZGridComparer());
             if (g.Velocity < 0.1) {
                 return;
             }
