@@ -65,7 +65,7 @@ namespace IslandHopper {
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredString("~", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black)[0];
+		public ColoredGlyph SymbolCenter => new ColoredGlyph('~', tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
 		public ColoredString Name => new ColoredString("Beam", tick % 20 < 10 ? new Color(255, 0, 0, 255) : new Color(204, 0, 0, 255), Color.Black);
 
 		private Entity Source;
@@ -106,7 +106,7 @@ namespace IslandHopper {
         public XYZ Velocity { get; set; }
         public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredString("*", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black)[0];
+		public ColoredGlyph SymbolCenter => new ColoredGlyph('*', tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
         public ColoredString Name => new ColoredString("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
 
 		private Entity Source;
@@ -127,7 +127,7 @@ namespace IslandHopper {
         }
 
         public void UpdateStep() {
-            this.UpdateGravity();
+            //this.UpdateGravity();
 
             Func<Entity, bool> ignoreSource = e => e == Source;
             Func<Entity, bool> filterTarget = e => e != Target;
@@ -147,7 +147,7 @@ namespace IslandHopper {
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredString("M", tick % 8 < 4 ? Color.White : Color.Gray, Color.Black)[0];
+		public ColoredGlyph SymbolCenter => new ColoredGlyph('M', tick % 8 < 4 ? Color.White : Color.Gray, Color.Black);
 		public ColoredString Name => new ColoredString("Missile", tick % 8 < 4 ? Color.White : Color.Gray, Color.Black);
 
 		private Entity Source;
@@ -184,7 +184,7 @@ namespace IslandHopper {
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredString("*", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black)[0];
+		public ColoredGlyph SymbolCenter => new ColoredGlyph('*', tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 		public ColoredString Name => new ColoredString("Explosion", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 
 		private int tick;
@@ -212,7 +212,7 @@ namespace IslandHopper {
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredString("*", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black)[0];
+		public ColoredGlyph SymbolCenter => new ColoredGlyph('*', tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 		public ColoredString Name => new ColoredString("Explosion", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 
 		private int tick;   //Used for sprite flashing

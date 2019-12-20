@@ -70,7 +70,7 @@ namespace IslandHopper {
             int previewX = Width - PreviewWidth / 2;
             int previewY = PreviewWidth / 2;
             //Draw a border, up/down arrow, and z difference
-            foreach (var thrown in World.player.Thrown) {
+            foreach (var thrown in World.player.Projectiles) {
                 for (int x = -PreviewWidth/2; x < PreviewWidth/2; x++) {
                     for (int y = -PreviewHeight/2; y < PreviewHeight/2; y++) {
                         XYZ location = thrown.Position + new XYZ(x, y, 0);
@@ -84,52 +84,43 @@ namespace IslandHopper {
             base.Draw(delta);
         }
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
-            double runAccel = 2;
-            int runCooldown = 10;
-            int runTime = 5;
-			if (info.IsKeyDown(Keys.Up)) {
-                if (info.IsKeyDown(Keys.RightShift)) {
-                    if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
-                        World.player.Actions.Add(new Jump(World.player, new XYZ(0, 0, 2)));
-                } else if(info.IsKeyDown(Keys.RightControl)) {
-                    //Run
-                    if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
-                        World.player.Actions.Add(new Jump(World.player, new XYZ(0, -runAccel), runCooldown, runTime));
-                } else {
-                    if (World.player.OnGround() && !World.player.Actions.Any(a => a is WalkAction))
-                        World.player.Actions.Add(new WalkAction(World.player, new XYZ(0, -1)));
-				}
-			} else if (info.IsKeyDown(Keys.Down)) {
-				if (info.IsKeyDown(Keys.RightShift)) {
-                    //Jump once
-                    if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
-						World.player.Actions.Add(new Impulse(World.player, new XYZ(0, 0, -2)));
-				} else if (info.IsKeyDown(Keys.RightControl)) {
-                    //Run
-                    if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
-                        World.player.Actions.Add(new Jump(World.player, new XYZ(0, runAccel), runCooldown, runTime));
-                } else {
-                    if (World.player.OnGround() && !World.player.Actions.Any(a => a is WalkAction))
-                        World.player.Actions.Add(new WalkAction(World.player, new XYZ(0, 1)));
-				}
-			} else if (info.IsKeyDown(Keys.Left)) {
-                if (info.IsKeyDown(Keys.RightControl)) {
-                    //Run
-                    if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
-                        World.player.Actions.Add(new Jump(World.player, new XYZ(-runAccel, 0), runCooldown, runTime));
-                } else {
-                    if (World.player.OnGround() && !World.player.Actions.Any(a => a is WalkAction))
-                        World.player.Actions.Add(new WalkAction(World.player, new XYZ(-1, 0)));
+            if (info.IsKeyDown(Keys.Up) || info.IsKeyDown(Keys.Down) || info.IsKeyDown(Keys.Right) || info.IsKeyDown(Keys.Left)) {
+                XYZ direction = new XYZ();
+                if (info.IsKeyDown(Keys.Up)) {
+                    direction += new XYZ(0, -1);
                 }
-			} else if (info.IsKeyDown(Keys.Right)) {
-                 if (info.IsKeyDown(Keys.RightControl)) {
-                    //Run
-                    if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
-                        World.player.Actions.Add(new Jump(World.player, new XYZ(runAccel, 0), runCooldown, runTime));
-                } else {
-                    if (World.player.OnGround() && !World.player.Actions.Any(a => a is WalkAction))
-                        World.player.Actions.Add(new WalkAction(World.player, new XYZ(1, 0)));
+                if (info.IsKeyDown(Keys.Down)) {
+                    direction += new XYZ(0, 1);
                 }
+                if (info.IsKeyDown(Keys.Right)) {
+                    direction += new XYZ(1, 0);
+                }
+                if (info.IsKeyDown(Keys.Left)) {
+                    direction += new XYZ(-1, 0);
+                }
+                if(direction.Magnitude > 0) {
+                    direction = direction.Normal;
+                    if (info.IsKeyDown(Keys.RightControl)) {
+                        //Run
+                        if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump)) {
+                            double runAccel = 2.2;
+                            int runCooldown = 10;
+                            int runTime = 5;
+                            World.player.Actions.Add(new Jump(World.player, direction * runAccel, runCooldown, runTime));
+                        }
+                    } else {
+                        if (World.player.OnGround() && !World.player.Actions.Any(a => a is WalkAction))
+                            World.player.Actions.Add(new WalkAction(World.player, direction));
+                    }
+                }
+                
+            } else if (info.IsKeyDown(Keys.OemOpenBrackets)) {
+                //Go up stairs
+            } else if(info.IsKeyDown(Keys.OemCloseBrackets)) {
+                //Go down stairs
+            } else if (info.IsKeyDown(Keys.J)) {
+                if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
+                    World.player.Actions.Add(new Jump(World.player, new XYZ(0, 0, 5)));
 			} else if (info.IsKeyPressed(Keys.D)) {
 				new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
 					//Just drop the item for now
@@ -163,10 +154,16 @@ namespace IslandHopper {
                 new ShootMenu(Width, Height, World, World.player).Show(true);
             } else if (info.IsKeyPressed(Keys.T)) {
                 new ThrowMenu(Width, Height, World, World.player).Show(true);
-            } else if (info.IsKeyPressed(Keys.OemPeriod)) {
-                Debug.Print("waiting");
-                World.player.Actions.Add(new WaitAction(Constants.STEPS_PER_SECOND));
-                World.player.Witness(new InfoEvent(new ColoredString("You wait")));
+            } else if(info.IsKeyDown(Keys.OemPeriod) && info.IsKeyDown(Keys.RightControl)) {
+                if (!World.player.Actions.Any(a => a is WaitAction)) {
+                    World.player.Actions.Add(new WaitAction(1));
+                }
+            } else if(info.IsKeyPressed(Keys.OemPeriod)) {
+                if (!World.player.Actions.Any(a => a is WaitAction)) {
+                    Debug.Print("waiting");
+                    World.player.Actions.Add(new WaitAction(Constants.STEPS_PER_SECOND));
+                    World.player.Witness(new InfoEvent(new ColoredString("You wait")));
+                }
             }
             return base.ProcessKeyboard(info);
         }
@@ -361,14 +358,32 @@ namespace IslandHopper {
                 itemSelector.Hide();
                 targetSelector = new LookMenu(Width, Height, w, "Select target to shoot at. Enter to select a general location. ESC to cancel.", target => {
                     targetSelector.Hide();
+                    Shoot(item, target);
                     return false;
                 }, xyz => {
+                    Shoot(item, xyz);
                     targetSelector.Hide();
                 });
                 targetSelector.Show(true);
                 return false;
             });
             itemSelector.Show(true);
+        }
+        public void Shoot(Entity item, Entity target) {
+            var bulletSpeed = 10;
+            var bulletVel = (target.Position - p.Position).Normal * bulletSpeed;
+            Bullet b = new Bullet(p, target, bulletVel);
+            w.AddEntity(b);
+            p.Projectiles.Add(b);
+            p.Witness(new InfoEvent(new ColoredString("You shoot: ") + item.Name.WithBackground(Color.Black) + new ColoredString(" | at: ") + target.Name.WithBackground(Color.Black)));
+        }
+        public void Shoot(Entity item, XYZ target) {
+            var bulletSpeed = 10;
+            var bulletVel = (target - p.Position).Normal * bulletSpeed;
+            Bullet b = new Bullet(p, null, bulletVel);
+            w.AddEntity(b);
+            p.Projectiles.Add(b);
+            p.Witness(new InfoEvent(new ColoredString("You shoot: ") + item.Name.WithBackground(Color.Black)));
         }
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
             if (info.IsKeyDown(Keys.Escape)) {
@@ -458,7 +473,7 @@ namespace IslandHopper {
                 var t = new ThrownItem(p, item);
                 w.AddEntity(t);
                 //Track this on the player
-                p.Thrown.Add(t);
+                p.Projectiles.Add(t);
                 p.Witness(new InfoEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black) + new ColoredString(" | at: ") + target.Name.WithBackground(Color.Black)));
             }
         }
@@ -470,7 +485,7 @@ namespace IslandHopper {
                 var t = new ThrownItem(p, item);
                 w.AddEntity(t);
                 //Track this on the player
-                p.Thrown.Add(t);
+                p.Projectiles.Add(t);
                 p.Witness(new InfoEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black)));
             }
         }
@@ -520,10 +535,16 @@ namespace IslandHopper {
         }
 
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
-            const int delta = 1;    //Distance moved by camera
+            int delta = 1;    //Distance moved by camera
+            if(info.IsKeyDown(Keys.RightControl)) {
+                delta *= 8;
+            }
+            /*
             if (info.IsKeyDown(Keys.RightControl)) {
                 examineMenu.ListControls(info);
-            } else if (info.IsKeyPressed(Keys.Up)) {
+            } else 
+            */
+            if (info.IsKeyPressed(Keys.Up)) {
                 if (info.IsKeyDown(Keys.RightShift)) {
                     world.camera += new XYZ(0, 0, delta);
                 } else {

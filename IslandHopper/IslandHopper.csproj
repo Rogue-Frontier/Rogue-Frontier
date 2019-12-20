@@ -49,6 +49,7 @@
     <Compile Include="Misc\Debug.cs" />
     <Compile Include="World\Body.cs" />
     <Compile Include="World\Damage.cs" />
+    <Compile Include="World\Effect.cs" />
     <Compile Include="World\Entity.cs" />
     <Compile Include="World\EntityAction.cs" />
     <Compile Include="Main\IslandHopper.cs" />

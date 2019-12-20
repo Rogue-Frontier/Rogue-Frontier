@@ -88,7 +88,6 @@ namespace IslandHopper {
 			this.user = user;
 			UpdateFromUser();
 			Active = true;
-
 		}
 
 		public void UpdateRealtime(TimeSpan delta) {
@@ -99,13 +98,26 @@ namespace IslandHopper {
 		}
 		public void UpdateStep() {
 			Debug.Print(nameof(UpdateStep));
-			UpdateFromUser();
+            //This actually ends up pulling the player upward when they are moving really fast
+            //Also boosts jumps
+            /*
+            UpdateFromUser();
 			XYZ down = user.Position - Position;
 			double speed = down * user.Velocity.Magnitude;
 			if (speed > 3.8 / 30) {
 				double deceleration = speed * 0.4;
 				user.Velocity -= down * deceleration;
 			}
+            */
+            
+            UpdateFromUser();
+            var vel = user.Velocity;
+            var speed = vel.Magnitude;
+            if(speed > 9.8 / 30) {
+                double deceleration = speed / 30;
+                user.Velocity -= vel.Normal * deceleration;
+            }
+            
 		}
 		public readonly ColoredGlyph symbol = new ColoredString("*", Color.White, Color.Transparent)[0];
 		public ColoredGlyph SymbolCenter => symbol;

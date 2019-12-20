@@ -23,8 +23,9 @@ namespace IslandHopper {
 	public static class EntityHelper {
 		public static bool OnGround(this Entity g) => (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-1.25)].Collision == VoxelType.Solid);
 		public static void UpdateGravity(this Entity g) {
-			//	Fall or hit the ground
-			if (g.Velocity.z < 0 && g.OnGround()) {
+            g.UpdateFriction();
+            //	Fall or hit the ground
+            if (g.Velocity.z < 0 && g.OnGround()) {
 				g.Velocity.z = 0;
 			} else {
 				Debug.Print("fall");
@@ -47,7 +48,6 @@ namespace IslandHopper {
 			}
 		}
 		public static void UpdateMotion(this Entity g) {
-			g.UpdateFriction();
 			if(g.Velocity < 0.1) {
 				return;
 			}
@@ -70,7 +70,6 @@ namespace IslandHopper {
 			g.Position = final;
 		}
 		public static void UpdateMotionCollision(this Entity g, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
-			g.UpdateFriction();
 			if (g.Velocity < 0.1) {
 				return;
 			}
@@ -109,7 +108,7 @@ namespace IslandHopper {
 		public World World { get; set; }
 		public HashSet<EntityAction> Actions { get; private set; }
 		public HashSet<IItem> Inventory { get; private set; }
-        public HashSet<ThrownItem> Thrown { get; private set; }
+        public HashSet<Entity> Projectiles { get; private set; }
 		public List<ColoredString> HistoryLog { get; }	//All events that the player has witnessed
 		public List<HistoryEntry> HistoryRecent { get; }   //Events that the player is currently witnessing
 
@@ -130,7 +129,7 @@ namespace IslandHopper {
 			this.Velocity = new XYZ(0, 0, 0);
 			Actions = new HashSet<EntityAction>();
 			Inventory = new HashSet<IItem>();
-            Thrown = new HashSet<ThrownItem>();
+            Projectiles = new HashSet<Entity>();
 
 			HistoryLog = new List<ColoredString>();
 			HistoryRecent = new List<HistoryEntry>();
@@ -154,7 +153,7 @@ namespace IslandHopper {
 				i.Position = Position;
 				i.Velocity = Velocity;
 			}
-            Thrown.RemoveWhere(t => !t.Active);
+            Projectiles.RemoveWhere(t => !t.Active);
 			if(!this.OnGround())
 				frameCounter = 20;
 

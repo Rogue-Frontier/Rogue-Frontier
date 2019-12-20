@@ -80,6 +80,9 @@ namespace IslandHopper {
 		public double Magnitude => Math.Sqrt(x * x + y * y + z * z);
 		public XYZ Normal {
 			get {
+                if(x == 0 && y == 0 && z == 0) {
+                    return new XYZ();
+                }
 				double magnitude = Magnitude;
 				return new XYZ(x / magnitude, y / magnitude, z / magnitude);
 			}

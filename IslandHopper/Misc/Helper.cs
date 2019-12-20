@@ -333,7 +333,8 @@ namespace IslandHopper {
             foreach(Func<Entity, bool> condition in f) {
                 if (condition == null)
                     continue;
-                result = e => result(e) || condition(e);
+                Func<Entity, bool> previous = result;
+                result = e => (previous(e) || condition(e));
             }
             return result;
         }
