@@ -9,7 +9,7 @@ using static IslandHopper.Constants;
 
 namespace IslandHopper {
 	public interface Entity {
-		World World { get; }
+        Island World { get; }
 		XYZ Position { get; set; }			//Position in meters
 		XYZ Velocity { get; set; }			//Velocity in meters per step
 		bool Active { get; }                    //	When this is inactive, we remove it
@@ -94,7 +94,36 @@ namespace IslandHopper {
 			}
 			g.Position = final;
 		}
-		public static void Witness(this Entity e, WorldEvent we) {
+        public static void UpdateMotionCollisionTrail(this Entity g, out HashSet<XYZ> trail, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
+            trail = new HashSet<XYZ>();
+            if (g.Velocity < 0.1) {
+                return;
+            }
+            //ignoreEntityCollision = ignoreEntityCollision ?? (e => true);
+            //ignoreTileCollision = ignoreTileCollision ?? (v => false);
+            XYZ step = CalcMotionStep(g.Velocity);
+            XYZ final = g.Position;
+            trail.Add(final.i);
+            for (XYZ p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
+                var v = g.World.voxels.Try(p);
+                if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
+                    if (ignoreEntityCollision != null) {
+                        var entities = g.World.entities.Try(p).Where(e => !ReferenceEquals(e, g));
+                        if (entities.All(ignoreEntityCollision)) {
+                            final = p;
+                            trail.Add(final.i);
+                        }
+                    } else {
+                        final = p;
+                        trail.Add(final.i);
+                    }
+                } else {
+                    break;
+                }
+            }
+            g.Position = final;
+        }
+        public static void Witness(this Entity e, WorldEvent we) {
 			if (e is Witness w)
 				w.Witness(we);
 		}
@@ -105,7 +134,7 @@ namespace IslandHopper {
 	public class Player : Entity, Witness {
 		public XYZ Velocity { get; set; }
 		public XYZ Position { get; set; }
-		public World World { get; set; }
+		public Island World { get; set; }
 		public HashSet<EntityAction> Actions { get; private set; }
 		public HashSet<IItem> Inventory { get; private set; }
         public HashSet<Entity> Projectiles { get; private set; }
@@ -123,7 +152,7 @@ namespace IslandHopper {
 
 		public int frameCounter = 0;
 
-		public Player(World World, XYZ Position) {
+		public Player(Island World, XYZ Position) {
 			this.World = World;
 			this.Position = Position;
 			this.Velocity = new XYZ(0, 0, 0);

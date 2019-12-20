@@ -64,6 +64,7 @@ namespace IslandHopper {
 		public double xyAngle => xy.Angle;
 		public double zAngle => Math.Atan2(z, xy.Magnitude);
 		public XY xy => new XY(x, y);
+        public XYZ i => new XYZ(xi, yi, zi);
 		public static XYZ operator +(XYZ p1, XYZ p2) => new XYZ(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
 		public static XYZ operator -(XYZ p1, XYZ p2) => p1 + (-p2);
 		public static XYZ operator -(XYZ p1) => new XYZ(-p1.x, -p1.y, -p1.z);
@@ -259,7 +260,16 @@ namespace IslandHopper {
 			}
 		}
 		public HashSet<T> Try(XYZ p) => Initialize(p) ? this[p] : null;
-		private bool Initialize(XYZ p) {
+        public bool Try(XYZ p, out HashSet<T> result) {
+            if (Initialize(p)) {
+                result = this[p];
+                return true;
+            } else {
+                result = null;
+                return false;
+            }
+        }
+        private bool Initialize(XYZ p) {
 			if (InBounds(p)) {
 				if (this[p] == null) {
 					this[p] = new HashSet<T>();

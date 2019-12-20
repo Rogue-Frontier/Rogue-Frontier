@@ -9,18 +9,20 @@ using System.Xml.Linq;
 using System.Linq;
 namespace IslandHopper {
 	public static class Helper {
-        public static ColoredGlyph GetGlyph(this World World, XYZ location) {
-            ColoredGlyph c;
-            if (World.entities.InBounds(location) && World.entities.Try(location).Count > 0) {
-                c = World.entities[location].First().SymbolCenter;
-            } else if (World.voxels.InBounds(location) && !(World.voxels[location] is Air)) {
-                c = World.voxels[location].CharCenter;
-            } else {
-                location = location + new XYZ(0, 0, -1);
-                if (World.voxels.InBounds(location)) {
-                    c = World.voxels[location].CharAbove;
+        public static ColoredGlyph GetGlyph(this Island World, XYZ location) {
+            var c = new ColoredGlyph(' ', Color.Transparent, Color.Transparent);
+            if(World.entities.InBounds(location)) {
+                if(World.effects.Try(location).Count > 0) {
+                    c = World.effects[location].First().SymbolCenter;
+                } else if(World.entities.Try(location).Count > 0) {
+                    c = World.entities[location].First().SymbolCenter;
+                } else if(!(World.voxels[location] is Air)) {
+                    c = World.voxels[location].CharCenter;
                 } else {
-                    c = new ColoredGlyph(' ', Color.Transparent, Color.Transparent);
+                    location = location + new XYZ(0, 0, -1);
+                    if (World.voxels.InBounds(location)) {
+                        c = World.voxels[location].CharAbove;
+                    }
                 }
             }
             return c;

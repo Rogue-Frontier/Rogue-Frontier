@@ -11,7 +11,7 @@ namespace IslandHopper {
 	public class ThrownItem : Entity {
         public Entity Thrower { get; private set; }
         public IItem Thrown { get; private set; }
-        public World World { get => Thrown.World; }
+        public Island World { get => Thrown.World; }
         public XYZ Position { get => Thrown.Position; set => Thrown.Position = value; }
         public XYZ Velocity { get => Thrown.Velocity; set => Thrown.Velocity = value; }
         public bool Active => flying && Thrown.Active;
@@ -60,7 +60,7 @@ namespace IslandHopper {
         }
     }
 	public class Beam : Entity {
-		public World World { get; }
+		public Island World { get; }
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
@@ -101,7 +101,7 @@ namespace IslandHopper {
 		}
 	}
 	public class Bullet : Entity {
-		public World World { get; }
+		public Island World { get; }
         public XYZ Position { get; set; }
         public XYZ Velocity { get; set; }
         public bool Active { get; private set; }
@@ -138,11 +138,15 @@ namespace IslandHopper {
 			};
 			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
 
-            this.UpdateMotionCollision(collisionFilter);
+            this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
+            foreach(var point in trail) {
+
+                World.AddEffect(new BulletTrail(point, 10));
+            }
         }
     }
 	public class Missile : Entity {
-		public World World { get; }
+		public Island World { get; }
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
@@ -179,7 +183,7 @@ namespace IslandHopper {
 		}
 	}
 	class ExplosionBlock : Entity {
-		public World World { get; }
+		public Island World { get; }
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
@@ -189,7 +193,7 @@ namespace IslandHopper {
 
 		private int tick;
 		public int lifetime;
-		public ExplosionBlock(World World, XYZ Position) {
+		public ExplosionBlock(Island World, XYZ Position) {
 			this.World = World;
 			this.Position = Position;
 			Velocity = new XYZ(0, 0, 0);
@@ -207,7 +211,7 @@ namespace IslandHopper {
 		}
 	}
 	class ExplosionSource : Entity {
-		public World World { get; }
+		public Island World { get; }
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
@@ -226,7 +230,7 @@ namespace IslandHopper {
 		private double expansionRate;
         private double expansionTime;
 		
-		public ExplosionSource(World World, XYZ Position, double maxRadius) {
+		public ExplosionSource(Island World, XYZ Position, double maxRadius) {
 			this.World = World;
 			this.Position = Position;
 			Velocity = new XYZ(0, 0, 0);

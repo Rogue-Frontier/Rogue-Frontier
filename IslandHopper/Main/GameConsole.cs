@@ -19,7 +19,7 @@ namespace IslandHopper {
 		};
 	}
 	class GameConsole : Window {
-		World World;
+        Island World;
 		public GameConsole(int Width, int Height) : base(Width, Height) {
             Theme = new WindowTheme {
                 ModalTint = Color.Transparent,
@@ -28,9 +28,10 @@ namespace IslandHopper {
             UseKeyboard = true;
 			UseMouse = true;
 			this.DebugInfo($"Width: {Width}", $"Height: {Height}");
-			World = new World() {
-				karma = new Random(0),
-				entities = new Space<Entity>(100, 100, 100, e => e.Position),
+            World = new Island() {
+                karma = new Random(0),
+                entities = new Space<Entity>(100, 100, 100, e => e.Position),
+                effects = new Space<Effect>(100, 100, 100, e => e.Position),
 				voxels = new ArraySpace<Voxel>(100, 100, 100, new Air()),
 				camera = new XYZ(0, 0, 0)
 			};

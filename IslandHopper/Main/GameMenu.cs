@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 
 namespace IslandHopper {
     class PlayerMain : Window {
-        World World;
-        public PlayerMain(int Width, int Height, World world) : base(Width, Height) {
+        Island World;
+        public PlayerMain(int Width, int Height, Island world) : base(Width, Height) {
             
             Theme = new WindowTheme {
                 ModalTint = Color.Transparent,
@@ -31,9 +31,18 @@ namespace IslandHopper {
                 e.UpdateRealtime(delta);
             }
 
+            World.effects.UpdateSpace();
+            foreach(var e in World.effects.all) {
+                e.UpdateRealtime(delta);
+            }
+
             if (World.player.AllowUpdate()) {
                 this.DebugInfo("Global Update");
                 foreach (var e in World.entities.all.ToList()) {
+                    e.DebugInfo("UpdateStep() by world");
+                    e.UpdateStep();
+                }
+                foreach (var e in World.effects.all.ToList()) {
                     e.DebugInfo("UpdateStep() by world");
                     e.UpdateStep();
                 }
@@ -51,6 +60,8 @@ namespace IslandHopper {
                 return result;
             });
             Removed.ForEach(e => e.OnRemoved());
+
+            World.effects.all.RemoveWhere(e => !e.Active);
 
         }
         public override void Draw(TimeSpan delta) {
@@ -320,12 +331,12 @@ namespace IslandHopper {
         }
     }
     class ShootMenu : Window {
-        World w;
+        Island w;
         Player p;
         ListMenu<IItem> itemSelector;
         LookMenu targetSelector;
 
-        public ShootMenu(int width, int height, World w, Player p) : base(width, height) {
+        public ShootMenu(int width, int height, Island w, Player p) : base(width, height) {
             Theme = Themes.Sub;
             this.w = w;
             this.p = p;
@@ -415,11 +426,11 @@ namespace IslandHopper {
         }
     }
     class ThrowMenu : Window {
-        World w;
+        Island w;
         Player p;
         ListMenu<IItem> itemSelector;
         LookMenu targetSelector;
-        public ThrowMenu(int width, int height, World w, Player p) : base(width, height) {
+        public ThrowMenu(int width, int height, Island w, Player p) : base(width, height) {
             Theme = Themes.Sub;
 
             this.w = w;
@@ -509,7 +520,7 @@ namespace IslandHopper {
         }
     }
     class LookMenu : Window {
-        World world;
+        Island world;
 
         string hint;
         Func<Entity, bool> select;
@@ -522,7 +533,7 @@ namespace IslandHopper {
 
         readonly ColoredGlyph cursor = new ColoredGlyph('?', Color.Yellow, Color.Black);
         
-        public LookMenu(int width, int height, World world, string hint = null, Func<Entity, bool> select = null, Action<XYZ> selectAt = null) : base(width, height) {
+        public LookMenu(int width, int height, Island world, string hint = null, Func<Entity, bool> select = null, Action<XYZ> selectAt = null) : base(width, height) {
             this.world = world;
             this.hint = hint ?? "Select an entity to examine";
             this.select = select ?? (e => false);

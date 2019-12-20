@@ -33,7 +33,7 @@ namespace IslandHopper {
         }
 	}
 	public class Item : IItem {
-		public World World { get; set; }
+		public Island World { get; set; }
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
 
@@ -51,13 +51,13 @@ namespace IslandHopper {
 	}
 
 	public class Gun1 : IItem {
-		public World World { get; set; }
+		public Island World { get; set; }
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
 
 		public Gun Gun { get; set; }
 
-		public Gun1(World World, XYZ Position) {
+		public Gun1(Island World, XYZ Position) {
 			this.World = World;
 			this.Position = Position;
 			this.Velocity = new XYZ();
@@ -81,7 +81,7 @@ namespace IslandHopper {
 		public Entity user { get; private set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public World World => user.World;
+		public Island World => user.World;
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
 		public Parachute(Entity user) {
