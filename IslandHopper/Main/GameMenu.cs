@@ -87,11 +87,11 @@ namespace IslandHopper {
             double runAccel = 2;
             int runCooldown = 10;
             int runTime = 5;
-			if (info.IsKeyPressed(Keys.Up)) {
+			if (info.IsKeyDown(Keys.Up)) {
                 if (info.IsKeyDown(Keys.RightShift)) {
                     if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
                         World.player.Actions.Add(new Jump(World.player, new XYZ(0, 0, 2)));
-                } else if(info.IsKeyPressed(Keys.RightControl)) {
+                } else if(info.IsKeyDown(Keys.RightControl)) {
                     //Run
                     if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
                         World.player.Actions.Add(new Jump(World.player, new XYZ(0, -runAccel), runCooldown, runTime));
@@ -99,7 +99,7 @@ namespace IslandHopper {
                     if (World.player.OnGround() && !World.player.Actions.Any(a => a is WalkAction))
                         World.player.Actions.Add(new WalkAction(World.player, new XYZ(0, -1)));
 				}
-			} else if (info.IsKeyPressed(Keys.Down)) {
+			} else if (info.IsKeyDown(Keys.Down)) {
 				if (info.IsKeyDown(Keys.RightShift)) {
                     //Jump once
                     if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
@@ -112,7 +112,7 @@ namespace IslandHopper {
                     if (World.player.OnGround() && !World.player.Actions.Any(a => a is WalkAction))
                         World.player.Actions.Add(new WalkAction(World.player, new XYZ(0, 1)));
 				}
-			} else if (info.IsKeyPressed(Keys.Left)) {
+			} else if (info.IsKeyDown(Keys.Left)) {
                 if (info.IsKeyDown(Keys.RightControl)) {
                     //Run
                     if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
@@ -121,7 +121,7 @@ namespace IslandHopper {
                     if (World.player.OnGround() && !World.player.Actions.Any(a => a is WalkAction))
                         World.player.Actions.Add(new WalkAction(World.player, new XYZ(-1, 0)));
                 }
-			} else if (info.IsKeyPressed(Keys.Right)) {
+			} else if (info.IsKeyDown(Keys.Right)) {
                  if (info.IsKeyDown(Keys.RightControl)) {
                     //Run
                     if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
