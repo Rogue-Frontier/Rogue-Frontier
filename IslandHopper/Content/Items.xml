@@ -162,6 +162,16 @@ EASTER EGGS
 			/>
 		<Mount/>
 	</ItemType>
+  <ItemType
+		name=			"bulletball glove"
+		desc=			"In the far future, cyborgs play an extreme version of baseball known as bulletball. These metal mittens are used to catch high-velocity bulletballs in flight."
+		mass=			"0.5"
+		>
+		<Hand
+			defense=	"10"
+			durability=	"70"
+			/>
+	</ItemType>
 	<ItemType
 		name=			"The Cookie Jar"
 		desc=			"This little chip of a grenade will really cook your enemies to a chocolate crisp in a jarring explosion."

@@ -284,9 +284,9 @@ namespace IslandHopper {
 			result.GlyphCharacter = c;
 			return result;
 		}
-		public static ColoredString WithBackground(this ColoredString c, Color Background) {
+		public static ColoredString WithBackground(this ColoredString c, Color? Background = null) {
 			var result = c.SubString(0, c.Count);
-			result.SetBackground(Color.Black);
+			result.SetBackground(Background ?? Color.Black);
 			return result;
 		}
 		public static ColoredString Adjust(this ColoredString c, Color foregroundInc) {
@@ -337,6 +337,16 @@ namespace IslandHopper {
                     continue;
                 Func<Entity, bool> previous = result;
                 result = e => (previous(e) || condition(e));
+            }
+            return result;
+        }
+        public static Func<Entity, bool> And(params Func<Entity, bool>[] f) {
+            Func<Entity, bool> result = e => true;
+            foreach (Func<Entity, bool> condition in f) {
+                if (condition == null)
+                    continue;
+                Func<Entity, bool> previous = result;
+                result = e => (previous(e) && condition(e));
             }
             return result;
         }

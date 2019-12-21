@@ -21,7 +21,7 @@ namespace IslandHopper {
 		ColoredString Name { get; }
 	}
 	public static class EntityHelper {
-		public static bool OnGround(this Entity g) => (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-1.25)].Collision == VoxelType.Solid);
+		public static bool OnGround(this Entity g) => g.World.voxels.InBounds(g.Position) && (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-1.25)].Collision == VoxelType.Solid);
 		public static void UpdateGravity(this Entity g) {
             g.UpdateFriction();
             //	Fall or hit the ground
@@ -70,9 +70,11 @@ namespace IslandHopper {
 			g.Position = final;
 		}
 		public static void UpdateMotionCollision(this Entity g, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
-			if (g.Velocity < 0.1) {
+            /*
+            if (g.Velocity < 0.1) {
 				return;
 			}
+            */
             //ignoreEntityCollision = ignoreEntityCollision ?? (e => true);
             //ignoreTileCollision = ignoreTileCollision ?? (v => false);
 			XYZ step = CalcMotionStep(g.Velocity);
@@ -96,9 +98,11 @@ namespace IslandHopper {
 		}
         public static void UpdateMotionCollisionTrail(this Entity g, out HashSet<XYZ> trail, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
             trail = new HashSet<XYZ>(new XYZGridComparer());
+            /*
             if (g.Velocity < 0.1) {
                 return;
             }
+            */
             //ignoreEntityCollision = ignoreEntityCollision ?? (e => true);
             //ignoreTileCollision = ignoreTileCollision ?? (v => false);
             XYZ step = CalcMotionStep(g.Velocity);
@@ -138,16 +142,23 @@ namespace IslandHopper {
 		public HashSet<EntityAction> Actions { get; private set; }
 		public HashSet<IItem> Inventory { get; private set; }
         public HashSet<Entity> Projectiles { get; private set; }
-		public List<ColoredString> HistoryLog { get; }	//All events that the player has witnessed
+		public List<HistoryEntry> HistoryLog { get; }	//All events that the player has witnessed
 		public List<HistoryEntry> HistoryRecent { get; }   //Events that the player is currently witnessing
 
+
 		public class HistoryEntry {
-			public ColoredString Desc { get; }
+            public ColoredString Desc => times == 1 ? _desc : (_desc + new ColoredString($" (x{times})", Color.White, Color.Black));
+            public ColoredString _desc;
+            public int times;
 			public double ScreenTime;
 			public HistoryEntry(ColoredString Desc, double ScreenTime = 4) {
-				this.Desc = Desc;
+				this._desc = Desc;
 				this.ScreenTime = ScreenTime;
+                this.times = 1;
 			}
+            public void SetScreenTime(double ScreenTime = 4) {
+                this.ScreenTime = ScreenTime;
+            }
 		}
 
 		public int frameCounter = 0;
@@ -160,7 +171,7 @@ namespace IslandHopper {
 			Inventory = new HashSet<IItem>();
             Projectiles = new HashSet<Entity>();
 
-			HistoryLog = new List<ColoredString>();
+			HistoryLog = new List<HistoryEntry>();
 			HistoryRecent = new List<HistoryEntry>();
 
 			World.AddEntity(new Parachute(this));
@@ -172,26 +183,45 @@ namespace IslandHopper {
             HistoryRecent.RemoveAll(e => (e.ScreenTime -= delta.TotalSeconds) < 0);
 			if(frameCounter > 0)
 				frameCounter--;
+            foreach(var i in Inventory) {
+                i.UpdateRealtime(delta);
+            }
 		}
 		public void UpdateStep() {
 			this.UpdateGravity();
 			this.UpdateMotion();
-			Actions.ToList().ForEach(a => a.Update());
+            foreach(var a in Actions) {
+                a.Update();
+            }
 			Actions.RemoveWhere(a => a.Done());
+            /*
 			foreach(var i in Inventory) {
 				i.Position = Position;
 				i.Velocity = Velocity;
+                i.UpdateStep();
 			}
+            */
+            Inventory.RemoveWhere(i => !i.Active);
             Projectiles.RemoveWhere(t => !t.Active);
 			if(!this.OnGround())
 				frameCounter = 20;
 
-			HistoryRecent.RemoveAll(e => e.ScreenTime < 1);
+			//HistoryRecent.RemoveAll(e => e.ScreenTime < 1);
 		}
 
 		public void Witness(WorldEvent e) {
-            HistoryLog.Add(e.Desc);
-            HistoryRecent.Add(new HistoryEntry(e.Desc));
+            var desc = e.Desc;
+            if(HistoryLog.Count == 0) {
+                var entry = new HistoryEntry(desc);
+                HistoryLog.Add(entry);
+                HistoryRecent.Add(entry);
+            } else {
+                var last = HistoryLog.Last();
+                if(last._desc.ToString() == desc.ToString()) {
+                    last.times++;
+                    last.SetScreenTime();
+                }
+            }
         }
 
 		public ColoredGlyph SymbolCenter => new ColoredString("@", Color.White, Color.Black)[0];

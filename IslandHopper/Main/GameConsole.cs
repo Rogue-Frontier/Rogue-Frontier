@@ -46,7 +46,9 @@ namespace IslandHopper {
 
 			for(int i = 0; i < 1; i++) {
 				World.entities.Place(new Gun1(World, new XYZ(78, 78, 1 + i/30)));
-			}
+                World.entities.Place(new Gun1(World, new XYZ(48, 48, 1 + i / 30)));
+                World.entities.Place(new Gun1(World, new XYZ(28, 28, 1 + i / 30)));
+            }
 			
 			World.entities.Place(World.player);
 		}

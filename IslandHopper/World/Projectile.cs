@@ -95,7 +95,7 @@ namespace IslandHopper {
 				return false;
 			};
 
-			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
+			Func<Entity, bool> collisionFilter = Helper.And(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
 
 			this.UpdateMotionCollision(collisionFilter);
 		}
@@ -109,12 +109,16 @@ namespace IslandHopper {
 		public ColoredGlyph SymbolCenter => new ColoredGlyph('*', tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
         public ColoredString Name => new ColoredString("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
 
-		private Entity Source;
+        private Entity Source;
+        private HashSet<Entity> ignore;
 		private Entity Target;
 		private int tick;   //Used for sprite flashing
 
-		public Bullet(Entity Source, Entity Target, XYZ Velocity) {
+		public Bullet(Entity Source, IItem Item, Entity Target, XYZ Velocity) {
             this.Source = Source;
+            ignore = new HashSet<Entity>();
+            ignore.Add(Source);
+            ignore.Add(Item);
             this.Target = Target;
             this.World = Source.World;
             this.Position = Source.Position;
@@ -129,14 +133,14 @@ namespace IslandHopper {
         public void UpdateStep() {
             //this.UpdateGravity();
 
-            Func<Entity, bool> ignoreSource = e => e == Source;
+            Func<Entity, bool> ignoreSource = e => ignore.Contains(e);
             Func<Entity, bool> filterTarget = e => e != Target;
 			Func<Entity, bool> onHit = e => {
 				Active = false;
 				Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
 				return false;
 			};
-			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
+			Func<Entity, bool> collisionFilter = Helper.And(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
 
             this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
             foreach(var point in trail) {
@@ -177,7 +181,7 @@ namespace IslandHopper {
 			Func<Entity, bool> ignoreSource = e => e == Source;
 			Func<Entity, bool> filterTarget = e => e != Target;
 
-			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget));
+			Func<Entity, bool> collisionFilter = Helper.And(Source.Elvis(ignoreSource), Target.Elvis(filterTarget));
 
 			this.UpdateMotionCollision(collisionFilter);
 		}

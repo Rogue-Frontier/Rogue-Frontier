@@ -1,9 +1,51 @@
-﻿using static IslandHopper.Constants;
+﻿using System;
+using static IslandHopper.Constants;
 namespace IslandHopper {
 	public interface EntityAction {
 		void Update();
 		bool Done();
 	}
+    /*
+    public class DelayedAction: EntityAction {
+        public EntityAction action;
+        public int delay;
+
+        public DelayedAction(EntityAction e, int predelay) {
+            this.action = e;
+            this.delay = predelay;
+        }
+        public DelayedAction(Action a, int delay) {
+            this.action = new CustomAction(a);
+            this.delay = delay;
+        }
+        public void Update() {
+            if(delay > 0) {
+                delay--;
+            } else {
+                action.Update();
+            }
+        }
+        public bool Done() => delay > 0 && action.Done();
+    }
+    public class CustomAction : EntityAction {
+        public Action action;
+        public bool done;
+
+        public CustomAction(Action a) {
+            this.done = false;
+        }
+        public void Update() {
+            if(done) {
+
+            } else {
+                done = true;
+                action();
+            }
+        }
+        public bool Done() => done;
+    }
+    */
+
 	public class WalkAction : EntityAction {
 		private Entity player;
 		private XYZ displacement;

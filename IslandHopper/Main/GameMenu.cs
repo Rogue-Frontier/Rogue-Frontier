@@ -72,7 +72,8 @@ namespace IslandHopper {
             Print(1, 2, "" + World.camera.z, Color.White);
             for (int i = 0; i < 30 && i < World.player.HistoryRecent.Count(); i++) {
                 var entry = World.player.HistoryRecent[World.player.HistoryRecent.Count() - 1 - i];
-                Print(1, (Height - 1) - i, entry.ScreenTime > 1 ? entry.Desc : entry.Desc.Opacity((byte) (255 * entry.ScreenTime)));
+                var y = (Height - 1) - i;
+                Print(1, y, entry.ScreenTime > 1 ? entry.Desc : entry.Desc.Opacity((byte) (255 * entry.ScreenTime)));
             }
 
             int PreviewWidth = 20;
@@ -95,6 +96,7 @@ namespace IslandHopper {
             base.Draw(delta);
         }
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
+            var player = World.player;
             if (info.IsKeyDown(Keys.Up) || info.IsKeyDown(Keys.Down) || info.IsKeyDown(Keys.Right) || info.IsKeyDown(Keys.Left)) {
                 XYZ direction = new XYZ();
                 if (info.IsKeyDown(Keys.Up)) {
@@ -133,19 +135,29 @@ namespace IslandHopper {
             } else if(info.IsKeyDown(Keys.OemCloseBrackets)) {
                 //Go down stairs
             } else if (info.IsKeyDown(Keys.J)) {
-                if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump))
-                    World.player.Actions.Add(new Jump(World.player, new XYZ(0, 0, 5)));
+                //Jump up
+                if (player.OnGround() && !player.Actions.Any(a => a is Jump))
+                    player.Actions.Add(new Jump(player, new XYZ(0, 0, 5)));
 			} else if (info.IsKeyPressed(Keys.D)) {
-				new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
-					//Just drop the item for now
-					World.player.Inventory.Remove(item);
+				new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", player.Inventory.Select(Item => new ListItem(Item)), item => {
+                    //Just drop the item for now
+                    player.Inventory.Remove(item);
 					World.entities.Place(item);
 
 					World.player.Witness(new InfoEvent(new ColoredString("You drop: ") + item.Name.WithBackground(Color.Black)));
 					return true;
 				}).Show(true);
-			} else if(info.IsKeyPressed(Keys.E)) {
-				World.AddEntity(new ExplosionSource(World, World.player.Position, 10));
+			} else if(info.IsKeyPressed(Keys.U)) {
+                //World.AddEntity(new ExplosionSource(World, World.player.Position, 10));
+                //Use menu
+                new ListMenu<IItem>(Width, Height, "Select items to use. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
+
+                    if(item.Grenade != null && !item.Grenade.Armed) {
+                        item.Grenade.Arm();
+                        player.Witness(new InfoEvent(new ColoredString("You arm: ") + item.Name.WithBackground(Color.Black)));
+                    }
+                    return false;
+                }).Show(true);
             } else if (info.IsKeyPressed(Keys.G)) {
                 new ListMenu<IItem>(Width, Height, "Select items to get. Press ESC to finish.", World.entities[World.player.Position].OfType<IItem>().Select(Item => new ListItem(Item)), item => {
                     //Just take the item for now
@@ -383,18 +395,18 @@ namespace IslandHopper {
             });
             itemSelector.Show(true);
         }
-        public void Shoot(Entity item, Entity target) {
+        public void Shoot(IItem item, Entity target) {
             var bulletSpeed = 30;
             var bulletVel = (target.Position - p.Position).Normal * bulletSpeed;
-            Bullet b = new Bullet(p, target, bulletVel);
+            Bullet b = new Bullet(p, item, target, bulletVel);
             w.AddEntity(b);
             p.Projectiles.Add(b);
             p.Witness(new InfoEvent(new ColoredString("You shoot: ") + item.Name.WithBackground(Color.Black) + new ColoredString(" | at: ") + target.Name.WithBackground(Color.Black)));
         }
-        public void Shoot(Entity item, XYZ target) {
+        public void Shoot(IItem item, XYZ target) {
             var bulletSpeed = 30;
             var bulletVel = (target - p.Position).Normal * bulletSpeed;
-            Bullet b = new Bullet(p, null, bulletVel);
+            Bullet b = new Bullet(p, item, null, bulletVel);
             w.AddEntity(b);
             p.Projectiles.Add(b);
             p.Witness(new InfoEvent(new ColoredString("You shoot: ") + item.Name.WithBackground(Color.Black)));
