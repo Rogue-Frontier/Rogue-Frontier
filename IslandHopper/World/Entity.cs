@@ -21,7 +21,7 @@ namespace IslandHopper {
 		ColoredString Name { get; }
 	}
 	public static class EntityHelper {
-		public static bool OnGround(this Entity g) => g.World.voxels.InBounds(g.Position) && (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-1.25)].Collision == VoxelType.Solid);
+		public static bool OnGround(this Entity g) => g.World.voxels.InBounds(g.Position) && (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-0.8)].Collision == VoxelType.Solid);
 		public static void UpdateGravity(this Entity g) {
             g.UpdateFriction();
             //	Fall or hit the ground
@@ -84,16 +84,20 @@ namespace IslandHopper {
 				if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
 					if(ignoreEntityCollision != null) {
 						var entities = g.World.entities.Try(p).Where(e => !ReferenceEquals(e, g));
-						if (entities.All(ignoreEntityCollision)) {
-							final = p;
-						}
-					} else {
+                        foreach(var entity in entities) {
+                            if(!ignoreEntityCollision(entity)) {
+                                goto Done;
+                            }
+                        }
+                        final = p;
+                    } else {
 						final = p;
 					}
 				} else {
 					break;
 				}
 			}
+            Done:
 			g.Position = final;
 		}
         public static void UpdateMotionCollisionTrail(this Entity g, out HashSet<XYZ> trail, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
@@ -113,10 +117,13 @@ namespace IslandHopper {
                 if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
                     if (ignoreEntityCollision != null) {
                         var entities = g.World.entities.Try(p).Where(e => !ReferenceEquals(e, g));
-                        if (entities.All(ignoreEntityCollision)) {
-                            final = p;
-                            trail.Add(final.i);
+                        foreach(var entity in entities) {
+                            if(!ignoreEntityCollision(entity)) {
+                                goto Done;
+                            }
                         }
+                        final = p;
+                        trail.Add(final.i);
                     } else {
                         final = p;
                         trail.Add(final.i);
@@ -125,6 +132,7 @@ namespace IslandHopper {
                     break;
                 }
             }
+            Done:
             g.Position = final;
         }
         public static void Witness(this Entity e, WorldEvent we) {
@@ -194,13 +202,14 @@ namespace IslandHopper {
                 a.Update();
             }
 			Actions.RemoveWhere(a => a.Done());
-            /*
+            
 			foreach(var i in Inventory) {
-				i.Position = Position;
-				i.Velocity = Velocity;
+                //Copy so that when the item updates motion, the change does not apply to the player
+				i.Position = Position.copy;
+				i.Velocity = Velocity.copy;
                 i.UpdateStep();
 			}
-            */
+            
             Inventory.RemoveWhere(i => !i.Active);
             Projectiles.RemoveWhere(t => !t.Active);
 			if(!this.OnGround())
@@ -220,6 +229,14 @@ namespace IslandHopper {
                 if(last._desc.ToString() == desc.ToString()) {
                     last.times++;
                     last.SetScreenTime();
+
+                    if(HistoryRecent.Count == 0 || HistoryRecent.Last()._desc.ToString() != desc.ToString()) {
+                        HistoryRecent.Add(last);
+                    }
+                } else {
+                    var entry = new HistoryEntry(desc);
+                    HistoryLog.Add(entry);
+                    HistoryRecent.Add(entry);
                 }
             }
         }

@@ -95,7 +95,7 @@ namespace IslandHopper {
 				return false;
 			};
 
-			Func<Entity, bool> collisionFilter = Helper.And(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
+			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
 
 			this.UpdateMotionCollision(collisionFilter);
 		}
@@ -133,14 +133,29 @@ namespace IslandHopper {
         public void UpdateStep() {
             //this.UpdateGravity();
 
-            Func<Entity, bool> ignoreSource = e => ignore.Contains(e);
-            Func<Entity, bool> filterTarget = e => e != Target;
+            Func<Entity, bool> ignoreSource = e => {
+                bool result = ignore.Contains(e);
+                if(result)
+                    Source.Witness(new InfoEvent($"The {Name} ignores source {e.Name}"));
+                else
+                    Source.Witness(new InfoEvent($"The {Name} does not ignore non-source {e.Name}"));
+                return result;
+            };
+            Func<Entity, bool> filterTarget = e => {
+                bool result = e != Target;
+                if(result)
+                    Source.Witness(new InfoEvent($"The {Name} ignores non-target {e.Name}"));
+                else
+                    Source.Witness(new InfoEvent($"The {Name} does not ignore target {e.Name}"));
+                return result;
+            };
 			Func<Entity, bool> onHit = e => {
 				Active = false;
 				Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
 				return false;
 			};
-			Func<Entity, bool> collisionFilter = Helper.And(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
+            //Why do I waste my life trying to fix this goddamned bug?
+			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
 
             this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
             foreach(var point in trail) {
@@ -181,7 +196,7 @@ namespace IslandHopper {
 			Func<Entity, bool> ignoreSource = e => e == Source;
 			Func<Entity, bool> filterTarget = e => e != Target;
 
-			Func<Entity, bool> collisionFilter = Helper.And(Source.Elvis(ignoreSource), Target.Elvis(filterTarget));
+			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget));
 
 			this.UpdateMotionCollision(collisionFilter);
 		}

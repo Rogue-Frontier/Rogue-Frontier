@@ -66,6 +66,7 @@ namespace IslandHopper {
 			this.y = y;
 			this.z = z;
 		}
+        public XYZ copy => new XYZ(x, y, z);
 		public double xyAngle => xy.Angle;
 		public double zAngle => Math.Atan2(z, xy.Magnitude);
 		public XY xy => new XY(x, y);

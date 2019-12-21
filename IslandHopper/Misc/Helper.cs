@@ -351,7 +351,7 @@ namespace IslandHopper {
             return result;
         }
         public static T Elvis<T>(this object o, T result) {
-            return o != null ? default(T) : result;
+            return o == null ? default(T) : result;
         }
 	}
 }

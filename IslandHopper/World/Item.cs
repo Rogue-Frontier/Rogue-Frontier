@@ -112,9 +112,13 @@ namespace IslandHopper {
         public void UpdateRealtime(TimeSpan delta) { }
 
         public void UpdateStep() {
+            
+            //Somehow this prevents the player from moving when held
+            //It's because the Velocity of this item is a reference to the player's velocity
             this.UpdateGravity();
             this.UpdateMotion();
             Grenade?.UpdateStep();
+            
         }
         public void Destroy() {
             Active = false;
