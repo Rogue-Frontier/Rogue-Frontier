@@ -132,7 +132,7 @@ namespace IslandHopper {
 
         public void UpdateStep() {
             //this.UpdateGravity();
-
+            /*
             Func<Entity, bool> ignoreSource = e => {
                 bool result = ignore.Contains(e);
                 if(result)
@@ -154,9 +154,24 @@ namespace IslandHopper {
 				Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
 				return false;
 			};
+            */
             //Why do I waste my life trying to fix this goddamned bug?
-			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
+            //Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
 
+            Func<Entity, bool> collisionFilter = e => {
+                //IGNORE if the entity is our Source
+                if(Source != null && e == Source) {
+                    return true;
+                }
+                //IGNORE if the entity is NOT our target
+                if (Target != null && e != Target) {
+                    return true;
+                }
+
+                Active = false;
+                Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
+                return false;
+            };
             this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
             foreach(var point in trail) {
 
