@@ -148,7 +148,7 @@ EASTER EGGS
 		>
 		<Head
 			defense=			"5"
-			durability=			"75"
+			durability=		"75"
 			/>
 	</ItemType>
 	<ItemType
@@ -158,12 +158,12 @@ EASTER EGGS
 		>
 		<Arm
 			defense=			"5"
-			durability=			"150"
+			durability=		"150"
 			/>
 		<Mount/>
 	</ItemType>
   <ItemType
-		name=			"bulletball glove"
+		name=			"Bulletball glove"
 		desc=			"In the far future, cyborgs play an extreme version of baseball known as bulletball. These metal mittens are used to catch high-velocity bulletballs in flight."
 		mass=			"0.5"
 		>
@@ -172,6 +172,34 @@ EASTER EGGS
 			durability=	"70"
 			/>
 	</ItemType>
+  <ItemType
+    name=     "The Pitcher"
+    desc=     "When all you have is a robotic arm mounted over your shoulder, everything else looks like a baseball."
+    >
+    <Arm
+      strength= "200"
+      />
+  </ItemType>
+  <ItemType
+    name=     "The Trebuchet"
+    desc=     "This robotic armor allows you to launch grenades farther than a catapult can."
+    >
+    <Arm
+      strength= "200"
+      />
+  </ItemType>
+    
+  <ItemType
+		name=			"The Rocket Ranger"
+		desc=			"For the kind of sniper who is too cool for bullets."
+		mass=			"3"
+		>
+    <Gun
+			projectile=   "missile"
+			difficulty=   "easy"
+      
+			/>
+  </ItemType>
 	<ItemType
 		name=			"The Cookie Jar"
 		desc=			"This little chip of a grenade will really cook your enemies to a chocolate crisp in a jarring explosion."
@@ -211,11 +239,6 @@ EASTER EGGS
 	<ItemType
 		name=			"The Crossy Bow"
 		desc=			"This crossbow is always ready to shoot an arrow across the road."
-		>
-	</ItemType>
-	<ItemType
-		name=			"The Killswitchblade"
-		desc=			"This dagger has a spring-loaded blade that can be fired as a single-use projectile by pressing the red button on the side of the grip. Fire when lodged into a wound for extra damage!"
 		>
 	</ItemType>
 	<ItemType

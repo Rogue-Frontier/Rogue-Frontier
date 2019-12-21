@@ -170,6 +170,8 @@ namespace IslandHopper {
 
                 Active = false;
                 Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
+
+
                 return false;
             };
             this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);

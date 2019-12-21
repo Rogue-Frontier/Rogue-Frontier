@@ -28,11 +28,14 @@ namespace IslandHopper {
             UseKeyboard = true;
 			UseMouse = true;
 			this.DebugInfo($"Width: {Width}", $"Height: {Height}");
+
+            int size = 350;
+            int height = 20;
             World = new Island() {
                 karma = new Random(0),
-                entities = new Space<Entity>(100, 100, 100, e => e.Position),
-                effects = new Space<Effect>(100, 100, 100, e => e.Position),
-				voxels = new ArraySpace<Voxel>(100, 100, 100, new Air()),
+                entities = new Space<Entity>(size, size, height, e => e.Position),
+                effects = new Space<Effect>(size, size, height, e => e.Position),
+				voxels = new ArraySpace<Voxel>(size, size, height, new Air()),
 				camera = new XYZ(0, 0, 0)
 			};
 			World.player = new Player(World, new XYZ(80, 80, 1));
@@ -65,8 +68,11 @@ namespace IslandHopper {
 		public override void Draw(TimeSpan delta) {
             this.DebugInfo($"Draw({delta})");
             Clear();
-			for(int x = -HalfWidth; x < HalfWidth; x++) {
-				for(int y = -HalfHeight; y < HalfHeight; y++) {
+
+            int HalfViewWidth = 90;
+            int HalfViewHeight = 30;
+			for(int x = -HalfViewWidth; x < HalfViewWidth; x++) {
+				for(int y = -HalfViewHeight; y < HalfViewHeight; y++) {
 					XYZ location = World.camera + new XYZ(x, y, 0);
 					
 					Print(x + HalfWidth, y + HalfHeight, World.GetGlyph(location));

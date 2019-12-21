@@ -38,7 +38,10 @@ namespace IslandHopper {
             def.ControlHostBack = Color.Transparent;
             def.ModalBackground = Color.Transparent;
 
-			var title = new TitleConsole(240, 64);
+            SadConsole.Global.FontDefault = SadConsole.Global.FontDefault.Master.GetFont(Font.FontSizes.One);
+            
+
+            var title = new TitleConsole(240, 64);
 			title.Position = new Point(0, 0);
 			title.Show();
 		}
