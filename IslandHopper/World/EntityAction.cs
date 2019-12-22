@@ -88,11 +88,37 @@ namespace IslandHopper {
                 targetPos = target.Position;
                 targetReticle.Position = targetPos;
             }
+            /*
+            var aimAngle = aim.xyAngle;
+            var targetOffset = (targetPos - player.Position);
+            var targetAngle = targetOffset.xyAngle;
+            var angleDiff = targetAngle - aimAngle;
+            if (angleDiff > 180)
+                angleDiff -= 360;
+            if (angleDiff < -180)
+                angleDiff += 360;
+
+            var radiusDiff = targetOffset.Magnitude - aim.Magnitude;
+            if (Math.Abs(angleDiff) > 5) {
+                //Bring our aim closer to the target position
+                var dir = angleDiff / Math.Abs(angleDiff);
+                var delta = Math.Min(angleDiff, Math.Max(1, 1 / aim.Magnitude));
+                aim = aim.RotateZ(delta * dir);
+                aimReticle.Position = player.Position + aim;
+            } else if(Math.Abs(radiusDiff) > 5) {
+                var dir = radiusDiff / Math.Abs(radiusDiff);
+                aim = aim.Extend(dir);
+                aimReticle.Position = player.Position + aim;
+            }
+            */
+
             var aimPos = player.Position + aim;
             var diff = targetPos.i - aimPos.i;
-            if (diff.Magnitude > 0.75) {
+            if (diff.Magnitude > 0.5) {
                 //Bring our aim closer to the target position
-                aim += diff.Normal * Math.Min(diff.Magnitude, 0.3);
+                //aim += diff.Normal * Math.Min(diff.Magnitude, 1);
+                var delta = Math.Min(diff.Magnitude, Math.Max(5/30f, 0.95 * diff.Magnitude / 30));
+                aim += diff.Normal * delta;
                 aimReticle.Position = player.Position + aim;
             } else {
                 //Close enough to fire

@@ -113,6 +113,7 @@ namespace IslandHopper {
         private HashSet<Entity> ignore;
 		private Entity Target;
 		private int tick;   //Used for sprite flashing
+        public int lifetime = 30;
 
 		public Bullet(Entity Source, IItem Item, Entity Target, XYZ Velocity) {
             this.Source = Source;
@@ -125,12 +126,18 @@ namespace IslandHopper {
             this.Velocity = Velocity;
             Active = true;
             tick = 0;
+            lifetime = 30;
         }
         public void UpdateRealtime(TimeSpan delta) {
             tick++;
         }
 
         public void UpdateStep() {
+            if(lifetime > 0) {
+                lifetime--;
+            } else {
+                Active = false;
+            }
             //this.UpdateGravity();
             /*
             Func<Entity, bool> ignoreSource = e => {

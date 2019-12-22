@@ -94,7 +94,15 @@ namespace IslandHopper {
 				return new XYZ(x / magnitude, y / magnitude, z / magnitude);
 			}
 		}
-	}
+
+        internal XYZ RotateZ(double angle) {
+            var sin = Math.Sin(angle);
+            var cos = Math.Cos(angle);
+            return new XYZ(x * cos - y * sin, x * sin + y * cos, z);
+        }
+
+        internal XYZ Extend(double length) => Normal * (Magnitude + length);
+    }
 	//	2D array wrapper; allows one item per point
 	public class ArrayGrid<T> {
 		public int Width { get; private set; }
