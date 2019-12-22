@@ -31,7 +31,7 @@ namespace IslandHopper {
     public class BulletTrail : Effect {
         public XYZ Position { get; set; }
 
-        public ColoredGlyph SymbolCenter => new ColoredGlyph('.', new Color(255, 255, 255, (int) (255 * (lifetime > 5 ? 1 : (lifetime + 5)/10f))), Color.Black);
+        public ColoredGlyph SymbolCenter => new ColoredGlyph('-', new Color(255, 255, 255, (int) (255 * (lifetime > 5 ? 1 : (lifetime + 5)/10f))), Color.Black);
         public int lifetime;
         public bool Active => lifetime > 0;
         public BulletTrail(XYZ Position, int lifetime) {
