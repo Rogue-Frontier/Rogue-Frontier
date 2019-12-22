@@ -29,8 +29,8 @@ namespace IslandHopper {
 			UseMouse = true;
 			this.DebugInfo($"Width: {Width}", $"Height: {Height}");
 
-            int size = 350;
-            int height = 20;
+            int size = 300;
+            int height = 30;
             World = new Island() {
                 karma = new Random(0),
                 entities = new Space<Entity>(size, size, height, e => e.Position),

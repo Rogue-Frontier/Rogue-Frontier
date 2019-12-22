@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace IslandHopper {
     class PlayerMain : Window {
         Island World;
+        DateTime lastUpdate;
         public PlayerMain(int Width, int Height, Island world) : base(Width, Height) {
             
             Theme = new WindowTheme {
@@ -21,7 +22,7 @@ namespace IslandHopper {
             UseMouse = true;
             this.World = world;
             this.Transparent();
-            
+            lastUpdate = DateTime.Now;
         }
         public override void Update(TimeSpan delta) {
             base.Update(delta);
@@ -35,8 +36,9 @@ namespace IslandHopper {
             foreach(var e in World.effects.all) {
                 e.UpdateRealtime(delta);
             }
-
-            if (World.player.AllowUpdate()) {
+            var now = DateTime.Now;
+            if (World.player.AllowUpdate() && (now - lastUpdate).TotalSeconds > 1/40f) {
+                lastUpdate = now;
                 this.DebugInfo("Global Update");
                 foreach (var e in World.entities.all.ToList()) {
                     e.DebugInfo("UpdateStep() by world");

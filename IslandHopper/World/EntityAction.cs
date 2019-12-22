@@ -111,13 +111,17 @@ namespace IslandHopper {
                 aimReticle.Position = player.Position + aim;
             }
             */
-
+            var targetOffset = targetPos - player.Position;
             var aimPos = player.Position + aim;
             var diff = targetPos.i - aimPos.i;
             if (diff.Magnitude > 0.5) {
                 //Bring our aim closer to the target position
                 //aim += diff.Normal * Math.Min(diff.Magnitude, 1);
-                var delta = Math.Min(diff.Magnitude, Math.Max(5/30f, 0.95 * diff.Magnitude / 30));
+                //If the player is running towards/away from the target, adjust aim faster
+                //var speed = Math.Abs(player.Velocity.Dot(targetOffset.Normal));
+                //If the player is running, that shouldn't prevent them from aiming
+                var speed = player.Velocity.Magnitude;
+                var delta = Math.Min(diff.Magnitude, Math.Max(10/30f, 2 * diff.Magnitude / 30 + speed));
                 aim += diff.Normal * delta;
                 aimReticle.Position = player.Position + aim;
             } else {
@@ -137,6 +141,7 @@ namespace IslandHopper {
             player.World.AddEntity(b);
             if (player is Player p) {
                 p.Projectiles.Add(b);
+                p.frameCounter = Math.Max(p.frameCounter, 30);
             }
             player.World.AddEffect(new Reticle(() => b.Active, target.Position, Color.Red));
             player.Witness(new InfoEvent(player.Name + new ColoredString(" shoots ") + item.Name.WithBackground(Color.Black) + new ColoredString(" at: ") + target.Name.WithBackground(Color.Black)));
@@ -148,6 +153,7 @@ namespace IslandHopper {
             player.World.AddEntity(b);
             if (player is Player p) {
                 p.Projectiles.Add(b);
+                p.frameCounter = Math.Max(p.frameCounter, 30);
             }
             player.World.AddEffect(new Reticle(() => b.Active, target, Color.Red));
             player.Witness(new InfoEvent(player.Name + new ColoredString(" shoots ") + item.Name.WithBackground(Color.Black)));

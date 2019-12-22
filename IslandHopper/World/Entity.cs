@@ -8,9 +8,13 @@ using System.Threading.Tasks;
 using static IslandHopper.Constants;
 
 namespace IslandHopper {
-	public interface Entity {
+    public interface Visible {
+        XYZ Position { get; set; }
+        ColoredGlyph SymbolCenter { get; }
+    }
+	public interface Entity : Visible {
         Island World { get; }
-		XYZ Position { get; set; }			//Position in meters
+		//XYZ Position { get; set; }			//Position in meters
 		XYZ Velocity { get; set; }			//Velocity in meters per step
 		bool Active { get; }                    //	When this is inactive, we remove it
 		void OnRemoved();
@@ -25,8 +29,13 @@ namespace IslandHopper {
 		public static void UpdateGravity(this Entity g) {
             g.UpdateFriction();
             //	Fall or hit the ground
-            if (g.Velocity.z < 0 && g.OnGround()) {
-				g.Velocity.z = 0;
+            if (g.OnGround()) {
+                if(g.Velocity.z < 0) {
+                    g.Velocity.z = 0;
+                }
+                if (g is Player) {
+                    int a = 5;
+                }
 			} else {
 				Debug.Print("fall");
 				g.Velocity += new XYZ(0, 0, -9.8 / STEPS_PER_SECOND);
@@ -184,7 +193,7 @@ namespace IslandHopper {
 
 			World.AddEntity(new Parachute(this));
 		}
-		public bool AllowUpdate() => Actions.Count > 0 && frameCounter == 0;
+		public bool AllowUpdate() => Actions.Count > 0 || frameCounter > 0;
 		public bool Active => true;
 		public void OnRemoved() { }
 		public void UpdateRealtime(TimeSpan delta) {
@@ -196,9 +205,11 @@ namespace IslandHopper {
 		public void UpdateStep() {
             if (frameCounter > 0)
                 frameCounter--;
+
             this.UpdateGravity();
-			this.UpdateMotion();
-            foreach(var a in Actions) {
+            this.UpdateMotion();
+
+            foreach (var a in Actions) {
                 a.Update();
             }
 			Actions.RemoveWhere(a => a.Done());
