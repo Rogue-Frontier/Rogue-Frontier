@@ -68,6 +68,9 @@ namespace IslandHopper {
             aimReticle = new Reticle(Active, player.Position + aim);
             player.World.AddEffect(targetReticle);
             player.World.AddEffect(aimReticle);
+            if(player is Player p) {
+                p.Watch.Add(aimReticle);
+            }
         }
         public ShootAction(Entity player, IItem item, XYZ targetPos, int shotsLeft = 1) {
             this.player = player;
@@ -80,6 +83,9 @@ namespace IslandHopper {
             aimReticle = new Reticle(Active, player.Position + aim);
             player.World.AddEffect(targetReticle);
             player.World.AddEffect(aimReticle);
+            if (player is Player p) {
+                p.Watch.Add(aimReticle);
+            }
         }
         public void Update() {
             if (shotsLeft == 0)
@@ -140,7 +146,7 @@ namespace IslandHopper {
             Bullet b = new Bullet(player, item, target, bulletVel);
             player.World.AddEntity(b);
             if (player is Player p) {
-                p.Projectiles.Add(b);
+                p.Watch.Add(b);
                 p.frameCounter = Math.Max(p.frameCounter, 30);
             }
             player.World.AddEffect(new Reticle(() => b.Active, target.Position, Color.Red));
@@ -152,7 +158,7 @@ namespace IslandHopper {
             Bullet b = new Bullet(player, item, null, bulletVel);
             player.World.AddEntity(b);
             if (player is Player p) {
-                p.Projectiles.Add(b);
+                p.Watch.Add(b);
                 p.frameCounter = Math.Max(p.frameCounter, 30);
             }
             player.World.AddEffect(new Reticle(() => b.Active, target, Color.Red));

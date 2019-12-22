@@ -84,7 +84,7 @@ namespace IslandHopper {
             int previewX = Width - PreviewWidth / 2;
             int previewY = PreviewWidth / 2;
             //Draw a border, up/down arrow, and z difference
-            foreach (var thrown in World.player.Projectiles) {
+            foreach (var thrown in World.player.Watch) {
                 for (int x = -PreviewWidth/2; x < PreviewWidth/2; x++) {
                     for (int y = -PreviewHeight/2; y < PreviewHeight/2; y++) {
                         XYZ location = thrown.Position + new XYZ(x, y, 0);
@@ -485,7 +485,7 @@ namespace IslandHopper {
                 var t = new ThrownItem(p, item);
                 w.AddEntity(t);
                 //Track this on the player
-                p.Projectiles.Add(t);
+                p.Watch.Add(t);
                 p.Witness(new InfoEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black) + new ColoredString(" | at: ") + target.Name.WithBackground(Color.Black)));
             }
         }
@@ -497,7 +497,7 @@ namespace IslandHopper {
                 var t = new ThrownItem(p, item);
                 w.AddEntity(t);
                 //Track this on the player
-                p.Projectiles.Add(t);
+                p.Watch.Add(t);
                 p.Witness(new InfoEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black)));
             }
         }

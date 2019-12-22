@@ -8,20 +8,23 @@ using System.Threading.Tasks;
 using static IslandHopper.Constants;
 
 namespace IslandHopper {
+    /*
     public interface Visible {
         XYZ Position { get; set; }
         ColoredGlyph SymbolCenter { get; }
+        bool Active { get; }
     }
-	public interface Entity : Visible {
+    */
+	public interface Entity : Effect {
         Island World { get; }
 		//XYZ Position { get; set; }			//Position in meters
 		XYZ Velocity { get; set; }			//Velocity in meters per step
-		bool Active { get; }                    //	When this is inactive, we remove it
+		//bool Active { get; }                    //	When this is inactive, we remove it
 		void OnRemoved();
-		void UpdateRealtime(TimeSpan delta);				//	For step-independent effects
-		void UpdateStep();					//	The number of steps per one in-game second is defined in Constants as STEPS_PER_SECOND
+		//void UpdateRealtime(TimeSpan delta);				//	For step-independent effects
+		//void UpdateStep();					//	The number of steps per one in-game second is defined in Constants as STEPS_PER_SECOND
 
-		ColoredGlyph SymbolCenter { get; }
+		//ColoredGlyph SymbolCenter { get; }
 		ColoredString Name { get; }
 	}
 	public static class EntityHelper {
@@ -158,7 +161,7 @@ namespace IslandHopper {
 		public Island World { get; set; }
 		public HashSet<EntityAction> Actions { get; private set; }
 		public HashSet<IItem> Inventory { get; private set; }
-        public HashSet<Entity> Projectiles { get; private set; }
+        public HashSet<Effect> Watch { get; private set; }
 		public List<HistoryEntry> HistoryLog { get; }	//All events that the player has witnessed
 		public List<HistoryEntry> HistoryRecent { get; }   //Events that the player is currently witnessing
 
@@ -186,7 +189,7 @@ namespace IslandHopper {
 			this.Velocity = new XYZ(0, 0, 0);
 			Actions = new HashSet<EntityAction>();
 			Inventory = new HashSet<IItem>();
-            Projectiles = new HashSet<Entity>();
+            Watch = new HashSet<Effect>();
 
 			HistoryLog = new List<HistoryEntry>();
 			HistoryRecent = new List<HistoryEntry>();
@@ -222,7 +225,7 @@ namespace IslandHopper {
 			}
             
             Inventory.RemoveWhere(i => !i.Active);
-            Projectiles.RemoveWhere(t => !t.Active);
+            Watch.RemoveWhere(t => !t.Active);
 			if(!this.OnGround())
 				frameCounter = 20;
 

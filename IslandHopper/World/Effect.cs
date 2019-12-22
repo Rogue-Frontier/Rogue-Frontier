@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace IslandHopper {
     public interface Effect {
-        XYZ Position { get; }
-        ColoredGlyph SymbolCenter {get;}
+        XYZ Position { get; set; }
+        ColoredGlyph SymbolCenter { get; }
         bool Active { get; }
         void UpdateRealtime(TimeSpan delta);                //	For step-independent effects
         void UpdateStep();					//	The number of steps per one in-game second is defined in Constants as STEPS_PER_SECOND
@@ -29,7 +29,7 @@ namespace IslandHopper {
         public void UpdateStep() {}
     }
     public class BulletTrail : Effect {
-        public XYZ Position { get; private set; }
+        public XYZ Position { get; set; }
 
         public ColoredGlyph SymbolCenter => new ColoredGlyph('.', new Color(255, 255, 255, (int) (255 * (lifetime > 5 ? 1 : (lifetime + 5)/10f))), Color.Black);
         public int lifetime;
