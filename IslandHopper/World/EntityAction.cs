@@ -128,6 +128,19 @@ namespace IslandHopper {
         }
         public bool Active() => shotsLeft > 0;
         public bool Done() => shotsLeft == 0;
+
+        public class Targeting {
+            private Entity target;
+            private XYZ pos;
+            public Targeting(Entity target) {
+                this.target = target;
+            }
+            public Targeting(XYZ pos) {
+                this.pos = pos;
+            }
+            public XYZ Position => target?.Position ?? pos;
+            public Entity Target => target;
+        }
     }
 
     public class WalkAction : EntityAction {

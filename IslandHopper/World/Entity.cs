@@ -189,14 +189,14 @@ namespace IslandHopper {
 		public void OnRemoved() { }
 		public void UpdateRealtime(TimeSpan delta) {
             HistoryRecent.RemoveAll(e => (e.ScreenTime -= delta.TotalSeconds) < 0);
-			if(frameCounter > 0)
-				frameCounter--;
             foreach(var i in Inventory) {
                 i.UpdateRealtime(delta);
             }
 		}
 		public void UpdateStep() {
-			this.UpdateGravity();
+            if (frameCounter > 0)
+                frameCounter--;
+            this.UpdateGravity();
 			this.UpdateMotion();
             foreach(var a in Actions) {
                 a.Update();
