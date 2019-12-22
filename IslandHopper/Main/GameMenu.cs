@@ -384,32 +384,16 @@ namespace IslandHopper {
                 itemSelector.Hide();
                 targetSelector = new LookMenu(Width, Height, w, "Select target to shoot at. Enter to select a general location. ESC to cancel.", target => {
                     targetSelector.Hide();
-                    Shoot(item, target);
+                    p.Actions.Add(new ShootAction(p, item, target));
                     return false;
                 }, xyz => {
-                    Shoot(item, xyz);
+                    p.Actions.Add(new ShootAction(p, item, xyz));
                     targetSelector.Hide();
                 });
                 targetSelector.Show(true);
                 return false;
             });
             itemSelector.Show(true);
-        }
-        public void Shoot(IItem item, Entity target) {
-            var bulletSpeed = 30;
-            var bulletVel = (target.Position - p.Position).Normal * bulletSpeed;
-            Bullet b = new Bullet(p, item, target, bulletVel);
-            w.AddEntity(b);
-            p.Projectiles.Add(b);
-            p.Witness(new InfoEvent(new ColoredString("You shoot: ") + item.Name.WithBackground(Color.Black) + new ColoredString(" | at: ") + target.Name.WithBackground(Color.Black)));
-        }
-        public void Shoot(IItem item, XYZ target) {
-            var bulletSpeed = 30;
-            var bulletVel = (target - p.Position).Normal * bulletSpeed;
-            Bullet b = new Bullet(p, item, null, bulletVel);
-            w.AddEntity(b);
-            p.Projectiles.Add(b);
-            p.Witness(new InfoEvent(new ColoredString("You shoot: ") + item.Name.WithBackground(Color.Black)));
         }
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
             if (info.IsKeyDown(Keys.Escape)) {

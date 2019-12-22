@@ -106,7 +106,7 @@ namespace IslandHopper {
         public XYZ Velocity { get; set; }
         public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredGlyph('*', tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
+		public ColoredGlyph SymbolCenter => new ColoredGlyph('-', tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
         public ColoredString Name => new ColoredString("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
 
         private Entity Source;

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using SadConsole;
+using System;
 using static IslandHopper.Constants;
 namespace IslandHopper {
 	public interface EntityAction {
@@ -45,8 +47,90 @@ namespace IslandHopper {
         public bool Done() => done;
     }
     */
+    public class ShootAction : EntityAction {
+        private Entity player;
+        private IItem item;
+        private Entity target;
+        private XYZ targetPos;
+        private XYZ aim;    //Offset from the player. When player pos + aim is close enough to the target pos, we fire
+        private int shotsLeft;
+        //When creating this object, caller must remember to add the Reticles to the world
+        public Reticle targetReticle;
+        public Reticle aimReticle;
+        public ShootAction(Entity player, IItem item, Entity target, int shotsLeft = 1) {
+            this.player = player;
+            this.item = item;
+            this.target = target;
+            this.targetPos = target.Position;
+            aim = new XYZ();
+            this.shotsLeft = shotsLeft;
+            targetReticle = new Reticle(Active, targetPos);
+            aimReticle = new Reticle(Active, player.Position + aim);
+            player.World.AddEffect(targetReticle);
+            player.World.AddEffect(aimReticle);
+        }
+        public ShootAction(Entity player, IItem item, XYZ targetPos, int shotsLeft = 1) {
+            this.player = player;
+            this.item = item;
+            this.target = null;
+            this.targetPos = targetPos;
+            aim = new XYZ();
+            this.shotsLeft = shotsLeft;
+            targetReticle = new Reticle(Active, targetPos);
+            aimReticle = new Reticle(Active, player.Position + aim);
+            player.World.AddEffect(targetReticle);
+            player.World.AddEffect(aimReticle);
+        }
+        public void Update() {
+            if (shotsLeft == 0)
+                return;
+            if (target != null) {
+                targetPos = target.Position;
+                targetReticle.Position = targetPos;
+            }
+            var aimPos = player.Position + aim;
+            var diff = targetPos.i - aimPos.i;
+            if (diff.Magnitude > 0.75) {
+                //Bring our aim closer to the target position
+                aim += diff.Normal * Math.Min(diff.Magnitude, 0.3);
+                aimReticle.Position = player.Position + aim;
+            } else {
+                //Close enough to fire
+                if(target != null) {
+                    Shoot(item, target);
+                } else {
+                    Shoot(item, targetPos);
+                }
+                shotsLeft--;
+            }
+        }
+        public void Shoot(IItem item, Entity target) {
+            var bulletSpeed = 30;
+            var bulletVel = (target.Position - player.Position).Normal * bulletSpeed;
+            Bullet b = new Bullet(player, item, target, bulletVel);
+            player.World.AddEntity(b);
+            if (player is Player p) {
+                p.Projectiles.Add(b);
+            }
+            player.World.AddEffect(new Reticle(() => b.Active, target.Position, Color.Red));
+            player.Witness(new InfoEvent(player.Name + new ColoredString(" shoots ") + item.Name.WithBackground(Color.Black) + new ColoredString(" at: ") + target.Name.WithBackground(Color.Black)));
+        }
+        public void Shoot(IItem item, XYZ target) {
+            var bulletSpeed = 30;
+            var bulletVel = (target - player.Position).Normal * bulletSpeed;
+            Bullet b = new Bullet(player, item, null, bulletVel);
+            player.World.AddEntity(b);
+            if (player is Player p) {
+                p.Projectiles.Add(b);
+            }
+            player.World.AddEffect(new Reticle(() => b.Active, target, Color.Red));
+            player.Witness(new InfoEvent(player.Name + new ColoredString(" shoots ") + item.Name.WithBackground(Color.Black)));
+        }
+        public bool Active() => shotsLeft > 0;
+        public bool Done() => shotsLeft == 0;
+    }
 
-	public class WalkAction : EntityAction {
+    public class WalkAction : EntityAction {
 		private Entity player;
 		private XYZ displacement;
 		private XYZ delta;
