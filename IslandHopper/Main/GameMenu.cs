@@ -138,7 +138,9 @@ namespace IslandHopper {
                 //Go down stairs
             } else if (info.IsKeyDown(Keys.J)) {
                 //Jump up
-                if (player.OnGround() && !player.Actions.Any(a => a is Jump))
+
+                //Separate jumping from running?
+                if (player.OnGround() && !player.Actions.Any(a => a is Jump j))
                     player.Actions.Add(new Jump(player, new XYZ(0, 0, 5)));
 			} else if (info.IsKeyPressed(Keys.D)) {
 				new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", player.Inventory.Select(Item => new ListItem(Item)), item => {

@@ -126,6 +126,9 @@ namespace IslandHopper {
                 //If the player is running towards/away from the target, adjust aim faster
                 //var speed = Math.Abs(player.Velocity.Dot(targetOffset.Normal));
                 //If the player is running, that shouldn't prevent them from aiming
+
+                //Radial jitter to simulate difficulty of aiming at long range
+                //var jitter = aim.Magnitude / 20f
                 var speed = player.Velocity.Magnitude;
                 var delta = Math.Min(diff.Magnitude, Math.Max(10/30f, 2 * diff.Magnitude / 30 + speed));
                 aim += diff.Normal * delta;

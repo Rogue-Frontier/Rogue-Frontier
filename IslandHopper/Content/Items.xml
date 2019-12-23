@@ -46,6 +46,10 @@
 		Arm					A gauntlet, arm brace, or other protection for the arm
 			defense=			Reduction in damage taken to arm while equipped
 		Back				A backpack or other large equipment for the torso
+		Body				Equipment for the torso
+		Container			
+			capacity			
+			locked				This container is locked and can be unlocked with a Key. The lock can be shot with a bullet.
 		Gun					A weapon that can be fired when held or equipped
 			shot=				the type of attack that this weapon has
 				"hitscan"			this weapon fires instant rays
@@ -64,6 +68,7 @@
 		Grenade				An item that can be [U]sed and then [T]hrown to create an explosion
 		Head				a helmet, goggles or other protection for the head
 			defense=			Reduction in damage taken to head while equipped
+		Key					Used to unlock locked containers
 		Leg
 			defense=			Reduction in damage taken to leg while equipped
 		Magazine			can be used to reload weapons. player can attempt to reload unidentified magazines into any weapon using [P]ut; if the gun/magazine is identified, the magazine is identified on success.
@@ -75,9 +80,17 @@
 			foreground=
 			background=
 	
+	Qualities
+		An item can be Unique, Blessed (bonus stats), Cursed (cannot be dropped), or Blursed (bonus stats and cannot be dropped)
+		An item can be Strange, which tracks kills
 IDEAS
 	Player can undeploy parachute while falling, likely leading to death
 	Player can fire unidentified weapons; the recoil can throw the player off balance
+	
+Arch's Badge
+	Player starts with a weapon of their choice, and the item is Blursed
+George's Badge
+	Player starts with PU Bucks and a Catalog. It takes a while to read the Catalog, and the player can read it while on the plane.
 EASTER EGGS
 -->
 <IslandHopperModule>
