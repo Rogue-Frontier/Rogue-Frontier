@@ -118,9 +118,35 @@ namespace IslandHopper {
             }
             */
             var targetOffset = targetPos - player.Position;
+
+            /*
+            if(target != null) {
+                var bulletSpeed;
+                var travelTime = targetOffset.Magnitude / bulletSpeed;
+                targetOffset += target.Velocity * travelTime;
+            }
+            */
+
             var aimPos = player.Position + aim;
             var diff = targetPos.i - aimPos.i;
-            if (diff.Magnitude > 0.5) {
+
+            bool canFire = diff.Magnitude > 0.5;
+
+            /*
+            var aimAngle = aim.xyAngle;
+            var targetAngle = targetOffset.xyAngle;
+            var angleDiff = targetAngle - aimAngle;
+            if (angleDiff > 180)
+                angleDiff -= 360;
+            if (angleDiff < -180)
+                angleDiff += 360;
+
+            //If the user is skilled enough to aim this weapon, then we can fire earlier if the angle is right
+            if(Math.Abs(angleDiff) < 5 && diff.Magnitude < targetOffset.Magnitude / 2) {
+
+            }
+            */
+            if (canFire) {
                 //Bring our aim closer to the target position
                 //aim += diff.Normal * Math.Min(diff.Magnitude, 1);
                 //If the player is running towards/away from the target, adjust aim faster
@@ -129,43 +155,25 @@ namespace IslandHopper {
 
                 //Radial jitter to simulate difficulty of aiming at long range
                 //var jitter = aim.Magnitude / 20f
+                //var speed = player.Velocity.Magnitude - Math.Abs(player.Velocity.Dot(aim.Normal));
                 var speed = player.Velocity.Magnitude;
-                var delta = Math.Min(diff.Magnitude, Math.Max(10/30f, 2 * diff.Magnitude / 30 + speed));
+                if(target != null) {
+                    speed += target.Velocity.Magnitude;
+                }
+
+                var maxDelta = Math.Max(10 / 30f, 2 * diff.Magnitude / 30 + speed);
+
+                var delta = Math.Min(diff.Magnitude, maxDelta);
+
+
+
                 aim += diff.Normal * delta;
                 aimReticle.Position = player.Position + aim;
             } else {
                 //Close enough to fire
-                if(target != null) {
-                    Shoot(item, target);
-                } else {
-                    Shoot(item, targetPos);
-                }
+                item.Gun.Fire(player, item, target, targetPos);
                 shotsLeft--;
             }
-        }
-        public void Shoot(IItem item, Entity target) {
-            var bulletSpeed = 30;
-            var bulletVel = (target.Position - player.Position).Normal * bulletSpeed;
-            Bullet b = new Bullet(player, item, target, bulletVel);
-            player.World.AddEntity(b);
-            if (player is Player p) {
-                p.Watch.Add(b);
-                p.frameCounter = Math.Max(p.frameCounter, 30);
-            }
-            player.World.AddEffect(new Reticle(() => b.Active, target.Position, Color.Red));
-            player.Witness(new InfoEvent(player.Name + new ColoredString(" shoots ") + item.Name.WithBackground(Color.Black) + new ColoredString(" at: ") + target.Name.WithBackground(Color.Black)));
-        }
-        public void Shoot(IItem item, XYZ target) {
-            var bulletSpeed = 30;
-            var bulletVel = (target - player.Position).Normal * bulletSpeed;
-            Bullet b = new Bullet(player, item, null, bulletVel);
-            player.World.AddEntity(b);
-            if (player is Player p) {
-                p.Watch.Add(b);
-                p.frameCounter = Math.Max(p.frameCounter, 30);
-            }
-            player.World.AddEffect(new Reticle(() => b.Active, target, Color.Red));
-            player.Witness(new InfoEvent(player.Name + new ColoredString(" shoots ") + item.Name.WithBackground(Color.Black)));
         }
         public bool Active() => shotsLeft > 0;
         public bool Done() => shotsLeft == 0;

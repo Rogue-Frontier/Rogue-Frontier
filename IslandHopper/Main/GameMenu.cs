@@ -384,7 +384,7 @@ namespace IslandHopper {
         }
         public void UpdateItemSelector() {
             Hide();
-            itemSelector = new ListMenu<IItem>(Width, Height, "Select item to shoot with. ESC to cancel.", p.Inventory.Select(Item => new ListItem(Item)), item => {
+            itemSelector = new ListMenu<IItem>(Width, Height, "Select item to shoot with. ESC to cancel.", p.Inventory.Where(Item => Item.Gun != null).Select(Item => new ListItem(Item)), item => {
                 itemSelector.Hide();
                 targetSelector = new LookMenu(Width, Height, w, "Select target to shoot at. Enter to select a general location. ESC to cancel.", target => {
                     targetSelector.Hide();

@@ -54,10 +54,18 @@ namespace IslandHopper {
         public int ClipLeft;
         public int AmmoLeft;
 
-
 		public Gun() { }
-        public void Fire(Entity user, XYZ direction, Entity target) {
-
+        public void Fire(Entity user, IItem item, Entity target, XYZ targetPos) {
+            var bulletSpeed = 30;
+            var bulletVel = (targetPos - user.Position).Normal * bulletSpeed;
+            Bullet b = new Bullet(user, item, target, bulletVel);
+            user.World.AddEntity(b);
+            if (user is Player p) {
+                p.Watch.Add(b);
+                p.frameCounter = Math.Max(p.frameCounter, 30);
+            }
+            user.World.AddEffect(new Reticle(() => b.Active, targetPos, Color.Red));
+            user.Witness(new InfoEvent(user.Name + new ColoredString(" fires ") + item.Name.WithBackground(Color.Black) + (target != null ? (new ColoredString(" at ") + target.Name.WithBackground(Color.Black)) : new ColoredString(""))));
         }
         /*
         public Bullet CreateShot(Entity Source, Entity Target, XYZ Velocity) {
@@ -107,6 +115,7 @@ namespace IslandHopper {
             this.Velocity = new XYZ();
 
             Grenade = new Grenade(this);
+            Gun = new Gun();
         }
 
         public bool Active { get; private set; } = true;
