@@ -144,7 +144,7 @@ namespace IslandHopper {
 			}
 
 			//If we have a gun, initialize it now
-			if (e.HasElement("gun", out XElement g)) {
+			if (e.HasElement("Gun", out XElement g)) {
 				gun = new GunType(g);
 			}
 			//Initialize our nested types now (they are not accessible to anyone else at bind time)
@@ -153,7 +153,14 @@ namespace IslandHopper {
 			}
 		}
 		public class GunType {
-			public Gun CreateGun() => null;
+            //TO DO
+			public Gun CreateGun() => new Gun() {
+                gunType = this,
+                AmmoLeft = maxAmmo,
+                ClipLeft = clipSize,
+                FireTimeLeft = 0,
+                ReloadTimeLeft = 0
+            };
 			enum ProjectileType {
 				beam, bullet
 			}
@@ -172,6 +179,16 @@ namespace IslandHopper {
 			int damage;
 			int speed;
 
+            int bulletsPerShot;
+            int knockback;
+            int spread;
+            int fireTime;
+            int reloadTime;
+
+            int clipSize;
+            int maxAmmo;
+
+
 			public GunType(XElement e) {
 				
 				if(!Enum.TryParse(e.TryAttribute("projectile"), out projectile)) {
@@ -182,17 +199,26 @@ namespace IslandHopper {
 				noiseRange = e.TryAttributeInt("noise", 0);
 				damage = e.TryAttributeInt("damage", 0);
 				speed = e.TryAttributeInt("speed", 0);
-			}
+
+                bulletsPerShot = e.TryAttributeInt("bulletsPerShot", 0);
+                knockback = e.TryAttributeInt("knockback", 0);
+                spread = e.TryAttributeInt("spread", 0);
+                fireTime = e.TryAttributeInt("fireTime", 0);
+                reloadTime = e.TryAttributeInt("reloadTime", 0);
+
+                clipSize = e.TryAttributeInt("clipSize", 0);
+                maxAmmo = e.TryAttributeInt("maxAmmo", 0);
+            }
 		}
 		class Symbol {
-			private string c;
+			private char c;
 			private Color background, foreground;
 			public Symbol(XElement e) {
-				c = e.TryAttribute("char", "?");
+				c = e.TryAttribute("char", "?")[0];
 				background = (Color)typeof(Color).GetProperty(e.TryAttribute("background", "black")).GetValue(null, null);
 				foreground = (Color)typeof(Color).GetProperty(e.TryAttribute("foreground", "red")).GetValue(null, null);
 			}
-			public ColoredString String => new ColoredString(c, background, foreground);
+			public ColoredGlyph String => new ColoredGlyph(c, background, foreground);
 		}
 	}
 }

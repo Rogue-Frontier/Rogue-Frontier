@@ -86,6 +86,7 @@ namespace IslandHopper {
 		}
 
 		public void UpdateStep() {
+            /*
 			Func<Entity, bool> ignoreSource = e => e == Source;
 			Func<Entity, bool> filterTarget = e => e != Target;
 			//We only reach this if the other conditions were not met
@@ -98,9 +99,10 @@ namespace IslandHopper {
 			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
 
 			this.UpdateMotionCollision(collisionFilter);
+            */
 		}
 	}
-	public class Bullet : Entity {
+	public class Bullet : Entity, Damager {
 		public Island World { get; }
         public XYZ Position { get; set; }
         public XYZ Velocity { get; set; }
@@ -114,6 +116,8 @@ namespace IslandHopper {
 		private Entity Target;
 		private int tick;   //Used for sprite flashing
         public int lifetime = 30;
+        public double knockback { get; } = 2;
+        public int damage { get; } = 20;
 
 		public Bullet(Entity Source, IItem Item, Entity Target, XYZ Velocity) {
             this.Source = Source;
@@ -174,11 +178,15 @@ namespace IslandHopper {
                 if (Target != null && e != Target) {
                     return true;
                 }
-
-                Active = false;
                 Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
 
 
+                if(e is Damageable d) {
+                    d.OnDamaged(this);
+                }
+
+
+                Active = false;
                 return false;
             };
             this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);

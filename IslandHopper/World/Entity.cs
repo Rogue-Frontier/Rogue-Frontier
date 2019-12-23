@@ -27,6 +27,14 @@ namespace IslandHopper {
 		//ColoredGlyph SymbolCenter { get; }
 		ColoredString Name { get; }
 	}
+    public interface Damageable {
+        void OnDamaged(Damager source);
+    }
+    public interface Damager {
+        ColoredString Name { get; }
+        int damage { get; }
+        double knockback { get; }
+    }
 	public static class EntityHelper {
 		public static bool OnGround(this Entity g) => g.World.voxels.InBounds(g.Position) && (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-0.8)].Collision == VoxelType.Solid);
 		public static void UpdateGravity(this Entity g) {
