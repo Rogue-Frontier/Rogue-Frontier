@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using SadConsole.Themes;
 using SadConsole.Controls;
 using static SadConsole.Themes.Library;
+using System.Xml.Linq;
+
 namespace IslandHopper {
 	/// <summary>
 	/// This is the main type for your game.
@@ -39,7 +41,9 @@ namespace IslandHopper {
             def.ModalBackground = Color.Transparent;
 
             SadConsole.Global.FontDefault = SadConsole.Global.FontDefault.Master.GetFont(Font.FontSizes.One);
-            
+
+
+            var types = new TypeCollection(XElement.Parse(Properties.Resources.Items));
 
             var title = new TitleConsole(240, 64);
 			title.Position = new Point(0, 0);

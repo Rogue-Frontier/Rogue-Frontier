@@ -52,7 +52,7 @@
     <Compile Include="World\Effect.cs" />
     <Compile Include="World\Entity.cs" />
     <Compile Include="World\EntityAction.cs" />
-    <Compile Include="Main\IslandHopper.cs" />
+    <Compile Include="Main\Program.cs" />
     <Compile Include="Main\GameConsole.cs" />
     <Compile Include="Misc\Grid.cs" />
     <Compile Include="Misc\Helper.cs" />
@@ -93,6 +93,7 @@
     <EmbeddedResource Include="Content\Title.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
+    <None Include="Content\Items.xml" />
     <Content Include="IBM8x16.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

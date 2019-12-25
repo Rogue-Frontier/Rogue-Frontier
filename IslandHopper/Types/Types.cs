@@ -14,8 +14,9 @@ namespace IslandHopper {
 		}
 	}
 	public class TypeCollection {
-		Dictionary<string, XElement> sources;
-		Dictionary<string, DesignType> types;
+		public Dictionary<string, XElement> sources;
+        public Dictionary<string, DesignType> all;
+        public Dictionary<string, ItemType> itemType;
 		enum InitState {
 			Uninitialized,
 			Initializing,
@@ -26,7 +27,8 @@ namespace IslandHopper {
 		//After our first initialization, any types we create later must be initialized immediately. Any dependency types must already be bound
 		public TypeCollection(XElement root) {
 			sources = new Dictionary<string, XElement>();
-			types = new Dictionary<string, DesignType>();
+			all = new Dictionary<string, DesignType>();
+            itemType = new Dictionary<string, ItemType>();
 			state = InitState.Uninitialized;
 
 			Debug.Print("TypeCollection created");
@@ -40,7 +42,7 @@ namespace IslandHopper {
 		void Initialize() {
 			state = InitState.Initializing;
 			foreach(string key in sources.Keys.ToList()) {
-				DesignType type = types[key];
+				DesignType type = all[key];
 				XElement source = sources[key];
 				type.Initialize(this, source);
 			}
@@ -77,42 +79,67 @@ namespace IslandHopper {
 			} else {
 				Debug.Print($"Created <{element.Name} of type {type}");
 				sources[type] = element;
-				types[type] = new T();
+				all[type] = new T();
+                switch(all[type]) {
+                    case ItemType it:
+                        itemType[type] = it;
+                        break;
+                }
+
 				//If we're uninitialized, then we will definitely initialize later
 				if(state != InitState.Uninitialized) {
-					types[type].Initialize(this, sources[type]);
+					all[type].Initialize(this, sources[type]);
 				}
 			}
 		}
 		public bool Lookup(string type, out DesignType result) {
-			return types.TryGetValue(type, out result);
+			return all.TryGetValue(type, out result);
 		}
-	}
+        public bool Lookup<T>(string type, out T result) where T:DesignType {
+            if(all.TryGetValue(type, out var t) && t is T) {
+                result = (T)t;
+                return true;
+            } else {
+                result = default(T);
+                return false;
+            }
+        }
+        public T Lookup<T>(string type) where T:DesignType {
+            if(all.TryGetValue(type, out var t) && t is T) {
+                return (T)t;
+            } else {
+                return default(T);
+            }
+        }
+    }
 	public interface DesignType {
 		void Initialize(TypeCollection collection, XElement e);
 	}
 	public class ItemType : DesignType {
-		string name, desc;
-		int mass;
-		bool explosive;
+        public string name, desc;
+        public double mass;
 
 		//Identity identity;
-		int knownChance;
-		ItemType unknownType;
+		public int knownChance;
+        public ItemType unknownType;
+        public GunType gun;
+        public GrenadeType grenade;
 
-		GunType gun;
-
-		public Item CreateItem() =>
-			new Item() {
-				type = this,
-				Gun = gun.CreateGun()
-			};
+        public Item GetItem(Island World, XYZ Position) {
+            Item i = new Item() {
+                type = this,
+                World = World,
+                Position = Position
+            };
+            i.Gun = gun?.CreateGun();
+            i.Grenade = grenade?.GetGrenade(i);
+            return i;
+        }
 
 		public void Initialize(TypeCollection collection, XElement e) {
 			name = e.ExpectAttribute("name");
 			desc = e.ExpectAttribute("desc");
-			mass = e.TryAttributeInt("mass", 0);
-			explosive = e.TryAttributeBool("explosive", false);
+			mass = e.TryAttributeDouble("mass", 0);
 
 			switch (e.Attribute("known")?.Value) {
 				case "true":
@@ -144,11 +171,14 @@ namespace IslandHopper {
 			}
 
 			//If we have a gun, initialize it now
-			if (e.HasElement("Gun", out XElement g)) {
-				gun = new GunType(g);
+			if (e.HasElement("Gun", out XElement gun)) {
+				this.gun = new GunType(collection, gun);
 			}
-			//Initialize our nested types now (they are not accessible to anyone else at bind time)
-			foreach(var inner in e.Elements("ItemType")) {
+            if (e.HasElement("Grenade", out XElement grenade)) {
+                this.grenade = new GrenadeType(collection, grenade);
+            }
+            //Initialize our nested types now (they are not accessible to anyone else at bind time)
+            foreach (var inner in e.Elements("ItemType")) {
 				collection.ProcessElement(inner);
 			}
 		}
@@ -156,61 +186,111 @@ namespace IslandHopper {
             //TO DO
 			public Gun CreateGun() => new Gun() {
                 gunType = this,
-                AmmoLeft = maxAmmo,
-                ClipLeft = clipSize,
+                AmmoLeft = initialAmmo,
+                ClipLeft = initialClip,
                 FireTimeLeft = 0,
                 ReloadTimeLeft = 0
             };
-			enum ProjectileType {
+			public enum ProjectileType {
 				beam, bullet
 			}
-			Dictionary<string, int> difficultyMap = new Dictionary<string, int> {
-				{ "none", 0 },
-				{ "easy", 20 },
-				{ "medium", 40 },
-				{ "hard", 60 },
-				{ "expert", 80 },
-				{ "master", 100 },
-			};
-			ProjectileType projectile;
-			int recoil;
-			int difficulty;
-			int noiseRange;
-			int damage;
-			int speed;
+            public ProjectileType projectile;
+            public int difficulty;
+            public int recoil;
+            public int noiseRange;
+            public int damage;
+            public int bulletSpeed;
 
-            int bulletsPerShot;
-            int knockback;
-            int spread;
-            int fireTime;
-            int reloadTime;
+            public int bulletsPerShot;
+            public int spread;
+            public int knockback;
+            public int fireTime;
+            public int reloadTime;
 
-            int clipSize;
-            int maxAmmo;
+            public int clipSize;
+            public int maxAmmo;
+
+            public int initialClip;
+            public int initialAmmo;
 
 
-			public GunType(XElement e) {
-				
-				if(!Enum.TryParse(e.TryAttribute("projectile"), out projectile)) {
+			public GunType(TypeCollection collection, XElement e) {
+                /*
+                string inherit = e.TryAttribute(nameof(inherit), null);
+                if(inherit != null) {
+                    if(collection.Lookup(inherit, out DesignType result)) {
+                        if(result is ItemType it) {
+                            if(it.gun != null) {
+                                var g = it.gun;
+                                projectile = g.projectile;
+                                difficulty = g.difficulty;
+                                recoil = g.recoil;
+                                noiseRange = g.noiseRange;
+                                damage = g.damage;
+                                bulletSpeed = g.bulletSpeed;
+                                bulletsPerShot = g.bulletsPerShot;
+                                spread = g.spread;
+                                knockback = g.knockback;
+                                fireTime = g.fireTime;
+                                reloadTime = g.reloadTime;
+                                clipSize = g.clipSize;
+                                maxAmmo = g.maxAmmo;
+                                initialClip = g.initialClip;
+                                initialAmmo = g.initialAmmo;
+                            }
+                        }
+                    }
+                }
+                */
+				if(!Enum.TryParse(e.TryAttribute(nameof(projectile)), out projectile)) {
 					projectile = ProjectileType.bullet;
 				}
-				recoil = e.TryAttributeInt("recoil", 0);
-				difficulty = difficultyMap.TryLookup(e.TryAttribute("difficulty"), 0);
-				noiseRange = e.TryAttributeInt("noise", 0);
-				damage = e.TryAttributeInt("damage", 0);
-				speed = e.TryAttributeInt("speed", 0);
+                Dictionary<string, int> difficultyMap = new Dictionary<string, int> {
+                    { "none", 0 },
+                    { "easy", 20 },
+                    { "medium", 40 },
+                    { "hard", 60 },
+                    { "expert", 80 },
+                    { "master", 100 },
+                };
+                difficulty = difficultyMap.TryLookup(e.TryAttribute(nameof(difficulty)), 0);
+                recoil = e.TryAttributeInt(nameof(recoil), 0);
+				noiseRange = e.TryAttributeInt(nameof(noiseRange), 0);
+				damage = e.TryAttributeInt(nameof(damage), 0);
+				bulletSpeed = e.TryAttributeInt(nameof(bulletSpeed), 0);
 
-                bulletsPerShot = e.TryAttributeInt("bulletsPerShot", 0);
-                knockback = e.TryAttributeInt("knockback", 0);
-                spread = e.TryAttributeInt("spread", 0);
-                fireTime = e.TryAttributeInt("fireTime", 0);
-                reloadTime = e.TryAttributeInt("reloadTime", 0);
+                bulletsPerShot = e.TryAttributeInt(nameof(bulletsPerShot), 0);
+                knockback = e.TryAttributeInt(nameof(knockback), 0);
+                spread = e.TryAttributeInt(nameof(spread), 0);
+                fireTime = e.TryAttributeInt(nameof(fireTime), 0);
+                reloadTime = e.TryAttributeInt(nameof(reloadTime), 0);
 
-                clipSize = e.TryAttributeInt("clipSize", 0);
-                maxAmmo = e.TryAttributeInt("maxAmmo", 0);
+                clipSize = e.TryAttributeInt(nameof(clipSize), 0);
+                maxAmmo = e.TryAttributeInt(nameof(maxAmmo), 0);
+
+                initialClip = e.TryAttributeInt(nameof(initialClip), clipSize);
+                initialAmmo = e.TryAttributeInt(nameof(initialAmmo), maxAmmo);
             }
 		}
-		class Symbol {
+        public class GrenadeType {
+            public bool detonateOnDamage;
+            public bool detonateOnImpact;
+            public bool canArm;
+            public int fuseTime;
+
+            public GrenadeType(TypeCollection collection, XElement e) {
+                detonateOnDamage = e.TryAttributeBool(nameof(detonateOnDamage), true);
+                detonateOnImpact = e.TryAttributeBool(nameof(detonateOnImpact), false);
+                canArm = e.TryAttributeBool(nameof(canArm), true);
+                fuseTime = e.TryAttributeInt(nameof(fuseTime), 5);
+            }
+            public Grenade GetGrenade(IItem item) => new Grenade(item) {
+                type = this,
+                Armed = false,
+                Countdown = fuseTime
+            };
+        }
+        class Symbol {
 			private char c;
 			private Color background, foreground;
 			public Symbol(XElement e) {

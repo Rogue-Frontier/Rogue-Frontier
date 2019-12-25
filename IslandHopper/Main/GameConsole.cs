@@ -5,6 +5,8 @@ using SadConsole.Themes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Resources;
+using System.Xml.Linq;
 using static IslandHopper.Constants;
 
 namespace IslandHopper {
@@ -35,10 +37,11 @@ namespace IslandHopper {
                 karma = new Random(0),
                 entities = new Space<Entity>(size, size, height, e => e.Position),
                 effects = new Space<Effect>(size, size, height, e => e.Position),
-				voxels = new ArraySpace<Voxel>(size, size, height, new Air()),
-				camera = new XYZ(0, 0, 0)
+                voxels = new ArraySpace<Voxel>(size, size, height, new Air()),
+                camera = new XYZ(0, 0, 0),
+                types = new TypeCollection(XElement.Parse(Properties.Resources.Items))
 			};
-			World.player = new Player(World, new XYZ(80, 80, 1));
+			World.player = new Player(World, new XYZ(29, 29, 1));
 			//World.AddEntity(new Player(World, new Point3(85, 85, 20)));
 
 			for (int x = 0; x < World.voxels.Width; x++) {
@@ -48,9 +51,8 @@ namespace IslandHopper {
 			}
 
 			for(int i = 0; i < 1; i++) {
-				World.entities.Place(new Gun1(World, new XYZ(78, 78, 1 + i/30)));
-                World.entities.Place(new Gun1(World, new XYZ(48, 48, 1 + i / 30)));
-                World.entities.Place(new Gun1(World, new XYZ(28, 28, 1 + i / 30)));
+
+				World.entities.Place(World.types.Lookup<ItemType>("itSevenShooter").GetItem(World, new XYZ(28, 28, 1)));
             }
 			
 			World.entities.Place(World.player);

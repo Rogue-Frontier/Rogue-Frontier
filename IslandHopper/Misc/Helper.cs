@@ -201,7 +201,17 @@ namespace IslandHopper {
 				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\"");
 			}
 		}
-		public static int ParseInt(this string s, int fallback = 0) {
+        public static double TryAttributeDouble(this XElement e, string attribute, double fallback = 0) => TryAttributeDouble(e.Attribute(attribute), fallback);
+        public static double TryAttributeDouble(this XAttribute a, double fallback = 0) {
+            if (a == null) {
+                return fallback;
+            } else if (double.TryParse(a.Value, out double result)) {
+                return result;
+            } else {
+                throw new Exception($"double value expected: {a.Name}=\"{a.Value}\"");
+            }
+        }
+        public static int ParseInt(this string s, int fallback = 0) {
 			return int.TryParse(s, out int result) ? result : fallback;
 		}
 		public static int ParseIntMin(this string s, int min, int fallback = 0) {

@@ -19,7 +19,7 @@ namespace IslandHopper.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -57,6 +57,27 @@ namespace IslandHopper.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///&lt;!--
+        ///	COMBAT MECHANICS
+        ///		Blood HP
+        ///			Characters have a maximum of 200 Blood Points
+        ///			Characters lose Blood Points to Bleeding Damage
+        ///			Bleeding Damage applies over time and decrements regularly
+        ///		Body HP
+        ///			Body parts have a maximum of 100 HP
+        ///			Damage taken can be reduced by equipped armor
+        ///			All damage absorbed by armor is deducted from the armor&apos;s durability.
+        ///				The rest is received by the body part.
+        ///					80% of the damage received is applied directly [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Items {
+            get {
+                return ResourceManager.GetString("Items", resourceCulture);
             }
         }
         

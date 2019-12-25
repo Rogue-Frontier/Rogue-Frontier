@@ -19,7 +19,8 @@ namespace IslandHopper {
         void UpdateStep();
     }
     public class Grenade {
-        IItem item;
+        public IItem item;
+        public GrenadeType type;
         public bool Armed;
         public int Countdown;
         public Grenade(IItem item) {
@@ -28,7 +29,6 @@ namespace IslandHopper {
         }
         public void Arm(bool Armed = true) {
             this.Armed = Armed;
-            this.Countdown = 3;
         }
         public void UpdateStep() {
             if(Armed) {
@@ -41,11 +41,6 @@ namespace IslandHopper {
             }
         }
     }
-    public class GrenadeType {
-        public bool DetonateOnDamage;
-        public bool DetonateOnImpact;
-        public bool CanArm;
-    }
 	public class Gun {
         public GunType gunType;
         public int ReloadTimeLeft;
@@ -55,6 +50,10 @@ namespace IslandHopper {
         public int AmmoLeft;
 
 		public Gun() { }
+
+        public void OnHit(Bullet b, Damageable d) {
+
+        }
         public void Fire(Entity user, IItem item, Entity target, XYZ targetPos) {
             var bulletSpeed = 30;
             var bulletVel = (targetPos - user.Position).Normal * bulletSpeed;
@@ -78,8 +77,15 @@ namespace IslandHopper {
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
 
-		public ColoredGlyph SymbolCenter { get; set; }
-		public ColoredString Name { get; set; }
+        public ColoredGlyph SymbolCenter { get; set; } = new ColoredGlyph('r', Color.Black, Color.White);
+
+        public ColoredString Name { get {
+                ColoredString result = new ColoredString(type.name, Color.Black, Color.White);
+                if(Grenade?.Armed == true) {
+                    result = new ColoredString("[Armed] ", Color.Red, Color.White) + result;
+                }
+                return result;
+            } }
 
 		public ItemType type;
         public Grenade Grenade { get; set; }
@@ -150,7 +156,7 @@ namespace IslandHopper {
                 return result;
             }
         }
-		public ColoredGlyph SymbolCenter => new ColoredString("r", new Cell(Color.Black, Color.White))[0];
+		public ColoredGlyph SymbolCenter => new ColoredGlyph('r', Color.Black, Color.White);
 	}
 	public class Parachute : Entity, Damageable {
 		public Entity user { get; private set; }

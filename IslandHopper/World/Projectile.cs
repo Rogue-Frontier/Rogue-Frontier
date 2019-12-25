@@ -112,6 +112,7 @@ namespace IslandHopper {
         public ColoredString Name => new ColoredString("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
 
         private Entity Source;
+        private IItem Item;
         private HashSet<Entity> ignore;
 		private Entity Target;
 		private int tick;   //Used for sprite flashing
@@ -121,6 +122,7 @@ namespace IslandHopper {
 
 		public Bullet(Entity Source, IItem Item, Entity Target, XYZ Velocity) {
             this.Source = Source;
+            this.Item = Item;
             ignore = new HashSet<Entity>();
             ignore.Add(Source);
             ignore.Add(Item);
@@ -183,6 +185,7 @@ namespace IslandHopper {
 
                 if(e is Damageable d) {
                     d.OnDamaged(this);
+                    Item?.Gun?.OnHit(this, d);
                 }
 
 
