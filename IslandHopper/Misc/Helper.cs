@@ -11,10 +11,10 @@ namespace IslandHopper {
 	public static class Helper {
         public static ColoredGlyph GetGlyph(this Island World, XYZ location) {
             var c = new ColoredGlyph(' ', Color.Transparent, Color.Transparent);
-            if(World.entities.InBounds(location)) {
-                if(World.effects.Try(location).Count > 0) {
+            if(World.voxels.InBounds(location)) {
+                if(World.effects[location].Count > 0) {
                     c = World.effects[location].First().SymbolCenter;
-                } else if(World.entities.Try(location).Count > 0) {
+                } else if(World.entities[location].Count > 0) {
                     c = World.entities[location].First().SymbolCenter;
                 } else if(!(World.voxels[location] is Air)) {
                     c = World.voxels[location].CharCenter;

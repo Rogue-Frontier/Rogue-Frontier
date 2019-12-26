@@ -103,7 +103,7 @@ namespace IslandHopper {
 				var v = g.World.voxels.Try(p);
 				if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
 					if(ignoreEntityCollision != null) {
-						var entities = g.World.entities.Try(p).Where(e => !ReferenceEquals(e, g));
+						var entities = g.World.entities[p].Where(e => !ReferenceEquals(e, g));
                         foreach(var entity in entities) {
                             if(!ignoreEntityCollision(entity)) {
                                 goto Done;
@@ -136,7 +136,7 @@ namespace IslandHopper {
                 var v = g.World.voxels.Try(p);
                 if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
                     if (ignoreEntityCollision != null) {
-                        var entities = g.World.entities.Try(p).Where(e => !ReferenceEquals(e, g));
+                        var entities = g.World.entities[p].Where(e => !ReferenceEquals(e, g));
                         foreach(var entity in entities) {
                             if(!ignoreEntityCollision(entity)) {
                                 goto Done;

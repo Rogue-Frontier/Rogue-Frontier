@@ -31,12 +31,12 @@ namespace IslandHopper {
 			UseMouse = true;
 			this.DebugInfo($"Width: {Width}", $"Height: {Height}");
 
-            int size = 300;
+            int size = 1000;
             int height = 30;
             World = new Island() {
                 karma = new Random(0),
-                entities = new Space<Entity>(size, size, height, e => e.Position),
-                effects = new Space<Effect>(size, size, height, e => e.Position),
+                entities = new SetDict<Entity, (int, int, int)>(e => e.Position),
+                effects = new SetDict<Effect, (int, int, int)>(e => e.Position),
                 voxels = new ArraySpace<Voxel>(size, size, height, new Air()),
                 camera = new XYZ(0, 0, 0),
                 types = new TypeCollection(XElement.Parse(Properties.Resources.Items))

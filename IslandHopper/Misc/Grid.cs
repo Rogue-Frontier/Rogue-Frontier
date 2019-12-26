@@ -76,6 +76,8 @@ namespace IslandHopper {
 		public static XYZ operator -(XYZ p1) => new XYZ(-p1.x, -p1.y, -p1.z);
 		public static double operator *(XYZ p1, XYZ p2) => (p1.x * p2.x) + (p1.y * p2.y) + (p1.z * p2.z);
 
+        public static implicit operator (int, int, int)(XYZ p) => (p.xi, p.yi, p.zi);
+
 		public static implicit operator double(XYZ p) => p.Magnitude;
 
 		public static explicit operator Point(XYZ p) => new Point(p.xi, p.yi);
@@ -296,4 +298,43 @@ namespace IslandHopper {
 		}
 		public bool InBounds(XYZ p) => p.xi > -1 && p.xi < Width && p.yi > -1 && p.yi < Height && p.zi > -1 && p.zi < Depth;
 	}
+
+    public class SetDict<T, U> {
+        public HashSet<T> all;
+        public Dictionary<U, HashSet<T>> space { get; private set; }
+        private Func<T, U> locator;
+        public HashSet<T> this[U u] => space.TryGetValue(u, out var value) ? value : new HashSet<T>();
+        public SetDict(Func<T, U> locator) {
+            all = new HashSet<T>();
+            space = new Dictionary<U, HashSet<T>>();
+            this.locator = locator;
+        }
+        public void Clear() => all.Clear();
+        public void UpdateSpace() {
+            space.Clear();
+            foreach (var t in all) {
+                var u = locator(t);
+                Initialize(u);
+                this[u].Add(t);
+            }
+        }
+        public void Place(T t) {
+            if (all.Add(t))
+                Place(locator(t), t);
+        }
+        public void Remove(T t) {
+            all.Remove(t);
+            UpdateSpace();
+        }
+        public bool Contains(T t) => all.Contains(t);
+        private void Place(U u, T t) {
+            Initialize(u);
+            this[u].Add(t);
+        }
+        private void Initialize(U u) {
+            if (!space.ContainsKey(u)) {
+                space[u] = new HashSet<T>();
+            }
+        }
+    }
 }
