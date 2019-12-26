@@ -18,6 +18,10 @@ namespace IslandHopper {
         void UpdateRealtime(TimeSpan delta);
         void UpdateStep();
     }
+    public interface Usable {
+        bool CanUse();
+        void Use();
+    }
     public class Grenade {
         public IItem item;
         public GrenadeType type;
@@ -41,7 +45,7 @@ namespace IslandHopper {
             }
         }
     }
-	public class Gun {
+    public class Gun {
         public GunType gunType;
         public int ReloadTimeLeft;
         public int FireTimeLeft;
@@ -49,10 +53,30 @@ namespace IslandHopper {
         public int ClipLeft;
         public int AmmoLeft;
 
-		public Gun() { }
+        public Gun() { }
 
-        public void OnHit(Bullet b, Damageable d) {
+        public void OnHit(Damager b, Damageable d) {
 
+        }
+        public void Reload() {
+            ReloadTimeLeft = gunType.reloadTime;
+        }
+        private void OnReload() {
+            int reloaded = Math.Min(gunType.clipSize - ClipLeft, AmmoLeft);
+            ClipLeft += reloaded;
+            AmmoLeft -= reloaded;
+        }
+        public bool CanFire() {
+            return ReloadTimeLeft + FireTimeLeft == 0;
+        }
+        public void UpdateStep() {
+            if(ReloadTimeLeft > 0) {
+                if(--ReloadTimeLeft == 0) {
+                    OnReload();
+                }
+            } else if(FireTimeLeft > 0) {
+                FireTimeLeft--;
+            }
         }
         public void Fire(Entity user, IItem item, Entity target, XYZ targetPos) {
             var bulletSpeed = 30;
@@ -136,6 +160,7 @@ namespace IslandHopper {
             this.UpdateGravity();
             this.UpdateMotion();
             Grenade?.UpdateStep();
+            Gun?.UpdateStep();
             
         }
         public void Destroy() {

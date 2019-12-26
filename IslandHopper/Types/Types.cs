@@ -182,8 +182,25 @@ namespace IslandHopper {
 				collection.ProcessElement(inner);
 			}
 		}
-		public class GunType {
-            //TO DO
+        public class GrenadeType {
+            public bool detonateOnDamage;
+            public bool detonateOnImpact;
+            public bool canArm;
+            public int fuseTime;
+
+            public GrenadeType(TypeCollection collection, XElement e) {
+                detonateOnDamage = e.TryAttributeBool(nameof(detonateOnDamage), true);
+                detonateOnImpact = e.TryAttributeBool(nameof(detonateOnImpact), false);
+                canArm = e.TryAttributeBool(nameof(canArm), true);
+                fuseTime = e.TryAttributeInt(nameof(fuseTime), 5);
+            }
+            public Grenade GetGrenade(IItem item) => new Grenade(item) {
+                type = this,
+                Armed = false,
+                Countdown = fuseTime
+            };
+        }
+        public class GunType {
 			public Gun CreateGun() => new Gun() {
                 gunType = this,
                 AmmoLeft = initialAmmo,
@@ -272,24 +289,6 @@ namespace IslandHopper {
                 initialAmmo = e.TryAttributeInt(nameof(initialAmmo), maxAmmo);
             }
 		}
-        public class GrenadeType {
-            public bool detonateOnDamage;
-            public bool detonateOnImpact;
-            public bool canArm;
-            public int fuseTime;
-
-            public GrenadeType(TypeCollection collection, XElement e) {
-                detonateOnDamage = e.TryAttributeBool(nameof(detonateOnDamage), true);
-                detonateOnImpact = e.TryAttributeBool(nameof(detonateOnImpact), false);
-                canArm = e.TryAttributeBool(nameof(canArm), true);
-                fuseTime = e.TryAttributeInt(nameof(fuseTime), 5);
-            }
-            public Grenade GetGrenade(IItem item) => new Grenade(item) {
-                type = this,
-                Armed = false,
-                Countdown = fuseTime
-            };
-        }
         class Symbol {
 			private char c;
 			private Color background, foreground;
