@@ -37,7 +37,7 @@ namespace IslandHopper {
                 e.UpdateRealtime(delta);
             }
             var now = DateTime.Now;
-            if (World.player.AllowUpdate() && (now - lastUpdate).TotalSeconds > 1/40f) {
+            if (World.player.AllowUpdate() && IsFocused && (now - lastUpdate).TotalSeconds > 1/60f) {
                 lastUpdate = now;
                 this.DebugInfo("Global Update");
                 foreach (var e in World.entities.all.ToList()) {
@@ -72,10 +72,38 @@ namespace IslandHopper {
             this.DebugInfo($"Draw({delta})");
             Print(1, 1, "" + World.player.Position.z, Color.White);
             Print(1, 2, "" + World.camera.z, Color.White);
+            var printY = (Height - 4);
             for (int i = 0; i < 30 && i < World.player.HistoryRecent.Count(); i++) {
                 var entry = World.player.HistoryRecent[World.player.HistoryRecent.Count() - 1 - i];
-                var y = (Height - 1) - i;
-                Print(1, y, entry.ScreenTime > 1 ? entry.Desc : entry.Desc.Opacity((byte) (255 * entry.ScreenTime)));
+                printY--;
+                Print(1, printY, entry.ScreenTime > 1 ? entry.Desc : entry.Desc.Opacity((byte) (255 * entry.ScreenTime)));
+            }
+
+            printY = (Height - 3);
+            foreach(var action in World.player.Actions) {
+                switch(action) {
+                    case WalkAction w:
+                        Print(1, printY, "Walking", Color.Cyan, Color.Black);
+                        break;
+                    case Jump j:
+                        if(j.z > 0) {
+                            Print(1, printY, "Jumping", Color.Cyan, Color.Black);
+                        } else {
+                            Print(1, printY, "Running", Color.Cyan, Color.Black);
+                        }
+                        break;
+                    case WaitAction wait:
+                        Print(1, printY, "Waiting", Color.Cyan, Color.Black);
+                        break;
+                    case ShootAction fire:
+                        var gun = fire.item.Gun;
+                        var delay = gun.FireTimeLeft + gun.ReloadTimeLeft;
+                        Print(1, printY, new ColoredString(gun.ReloadTimeLeft > 0 ? "Reloading " : gun.FireTimeLeft > 0 ? "Firing " : "Aiming", Color.Cyan, Color.Black)
+                            + fire.item.Name + new ColoredString(" ")
+                            + new ColoredString(new string('>', delay)));
+                        break;
+                }
+                printY++;
             }
 
             int PreviewWidth = 20;
@@ -88,7 +116,7 @@ namespace IslandHopper {
                 for (int x = -PreviewWidth/2; x < PreviewWidth/2; x++) {
                     for (int y = -PreviewHeight/2; y < PreviewHeight/2; y++) {
                         XYZ location = thrown.Position + new XYZ(x, y, 0);
-                        Print(x + previewX, y + previewY, World.GetGlyph(location));
+                        Print(x + previewX, -y + previewY, World.GetGlyph(location));
                     }
                 }
                 previewY += PreviewHeight;
@@ -102,10 +130,10 @@ namespace IslandHopper {
             if (info.IsKeyDown(Keys.Up) || info.IsKeyDown(Keys.Down) || info.IsKeyDown(Keys.Right) || info.IsKeyDown(Keys.Left)) {
                 XYZ direction = new XYZ();
                 if (info.IsKeyDown(Keys.Up)) {
-                    direction += new XYZ(0, -1);
+                    direction += new XYZ(0, 1);
                 }
                 if (info.IsKeyDown(Keys.Down)) {
-                    direction += new XYZ(0, 1);
+                    direction += new XYZ(0, -1);
                 }
                 if (info.IsKeyDown(Keys.Right)) {
                     direction += new XYZ(1, 0);
@@ -139,8 +167,8 @@ namespace IslandHopper {
             } else if (info.IsKeyDown(Keys.J)) {
                 //Jump up
 
-                //Separate jumping from running?
-                if (player.OnGround() && !player.Actions.Any(a => a is Jump j))
+                //Running is also a jump action but without z > 0, so we can jump while running
+                if (player.OnGround() && !player.Actions.Any(a => a is Jump j && j.z > 0))
                     player.Actions.Add(new Jump(player, new XYZ(0, 0, 5)));
 			} else if (info.IsKeyPressed(Keys.D)) {
 				new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", player.Inventory.Select(Item => new ListItem(Item)), item => {
@@ -181,6 +209,8 @@ namespace IslandHopper {
             } else if (info.IsKeyPressed(Keys.L)) {
                 new LookMenu(Width, Height, World).Show(true);
             } else if(info.IsKeyPressed(Keys.S)) {
+                //TODO: Ask the player if they want to cancel their current ShootAction
+
                 new ShootMenu(Width, Height, World, World.player).Show(true);
             } else if (info.IsKeyPressed(Keys.T)) {
                 new ThrowMenu(Width, Height, World, World.player).Show(true);
@@ -562,14 +592,14 @@ namespace IslandHopper {
                 if (info.IsKeyDown(Keys.RightShift)) {
                     world.camera += new XYZ(0, 0, delta);
                 } else {
-                    world.camera += new XYZ(0, -delta);
+                    world.camera += new XYZ(0, delta);
                 }
                 UpdateExamine();
             } else if (info.IsKeyPressed(Keys.Down)) {
                 if (info.IsKeyDown(Keys.RightShift)) {
                     world.camera += new XYZ(0, 0, -delta);
                 } else {
-                    world.camera += new XYZ(0, delta);
+                    world.camera += new XYZ(0, -delta);
                 }
                 UpdateExamine();
             } else if (info.IsKeyPressed(Keys.Left)) {

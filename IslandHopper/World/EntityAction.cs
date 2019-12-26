@@ -49,7 +49,7 @@ namespace IslandHopper {
     */
     public class ShootAction : EntityAction {
         private Entity player;
-        private IItem item;
+        public IItem item;
         private Entity target;
         private XYZ targetPos;
         private XYZ aim;    //Offset from the player. When player pos + aim is close enough to the target pos, we fire
@@ -57,7 +57,7 @@ namespace IslandHopper {
         //When creating this object, caller must remember to add the Reticles to the world
         public Reticle targetReticle;
         public Reticle aimReticle;
-        public ShootAction(Entity player, IItem item, Entity target, XYZ aim = null, int shotsLeft = 1) {
+        public ShootAction(Entity player, IItem item, Entity target, XYZ aim = null, int shotsLeft = 10) {
             this.player = player;
             this.item = item;
             this.target = target;
@@ -72,7 +72,7 @@ namespace IslandHopper {
                 p.Watch.Add(aimReticle);
             }
         }
-        public ShootAction(Entity player, IItem item, XYZ targetPos, XYZ aim = null, int shotsLeft = 1) {
+        public ShootAction(Entity player, IItem item, XYZ targetPos, XYZ aim = null, int shotsLeft = 10) {
             this.player = player;
             this.item = item;
             this.target = null;
@@ -214,6 +214,7 @@ namespace IslandHopper {
         private int ticks;
         private int lifetime;
         private int deltaTime;
+        public double z => velocity.z;
         public Jump(Entity actor, XYZ velocity, int lifetime = 20, int deltaTime = 1) {
             this.player = actor;
             this.velocity = velocity;

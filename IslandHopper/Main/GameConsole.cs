@@ -77,7 +77,7 @@ namespace IslandHopper {
 				for(int y = -HalfViewHeight; y < HalfViewHeight; y++) {
 					XYZ location = World.camera + new XYZ(x, y, 0);
 					
-					Print(x + HalfWidth, y + HalfHeight, World.GetGlyph(location));
+					Print(x + HalfWidth, Height - (y + HalfHeight), World.GetGlyph(location));
 				}
 			}
             base.Draw(delta);
