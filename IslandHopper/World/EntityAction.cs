@@ -57,30 +57,30 @@ namespace IslandHopper {
         //When creating this object, caller must remember to add the Reticles to the world
         public Reticle targetReticle;
         public Reticle aimReticle;
-        public ShootAction(Entity player, IItem item, Entity target, int shotsLeft = 1) {
+        public ShootAction(Entity player, IItem item, Entity target, XYZ aim = null, int shotsLeft = 1) {
             this.player = player;
             this.item = item;
             this.target = target;
             this.targetPos = target.Position;
-            aim = new XYZ();
+            this.aim = aim ?? new XYZ();
             this.shotsLeft = shotsLeft;
             targetReticle = new Reticle(Active, targetPos);
-            aimReticle = new Reticle(Active, player.Position + aim);
+            aimReticle = new Reticle(Active, player.Position + this.aim);
             player.World.AddEffect(targetReticle);
             player.World.AddEffect(aimReticle);
             if(player is Player p) {
                 p.Watch.Add(aimReticle);
             }
         }
-        public ShootAction(Entity player, IItem item, XYZ targetPos, int shotsLeft = 1) {
+        public ShootAction(Entity player, IItem item, XYZ targetPos, XYZ aim = null, int shotsLeft = 1) {
             this.player = player;
             this.item = item;
             this.target = null;
             this.targetPos = targetPos;
-            aim = new XYZ();
+            this.aim = aim ?? new XYZ();
             this.shotsLeft = shotsLeft;
             targetReticle = new Reticle(Active, targetPos);
-            aimReticle = new Reticle(Active, player.Position + aim);
+            aimReticle = new Reticle(Active, player.Position + this.aim);
             player.World.AddEffect(targetReticle);
             player.World.AddEffect(aimReticle);
             if (player is Player p) {
@@ -130,7 +130,7 @@ namespace IslandHopper {
             var aimPos = player.Position + aim;
             var diff = targetPos.i - aimPos.i;
 
-            bool canFire = diff.Magnitude > 0.5;
+            bool needAdjust = diff.Magnitude > 0.5;
 
             /*
             var aimAngle = aim.xyAngle;
@@ -146,7 +146,7 @@ namespace IslandHopper {
 
             }
             */
-            if (canFire) {
+            if (needAdjust) {
                 //Bring our aim closer to the target position
                 //aim += diff.Normal * Math.Min(diff.Magnitude, 1);
                 //If the player is running towards/away from the target, adjust aim faster
@@ -165,11 +165,9 @@ namespace IslandHopper {
 
                 var delta = Math.Min(diff.Magnitude, maxDelta);
 
-
-
                 aim += diff.Normal * delta;
                 aimReticle.Position = player.Position + aim;
-            } else {
+            } else if(item.Gun.GetState() == Gun.State.Ready) {
                 //Close enough to fire
                 item.Gun.Fire(player, item, target, targetPos);
                 shotsLeft--;

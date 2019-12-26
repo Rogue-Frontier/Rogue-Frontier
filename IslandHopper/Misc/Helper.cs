@@ -211,6 +211,13 @@ namespace IslandHopper {
                 throw new Exception($"double value expected: {a.Name}=\"{a.Value}\"");
             }
         }
+        public static void InheritAttributes(this XElement sub, XElement source) {
+            foreach (var attribute in source.Attributes()) {
+                if (sub.Attribute(attribute.Name) == null) {
+                    sub.SetAttributeValue(attribute.Name, attribute.Value);
+                }
+            }
+        }
         public static int ParseInt(this string s, int fallback = 0) {
 			return int.TryParse(s, out int result) ? result : fallback;
 		}

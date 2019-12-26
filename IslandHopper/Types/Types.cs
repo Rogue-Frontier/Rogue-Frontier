@@ -41,7 +41,8 @@ namespace IslandHopper {
 		}
 		void Initialize() {
 			state = InitState.Initializing;
-			foreach(string key in sources.Keys.ToList()) {
+            //We don't evaluate all sources; just the ones that are used by DesignTypes
+			foreach(string key in all.Keys.ToList()) {
 				DesignType type = all[key];
 				XElement source = sources[key];
 				type.Initialize(this, source);
@@ -59,6 +60,9 @@ namespace IslandHopper {
 					XElement module = XDocument.Load(element.ExpectAttribute("file")).Root.ExpectElement("IslandHopperModule");
 					ProcessRoot(module);
 					break;
+                case "Source":
+                    AddSource(element);
+                    break;
 				case "ItemType":
 					AddType<ItemType>(element);
 					break;
@@ -68,6 +72,19 @@ namespace IslandHopper {
 					break;
 			}
 		}
+        void AddSource(XElement element) {
+            if (!element.TryAttribute("type", out string type)) {
+                //throw new Exception("DesignType requires type attribute");
+                type = System.Guid.NewGuid().ToString();
+            }
+
+            if (sources.ContainsKey(type)) {
+                throw new Exception($"DesignType type conflict: {type}");
+            } else {
+                Debug.Print($"Created <{element.Name}> of type {type}");
+                sources[type] = element;
+            }
+        }
 		void AddType<T>(XElement element) where T : DesignType, new() {
 			if (!element.TryAttribute("type", out string type)) {
 				//throw new Exception("DesignType requires type attribute");
@@ -77,7 +94,7 @@ namespace IslandHopper {
 			if (sources.ContainsKey(type)) {
 				throw new Exception($"DesignType type conflict: {type}");
 			} else {
-				Debug.Print($"Created <{element.Name} of type {type}");
+				Debug.Print($"Created <{element.Name}> of type {type}");
 				sources[type] = element;
 				all[type] = new T();
                 switch(all[type]) {
@@ -88,6 +105,7 @@ namespace IslandHopper {
 
 				//If we're uninitialized, then we will definitely initialize later
 				if(state != InitState.Uninitialized) {
+                    //Otherwise, initialize now
 					all[type].Initialize(this, sources[type]);
 				}
 			}
@@ -129,7 +147,8 @@ namespace IslandHopper {
             Item i = new Item() {
                 type = this,
                 World = World,
-                Position = Position
+                Position = Position,
+                Velocity = new XYZ(),
             };
             i.Gun = gun?.CreateGun();
             i.Grenade = grenade?.GetGrenade(i);
@@ -169,20 +188,22 @@ namespace IslandHopper {
 					throw new Exception($"Unknown DesignType: {unknownType}");
 				}
 			}
-
-			//If we have a gun, initialize it now
-			if (e.HasElement("Gun", out XElement gun)) {
-				this.gun = new GunType(collection, gun);
-			}
-            if (e.HasElement("Grenade", out XElement grenade)) {
+            if (e.HasElement(GrenadeType.Tag, out XElement grenade)) {
                 this.grenade = new GrenadeType(collection, grenade);
             }
+            //If we have a gun, initialize it now
+            if (e.HasElement(GunType.Tag, out XElement gun)) {
+				this.gun = new GunType(collection, gun);
+			}
+            
             //Initialize our nested types now (they are not accessible to anyone else at bind time)
             foreach (var inner in e.Elements("ItemType")) {
 				collection.ProcessElement(inner);
 			}
 		}
         public class GrenadeType {
+            public static string Tag = "Grenade";
+
             public bool detonateOnDamage;
             public bool detonateOnImpact;
             public bool canArm;
@@ -201,6 +222,7 @@ namespace IslandHopper {
             };
         }
         public class GunType {
+            public static string Tag = "Gun";
 			public Gun CreateGun() => new Gun() {
                 gunType = this,
                 AmmoLeft = initialAmmo,
@@ -208,6 +230,8 @@ namespace IslandHopper {
                 FireTimeLeft = 0,
                 ReloadTimeLeft = 0
             };
+            private string inherit;
+            private HashSet<string> sourceAttributes;
 			public enum ProjectileType {
 				beam, bullet
 			}
@@ -232,34 +256,14 @@ namespace IslandHopper {
 
 
 			public GunType(TypeCollection collection, XElement e) {
-                /*
+                //Don't modify the original source when we inherit
+                e = new XElement(e);
                 string inherit = e.TryAttribute(nameof(inherit), null);
-                if(inherit != null) {
-                    if(collection.Lookup(inherit, out DesignType result)) {
-                        if(result is ItemType it) {
-                            if(it.gun != null) {
-                                var g = it.gun;
-                                projectile = g.projectile;
-                                difficulty = g.difficulty;
-                                recoil = g.recoil;
-                                noiseRange = g.noiseRange;
-                                damage = g.damage;
-                                bulletSpeed = g.bulletSpeed;
-                                bulletsPerShot = g.bulletsPerShot;
-                                spread = g.spread;
-                                knockback = g.knockback;
-                                fireTime = g.fireTime;
-                                reloadTime = g.reloadTime;
-                                clipSize = g.clipSize;
-                                maxAmmo = g.maxAmmo;
-                                initialClip = g.initialClip;
-                                initialAmmo = g.initialAmmo;
-                            }
-                        }
-                    }
+                if (inherit != null) {
+                    var source = collection.sources[inherit].Element(Tag);
+                    e.InheritAttributes(source);
                 }
-                */
-				if(!Enum.TryParse(e.TryAttribute(nameof(projectile)), out projectile)) {
+                if (!Enum.TryParse(e.TryAttribute(nameof(projectile)), out projectile)) {
 					projectile = ProjectileType.bullet;
 				}
                 Dictionary<string, int> difficultyMap = new Dictionary<string, int> {

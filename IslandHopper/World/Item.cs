@@ -15,14 +15,14 @@ namespace IslandHopper {
 
 	}
     public interface ItemComponent {
-        void UpdateRealtime(TimeSpan delta);
         void UpdateStep();
+        void Modify(ref ColoredString Name);
     }
     public interface Usable {
         bool CanUse();
         void Use();
     }
-    public class Grenade {
+    public class Grenade : ItemComponent {
         public IItem item;
         public GrenadeType type;
         public bool Armed;
@@ -44,8 +44,20 @@ namespace IslandHopper {
                 }
             }
         }
+        public void Modify(ref ColoredString Name) {
+            if(Armed) {
+                Name = new ColoredString("[Armed] ", Color.Red, Color.White) + Name;
+            }
+        }
     }
-    public class Gun {
+    public class Gun : ItemComponent {
+        public enum State {
+            NeedsAmmo,
+            NeedsReload,
+            Reloading,
+            Firing,
+            Ready,
+        }
         public GunType gunType;
         public int ReloadTimeLeft;
         public int FireTimeLeft;
@@ -66,8 +78,18 @@ namespace IslandHopper {
             ClipLeft += reloaded;
             AmmoLeft -= reloaded;
         }
-        public bool CanFire() {
-            return ReloadTimeLeft + FireTimeLeft == 0;
+        public State GetState() {
+            if(AmmoLeft == 0 && ClipLeft == 0) {
+                return State.NeedsAmmo;
+            } else if(ClipLeft == 0) {
+                return State.NeedsReload;
+            } else if(ReloadTimeLeft > 0) {
+                return State.Reloading;
+            } else if(FireTimeLeft > 0) {
+                return State.Firing;
+            } else {
+                return State.Ready;
+            }
         }
         public void UpdateStep() {
             if(ReloadTimeLeft > 0) {
@@ -77,6 +99,7 @@ namespace IslandHopper {
             } else if(FireTimeLeft > 0) {
                 FireTimeLeft--;
             }
+            return;
         }
         public void Fire(Entity user, IItem item, Entity target, XYZ targetPos) {
             var bulletSpeed = 30;
@@ -89,6 +112,13 @@ namespace IslandHopper {
             }
             user.World.AddEffect(new Reticle(() => b.Active, targetPos, Color.Red));
             user.Witness(new InfoEvent(user.Name + new ColoredString(" fires ") + item.Name.WithBackground(Color.Black) + (target != null ? (new ColoredString(" at ") + target.Name.WithBackground(Color.Black)) : new ColoredString(""))));
+
+            //Decrement ClipLeft last so that it doesn't affect the name display
+            ClipLeft--;
+            FireTimeLeft = gunType.fireTime;
+        }
+        public void Modify(ref ColoredString Name) {
+            Name = new ColoredString($"[{ClipLeft} / {AmmoLeft}] ", Color.Yellow, Color.Black) + Name;
         }
         /*
         public Bullet CreateShot(Entity Source, Entity Target, XYZ Velocity) {
@@ -101,17 +131,23 @@ namespace IslandHopper {
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
 
-        public ColoredGlyph SymbolCenter { get; set; } = new ColoredGlyph('r', Color.Black, Color.White);
-
-        public ColoredString Name { get {
-                ColoredString result = new ColoredString(type.name, Color.Black, Color.White);
-                if(Grenade?.Armed == true) {
-                    result = new ColoredString("[Armed] ", Color.Red, Color.White) + result;
+        public ColoredGlyph SymbolCenter { get; set; } = new ColoredGlyph('r', Color.White, Color.Black);
+        public ColoredString ModifierName {  get {
+                ColoredString result = BaseName;
+                ItemComponent[] components = {
+                    Grenade, Gun
+                };
+                foreach(var component in components) {
+                    component?.Modify(ref result);
                 }
                 return result;
-            } }
+            }
+        }
+        public ColoredString BaseName => new ColoredString(type.name, Color.White, Color.Black);
+        public ColoredString Name => ModifierName;
 
-		public ItemType type;
+
+        public ItemType type;
         public Grenade Grenade { get; set; }
 		public Gun Gun { get; set; }
 
@@ -119,7 +155,14 @@ namespace IslandHopper {
 		public void OnRemoved() { }
 
 		public void UpdateRealtime(TimeSpan delta) { }
-		public void UpdateStep() { }
+		public void UpdateStep() {
+            //Somehow this prevents the player from moving when held
+            //It's because the Velocity of this item is a reference to the player's velocity
+            this.UpdateGravity();
+            this.UpdateMotion();
+            Grenade?.UpdateStep();
+            Gun?.UpdateStep();
+        }
         public void Destroy() {
             Active = false;
         }
@@ -130,59 +173,6 @@ namespace IslandHopper {
             }
         }
     }
-
-    public class Gun1 : IItem {
-        public Island World { get; set; }
-        public XYZ Position { get; set; }
-        public XYZ Velocity { get; set; }
-
-        public Grenade Grenade { get; set; }
-        public Gun Gun { get; set; }
-
-        public Gun1(Island World, XYZ Position) {
-            this.World = World;
-            this.Position = Position;
-            this.Velocity = new XYZ();
-
-            Grenade = new Grenade(this);
-            Gun = new Gun();
-        }
-
-        public bool Active { get; private set; } = true;
-        public void OnRemoved() { }
-
-        public void UpdateRealtime(TimeSpan delta) { }
-
-        public void UpdateStep() {
-            
-            //Somehow this prevents the player from moving when held
-            //It's because the Velocity of this item is a reference to the player's velocity
-            this.UpdateGravity();
-            this.UpdateMotion();
-            Grenade?.UpdateStep();
-            Gun?.UpdateStep();
-            
-        }
-        public void Destroy() {
-            Active = false;
-        }
-
-        public void OnDamaged(Damager source) {
-            if (source is Bullet b) {
-                Velocity += b.Velocity.Normal * b.knockback;
-            }
-        }
-
-        public ColoredString Name {
-            get {
-                var result = new ColoredString("Gun", Color.Gray, Color.Black);
-                if (Grenade?.Armed == true)
-                    result = new ColoredString("[Armed] ", Color.Red, Color.Black) + result;
-                return result;
-            }
-        }
-		public ColoredGlyph SymbolCenter => new ColoredGlyph('r', Color.Black, Color.White);
-	}
 	public class Parachute : Entity, Damageable {
 		public Entity user { get; private set; }
 		public bool Active { get; private set; }

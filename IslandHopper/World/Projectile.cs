@@ -108,7 +108,15 @@ namespace IslandHopper {
         public XYZ Velocity { get; set; }
         public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredGlyph('-', tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
+        public char GetSymbol() {
+            var angle = Velocity.xyAngle * 180 / Math.PI;
+            angle = ((int)(360 + angle + 22.5) % 360) / 45;
+            char[] chars = {
+                '-', '/', '|', '\\', '-', '/', '|', '\\'
+            };
+            return chars[(int)angle];
+        }
+		public ColoredGlyph SymbolCenter => new ColoredGlyph(GetSymbol(), tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
         public ColoredString Name => new ColoredString("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
 
         private Entity Source;
@@ -195,7 +203,7 @@ namespace IslandHopper {
             this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
             foreach(var point in trail) {
 
-                World.AddEffect(new BulletTrail(point, 10));
+                World.AddEffect(new Trail(point, 10, SymbolCenter.GlyphCharacter));
             }
         }
     }

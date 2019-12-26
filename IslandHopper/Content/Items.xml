@@ -113,6 +113,17 @@ EASTER EGGS
 		
 		>
 	</Player>
+	<Source
+		type=			"itRevolverBase"
+		>
+		<Gun
+			clipSize=		"6"
+			maxAmmo=		"24"
+			reloadType=		"magazine"
+			fireTime=		"10"
+			reloadTime=		"10"
+			/>
+	</Source>
 	<ItemType
 		name=			"baseball cap"
 		desc=			"The standard-issue hat for baseball-armed soldiers everywhere."
@@ -201,25 +212,25 @@ EASTER EGGS
 			/>
 	</ItemType>
 	<ItemType
-		name=     "The Pitcher"
-		desc=     "When all you have is a robotic arm mounted over your shoulder, everything else looks like a baseball."
+		name=     		"The Pitcher"
+		desc=    		 "When all you have is a robotic arm mounted over your shoulder, everything else looks like a baseball."
 		>
 		<Arm
-			strength= "200"
+			strength=	 "200"
 			/>
 	</ItemType>
 	<ItemType
-		name=     "The Trebuchet"
-		desc=     "This robotic armor allows you to launch grenades farther than a catapult can."
+		name=   		"The Trebuchet"
+		desc=     		"This robotic armor allows you to launch grenades farther than a catapult can."
 		>
 		<Arm
-			strength= "200"
+			strength= 	"200"
 		  />
 	</ItemType>
 
 	<ItemType
 		name=			"The Rocket Ranger"
-		desc=			"For the kind of sniper who is too cool for bullets."
+		desc=			"A rocket launcher for the sniper who is too cool for bullets."
 		mass=			"3"
 		>
 		<Gun
@@ -233,16 +244,24 @@ EASTER EGGS
 		>
 	</ItemType>
 	<ItemType
+		type=			"itTinMan"
+		name=			"The Tin Man"
+		desc=			"A heartless tool for a heartless person."
+		>
+		<Gun
+			inherit=	"itRevolverBase"
+			>
+		</Gun>
+	</ItemType>
+	<ItemType
 		type=			"itSevenShooter"
-		name=			"The revolver7"
+		name=			"The Seventh Striker"
 		desc=			"This seven-shooter revolver hits harder on the last shot."
 		>
 		<Gun
+			inherit=		"itRevolverBase"
 			clipSize=		"7"
-			maxAmmo=		"35"
-			reloadType=		"magazine"
-			fireTime=		"10"
-			reloadTime=		"10"
+			maxAmmo=		"21"
 			critOnLastShot=	"true"
 			>
 		</Gun>

@@ -41,7 +41,7 @@ namespace IslandHopper {
                 camera = new XYZ(0, 0, 0),
                 types = new TypeCollection(XElement.Parse(Properties.Resources.Items))
 			};
-			World.player = new Player(World, new XYZ(29, 29, 1));
+			World.player = new Player(World, new XYZ(28.5, 29.5, 1));
 			//World.AddEntity(new Player(World, new Point3(85, 85, 20)));
 
 			for (int x = 0; x < World.voxels.Width; x++) {
