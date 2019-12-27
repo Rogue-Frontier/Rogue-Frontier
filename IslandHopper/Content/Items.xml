@@ -114,14 +114,37 @@ EASTER EGGS
 		>
 	</Player>
 	<Source
+		type=			"itRocketLauncherBase"
+		>
+		<Gun
+			projectile=		"missile"
+			clipSize=		"6"
+			maxAmmo=		"24"
+			reloadType=		"single"
+			fireTime=		"10"
+			reloadTime=		"30"
+			bulletSpeed=	"30"
+			>
+			<Missile
+				damage=			"16"
+				explosionRadius="12"
+				/>
+		</Gun>
+	</Source>
+	<Source
 		type=			"itRevolverBase"
 		>
 		<Gun
+			projectile=		"bullet"
+			damage=			"16"
 			clipSize=		"6"
 			maxAmmo=		"24"
 			reloadType=		"magazine"
 			fireTime=		"10"
 			reloadTime=		"30"
+			bulletSpeed=	"30"
+			recoil=			"0"
+			noiseRange=		"30"
 			/>
 	</Source>
 	<Source
@@ -180,7 +203,7 @@ EASTER EGGS
 			projectile=			"laser"
 			difficulty=			"none"
 			recoil=				"0"
-			noise=				"0"
+			noiseRange=			"0"
 			/>
 	</ItemType>
 	<ItemType
@@ -234,7 +257,7 @@ EASTER EGGS
 	</ItemType>
 	<ItemType
 		name=   		"The Trebuchet"
-		desc=     		"This robotic armor allows you to launch grenades farther than a catapult can."
+		desc=     		"This robotic arm plate allows you to launch grenades farther than a catapult can."
 		>
 		<Arm
 			strength= 	"200"
@@ -247,17 +270,27 @@ EASTER EGGS
 		mass=			"3"
 		>
 		<Gun
-			projectile=   "missile"
-			difficulty=   "easy"
+			difficulty=  	"hard"
+			damage=			"20"
+			clipSize=		"1"
+			maxAmmo=		"24"
+			reloadType=		"single"
+			fireTime=		"20"
+			reloadTime=		"30"
 			/>
 	</ItemType>
 	<ItemType
 		type=			"itCookieJar"
 		name=			"The Cookie Jar"
-		desc=			"This little chip of a grenade will really cook your enemies to a chocolate crisp with a jarring explosion."
+		desc=			"An explosive with blue floral patterns painted on its ceramic shell. This little chip of a grenade will really bake your enemies to a chocolate crisp with a jarring explosion. As it detonates on impact and cannot be armed without lifting the lid and putting your hand inside."
 		>
 		<Grenade
 			inherit=	"itGrenadeBase"
+			canArm=					"false"
+			detonateOnImpact=		"true"
+			explosionRadius=		"40"
+			explosionDamage=		"30"
+			explosionForce=			"15"
 			/>
 	</ItemType>
 	<ItemType
@@ -280,6 +313,7 @@ EASTER EGGS
 			clipSize=		"7"
 			maxAmmo=		"21"
 			critOnLastShot=	"true"
+			reloadTime=		"50"
 			>
 		</Gun>
 	</ItemType>
@@ -295,11 +329,6 @@ EASTER EGGS
 		</Flamethrower>
 	</ItemType>
 	<ItemType
-		name=			"The Parashooter"
-		desc=			"This gun-on-a-parachute is designed to let you fight from the air."
-		>
-	</ItemType>
-	<ItemType
 		name=			"Laser Dart gun"
 		desc=			"This toy gun shoots red plastic rods (dubbed 'Lasers') at a velocity that is not safe for a kids' toy."
 		mass=			"1"
@@ -307,6 +336,16 @@ EASTER EGGS
 		<Gun
 			projectile=			"bullet"
 			difficulty=			"easy"
+			damage=				"5"
+			clipSize=			"12"
+			maxAmmo=			"108"
+			reloadType=			"magazine"
+			fireTime=			"6"
+			reloadTime=			"30"
+			recoil=				"0"
+			
+			bulletSpeed=		"20"
+			noiseRange=			"15"
 			/>
 	</ItemType>
 	<ItemType
