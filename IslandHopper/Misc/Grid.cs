@@ -46,7 +46,7 @@ namespace IslandHopper {
 		public int xi { get => (int)x; set => x = value; }
 		public int yi { get => (int)y; set => y = value; }
 		public int zi { get => (int)z; set => z = value; }
-		public XYZ() {
+        public XYZ() {
 			x = 0;
 			y = 0;
 			z = 0;
@@ -66,6 +66,11 @@ namespace IslandHopper {
 			this.y = y;
 			this.z = z;
 		}
+        public XYZ(int x, int y, int z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
         public XYZ copy => new XYZ(x, y, z);
 		public double xyAngle => xy.Angle;
 		public double zAngle => Math.Atan2(z, xy.Magnitude);
@@ -87,7 +92,8 @@ namespace IslandHopper {
 		public static XYZ operator *(XYZ p, double s) => new XYZ(p.x * s, p.y * s, p.z * s);
 		public static XYZ operator /(XYZ p, double s) => new XYZ(p.x / s, p.y / s, p.z / s);
 		public double Magnitude => Math.Sqrt(x * x + y * y + z * z);
-		public XYZ Normal {
+        public double Magnitude2 => x * x + y * y + z * z;
+        public XYZ Normal {
 			get {
                 if(x == 0 && y == 0 && z == 0) {
                     return new XYZ();

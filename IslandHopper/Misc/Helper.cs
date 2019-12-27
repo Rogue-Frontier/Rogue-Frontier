@@ -102,7 +102,15 @@ namespace IslandHopper {
 				y++;
 			}
 		}
-		//This function calculates all the points on a hollow cube of given radius around an origin of (0, 0, 0)
+        public static List<XYZ> GetWithin(int radius) {
+            List<XYZ> result = new List<XYZ>();
+            for (int i = 0; i < radius; i++) {
+                result.AddRange(GetSurrounding(i));
+            }
+            result = new List<XYZ>(result.Distinct(new XYZGridComparer()));
+            return result;
+        }
+        //This function calculates all the points on a hollow cube of given radius around an origin of (0, 0, 0)
 		public static List<XYZ> GetSurrounding(int radius) {
 			//Cover all the corners
 			var result = new List<XYZ>() {

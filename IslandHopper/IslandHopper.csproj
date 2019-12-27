@@ -47,6 +47,7 @@
     <Compile Include="Main\GameMenu.cs" />
     <Compile Include="Misc\Constants.cs" />
     <Compile Include="Misc\Debug.cs" />
+    <Compile Include="Vision.cs" />
     <Compile Include="World\Body.cs" />
     <Compile Include="World\Damage.cs" />
     <Compile Include="World\Effect.cs" />
@@ -56,6 +57,7 @@
     <Compile Include="Main\GameConsole.cs" />
     <Compile Include="Misc\Grid.cs" />
     <Compile Include="Misc\Helper.cs" />
+    <Compile Include="World\Health.cs" />
     <Compile Include="World\Item.cs" />
     <Compile Include="Main\ProgramExample.cs" />
     <Compile Include="Main\Runner.cs" />
@@ -67,7 +69,10 @@
     </Compile>
     <Compile Include="Main\TitleConsole.cs" />
     <Compile Include="Types\Types.cs" />
+    <Compile Include="World\Plane.cs" />
+    <Compile Include="World\Player.cs" />
     <Compile Include="World\Projectile.cs" />
+    <Compile Include="World\Segment.cs" />
     <Compile Include="World\Voxel.cs" />
     <Compile Include="World\World.cs" />
     <Compile Include="World\WorldEvent.cs" />

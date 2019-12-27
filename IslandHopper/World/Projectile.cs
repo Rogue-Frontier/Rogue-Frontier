@@ -52,9 +52,10 @@ namespace IslandHopper {
                 }
             });
             if (this.OnGround() && Velocity.Magnitude < 0.2) {
+
                 this.DebugInfo("Landed on ground");
                 Thrower.Witness(new InfoEvent(new ColoredString($"Thrown {Thrown.Name} lands on the ground.")));
-				//this.DebugExit();
+                //this.DebugExit();
                 flying = false;
             }
         }
@@ -272,16 +273,17 @@ namespace IslandHopper {
 			Active = lifetime --> 0;
 		}
 	}
+    //Explosions are just a visual effect
 	class ExplosionSource : Entity {
 		public Island World { get; }
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredGlyph('*', tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
-		public ColoredString Name => new ColoredString("Explosion", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
+		public ColoredGlyph SymbolCenter => new ColoredGlyph('*', (int)tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
+		public ColoredString Name => new ColoredString("Explosion", (int)tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 
-		private int tick;   //Used for sprite flashing
+		private double tick;   //Used for sprite flashing
 
 		private List<XYZ> explosionOffsets;	//List of points surrounding our center that we will expand to
 		private int tileIndex;
@@ -316,7 +318,7 @@ namespace IslandHopper {
             expansionTime = maxRadius / expansionRate;
 		}
 		public void UpdateRealtime(TimeSpan delta) {
-			tick++;
+			tick += delta.TotalSeconds;
 		}
 		public void UpdateStep() {
 			currentRadius += expansionRate;
@@ -341,7 +343,7 @@ namespace IslandHopper {
 			}
 			while (explosionOffsets[tileIndex].Magnitude < currentRadius) {
                 //Expand to this tile
-                World.AddEntity(new ExplosionBlock(World, Position + explosionOffsets[tileIndex]) {
+                World.AddEffect(new ExplosionBlock(World, Position + explosionOffsets[tileIndex]) {
                     lifetime = (int)(expansionTime * (1 - currentRadius / maxRadius) * 5 + World.karma.Next(0, 20))
                 });
 

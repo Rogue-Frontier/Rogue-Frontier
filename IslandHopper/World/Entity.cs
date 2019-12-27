@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using SadConsole;
+﻿using SadConsole;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +14,7 @@ namespace IslandHopper {
         bool Active { get; }
     }
     */
-	public interface Entity : Effect {
+    public interface Entity : Effect {
         Island World { get; }
 		//XYZ Position { get; set; }			//Position in meters
 		XYZ Velocity { get; set; }			//Velocity in meters per step
@@ -31,9 +30,6 @@ namespace IslandHopper {
         void OnDamaged(Damager source);
     }
     public interface Damager {
-        ColoredString Name { get; }
-        int damage { get; }
-        double knockback { get; }
     }
 	public static class EntityHelper {
 		public static bool OnGround(this Entity g) => g.World.voxels.InBounds(g.Position) && (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-0.8)].Collision == VoxelType.Solid);
@@ -69,7 +65,12 @@ namespace IslandHopper {
 		}
 		public static void UpdateMotion(this Entity g) {
 			if(g.Velocity < 0.1) {
-				return;
+                var p = g.Position + g.Velocity;
+                var v = g.World.voxels.Try(p);
+                if (v is Air) {
+                    g.Position = p;
+                }
+                return;
 			}
 			XYZ step = CalcMotionStep(g.Velocity);
 			XYZ final = g.Position;
@@ -90,11 +91,25 @@ namespace IslandHopper {
 			g.Position = final;
 		}
 		public static void UpdateMotionCollision(this Entity g, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
-            /*
+            //If the velocity is too small, then we get an infinite loop from trying to increment
             if (g.Velocity < 0.1) {
-				return;
+                var p = g.Position + g.Velocity;
+                var v = g.World.voxels.Try(p);
+                if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
+                    if (ignoreEntityCollision != null) {
+                        var entities = g.World.entities[p].Where(e => !ReferenceEquals(e, g));
+                        foreach (var entity in entities) {
+                            if (!ignoreEntityCollision(entity)) {
+                                return;
+                            }
+                        }
+                        g.Position = p;
+                    } else {
+                        g.Position = p;
+                    }
+                }
+                return;
 			}
-            */
             //ignoreEntityCollision = ignoreEntityCollision ?? (e => true);
             //ignoreTileCollision = ignoreTileCollision ?? (v => false);
 			XYZ step = CalcMotionStep(g.Velocity);
@@ -122,11 +137,27 @@ namespace IslandHopper {
 		}
         public static void UpdateMotionCollisionTrail(this Entity g, out HashSet<XYZ> trail, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
             trail = new HashSet<XYZ>(new XYZGridComparer());
-            /*
+
             if (g.Velocity < 0.1) {
+                var p = g.Position + g.Velocity;
+                var v = g.World.voxels.Try(p);
+                if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
+                    if (ignoreEntityCollision != null) {
+                        var entities = g.World.entities[p].Where(e => !ReferenceEquals(e, g));
+                        foreach (var entity in entities) {
+                            if (!ignoreEntityCollision(entity)) {
+                                return;
+                            }
+                        }
+                        g.Position = p;
+                    } else {
+                        g.Position = p;
+                    }
+                }
+                trail.Add(p.i);
                 return;
             }
-            */
+
             //ignoreEntityCollision = ignoreEntityCollision ?? (e => true);
             //ignoreTileCollision = ignoreTileCollision ?? (v => false);
             XYZ step = CalcMotionStep(g.Velocity);
@@ -159,112 +190,6 @@ namespace IslandHopper {
 			if (e is Witness w)
 				w.Witness(we);
 		}
-	}
-	interface Witness {
-		void Witness(WorldEvent e);
-	}
-	public class Player : Entity, Witness {
-		public XYZ Velocity { get; set; }
-		public XYZ Position { get; set; }
-		public Island World { get; set; }
-		public HashSet<EntityAction> Actions { get; private set; }
-		public HashSet<IItem> Inventory { get; private set; }
-        public HashSet<Effect> Watch { get; private set; }
-		public List<HistoryEntry> HistoryLog { get; }	//All events that the player has witnessed
-		public List<HistoryEntry> HistoryRecent { get; }   //Events that the player is currently witnessing
-
-
-		public class HistoryEntry {
-            public ColoredString Desc => times == 1 ? _desc : (_desc + new ColoredString($" (x{times})", Color.White, Color.Black));
-            public ColoredString _desc;
-            public int times;
-			public double ScreenTime;
-			public HistoryEntry(ColoredString Desc, double ScreenTime = 4) {
-				this._desc = Desc;
-				this.ScreenTime = ScreenTime;
-                this.times = 1;
-			}
-            public void SetScreenTime(double ScreenTime = 4) {
-                this.ScreenTime = ScreenTime;
-            }
-		}
-
-		public int frameCounter = 0;
-
-		public Player(Island World, XYZ Position) {
-			this.World = World;
-			this.Position = Position;
-			this.Velocity = new XYZ(0, 0, 0);
-			Actions = new HashSet<EntityAction>();
-			Inventory = new HashSet<IItem>();
-            Watch = new HashSet<Effect>();
-
-			HistoryLog = new List<HistoryEntry>();
-			HistoryRecent = new List<HistoryEntry>();
-
-			World.AddEntity(new Parachute(this));
-		}
-		public bool AllowUpdate() => Actions.Count > 0 || frameCounter > 0;
-		public bool Active => true;
-		public void OnRemoved() { }
-		public void UpdateRealtime(TimeSpan delta) {
-            HistoryRecent.RemoveAll(e => (e.ScreenTime -= delta.TotalSeconds) < 0);
-            foreach(var i in Inventory) {
-                i.UpdateRealtime(delta);
-            }
-		}
-		public void UpdateStep() {
-            if (frameCounter > 0)
-                frameCounter--;
-
-            this.UpdateGravity();
-            this.UpdateMotion();
-
-            foreach (var a in Actions) {
-                a.Update();
-            }
-			Actions.RemoveWhere(a => a.Done());
-            
-			foreach(var i in Inventory) {
-                //Copy so that when the item updates motion, the change does not apply to the player
-				i.Position = Position.copy;
-				i.Velocity = Velocity.copy;
-                i.UpdateStep();
-			}
-            
-            Inventory.RemoveWhere(i => !i.Active);
-            Watch.RemoveWhere(t => !t.Active);
-			if(!this.OnGround())
-				frameCounter = 20;
-
-			//HistoryRecent.RemoveAll(e => e.ScreenTime < 1);
-		}
-
-		public void Witness(WorldEvent e) {
-            var desc = e.Desc;
-            if(HistoryLog.Count == 0) {
-                var entry = new HistoryEntry(desc);
-                HistoryLog.Add(entry);
-                HistoryRecent.Add(entry);
-            } else {
-                var last = HistoryLog.Last();
-                if(last._desc.ToString() == desc.ToString()) {
-                    last.times++;
-                    last.SetScreenTime();
-
-                    if(HistoryRecent.Count == 0 || HistoryRecent.Last()._desc.ToString() != desc.ToString()) {
-                        HistoryRecent.Add(last);
-                    }
-                } else {
-                    var entry = new HistoryEntry(desc);
-                    HistoryLog.Add(entry);
-                    HistoryRecent.Add(entry);
-                }
-            }
-        }
-
-		public ColoredGlyph SymbolCenter => new ColoredString("@", Color.White, Color.Black)[0];
-		public ColoredString Name => new ColoredString("Player", Color.White, Color.Black);
 	}
 
 	/*

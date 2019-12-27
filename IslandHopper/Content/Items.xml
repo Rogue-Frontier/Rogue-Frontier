@@ -121,7 +121,20 @@ EASTER EGGS
 			maxAmmo=		"24"
 			reloadType=		"magazine"
 			fireTime=		"10"
-			reloadTime=		"10"
+			reloadTime=		"30"
+			/>
+	</Source>
+	<Source
+		type=			"itGrenadeBase"
+		>
+		<Grenade
+			detonateOnDamage=		"true"
+			detonateOnImpact=		"false"
+			canArm=					"true"
+			fuseTime=				"40"
+			explosionRadius=		"30"
+			explosionDamage=		"20"
+			explosionForce=			"10"
 			/>
 	</Source>
 	<ItemType
@@ -239,9 +252,13 @@ EASTER EGGS
 			/>
 	</ItemType>
 	<ItemType
+		type=			"itCookieJar"
 		name=			"The Cookie Jar"
-		desc=			"This little chip of a grenade will really cook your enemies to a chocolate crisp in a jarring explosion."
+		desc=			"This little chip of a grenade will really cook your enemies to a chocolate crisp with a jarring explosion."
 		>
+		<Grenade
+			inherit=	"itGrenadeBase"
+			/>
 	</ItemType>
 	<ItemType
 		type=			"itTinMan"

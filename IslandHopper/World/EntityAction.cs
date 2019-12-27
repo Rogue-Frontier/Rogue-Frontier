@@ -57,7 +57,7 @@ namespace IslandHopper {
         //When creating this object, caller must remember to add the Reticles to the world
         public Reticle targetReticle;
         public Reticle aimReticle;
-        public ShootAction(Entity player, IItem item, Entity target, XYZ aim = null, int shotsLeft = 10) {
+        public ShootAction(Entity player, IItem item, Entity target, XYZ aim = null, int shotsLeft = 1) {
             this.player = player;
             this.item = item;
             this.target = target;
@@ -72,7 +72,7 @@ namespace IslandHopper {
                 p.Watch.Add(aimReticle);
             }
         }
-        public ShootAction(Entity player, IItem item, XYZ targetPos, XYZ aim = null, int shotsLeft = 10) {
+        public ShootAction(Entity player, IItem item, XYZ targetPos, XYZ aim = null, int shotsLeft = 1) {
             this.player = player;
             this.item = item;
             this.target = null;
@@ -146,7 +146,17 @@ namespace IslandHopper {
 
             }
             */
-            if (needAdjust) {
+            if (item.Gun.GetState() == Gun.State.NeedsAmmo) {
+                //TO DO
+                //For now, we should just leave a message saying that the gun is out of ammo
+                shotsLeft = 0;
+                player.Witness(new InfoEvent(new ColoredString("The ") + item.Name + new ColoredString(" is out of ammo!")));
+            } else if (item.Gun.GetState() == Gun.State.NeedsReload) {
+                //For now, we just reload if we need to
+                item.Gun.Reload();
+            } else if (item.Gun.GetState() == Gun.State.Reloading) {
+                //Don't allow aiming while we're reloading
+            } else if (needAdjust) {
                 //Bring our aim closer to the target position
                 //aim += diff.Normal * Math.Min(diff.Magnitude, 1);
                 //If the player is running towards/away from the target, adjust aim faster

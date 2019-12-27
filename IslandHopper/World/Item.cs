@@ -15,6 +15,7 @@ namespace IslandHopper {
 
 	}
     public interface ItemComponent {
+        void UpdateRealtime();
         void UpdateStep();
         void Modify(ref ColoredString Name);
     }
@@ -34,21 +35,45 @@ namespace IslandHopper {
         public void Arm(bool Armed = true) {
             this.Armed = Armed;
         }
+        public void Detonate() {
+            item.Destroy();
+            item.World.AddEffect(new ExplosionSource(item.World, item.Position, 6));
+            foreach(var offset in Helper.GetWithin(type.explosionRadius)) {
+                var pos = item.Position + offset;
+                foreach(var hit in item.World.entities[pos]) {
+                    if(hit is Damageable d && hit != item) {
+                        var displacement = hit.Position - item.Position;
+
+                        var radius2 = type.explosionRadius * type.explosionRadius;
+                        var multiplier = (radius2 - displacement.Magnitude2) / radius2;
+                        ExplosionDamage damage = new ExplosionDamage() {
+                            damage = (int)(type.explosionDamage * multiplier),
+                            knockback = displacement.Normal * type.explosionForce * multiplier
+                        };
+                        d.OnDamaged(damage);
+                    }
+                }
+            }
+        }
+        public void UpdateRealtime() { }
         public void UpdateStep() {
             if(Armed) {
                 if(Countdown > 0) {
                     Countdown--;
                 } else {
-                    item.Destroy();
-                    item.World.AddEntity(new ExplosionSource(item.World, item.Position, 6));
+                    Detonate();
                 }
             }
         }
         public void Modify(ref ColoredString Name) {
             if(Armed) {
-                Name = new ColoredString("[Armed] ", Color.Red, Color.White) + Name;
+                Name = new ColoredString("[Armed] ", Color.Red, Color.Black) + Name;
             }
         }
+    }
+    public class ExplosionDamage : Damager {
+        public int damage;
+        public XYZ knockback;
     }
     public class Gun : ItemComponent {
         public enum State {
@@ -81,16 +106,17 @@ namespace IslandHopper {
         public State GetState() {
             if(AmmoLeft == 0 && ClipLeft == 0) {
                 return State.NeedsAmmo;
-            } else if(ClipLeft == 0) {
-                return State.NeedsReload;
             } else if(ReloadTimeLeft > 0) {
                 return State.Reloading;
+            } else if (ClipLeft == 0) {
+                return State.NeedsReload;
             } else if(FireTimeLeft > 0) {
                 return State.Firing;
             } else {
                 return State.Ready;
             }
         }
+        public void UpdateRealtime() { }
         public void UpdateStep() {
             if(ReloadTimeLeft > 0) {
                 if(--ReloadTimeLeft == 0) {
@@ -126,7 +152,46 @@ namespace IslandHopper {
         }
         */
 	}
-	public class Item : IItem {
+    public class ParticleSystem : ItemComponent {
+
+        public void Modify(ref ColoredString Name) { }
+
+        public void UpdateRealtime() {
+
+        }
+
+        public void UpdateStep() { }
+
+        public class FlickerParticle : Effect {
+            public char c => symbol.GlyphCharacter;
+            public int r => symbol.Foreground.R;
+            public int g => symbol.Foreground.G;
+            public int b => symbol.Foreground.B;
+            public ColoredGlyph SymbolCenter => new ColoredGlyph(c, new Color(r, g, b, (int)(255 * (lifetime > 5 ? 1 : (lifetime + 5) / 10f))), Color.Black);
+            public XYZ Position { get; set; }
+            public XYZ Velocity { get; set; }
+            public double lifetime;
+            ColoredGlyph[] symbols;
+            public double symbolInterval;
+            public ColoredGlyph symbol;
+            public bool Active => lifetime > 0;
+            public FlickerParticle(XYZ Position, XYZ Velocity, double lifetime, params ColoredGlyph[] symbols) {
+                this.Position = Position;
+                this.Velocity = Velocity;
+                this.lifetime = lifetime;
+                this.symbols = symbols;
+                this.symbolInterval = 0.5;
+                this.symbol = symbols[0];
+            }
+            public void UpdateRealtime(TimeSpan delta) {
+                lifetime -= delta.TotalSeconds;
+                symbol = symbols[(int)(lifetime / symbolInterval) % symbols.Length];
+            }
+            public void UpdateStep() {
+            }
+        }
+    }
+    public class Item : IItem {
 		public Island World { get; set; }
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
@@ -154,7 +219,10 @@ namespace IslandHopper {
         public bool Active { get; private set; } = true;
 		public void OnRemoved() { }
 
-		public void UpdateRealtime(TimeSpan delta) { }
+		public void UpdateRealtime(TimeSpan delta) {
+            Grenade?.UpdateRealtime();
+            Gun?.UpdateRealtime();
+        }
 		public void UpdateStep() {
             //Somehow this prevents the player from moving when held
             //It's because the Velocity of this item is a reference to the player's velocity
@@ -221,7 +289,7 @@ namespace IslandHopper {
         public void OnDamaged(Damager source) {
             if(source is Bullet b) {
                 durability -= b.damage;
-                user.Witness(new InfoEvent(source.Name + new ColoredString(" damages ") + Name));
+                user.Witness(new InfoEvent(b.Name + new ColoredString(" damages ") + Name));
             }
             if(durability < 1) {
                 Active = false;

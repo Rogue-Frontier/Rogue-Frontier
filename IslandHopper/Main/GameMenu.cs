@@ -98,7 +98,7 @@ namespace IslandHopper {
                     case ShootAction fire:
                         var gun = fire.item.Gun;
                         var delay = gun.FireTimeLeft + gun.ReloadTimeLeft;
-                        Print(1, printY, new ColoredString(gun.ReloadTimeLeft > 0 ? "Reloading " : gun.FireTimeLeft > 0 ? "Firing " : "Aiming", Color.Cyan, Color.Black)
+                        Print(1, printY, new ColoredString(gun.ReloadTimeLeft > 0 ? "Reloading " : gun.FireTimeLeft > 0 ? "Firing " : "Aiming ", Color.Cyan, Color.Black)
                             + fire.item.Name + new ColoredString(" ")
                             + new ColoredString(new string('>', delay)));
                         break;

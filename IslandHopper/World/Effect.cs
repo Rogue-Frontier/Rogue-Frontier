@@ -31,11 +31,16 @@ namespace IslandHopper {
     public class Trail : Effect {
         public XYZ Position { get; set; }
 
-        public ColoredGlyph SymbolCenter => new ColoredGlyph(symbol, new Color(255, 255, 255, (int) (255 * (lifetime > 5 ? 1 : (lifetime + 5)/10f))), Color.Black);
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(symbol.Glyph, new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (int) (255 * (lifetime > 5 ? 1 : (lifetime + 5)/10f))), Color.Black);
         public int lifetime;
-        char symbol;
+        ColoredGlyph symbol;
         public bool Active => lifetime > 0;
         public Trail(XYZ Position, int lifetime, char symbol) {
+            this.Position = Position;
+            this.lifetime = lifetime;
+            this.symbol = new ColoredGlyph(symbol, Color.White, Color.Black);
+        }
+        public Trail(XYZ Position, int lifetime, ColoredGlyph symbol) {
             this.Position = Position;
             this.lifetime = lifetime;
             this.symbol = symbol;
@@ -44,7 +49,18 @@ namespace IslandHopper {
         public void UpdateStep() {
             lifetime--;
         }
+    }
+    public class Decal : Effect {
+        public XYZ Position { get; set; }
 
-        
+        public ColoredGlyph SymbolCenter => symbol;
+        public ColoredGlyph symbol;
+        public bool Active => true;
+        public Decal(XYZ Position, ColoredGlyph symbol) {
+            this.Position = Position;
+            this.symbol = symbol;
+        }
+        public void UpdateRealtime(TimeSpan delta) { }
+        public void UpdateStep() { }
     }
 }

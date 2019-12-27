@@ -203,17 +203,29 @@ namespace IslandHopper {
 		}
         public class GrenadeType {
             public static string Tag = "Grenade";
-
+            //TO DO: Implement DetonateOnDamage / DeonateOnImpact
             public bool detonateOnDamage;
             public bool detonateOnImpact;
             public bool canArm;
             public int fuseTime;
+            public int explosionRadius;
+            public int explosionDamage;
+            public int explosionForce;
 
             public GrenadeType(TypeCollection collection, XElement e) {
+                string inherit = e.TryAttribute(nameof(inherit), null);
+                if (inherit != null) {
+                    var source = collection.sources[inherit].Element(Tag);
+                    e.InheritAttributes(source);
+                }
+
                 detonateOnDamage = e.TryAttributeBool(nameof(detonateOnDamage), true);
                 detonateOnImpact = e.TryAttributeBool(nameof(detonateOnImpact), false);
                 canArm = e.TryAttributeBool(nameof(canArm), true);
                 fuseTime = e.TryAttributeInt(nameof(fuseTime), 5);
+                explosionDamage = e.TryAttributeInt(nameof(explosionDamage), 5);
+                explosionForce = e.TryAttributeInt(nameof(explosionForce), 5);
+                explosionRadius = e.TryAttributeInt(nameof(explosionRadius), 5);
             }
             public Grenade GetGrenade(IItem item) => new Grenade(item) {
                 type = this,
@@ -253,6 +265,8 @@ namespace IslandHopper {
 
             public int initialClip;
             public int initialAmmo;
+
+            //TO DO: Implement critOnLastShot
 
 
 			public GunType(TypeCollection collection, XElement e) {
