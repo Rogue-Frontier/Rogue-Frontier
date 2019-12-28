@@ -111,6 +111,7 @@ namespace IslandHopper {
 
         internal XYZ Extend(double length) => Normal * (Magnitude + length);
         public double Dot(XYZ other) => x * other.x + y * other.y + z * other.z;
+        public bool Equals(XYZ other) => x == other.x && y == other.y && z == other.z;
     }
 	//	2D array wrapper; allows one item per point
 	public class ArrayGrid<T> {

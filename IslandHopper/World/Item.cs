@@ -40,11 +40,14 @@ namespace IslandHopper {
             item.World.AddEffect(new ExplosionSource(item.World, item.Position, 6));
             foreach(var offset in Helper.GetWithin(type.explosionRadius)) {
                 var pos = item.Position + offset;
-                foreach(var hit in item.World.entities[pos]) {
+                var displacement = pos - item.Position;
+                var dist2 = displacement.Magnitude2;
+                var radius2 = type.explosionRadius * type.explosionRadius;
+                if (dist2 > radius2) {
+                    continue;
+                }
+                foreach (var hit in item.World.entities[pos]) {
                     if(hit is Damageable d && hit != item) {
-                        var displacement = hit.Position - item.Position;
-
-                        var radius2 = type.explosionRadius * type.explosionRadius;
                         var multiplier = (radius2 - displacement.Magnitude2) / radius2;
                         ExplosionDamage damage = new ExplosionDamage() {
                             damage = (int)(type.explosionDamage * multiplier),

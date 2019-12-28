@@ -44,6 +44,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Animation.cs" />
     <Compile Include="Main\GameMenu.cs" />
     <Compile Include="Misc\Constants.cs" />
     <Compile Include="Misc\Debug.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="World\Body.cs" />
     <Compile Include="World\Damage.cs" />
     <Compile Include="World\Effect.cs" />
+    <Compile Include="World\Enemy.cs" />
     <Compile Include="World\Entity.cs" />
     <Compile Include="World\EntityAction.cs" />
     <Compile Include="Main\Program.cs" />
@@ -83,6 +85,9 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Priority Queue, Version=4.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OptimizedPriorityQueue.4.2.0\lib\net45\Priority Queue.dll</HintPath>
     </Reference>
     <Reference Include="SadConsole, Version=8.99.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SadConsole.8.99.0\lib\netstandard2.0\SadConsole.dll</HintPath>

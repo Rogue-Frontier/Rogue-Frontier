@@ -54,7 +54,8 @@ namespace IslandHopper {
             health = new Health();
 		}
 		public bool AllowUpdate() => Actions.Count > 0 || frameCounter > 0;
-		public bool Active => true;
+        public bool Active { get; private set; } = true;
+        //TO DO: Make sure we remember to call this whenever something is removed for good
 		public void OnRemoved() { }
 		public void UpdateRealtime(TimeSpan delta) {
             HistoryRecent.RemoveAll(e => (e.ScreenTime -= delta.TotalSeconds) < 0);
@@ -65,9 +66,14 @@ namespace IslandHopper {
 		public void UpdateStep() {
             tick++;
             health.UpdateStep();
-            if(health.bleeding > 0 && tick%5 == 0) {
+            if (health.bleeding > 0 && tick % 5 == 0) {
                 World.AddEffect(new Trail(Position, 150, new ColoredGlyph('+', Color.Red, Color.Black)));
             }
+            if (health.bloodHP < 1 || health.bodyHP < 1) {
+                Active = false;
+                this.Witness(new InfoEvent("You have died"));
+            }
+
             if (frameCounter > 0)
                 frameCounter--;
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using SadConsole;
 using System;
+using System.Collections.Generic;
 using static IslandHopper.Constants;
 namespace IslandHopper {
 	public interface EntityAction {
@@ -208,7 +209,7 @@ namespace IslandHopper {
 		public WalkAction(Entity actor, XYZ displacement) {
 			this.player = actor;
 			this.displacement = displacement;
-			this.delta = displacement / STEPS_PER_SECOND;
+			this.delta = (displacement / STEPS_PER_SECOND);
 			ticks = STEPS_PER_SECOND;
 		}
 		public void Update() {
@@ -265,58 +266,30 @@ namespace IslandHopper {
 		public void Update() => ticks--;
 		public bool Done() => ticks == 0;
 	}
-	public class AlwaysUpdate : EntityAction {
-		public void Update() { }
-		public bool Done() => false;
-	}
-	/*
-	class Human : Entity {
-		public Point3 Velocity { get; set; }
-		public Point3 Position { get; set; }
-		public GameConsole World { get; private set; }
-		public HashSet<PlayerAction> Actions;
-		public Human(GameConsole World, Point3 Position) {
-			this.World = World;
-			this.Position = Position;
-			this.Velocity = new Point3(0, 0, 0);
-			Actions = new HashSet<PlayerAction>();
-		}
-		public bool IsActive() => true;
-		public bool OnGround() => (World.voxels[Position] is Floor || World.voxels[Position.PlusZ(-1)] is Grass);
-		public void UpdateRealtime() {
-
-		}
-		public void UpdateStep() {
-			//	Fall or hit the ground
-			if(Velocity.z < 0 && OnGround()) {
-				Velocity.z = 0;
-			} else {
-				System.Console.WriteLine("fall");
-				Velocity += new Point3(0, 0, -9.8 / STEPS_PER_SECOND);
-			}
-			Point3 normal = Velocity.Normal();
-			Point3 dest = Position;
-			for(Point3 p = Position + normal; (Position - p).Magnitude() < Velocity.Magnitude(); p += normal) {
-				if(World.voxels[p] is Air) {
-					dest = p;
-				} else {
-					break;
-				}
-			}
-			Position = dest;
-			Actions.ToList().ForEach(a => a.Update());
-			Actions.RemoveWhere(a => a.Done());
-		}
-
-		public static readonly ColoredString symbol = new ColoredString("U", Color.White, Color.Transparent);
-		public virtual ColoredString GetSymbolCenter() => symbol;
-	}
-	class Player : Human {
-
-		public Player(GameConsole World, Point3 Position) : base(World, Position) { }
-		public bool AllowUpdate() => Actions.Count > 0;
-		public static ColoredString symbol_player = new ColoredString("@", Color.White, Color.Transparent);
-		public override ColoredString GetSymbolCenter() => symbol_player;
-	}
-	*/
+    public interface CompoundAction : EntityAction {}
+    public class FollowPath : CompoundAction {
+        public Actor actor;
+        public LinkedList<XYZ> points;
+        private WalkAction action;
+        public FollowPath(Actor actor, LinkedList<XYZ> points) {
+            this.actor = actor;
+            this.points = points;
+        }
+        public void Update() {
+            //Note: If the actor is pushed during this compound action, it will automatically warp back to the path. We should handle interruptions where the actor is attacked
+            if(action?.Done() != false) {
+                if(points.Count == 0) {
+                    return;
+                }
+                //Make a new action
+                points.RemoveFirst();
+                if(points.Count > 0) {
+                    action = new WalkAction(actor, points.First.Value - actor.Position);
+                }
+            } else {
+                action.Update();
+            }
+        }
+        public bool Done() => points.Count == 0;
+    }
 }

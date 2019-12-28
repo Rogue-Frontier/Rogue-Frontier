@@ -20,7 +20,7 @@ namespace IslandHopper.World {
         public void UpdateStep() {
             if(bleeding > 0) {
                 bloodHP -= bleeding / 30;
-                bleeding -= 1 / 30f;
+                bleeding -= 3 / 30f;
             }
         }
     }

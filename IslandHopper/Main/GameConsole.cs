@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using IslandHopper.World;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using SadConsole;
 using SadConsole.Themes;
@@ -53,10 +54,11 @@ namespace IslandHopper {
 
 			for(int i = 0; i < 1; i++) {
 
-				World.entities.Place(World.types.Lookup<ItemType>("itCookieJar").GetItem(World, new XYZ(28.5, 29.5, 1)));
+				World.entities.Place(World.types.Lookup<ItemType>("itSevenShooter").GetItem(World, new XYZ(28.5, 29.5, 1)));
             }
 			
 			World.entities.Place(World.player);
+            World.entities.Place(new Enemy(World, new XYZ(35, 35, 1)));
 		}
 		public override void Show(bool modal) {
 			base.Show(modal);

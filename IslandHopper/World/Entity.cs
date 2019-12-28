@@ -14,6 +14,9 @@ namespace IslandHopper {
         bool Active { get; }
     }
     */
+    public interface Actor : Entity {
+        HashSet<EntityAction> actions { get; }
+    }
     public interface Entity : Effect {
         Island World { get; }
 		//XYZ Position { get; set; }			//Position in meters
@@ -40,9 +43,6 @@ namespace IslandHopper {
                 if(g.Velocity.z < 0) {
                     g.Velocity.z = 0;
                 }
-                if (g is Player) {
-                    int a = 5;
-                }
 			} else {
 				Debug.Print("fall");
 				g.Velocity += new XYZ(0, 0, -9.8 / STEPS_PER_SECOND);
@@ -64,6 +64,8 @@ namespace IslandHopper {
 			}
 		}
 		public static void UpdateMotion(this Entity g) {
+            //TO DO: Implement fall damage
+
 			if(g.Velocity < 0.1) {
                 var p = g.Position + g.Velocity;
                 var v = g.World.voxels.Try(p);

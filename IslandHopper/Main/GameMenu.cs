@@ -40,11 +40,11 @@ namespace IslandHopper {
             if (World.player.AllowUpdate() && IsFocused && (now - lastUpdate).TotalSeconds > 1/60f) {
                 lastUpdate = now;
                 this.DebugInfo("Global Update");
-                foreach (var e in World.entities.all.ToList()) {
+                foreach (var e in new List<Entity>(World.entities.all)) {
                     e.DebugInfo("UpdateStep() by world");
                     e.UpdateStep();
                 }
-                foreach (var e in World.effects.all.ToList()) {
+                foreach (var e in new List<Effect>(World.effects.all)) {
                     e.DebugInfo("UpdateStep() by world");
                     e.UpdateStep();
                 }
@@ -105,6 +105,13 @@ namespace IslandHopper {
                 }
                 printY++;
             }
+
+            int printX;
+            (printX, printY) = (Width - 16, Height - 2);
+            Print(printX, printY, new ColoredString("Body HP:  ") + new ColoredString(World.player.health.bodyHP.ToString(), Color.Red, Color.Black));
+            printY++;
+            Print(printX, printY, new ColoredString("Blood HP: ") + new ColoredString(World.player.health.bloodHP.ToString(), Color.Red, Color.Black));
+
 
             int PreviewWidth = 20;
             int PreviewHeight = 20;

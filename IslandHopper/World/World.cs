@@ -17,6 +17,8 @@ namespace IslandHopper {
 
         public void AddEffect(Effect e) => effects.Place(e);
 		public void AddEntity(Entity e) => entities.Place(e);
-		public void RemoveEntity(Entity e) => entities.Remove(e);
+        public void RemoveEntity(Entity e) {
+            entities.Remove(e);
+        }
 	}
 }
