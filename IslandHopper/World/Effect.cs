@@ -50,6 +50,29 @@ namespace IslandHopper {
             lifetime--;
         }
     }
+    public class RealtimeTrail : Effect {
+        public XYZ Position { get; set; }
+
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(symbol.Glyph, new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (int)(255 * Math.Min(Math.Max(lifetime * 2, 0.5), 1))), Color.Black);
+        public double lifetime;
+        ColoredGlyph symbol;
+        public bool Active => lifetime > 0;
+        public RealtimeTrail(XYZ Position, double lifetime, char symbol) {
+            this.Position = Position;
+            this.lifetime = lifetime;
+            this.symbol = new ColoredGlyph(symbol, Color.White, Color.Black);
+        }
+        public RealtimeTrail(XYZ Position, double lifetime, ColoredGlyph symbol) {
+            this.Position = Position;
+            this.lifetime = lifetime;
+            this.symbol = symbol;
+        }
+        public void UpdateRealtime(TimeSpan delta) {
+            lifetime -= delta.TotalSeconds;
+        }
+        public void UpdateStep() {
+        }
+    }
     public class Decal : Effect {
         public XYZ Position { get; set; }
 

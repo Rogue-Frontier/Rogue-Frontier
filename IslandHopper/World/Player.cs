@@ -73,6 +73,11 @@ namespace IslandHopper {
                 Active = false;
                 this.Witness(new InfoEvent("You have died"));
             }
+            /*
+            if(AllowUpdate()) {
+                World.AddEffect(new RealtimeTrail(Position, 0.25, new ColoredGlyph('@', Color.White, Color.Black)));
+            }
+            */
 
             if (frameCounter > 0)
                 frameCounter--;

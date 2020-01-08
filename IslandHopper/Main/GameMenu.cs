@@ -113,16 +113,16 @@ namespace IslandHopper {
             Print(printX, printY, new ColoredString("Blood HP: ") + new ColoredString(World.player.health.bloodHP.ToString(), Color.Red, Color.Black));
 
 
-            int PreviewWidth = 20;
-            int PreviewHeight = 20;
+            int PreviewWidth = 10;
+            int PreviewHeight = 10;
 
             int previewX = Width - PreviewWidth / 2;
-            int previewY = PreviewWidth / 2;
+            int previewY = PreviewHeight / 2;
             //Draw a border, up/down arrow, and z difference
-            foreach (var thrown in World.player.Watch) {
+            foreach (var watching in World.player.Watch) {
                 for (int x = -PreviewWidth/2; x < PreviewWidth/2; x++) {
                     for (int y = -PreviewHeight/2; y < PreviewHeight/2; y++) {
-                        XYZ location = thrown.Position + new XYZ(x, y, 0);
+                        XYZ location = watching.Position + new XYZ(x, y, 0);
                         Print(x + previewX, -y + previewY, World.GetGlyph(location));
                     }
                 }

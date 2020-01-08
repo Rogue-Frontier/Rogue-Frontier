@@ -58,30 +58,31 @@ namespace IslandHopper {
         //When creating this object, caller must remember to add the Reticles to the world
         public Reticle targetReticle;
         public Reticle aimReticle;
-        public ShootAction(Entity player, IItem item, Entity target, XYZ aim = null, int shotsLeft = 1) {
+        //We need a way to cancel this action for the player and enemies
+        public ShootAction(Entity player, IItem item, Entity target, XYZ aim = null, int shotsLeft = -1) {
             this.player = player;
             this.item = item;
             this.target = target;
             this.targetPos = target.Position;
             this.aim = aim ?? new XYZ();
             this.shotsLeft = shotsLeft;
-            targetReticle = new Reticle(Active, targetPos);
-            aimReticle = new Reticle(Active, player.Position + this.aim);
+            targetReticle = new Reticle(Active, targetPos, Color.Yellow);
+            aimReticle = new Reticle(Active, player.Position + this.aim, Color.Yellow);
             player.World.AddEffect(targetReticle);
             player.World.AddEffect(aimReticle);
             if(player is Player p) {
                 p.Watch.Add(aimReticle);
             }
         }
-        public ShootAction(Entity player, IItem item, XYZ targetPos, XYZ aim = null, int shotsLeft = 1) {
+        public ShootAction(Entity player, IItem item, XYZ targetPos, XYZ aim = null, int shotsLeft = -1) {
             this.player = player;
             this.item = item;
             this.target = null;
             this.targetPos = targetPos;
             this.aim = aim ?? new XYZ();
             this.shotsLeft = shotsLeft;
-            targetReticle = new Reticle(Active, targetPos);
-            aimReticle = new Reticle(Active, player.Position + this.aim);
+            targetReticle = new Reticle(Active, targetPos, Color.Yellow);
+            aimReticle = new Reticle(Active, player.Position + this.aim, Color.Yellow);
             player.World.AddEffect(targetReticle);
             player.World.AddEffect(aimReticle);
             if (player is Player p) {
@@ -94,6 +95,8 @@ namespace IslandHopper {
             if (target != null) {
                 targetPos = target.Position;
                 targetReticle.Position = targetPos;
+
+                //We should also add target lead
             }
             /*
             var aimAngle = aim.xyAngle;
@@ -155,6 +158,8 @@ namespace IslandHopper {
             } else if (item.Gun.GetState() == Gun.State.NeedsReload) {
                 //For now, we just reload if we need to
                 item.Gun.Reload();
+
+                player.Witness(new InfoEvent(player.Name + new ColoredString(" reloads ") + item.Name.WithBackground(Color.Black)));
             } else if (item.Gun.GetState() == Gun.State.Reloading) {
                 //Don't allow aiming while we're reloading
             } else if (needAdjust) {
@@ -167,6 +172,8 @@ namespace IslandHopper {
                 //Radial jitter to simulate difficulty of aiming at long range
                 //var jitter = aim.Magnitude / 20f
                 //var speed = player.Velocity.Magnitude - Math.Abs(player.Velocity.Dot(aim.Normal));
+
+                //TO DO: We need to add jitter and inaccuracy based on difficulty
                 var speed = player.Velocity.Magnitude;
                 if(target != null) {
                     speed += target.Velocity.Magnitude;
@@ -184,7 +191,7 @@ namespace IslandHopper {
                 shotsLeft--;
             }
         }
-        public bool Active() => shotsLeft > 0;
+        public bool Active() => !Done();
         public bool Done() => shotsLeft == 0;
 
         public class Targeting {

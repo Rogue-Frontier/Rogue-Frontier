@@ -44,17 +44,20 @@ namespace IslandHopper {
 	}
 	public class Grass : Voxel {
 		public VoxelType Collision => VoxelType.Solid;
-		public Color color { get; private set; }
-		private char s;
+		public Color foreground { get; private set; }
+        public Color background { get; private set; }
+        private char s;
 		private char[] symbols = {
 			'"', '\'', 'w', 'v', ',', '.', '`',
 		};
 		public Grass() {
-			color = new Color(Global.Random.Next(102), 153, Global.Random.Next(102));
+			foreground = new Color(Global.Random.Next(102), 153, Global.Random.Next(102));
+            int r = Global.Random.Next(26);
+            background = new Color(r, Global.Random.Next(26) + 13, 26 - r);
 			s = symbols[Global.Random.Next(symbols.Length)];
 		}
-		public ColoredGlyph CharAbove => new ColoredGlyph(s, color, Color.Transparent);
-		public ColoredGlyph CharCenter => new ColoredGlyph(' ', Color.Transparent, color);
+		public ColoredGlyph CharAbove => new ColoredGlyph(s, foreground, background);
+		public ColoredGlyph CharCenter => new ColoredGlyph(' ', Color.Transparent, foreground);
 	}
 	public class Floor : Voxel {
 		public VoxelType Collision => VoxelType.Floor;

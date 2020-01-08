@@ -125,7 +125,8 @@ namespace IslandHopper {
                 if(--ReloadTimeLeft == 0) {
                     OnReload();
                 }
-            } else if(FireTimeLeft > 0) {
+            }
+            if (FireTimeLeft > 0) {
                 FireTimeLeft--;
             }
             return;
