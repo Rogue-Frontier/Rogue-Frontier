@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace IslandHopper {
+namespace Common {
 	public static class Debug {
 		public static List<string> log = new List<string>();
 		public static string state = "";

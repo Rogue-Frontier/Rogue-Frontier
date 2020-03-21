@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Common;
+using IslandHopper.World;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using SadConsole;
 using SadConsole.Themes;
@@ -169,7 +171,7 @@ namespace IslandHopper {
             //Other actions besides walking/running
             if (info.IsKeyDown(Keys.OemOpenBrackets)) {
                 //Go up stairs
-            } else if(info.IsKeyDown(Keys.OemCloseBrackets)) {
+            } else if (info.IsKeyDown(Keys.OemCloseBrackets)) {
                 //Go down stairs
             } else if (info.IsKeyDown(Keys.J)) {
                 //Jump up
@@ -177,21 +179,25 @@ namespace IslandHopper {
                 //Running is also a jump action but without z > 0, so we can jump while running
                 if (player.OnGround() && !player.Actions.Any(a => a is Jump j && j.z > 0))
                     player.Actions.Add(new Jump(player, new XYZ(0, 0, 5)));
-			} else if (info.IsKeyPressed(Keys.D)) {
-				new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", player.Inventory.Select(Item => new ListItem(Item)), item => {
+            } else if (info.IsKeyPressed(Keys.C)) {
+                //
+
+
+            } else if (info.IsKeyPressed(Keys.D)) {
+                new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", player.Inventory.Select(Item => new ListItem(Item)), item => {
                     //Just drop the item for now
                     player.Inventory.Remove(item);
-					World.entities.Place(item);
+                    World.entities.Place(item);
 
-					World.player.Witness(new InfoEvent(new ColoredString("You drop: ") + item.Name.WithBackground(Color.Black)));
-					return true;
-				}).Show(true);
-			} else if(info.IsKeyPressed(Keys.U)) {
+                    World.player.Witness(new InfoEvent(new ColoredString("You drop: ") + item.Name.WithBackground(Color.Black)));
+                    return true;
+                }).Show(true);
+            } else if (info.IsKeyPressed(Keys.U)) {
                 //World.AddEntity(new ExplosionSource(World, World.player.Position, 10));
                 //Use menu
                 new ListMenu<IItem>(Width, Height, "Select items to use. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
 
-                    if(item.Grenade != null && !item.Grenade.Armed) {
+                    if (item.Grenade != null && !item.Grenade.Armed) {
                         item.Grenade.Arm();
                         player.Witness(new InfoEvent(new ColoredString("You arm: ") + item.Name.WithBackground(Color.Black)));
                     }
@@ -215,17 +221,17 @@ namespace IslandHopper {
                 }).Show(true);
             } else if (info.IsKeyPressed(Keys.L)) {
                 new LookMenu(Width, Height, World).Show(true);
-            } else if(info.IsKeyPressed(Keys.S)) {
+            } else if (info.IsKeyPressed(Keys.S)) {
                 //TODO: Ask the player if they want to cancel their current ShootAction
 
                 new ShootMenu(Width, Height, World, World.player).Show(true);
             } else if (info.IsKeyPressed(Keys.T)) {
                 new ThrowMenu(Width, Height, World, World.player).Show(true);
-            } else if(info.IsKeyDown(Keys.OemPeriod) && info.IsKeyDown(Keys.RightControl)) {
+            } else if (info.IsKeyDown(Keys.OemPeriod) && info.IsKeyDown(Keys.RightControl)) {
                 if (!World.player.Actions.Any(a => a is WaitAction)) {
                     World.player.Actions.Add(new WaitAction(1));
                 }
-            } else if(info.IsKeyPressed(Keys.OemPeriod)) {
+            } else if (info.IsKeyPressed(Keys.OemPeriod)) {
                 if (!World.player.Actions.Any(a => a is WaitAction)) {
                     Debug.Print("waiting");
                     World.player.Actions.Add(new WaitAction(Constants.STEPS_PER_SECOND));
@@ -425,10 +431,10 @@ namespace IslandHopper {
                 itemSelector.Hide();
                 targetSelector = new LookMenu(Width, Height, w, "Select target to shoot at. Enter to select a general location. ESC to cancel.", target => {
                     targetSelector.Hide();
-                    p.Actions.Add(new ShootAction(p, item, target));
+                    p.Actions.Add(new ShootAction(p, item, new TargetEntity(target)));
                     return false;
                 }, xyz => {
-                    p.Actions.Add(new ShootAction(p, item, xyz));
+                    p.Actions.Add(new ShootAction(p, item, new TargetPoint(xyz)));
                     targetSelector.Hide();
                 });
                 targetSelector.Show(true);

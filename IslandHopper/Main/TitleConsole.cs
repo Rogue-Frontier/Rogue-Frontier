@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Common;
+using Microsoft.Xna.Framework;
 using SadConsole;
 using SadConsole.Controls;
 using SadConsole.Themes;

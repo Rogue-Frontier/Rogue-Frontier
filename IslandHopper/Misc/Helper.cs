@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
 using System.Linq;
+using Common;
+
 namespace IslandHopper {
 	public static class Helper {
         public static ColoredGlyph GetGlyph(this Island World, XYZ location) {

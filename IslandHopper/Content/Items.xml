@@ -208,7 +208,7 @@ EASTER EGGS
 	</ItemType>
 	<ItemType
 		name=			"The Blockhead"
-		desc=			"Originally marketed as &quot;combat goggles,&quot; this modified metal block serves as effective all-around head protection"
+		desc=			"Originally marketed as &quot;combat goggles,&quot; this brown bag made from triple-reinforced titanium foil serves as effective all-around head protection"
 		mass=			"4"
 		>
 		<Head
@@ -282,7 +282,7 @@ EASTER EGGS
 	<ItemType
 		type=			"itCookieJar"
 		name=			"The Cookie Jar"
-		desc=			"An explosive with blue floral patterns painted on its ceramic shell. This little chip of a grenade will really bake your enemies to a chocolate crisp with a jarring explosion. As it detonates on impact and cannot be armed without lifting the lid and putting your hand inside."
+		desc=			"An explosive with blue floral patterns painted on its ceramic shell. This little chip of a grenade will really bake your enemies to a chocolate crisp with a jarring explosion. It detonates on impact and cannot be armed without lifting the lid and putting your hand inside."
 		>
 		<Grenade
 			inherit=	"itGrenadeBase"
@@ -306,7 +306,7 @@ EASTER EGGS
 	<ItemType
 		type=			"itSevenShooter"
 		name=			"The Seventh Striker"
-		desc=			"This seven-shooter revolver hits harder on the last shot."
+		desc=			"This seven-shooter revolver hits different on the last shot."
 		>
 		<Gun
 			inherit=		"itRevolverBase"
@@ -336,14 +336,13 @@ EASTER EGGS
 		<Gun
 			projectile=			"bullet"
 			difficulty=			"easy"
-			damage=				"5"
-			clipSize=			"12"
-			maxAmmo=			"108"
+			damage=					"5"
+			clipSize=				"12"
+			maxAmmo=				"108"
 			reloadType=			"magazine"
-			fireTime=			"6"
+			fireTime=				"6"
 			reloadTime=			"30"
-			recoil=				"0"
-			
+			recoil=					"0"
 			bulletSpeed=		"20"
 			noiseRange=			"15"
 			/>
@@ -416,12 +415,12 @@ EASTER EGGS
 	</ItemType>
 	<ItemType
 		name=			"The Cheap Shot"
-		desc=			"This pistol may be rudimentary and unstylish, but at least it can get the dirty deeds done dirt cheap."
+		desc=			"This rusty sidearm may be rudimentary and unstylish, but at least it can get the dirty deeds done dirt cheap."
 		>
 	</ItemType>
 	<ItemType	type=	"itTheDust"
 		name=			"The Dust"
-		desc=			"Bite this bullet, I say! Bite it!"
+		desc=			"Another one bites the bullet."
 		>
 	</ItemType>
 	<!--	Rare weapons that can be identified by using them as Bludgeons	-->
