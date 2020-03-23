@@ -29,9 +29,15 @@ namespace Common {
 		public XY PlusX(double x) => new XY(this.x + x, y);
 		public XY PlusY(double y) => new XY(x, this.y + y);
 
+		public XY Round => new XY(Math.Round(x), Math.Round(y));
+
 		public static XY Polar(double angle, double magnitude = 1) {
 			return new XY(Math.Cos(angle) * magnitude, Math.Sin(angle) * magnitude);
 		}
+
+		public static implicit operator (int, int)(XY p) => (p.xi, p.yi);
+		public static implicit operator (double, double)(XY p) => (p.x, p.y);
+
 
 		public double Magnitude => Math.Sqrt(x * x + y * y);
 		public XY Normal {

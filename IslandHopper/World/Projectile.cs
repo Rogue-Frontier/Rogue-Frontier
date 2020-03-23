@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static IslandHopper.Helper;
+using static Common.Helper;
 
 namespace IslandHopper {
 	public class ThrownItem : Entity {

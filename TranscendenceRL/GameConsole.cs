@@ -45,14 +45,23 @@ namespace TranscendenceRL {
 			this.DebugInfo($"Draw({delta})");
 			Clear();
 
-			int HalfViewWidth = HalfWidth;
-			int HalfViewHeight = HalfHeight;
+			int ViewWidth = Width;
+			int ViewHeight = Height;
+			int HalfViewWidth = ViewWidth / 2;
+			int HalfViewHeight = ViewHeight / 2;
+			//var i = 0;
 			for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
 				for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
 					XY location = main.camera + new XY(x, y);
 
-					Print(x + HalfWidth, Height - (y + HalfHeight), main.GetTile(location));
+					var xScreen = x + HalfViewWidth;
+					//var xScreen = x;
+					var yScreen = ViewHeight - (y + HalfViewHeight);
+					Print(xScreen, yScreen, main.GetTile(location));
 				}
+				//i++;
+				//Print(main.camera.xi + x + HalfViewWidth, 0, new ColoredGlyph('0' + i/10, Color.White, Color.Transparent));
+				//Print(0, 0, new ColoredString(main.camera.xi.ToString(), new Cell(Color.White, Color.Black)));
 			}
 			base.Draw(delta);
 		}
@@ -84,29 +93,49 @@ namespace TranscendenceRL {
 				return value;
 			});
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
-			world.AddEntity(player = new Ship());
+			world.AddEntity(player = new Ship(world));
+			world.AddEffect(new Heading(player));
 		}
 		public override void Update(TimeSpan delta) {
 			tiles.Clear();
 			foreach (var e in world.entities.all) {
 				e.Update();
-				tiles[(e.position.xi, e.position.yi)] = e.Tile;
+				if(e.tile != null && !tiles.ContainsKey(e.position)) {
+					tiles[e.position] = e.tile;
+				}
 			}
 			foreach (var e in world.effects.all) {
 				e.Update();
-				tiles[(e.position.xi, e.position.yi)] = e.Tile;
+				if (e.tile != null && !tiles.ContainsKey(e.position)) {
+					tiles[e.position] = e.tile;
+				}
 			}
 
+			camera = player.position;
+
+			world.entities.all.UnionWith(world.entitiesAdded);
+			world.effects.all.UnionWith(world.effectsAdded);
+			world.entitiesAdded.Clear();
+			world.effectsAdded.Clear();
 			world.entities.all.RemoveWhere(e => !e.Active);
 			world.effects.all.RemoveWhere(e => !e.Active);
 		}
 		public ColoredGlyph GetTile(XY xy) {
-			if (tiles.TryGetValue((xy.xi, xy.yi), out ColoredGlyph g)) { return g; } else { return GetBackTile(xy); }
+			var back = GetBackTile(xy - (camera * 3) / 5);
+			if (tiles.TryGetValue(xy, out ColoredGlyph g)) {
+				if(g.Background == Color.Transparent) {
+					g.Background = back.Background;
+				}
+				return g;
+			} else {
+				return back;
+				//return GetBackTile(xy);
+			}
 		}
 		public ColoredGlyph GetBackTile(XY xy) {
 			//var value = backSpace.Get(xy - (camera * 3) / 4);
 			var value = backSpace.Get(xy);
-			return new ColoredGlyph(' ', Color.Transparent, new Color(value, value, value));
+			return new ColoredGlyph(' ', Color.Transparent, new Color(value, value, value + 12));
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
 			if(info.IsKeyDown(Up)) {
@@ -117,6 +146,9 @@ namespace TranscendenceRL {
 			}
 			if (info.IsKeyDown(Right)) {
 				player.SetRotating(Rotating.CW);
+			}
+			if(info.IsKeyDown(Down)) {
+				player.SetDecelerating();
 			}
 			return base.ProcessKeyboard(info);
 		}

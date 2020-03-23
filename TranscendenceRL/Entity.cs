@@ -7,13 +7,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TranscendenceRL {
-    interface Effect {
+    public interface Effect {
         XY position { get; }
         bool Active { get; }
-        ColoredGlyph Tile { get; }
+        ColoredGlyph tile { get; }
         void Update();
     }
-    interface Entity : Effect {
+    public interface Entity : Effect {
     }
 
 }

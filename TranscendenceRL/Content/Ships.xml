@@ -1,0 +1,33 @@
+﻿<Module>
+  <ShipClass
+    name="Amethyst-class yacht"
+    
+    >
+    <PlayerSettings
+      description="The Amethyst-class yacht, more than just a symbol of upper-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
+      >
+      <Map>
+                        __
+                       /%%\
+                      /%%%%\
+                     //.LL.\\
+                    ||......||
+                     \\....//
+                      |#..#|
+                  /--/##..##\--\
+                /++#####..#####++\
+               /+/-----#..#-----\+\
+              //#/  /###  ###\  \#\\
+             //#/   |--------|   \#\\
+            //=/    |--------|    \=\\
+           //#/    /|--------|\    \#\\
+          //#/    //\########/\\    \#\\
+         //#/     //    ||    \\     \#\\
+        /#/      //     ||     \\      \#\
+      /#/        //     ||     \\        \#\
+    /#/         //      ||      \\         \#\
+  /#/          //       ||       \\          \#\
+      </Map>
+    </PlayerSettings>
+  </ShipClass>
+</Module>

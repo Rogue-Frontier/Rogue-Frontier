@@ -12,6 +12,7 @@ namespace TranscendenceRL {
         None, CCW, CW
     }
     public class Ship : Entity {
+        public World world;
         public ShipClass shipClass = new ShipClass() { thrust = 5, maxSpeed = 20, rotationAccel = 4, rotationDecel = 2, rotationMaxSpeed = 3};
         public XY position { get; private set; }
         public XY velocity;
@@ -20,7 +21,9 @@ namespace TranscendenceRL {
         public bool thrusting;
         public Rotating rotating;
         public double rotatingSpeed;
-        public Ship() {
+        public bool decelerating;
+        public Ship(World world) {
+            this.world = world;
             position = new XY();
             velocity = new XY();
         }
@@ -28,6 +31,7 @@ namespace TranscendenceRL {
         public void SetRotating(Rotating rotating = Rotating.None) {
             this.rotating = rotating;
         }
+        public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
         public void Update() {
             
             if(thrusting) {
@@ -35,6 +39,7 @@ namespace TranscendenceRL {
                 if (velocity.Magnitude > shipClass.maxSpeed) {
                     velocity = velocity.Normal * shipClass.maxSpeed;
                 }
+                thrusting = false;
             }
             if(rotating != Rotating.None) {
                 if(rotating == Rotating.CCW) {
@@ -48,8 +53,19 @@ namespace TranscendenceRL {
                 rotatingSpeed -= Math.Min(Math.Abs(rotatingSpeed), shipClass.rotationDecel) * Math.Sign(rotatingSpeed);
             }
             rotationDegrees += rotatingSpeed;
+
+            if(decelerating) {
+                if(velocity.Magnitude > 0.05) {
+                    velocity -= velocity.Normal * Math.Min(velocity.Magnitude, shipClass.thrust / 2);
+                } else {
+                    velocity = new XY();
+                }
+                decelerating = false;
+            }
+
+            position += velocity / 30;
         }
         public bool Active => true;
-        public ColoredGlyph Tile => new ColoredGlyph('Y', Color.Purple, Color.Transparent);
+        public ColoredGlyph tile => new ColoredGlyph('y', Color.Purple, Color.Transparent);
     }
 }

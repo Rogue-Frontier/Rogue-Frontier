@@ -8,27 +8,10 @@ using System.Text;
 using System.Xml.Linq;
 using System.Linq;
 using Common;
+using IslandHopper;
 
-namespace IslandHopper {
+namespace Common {
 	public static class Helper {
-        public static ColoredGlyph GetGlyph(this Island World, XYZ location) {
-            var c = new ColoredGlyph(' ', Color.Transparent, Color.Transparent);
-            if(World.voxels.InBounds(location)) {
-                if(World.effects[location].Count > 0) {
-                    c = World.effects[location].First().SymbolCenter;
-                } else if(World.entities[location].Count > 0) {
-                    c = World.entities[location].First().SymbolCenter;
-                } else if(!(World.voxels[location] is Air)) {
-                    c = World.voxels[location].CharCenter;
-                } else {
-                    location = location + new XYZ(0, 0, -1);
-                    if (World.voxels.InBounds(location)) {
-                        c = World.voxels[location].CharAbove;
-                    }
-                }
-            }
-            return c;
-        }
 		public static bool CalcAim(XYZ difference, double speed, out double lower, out double higher) {
 			double horizontal = difference.xy.Magnitude;
 			double vertical = difference.z;
