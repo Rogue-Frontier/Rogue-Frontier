@@ -72,29 +72,31 @@ namespace TranscendenceRL {
 	class PlayerMain : Window {
 		public XY camera;
 		public World world;
-		public GeneratedGrid<int> backSpace;
+		public GeneratedGrid<Color> backSpace;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
-		public Ship player;
+		public PlayerShip player;
 		public PlayerMain(int Width, int Height) : base(Width, Height) {
 			camera = new XY();
 			world = new World();
-			backSpace = new GeneratedGrid<int>(p => {
+			backSpace = new GeneratedGrid<Color>(p => {
 				(var x, var y) = p;
-				var value = world.karma.Next(51);
-				var c = new Color(value, value, value);
+				var value = world.karma.Next(28);
+				var c = new Color(value, value, value + world.karma.Next(12));
 				
 				var init = new XY[] { new XY(1, 0), new XY(0, 1), new XY(0, -1), new XY(-1, 0) }.Select(xy => new XY(xy.xi + x, xy.yi + y)).Where(xy => backSpace.IsInit(xy.xi, xy.yi));
 
 				var count = init.Count() + 1;
 				foreach (var xy in init) {
-					value += backSpace.Get(xy.xi, xy.yi);
+					c = c.Add(backSpace.Get(xy.xi, xy.yi));
 				}
-				value = value / count;
-				return value;
+				c = c.Divide(count);
+				return c;
 			});
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
-			world.AddEntity(player = new Ship(world));
+			world.AddEntity(player = new PlayerShip(new Ship(world)));
 			world.AddEffect(new Heading(player));
+
+			player.messages.Add(new PlayerMessage("Welcome to Transcendence: Rogue Frontier!"));
 		}
 		public override void Update(TimeSpan delta) {
 			tiles.Clear();
@@ -120,6 +122,17 @@ namespace TranscendenceRL {
 			world.entities.all.RemoveWhere(e => !e.Active);
 			world.effects.all.RemoveWhere(e => !e.Active);
 		}
+		public override void Draw(TimeSpan drawTime) {
+			var y = Height * 3 / 5;
+			Clear();
+			foreach (var message in player.messages) {
+				var line = message.Draw();
+				var x = Width * 3 / 4 - line.Count;
+				Print(x, y, line);
+				y++;
+			}
+			base.Draw(drawTime);
+		}
 		public ColoredGlyph GetTile(XY xy) {
 			var back = GetBackTile(xy - (camera * 3) / 5);
 			if (tiles.TryGetValue(xy, out ColoredGlyph g)) {
@@ -134,8 +147,8 @@ namespace TranscendenceRL {
 		}
 		public ColoredGlyph GetBackTile(XY xy) {
 			//var value = backSpace.Get(xy - (camera * 3) / 4);
-			var value = backSpace.Get(xy);
-			return new ColoredGlyph(' ', Color.Transparent, new Color(value, value, value + 12));
+			var back = backSpace.Get(xy);
+			return new ColoredGlyph(' ', Color.Transparent, back);
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
 			if(info.IsKeyDown(Up)) {

@@ -49,6 +49,8 @@
     <Compile Include="Heading.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="ItemType.cs" />
+    <Compile Include="LoadingSymbol.cs" />
+    <Compile Include="PlayerMessage.cs" />
     <Compile Include="Projectile.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

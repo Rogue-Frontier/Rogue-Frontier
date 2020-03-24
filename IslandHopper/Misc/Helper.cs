@@ -50,6 +50,38 @@ namespace Common {
 			}
 			return true;
 		}
+		public static double Round(this double d, double interval) {
+			int times = (int)(d / interval);
+			var roundedDown = times * interval;
+			if (d - roundedDown < interval/2) {
+				return roundedDown;
+			} else {
+				var roundedUp = roundedDown + interval;
+				return roundedUp;
+			}
+		}
+		public static Color NextGray(this Random r, int range) {
+			var value = r.Next(range);
+			return new Color(value, value, value);
+		}
+		public static Color Noise(this Color c, Random r, double range) {
+			double increaseFactor = r.NextDouble() * range;
+			double multiplier = 1 + increaseFactor;
+			return new Color((int)Math.Min(255, c.R * multiplier), (int)Math.Min(255, c.G * multiplier), (int)Math.Min(255, c.B * multiplier));
+		}
+		public static Color NextColor(this Random r, int range) => new Color(r.Next(range), r.Next(range), r.Next(range));
+		public static Color Round(this Color c, int factor) => new Color(factor * (c.R / factor), factor * (c.G / factor), factor * (c.B / factor));
+		public static Color Add(this Color c, int value) => c.Add(new Color(value, value, value));
+		public static Color Add(this Color c1, Color c2) => new Color(Math.Min(255, c1.R + c2.R), Math.Min(255, c1.G + c2.G), Math.Min(255, c1.B + c2.B));
+		public static Color Subtract(this Color c, int value) => c.Subtract(new Color(value, value, value));
+		public static Color Subtract(this Color c1, Color c2) => new Color(Math.Max(0, c1.R - c2.R), Math.Max(0, c1.G - c2.G), Math.Max(0, c1.B - c2.B));
+		public static Color Divide(this Color c, int scale) {
+			return new Color(c.R / scale, c.G / scale, c.B / scale);
+		}
+		public static Color WithValues(this Color c, int? red = null, int? green = null, int? blue = null) {
+			return new Color(red ?? c.R, green ?? c.G, blue ?? c.B);
+		}
+
 		/*
 		public static bool InRange(double n, double min, double max) {
 			return n > min && n < max;
@@ -306,12 +338,11 @@ namespace Common {
 			}
 			return result;
 		}
-		public static ColoredString Opacity(this ColoredString s, byte alpha) {
-            var result = s.SubString(0, s.Count);
-			foreach(var c in result) {
+		public static ColoredString SetOpacity(this ColoredString s, byte alpha) {
+			foreach(var c in s) {
                 c.Foreground.A = alpha;
             }
-            return result;
+            return s;
 		}
 		public static ColoredString Brighten(this ColoredString s, int intensity) {
 			return s.Adjust(new Color(intensity, intensity, intensity, 0));

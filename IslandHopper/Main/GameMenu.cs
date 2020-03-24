@@ -78,7 +78,7 @@ namespace IslandHopper {
             for (int i = 0; i < 30 && i < World.player.HistoryRecent.Count(); i++) {
                 var entry = World.player.HistoryRecent[World.player.HistoryRecent.Count() - 1 - i];
                 printY--;
-                Print(1, printY, entry.ScreenTime > 1 ? entry.Desc : entry.Desc.Opacity((byte) (255 * entry.ScreenTime)));
+                Print(1, printY, entry.ScreenTime > 1 ? entry.Desc : entry.Desc.SetOpacity((byte) (255 * entry.ScreenTime)));
             }
 
             printY = (Height - 3);

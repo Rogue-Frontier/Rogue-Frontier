@@ -23,8 +23,9 @@ namespace TranscendenceRL {
                 var size = 20;
                 var y = (Height * 3) / 4;
                 var start = new Button(size, 1) {
-                    Position = new Point((Width / 2) - (size / 2), y),
-                    Text = "New Game",
+                    //Position = new Point((Width / 2) - (size / 2), y),
+                    Position = new Point(8, y),
+                    Text = "NEW GAME",
                     Theme = BUTTON_THEME,
                 };
                 start.Click += (o, e) => StartGame();
@@ -32,10 +33,12 @@ namespace TranscendenceRL {
             }
             {
                 var size = 20;
-                var y = (Height * 3) / 4;
+                //var y = (Height * 3) / 4;
+                var y = (Height * 3) / 4 + 2;
                 var exit = new Button(size, 1) {
-                    Position = new Point((Width * 3) / 4 - (size / 2), y),
-                    Text = "Exit",
+                    //Position = new Point((Width * 3) / 4 - (size / 2), y),
+                    Position = new Point(8, y),
+                    Text = "EXIT",
                     Theme = BUTTON_THEME
                 };
                 exit.Click += (o, e) => Exit();
@@ -62,7 +65,8 @@ namespace TranscendenceRL {
                 titleY++;
             }
             Print(0, titleY, new ColoredString(new string('.', Width), Color.White, Color.Black));
-
+            titleY++;
+            Print(titleX, titleY, new ColoredString(@"A fangame by Alex ""Archcannon"" Chen - for Transcendence by George Moromisato", Color.White, Color.Black));
 
             base.Draw(drawTime);
         }

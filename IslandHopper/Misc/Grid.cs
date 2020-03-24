@@ -29,6 +29,7 @@ namespace Common {
 		public XY PlusX(double x) => new XY(this.x + x, y);
 		public XY PlusY(double y) => new XY(x, this.y + y);
 
+		public XY Truncate => new XY(xi, yi);
 		public XY Round => new XY(Math.Round(x), Math.Round(y));
 
 		public static XY Polar(double angle, double magnitude = 1) {
