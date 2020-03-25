@@ -1,17 +1,21 @@
 ﻿using Microsoft.Xna.Framework;
 using SadConsole;
 using SadConsole.Controls;
+using SadConsole.Input;
 using SadConsole.Themes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.Xna.Framework.Input.Keys;
 using static Common.Helper;
 namespace TranscendenceRL {
     class TitleConsole : Window {
         string[] title = Properties.Resources.Title.Replace("\r\n", "\n").Split('\n');
+        TypeCollection types = new TypeCollection();
         public TitleConsole(int width, int height, Font font) : base(width, height, font) {
+            UseKeyboard = true;
             ButtonTheme BUTTON_THEME = new SadConsole.Themes.ButtonTheme() {
                 Normal = new SadConsole.Cell(Color.Blue, Color.Transparent),
                 Disabled = new Cell(Color.Gray, Color.Transparent),
@@ -44,11 +48,12 @@ namespace TranscendenceRL {
                 exit.Click += (o, e) => Exit();
                 Add(exit);
             }
+            types.Load("Content/Ships.xml", "Content/Stations.xml");
         }
         private void StartGame() {
             Hide();
             //new GameConsole(Width/2, Height/2).Show(true);
-            new CrawlScreen(Width / 2, Height / 2).Show(true);
+            new ShipSelector(Width / 2, Height / 2, types).Show(true);
         }
         private void Exit() {
             Environment.Exit(0);
@@ -66,9 +71,22 @@ namespace TranscendenceRL {
             }
             Print(0, titleY, new ColoredString(new string('.', Width), Color.White, Color.Black));
             titleY++;
-            Print(titleX, titleY, new ColoredString(@"A fangame by Alex ""Archcannon"" Chen - for Transcendence by George Moromisato", Color.White, Color.Black));
+            Print(titleX, titleY, new ColoredString(@"A fangame by Alex ""Archcannon"" Chen", Color.White, Color.Black));
+            titleY++;
+            Print(titleX, titleY, new ColoredString(@"For Transcendence by George Moromisato", Color.White, Color.Black));
+            titleY++;
+            Print(titleX, titleY, new ColoredString(@"April 2020", Color.White, Color.Black));
 
             base.Draw(drawTime);
+        }
+        public override bool ProcessKeyboard(Keyboard info) {
+#if DEBUG
+            if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {
+                Hide();
+                new GameConsole(Width / 2, Height / 2, types, types.Lookup<ShipClass>("scAmethyst")).Show(true);
+            }
+#endif
+            return base.ProcessKeyboard(info);
         }
     }
 }

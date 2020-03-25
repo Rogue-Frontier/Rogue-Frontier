@@ -1,0 +1,18 @@
+﻿<Module>
+	<StationType codename=	"stDaughtersOutpost"
+				 name=		"Daughters of the Orator"
+				 char=		"S"
+				 foreground="Magenta"
+		>
+		<Segments>
+			<Point offsetX="-1"
+				   offsetY="0"
+				   char="&lt;"
+				   foreground="Yellow"/>
+			<Point offsetX="1"
+				   offsetY="0"
+				   char="&gt;"
+				   foreground="Yellow"/>
+		</Segments>
+	</StationType>
+</Module>

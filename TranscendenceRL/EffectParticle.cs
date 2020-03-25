@@ -10,15 +10,15 @@ namespace TranscendenceRL {
     public class EffectParticle : Effect {
         private int Lifetime;
         public EffectParticle(XY Position, ColoredGlyph Tile, int Lifetime) {
-            this.position = Position;
-            this.tile = Tile;
+            this.Position = Position;
+            this.Tile = Tile;
             this.Lifetime = Lifetime;
         }
-        public XY position { get; private set; }
+        public XY Position { get; private set; }
 
         public bool Active => Lifetime > 0;
 
-        public ColoredGlyph tile { get; private set; }
+        public ColoredGlyph Tile { get; private set; }
 
         public void Update() {
             Lifetime--;

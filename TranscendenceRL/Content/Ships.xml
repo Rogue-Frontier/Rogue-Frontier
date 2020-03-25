@@ -1,32 +1,43 @@
 ﻿<Module>
-  <ShipClass
-    name="Amethyst-class yacht"
-    
+  <ShipClass    codename="scAmethyst"
+                name="Amethyst-class yacht"
+                thrust="0.5"
+                maxSpeed="20"
+                rotationAccel="4"
+                rotationDecel="2"
+                rotationMaxSpeed="3"
+
+                char="y"
+                foreground="Magenta"
     >
+	<Weapons>
+		<Weapon type="itAmethystLaser"/>
+    </Weapons>
     <PlayerSettings
-      description="The Amethyst-class yacht, more than just a symbol of upper-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
-      >
-      <Map>
-                        __
-                       /%%\
-                      /%%%%\
-                     //.LL.\\
-                    ||......||
-                     \\....//
-                      |#..#|
-                  /--/##..##\--\
-                /++#####..#####++\
-               /+/-----#..#-----\+\
-              //#/  /###  ###\  \#\\
-             //#/   |--------|   \#\\
-            //=/    |--------|    \=\\
-           //#/    /|--------|\    \#\\
-          //#/    //\########/\\    \#\\
-         //#/     //    ||    \\     \#\\
-        /#/      //     ||     \\      \#\
-      /#/        //     ||     \\        \#\
-    /#/         //      ||      \\         \#\
-  /#/          //       ||       \\          \#\
+        startingClass="true"
+        description="The Amethyst-class yacht, more than just a symbol of upper-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
+        >
+        <Map>
+                        __                        
+                       /%%\                       
+                      /%%%%\                      
+                     //.LL.\\                     
+                    ||......||                    
+                     \\....//                     
+                      |#..#|                      
+                  /--/##..##\--\                  
+                /++#####..#####++\                
+               /+/-----#..#-----\+\               
+              //#/  /###  ###\  \#\\              
+             //#/   |--------|   \#\\             
+            //=/    |--------|    \=\\            
+           //#/    /|--------|\    \#\\           
+          //#/    //\########/\\    \#\\          
+         //#/     //    ||    \\     \#\\         
+        /#/      //     ||     \\      \#\        
+      /#/        //     ||     \\        \#\      
+    /#/         //      ||      \\         \#\    
+  /#/          //       ||       \\          \#\  
       </Map>
     </PlayerSettings>
   </ShipClass>

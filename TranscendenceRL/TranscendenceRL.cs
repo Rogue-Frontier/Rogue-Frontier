@@ -42,7 +42,7 @@ namespace TranscendenceRL {
 			var title = new TitleConsole(width, height, SadConsole.Global.FontDefault.Master.GetFont(Font.FontSizes.One));
 			SadConsole.Global.FontDefault = SadConsole.Global.FontDefault.Master.GetFont(Font.FontSizes.Two);
 			title.Position = new Point(0, 0);
-			title.Show();
+			title.Show(true);
 		}
 
 		/// <summary>

@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using System.Linq;
 using Common;
 using IslandHopper;
+using System.Text.RegularExpressions;
 
 namespace Common {
 	public static class Helper {
@@ -194,6 +195,9 @@ namespace Common {
 		public static bool HasElement(this XElement e, string key, out XElement result) {
 			return (result = e.Element(key)) != null;
 		}
+		public static bool HasElements(this XElement e, string key, out IEnumerable<XElement> result) {
+			return (result = e.Elements(key)) != null;
+		}
 		public static string ExpectAttribute(this XElement e, string attribute) {
 			string result = e.Attribute(attribute)?.Value;
 			if (result == null) {
@@ -226,7 +230,40 @@ namespace Common {
 				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\"");
 			}
 		}
-        public static double TryAttributeDouble(this XElement e, string attribute, double fallback = 0) => TryAttributeDouble(e.Attribute(attribute), fallback);
+		public static int ExpectAttributeInt(this XElement e, string attribute) => ExpectAttributeInt(e.Attribute(attribute));
+		public static int ExpectAttributeInt(this XAttribute a) {
+			if(a == null) {
+				throw new Exception($"int value expected");
+			} else if(int.TryParse(a.Value, out int result)) {
+				return result;
+			} else {
+				throw new Exception($"int value expected: {a.Name} = \"{a.Value}\"");
+			}
+		}
+
+		public static double ExpectAttributeDouble(this XElement e, string attribute) => ExpectAttributeDouble(e.Attribute(attribute));
+		public static double ExpectAttributeDouble(this XAttribute a) {
+			if (a == null) {
+				throw new Exception($"double value expected");
+			} else if (double.TryParse(a.Value, out double result)) {
+				return result;
+			} else {
+				throw new Exception($"double value expected: {a.Name} = \"{a.Value}\"");
+			}
+		}
+
+		public static bool ExpectAttributeBool(this XElement e, string attribute) => ExpectAttributeBool(e.Attribute(attribute));
+		public static bool ExpectAttributeBool(this XAttribute a) {
+			if (a == null) {
+				throw new Exception($"bool value expected");
+			} else if (bool.TryParse(a.Value, out bool result)) {
+				return result;
+			} else {
+				throw new Exception($"bool value expected: {a.Name} = \"{a.Value}\"");
+			}
+		}
+
+		public static double TryAttributeDouble(this XElement e, string attribute, double fallback = 0) => TryAttributeDouble(e.Attribute(attribute), fallback);
         public static double TryAttributeDouble(this XAttribute a, double fallback = 0) {
             if (a == null) {
                 return fallback;
@@ -243,6 +280,25 @@ namespace Common {
                 }
             }
         }
+		public static List<string> Wrap(this string s, int width) {
+			List<string> lines = new List<string> { "" };
+			foreach(var word in Regex.Split(s, $"({Regex.Escape(" ")})")) {
+				if(lines.Last().Length + word.Length < width) {
+					lines[lines.Count - 1] += word;
+				} else {
+					if(word == " ") {
+						lines.Add("");
+					} else {
+						lines.Add(word);
+					}
+					
+				}
+			}
+			return lines;
+		}
+		public static void PaintCentered(this Window w, string s, int x, int y) {
+			w.Print(x - s.Length / 2, y, s);
+		}
         public static int ParseInt(this string s, int fallback = 0) {
 			return int.TryParse(s, out int result) ? result : fallback;
 		}

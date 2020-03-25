@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define DEBUG
+
+using System;
 using System.Diagnostics;
 
 namespace TranscendenceRL {
@@ -14,7 +16,6 @@ namespace TranscendenceRL {
         [STAThread]
         static void Main()
         {
-            
             using (var game = new TranscendenceRL())
                 game.Run();
         }

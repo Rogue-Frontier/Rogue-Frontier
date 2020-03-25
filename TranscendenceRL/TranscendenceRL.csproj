@@ -59,6 +59,8 @@
     </Compile>
     <Compile Include="Ship.cs" />
     <Compile Include="ShipScreen.cs" />
+    <Compile Include="ShipSelector.cs" />
+    <Compile Include="Station.cs" />
     <Compile Include="TitleConsole.cs" />
     <Compile Include="TranscendenceRL.cs" />
     <Compile Include="GameConsole.cs" />
@@ -66,7 +68,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QTree.cs" />
-    <Compile Include="Types.cs" />
+    <Compile Include="Types\Types.cs" />
     <Compile Include="World.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -88,11 +90,16 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\Missions.xml" />
-    <Content Include="Content\Ships.xml" />
+    <Content Include="Content\Ships.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Resources\Crawl.txt" />
     <EmbeddedResource Include="Content\Title.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
+    <Content Include="Content\Stations.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="IBM8x16.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

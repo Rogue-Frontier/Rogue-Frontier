@@ -23,7 +23,7 @@ namespace TranscendenceRL {
 	}
 	class GameConsole : Window {
 		private PlayerMain main;
-		public GameConsole(int Width, int Height) : base(Width, Height) {
+		public GameConsole(int Width, int Height, TypeCollection types, ShipClass playerClass) : base(Width, Height) {
 			Theme = new WindowTheme {
 				ModalTint = Color.Transparent,
 				FillStyle = new Cell(Color.White, Color.Black),
@@ -31,7 +31,7 @@ namespace TranscendenceRL {
 			UseKeyboard = true;
 			UseMouse = true;
 			this.DebugInfo($"Width: {Width}", $"Height: {Height}");
-			main = new PlayerMain(Width, Height);
+			main = new PlayerMain(Width, Height, types, playerClass);
 		}
 		public override void Show(bool modal) {
 			base.Show(modal);
@@ -75,14 +75,16 @@ namespace TranscendenceRL {
 		public GeneratedGrid<Color> backSpace;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		public PlayerShip player;
-		public PlayerMain(int Width, int Height) : base(Width, Height) {
+		public PlayerMain(int Width, int Height, TypeCollection types, ShipClass playerClass) : base(Width, Height) {
 			camera = new XY();
-			world = new World();
+			world = new World() {
+				types = types
+			};
 			backSpace = new GeneratedGrid<Color>(p => {
 				(var x, var y) = p;
 				var value = world.karma.Next(28);
 				var c = new Color(value, value, value + world.karma.Next(12));
-				
+
 				var init = new XY[] { new XY(1, 0), new XY(0, 1), new XY(0, -1), new XY(-1, 0) }.Select(xy => new XY(xy.xi + x, xy.yi + y)).Where(xy => backSpace.IsInit(xy.xi, xy.yi));
 
 				var count = init.Count() + 1;
@@ -93,8 +95,32 @@ namespace TranscendenceRL {
 				return c;
 			});
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
-			world.AddEntity(player = new PlayerShip(new Ship(world)));
+			/*
+			var shipClass =  new ShipClass() { thrust = 0.5, maxSpeed = 20, rotationAccel = 4, rotationDecel = 2, rotationMaxSpeed = 3 };
+			world.AddEntity(player = new PlayerShip(new Ship(world, shipClass, new XY(0, 0))));
 			world.AddEffect(new Heading(player));
+
+			
+			
+			StationType stDaughters = new StationType() {
+				name = "Daughters of the Orator",
+				segments = new List<StationType.SegmentDesc> {
+					new StationType.SegmentDesc(new XY(-1, 0), new StaticTile('<')),
+					new StationType.SegmentDesc(new XY(1, 0), new StaticTile('>')),
+				},
+				tile = new StaticTile(new ColoredGlyph('S', Color.Pink, Color.Transparent))
+			};
+			var daughters = new Station(world, stDaughters, new XY(5, 5));
+			world.AddEntity(daughters);
+			*/
+			/*
+			player = new PlayerShip(new Ship(world, world.types.Lookup<ShipClass>("scAmethyst"), new XY(0, 0)));
+			world.AddEntity(player);
+			*/
+			player = new PlayerShip(new Ship(world, playerClass, new XY(0, 0)));
+			world.AddEntity(player);
+			var daughters = new Station(world, world.types.Lookup<StationType>("stDaughtersOutpost"), new XY(5, 5));
+			world.AddEntity(daughters);
 
 			player.messages.Add(new PlayerMessage("Welcome to Transcendence: Rogue Frontier!"));
 		}
@@ -102,18 +128,18 @@ namespace TranscendenceRL {
 			tiles.Clear();
 			foreach (var e in world.entities.all) {
 				e.Update();
-				if(e.tile != null && !tiles.ContainsKey(e.position)) {
-					tiles[e.position] = e.tile;
+				if (e.Tile != null && !tiles.ContainsKey(e.Position)) {
+					tiles[e.Position] = e.Tile;
 				}
 			}
 			foreach (var e in world.effects.all) {
 				e.Update();
-				if (e.tile != null && !tiles.ContainsKey(e.position)) {
-					tiles[e.position] = e.tile;
+				if (e.Tile != null && !tiles.ContainsKey(e.Position)) {
+					tiles[e.Position] = e.Tile;
 				}
 			}
 
-			camera = player.position;
+			camera = player.Position;
 
 			world.entities.all.UnionWith(world.entitiesAdded);
 			world.effects.all.UnionWith(world.effectsAdded);

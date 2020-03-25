@@ -9,11 +9,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using static IslandHopper.IslandHelper;
 namespace IslandHopper {
-	public static class Parse {
-		static int ParseInt(string s, int fallback) {
-			return String.IsNullOrWhiteSpace(s) ? fallback : int.TryParse(s, out int result) ? result : fallback;
-		}
-	}
 	public class TypeCollection {
 		public Dictionary<string, XElement> sources;
         public Dictionary<string, DesignType> all;

@@ -19,8 +19,8 @@ namespace TranscendenceRL {
     }
     public class Ship : IShip {
         public World world { get; private set; }
-        public ShipClass shipClass { get; private set; } = new ShipClass() { thrust = 5, maxSpeed = 20, rotationAccel = 4, rotationDecel = 2, rotationMaxSpeed = 3 };
-        public XY position { get; private set; }
+        public ShipClass shipClass { get; private set; }
+        public XY Position { get; private set; }
         public XY velocity { get; private set; }
         public double rotationDegrees { get; private set; }
 
@@ -28,9 +28,12 @@ namespace TranscendenceRL {
         public Rotating rotating;
         public double rotatingSpeed;
         public bool decelerating;
-        public Ship(World world) {
+
+        List<Item> devices;
+        public Ship(World world, ShipClass shipClass, XY Position) {
             this.world = world;
-            position = new XY();
+            this.shipClass = shipClass;
+            this.Position = Position;
             velocity = new XY();
         }
         public void SetThrusting(bool thrusting = true) => this.thrusting = thrusting;
@@ -69,10 +72,10 @@ namespace TranscendenceRL {
                 decelerating = false;
             }
 
-            position += velocity / 30;
+            Position += velocity / 30;
         }
         public bool Active => true;
-        public ColoredGlyph tile => new ColoredGlyph('y', Color.Purple, Color.Transparent);
+        public ColoredGlyph Tile => new ColoredGlyph('y', Color.Purple, Color.Transparent);
     }
 
     public class PlayerShip : IShip {
@@ -80,13 +83,14 @@ namespace TranscendenceRL {
         public World world => ship.world;
         public ShipClass shipClass => ship.shipClass;
         
-        public XY position => ship.position;
+        public XY Position => ship.Position;
         public XY velocity => ship.velocity;
         public double rotationDegrees => ship.rotationDegrees;
         public List<PlayerMessage> messages;
 
         public PlayerShip(Ship ship) {
             this.ship = ship;
+            ship.world.AddEffect(new Heading(this));
             messages = new List<PlayerMessage>();
         }
         public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
@@ -98,6 +102,6 @@ namespace TranscendenceRL {
             ship.Update();
         }
         public bool Active => ship.Active;
-        public ColoredGlyph tile => ship.tile;
+        public ColoredGlyph Tile => ship.Tile;
     }
 }

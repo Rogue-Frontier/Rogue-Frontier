@@ -10,6 +10,9 @@ using static Common.Helper;
 
 namespace TranscendenceRL {
     class CrawlScreen : Window {
+        TypeCollection types;
+        ShipClass playerClass;
+
         private readonly string text;
         private int lines;
         private int index;
@@ -20,7 +23,10 @@ namespace TranscendenceRL {
         int loadingTicks = 150;
 
         ColoredString[] effect;
-        public CrawlScreen(int width ,int height) : base(width, height) {
+        public CrawlScreen(int width ,int height, TypeCollection types, ShipClass playerClass) : base(width, height) {
+            this.types = types;
+            this.playerClass = playerClass;
+
             text = Properties.Resources.Crawl.Replace("\r\n", "\n");
             lines = text.Count(c => c == '\n') + 1;
             index = 0;
@@ -82,7 +88,7 @@ namespace TranscendenceRL {
                 loadingTicks--;
             } else {
                 Hide();
-                new GameConsole(Width, Height).Show(true);
+                new GameConsole(Width, Height, types, playerClass).Show(true);
             }
         }
         public override void Draw(TimeSpan drawTime) {
@@ -122,13 +128,22 @@ namespace TranscendenceRL {
                     Print(symbolX, symbolY, line);
                     symbolY++;
                 }
+
+                Print(0, Height - 1, "[Creating Game...]");
+            } else {
+                if(speedUp) {
+                    Print(0, Height - 1, "[Press Enter again to skip intro]");
+                } else {
+                    Print(0, Height - 1, "[Press Enter to speed up intro]");
+                }
+                
             }
             
 
             base.Draw(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
-            if(info.IsKeyReleased(Microsoft.Xna.Framework.Input.Keys.Enter)) {
+            if(info.IsKeyPressed(Microsoft.Xna.Framework.Input.Keys.Enter)) {
                 if(speedUp) {
                     index = text.Length;
                 } else {

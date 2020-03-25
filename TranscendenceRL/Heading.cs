@@ -14,17 +14,17 @@ namespace TranscendenceRL {
             this.parent = parent;
         }
 
-        public XY position => parent.position;
+        public XY Position => parent.Position;
 
         public bool Active => parent.Active;
 
-        public ColoredGlyph tile => null;
+        public ColoredGlyph Tile => null;
 
         public void Update() {
 
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
             ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 153), Color.Transparent);
-            XY point = parent.position.Truncate;
+            XY point = parent.Position.Truncate;
             XY inc = XY.Polar(parent.rotationDegrees * Math.PI / 180, 1);
             int length = 12;
             for(int i = 0; i < length; i++) {
