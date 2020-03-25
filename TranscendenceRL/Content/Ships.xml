@@ -7,7 +7,7 @@
                 rotationDecel="2"
                 rotationMaxSpeed="3"
 
-                char="y"
+                char="A"
                 foreground="Magenta"
     >
 	<Weapons>
@@ -15,9 +15,9 @@
     </Weapons>
     <PlayerSettings
         startingClass="true"
-        description="The Amethyst-class yacht, more than just a symbol of upper-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
+        description="The Amethyst-class yacht, more than just a symbol of middle-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
         >
-        <Map>
+        <Map>                                     
                         __                        
                        /%%\                       
                       /%%%%\                      

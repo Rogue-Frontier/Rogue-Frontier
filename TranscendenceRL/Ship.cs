@@ -75,7 +75,7 @@ namespace TranscendenceRL {
             Position += velocity / 30;
         }
         public bool Active => true;
-        public ColoredGlyph Tile => new ColoredGlyph('y', Color.Purple, Color.Transparent);
+        public ColoredGlyph Tile => shipClass.tile.Glyph;
     }
 
     public class PlayerShip : IShip {
