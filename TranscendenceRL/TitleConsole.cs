@@ -48,7 +48,7 @@ namespace TranscendenceRL {
                 exit.Click += (o, e) => Exit();
                 Add(exit);
             }
-            types.Load("Content/Ships.xml", "Content/Stations.xml");
+            types.Load("Content/Ships.xml", "Content/Stations.xml", "Content/Player.xml", "Content/Items.xml");
         }
         private void StartGame() {
             Hide();

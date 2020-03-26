@@ -43,7 +43,7 @@ namespace TranscendenceRL {
                 {Alignment.Neutral, Disposition.Neutral },
                 {DestructiveOrder, Disposition.Neutral },
                 {DestructiveChaos, Enemy },
-            }}, {DestructiveOrder, new Dictionary<Alignment, Disposition>{
+            }}, {DestructiveChaos, new Dictionary<Alignment, Disposition>{
                 {ConstructiveOrder, Enemy },
                 {ConstructiveChaos, Enemy },
                 {Alignment.Neutral, Enemy },
@@ -73,7 +73,7 @@ namespace TranscendenceRL {
                 ) {
                 return d;
             } else {
-                sovDispositions[other] = Disposition.Neutral;
+                sovDispositions[other] = InitDisposition(other);
                 return sovDispositions[other];
             }
         }
@@ -93,7 +93,7 @@ namespace TranscendenceRL {
             if(other == this) {
                 return Friend;
             } else {
-                return dispositionTable[]
+                return dispositionTable[alignment][other.alignment];
             }
         }
     }

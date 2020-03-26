@@ -1,0 +1,34 @@
+﻿<Module>
+	<ItemType	codename=	"itAmethystLaser"
+				name=		"Amethyst laser cannon"
+				level=		"1"
+				mass=		"1000"
+		>
+		<Weapon
+			fireCooldown=	"10"
+			missileSpeed=	"100"
+			damageType=		"1"
+			damageHP=		"6"
+			lifetime=		"90"
+			char=			"."
+			foreground=		"Magenta"
+			/>
+	</ItemType>
+	<ItemType	codename=	"itBeowulfDualCannon"
+				name=		"Beowulf dual laser cannon"
+				level=		"1"
+				mass=		"2000"
+		>
+		<Weapon
+			fireCooldown=	"5"
+			missileSpeed=	"100"
+			damageType=		"1"
+			damageHP=		"3"
+			lifetime=		"60"
+
+			char=			"."
+			foreground=		"White"
+			>
+		</Weapon>
+	</ItemType>
+</Module>

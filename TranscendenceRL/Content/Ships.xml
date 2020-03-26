@@ -1,18 +1,19 @@
 ﻿<Module>
-  <ShipClass    codename="scAmethyst"
+    <ShipClass    codename="scAmethyst"
                 name="Amethyst-class yacht"
                 thrust="0.5"
-                maxSpeed="20"
+                maxSpeed="25"
+
                 rotationAccel="4"
-                rotationDecel="2"
-                rotationMaxSpeed="3"
+                rotationDecel="9"
+                rotationMaxSpeed="4"
 
                 char="A"
                 foreground="Magenta"
     >
-	<Weapons>
-		<Weapon type="itAmethystLaser"/>
-    </Weapons>
+	<Devices>
+		<Weapon codename="itAmethystLaser"/>
+    </Devices>
     <PlayerSettings
         startingClass="true"
         description="The Amethyst-class yacht, more than just a symbol of middle-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
@@ -41,4 +42,49 @@
       </Map>
     </PlayerSettings>
   </ShipClass>
+
+	<ShipClass    codename="scBeowulf"
+				  name="Beowulf-class gunship"
+				  thrust="1"
+				  maxSpeed="30"
+
+				  rotationAccel="4"
+				  rotationDecel="9"
+				  rotationMaxSpeed="6"
+
+				  char="B"
+				  foreground="White"
+    >
+		<Devices>
+			<Weapon codename="itBeowulfDualCannon"/>
+		</Devices>
+		<PlayerSettings
+			startingClass="true"
+			description="A starship preferred by space-age bikers, self-protection enthusiasts, and folk heroes alike, a Beowulf-class gunship highlights the tougher and nimbler parts of one's personality."
+        >
+			<Map>
+       //                             \\
+       ||              __             ||
+      //              /()\             \\
+     |||             /O..O\            |||
+     |||             |....|            |||
+    ///         //---|....|---\\        \\\
+    |||     //--.....|....|......-\\     |||
+    |||  //-.........\..../.........-\\  |||
+    ||| /-........//--|..|--\\........-\ |||
+   /// /......../-====|..|====-\........\ \\\
+   |||/......../======\../======\........\|||
+   ||||.......|========||========|.......||||
+   |||==\\\....\\_=====||=====_//....///==|||
+   ||||OOOO\\....|\____||____/|....//OOOO||||
+      |TTTT|\\...| | | || | | |...//|TTTT|
+      |TTTT|  |__|_|_|_||_|_|_|__|  |TTTT|
+      |TTTT|  |_|_|_|TTTTTT|_|_|_|  |TTTT|
+      |TTTT|        |TTTTTT|        |TTTT|
+      |TTTT|        |TTTTTT|        |TTTT|
+      |/--\|        |/----\|        |/--\|
+			</Map>
+		</PlayerSettings>
+	</ShipClass>
+
 </Module>

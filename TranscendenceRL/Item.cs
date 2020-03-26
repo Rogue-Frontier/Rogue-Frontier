@@ -11,7 +11,7 @@ namespace TranscendenceRL {
         public Weapon weapon;
 
         public Item(ItemType type) {
-
+            this.type = type;
             if(type.weapon != null) {
                 weapon = new Weapon(this, type.weapon);
             }
@@ -19,26 +19,33 @@ namespace TranscendenceRL {
     }
     public interface Device {
         Item source { get; }
-        void Update();
+        void Update(IShip owner);
     }
     public class Weapon : Device {
         public Item source { get; private set; }
         public WeaponDesc desc;
         public int fireTime;
+        public bool firing;
         public Weapon(Item source, WeaponDesc desc) {
             this.source = source;
             this.desc = desc;
             this.fireTime = 0;
+            firing = false;
         }
-        public void Update() {
+        public void Update(IShip owner) {
             if(fireTime > 0) {
                 fireTime--;
+            } else if(firing) {
+                Fire(owner, owner.rotationDegrees * Math.PI / 180);
+                fireTime = desc.fireCooldown;
             }
+            firing = false;
         }
-        public void CreateShot(Ship source, double direction) {
-            var shot = new Projectile(desc.effect, source.Position + XY.Polar(direction), desc.lifetime); ;
-            source.world.AddEntity(shot);
+        public void Fire(IShip source, double direction) {
+            var shot = new Projectile(source.World, desc.effect.Glyph, source.Position + XY.Polar(direction), source.Velocity + XY.Polar(direction, desc.missileSpeed), desc.lifetime); ;
+            source.World.AddEntity(shot);
         }
+        public void SetFiring(bool firing = true) => this.firing = firing;
     }
     class Shields : Device {
         public Item source { get; private set; }
@@ -46,7 +53,7 @@ namespace TranscendenceRL {
         public uint hp;
         public uint depletionTime;
         private uint tick;
-        public void Update() {
+        public void Update(IShip owner) {
             if(depletionTime > 0) {
                 depletionTime--;
             } else if(hp < desc.maxHP) {

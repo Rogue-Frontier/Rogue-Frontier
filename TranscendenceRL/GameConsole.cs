@@ -117,7 +117,8 @@ namespace TranscendenceRL {
 			player = new PlayerShip(new Ship(world, world.types.Lookup<ShipClass>("scAmethyst"), new XY(0, 0)));
 			world.AddEntity(player);
 			*/
-			player = new PlayerShip(new Ship(world, playerClass, new XY(0, 0)));
+			var playerSovereign = world.types.Lookup<Sovereign>("svPlayer");
+			player = new PlayerShip(new Ship(world, playerClass, playerSovereign, new XY(0, 0)));
 			world.AddEntity(player);
 			var daughters = new Station(world, world.types.Lookup<StationType>("stDaughtersOutpost"), new XY(5, 5));
 			world.AddEntity(daughters);
@@ -188,6 +189,9 @@ namespace TranscendenceRL {
 			}
 			if(info.IsKeyDown(Down)) {
 				player.SetDecelerating();
+			}
+			if(info.IsKeyDown(X)) {
+				player.SetFiringPrimary();
 			}
 			return base.ProcessKeyboard(info);
 		}

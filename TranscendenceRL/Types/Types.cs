@@ -13,8 +13,11 @@ namespace TranscendenceRL {
 	public class TypeCollection {
 		public Dictionary<string, XElement> sources;
         public Dictionary<string, DesignType> all;
+		public Dictionary<string, ItemType> itemType;
 		public Dictionary<string, ShipClass> shipClass;
 		public Dictionary<string, StationType> stationType;
+		public Dictionary<string, Sovereign> sovereign;
+
 		enum InitState {
 			Uninitialized,
 			Initializing,
@@ -26,8 +29,10 @@ namespace TranscendenceRL {
 		public TypeCollection() {
 			sources = new Dictionary<string, XElement>();
 			all = new Dictionary<string, DesignType>();
+			itemType = new Dictionary<string, ItemType>();
 			shipClass = new Dictionary<string, ShipClass>();
 			stationType = new Dictionary<string, StationType>();
+			sovereign = new Dictionary<string, Sovereign>();
 			state = InitState.Uninitialized;
 
 			Debug.Print("TypeCollection created");
@@ -83,11 +88,17 @@ namespace TranscendenceRL {
                 case "Source":
                     AddSource(element);
                     break;
+				case "ItemType":
+					AddType<ItemType>(element);
+					break;
 				case "ShipClass":
 					AddType<ShipClass>(element);
 					break;
 				case "StationType":
 					AddType<StationType>(element);
+					break;
+				case "Sovereign":
+					AddType<Sovereign>(element);
 					break;
 				default:
 					throw new Exception($"Unknown element <{element.Name}>");
@@ -117,13 +128,20 @@ namespace TranscendenceRL {
 			} else {
 				Debug.Print($"Created <{element.Name}> of type {type}");
 				sources[type] = element;
-				all[type] = new T();
-                switch(all[type]) {
+				T t = new T();
+				all[type] = t;
+                switch(t) {
+					case ItemType it:
+						itemType[type] = it;
+						break;
                     case StationType st:
                         stationType[type] = st;
                         break;
 					case ShipClass sc:
 						shipClass[type] = sc;
+						break;
+					case Sovereign sv:
+						sovereign[type] = sv;
 						break;
 					default:
 						throw new Exception($"Unrecorded {element.Name} of type {type}");
@@ -149,8 +167,16 @@ namespace TranscendenceRL {
                 return false;
             }
         }
-		public T Lookup<T>(string type) where T:DesignType {
-			return (T)all[type];
+		public T Lookup<T>(string codename) where T:DesignType {
+			if(all.TryGetValue(codename, out var result)) {
+				if(result is T t) {
+					return t;
+				} else {
+					throw new Exception($"Type {codename} is <{result.GetType().Name}>, not <{nameof(T)}>");
+				}
+			} else {
+				throw new Exception($"Unknown type {codename}");
+			}
 		}
     }
 	public interface DesignType {

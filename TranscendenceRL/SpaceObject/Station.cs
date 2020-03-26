@@ -8,16 +8,17 @@ using System.Threading.Tasks;
 using TranscendenceRL;
 
 namespace TranscendenceRL {
-    public interface IStation : Entity {
+    public interface IStation : SpaceObject {
         World World { get; }
         StationType Type { get; }
     }
-    public class Station : IStation, SpaceObject {
+    public class Station : IStation {
         public World World { get; private set; }
         public StationType Type { get; private set; }
 
         public Sovereign Sovereign { get; private set; }
         public XY Position { get; private set; }
+        public XY Velocity { get; private set; }
         public bool Active => true;
         private List<Segment> segments;
         public Station(World World, StationType Type, XY Position) {
@@ -29,7 +30,7 @@ namespace TranscendenceRL {
         private void CreateSegments() {
             segments = new List<Segment>();
             foreach(var segmentDesc in Type.segments) {
-                var s = new Segment(this, Position + segmentDesc.offset, segmentDesc.tile);
+                var s = new Segment(this, segmentDesc.offset, segmentDesc.tile);
                 segments.Add(s);
                 World.AddEntity(s);
             }
@@ -42,14 +43,17 @@ namespace TranscendenceRL {
 
     }
     public class Segment : IStation {
-        public World World { get; private set; }
-        private Station Parent;
-        public XY Position { get; private set; }
+        public World World => Parent.World;
+        public XY Position => Parent.Position + Offset;
+        public XY Velocity => Parent.Velocity;
+        public Sovereign Sovereign => Parent.Sovereign;
+        public XY Offset { get; private set; }
         private StaticTile _Tile;
-        
-        public Segment(Station Parent, XY Position, StaticTile tile) {
+        private Station Parent;
+
+        public Segment(Station Parent, XY Offset, StaticTile tile) {
             this.Parent = Parent;
-            this.Position = Position;
+            this.Offset = Offset;
             this._Tile = tile;
         }
 
@@ -57,7 +61,8 @@ namespace TranscendenceRL {
         
         public bool Active => Parent.Active;
 
-        public void Update() => Parent.Update();
+        public void Update() {
+        }
         public ColoredGlyph Tile => _Tile.Glyph;
     }
 }

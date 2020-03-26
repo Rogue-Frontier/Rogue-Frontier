@@ -26,10 +26,11 @@ namespace TranscendenceRL {
             ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 153), Color.Transparent);
             XY point = parent.Position.Truncate;
             XY inc = XY.Polar(parent.rotationDegrees * Math.PI / 180, 1);
-            int length = 12;
-            for(int i = 0; i < length; i++) {
-                point += inc * 2;
-                parent.world.AddEffect(new EffectParticle(point, pointEffect, 1));
+            int length = 20;
+            int interval = 2;
+            for(int i = 0; i < length / interval; i++) {
+                point += inc * interval;
+                parent.World.AddEffect(new EffectParticle(point, pointEffect, 1));
             }
         }
     }

@@ -47,7 +47,15 @@ namespace TranscendenceRL {
                 descY++;
             }
 
-            if(index > 0) {
+            descY++;
+
+            //Show installed devices on the right pane
+            Print(descX, descY, "Installed Devices");
+            foreach (var device in current.devices.Generate(types)) {
+                Print(descX, descY, device.source.type.name);
+            }
+
+            if (index > 0) {
                 string leftArrow = "<===  [Left Arrow]";
                 Print(Width / 3 - leftArrow.Length - 1, 0, leftArrow);
             }
@@ -55,8 +63,6 @@ namespace TranscendenceRL {
                 string rightArrow = "[Right Arrow] ===>";
                 Print(Width * 2 / 3 + 1, 0, rightArrow);
             }
-
-            //Show installed devices on the right pane
 
             string start = "[Enter] Start";
             Print(Width - start.Length, Height - 1, start);
