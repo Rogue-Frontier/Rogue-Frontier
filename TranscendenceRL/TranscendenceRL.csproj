@@ -57,10 +57,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Ship.cs" />
+    <Compile Include="SpaceObject\Ship.cs" />
     <Compile Include="ShipScreen.cs" />
     <Compile Include="ShipSelector.cs" />
-    <Compile Include="Station.cs" />
+    <Compile Include="Sovereign.cs" />
+    <Compile Include="SpaceObject\SpaceObject.cs" />
+    <Compile Include="SpaceObject\Station.cs" />
     <Compile Include="TitleConsole.cs" />
     <Compile Include="TranscendenceRL.cs" />
     <Compile Include="GameConsole.cs" />
@@ -68,6 +70,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QTree.cs" />
+    <Compile Include="Types\ShipClass.cs" />
+    <Compile Include="Types\StationType.cs" />
     <Compile Include="Types\Types.cs" />
     <Compile Include="World.cs" />
   </ItemGroup>

@@ -5,16 +5,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TranscendenceRL;
 
 namespace TranscendenceRL {
     public interface IStation : Entity {
         World World { get; }
         StationType Type { get; }
     }
-    public class Station : IStation {
+    public class Station : IStation, SpaceObject {
         public World World { get; private set; }
         public StationType Type { get; private set; }
 
+        public Sovereign Sovereign { get; private set; }
         public XY Position { get; private set; }
         public bool Active => true;
         private List<Segment> segments;
