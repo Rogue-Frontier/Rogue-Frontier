@@ -56,16 +56,35 @@ namespace TranscendenceRL {
         public void Update() {
 
             if (thrusting) {
-                Velocity += XY.Polar(rotationDegrees * Math.PI / 180, ShipClass.thrust);
+                var rotationRads = rotationDegrees * Math.PI / 180;
+
+                var exhaust = new EffectParticle(Position + XY.Polar(rotationRads, -1),
+                    Velocity + XY.Polar(rotationRads, -ShipClass.thrust),
+                    new ColoredGlyph('.', Color.Yellow, Color.Transparent),
+                    4);
+                World.AddEffect(exhaust);
+
+                Velocity += XY.Polar(rotationRads, ShipClass.thrust);
                 if (Velocity.Magnitude > ShipClass.maxSpeed) {
                     Velocity = Velocity.Normal * ShipClass.maxSpeed;
                 }
+
                 thrusting = false;
             }
             if (rotating != Rotating.None) {
                 if (rotating == Rotating.CCW) {
+                    /*
+                    if (rotatingSpeed < 0) {
+                        rotatingSpeed += Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
+                    }
+                    */
                     rotatingSpeed += ShipClass.rotationAccel / 30;
                 } else if (rotating == Rotating.CW) {
+                    /*
+                    if(rotatingSpeed > 0) {
+                        rotatingSpeed -= Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
+                    }
+                    */
                     rotatingSpeed -= ShipClass.rotationAccel / 30;
                 }
                 rotatingSpeed = Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationMaxSpeed) * Math.Sign(rotatingSpeed);
