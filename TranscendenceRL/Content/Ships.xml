@@ -11,80 +11,131 @@
                 char="A"
                 foreground="Magenta"
     >
-	<Devices>
-		<Weapon codename="itAmethystLaser"/>
-    </Devices>
-    <PlayerSettings
+	    <Devices>
+		    <Weapon codename="itAmethystLaser"/>
+        </Devices>
+        <PlayerSettings
         startingClass="true"
         description="The Amethyst-class yacht, more than just a symbol of middle-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
-        >
-        <Map>                                     
-                        __                        
-                       /%%\                       
-                      /%%%%\                      
-                     //.LL.\\                     
-                    ||......||                    
-                     \\....//                     
-                      |#..#|                      
-                  /--/##..##\--\                  
-                /++#####..#####++\                
-               /+/-----#..#-----\+\               
-              //#/  /###  ###\  \#\\              
-             //#/   |--------|   \#\\             
-            //=/    |--------|    \=\\            
-           //#/    /|--------|\    \#\\           
-          //#/    //\########/\\    \#\\          
-         //#/     //    ||    \\     \#\\         
-        /#/      //     ||     \\      \#\        
-      /#/        //     ||     \\        \#\      
-    /#/         //      ||      \\         \#\    
-  /#/          //       ||       \\          \#\  
-      </Map>
-    </PlayerSettings>
-  </ShipClass>
+            >
+            <Map>                                     
+                       __                       
+                      /%%\                      
+                     /%%%%\                     
+                    //.LL.\\                    
+                   ||......||                   
+                    \\....//                    
+                     |#..#|                     
+                 /--/##..##\--\                 
+               /++#####..#####++\               
+              /+/-----#..#-----\+\              
+             //#/  /###..###\  \#\\             
+            //#/   |--|--|--|   \#\\            
+           //=/    |--|--|--|    \=\\           
+          //#/    /|--|--|--|\    \#\\          
+         //#/    //\########/\\    \#\\         
+        //#/     //    ||    \\     \#\\        
+       /#/      //     ||     \\      \#\       
+     /#/        //     ||     \\        \#\     
+   /#/         //      ||      \\         \#\   
+ /#/          //       ||       \\          \#\ 
+            </Map>
+        </PlayerSettings>
+    </ShipClass>
 
 	<ShipClass    codename="scBeowulf"
 				  name="Beowulf-class gunship"
 				  thrust="1"
 				  maxSpeed="30"
 
-				  rotationAccel="4"
-				  rotationDecel="9"
+				  rotationAccel="6"
+				  rotationDecel="12"
 				  rotationMaxSpeed="6"
 
 				  char="B"
 				  foreground="White"
-    >
+        >
 		<Devices>
 			<Weapon codename="itBeowulfDualCannon"/>
 		</Devices>
 		<PlayerSettings
 			startingClass="true"
-			description="A starship preferred by space-age bikers, self-protection enthusiasts, and folk heroes alike, a Beowulf-class gunship highlights the tougher and nimbler parts of one's personality."
+			description="A starship preferred by space-age bikers, self-protection enthusiasts, and folk heroes alike, a Beowulf-class gunship highlights the tougher and harder parts of one's personality."
         >
 			<Map>
-       //                             \\
-       ||              __             ||
-      //              /()\             \\
-     |||             /O..O\            |||
-     |||             |....|            |||
-    ///         //---|....|---\\        \\\
-    |||     //--.....|....|......-\\     |||
-    |||  //-.........\..../.........-\\  |||
-    ||| /-........//--|..|--\\........-\ |||
-   /// /......../-====|..|====-\........\ \\\
-   |||/......../======\../======\........\|||
-   ||||.......|========||========|.......||||
-   |||==\\\....\\_=====||=====_//....///==|||
-   ||||OOOO\\....|\____||____/|....//OOOO||||
-      |TTTT|\\...| | | || | | |...//|TTTT|
-      |TTTT|  |__|_|_|_||_|_|_|__|  |TTTT|
-      |TTTT|  |_|_|_|TTTTTT|_|_|_|  |TTTT|
-      |TTTT|        |TTTTTT|        |TTTT|
-      |TTTT|        |TTTTTT|        |TTTT|
-      |/--\|        |/----\|        |/--\|
-			</Map>
+      //                              \\      
+      ||              __              ||      
+     //              /()\              \\     
+    |||             /O..O\             |||    
+    |||             |....|             |||    
+   ///         //---|....|---\\         \\\   
+   |||     //--.....|....|......-\\     |||   
+   |||  //-.........\..../.........-\\  |||   
+   ||| /-........//--|..|--\\........-\ |||   
+  /// /......../-====|..|====-\........\ \\\  
+  |||/......../======\../======\........\|||  
+  |||........|========||========|........|||  
+  |||==\\\....\\_=====||=====_//....///==|||  
+  ||||OOOO\\....|\____||____/|....//OOOO||||  
+     |TTTT|\\...| | | || | | |...//|TTTT|     
+     |TTTT|  |__|_|_|_||_|_|_|__|  |TTTT|     
+     |TTTT|  |_|_|_|TTTTTT|_|_|_|  |TTTT|     
+     |TTTT|        |TTTTTT|        |TTTT|     
+     |TTTT|        |TTTTTT|        |TTTT|
+     |/--\|        |/----\|        |/--\|
+            </Map>
 		</PlayerSettings>
 	</ShipClass>
 
+    <ShipClass codename=            "scWagon"
+               name=                "Wagon-class transport"
+               thrust=              "0.3"
+			   maxSpeed=            "20"
+
+			   rotationAccel=       "4"
+			   rotationDecel=       "8"
+			   rotationMaxSpeed=    "4"
+
+               char=                "W"
+               foreground=          "Orange"
+        >
+        <Devices>
+			<Weapon codename="itRifleTurret"/>
+		</Devices>
+		<PlayerSettings
+            startingClass=  "true"
+            description=    "Whether you used to be a banker, carpenter, or farmer before taking to the stars, a pioneer like you needs a fully stocked Wagon-class transport to survive the galactic trail."
+            >
+            <Map>
+                      __                
+                     /()\                
+                    /O..O\                
+                    |....|               
+         _____------|....|------_____ 
+        |     ______|....|______     |  
+     /--+----- |    |....|    | -----+--\
+     |--\  | | |    |....|    | |  | /--|
+     |===\-\ | |    |....|    | | /-/===|
+     |======\-\|   _|....|_   |/-/======|
+     |=========|  /  \__/  \  |=========|
+     |=========|-|   (__)   |-|=========|
+     |=========|  \_      _/  |=========|
+     |======/-/|  | ------ |  |\-\======|
+     |===/-/ | |  | |||||| |  | | \-\===|
+   __|/-/  | | |  -- |||| --  | | |  \-\|__
+  /-- _|_\ | | |-- -- || -- --| | | /_|_ --\
+ /---- |   | | |--- | || | ---| | |   | ----\
+\     |    |----------------------|    |     /
+ \    |    /----------------------\    |    /
+  \___|___/                        \___|___/
+   \-----/                          \-----/
+            </Map>
+        </PlayerSettings>
+    </ShipClass>
+    <!--
+    <ShipClass codename="scFlatbed"
+        
+        >
+    </ShipClass>
+    -->
 </Module>

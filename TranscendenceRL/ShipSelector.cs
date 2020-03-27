@@ -24,19 +24,19 @@ namespace TranscendenceRL {
             var current = playable[index];
             
             var map = current.playerSettings.map;
-            var mapWidth = map[map.Length / 2].Length;
-            var mapX = Math.Max(0, Width / 4 - mapWidth / 2);
-            var mapY = 6;
+            var mapWidth = map.Select(line => line.Length).Max();
+            var mapX = 0;
+            var mapY = 3;
             foreach(var line in current.playerSettings.map) {
                 Print(mapX, mapY, line);
                 mapY++;
             }
 
             string s = "[Image is for promotional use only]";
-            var strX = mapX + mapWidth / 2 - s.Length / 2;
+            var strX = Width/4 - s.Length / 2;
             Print(strX, mapY, s);
 
-            var nameX = mapX + mapWidth/2 - current.name.Length/2;
+            var nameX = Width / 4 - current.name.Length/2;
             var nameY = 2;
             Print(nameX, nameY, current.name);
 
@@ -50,9 +50,10 @@ namespace TranscendenceRL {
             descY++;
 
             //Show installed devices on the right pane
-            Print(descX, descY, "Installed Devices");
+            Print(descX, descY, "Installed Devices:");
+            descY++;
             foreach (var device in current.devices.Generate(types)) {
-                Print(descX, descY, device.source.type.name);
+                Print(descX+4, descY, device.source.type.name);
             }
 
             if (index > 0) {
