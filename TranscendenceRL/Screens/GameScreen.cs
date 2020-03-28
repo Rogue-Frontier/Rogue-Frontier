@@ -138,14 +138,40 @@ namespace TranscendenceRL {
 			world.effects.all.RemoveWhere(e => !e.Active);
 		}
 		public override void Draw(TimeSpan drawTime) {
-			var y = Height * 3 / 5;
+			var messageY = Height * 3 / 5;
 			Clear();
 			foreach (var message in player.messages) {
 				var line = message.Draw();
 				var x = Width * 3 / 4 - line.Count;
-				Print(x, y, line);
-				y++;
+				Print(x, messageY, line);
+				messageY++;
 			}
+
+			var mapWidth = 16;
+			var mapHeight = 16;
+			var range = 128;
+			var mapScale = (range / (mapWidth / 2));
+
+			var mapX = Width - mapWidth;
+			var mapY = 0;
+			var mapCenterX = mapX + mapWidth / 2;
+			var mapCenterY = mapY + mapHeight / 2;
+
+			var nearby = world.entities.GetAll(((int, int) p) => (player.Position - p).MaxCoord < range).OfType<SpaceObject>();
+			foreach(var entity in nearby) {
+				var offset = (entity.Position - player.Position) / mapScale;
+				var tile = entity.Tile;
+				var foreground = tile.Foreground.WithValues(alpha:229);
+				Print(mapCenterX + offset.xi, mapCenterY - offset.yi, $"{tile.GlyphCharacter}", foreground, Color.Transparent);
+			}
+			for(int x = mapX; x < mapX + mapWidth; x++) {
+				for(int y = mapY; y < mapY + mapHeight; y++) {
+					if(GetGlyph(x, y) == 0) {
+						Print(x, y, "=", new Color(255, 255, 255, 204), Color.Transparent);
+					}
+				}
+			}
+
 			base.Draw(drawTime);
 		}
 		public ColoredGlyph GetTile(XY xy) {
@@ -184,11 +210,13 @@ namespace TranscendenceRL {
 			}
 			if(info.IsKeyPressed(D)) {
 				if(player.docking != null) {
+					player.AddMessage(new PlayerMessage("Docking sequence canceled"));
 					player.docking = null;
 				} else {
 					var dest = world.entities.GetAll(p => (player.Position - p).Magnitude < 8).OfType<Station>().OrderBy(p => (p.Position - player.Position).Magnitude).FirstOrDefault();
 					if(dest != null) {
-						player.docking = new Docking(player.ship, dest);
+						player.AddMessage(new PlayerMessage("Docking sequence engaged"));
+						player.docking = new Docking(player.Ship, dest);
 					}
 					
 				}
@@ -207,7 +235,7 @@ namespace TranscendenceRL {
 				if(offset.xi != 0 && offset.yi != 0) {
 
 					var mouseRads = offset.Angle;
-					var facingRads = player.ship.stoppingRotation * Math.PI / 180;
+					var facingRads = player.Ship.stoppingRotation * Math.PI / 180;
 
 					var ccw = (XY.Polar(facingRads + 1 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
 					var cw = (XY.Polar(facingRads - 1 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
