@@ -15,8 +15,8 @@ namespace TranscendenceRL {
         private class Layer {
             public double parallaxFactor;                   //Multiply the camera by this value
             public GeneratedGrid<ColoredGlyph> tiles;  //Dynamically generated grid of tiles
-            public Layer(double parallaxFactor) {
-                Random r = new Random();
+            public Layer(double parallaxFactor, Random r) {
+                //Random r = new Random();
                 this.parallaxFactor = parallaxFactor;
                 tiles = new GeneratedGrid<ColoredGlyph>(p => {
                     var (x, y) = p;
@@ -32,10 +32,10 @@ namespace TranscendenceRL {
                     background = background.Divide(count);
                     background.A = (byte) r.Next(51, 153);
 
-                    if(r.Next(100) < 5) {
+                    if(r.NextDouble() * 100 < (1 / parallaxFactor) / 10) {
                         const string vwls = "?&%~=+;";
                         var star = vwls[r.Next(vwls.Length)];
-                        var foreground = new Color(255, 255 - r.Next(25), 255 - r.Next(25));
+                        var foreground = new Color(255, 255 - r.Next(25, 51), 255 - r.Next(25, 51), (byte) (204 * parallaxFactor));
                         return new ColoredGlyph(star, foreground, background);
                     } else {
                         return new ColoredGlyph(' ', Color.Transparent, background);
@@ -53,13 +53,13 @@ namespace TranscendenceRL {
             layers = new List<Layer>(layerCount);
             for(int i = 0; i < layerCount; i++) {
                 var n = r.Next(1, 5);
-                layers.Add(new Layer(n / (n + r.Next(1, n))));
+                layers.Add(new Layer((double)n / (n + r.Next(1, n)), r));
             }
             layers = layers.OrderBy(l => l.parallaxFactor).ToList();
         }
         public Color GetBackground(XY point, XY camera) {
-            Color result = Color.Black;
-            foreach(var layer in layers) {
+            Color result = layers.First().GetTile(point, camera).Background;
+            foreach(var layer in layers.Skip(1)) {
                 result = result.Blend(layer.GetTile(point, camera).Background);
             }
             return result;

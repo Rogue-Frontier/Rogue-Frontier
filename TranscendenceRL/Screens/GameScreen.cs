@@ -72,26 +72,11 @@ namespace TranscendenceRL {
 	class PlayerMain : Window {
 		public XY camera;
 		public World world;
-		public GeneratedGrid<Color> backSpace;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		public PlayerShip player;
 		public PlayerMain(int Width, int Height, World World, ShipClass playerClass) : base(Width, Height) {
 			camera = new XY();
 			this.world = World;
-			backSpace = new GeneratedGrid<Color>(p => {
-				(var x, var y) = p;
-				var value = world.karma.Next(28);
-				var c = new Color(value, value, value + world.karma.Next(12));
-
-				var init = new XY[] { new XY(1, 0), new XY(0, 1), new XY(0, -1), new XY(-1, 0) }.Select(xy => new XY(xy.xi + x, xy.yi + y)).Where(xy => backSpace.IsInit(xy.xi, xy.yi));
-
-				var count = init.Count() + 1;
-				foreach (var xy in init) {
-					c = c.Add(backSpace.Get(xy.xi, xy.yi));
-				}
-				c = c.Divide(count);
-				return c;
-			});
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
 			/*
 			var shipClass =  new ShipClass() { thrust = 0.5, maxSpeed = 20, rotationAccel = 4, rotationDecel = 2, rotationMaxSpeed = 3 };
@@ -159,7 +144,7 @@ namespace TranscendenceRL {
 			base.Draw(drawTime);
 		}
 		public ColoredGlyph GetTile(XY xy) {
-			var back = GetBackTile(xy - (camera * 3) / 5);
+			var back = GetBackTile(xy);
 			if (tiles.TryGetValue(xy, out ColoredGlyph g)) {
 				if(g.Background == Color.Transparent) {
 					g.Background = back.Background;
@@ -172,8 +157,8 @@ namespace TranscendenceRL {
 		}
 		public ColoredGlyph GetBackTile(XY xy) {
 			//var value = backSpace.Get(xy - (camera * 3) / 4);
-			var back = backSpace.Get(xy);
-			return new ColoredGlyph(' ', Color.Transparent, back);
+			var back = world.backdrop.GetTile(xy, camera);
+			return back;
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
 			if(info.IsKeyDown(Up)) {
