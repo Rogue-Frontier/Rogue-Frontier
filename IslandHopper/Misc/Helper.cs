@@ -438,6 +438,12 @@ namespace Common {
 				alpha: (byte) 0xff
 				);
 		}
+		//https://stackoverflow.com/a/28037434
+		public static double AngleDiff(double angle1, double angle2) {
+			double diff = (angle2 - angle1 + 180) % 360 - 180;
+			return diff < -180 ? diff + 360 : diff;
+		}
+
 		public static Func<Entity, bool> Or(params Func<Entity, bool>[] f) {
             Func<Entity, bool> result = e => true;
             foreach(Func<Entity, bool> condition in f) {

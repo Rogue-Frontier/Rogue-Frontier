@@ -110,6 +110,11 @@ namespace TranscendenceRL {
 		}
 		public override void Update(TimeSpan delta) {
 			tiles.Clear();
+			//Place everything in the grid
+			world.entities.UpdateSpace();
+			world.effects.UpdateSpace();
+
+			//Update everything
 			foreach (var e in world.entities.all) {
 				e.Update();
 				if (e.Tile != null && !tiles.ContainsKey(e.Position)) {
@@ -173,10 +178,51 @@ namespace TranscendenceRL {
 			if(info.IsKeyDown(Down)) {
 				player.SetDecelerating();
 			}
+			if(info.IsKeyPressed(D)) {
+				if(player.docking != null) {
+					player.docking = null;
+				} else {
+					var dest = world.entities.GetAll(p => (player.Position - p).Magnitude < 8).OfType<Station>().OrderBy(p => (p.Position - player.Position).Magnitude).FirstOrDefault();
+					if(dest != null) {
+						player.docking = new Docking(player.ship, dest);
+					}
+					
+				}
+			}
 			if(info.IsKeyDown(X)) {
 				player.SetFiringPrimary();
 			}
 			return base.ProcessKeyboard(info);
+		}
+		public override bool ProcessMouse(MouseConsoleState state) {
+			if(state.IsOnConsole) {
+				var cell = state.ConsoleCellPosition;
+				var offset = new XY(cell.X, Height - cell.Y) - new XY(Width / 2, Height / 2);
+				if(offset.xi != 0 && offset.yi != 0) {
+
+					var mouseRads = offset.Angle;
+					var facingRads = player.ship.stoppingRotation * Math.PI / 180;
+
+					var ccw = (XY.Polar(facingRads + 1 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
+					var cw = (XY.Polar(facingRads - 1 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
+					if(ccw < cw) {
+						player.SetRotating(Rotating.CCW);
+					} else if(cw < ccw) {
+						player.SetRotating(Rotating.CW);
+					}
+					/*
+					var mouseDegrees = offset.Angle * 180 / Math.PI;
+					var facingDegrees = player.ship.stoppingRotation;
+					var diff = Helper.AngleDiff(facingDegrees, mouseDegrees);
+					if (diff > 1) {
+						player.SetRotating(Rotating.CCW);
+					} else if(diff < -1) {
+						player.SetRotating(Rotating.CW);
+					}
+					*/
+				}
+			}
+			return base.ProcessMouse(state);
 		}
 	}
 }
