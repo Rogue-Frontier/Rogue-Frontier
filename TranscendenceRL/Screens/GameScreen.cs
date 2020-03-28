@@ -178,6 +178,10 @@ namespace TranscendenceRL {
 			if(info.IsKeyDown(Down)) {
 				player.SetDecelerating();
 			}
+			if(info.IsKeyPressed(S)) {
+				Hide();
+				new ShipScreen(this, player).Show(true);
+			}
 			if(info.IsKeyPressed(D)) {
 				if(player.docking != null) {
 					player.docking = null;

@@ -16,6 +16,24 @@ namespace TranscendenceRL {
         ShipClass ShipClass { get; }
         double rotationDegrees { get; }
     }
+    public class DeviceSystem {
+        public List<Device> Devices;
+        public List<Weapon> Weapons;
+        public DeviceSystem() {
+            Devices = new List<Device>();
+            Weapons = new List<Weapon>();
+        }
+        public void Add(List<Device> Devices) {
+            this.Devices.AddRange(Devices);
+            UpdateDevices();
+        }
+        public void UpdateDevices() {
+            Weapons = Devices.OfType<Weapon>().ToList();
+        }
+        public void Update(IShip owner) {
+            Devices.ForEach(d => d.Update(owner));
+        }
+    }
     public class Docking {
         public Ship ship;
         public Station station;
@@ -72,8 +90,7 @@ namespace TranscendenceRL {
         public double rotatingSpeed;
         public bool decelerating;
 
-        public List<Device> Devices;
-        public List<Weapon> Weapons;
+        public DeviceSystem Devices;
 
         public Ship(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.World = world;
@@ -84,11 +101,8 @@ namespace TranscendenceRL {
             this.Position = Position;
             Velocity = new XY();
 
-            Devices = shipClass.devices.Generate(world.types);
-            UpdateDevices();
-        }
-        public void UpdateDevices() {
-            Weapons = Devices.OfType<Weapon>().ToList();
+            Devices = new DeviceSystem();
+            Devices.Add(shipClass.devices.Generate(world.types));
         }
         public void SetThrusting(bool thrusting = true) => this.thrusting = thrusting;
         public void SetRotating(Rotating rotating = Rotating.None) {
@@ -147,7 +161,7 @@ namespace TranscendenceRL {
 
             Position += Velocity / 30;
 
-            Devices.ForEach(d => d.Update(this));
+            Devices.Update(this);
         }
         public bool Active => true;
         public ColoredGlyph Tile => ShipClass.tile.Glyph;
@@ -212,15 +226,15 @@ namespace TranscendenceRL {
         public void SetFiringPrimary(bool firingPrimary = true) => this.firingPrimary = firingPrimary;
         public void NextWeapon() {
             selectedPrimary++;
-            if(selectedPrimary >= ship.Weapons.Count) {
+            if(selectedPrimary >= ship.Devices.Weapons.Count) {
                 selectedPrimary = 0;
             }
         }
         public void Update() {
             messages.ForEach(m => m.Update());
             messages.RemoveAll(m => !m.Active);
-            if(firingPrimary && selectedPrimary < ship.Weapons.Count) {
-                ship.Weapons[selectedPrimary].SetFiring(true);
+            if(firingPrimary && selectedPrimary < ship.Devices.Weapons.Count) {
+                ship.Devices.Weapons[selectedPrimary].SetFiring(true);
                 firingPrimary = false;
             }
 
