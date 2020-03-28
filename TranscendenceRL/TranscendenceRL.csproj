@@ -58,7 +58,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SpaceObject\Controller.cs" />
     <Compile Include="SpaceObject\Generator.cs" />
+    <Compile Include="SpaceObject\HPSystem.cs" />
     <Compile Include="SpaceObject\Ship.cs" />
     <Compile Include="Screens\ShipScreen.cs" />
     <Compile Include="Screens\ShipSelector.cs" />

@@ -79,8 +79,33 @@ namespace Common {
 		public static Color Divide(this Color c, int scale) {
 			return new Color(c.R / scale, c.G / scale, c.B / scale);
 		}
-		public static Color WithValues(this Color c, int? red = null, int? green = null, int? blue = null) {
-			return new Color(red ?? c.R, green ?? c.G, blue ?? c.B);
+		public static Color WithValues(this Color c, int? red = null, int? green = null, int? blue = null, int? alpha = null) {
+			return new Color(red ?? c.R, green ?? c.G, blue ?? c.B, alpha ?? c.A);
+		}
+		public static double CalcFireAngle(XY posDiff, XY velDiff, double missileSpeed) {
+			/*
+			var timeToHit = posDiff.Magnitude / missileSpeed;
+			var posFuture = posDiff + velDiff * timeToHit;
+
+			var posDiffPrev = posDiff;
+			posDiff = posFuture;
+			*/
+
+			var a = velDiff.Dot(velDiff) - missileSpeed * missileSpeed;
+			var b = 2 * velDiff.Dot(posDiff);
+			var c = posDiff.Dot(posDiff);
+
+			var p = -b / (2 * a);
+			var q = Math.Sqrt(b * b - 4 * a * c) / (2 * a);
+			var t1 = -p - q;
+			var t2 = p + q;
+
+			var timeToHit = t1;
+			if(t1 > t2 && t2 > 0) {
+				timeToHit = t2;
+			}
+			var posFuture = posDiff + velDiff * timeToHit;
+			return posFuture.Angle;
 		}
 
 		/*
