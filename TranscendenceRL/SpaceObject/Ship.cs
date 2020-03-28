@@ -48,7 +48,7 @@ namespace TranscendenceRL {
 
             if (offset.Magnitude > 0.25) {
                 ship.Velocity += XY.Polar(offset.Angle, decel * 2);
-            } else if ((ship.Position - station.Position).Magnitude < 0.25) {
+            } else if ((ship.Position - station.Position).Magnitude < 0.5) {
                 ship.Velocity = new XY(0, 0);
                 return true;
             }

@@ -196,6 +196,8 @@ namespace TranscendenceRL {
 		}
 		public override bool ProcessMouse(MouseConsoleState state) {
 			if(state.IsOnConsole) {
+
+
 				var cell = state.ConsoleCellPosition;
 				var offset = new XY(cell.X, Height - cell.Y) - new XY(Width / 2, Height / 2);
 				if(offset.xi != 0 && offset.yi != 0) {
@@ -220,6 +222,13 @@ namespace TranscendenceRL {
 						player.SetRotating(Rotating.CW);
 					}
 					*/
+				}
+
+				if(state.Mouse.LeftButtonDown) {
+					player.SetFiringPrimary();
+				}
+				if(state.Mouse.RightButtonDown) {
+					player.SetThrusting();
 				}
 			}
 			return base.ProcessMouse(state);
