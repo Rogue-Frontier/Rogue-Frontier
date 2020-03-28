@@ -46,6 +46,9 @@ namespace TranscendenceRL {
                 var apparent = point - camera * parallaxFactor;
                 return tiles[apparent.xi, apparent.yi];
             }
+            public ColoredGlyph GetTileFixed(XY point) {
+                return tiles[point.xi, point.yi];
+            }
         }
         public Backdrop() {
             Random r = new Random();
@@ -57,6 +60,7 @@ namespace TranscendenceRL {
             }
             layers = layers.OrderBy(l => l.parallaxFactor).ToList();
         }
+        public Color GetBackgroundFixed(XY point) => GetBackground(point, XY.Zero);
         public Color GetBackground(XY point, XY camera) {
             Color result = layers.First().GetTile(point, camera).Background;
             foreach(var layer in layers.Skip(1)) {
@@ -76,5 +80,6 @@ namespace TranscendenceRL {
             }
             return result;
         }
+        public ColoredGlyph GetTileFixed(XY point) => GetTile(point, XY.Zero);
     }
 }
