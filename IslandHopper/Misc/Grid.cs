@@ -11,16 +11,23 @@ namespace Common {
 		public double y;
 		public int xi { get => (int)x; set => x = value; }
 		public int yi { get => (int)y; set => y = value; }
+		public static readonly XY Zero = new XY(0, 0);
 		public XY() {
 			x = 0;
 			y = 0;
+		}
+		public XY(Point p) {
+			this.x = p.X;
+			this.y = p.Y;
 		}
 		public XY(double x, double y) {
 			this.x = x;
 			this.y = y;
 		}
 		public static XY operator +(XY p, XY other) => new XY(p.x + other.x, p.y + other.y);
+		public static XY operator +(XY p, (int x, int y) other) => new XY(p.x + other.x, p.y + other.y);
 		public static XY operator -(XY p, XY other) => new XY(p.x - other.x, p.y - other.y);
+		public static XY operator -(XY p, (int x, int y) other) => new XY(p.x - other.x, p.y - other.y);
 		public static XY operator *(XY p, double scalar) => new XY(p.x * scalar, p.y * scalar);
 		public static XY operator /(XY p, double scalar) => new XY(p.x / scalar, p.y / scalar);
 		public XY clone {
@@ -38,8 +45,9 @@ namespace Common {
 
 		public static implicit operator (int, int)(XY p) => (p.xi, p.yi);
 		public static implicit operator (double, double)(XY p) => (p.x, p.y);
-
-
+		public bool IsZero => Magnitude < 0.1;
+		public double MaxCoord => Math.Max(Math.Abs(x), Math.Abs(y));
+		public double Manhattan => Math.Abs(x) + Math.Abs(y);
 		public double Magnitude => Math.Sqrt(x * x + y * y);
 		public XY Normal {
 			get {
@@ -348,6 +356,15 @@ namespace Common {
             UpdateSpace();
         }
         public bool Contains(T t) => all.Contains(t);
+		public HashSet<T> GetAll(Predicate<U> keySelector) {
+			HashSet<T> result = new HashSet<T>();
+			foreach(var pair in space) {
+				if(keySelector(pair.Key)) {
+					result.UnionWith(pair.Value);
+				}
+			}
+			return result;
+		}
         private void Place(U u, T t) {
             Initialize(u);
             this[u].Add(t);

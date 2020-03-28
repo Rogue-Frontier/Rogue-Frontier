@@ -117,32 +117,31 @@ namespace TranscendenceRL {
             void Set(uint x, uint y, T t);
         }
         class Quadrant : Section {
-            private Section[,] sections;
+            private Dictionary<(uint, uint), Section> sections;
             private uint scale;
             private uint level;
             public uint size => (uint)Math.Pow(scale, level);
             public Quadrant(uint level, uint scale = 8) {
-                sections = new Section[scale, scale];
+                sections = new Dictionary<(uint, uint), Section>();
                 this.level = level;
                 this.scale = scale;
             }
             public T Get(uint x, uint y) {
                 uint xIndex = x / size;
                 uint yIndex = y / size;
-                var section = sections[xIndex, yIndex];
-                if(section == null) {
-                    return default(T);
-                } else {
+                if(sections.TryGetValue((xIndex, yIndex), out var section)) {
                     return section.Get(x - xIndex * size, y - yIndex * size);
+                } else {
+                    return default(T);
                 }
             }
             public ref T At(uint x, uint y) {
                 uint xIndex = x / size;
                 uint yIndex = y / size;
 
-                ref Section section = ref sections[xIndex, yIndex];
-                if (section == null) {
+                if(!sections.TryGetValue((xIndex, yIndex), out var section)) {
                     Initialize(out section);
+                    sections[(xIndex, yIndex)] = section;
                 }
                 return ref section.At(x - xIndex * size, y - yIndex * size);
             }
@@ -150,9 +149,9 @@ namespace TranscendenceRL {
                 uint xIndex = x / size;
                 uint yIndex = y / size;
 
-                ref Section section = ref sections[xIndex, yIndex];
-                if(section == null) {
+                if (!sections.TryGetValue((xIndex, yIndex), out var section)) {
                     Initialize(out section);
+                    sections[(xIndex, yIndex)] = section;
                 }
                 section.Set(x - xIndex * size, y - yIndex * size, t);
             }

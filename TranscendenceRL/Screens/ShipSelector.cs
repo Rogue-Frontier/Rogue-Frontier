@@ -21,6 +21,7 @@ namespace TranscendenceRL {
         }
         public override void Draw(TimeSpan drawTime) {
             Clear();
+
             var current = playable[index];
             
             var map = current.playerSettings.map;

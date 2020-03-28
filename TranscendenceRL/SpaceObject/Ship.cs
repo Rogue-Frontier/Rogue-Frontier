@@ -16,19 +16,61 @@ namespace TranscendenceRL {
         ShipClass ShipClass { get; }
         double rotationDegrees { get; }
     }
+    public class Docking {
+        public Ship ship;
+        public Station station;
+        public bool done;
+        public Docking(Ship ship, Station station) {
+            this.ship = ship;
+            this.station = station;
+        }
+        public bool Update() {
+            if(!done) {
+                done = UpdateDocking();
+                if(done) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public bool UpdateDocking() {
+
+            double decel = 2;
+            double stoppingTime = ship.Velocity.Magnitude / decel;
+
+            double stoppingDistance = ship.Velocity.Magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
+            var stoppingPoint = ship.Position;
+            if (!ship.Velocity.IsZero) {
+                ship.Velocity -= XY.Polar(ship.Velocity.Angle, decel);
+                stoppingPoint += ship.Velocity.Normal * stoppingDistance;
+            }
+            var offset = station.Position - stoppingPoint;
+
+            if (offset.Magnitude > 0.25) {
+                ship.Velocity += XY.Polar(offset.Angle, decel * 2);
+            } else if ((ship.Position - station.Position).Magnitude < 0.25) {
+                ship.Velocity = new XY(0, 0);
+                return true;
+            }
+            return false;
+        }
+    }
     public class Ship : IShip {
         public World World { get; private set; }
         public ShipClass ShipClass { get; private set; }
         public Sovereign Sovereign { get; private set; }
-        public XY Position { get; private set; }
-        public XY Velocity { get; private set; }
+        public XY Position { get; set; }
+        public XY Velocity { get; set; }
         public double rotationDegrees { get; private set; }
+        public double stoppingRotation { get {
+                var stoppingTime = 30 * Math.Abs(rotatingSpeed) / (ShipClass.rotationDecel);
+                return rotationDegrees + rotatingSpeed * stoppingTime - ((ShipClass.rotationDecel / 30) * stoppingTime * stoppingTime) / 2;
+        }}
 
         public bool thrusting;
         public Rotating rotating;
         public double rotatingSpeed;
         public bool decelerating;
-
 
         public List<Device> Devices;
         public List<Weapon> Weapons;
@@ -146,15 +188,23 @@ namespace TranscendenceRL {
         public double rotationDegrees => ship.rotationDegrees;
 
         public bool firingPrimary;
-        private Ship ship;
+        public Ship ship;
         public List<PlayerMessage> messages;
         private int selectedPrimary;
 
+        public Docking docking;
+
+    public HashSet<Entity> visible;
+        public HashSet<Station> known;
+        int ticks;
 
         public PlayerShip(Ship ship) {
             this.ship = ship;
             ship.World.AddEffect(new Heading(this));
             messages = new List<PlayerMessage>();
+            visible = new HashSet<Entity>();
+            known = new HashSet<Station>();
+            ticks = 0;
         }
         public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
         public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
@@ -173,7 +223,18 @@ namespace TranscendenceRL {
                 ship.Weapons[selectedPrimary].SetFiring(true);
                 firingPrimary = false;
             }
-            
+
+            ticks++;
+            visible = new HashSet<Entity>(World.entities.GetAll(p => (Position - p).MaxCoord < 50));
+            if (ticks%30 == 0) {
+                foreach (var s in visible.OfType<Station>().Where(s => !known.Contains(s))) {
+                    messages.Add(new PlayerMessage($"Discovered: {s.Type.name}"));
+                    known.Add(s);
+                }
+            }
+
+            docking?.Update();
+
             ship.Update();
         }
         public bool Active => ship.Active;
