@@ -12,6 +12,7 @@ namespace TranscendenceRL {
             tree = new QTree<T>();
             this.generator = generator;
         }
+        public ref T this[int x, int y] => ref Initialize(x, y);
         public T Get(int x, int y) {
             return Initialize(x, y);
         }

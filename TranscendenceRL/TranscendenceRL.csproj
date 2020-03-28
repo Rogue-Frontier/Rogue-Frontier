@@ -42,8 +42,9 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Backdrop.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="CrawlScreen.cs" />
+    <Compile Include="Screens\CrawlScreen.cs" />
     <Compile Include="EffectParticle.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Heading.cs" />
@@ -59,14 +60,14 @@
     </Compile>
     <Compile Include="SpaceObject\Generator.cs" />
     <Compile Include="SpaceObject\Ship.cs" />
-    <Compile Include="ShipScreen.cs" />
-    <Compile Include="ShipSelector.cs" />
+    <Compile Include="Screens\ShipScreen.cs" />
+    <Compile Include="Screens\ShipSelector.cs" />
     <Compile Include="Sovereign.cs" />
     <Compile Include="SpaceObject\SpaceObject.cs" />
     <Compile Include="SpaceObject\Station.cs" />
-    <Compile Include="TitleConsole.cs" />
-    <Compile Include="TranscendenceRL.cs" />
-    <Compile Include="GameConsole.cs" />
+    <Compile Include="Screens\TitleConsole.cs" />
+    <Compile Include="Screens\TranscendenceRL.cs" />
+    <Compile Include="Screens\GameScreen.cs" />
     <Compile Include="GeneratedGrid.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
