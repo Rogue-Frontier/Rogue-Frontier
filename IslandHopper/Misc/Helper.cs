@@ -427,7 +427,18 @@ namespace Common {
 		public static Color Sum(Color c, Color c2) {
 			return new Color(Range(0, 255, c.R + c2.R), Range(0, 255, c.G + c2.G), Range(0, 255, c.B + c2.B), Range(0, 255, c.A + c2.A));
 		}
-        public static Func<Entity, bool> Or(params Func<Entity, bool>[] f) {
+
+		public static Color Blend(this Color foreground, Color background) {
+			byte alpha = (byte) (foreground.A + 1);
+			byte inv_alpha = (byte)(256 - foreground.A);
+			return new Color(
+				r: (byte)((alpha * foreground.R + inv_alpha * background.A) >> 8),
+				g: (byte)((alpha * foreground.G + inv_alpha * background.G) >> 8),
+				b: (byte)((alpha * foreground.B + inv_alpha * background.B) >> 8),
+				alpha: (byte) 0xff
+				);
+		}
+		public static Func<Entity, bool> Or(params Func<Entity, bool>[] f) {
             Func<Entity, bool> result = e => true;
             foreach(Func<Entity, bool> condition in f) {
                 if (condition == null)
