@@ -12,6 +12,9 @@ namespace TranscendenceRL {
         ConstructiveOrder, ConstructiveChaos, Neutral, DestructiveOrder, DestructiveChaos
     }
     public class Sovereign : DesignType {
+        public static readonly Sovereign Inanimate = new Sovereign() {
+            alignment = Alignment.Neutral
+        };
         string codename;
         Alignment alignment;
         //private Sovereign parent;

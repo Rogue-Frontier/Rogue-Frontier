@@ -45,6 +45,8 @@ namespace Common {
 
 		public static implicit operator (int, int)(XY p) => (p.xi, p.yi);
 		public static implicit operator (double, double)(XY p) => (p.x, p.y);
+
+		public double Dot(XY other) => x * other.x + y * other.y;
 		public bool IsZero => Magnitude < 0.1;
 		public double MaxCoord => Math.Max(Math.Abs(x), Math.Abs(y));
 		public double Manhattan => Math.Abs(x) + Math.Abs(y);

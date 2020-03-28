@@ -41,11 +41,10 @@ namespace TranscendenceRL {
             x = Width / 2;
             y = 0;
 
-            foreach(var device in PlayerShip.ship.Devices.Devices) {
+            foreach(var device in PlayerShip.Ship.Devices.Devices) {
                 Print(x, y++, device.source.type.name);
                 if(device is Weapon w) {
-                    Print(x, y++, $"{$"Damage: {w.desc.damageHP}", -16}{$"Cooldown: {60f / w.desc.fireCooldown}",-16}");
-                    Print(x, y++, $"{ $"Projectile speed: {w.desc.missileSpeed}", -16}");
+                    Print(x, y++, $"{$"Damage: {w.desc.damageHP}", -16}{$"Shots per second: {60f / w.desc.fireCooldown}",-16}{ $"Projectile speed: {w.desc.missileSpeed}",-16}");
                 }
             }
             /*

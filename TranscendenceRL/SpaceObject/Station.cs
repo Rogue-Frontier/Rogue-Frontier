@@ -1,4 +1,5 @@
 ﻿using Common;
+using Microsoft.Xna.Framework;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -9,40 +10,88 @@ using TranscendenceRL;
 
 namespace TranscendenceRL {
     public interface IStation : SpaceObject {
-        World World { get; }
-        StationType Type { get; }
+        StationType StationType { get; }
     }
-    public class Station : IStation {
-        public World World { get; private set; }
-        public StationType Type { get; private set; }
+    public class Wreck : IStation {
+        public SpaceObject creator;
+        public string Name => $"Wreck of {creator.Name}";
+        public World World => creator.World;
+
+        public StationType StationType => null;
 
         public Sovereign Sovereign { get; private set; }
         public XY Position { get; private set; }
         public XY Velocity { get; private set; }
-        public bool Active => true;
+
+
+        public bool Active { get; private set; }
+
+        public ColoredGlyph Tile => new ColoredGlyph(creator.Tile.GlyphCharacter, new Color(128, 128, 128), Color.Transparent);
+        public Wreck(SpaceObject creator) {
+            this.creator = creator;
+            this.Sovereign = Sovereign.Inanimate;
+            this.Position = creator.Position;
+            this.Velocity = creator.Velocity;
+            this.Active = true;
+        }
+        public void Damage(SpaceObject source, int hp) {
+        }
+
+        public void Destroy() {
+            Active = false;
+        }
+
+        public void Update() {
+            Position += Velocity / 30;
+        }
+    }
+    public class Station : IStation {
+        public string Name => StationType.name;
+        public World World { get; private set; }
+        public StationType StationType { get; private set; }
+
+        public Sovereign Sovereign { get; private set; }
+        public XY Position { get; private set; }
+        public XY Velocity { get; private set; }
+        public bool Active { get; private set; }
         private List<Segment> segments;
+        HPSystem hpSystem;
         public Station(World World, StationType Type, XY Position) {
             this.World = World;
-            this.Type = Type;
+            this.StationType = Type;
             this.Position = Position;
+            this.Velocity = new XY();
+            this.Active = true;
+            segments = new List<Segment>();
             CreateSegments();
+            hpSystem = new HPSystem(this, 100);
         }
         private void CreateSegments() {
-            segments = new List<Segment>();
-            foreach(var segmentDesc in Type.segments) {
+            foreach(var segmentDesc in StationType.segments) {
                 var s = new Segment(this, segmentDesc.offset, segmentDesc.tile);
                 segments.Add(s);
                 World.AddEntity(s);
             }
-
+        }
+        public void Damage(SpaceObject source, int hp) {
+            hpSystem.Damage(source, hp);
+        }
+        public void Destroy() {
+            Active = false;
+            World.AddEntity(new Wreck(this));
+            foreach(var segment in segments) {
+                World.AddEntity(new Wreck(segment));
+            }
         }
         public void Update() {
 
         }
-        public ColoredGlyph Tile => Type.tile.Glyph;
+        public ColoredGlyph Tile => StationType.tile.Glyph;
 
     }
     public class Segment : IStation {
+        //The segment essentially impersonates its parent station but with a different tile
+        public string Name => Parent.Name;
         public World World => Parent.World;
         public XY Position => Parent.Position + Offset;
         public XY Velocity => Parent.Velocity;
@@ -57,10 +106,11 @@ namespace TranscendenceRL {
             this._Tile = tile;
         }
 
-        public StationType Type => Parent.Type;
+        public StationType StationType => Parent.StationType;
         
         public bool Active => Parent.Active;
-
+        public void Damage(SpaceObject source, int hp) => Parent.Damage(source, hp);
+        public void Destroy() => Parent.Destroy();
         public void Update() {
         }
         public ColoredGlyph Tile => _Tile.Glyph;

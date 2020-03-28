@@ -10,16 +10,20 @@ using System.Threading.Tasks;
 namespace TranscendenceRL {
     class Projectile : Entity {
         public World World { get; private set; }
+        SpaceObject Source;
         public XY Position { get; private set; }
         public XY Velocity { get; private set; }
         public bool Active => lifetime > 0;
         public ColoredGlyph Tile { get; private set; }
+        public int damage;
         public int lifetime;
-        public Projectile(World World, ColoredGlyph Tile, XY Position, XY Velocity, int lifetime) {
+        public Projectile(SpaceObject Source, World World, ColoredGlyph Tile, XY Position, XY Velocity, int damage, int lifetime) {
+            this.Source = Source;
             this.World = World;
             this.Tile = Tile;
             this.Position = Position;
             this.Velocity = Velocity;
+            this.damage = damage;
             this.lifetime = lifetime;
         }
         public void Update() {
@@ -35,6 +39,15 @@ namespace TranscendenceRL {
             var trailPoint = steps - maxTrailLength * 2;
             for (int i = 0; i < steps; i++) {
                 Position += inc;
+
+
+                var hit = World.entities[Position].OfType<IStation>().FirstOrDefault();
+                if (hit != null) {
+                    lifetime = 0;
+                    hit.Damage(Source, damage);
+                    World.AddEffect(new EffectParticle(Position, new ColoredGlyph('x', Color.Yellow, Color.Transparent), 3));
+                }
+
                 if(i >= trailPoint) {
                     World.AddEffect(new EffectParticle(Position, Tile, 1));
                 }

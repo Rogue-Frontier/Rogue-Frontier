@@ -12,7 +12,6 @@ namespace TranscendenceRL {
         None, CCW, CW
     }
     public interface IShip : SpaceObject {
-        World World { get; }
         ShipClass ShipClass { get; }
         double rotationDegrees { get; }
     }
@@ -66,7 +65,7 @@ namespace TranscendenceRL {
 
             if (offset.Magnitude > 0.25) {
                 ship.Velocity += XY.Polar(offset.Angle, decel * 2);
-            } else if ((ship.Position - station.Position).Magnitude < 0.5) {
+            } else if ((ship.Position - station.Position).Magnitude < 1) {
                 ship.Velocity = new XY(0, 0);
                 return true;
             }
@@ -74,11 +73,15 @@ namespace TranscendenceRL {
         }
     }
     public class Ship : IShip {
+        public string Name => ShipClass.name;
         public World World { get; private set; }
         public ShipClass ShipClass { get; private set; }
         public Sovereign Sovereign { get; private set; }
         public XY Position { get; set; }
         public XY Velocity { get; set; }
+        public bool Active { get; private set; }
+        public DeviceSystem Devices;
+        private HPSystem hpSystem;
         public double rotationDegrees { get; private set; }
         public double stoppingRotation { get {
                 var stoppingTime = 30 * Math.Abs(rotatingSpeed) / (ShipClass.rotationDecel);
@@ -90,7 +93,6 @@ namespace TranscendenceRL {
         public double rotatingSpeed;
         public bool decelerating;
 
-        public DeviceSystem Devices;
 
         public Ship(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.World = world;
@@ -101,16 +103,30 @@ namespace TranscendenceRL {
             this.Position = Position;
             Velocity = new XY();
 
+            this.Active = true;
+
             Devices = new DeviceSystem();
             Devices.Add(shipClass.devices.Generate(world.types));
+
+            hpSystem = new HPSystem(this, 100);
         }
         public void SetThrusting(bool thrusting = true) => this.thrusting = thrusting;
         public void SetRotating(Rotating rotating = Rotating.None) {
             this.rotating = rotating;
         }
         public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
-        public void Update() {
 
+        public void Damage(SpaceObject source, int hp) {
+            hpSystem.Damage(source, hp);
+        }
+        public void Destroy() => Active = false;
+
+        public void Update() {
+            UpdateControls();
+            UpdateMotion();
+            Devices.Update(this);
+        }
+        public void UpdateControls() {
             if (thrusting) {
                 var rotationRads = rotationDegrees * Math.PI / 180;
 
@@ -158,83 +174,94 @@ namespace TranscendenceRL {
                 }
                 decelerating = false;
             }
-
-            Position += Velocity / 30;
-
-            Devices.Update(this);
         }
-        public bool Active => true;
+        public void UpdateMotion() {
+            Position += Velocity / 30;
+        }
         public ColoredGlyph Tile => ShipClass.tile.Glyph;
     }
     public class AIShip : IShip {
-        Ship Ship;
+        public string Name => Ship.Name;
         public World World => Ship.World;
         public ShipClass ShipClass => Ship.ShipClass;
         public Sovereign Sovereign => Ship.Sovereign;
-
         public XY Position => Ship.Position;
         public XY Velocity => Ship.Velocity;
         public double rotationDegrees => Ship.rotationDegrees;
-        public List<PlayerMessage> messages;
 
-        public AIShip(Ship Ship) {
-            this.Ship = Ship;
-            Ship.World.AddEffect(new Heading(this));
-            messages = new List<PlayerMessage>();
+        public Ship Ship;
+        public Controller controller;
+        public Docking docking;
+
+        public AIShip(Ship ship, Controller controller) {
+            this.Ship = ship;
+            this.controller = controller;
+            ship.World.AddEffect(new Heading(this));
         }
         public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
         public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);
         public void SetDecelerating(bool decelerating = true) => Ship.SetDecelerating(decelerating);
+        public void Damage(SpaceObject source, int hp) => Ship.Damage(source, hp);
+        public void Destroy() => Ship.Destroy();
         public void Update() {
-            messages.ForEach(m => m.Update());
-            messages.RemoveAll(m => !m.Active);
-            Ship.Update();
+
+            docking?.Update();
+
+            Ship.UpdateControls();
+            Ship.UpdateMotion();
+
+            //We update the ship's devices as ourselves because they need to know who the exact owner is
+            //In case someone other than us needs to know who we are through our devices
+            Ship.Devices.Update(this);
         }
         public bool Active => Ship.Active;
         public ColoredGlyph Tile => Ship.Tile;
     }
     public class PlayerShip : IShip {
-        public World World => ship.World;
-        public ShipClass ShipClass => ship.ShipClass;
-        public Sovereign Sovereign => ship.Sovereign;
-        public XY Position => ship.Position;
-        public XY Velocity => ship.Velocity;
-        public double rotationDegrees => ship.rotationDegrees;
+        public string Name => Ship.Name;
+        public World World => Ship.World;
+        public ShipClass ShipClass => Ship.ShipClass;
+        public Sovereign Sovereign => Ship.Sovereign;
+        public XY Position => Ship.Position;
+        public XY Velocity => Ship.Velocity;
+        public double rotationDegrees => Ship.rotationDegrees;
 
         public bool firingPrimary;
-        public Ship ship;
+        public Ship Ship;
         public List<PlayerMessage> messages;
         private int selectedPrimary;
 
         public Docking docking;
 
-    public HashSet<Entity> visible;
+        public HashSet<Entity> visible;
         public HashSet<Station> known;
         int ticks;
 
         public PlayerShip(Ship ship) {
-            this.ship = ship;
+            this.Ship = ship;
             ship.World.AddEffect(new Heading(this));
             messages = new List<PlayerMessage>();
             visible = new HashSet<Entity>();
             known = new HashSet<Station>();
             ticks = 0;
         }
-        public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
-        public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
-        public void SetDecelerating(bool decelerating = true) => ship.SetDecelerating(decelerating);
+        public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
+        public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);
+        public void SetDecelerating(bool decelerating = true) => Ship.SetDecelerating(decelerating);
         public void SetFiringPrimary(bool firingPrimary = true) => this.firingPrimary = firingPrimary;
         public void NextWeapon() {
             selectedPrimary++;
-            if(selectedPrimary >= ship.Devices.Weapons.Count) {
+            if(selectedPrimary >= Ship.Devices.Weapons.Count) {
                 selectedPrimary = 0;
             }
         }
+        public void Damage(SpaceObject source, int hp) => Ship.Damage(source, hp);
+        public void Destroy() => Ship.Destroy();
         public void Update() {
             messages.ForEach(m => m.Update());
             messages.RemoveAll(m => !m.Active);
-            if(firingPrimary && selectedPrimary < ship.Devices.Weapons.Count) {
-                ship.Devices.Weapons[selectedPrimary].SetFiring(true);
+            if(firingPrimary && selectedPrimary < Ship.Devices.Weapons.Count) {
+                Ship.Devices.Weapons[selectedPrimary].SetFiring(true);
                 firingPrimary = false;
             }
 
@@ -242,16 +269,30 @@ namespace TranscendenceRL {
             visible = new HashSet<Entity>(World.entities.GetAll(p => (Position - p).MaxCoord < 50));
             if (ticks%30 == 0) {
                 foreach (var s in visible.OfType<Station>().Where(s => !known.Contains(s))) {
-                    messages.Add(new PlayerMessage($"Discovered: {s.Type.name}"));
+                    messages.Add(new PlayerMessage($"Discovered: {s.StationType.name}"));
                     known.Add(s);
                 }
             }
 
             docking?.Update();
 
-            ship.Update();
+            Ship.UpdateControls();
+            Ship.UpdateMotion();
+
+            //We update the ship's devices as ourselves because they need to know who the exact owner is
+            //In case someone other than us needs to know who we are through our devices
+            Ship.Devices.Update(this);
         }
-        public bool Active => ship.Active;
-        public ColoredGlyph Tile => ship.Tile;
+        public void AddMessage(PlayerMessage message) {
+            var existing = messages.FirstOrDefault(m => m.message.String.Equals(message.message.String));
+            if (existing != null) {
+                existing.ticksRemaining = 150;
+                existing.flashTicks = 15;
+            } else {
+                messages.Add(message);
+            }
+        }
+        public bool Active => Ship.Active;
+        public ColoredGlyph Tile => Ship.Tile;
     }
 }

@@ -42,7 +42,12 @@ namespace TranscendenceRL {
             firing = false;
         }
         public void Fire(IShip source, double direction) {
-            var shot = new Projectile(source.World, desc.effect.Glyph, source.Position + XY.Polar(direction), source.Velocity + XY.Polar(direction, desc.missileSpeed), desc.lifetime); ;
+            var shot = new Projectile(source, source.World,
+                desc.effect.Glyph,
+                source.Position + XY.Polar(direction),
+                source.Velocity + XY.Polar(direction, desc.missileSpeed),
+                desc.damageHP,
+                desc.lifetime);
             source.World.AddEntity(shot);
         }
         public void SetFiring(bool firing = true) => this.firing = firing;
