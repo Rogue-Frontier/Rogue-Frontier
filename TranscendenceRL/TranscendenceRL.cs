@@ -13,9 +13,9 @@ namespace TranscendenceRL {
 	/// This is the main type for your game.
 	/// </summary>
 	public class TranscendenceRL : SadConsole.Game {
-		const int width = 200;
-		const int height = 60;
-		public TranscendenceRL() : base("IBM.font", width, height, null) {
+		const int width = 120;
+		const int height = 32;
+		public TranscendenceRL() : base("IBM.font", width * 2, height * 2, null) {
 			Content.RootDirectory = "Content";
 		}
 		/// <summary>
@@ -38,9 +38,8 @@ namespace TranscendenceRL {
 			def.ModalBackground = Color.Transparent;
 
 			//var types = new TypeCollection(XElement.Parse(Properties.Resources.Items));
-
-			var title = new TitleConsole(width, height, SadConsole.Global.FontDefault.Master.GetFont(Font.FontSizes.One));
 			SadConsole.Global.FontDefault = SadConsole.Global.FontDefault.Master.GetFont(Font.FontSizes.Two);
+			var title = new TitleConsole(width, height);
 			title.Position = new Point(0, 0);
 			title.Show(true);
 		}

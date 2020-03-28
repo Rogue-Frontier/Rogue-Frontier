@@ -14,7 +14,7 @@ namespace TranscendenceRL {
     class TitleConsole : Window {
         string[] title = Properties.Resources.Title.Replace("\r\n", "\n").Split('\n');
         TypeCollection types = new TypeCollection();
-        public TitleConsole(int width, int height, Font font) : base(width, height, font) {
+        public TitleConsole(int width, int height) : base(width, height) {
             UseKeyboard = true;
             ButtonTheme BUTTON_THEME = new SadConsole.Themes.ButtonTheme() {
                 Normal = new SadConsole.Cell(Color.Blue, Color.Transparent),
@@ -53,7 +53,7 @@ namespace TranscendenceRL {
         private void StartGame() {
             Hide();
             //new GameConsole(Width/2, Height/2).Show(true);
-            new ShipSelector(Width / 2, Height / 2, types).Show(true);
+            new ShipSelector(Width, Height, types).Show(true);
         }
         private void Exit() {
             Environment.Exit(0);
@@ -83,7 +83,7 @@ namespace TranscendenceRL {
 #if DEBUG
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {
                 Hide();
-                new GameConsole(Width / 2, Height / 2, types, types.Lookup<ShipClass>("scAmethyst")).Show(true);
+                new GameConsole(Width, Height, types, types.Lookup<ShipClass>("scAmethyst")).Show(true);
             }
 #endif
             return base.ProcessKeyboard(info);
