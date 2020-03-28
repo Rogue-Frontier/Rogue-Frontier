@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace TranscendenceRL {
     //A space background made up of randomly generated layers with different depths
-    class Backdrop {
+    public class Backdrop {
         List<Layer> layers;
         private class Layer {
             public double parallaxFactor;                   //Multiply the camera by this value

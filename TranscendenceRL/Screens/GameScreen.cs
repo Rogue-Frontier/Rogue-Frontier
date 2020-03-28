@@ -23,7 +23,7 @@ namespace TranscendenceRL {
 	}
 	class GameConsole : Window {
 		private PlayerMain main;
-		public GameConsole(int Width, int Height, TypeCollection types, ShipClass playerClass) : base(Width, Height) {
+		public GameConsole(int Width, int Height, World World, ShipClass playerClass) : base(Width, Height) {
 			Theme = new WindowTheme {
 				ModalTint = Color.Transparent,
 				FillStyle = new Cell(Color.White, Color.Black),
@@ -31,7 +31,7 @@ namespace TranscendenceRL {
 			UseKeyboard = true;
 			UseMouse = true;
 			this.DebugInfo($"Width: {Width}", $"Height: {Height}");
-			main = new PlayerMain(Width, Height, types, playerClass);
+			main = new PlayerMain(Width, Height, World, playerClass);
 		}
 		public override void Show(bool modal) {
 			base.Show(modal);
@@ -75,11 +75,9 @@ namespace TranscendenceRL {
 		public GeneratedGrid<Color> backSpace;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		public PlayerShip player;
-		public PlayerMain(int Width, int Height, TypeCollection types, ShipClass playerClass) : base(Width, Height) {
+		public PlayerMain(int Width, int Height, World World, ShipClass playerClass) : base(Width, Height) {
 			camera = new XY();
-			world = new World() {
-				types = types
-			};
+			this.world = World;
 			backSpace = new GeneratedGrid<Color>(p => {
 				(var x, var y) = p;
 				var value = world.karma.Next(28);

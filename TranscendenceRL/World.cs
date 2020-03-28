@@ -14,6 +14,7 @@ namespace TranscendenceRL {
         public SetDict<Effect, (int, int)> effects = new SetDict<Effect, (int, int)>(e => (e.Position.xi, e.Position.yi));
         public List<Effect> effectsAdded = new List<Effect>();
         public Random karma = new Random();
+        public Backdrop backdrop = new Backdrop();
         public void AddEffect(Effect e) {
             effectsAdded.Add(e);
         }

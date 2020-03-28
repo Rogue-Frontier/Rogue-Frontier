@@ -10,13 +10,13 @@ using static Microsoft.Xna.Framework.Input.Keys;
 
 namespace TranscendenceRL {
     class ShipSelector : Window {
-        TypeCollection types;
+        World World;
         List<ShipClass> playable;
         int index;
 
-        public ShipSelector(int width, int height, TypeCollection types) : base(width, height) {
-            this.types = types;
-            this.playable = types.shipClass.Values.Where(sc => sc.playerSettings?.startingClass == true).ToList();
+        public ShipSelector(int width, int height, World World) : base(width, height) {
+            this.World = World;
+            this.playable = World.types.shipClass.Values.Where(sc => sc.playerSettings?.startingClass == true).ToList();
             this.index = 0;
         }
         public override void Draw(TimeSpan drawTime) {
@@ -52,7 +52,7 @@ namespace TranscendenceRL {
             //Show installed devices on the right pane
             Print(descX, descY, "Installed Devices:");
             descY++;
-            foreach (var device in current.devices.Generate(types)) {
+            foreach (var device in current.devices.Generate(World.types)) {
                 Print(descX+4, descY, device.source.type.name);
             }
 
@@ -79,7 +79,7 @@ namespace TranscendenceRL {
             }
             if(info.IsKeyPressed(Enter)) {
                 Hide();
-                new CrawlScreen(Width, Height, types, playable[index]).Show(true);
+                new CrawlScreen(Width, Height, World, playable[index]).Show(true);
             }
             return base.ProcessKeyboard(info);
         }

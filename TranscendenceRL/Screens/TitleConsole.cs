@@ -13,7 +13,7 @@ using static Common.Helper;
 namespace TranscendenceRL {
     class TitleConsole : Window {
         string[] title = Properties.Resources.Title.Replace("\r\n", "\n").Split('\n');
-        TypeCollection types = new TypeCollection();
+        World World = new World();
         public TitleConsole(int width, int height) : base(width, height) {
             UseKeyboard = true;
             ButtonTheme BUTTON_THEME = new SadConsole.Themes.ButtonTheme() {
@@ -48,12 +48,12 @@ namespace TranscendenceRL {
                 exit.Click += (o, e) => Exit();
                 Add(exit);
             }
-            types.Load("Content/Ships.xml", "Content/Stations.xml", "Content/Player.xml", "Content/Items.xml");
+            World.types.Load("Content/Ships.xml", "Content/Stations.xml", "Content/Player.xml", "Content/Items.xml");
         }
         private void StartGame() {
             Hide();
             //new GameConsole(Width/2, Height/2).Show(true);
-            new ShipSelector(Width, Height, types).Show(true);
+            new ShipSelector(Width, Height, World).Show(true);
         }
         private void Exit() {
             Environment.Exit(0);
@@ -83,7 +83,7 @@ namespace TranscendenceRL {
 #if DEBUG
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {
                 Hide();
-                new GameConsole(Width, Height, types, types.Lookup<ShipClass>("scAmethyst")).Show(true);
+                new GameConsole(Width, Height, World, World.types.Lookup<ShipClass>("scAmethyst")).Show(true);
             }
 #endif
             return base.ProcessKeyboard(info);

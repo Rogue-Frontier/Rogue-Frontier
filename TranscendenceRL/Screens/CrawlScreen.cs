@@ -10,7 +10,7 @@ using static Common.Helper;
 
 namespace TranscendenceRL {
     class CrawlScreen : Window {
-        TypeCollection types;
+        World World;
         ShipClass playerClass;
 
         private readonly string text;
@@ -23,8 +23,8 @@ namespace TranscendenceRL {
         int loadingTicks = 150;
 
         ColoredString[] effect;
-        public CrawlScreen(int width ,int height, TypeCollection types, ShipClass playerClass) : base(width, height) {
-            this.types = types;
+        public CrawlScreen(int width ,int height, World World, ShipClass playerClass) : base(width, height) {
+            this.World = World;
             this.playerClass = playerClass;
 
             text = Properties.Resources.Crawl.Replace("\r\n", "\n");
@@ -88,7 +88,7 @@ namespace TranscendenceRL {
                 loadingTicks--;
             } else {
                 Hide();
-                new GameConsole(Width, Height, types, playerClass).Show(true);
+                new GameConsole(Width, Height, World, playerClass).Show(true);
             }
         }
         public override void Draw(TimeSpan drawTime) {
