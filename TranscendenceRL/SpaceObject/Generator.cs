@@ -7,10 +7,53 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace TranscendenceRL {
+	public interface ShipGenerator {
+		List<Ship> Generate(TypeCollection tc);
+	}
+	public class ShipList : ShipGenerator {
+		List<ShipGenerator> generators;
+		public ShipList(XElement e) {
+			generators = new List<ShipGenerator>();
+			foreach (var element in e.Elements()) {
+				switch (element.Name.LocalName) {
+					case "Ship":
+						generators.Add(new ShipEntry(element));
+						break;
+					default:
+						throw new Exception($"Unknown <Ships> subelement {element.Name}");
+				}
+			}
+		}
+		public List<Ship> Generate(TypeCollection tc) {
+			var result = new List<Ship>();
+			generators.ForEach(g => result.AddRange(g.Generate(tc)));
+			return result;
+		}
+	}
+	public class ShipEntry : ShipGenerator {
+		public string codename;
+		public ShipEntry(XElement e) {
+			this.codename = e.ExpectAttribute("codename");
+		}
+		public List<Ship> Generate(TypeCollection tc) {
+			if (tc.Lookup<ShipClass>(codename, out var shipClass)) {
+				return new List<Ship> { new Ship(null, shipClass, null, null) };
+			} else {
+				throw new Exception($"Invalid ShipClass type {codename}");
+			}
+		}
+		//In case we want to make sure immediately that the type is valid
+		public void ValidateEager(TypeCollection tc) {
+			if(!tc.Lookup<ShipClass>(codename, out var shipClass)) {
+				throw new Exception($"Invalid ShipClass type {codename}");
+			}
+		}
+	}
+
 	public interface ArmorGenerator {
 		List<Armor> Generate(TypeCollection tc);
 	}
-	public class ArmorList {
+	public class ArmorList : ArmorGenerator {
 		List<ArmorGenerator> generators;
 		public ArmorList(XElement e) {
 			generators = new List<ArmorGenerator>();
