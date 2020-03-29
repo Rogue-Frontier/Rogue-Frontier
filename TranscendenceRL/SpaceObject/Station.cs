@@ -55,16 +55,17 @@ namespace TranscendenceRL {
         public XY Velocity { get; private set; }
         public bool Active { get; private set; }
         private List<Segment> segments;
-        HPSystem hpSystem;
+        DamageSystem DamageSystem;
         public Station(World World, StationType Type, XY Position) {
             this.World = World;
             this.StationType = Type;
             this.Position = Position;
             this.Velocity = new XY();
             this.Active = true;
+            this.Sovereign = Type.Sovereign;
             segments = new List<Segment>();
             CreateSegments();
-            hpSystem = new HPSystem(this, 100);
+            DamageSystem = new HPSystem(this, Type.hp);
         }
         private void CreateSegments() {
             foreach(var segmentDesc in StationType.segments) {
@@ -74,7 +75,7 @@ namespace TranscendenceRL {
             }
         }
         public void Damage(SpaceObject source, int hp) {
-            hpSystem.Damage(source, hp);
+            DamageSystem.Damage(source, hp);
         }
         public void Destroy() {
             Active = false;

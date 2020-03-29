@@ -12,6 +12,7 @@ namespace TranscendenceRL {
 		public double rotationDecel;
 		public double rotationAccel;
 		public StaticTile tile;
+		public DamageSystemDesc damageDesc;
 		public DeviceList devices;
 		public PlayerSettings playerSettings;
 		
@@ -27,6 +28,14 @@ namespace TranscendenceRL {
 
 			tile = new StaticTile(e);
 
+			if(e.HasElement("HPSystem", out XElement xmlHPSystem)) {
+				damageDesc = new HPSystemDesc(xmlHPSystem);
+			} else if(e.HasElement("LayeredArmorSystem", out XElement xmlLayeredArmor)) {
+				damageDesc = new LayeredArmorDesc(xmlLayeredArmor);
+			} else {
+				throw new Exception("<ShipClass> requires either <HPSystem> or <LayeredArmorSystem> subelement");
+			}
+
 			if(e.HasElement("Devices", out XElement xmlDevices)) {
 				devices = new DeviceList(xmlDevices);
 			} else {
@@ -35,6 +44,27 @@ namespace TranscendenceRL {
 			if(e.HasElement("PlayerSettings", out XElement xmlPlayerSettings)) {
 				playerSettings = new PlayerSettings(xmlPlayerSettings);
 			}
+		}
+	}
+	public interface DamageSystemDesc {
+		DamageSystem Create(SpaceObject owner);
+	}
+	public class HPSystemDesc : DamageSystemDesc {
+		public int maxHP;
+		public HPSystemDesc(XElement e) {
+			maxHP = e.ExpectAttributeInt("maxHP");
+		}
+		public DamageSystem Create(SpaceObject owner) {
+			return new HPSystem(owner, maxHP);
+		}
+	}
+	public class LayeredArmorDesc : DamageSystemDesc {
+		ArmorList armorList;
+		public LayeredArmorDesc(XElement e) {
+			armorList = new ArmorList(e);
+		}
+		public DamageSystem Create(SpaceObject owner) {
+			return new LayeredArmorSystem(owner, armorList.Generate(owner.World.types));
 		}
 	}
 	public class PlayerSettings {

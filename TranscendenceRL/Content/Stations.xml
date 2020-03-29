@@ -2,6 +2,9 @@
 	<StationType codename=	"stDaughtersOutpost"
 				 name=		"Daughters of the Orator"
 				 sovereign=	"svDaughters"
+
+				 hp=		"400"
+
 				 char=		"S"
 				 foreground="Magenta"
 		>

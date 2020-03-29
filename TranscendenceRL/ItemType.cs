@@ -22,11 +22,14 @@ namespace TranscendenceRL {
             name = e.ExpectAttribute("name");
             level = e.ExpectAttributeInt("level");
             mass = e.ExpectAttributeInt("mass");
-            if(e.HasElement("Armor", out var xmlArmor)) {
-                armor = new ArmorDesc(xmlArmor);
-            }
             if (e.HasElement("Weapon", out var xmlWeapon)) {
                 weapon = new WeaponDesc(xmlWeapon);
+            }
+            if (e.HasElement("Armor", out var xmlArmor)) {
+                armor = new ArmorDesc(xmlArmor);
+            }
+            if (e.HasElement("Shield", out var xmlShield)) {
+                shield = new ShieldDesc(xmlShield);
             }
         }
     }
@@ -58,13 +61,18 @@ namespace TranscendenceRL {
 
     }
     public class ShieldDesc {
-        public uint maxHP;
-        public uint depletionDelay;
-        public uint ticksPerHP;
+        public int maxHP;
+        public int depletionDelay;
+        public int ticksPerHP;
+        public ShieldDesc(XElement e) {
+            maxHP = e.ExpectAttributeInt("maxHP");
+            depletionDelay = e.ExpectAttributeInt("depletionDelay");
+            ticksPerHP = e.ExpectAttributeInt("ticksPerHP");
+        }
     }
     public class ReactorDesc {
-        public uint maxPower;
-        public uint maxFuel;
-        public uint powerPerFuel;
+        public int maxPower;
+        public int maxFuel;
+        public int powerPerFuel;
     }
 }

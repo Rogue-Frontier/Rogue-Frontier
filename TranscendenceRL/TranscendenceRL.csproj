@@ -60,7 +60,7 @@
     </Compile>
     <Compile Include="SpaceObject\Controller.cs" />
     <Compile Include="SpaceObject\Generator.cs" />
-    <Compile Include="SpaceObject\HPSystem.cs" />
+    <Compile Include="SpaceObject\DamageSystem.cs" />
     <Compile Include="SpaceObject\Ship.cs" />
     <Compile Include="Screens\ShipScreen.cs" />
     <Compile Include="Screens\ShipSelector.cs" />
@@ -117,6 +117,7 @@
     <Content Include="Content\Stations.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\Systems.xml" />
     <Content Include="IBM8x16.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

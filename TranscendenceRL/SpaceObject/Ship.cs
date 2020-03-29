@@ -12,7 +12,7 @@ namespace TranscendenceRL {
         None, CCW, CW
     }
     public static class SShip {
-        public static bool CanTarget(IShip owner, SpaceObject target) {
+        public static bool CanTarget(this IShip owner, SpaceObject target) {
 
             { owner = (owner is AIShip s) ? s.Ship : owner; }
             { owner = (owner is PlayerShip s) ? s.Ship : owner; }
@@ -25,33 +25,32 @@ namespace TranscendenceRL {
     public interface IShip : SpaceObject {
         ShipClass ShipClass { get; }
         double rotationDegrees { get; }
-
     }
     public class DeviceSystem {
-        public List<Device> Devices;
+        public List<Device> Installed;
         public List<Weapon> Weapons;
         public DeviceSystem() {
-            Devices = new List<Device>();
+            Installed = new List<Device>();
             Weapons = new List<Weapon>();
         }
         public void Add(List<Device> Devices) {
-            this.Devices.AddRange(Devices);
+            this.Installed.AddRange(Devices);
             UpdateDevices();
         }
         public void UpdateDevices() {
-            Weapons = Devices.OfType<Weapon>().ToList();
+            Weapons = Installed.OfType<Weapon>().ToList();
         }
         public void Update(IShip owner) {
-            Devices.ForEach(d => d.Update(owner));
+            Installed.ForEach(d => d.Update(owner));
         }
     }
     public class Docking {
         public Ship ship;
-        public Station station;
+        public SpaceObject target;
         public bool done;
-        public Docking(Ship ship, Station station) {
+        public Docking(Ship ship, SpaceObject target) {
             this.ship = ship;
-            this.station = station;
+            this.target = target;
         }
         public bool Update() {
             if(!done) {
@@ -64,7 +63,7 @@ namespace TranscendenceRL {
         }
         public bool UpdateDocking() {
 
-            double decel = 2;
+            double decel = 10f / 30;
             double stoppingTime = ship.Velocity.Magnitude / decel;
 
             double stoppingDistance = ship.Velocity.Magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
@@ -73,11 +72,11 @@ namespace TranscendenceRL {
                 ship.Velocity -= XY.Polar(ship.Velocity.Angle, decel);
                 stoppingPoint += ship.Velocity.Normal * stoppingDistance;
             }
-            var offset = station.Position - stoppingPoint;
+            var offset = target.Position - stoppingPoint;
 
             if (offset.Magnitude > 0.25) {
-                ship.Velocity += XY.Polar(offset.Angle, decel * 2);
-            } else if ((ship.Position - station.Position).Magnitude < 1) {
+                ship.Velocity += XY.Polar(offset.Angle, decel * 6);
+            } else if ((ship.Position - target.Position).Magnitude < 1) {
                 ship.Velocity = new XY(0, 0);
                 return true;
             }
@@ -93,7 +92,7 @@ namespace TranscendenceRL {
         public XY Velocity { get; set; }
         public bool Active { get; private set; }
         public DeviceSystem Devices { get; private set; }
-        private HPSystem hpSystem;
+        private DamageSystem DamageSystem;
         public double rotationDegrees { get; private set; }
         public double stoppingRotation { get {
                 var stoppingTime = 30 * Math.Abs(rotatingSpeed) / (ShipClass.rotationDecel);
@@ -120,7 +119,7 @@ namespace TranscendenceRL {
             Devices = new DeviceSystem();
             Devices.Add(shipClass.devices.Generate(world.types));
 
-            hpSystem = new HPSystem(this, 100);
+            DamageSystem = shipClass.damageDesc.Create(this);
         }
         public void SetThrusting(bool thrusting = true) => this.thrusting = thrusting;
         public void SetRotating(Rotating rotating = Rotating.None) {
@@ -128,10 +127,12 @@ namespace TranscendenceRL {
         }
         public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
 
-        public void Damage(SpaceObject source, int hp) {
-            hpSystem.Damage(source, hp);
+        public void Damage(SpaceObject source, int hp) => DamageSystem.Damage(source, hp);
+
+        public void Destroy() {
+            World.AddEntity(new Wreck(this));
+            Active = false;
         }
-        public void Destroy() => Active = false;
 
         public void Update() {
             UpdateControls();

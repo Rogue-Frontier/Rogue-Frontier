@@ -9,13 +9,23 @@ namespace TranscendenceRL {
     public class Item {
         public ItemType type;
         public Weapon weapon;
+        public Armor armor;
+        public Shields shields;
 
         public Item(ItemType type) {
             this.type = type;
-            if(type.weapon != null) {
-                weapon = new Weapon(this, type.weapon);
-            }
+            //These fields are to remain null while the item is not installed and to be populated upon installation
+            weapon = null;
+            armor = null;
+            shields = null;
         }
+        public Weapon InstallWeapon() => weapon = new Weapon(this, type.weapon);
+        public Armor InstallArmor() => armor = new Armor(this, type.armor);
+        public Shields InstallShields() => shields = new Shields(this, type.shield);
+
+        public void RemoveWeapon() => weapon = null;
+        public void RemoveArmor() => armor = null;
+        public void RemoveShields() => shields = null;
     }
     public interface Device {
         Item source { get; }
@@ -54,9 +64,6 @@ namespace TranscendenceRL {
                 } else {
                     Fire(owner, owner.rotationDegrees * Math.PI / 180);
                 }
-
-                
-
                 fireTime = desc.fireCooldown;
             }
             firing = false;
@@ -78,12 +85,29 @@ namespace TranscendenceRL {
             this.target = target ?? this.target;
         }
     }
-    class Shields : Device {
+    public class Armor {
+        public Item source { get; private set; }
+        public ArmorDesc desc;
+        public int hp;
+        public Armor(Item source, ArmorDesc desc) {
+            this.source = source;
+            this.desc = desc;
+            this.hp = desc.maxHP;
+        }
+        public void Update(IShip owner) {
+
+        }
+    }
+    public class Shields : Device {
         public Item source { get; private set; }
         public ShieldDesc desc;
-        public uint hp;
-        public uint depletionTime;
-        private uint tick;
+        public int hp;
+        public int depletionTime;
+        private int tick;
+        public Shields(Item source, ShieldDesc desc) {
+            this.source = source;
+            this.desc = desc;
+        } 
         public void Update(IShip owner) {
             if(depletionTime > 0) {
                 depletionTime--;
@@ -94,7 +118,7 @@ namespace TranscendenceRL {
                 }
             }
         }
-        public void Absorb(uint damage) {
+        public void Absorb(int damage) {
             hp = Math.Max(0, hp - damage);
             if(hp == 0) {
                 depletionTime = desc.depletionDelay;

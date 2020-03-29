@@ -41,7 +41,7 @@ namespace TranscendenceRL {
                 Position += inc;
 
 
-                var hit = World.entities[Position].OfType<IStation>().FirstOrDefault();
+                var hit = World.entities[Position].OfType<SpaceObject>().FirstOrDefault(o => o != Source);
                 if (hit != null) {
                     lifetime = 0;
                     hit.Damage(Source, damage);

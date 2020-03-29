@@ -14,6 +14,9 @@
 	    <Devices>
 		    <Weapon codename="itAmethystLaser"/>
         </Devices>
+        <LayeredArmorSystem>
+			<Armor  codename="itCrystalsteelPlate"/>
+        </LayeredArmorSystem>
         <PlayerSettings
         startingClass="true"
         description="The Amethyst-class yacht, more than just a symbol of middle-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
@@ -58,6 +61,9 @@
 		<Devices>
 			<Weapon codename="itBeowulfDualCannon"/>
 		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="itKnightscalePlate"/>
+        </LayeredArmorSystem>
 		<PlayerSettings
 			startingClass="true"
 			description="A starship preferred by space-age bikers, self-protection enthusiasts, and folk heroes alike, a Beowulf-class gunship highlights the tougher and harder parts of one's personality."
@@ -102,6 +108,9 @@
         <Devices>
 			<Weapon codename="itRifleTurret"/>
 		</Devices>
+        <LayeredArmorSystem>
+			<Armor  codename="itBumpersteelPlate"/>
+        </LayeredArmorSystem>
 		<PlayerSettings
             startingClass=  "true"
             description=    "Whether you used to be a banker, carpenter, or farmer before taking to the stars, a pioneer like you needs a fully stocked Wagon-class transport to survive the galactic trail."

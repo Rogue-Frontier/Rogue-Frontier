@@ -1,0 +1,12 @@
+﻿<Module>
+	<SystemType	codename=	"ssOrion"
+				name=		"Orion"
+		>
+		<System>
+			<Orbital	distance="80"
+						angle="random">
+						
+			</Orbital>
+		</System>
+	</SystemType>
+</Module>

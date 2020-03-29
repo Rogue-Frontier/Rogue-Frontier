@@ -227,7 +227,12 @@ namespace TranscendenceRL {
 			}
 			if(info.IsKeyPressed(D)) {
 				if(player.docking != null) {
-					player.AddMessage(new PlayerMessage("Docking sequence canceled"));
+					if(player.docking.done) {
+						player.AddMessage(new PlayerMessage("Undocked"));
+					} else {
+						player.AddMessage(new PlayerMessage("Docking sequence canceled"));
+					}
+					
 					player.docking = null;
 				} else {
 					var dest = world.entities.GetAll(p => (player.Position - p).Magnitude < 8).OfType<Station>().OrderBy(p => (p.Position - player.Position).Magnitude).FirstOrDefault();

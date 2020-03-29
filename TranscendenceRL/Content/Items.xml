@@ -50,4 +50,39 @@
 			>
 		</Weapon>
 	</ItemType>
+
+	<ItemType	codename=	"itCrystalsteelPlate"
+				name=		"Crystalsteel plate"
+				mass=		"4000"
+				level=		"1"
+		>
+		<Armor	maxHP=		"100"
+			/>
+	</ItemType>
+
+
+
+	<ItemType	codename=	"itKnightscalePlate"
+				name=		"Knightscale plate"
+				mass=		"6000"
+				level=		"1"
+		>
+		<Armor	maxHP=		"100"
+			>
+		</Armor>
+	</ItemType>
+	<!--Hunterscale plate-->
+	<!--Dragonscale plate-->
+
+	<!--Rustbucket plate-->
+
+	<ItemType	codename=	"itBumpersteelPlate"
+				name=		"Bumpersteel Plate"
+				mass=		"8000"
+				level=		"2"
+				>
+		<Armor	maxHP=		"200"
+			>
+		</Armor>
+	</ItemType>
 </Module>
