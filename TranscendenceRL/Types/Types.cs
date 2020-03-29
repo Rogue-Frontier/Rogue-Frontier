@@ -17,6 +17,7 @@ namespace TranscendenceRL {
 		public Dictionary<string, ShipClass> shipClass;
 		public Dictionary<string, StationType> stationType;
 		public Dictionary<string, Sovereign> sovereign;
+		public Dictionary<string, SystemType> systemType;
 
 		enum InitState {
 			Uninitialized,
@@ -33,6 +34,7 @@ namespace TranscendenceRL {
 			shipClass = new Dictionary<string, ShipClass>();
 			stationType = new Dictionary<string, StationType>();
 			sovereign = new Dictionary<string, Sovereign>();
+			systemType = new Dictionary<string, SystemType>();
 			state = InitState.Uninitialized;
 
 			Debug.Print("TypeCollection created");
@@ -100,6 +102,9 @@ namespace TranscendenceRL {
 				case "Sovereign":
 					AddType<Sovereign>(element);
 					break;
+				case "SystemType":
+					AddType<SystemType>(element);
+					break;
 				default:
 					throw new Exception($"Unknown element <{element.Name}>");
 					//Debug.Print($"Unknown element <{element.Name}>");
@@ -142,6 +147,9 @@ namespace TranscendenceRL {
 						break;
 					case Sovereign sv:
 						sovereign[type] = sv;
+						break;
+					case SystemType ss:
+						systemType[type] = ss;
 						break;
 					default:
 						throw new Exception($"Unrecorded {element.Name} of type {type}");
