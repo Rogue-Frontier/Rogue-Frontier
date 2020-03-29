@@ -3,9 +3,14 @@
 				name=		"Orion"
 		>
 		<System>
-			<Orbital	distance="80"
+			<Orbital	distance="120"
 						angle="random">
-						
+				<Planet/>
+				<Orbital	distance="20"
+							angle="equidistant"
+							>
+					<Station	codename="stDaughters"/>
+				</Orbital>
 			</Orbital>
 		</System>
 	</SystemType>
