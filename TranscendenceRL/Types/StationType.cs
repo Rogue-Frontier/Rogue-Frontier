@@ -10,12 +10,14 @@ namespace TranscendenceRL {
 	public class StationType : DesignType {
 		public string codename;
 		public string name;
+		public Sovereign Sovereign;
 		public StaticTile tile;
 		public List<SegmentDesc> segments;
 
 		public void Initialize(TypeCollection collection, XElement e) {
 			codename = e.ExpectAttribute("codename");
 			name = e.ExpectAttribute("name");
+			Sovereign = collection.Lookup<Sovereign>(e.ExpectAttribute("sovereign"));
 			tile = new StaticTile(e);
 			segments = new List<SegmentDesc>();
 			if (e.HasElement("Segments", out var xmlSegments)) {

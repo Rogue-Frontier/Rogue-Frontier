@@ -38,6 +38,7 @@ namespace Common {
 
 		public XY Truncate => new XY(xi, yi);
 		public XY Round => new XY(Math.Round(x), Math.Round(y));
+		public XY RoundDown => new XY(Math.Round(x - 0.5), Math.Round(y - 0.5));
 
 		public static XY Polar(double angle, double magnitude = 1) {
 			return new XY(Math.Cos(angle) * magnitude, Math.Sin(angle) * magnitude);

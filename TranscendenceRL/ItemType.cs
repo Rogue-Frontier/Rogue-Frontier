@@ -42,6 +42,8 @@ namespace TranscendenceRL {
         public int damageType;
         public int damageHP;
         public int lifetime;
+        public bool omnidirectional;
+        public int range => missileSpeed * lifetime / 30;
         public StaticTile effect;
         public WeaponDesc(XElement e) {
             fireCooldown = e.ExpectAttributeInt("fireCooldown");
@@ -49,9 +51,11 @@ namespace TranscendenceRL {
             damageType = e.ExpectAttributeInt("damageType");
             damageHP = e.ExpectAttributeInt("damageHP");
             lifetime = e.ExpectAttributeInt("lifetime");
+            omnidirectional = e.TryAttributeBool("omnidirectional", false);
 
             effect = new StaticTile(e);
         }
+
     }
     public class ShieldDesc {
         public uint maxHP;

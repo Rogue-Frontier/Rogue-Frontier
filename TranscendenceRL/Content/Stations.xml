@@ -1,6 +1,7 @@
 ﻿<Module>
 	<StationType codename=	"stDaughtersOutpost"
 				 name=		"Daughters of the Orator"
+				 sovereign=	"svDaughters"
 				 char=		"S"
 				 foreground="Magenta"
 		>

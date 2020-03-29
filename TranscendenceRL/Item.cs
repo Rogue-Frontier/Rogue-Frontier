@@ -24,8 +24,10 @@ namespace TranscendenceRL {
     public class Weapon : Device {
         public Item source { get; private set; }
         public WeaponDesc desc;
+        public SpaceObject target;
         public int fireTime;
         public bool firing;
+
         public Weapon(Item source, WeaponDesc desc) {
             this.source = source;
             this.desc = desc;
@@ -33,10 +35,28 @@ namespace TranscendenceRL {
             firing = false;
         }
         public void Update(IShip owner) {
+            double? targetAngle = null;
+            if(target == null) {
+                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.range).OfType<SpaceObject>().FirstOrDefault(s => SShip.CanTarget(owner, s));
+            } else {
+                var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, desc.missileSpeed);
+                if(desc.omnidirectional) {
+                    Heading.AimLine(owner.World, owner.Position, angle);
+                }
+                targetAngle = angle;
+            }
+
             if(fireTime > 0) {
                 fireTime--;
             } else if(firing) {
-                Fire(owner, owner.rotationDegrees * Math.PI / 180);
+                if(desc.omnidirectional && targetAngle != null) {
+                    Fire(owner, targetAngle.Value);
+                } else {
+                    Fire(owner, owner.rotationDegrees * Math.PI / 180);
+                }
+
+                
+
                 fireTime = desc.fireCooldown;
             }
             firing = false;

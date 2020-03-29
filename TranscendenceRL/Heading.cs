@@ -23,7 +23,7 @@ namespace TranscendenceRL {
         public void Update() {
 
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
-            ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 153), Color.Transparent);
+            ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(255, 255, 255, 153), Color.Transparent);
             XY point = parent.Position.Truncate;
             XY inc = XY.Polar(parent.rotationDegrees * Math.PI / 180, 1);
             int length = 20;
@@ -31,6 +31,19 @@ namespace TranscendenceRL {
             for(int i = 0; i < length / interval; i++) {
                 point += inc * interval;
                 parent.World.AddEffect(new EffectParticle(point, pointEffect, 1));
+            }
+        }
+
+        public static void AimLine(World World, XY start, double angle) {
+            //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
+            ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(255, 255, 0, 153), Color.Transparent);
+            XY point = start;
+            XY inc = XY.Polar(angle);
+            int length = 20;
+            int interval = 4;
+            for (int i = 0; i < length / interval; i++) {
+                point += inc * interval;
+                World.AddEffect(new EffectParticle(point, pointEffect, 1));
             }
         }
     }

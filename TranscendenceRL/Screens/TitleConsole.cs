@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using static Microsoft.Xna.Framework.Input.Keys;
 using static Common.Helper;
 using Common;
+using System.IO;
 
 namespace TranscendenceRL {
     class TitleConsole : Window {
@@ -51,7 +52,7 @@ namespace TranscendenceRL {
                 Add(exit);
             }
 
-            World.types.Load("Content/Ships.xml", "Content/Stations.xml", "Content/Player.xml", "Content/Items.xml");
+            World.types.Load(Directory.GetFiles("Content", "*.xml"));
         }
         private void StartGame() {
             Hide();
@@ -99,7 +100,7 @@ namespace TranscendenceRL {
 #if DEBUG
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {
                 Hide();
-                new GameConsole(Width, Height, World, World.types.Lookup<ShipClass>("scAmethyst")).Show(true);
+                new GameConsole(Width, Height, World, World.types.Lookup<ShipClass>("scWagon")).Show(true);
             }
 #endif
             return base.ProcessKeyboard(info);

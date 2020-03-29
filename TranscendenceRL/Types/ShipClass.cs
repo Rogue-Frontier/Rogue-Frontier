@@ -24,6 +24,7 @@ namespace TranscendenceRL {
 			rotationMaxSpeed = e.ExpectAttributeDouble("rotationMaxSpeed");
 			rotationDecel = e.ExpectAttributeDouble("rotationDecel");
 			rotationAccel = e.ExpectAttributeDouble("rotationAccel");
+
 			tile = new StaticTile(e);
 
 			if(e.HasElement("Devices", out XElement xmlDevices)) {

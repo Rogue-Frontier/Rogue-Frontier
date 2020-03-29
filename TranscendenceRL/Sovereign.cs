@@ -80,6 +80,7 @@ namespace TranscendenceRL {
                 return sovDispositions[other];
             }
         }
+        public bool IsEnemy(Sovereign other) => GetDisposition(other) == Disposition.Enemy;
         public Disposition GetDisposition(SpaceObject other) {
             if (entityDispositions.TryGetValue(other, out Disposition d)
                 //|| (parent?.entityDispositions.TryGetValue(other, out d) == true)
@@ -92,6 +93,7 @@ namespace TranscendenceRL {
             entityDispositions[other] = Disposition.Neutral;
             return entityDispositions[other];
         }
+        public bool IsEnemy(SpaceObject other) => GetDisposition(other) == Disposition.Enemy;
         public Disposition InitDisposition(Sovereign other) {
             if(other == this) {
                 return Friend;

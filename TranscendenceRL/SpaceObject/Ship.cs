@@ -11,9 +11,15 @@ namespace TranscendenceRL {
     public enum Rotating {
         None, CCW, CW
     }
+    public static class SShip {
+        public static bool CanTarget(IShip owner, SpaceObject target) {
+            return owner != target && owner.Sovereign.IsEnemy(target);
+        }
+    }
     public interface IShip : SpaceObject {
         ShipClass ShipClass { get; }
         double rotationDegrees { get; }
+
     }
     public class DeviceSystem {
         public List<Device> Devices;
