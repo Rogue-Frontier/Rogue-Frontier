@@ -1,0 +1,128 @@
+﻿<Module>
+	<Sovereign	codename=	"svOrionWarlords"
+				alignment=	"DestructiveOrder"
+	/>
+	<ItemType	codename=	"itOrionBolter"
+				name=		"Orion bolter"
+				mass=		"3000"
+				level=		"2"
+				>
+		<Weapon	fireCooldown=	"30"
+				missileSpeed=	"20"
+				damageType="2"
+				damageHP="5"
+				lifetime="60"
+				char=	"+"
+				foreground="Orange"
+			>
+			<Capacitor
+				dischargePerShot=		"50"
+				chargePerTick=			"0.1677"
+				maxCharge=				"50"
+				bonusSpeedPerCharge=	"0.60"
+				bonusDamagePerCharge=	"0.30"
+				bonusLifetimePerCharge=	"0.90"
+				/>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"itOrionLongbow"
+				name=		"Orion Longbow"
+				mass=		"5000"
+				level=		"3"
+				>
+		<Weapon			fireCooldown=	"30"
+						missileSpeed=	"20"
+						damageType=		"2"
+						damageHP=		"15"
+						lifetime=		"60"
+
+						char=			"+"
+						foreground=		"Orange"
+			>
+			<Capacitor	dischargePerShot=		"100"
+						chargePerTick=			"0.333"
+						maxCharge=				"100"
+
+						bonusSpeedPerCharge=	"0.60"
+						bonusDamagePerCharge=	"0.30"
+						bonusLifetimePerCharge=	"0.90"
+				/>
+			/>
+		</Weapon>
+	</ItemType>
+	<ItemType	codename=	"itHunterscalePlate"
+				name=		"Hunterscale plate"
+				mass=		"1000"
+				level=		"1"
+		>
+		<Armor	maxHP=		"75"
+			>
+		</Armor>
+	</ItemType>
+	<ItemType	codename=	"itSkullhelmPlate"
+				name=		"Skullhelm plate"
+				mass=		"5000"
+				level=		"2"
+		>
+		<Armor	maxHP=		"250"
+
+			>
+		</Armor>
+	</ItemType>
+	<ShipClass	codename=			"scOrionArcher"
+				name=				"Archer-class raider"
+				thrust=				"0.1"
+				maxSpeed=			"10"
+
+				rotationAccel=		"3"
+				rotationDecel=		"6"
+				rotationMaxSpeed=	"4"
+
+				char=				"a"
+				foreground=			"Blue"
+		>
+		<Devices>
+			<Weapon	codename="itOrionBolter"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor	codename="itHunterscalePlate"/>
+			<Armor	codename="itHunterscalePlate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
+	<ShipClass	codename=			"scOrionHuntsman"
+				name=				"Huntsman-class fighter"
+				thrust=				"0.3"
+				maxSpeed=			"15"
+
+				rotationAccel=		"3"
+				rotationDecel=		"6"
+				rotationMaxSpeed=	"4"
+
+				char=				"H"
+				foreground=			"Blue"
+		>
+		<Devices>
+			<Weapon	codename="itOrionLongbow"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor	codename="itSkullhelmPlate"/>
+			<Armor	codename="itHunterscalePlate"/>
+		</LayeredArmorSystem>
+		
+	</ShipClass>
+	<StationType	codename="stOrionWarlordsCamp"
+					name=		"Orion Warlords camp"
+					sovereign=	"svOrionWarlords"
+
+					hp=			"250"
+
+					char=		"C"
+					foreground="Blue"
+		
+		>
+		<Segments>
+			<Ring/>
+		</Segments>
+	</StationType>
+</Module>

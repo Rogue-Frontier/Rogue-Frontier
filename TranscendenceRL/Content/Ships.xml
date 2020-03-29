@@ -1,5 +1,5 @@
 ﻿<Module>
-    <ShipClass    codename="scAmethyst"
+    <ShipClass  codename="scAmethyst"
                 name="Amethyst-class yacht"
                 thrust="0.5"
                 maxSpeed="25"
@@ -18,8 +18,8 @@
 			<Armor  codename="itCrystalsteelPlate"/>
         </LayeredArmorSystem>
         <PlayerSettings
-        startingClass="true"
-        description="The Amethyst-class yacht, more than just a symbol of middle-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
+            startingClass="true"
+            description="The Amethyst-class yacht, more than just a symbol of middle-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
             >
             <Map>                                     
                        __                       
