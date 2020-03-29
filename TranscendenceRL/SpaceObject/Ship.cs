@@ -13,6 +13,12 @@ namespace TranscendenceRL {
     }
     public static class SShip {
         public static bool CanTarget(IShip owner, SpaceObject target) {
+
+            { owner = (owner is AIShip s) ? s.Ship : owner; }
+            { owner = (owner is PlayerShip s) ? s.Ship : owner; }
+            { target = (target is AIShip s) ? s.Ship : target; }
+            { target = (target is PlayerShip s) ? s.Ship : target; }
+
             return owner != target && owner.Sovereign.IsEnemy(target);
         }
     }
@@ -86,7 +92,7 @@ namespace TranscendenceRL {
         public XY Position { get; set; }
         public XY Velocity { get; set; }
         public bool Active { get; private set; }
-        public DeviceSystem Devices;
+        public DeviceSystem Devices { get; private set; }
         private HPSystem hpSystem;
         public double rotationDegrees { get; private set; }
         public double stoppingRotation { get {
@@ -187,6 +193,9 @@ namespace TranscendenceRL {
         public ColoredGlyph Tile => ShipClass.tile.Glyph;
     }
     public class AIShip : IShip {
+
+        public static int ID = 0;
+        public int Id = ID++;
         public string Name => Ship.Name;
         public World World => Ship.World;
         public ShipClass ShipClass => Ship.ShipClass;
@@ -194,12 +203,13 @@ namespace TranscendenceRL {
         public XY Position => Ship.Position;
         public XY Velocity => Ship.Velocity;
         public double rotationDegrees => Ship.rotationDegrees;
+        public DeviceSystem Devices => Ship.Devices;
 
         public Ship Ship;
-        public Controller controller;
+        public Order controller;
         public Docking docking;
 
-        public AIShip(Ship ship, Controller controller) {
+        public AIShip(Ship ship, Order controller) {
             this.Ship = ship;
             this.controller = controller;
             ship.World.AddEffect(new Heading(this));
@@ -210,6 +220,8 @@ namespace TranscendenceRL {
         public void Damage(SpaceObject source, int hp) => Ship.Damage(source, hp);
         public void Destroy() => Ship.Destroy();
         public void Update() {
+
+            controller.Update();
 
             docking?.Update();
 

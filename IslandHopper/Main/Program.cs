@@ -47,7 +47,7 @@ namespace IslandHopper {
 
             var title = new TitleConsole(240, 64);
 			title.Position = new Point(0, 0);
-			title.Show();
+			title.Show(true);
 		}
 
 		/// <summary>

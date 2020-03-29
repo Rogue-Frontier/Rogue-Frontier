@@ -71,6 +71,12 @@ namespace TranscendenceRL {
             source.World.AddEntity(shot);
         }
         public void SetFiring(bool firing = true) => this.firing = firing;
+
+        //Use this if you want to override auto-aim
+        public void SetFiring(bool firing = true, SpaceObject target = null) {
+            this.firing = firing;
+            this.target = target ?? this.target;
+        }
     }
     class Shields : Device {
         public Item source { get; private set; }

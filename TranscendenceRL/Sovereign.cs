@@ -15,6 +15,12 @@ namespace TranscendenceRL {
         public static readonly Sovereign Inanimate = new Sovereign() {
             alignment = Alignment.Neutral
         };
+        public static readonly Sovereign Gladiator;
+        static Sovereign() {
+            Gladiator = new Sovereign();
+            Gladiator.alignment = Alignment.DestructiveChaos;
+            Gladiator.sovDispositions[Gladiator] = Disposition.Enemy;
+        }
         string codename;
         Alignment alignment;
         //private Sovereign parent;
@@ -96,8 +102,10 @@ namespace TranscendenceRL {
         public bool IsEnemy(SpaceObject other) => GetDisposition(other) == Disposition.Enemy;
         public Disposition InitDisposition(Sovereign other) {
             if(other == this) {
+                //We don't fight ourselves (usually)
                 return Friend;
             } else {
+                //Initialize from default values given our alignments
                 return dispositionTable[alignment][other.alignment];
             }
         }
