@@ -34,6 +34,7 @@ namespace TranscendenceRL {
     public class Weapon : Device {
         public Item source { get; private set; }
         public WeaponDesc desc;
+        public Capacitor capacitor;
         public SpaceObject target;
         public int fireTime;
         public bool firing;
@@ -43,6 +44,9 @@ namespace TranscendenceRL {
             this.desc = desc;
             this.fireTime = 0;
             firing = false;
+            if(desc.capacitor != null) {
+                capacitor = new Capacitor(desc.capacitor);
+            }
         }
         public void Update(IShip owner) {
             double? targetAngle = null;
@@ -55,7 +59,7 @@ namespace TranscendenceRL {
                 }
                 targetAngle = angle;
             }
-
+            capacitor?.Update();
             if(fireTime > 0) {
                 fireTime--;
             } else if(firing) {
@@ -69,12 +73,19 @@ namespace TranscendenceRL {
             firing = false;
         }
         public void Fire(IShip source, double direction) {
+            int damageHP = desc.damageHP;
+            int missileSpeed = desc.missileSpeed;
+            int lifetime = desc.lifetime;
+            
+            capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);
+            capacitor?.Discharge();
+
             var shot = new Projectile(source, source.World,
                 desc.effect.Glyph,
                 source.Position + XY.Polar(direction),
-                source.Velocity + XY.Polar(direction, desc.missileSpeed),
-                desc.damageHP,
-                desc.lifetime);
+                source.Velocity + XY.Polar(direction, missileSpeed),
+                damageHP,
+                lifetime);
             source.World.AddEntity(shot);
         }
         public void SetFiring(bool firing = true) => this.firing = firing;
@@ -83,6 +94,29 @@ namespace TranscendenceRL {
         public void SetFiring(bool firing = true, SpaceObject target = null) {
             this.firing = firing;
             this.target = target ?? this.target;
+        }
+
+        public class Capacitor {
+            public CapacitorDesc desc;
+            public double charge;
+            public Capacitor(CapacitorDesc desc) {
+                this.desc = desc;
+            }
+            public void Update() {
+                charge += desc.chargePerTick;
+                if(charge > desc.maxCharge) {
+                    charge = desc.maxCharge;
+                }
+            }
+            public void Modify(ref int damage, ref int missileSpeed, ref int lifetime) {
+                damage += (int) (desc.bonusDamagePerCharge * charge);
+                missileSpeed += (int)(desc.bonusSpeedPerCharge * charge);
+                lifetime += (int)(desc.bonusLifetimePerCharge * charge);
+            }
+            public void Discharge() {
+                charge = Math.Max(0, charge - desc.dischargePerShot);
+            }
+
         }
     }
     public class Armor {

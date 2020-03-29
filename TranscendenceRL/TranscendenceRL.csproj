@@ -76,6 +76,7 @@
     <Compile Include="QTree.cs" />
     <Compile Include="Types\ShipClass.cs" />
     <Compile Include="Types\StationType.cs" />
+    <Compile Include="Types\SystemType.cs" />
     <Compile Include="Types\Types.cs" />
     <Compile Include="World.cs" />
   </ItemGroup>
@@ -101,6 +102,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\Missions.xml" />
+    <Content Include="Content\OrionWarlords.xml" />
     <Content Include="Content\Player.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

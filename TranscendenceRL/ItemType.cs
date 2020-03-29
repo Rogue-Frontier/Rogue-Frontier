@@ -48,6 +48,8 @@ namespace TranscendenceRL {
         public bool omnidirectional;
         public int range => missileSpeed * lifetime / 30;
         public StaticTile effect;
+
+        public CapacitorDesc capacitor;
         public WeaponDesc(XElement e) {
             fireCooldown = e.ExpectAttributeInt("fireCooldown");
             missileSpeed = e.ExpectAttributeInt("missileSpeed");
@@ -57,8 +59,27 @@ namespace TranscendenceRL {
             omnidirectional = e.TryAttributeBool("omnidirectional", false);
 
             effect = new StaticTile(e);
+            if(e.HasElement("Capacitor", out var xmlCapacitor)) {
+                capacitor = new CapacitorDesc(xmlCapacitor);
+            }
         }
+    }
+    public class CapacitorDesc {
+        public double dischargePerShot;
+        public double chargePerTick;
+        public double maxCharge;
+        public double bonusSpeedPerCharge;
+        public double bonusDamagePerCharge;
+        public double bonusLifetimePerCharge;
 
+        public CapacitorDesc(XElement e) {
+            dischargePerShot = e.ExpectAttributeDouble("dischargePerShot");
+            chargePerTick = e.ExpectAttributeDouble("chargePerTick");
+            maxCharge = e.ExpectAttributeDouble("maxCharge");
+            bonusSpeedPerCharge = e.ExpectAttributeDouble("bonusSpeedPerCharge");
+            bonusDamagePerCharge = e.ExpectAttributeDouble("bonusDamagePerCharge");
+            bonusLifetimePerCharge = e.ExpectAttributeDouble("bonusLifetimePerCharge");
+        }
     }
     public class ShieldDesc {
         public int maxHP;
