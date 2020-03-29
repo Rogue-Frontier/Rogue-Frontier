@@ -78,6 +78,10 @@ namespace TranscendenceRL {
             if(info.IsKeyPressed(Left)){
                 index = (playable.Count + index - 1) % playable.Count;
             }
+            if(info.IsKeyPressed(Escape)) {
+                Hide();
+                new TitleConsole(Width, Height).Show(true);
+            }
             if(info.IsKeyPressed(Enter)) {
                 Hide();
                 new CrawlScreen(Width, Height, World, playable[index]).Show(true);

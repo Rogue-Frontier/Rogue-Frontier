@@ -31,7 +31,7 @@ namespace TranscendenceRL {
 			UseKeyboard = true;
 			UseMouse = true;
 			this.DebugInfo($"Width: {Width}", $"Height: {Height}");
-			main = new PlayerMain(Width, Height, World, playerClass);
+			main = new PlayerMain(this, Width, Height, World, playerClass);
 		}
 		public override void Show(bool modal) {
 			base.Show(modal);
@@ -70,11 +70,13 @@ namespace TranscendenceRL {
 		}
 	}
 	class PlayerMain : Window {
+		public Window parent;
 		public XY camera;
 		public World world;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		public PlayerShip player;
-		public PlayerMain(int Width, int Height, World World, ShipClass playerClass) : base(Width, Height) {
+		public PlayerMain(Window parent, int Width, int Height, World World, ShipClass playerClass) : base(Width, Height) {
+			this.parent = parent;
 			camera = new XY();
 			this.world = World;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
@@ -100,6 +102,16 @@ namespace TranscendenceRL {
 			player = new PlayerShip(new Ship(world, world.types.Lookup<ShipClass>("scAmethyst"), new XY(0, 0)));
 			world.AddEntity(player);
 			*/
+			world.entities.all.Clear();
+			world.effects.all.Clear();
+			/*
+			var shipClasses = World.types.shipClass.Values;
+			var shipClass = shipClasses.ElementAt(new Random().Next(shipClasses.Count));
+			var ship = new Ship(World, shipClass, Sovereign.Gladiator, new XY(-10, -10));
+			var enemy = new AIShip(ship, new AttackAllOrder(ship));
+			World.AddEntity(enemy);
+			*/
+
 			var playerSovereign = world.types.Lookup<Sovereign>("svPlayer");
 			player = new PlayerShip(new Ship(world, playerClass, playerSovereign, new XY(0, 0)));
 			world.AddEntity(player);
@@ -203,6 +215,11 @@ namespace TranscendenceRL {
 			}
 			if(info.IsKeyDown(Down)) {
 				player.SetDecelerating();
+			}
+			if(info.IsKeyPressed(Escape)) {
+				Hide();
+				parent.Hide();
+				new TitleConsole(Width, Height).Show(true);
 			}
 			if(info.IsKeyPressed(S)) {
 				Hide();
