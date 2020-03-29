@@ -255,33 +255,47 @@ namespace Common {
 				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\"");
 			}
 		}
-		public static int ExpectAttributeInt(this XElement e, string attribute) => ExpectAttributeInt(e.Attribute(attribute));
+		public static int ExpectAttributeInt(this XElement e, string attribute) {
+			var a = e.Attribute(attribute);
+			if (a == null) {
+				throw new Exception($"<{e.Name}> requires int attribute: {attribute}");
+			} else {
+				return ExpectAttributeInt(a);
+			}
+		}
 		public static int ExpectAttributeInt(this XAttribute a) {
-			if(a == null) {
-				throw new Exception($"int value expected");
-			} else if(int.TryParse(a.Value, out int result)) {
+			if(int.TryParse(a.Value, out int result)) {
 				return result;
 			} else {
 				throw new Exception($"int value expected: {a.Name} = \"{a.Value}\"");
 			}
 		}
 
-		public static double ExpectAttributeDouble(this XElement e, string attribute) => ExpectAttributeDouble(e.Attribute(attribute));
-		public static double ExpectAttributeDouble(this XAttribute a) {
+		public static double ExpectAttributeDouble(this XElement e, string attribute) {
+			var a = e.Attribute(attribute);
 			if (a == null) {
-				throw new Exception($"double value expected");
-			} else if (double.TryParse(a.Value, out double result)) {
+				throw new Exception($"<{e.Name}> requires double attribute: {attribute}");
+			} else {
+				return ExpectAttributeDouble(a);
+			}
+		}
+		public static double ExpectAttributeDouble(this XAttribute a) {
+			if (double.TryParse(a.Value, out double result)) {
 				return result;
 			} else {
 				throw new Exception($"double value expected: {a.Name} = \"{a.Value}\"");
 			}
 		}
-
-		public static bool ExpectAttributeBool(this XElement e, string attribute) => ExpectAttributeBool(e.Attribute(attribute));
-		public static bool ExpectAttributeBool(this XAttribute a) {
+		public static bool ExpectAttributeBool(this XElement e, string attribute) {
+			var a = e.Attribute(attribute);
 			if (a == null) {
-				throw new Exception($"bool value expected");
-			} else if (bool.TryParse(a.Value, out bool result)) {
+				throw new Exception($"<{e.Name}> requires bool attribute: {attribute}");
+			} else {
+				return ExpectAttributeBool(a);
+			}
+		}
+		public static bool ExpectAttributeBool(this XAttribute a) {
+			if (bool.TryParse(a.Value, out bool result)) {
 				return result;
 			} else {
 				throw new Exception($"bool value expected: {a.Name} = \"{a.Value}\"");
