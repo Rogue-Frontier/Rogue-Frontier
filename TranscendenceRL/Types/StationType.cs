@@ -14,6 +14,7 @@ namespace TranscendenceRL {
 		public Sovereign Sovereign;
 		public StaticTile tile;
 		public List<SegmentDesc> segments;
+		public ShipList guards;
 
 		public void Initialize(TypeCollection collection, XElement e) {
 			codename = e.ExpectAttribute("codename");
@@ -35,6 +36,9 @@ namespace TranscendenceRL {
 							break;
 					}
 				}
+			}
+			if(e.HasElement("Guards", out var xmlGuards)) {
+				guards = new ShipList(xmlGuards);
 			}
 		}
 		public static List<SegmentDesc> CreateRing(string foreground = "White", string background = "Black") {
