@@ -19,6 +19,7 @@ namespace TranscendenceRL {
         World World = new World();
 
         public IShip pov;
+        public int povTimer;
         public XY camera;
         public Dictionary<(int, int), ColoredGlyph> tiles;
 
@@ -98,22 +99,21 @@ namespace TranscendenceRL {
             World.entities.all.RemoveWhere(e => !e.Active);
             World.effects.all.RemoveWhere(e => !e.Active);
 
-            if(pov == null || !pov.Active) {
-                var shipClasses = World.types.shipClass.Values;
-                var shipClass = shipClasses.ElementAt(new Random().Next(shipClasses.Count));
-                var ship = new Ship(World, shipClass, Sovereign.Gladiator, new XY(-10, -10));
-                pov = new AIShip(ship, new AttackAllOrder(ship));
-                World.entities.all.Add(pov);
-            }
-
-            if(World.entities.all.Count < 2) {
+            if(World.entities.all.OfType<IShip>().Count() < 5) {
                 var shipClasses = World.types.shipClass.Values;
                 var shipClass = shipClasses.ElementAt(new Random().Next(shipClasses.Count));
                 var angle = World.karma.NextDouble() * Math.PI * 2;
                 var distance = World.karma.Next(10, 20);
-                var ship = new Ship(World, shipClass, Sovereign.Gladiator, World.entities.all.First().Position + XY.Polar(angle, distance));
+                var center = World.entities.all.FirstOrDefault()?.Position ?? new XY(0, 0);
+                var ship = new Ship(World, shipClass, Sovereign.Gladiator, center + XY.Polar(angle, distance));
                 var enemy = new AIShip(ship, new AttackAllOrder(ship));
                 World.entities.all.Add(enemy);
+            }
+            if(pov == null || povTimer < 1) {
+                pov = World.entities.all.OfType<IShip>().First();
+                povTimer = 150;
+            } else if(!pov.Active) {
+                povTimer--;
             }
             /*
             //The buffer is updated every update rather than every draw, so that the camera stays centered on the ship
@@ -209,7 +209,7 @@ namespace TranscendenceRL {
 #if DEBUG
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {
                 Hide();
-                new GameConsole(Width, Height, World, World.types.Lookup<ShipClass>("scWagon")).Show(true);
+                new GameConsole(Width, Height, World, World.types.Lookup<ShipClass>("scAmethyst")).Show(true);
             }
 #endif
             return base.ProcessKeyboard(info);

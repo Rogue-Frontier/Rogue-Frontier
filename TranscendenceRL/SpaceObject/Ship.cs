@@ -19,7 +19,7 @@ namespace TranscendenceRL {
             { target = (target is AIShip s) ? s.Ship : target; }
             { target = (target is PlayerShip s) ? s.Ship : target; }
 
-            return owner != target && owner.Sovereign.IsEnemy(target);
+            return owner != target && owner.Sovereign.IsEnemy(target) && !(target is Wreck);
         }
     }
     public interface IShip : SpaceObject {

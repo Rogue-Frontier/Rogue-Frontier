@@ -45,7 +45,9 @@ namespace TranscendenceRL {
                 if (hit != null) {
                     lifetime = 0;
                     hit.Damage(Source, damage);
-                    World.AddEffect(new EffectParticle(Position, new ColoredGlyph('x', Color.Yellow, Color.Transparent), 3));
+
+                    var angle = (hit.Position - Position).Magnitude;
+                    World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph('x', Color.Yellow, Color.Transparent), 5));
                 }
 
                 if(i >= trailPoint) {

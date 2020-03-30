@@ -176,6 +176,35 @@ namespace TranscendenceRL {
 				var foreground = tile.Foreground.WithValues(alpha:229);
 				Print(mapCenterX + offset.xi, mapCenterY - offset.yi, $"{tile.GlyphCharacter}", foreground, Color.Transparent);
 			}
+
+			var rect = new XY(Width, Height);
+			var halfWidth = Width / 2;
+			var halfHeight = Height / 2;
+			foreach(var entity in nearby) {
+				var offset = (entity.Position - player.Position);
+				if (Math.Abs(offset.x) > halfWidth || Math.Abs(offset.y) > halfHeight) {
+
+					(int x, int y) = Helper.GetBoundaryPoint(rect, offset.Angle);
+
+					Color c = Color.Transparent;
+					switch(player.Sovereign.GetDisposition(entity)) {
+						case Disposition.Enemy:
+							c = Color.Red;
+							break;
+						case Disposition.Neutral:
+							c = Color.Gray;
+							break;
+						case Disposition.Friend:
+							c = Color.Green;
+							break;
+					}
+					if(y == 0) {
+						y = 1;
+					}
+					Print(x, Height - y, "#", c, Color.Transparent);
+				}
+			}
+
 			for(int x = mapX; x < mapX + mapWidth; x++) {
 				for(int y = mapY; y < mapY + mapHeight; y++) {
 					if(GetGlyph(x, y) == 0) {

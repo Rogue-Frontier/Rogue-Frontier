@@ -319,6 +319,46 @@ namespace Common {
                 }
             }
         }
+
+		public static XY GetBoundaryPoint(XY dimensions, double angle) {
+			while(angle < 0) {
+				angle += 2 * Math.PI;
+			}
+			while(angle > 2 * Math.PI) {
+				angle -= 2 * Math.PI;
+			}
+			var center = dimensions / 2;
+			var halfWidth = dimensions.x / 2;
+			var halfHeight = dimensions.y / 2;
+			var diagonalAngle = dimensions.Angle;
+			if((angle < diagonalAngle && angle > -diagonalAngle)	//Right side
+				|| (angle < Math.PI + diagonalAngle && angle > Math.PI - diagonalAngle) //Left side
+				) {
+				var cos = Math.Cos(angle);
+				var sin = Math.Sin(angle);
+
+				var factor = Math.Abs(halfWidth / cos);
+				return center + new XY(cos * factor, sin * factor);
+			} else if((angle < Math.PI - diagonalAngle && angle > diagonalAngle)	//Top side
+				|| (angle < 2 * Math.PI - diagonalAngle && angle > Math.PI + diagonalAngle)
+				) {
+				var cos = Math.Cos(angle);
+				var sin = Math.Sin(angle);
+				var factor = Math.Abs(halfHeight / sin);
+				return center + new XY(cos * factor, sin * factor);
+			} else if(angle == diagonalAngle) {
+				return new XY(dimensions.x, dimensions.y);
+			} else if(angle == Math.PI - diagonalAngle) {
+				return new XY(0, dimensions.y);
+			} else if(angle == Math.PI + diagonalAngle) {
+				return new XY(0, 0);
+			} else if(angle == 2 * Math.PI - diagonalAngle) {
+				return new XY(dimensions.x, 0);
+			} else {
+				throw new Exception($"Invalid angle: {angle}");
+			}
+		}
+
 		public static List<string> Wrap(this string s, int width) {
 			List<string> lines = new List<string> { "" };
 			foreach(var word in Regex.Split(s, $"({Regex.Escape(" ")})")) {
