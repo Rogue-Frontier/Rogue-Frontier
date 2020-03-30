@@ -73,22 +73,30 @@ namespace TranscendenceRL {
     }
     public class SystemOrbital : SystemElement {
         private List<SystemElement> subelements;
-        private AngleGenerator angleGenerator;
+        private int angle;
+        private AngleType angleType;
+        private enum AngleType {
+            Constant, Random, Equidistant, Incrementing
+        }
+        private int increment;
+
         private int radius;
         public SystemOrbital(XElement e) {
             subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
             switch (e.ExpectAttribute("angle")) {
                 case "random":
-                    angleGenerator = new Constant(new Random().Next(360));
+                    angleType = AngleType.Random;
                     break;
                 case "equidistant":
-                    angleGenerator = new Equidistant(e.Elements().Count());
+                    angleType = AngleType.Equidistant;
                     break;
                 case "incrementing":
-                    angleGenerator = new Incrementing(e.ExpectAttributeInt("inc"));
+                    angleType = AngleType.Incrementing;
+                    increment = e.ExpectAttributeInt("increment");
                     break;
                 case var i when int.TryParse(i, out var angle):
-                    angleGenerator = new Constant(angle);
+                    angleType = AngleType.Constant;
+                    this.angle = angle;
                     break;
                 case var unknown:
                     throw new Exception($"Invalid angle {unknown}");
@@ -97,8 +105,24 @@ namespace TranscendenceRL {
         }
         public void Generate(LocationContext lc, TypeCollection tc) {
             var result = new List<SpaceObject>();
+
+            var angle = this.angle;
+            var increment = this.increment;
+            int equidistantInterval = 360 / subelements.Count;
+            switch (angleType) {
+                case AngleType.Constant:
+                    increment = 0;
+                    break;
+                case AngleType.Equidistant:
+                    angle = lc.world.karma.Next(360);
+                    break;
+                case AngleType.Incrementing:
+                    break;
+                case AngleType.Random:
+                    angle = lc.world.karma.Next(360);
+                    break;
+            }
             foreach(var sub in subelements) {
-                var angle = angleGenerator.GetAngle();
                 var loc = new LocationContext() {
                     world = lc.world,
                     focus = lc.pos,
@@ -107,39 +131,18 @@ namespace TranscendenceRL {
                     pos = lc.pos + XY.Polar(angle * Math.PI / 180, radius)
                 };
                 sub.Generate(loc, tc);
-            }
-        }
 
-        interface AngleGenerator {
-            int GetAngle();
-        }
-        class Constant : AngleGenerator {
-            private int degrees;
-            public Constant(int degrees) {
-                this.degrees = degrees;
-            }
-            public int GetAngle() => degrees;
-        }
-        class Equidistant : AngleGenerator {
-            private int interval;
-            public int i;
-            public Equidistant(int count) {
-                this.interval = 360 / count;
-                this.i = 0;
-            }
-            public int GetAngle() {
-                return interval * i++;
-            }
-        }
-        class Incrementing : AngleGenerator {
-            private int start;
-            private int inc;
-            public Incrementing(int inc) {
-                this.start = new Random().Next(360);
-                this.inc = inc;
-            }
-            public int GetAngle() {
-                return start += inc;
+                switch(angleType) {
+                    case AngleType.Equidistant:
+                        angle += equidistantInterval;
+                        break;
+                    case AngleType.Incrementing:
+                        angle += increment;
+                        break;
+                    case AngleType.Random:
+                        angle = lc.world.karma.Next(360);
+                        break;
+                }
             }
         }
     }
@@ -172,7 +175,7 @@ namespace TranscendenceRL {
             var center = new XY(radius, radius);
             for(int x = 0; x < diameter; x++) {
                 //Change to diameter when we get a square tileset
-                for(int y = radius/2; y < radius + radius/2; y++) {
+                for(int y = 0; y < diameter; y++) {
                     var pos = new XY(x, y);
                     var offset = (pos - center);
                     //Try to optimize using manhattan

@@ -103,7 +103,7 @@ namespace TranscendenceRL {
 
             if(World.entities.all.OfType<IShip>().Count() < 5) {
                 var shipClasses = World.types.shipClass.Values;
-                var shipClass = shipClasses.ElementAt(new Random().Next(shipClasses.Count));
+                var shipClass = shipClasses.ElementAt(World.karma.Next(shipClasses.Count));
                 var angle = World.karma.NextDouble() * Math.PI * 2;
                 var distance = World.karma.Next(10, 20);
                 var center = World.entities.all.FirstOrDefault()?.Position ?? new XY(0, 0);

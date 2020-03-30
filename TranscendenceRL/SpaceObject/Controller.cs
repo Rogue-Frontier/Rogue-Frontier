@@ -27,7 +27,7 @@ namespace TranscendenceRL {
             if (target != null && !guard.CanTarget(target)) {
                 target = null;
             }
-            target = target ?? owner.World.entities.GetAll(p => (guard.Position - p).Magnitude < 20).OfType<SpaceObject>().FirstOrDefault(o => !o.IsEqual(owner) &&  guard.CanTarget(o));
+            target = target ?? owner.World.entities.GetAll(p => (guard.Position - p).Magnitude < 20).OfType<SpaceObject>().Where(o => !o.IsEqual(owner) &&  guard.CanTarget(o)).GetRandomOrDefault(owner.destiny);
 
             if(target != null) {
                 //Attack now
@@ -55,7 +55,7 @@ namespace TranscendenceRL {
                 if(weapon == null) {
                     return;
                 }
-                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.range).OfType<SpaceObject>().Where(so => owner.CanTarget(so)).FirstOrDefault();
+                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.range).OfType<SpaceObject>().Where(so => owner.CanTarget(so)).GetRandomOrDefault(owner.destiny);
             } else {
                 new AttackOrder(owner, target).Update();
             }
@@ -128,6 +128,9 @@ namespace TranscendenceRL {
             //Find the direction we need to go
             var offset = (target.Position - owner.Position);
 
+            var randomOffset = new XY((2 * owner.destiny.NextDouble() - 1) * offset.x, (2 * owner.destiny.NextDouble() - 1) * offset.y) / 5;
+
+            offset += randomOffset;
 
             var speedTowards = (owner.Velocity - target.Velocity).Dot(offset.Normal);
             if (speedTowards < -1) {

@@ -93,6 +93,9 @@ namespace TranscendenceRL {
         public bool Active { get; private set; }
         public DeviceSystem Devices { get; private set; }
         private DamageSystem DamageSystem;
+
+        public Random destiny;
+
         public double rotationDegrees { get; private set; }
         public double stoppingRotation { get {
                 var stoppingTime = 30 * Math.Abs(rotatingSpeed) / (ShipClass.rotationDecel);
@@ -103,8 +106,6 @@ namespace TranscendenceRL {
         public Rotating rotating;
         public double rotatingSpeed;
         public bool decelerating;
-
-
         public Ship(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.World = world;
             this.ShipClass = shipClass;
@@ -120,6 +121,7 @@ namespace TranscendenceRL {
             Devices.Add(shipClass.devices.Generate(world.types));
 
             DamageSystem = shipClass.damageDesc.Create(this);
+            this.destiny = new Random(world.karma.Next());
         }
         public void SetThrusting(bool thrusting = true) => this.thrusting = thrusting;
         public void SetRotating(Rotating rotating = Rotating.None) {
