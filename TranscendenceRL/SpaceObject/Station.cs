@@ -79,6 +79,7 @@ namespace TranscendenceRL {
             }
         }
         private void CreateGuards() {
+            if (true) return;
             if(StationType.guards != null) {
                 //Suppose we should pass in the owner object
                 var generated = StationType.guards.Generate(World.types);

@@ -30,7 +30,7 @@ namespace TranscendenceRL {
         public XY focus;
     }
     public interface SystemElement {
-        List<SpaceObject> Generate(LocationContext lc, TypeCollection tc);
+        void Generate(LocationContext lc, TypeCollection tc);
     }
     public static class SSystemElement {
         public static SystemElement Create(XElement e) {
@@ -45,12 +45,10 @@ namespace TranscendenceRL {
     public class SystemGroup : SystemElement {
         List<SystemElement> subelements;
         public SystemGroup(XElement e) {
-
+            subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
         }
-        public List<SpaceObject> Generate(LocationContext lc, TypeCollection tc) {
-            var result = new List<SpaceObject>();
-            subelements.ForEach(g => result.AddRange(g.Generate(lc, tc)));
-            return result;
+        public void Generate(LocationContext lc, TypeCollection tc) {
+            subelements.ForEach(g => g.Generate(lc, tc));
         }
     }
     public class SystemOrbital : SystemElement {
@@ -72,10 +70,7 @@ namespace TranscendenceRL {
             }
             radius = e.ExpectAttributeInt("radius");
         }
-        public List<SpaceObject> Generate(LocationContext lc, TypeCollection tc) {
-            //Modify the LocationContext
-            //TO DO
-
+        public void Generate(LocationContext lc, TypeCollection tc) {
             var result = new List<SpaceObject>();
             foreach(var sub in subelements) {
                 var angle = angleGenerator.GetAngle();
@@ -86,10 +81,8 @@ namespace TranscendenceRL {
                     radius = radius,
                     pos = lc.pos + XY.Polar(angle * Math.PI / 180, radius)
                 };
-
-                result.AddRange(sub.Generate(loc, tc));
+                sub.Generate(loc, tc);
             }
-            return result;
         }
 
         interface AngleGenerator {
@@ -130,9 +123,9 @@ namespace TranscendenceRL {
         public SystemStation(XElement e) {
             codename = e.ExpectAttribute("codename");
         }
-        public List<SpaceObject> Generate(LocationContext lc, TypeCollection tc) {
+        public void Generate(LocationContext lc, TypeCollection tc) {
             var stationtype = tc.Lookup<StationType>(codename);
-            return new List<SpaceObject>() { new Station(lc.world, stationtype, lc.pos) };
+            lc.world.AddEntity(new Station(lc.world, stationtype, lc.pos));
         }
     }
 }

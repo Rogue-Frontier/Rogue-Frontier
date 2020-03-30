@@ -5,7 +5,7 @@
 				mass=		"1000"
 		>
 		<Weapon
-			fireCooldown=	"10"
+			fireCooldown=	"20"
 			missileSpeed=	"100"
 			damageType=		"1"
 			damageHP=		"6"
@@ -20,7 +20,7 @@
 				mass=		"2000"
 		>
 		<Weapon
-			fireCooldown=	"5"
+			fireCooldown=	"10"
 			missileSpeed=	"100"
 			damageType=		"1"
 			damageHP=		"3"
