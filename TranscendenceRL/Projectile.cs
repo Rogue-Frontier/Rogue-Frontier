@@ -46,7 +46,7 @@ namespace TranscendenceRL {
                     lifetime = 0;
                     hit.Damage(Source, damage);
 
-                    var angle = (hit.Position - Position).Magnitude;
+                    var angle = (hit.Position - Position).Angle;
                     World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph('x', Color.Yellow, Color.Transparent), 5));
                 }
 
