@@ -1,4 +1,5 @@
 ﻿using Common;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Xml.Linq;
 
 namespace TranscendenceRL {
 	public interface ShipGenerator {
-		List<Ship> Generate(TypeCollection tc);
+		List<Ship> Generate(TypeCollection tc, SpaceObject owner);
 	}
 	public class ShipList : ShipGenerator {
 		List<ShipGenerator> generators;
@@ -24,9 +25,9 @@ namespace TranscendenceRL {
 				}
 			}
 		}
-		public List<Ship> Generate(TypeCollection tc) {
+		public List<Ship> Generate(TypeCollection tc, SpaceObject owner) {
 			var result = new List<Ship>();
-			generators.ForEach(g => result.AddRange(g.Generate(tc)));
+			generators.ForEach(g => result.AddRange(g.Generate(tc, owner)));
 			return result;
 		}
 	}
@@ -35,9 +36,9 @@ namespace TranscendenceRL {
 		public ShipEntry(XElement e) {
 			this.codename = e.ExpectAttribute("codename");
 		}
-		public List<Ship> Generate(TypeCollection tc) {
+		public List<Ship> Generate(TypeCollection tc, SpaceObject owner) {
 			if (tc.Lookup<ShipClass>(codename, out var shipClass)) {
-				return new List<Ship> { new Ship(null, shipClass, null, null) };
+				return new List<Ship> { new Ship(owner.World, shipClass, owner.Sovereign, owner.Position) };
 			} else {
 				throw new Exception($"Invalid ShipClass type {codename}");
 			}

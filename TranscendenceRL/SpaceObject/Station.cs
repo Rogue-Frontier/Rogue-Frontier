@@ -56,7 +56,7 @@ namespace TranscendenceRL {
         public bool Active { get; private set; }
         private List<Segment> segments;
         DamageSystem DamageSystem;
-        public List<Ship> guards;
+        public List<AIShip> guards;
         public Station(World World, StationType Type, XY Position) {
             this.World = World;
             this.StationType = Type;
@@ -67,7 +67,7 @@ namespace TranscendenceRL {
             segments = new List<Segment>();
             CreateSegments();
             DamageSystem = new HPSystem(this, Type.hp);
-            guards = new List<Ship>();
+            guards = new List<AIShip>();
             CreateGuards();
 
         }
@@ -79,15 +79,15 @@ namespace TranscendenceRL {
             }
         }
         private void CreateGuards() {
-            if (true) return;
             if(StationType.guards != null) {
                 //Suppose we should pass in the owner object
-                var generated = StationType.guards.Generate(World.types);
-                guards.AddRange(generated);
+                var generated = StationType.guards.Generate(World.types, this);
                 foreach(var guard in generated) {
-                    //guard.World
-                    //guard.Position
-                    //guard.Sovereign
+                    //Add the order
+                    var ship = new AIShip(guard, new GuardOrder(guard, this));
+
+                    guards.Add(ship);
+                    World.AddEntity(ship);
                 }
             }
             

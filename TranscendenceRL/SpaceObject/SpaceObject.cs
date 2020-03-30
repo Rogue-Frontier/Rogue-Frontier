@@ -24,7 +24,7 @@ namespace TranscendenceRL {
         }
         public static bool CanTarget(this SpaceObject owner, SpaceObject target) {
 
-            return !IsEqual(owner, target) && owner.Sovereign.IsEnemy(target);
+            return target.Active && !IsEqual(owner, target) && owner.Sovereign.IsEnemy(target) && !(target is Wreck);
         }
     }
 }
