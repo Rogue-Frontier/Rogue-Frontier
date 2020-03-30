@@ -48,6 +48,30 @@ namespace TranscendenceRL {
                 capacitor = new Capacitor(desc.capacitor);
             }
         }
+
+        public void Update(IStation owner) {
+            double? targetAngle = null;
+            if (target == null) {
+                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.range).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));
+            } else {
+                var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, desc.missileSpeed);
+                if (desc.omnidirectional) {
+                    Heading.AimLine(owner.World, owner.Position, angle);
+                }
+                targetAngle = angle;
+            }
+            capacitor?.Update();
+            if (fireTime > 0) {
+                fireTime--;
+            } else if (firing) {
+                if (targetAngle != null) {
+                    Fire(owner, targetAngle.Value);
+                }
+                fireTime = desc.fireCooldown;
+            }
+            firing = false;
+        }
+
         public void Update(IShip owner) {
             double? targetAngle = null;
             if(target == null) {
@@ -72,11 +96,11 @@ namespace TranscendenceRL {
             }
             firing = false;
         }
-        public void Fire(IShip source, double direction) {
+        public void Fire(SpaceObject source, double direction) {
             int damageHP = desc.damageHP;
             int missileSpeed = desc.missileSpeed;
             int lifetime = desc.lifetime;
-            
+
             capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);
             capacitor?.Discharge();
 
