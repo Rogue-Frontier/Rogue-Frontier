@@ -16,6 +16,7 @@ using System.IO;
 namespace TranscendenceRL {
     class TitleConsole : Window {
         string[] title = Properties.Resources.Title.Replace("\r\n", "\n").Split('\n');
+        int titleStart;
         World World = new World();
 
         public IShip pov;
@@ -34,6 +35,7 @@ namespace TranscendenceRL {
             };
             camera = new XY(0, 0);
             tiles = new Dictionary<(int, int), ColoredGlyph>();
+            titleStart = Width;
             /*
             {
                 var size = 20;
@@ -139,30 +141,20 @@ namespace TranscendenceRL {
         public override void Draw(TimeSpan drawTime) {
             Clear();
 
-            var titleX = (Width / 2) - title[0].Length / 2;
             var titleY = 0;
-            Print(0, titleY, new ColoredString(new string('.', Width), Color.White, Color.Black));
-            titleY++;
-            titleY++;
+            
             foreach(var line in title) {
-                Print(titleX, titleY, new ColoredString(line, Color.White, Color.Black));
+                if(titleStart < line.Length) {
+                    Print(titleStart, titleY, line.Substring(titleStart), Color.White, Color.Transparent);
+                }
                 titleY++;
             }
-            Print(0, titleY, new ColoredString(new string('.', Width), Color.White, Color.Black));
-            titleY++;
-            Print(titleX, titleY, new ColoredString(@"A fangame by Alex ""Archcannon"" Chen", Color.White, Color.Black));
-            titleY++;
-            Print(titleX, titleY, new ColoredString(@"For Transcendence by George Moromisato", Color.White, Color.Black));
-            titleY++;
-            Print(titleX, titleY, new ColoredString(@"April 2020", Color.White, Color.Black));
+            if (titleStart > 0) {
+                titleStart--;
+            }
 
-            titleY++;
-            titleY++;
-            Print(titleX, titleY, new ColoredString("[Enter]  Start", Color.White, Color.Black));
-            titleY++;
-            Print(titleX, titleY, new ColoredString("[Escape] Exit", Color.White, Color.Black));
             camera = pov.Position;
-            for (int x = 0; x < Width; x++) {
+            for (int x = titleStart; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
                     var g = GetGlyph(x, y);
                     if (g == 0 || g == ' ') {
@@ -197,6 +189,7 @@ namespace TranscendenceRL {
                 }
             }
 
+            Base:
             base.Draw(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {

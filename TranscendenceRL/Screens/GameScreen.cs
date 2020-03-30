@@ -287,8 +287,8 @@ namespace TranscendenceRL {
 					var mouseRads = offset.Angle;
 					var facingRads = player.Ship.stoppingRotation * Math.PI / 180;
 
-					var ccw = (XY.Polar(facingRads + 1 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
-					var cw = (XY.Polar(facingRads - 1 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
+					var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
+					var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
 					if(ccw < cw) {
 						player.SetRotating(Rotating.CCW);
 					} else if(cw < ccw) {
