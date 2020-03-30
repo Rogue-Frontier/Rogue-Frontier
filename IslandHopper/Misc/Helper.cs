@@ -13,6 +13,8 @@ using System.Text.RegularExpressions;
 
 namespace Common {
 	public static class Helper {
+		public static T GetRandom<T>(this IEnumerable<T> e, Random r) => e.ElementAt(r.Next(e.Count()));
+		public static T GetRandomOrDefault<T>(this IEnumerable<T> e, Random r) => e.Any() ? e.ElementAt(r.Next(e.Count())) : default(T);
 		public static bool CalcAim(XYZ difference, double speed, out double lower, out double higher) {
 			double horizontal = difference.xy.Magnitude;
 			double vertical = difference.z;
