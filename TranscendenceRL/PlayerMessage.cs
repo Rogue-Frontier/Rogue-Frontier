@@ -35,6 +35,7 @@ namespace TranscendenceRL {
                 flashTicks--;
             }
         }
+        public bool Scrolling => ticks < message.Count;
         public bool Active => ticksRemaining > 0;
         public ColoredString Draw() {
             var result = message.SubString(0, index).SetOpacity((byte)Math.Min(255, ticksRemaining * 255 / 30));
