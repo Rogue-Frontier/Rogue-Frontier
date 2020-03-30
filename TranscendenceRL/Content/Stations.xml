@@ -18,5 +18,10 @@
 				   char="&gt;"
 				   foreground="Yellow"/>
 		</Segments>
+		<Guards>
+			<Ship	codename="scTemplar"/>
+			<Ship	codename="scTemplar"/>
+			<Ship	codename="scTemplar"/>
+		</Guards>
 	</StationType>
 </Module>

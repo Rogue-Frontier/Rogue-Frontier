@@ -147,4 +147,67 @@
         >
     </ShipClass>
     -->
+
+	<ShipClass codename=            "scErrant"
+			   name=                "Knight-Errant-class gunship"
+			   thrust=              "0.15"
+			   maxSpeed=            "20"
+
+			   rotationAccel=       "4"
+			   rotationDecel=       "8"
+			   rotationMaxSpeed=    "4"
+
+			   char=                "k"
+			   foreground=          "Cyan"
+        >
+		<Devices>
+			<Weapon codename="itBacksword"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="itKnightscalePlate"/>
+            <Armor  codename="itKnightscalePlate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
+	<ShipClass codename=            "scVassal"
+			   name=                "Knight-Vassal-class gunship"
+			   thrust=              "0.25"
+			   maxSpeed=            "20"
+
+			   rotationAccel=       "4"
+			   rotationDecel=       "8"
+			   rotationMaxSpeed=    "4"
+
+			   char=                "k"
+			   foreground=          "LightBlue"
+        >
+		<Devices>
+			<Weapon codename="itBacksword"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="itKnightscalePlate"/>
+            <Armor  codename="itKnightscalePlate"/>
+            <Armor  codename="itKnightscalePlate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
+
+    <ShipClass codename=            "scTemplar"
+			   name=                "Templar-class gunship"
+			   thrust=              "0.25"
+			   maxSpeed=            "20"
+
+			   rotationAccel=       "4"
+			   rotationDecel=       "8"
+			   rotationMaxSpeed=    "4"
+
+			   char=                "k"
+			   foreground=          "LightBlue"
+        >
+		<Devices>
+			<Weapon codename="itSabre"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="itKnightscalePlate"/>
+            <Armor  codename="itKnightscalePlate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
 </Module>

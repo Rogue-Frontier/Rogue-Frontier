@@ -46,7 +46,43 @@
 			omnidirectional="true"
 
 			char=			"."
+			foreground=		"White"
+			>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"itBacksword"
+				name=		"Backsword mass driver"
+				level=		"2"
+				mass=		"4000"
+		>
+		<Weapon
+			fireCooldown=	"20"
+			missileSpeed=	"30"
+			damageType=		"2"
+			damageHP=		"6"
+			lifetime=		"90"
+
+			char=			"."
 			foreground=		"Gray"
+			>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"itSabre"
+				name=		"Sabre mass driver"
+				level=		"2"
+				mass=		"4000"
+		>
+		<Weapon
+			fireCooldown=	"30"
+			missileSpeed=	"30"
+			damageType=		"2"
+			damageHP=		"15"
+			lifetime=		"120"
+
+			char=			"."
+			foreground=		"White"
 			>
 		</Weapon>
 	</ItemType>

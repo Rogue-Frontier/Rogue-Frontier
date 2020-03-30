@@ -56,7 +56,7 @@
 				mass=		"1000"
 				level=		"1"
 		>
-		<Armor	maxHP=		"75"
+		<Armor	maxHP=		"40"
 			>
 		</Armor>
 	</ItemType>
@@ -65,13 +65,13 @@
 				mass=		"5000"
 				level=		"2"
 		>
-		<Armor	maxHP=		"250"
+		<Armor	maxHP=		"120"
 
 			>
 		</Armor>
 	</ItemType>
-	<ShipClass	codename=			"scOrionArcher"
-				name=				"Archer-class raider"
+	<ShipClass	codename=			"scOrionRaider"
+				name=				"Orion raider"
 				thrust=				"0.1"
 				maxSpeed=			"10"
 
@@ -91,7 +91,7 @@
 		</LayeredArmorSystem>
 	</ShipClass>
 	<ShipClass	codename=			"scOrionHuntsman"
-				name=				"Huntsman-class fighter"
+				name=				"Orion huntsman"
 				thrust=				"0.3"
 				maxSpeed=			"15"
 
@@ -117,12 +117,44 @@
 
 					hp=			"250"
 
-					char=		"C"
+					char=		"c"
 					foreground="Blue"
-		
 		>
 		<Segments>
 			<Ring/>
 		</Segments>
+		<Guards>
+			<Ship	codename="scOrionRaider"/>
+			<Ship	codename="scOrionRaider"/>
+			<Ship	codename="scOrionRaider"/>
+			<Ship	codename="scOrionRaider"/>
+			<Ship	codename="scOrionRaider"/>
+		</Guards>
+		<Weapons>
+			<Weapon	codename="itOrionBolter"/>
+		</Weapons>
+	</StationType>
+	<StationType	codename="stOrionWarlordsStronghold"
+					name=		"Orion Warlords stronghold"
+					sovereign=	"svOrionWarlords"
+
+					hp=			"500"
+
+					char=		"c"
+					foreground="Blue"
+		>
+		<Segments>
+			<Ring/>
+		</Segments>
+		<Guards>
+			<Ship	codename="scOrionRaider"/>
+			<Ship	codename="scOrionRaider"/>
+			<Ship	codename="scOrionRaider"/>
+			<Ship	codename="scOrionRaider"/>
+			<Ship	codename="scOrionHuntsman"/>
+		</Guards>
+		<Weapons>
+			<Weapon	codename="itOrionBow"/>
+		</Weapons>
 	</StationType>
 </Module>
