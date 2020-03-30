@@ -97,7 +97,22 @@ namespace TranscendenceRL {
 			}
 		}
 	}
+	/*
+	public interface Generator<T> where T: Device {
+		List<T> Generate(TypeCollection tc);
+	}
+	public class GeneratorList<T> : Generator<T> where T: Device {
+		public List<Generator<T>> generators;
+		public GeneratorList(XElement e) {
 
+		}
+		public List<T> Generate(TypeCollection tc) {
+			var result = new List<T>();
+			generators.ForEach(g => result.AddRange(g.Generate(tc)));
+			return result;
+		}
+	}
+	*/
 
 	public interface DeviceGenerator {
 		List<Device> Generate(TypeCollection tc);
@@ -125,12 +140,47 @@ namespace TranscendenceRL {
 			return result;
 		}
 	}
-	class WeaponEntry : DeviceGenerator {
+	public interface WeaponGenerator {
+		List<Weapon> Generate(TypeCollection tc);
+	}
+	public class WeaponList : WeaponGenerator {
+		List<WeaponGenerator> generators;
+		public WeaponList() {
+			generators = new List<WeaponGenerator>();
+		}
+		public WeaponList(XElement e) {
+			generators = new List<WeaponGenerator>();
+			foreach (var element in e.Elements()) {
+				switch (element.Name.LocalName) {
+					case "Weapon":
+						generators.Add(new WeaponEntry(element));
+						break;
+					default:
+						throw new Exception($"Unknown <Weapons> subelement {element.Name}");
+				}
+			}
+		}
+		public List<Weapon> Generate(TypeCollection tc) {
+			var result = new List<Weapon>();
+			generators.ForEach(g => result.AddRange(g.Generate(tc)));
+			return result;
+		}
+	}
+	class WeaponEntry : DeviceGenerator, WeaponGenerator {
 		public string codename;
 		public WeaponEntry(XElement e) {
 			this.codename = e.ExpectAttribute("codename");
 		}
-		public List<Device> Generate(TypeCollection tc) {
+		List<Weapon> WeaponGenerator.Generate(TypeCollection tc) {
+			var type = tc.Lookup<ItemType>(codename);
+			var item = new Item(type);
+			if (item.InstallWeapon() != null) {
+				return new List<Weapon> { item.weapon };
+			} else {
+				throw new Exception($"Expected <ItemType> type with <Weapon> desc: {codename}");
+			}
+		}
+		List<Device> DeviceGenerator.Generate(TypeCollection tc) {
 			var type = tc.Lookup<ItemType>(codename);
 			var item = new Item(type);
 			if (item.InstallWeapon() != null) {
