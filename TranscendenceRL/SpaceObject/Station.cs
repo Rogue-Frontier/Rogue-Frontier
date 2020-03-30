@@ -56,6 +56,7 @@ namespace TranscendenceRL {
         public bool Active { get; private set; }
         private List<Segment> segments;
         DamageSystem DamageSystem;
+        public List<Weapon> weapons;
         public List<AIShip> guards;
         public Station(World World, StationType Type, XY Position) {
             this.World = World;
@@ -67,6 +68,7 @@ namespace TranscendenceRL {
             segments = new List<Segment>();
             CreateSegments();
             DamageSystem = new HPSystem(this, Type.hp);
+            weapons = StationType.weapons?.Generate(World.types);
             guards = new List<AIShip>();
             CreateGuards();
 
@@ -103,7 +105,7 @@ namespace TranscendenceRL {
             }
         }
         public void Update() {
-
+            weapons?.ForEach(w => w.Update(this));
         }
         public ColoredGlyph Tile => StationType.tile.Glyph;
 
@@ -117,7 +119,7 @@ namespace TranscendenceRL {
         public Sovereign Sovereign => Parent.Sovereign;
         public XY Offset { get; private set; }
         private StaticTile _Tile;
-        private Station Parent;
+        public Station Parent;
 
         public Segment(Station Parent, XY Offset, StaticTile tile) {
             this.Parent = Parent;

@@ -41,13 +41,14 @@ namespace TranscendenceRL {
                 Position += inc;
 
 
-                var hit = World.entities[Position].OfType<SpaceObject>().FirstOrDefault(o => o != Source);
+                var hit = World.entities[Position].OfType<SpaceObject>().FirstOrDefault(o => !SSpaceObject.IsEqual(o, Source));
                 if (hit != null) {
                     lifetime = 0;
                     hit.Damage(Source, damage);
 
                     var angle = (hit.Position - Position).Angle;
                     World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph('x', Color.Yellow, Color.Transparent), 5));
+                    return;
                 }
 
                 if(i >= trailPoint) {
