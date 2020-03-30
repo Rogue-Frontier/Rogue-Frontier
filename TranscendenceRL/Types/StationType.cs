@@ -13,6 +13,7 @@ namespace TranscendenceRL {
 		public int hp;
 		public Sovereign Sovereign;
 		public StaticTile tile;
+		public WeaponList weapons;
 		public List<SegmentDesc> segments;
 		public ShipList guards;
 
@@ -36,6 +37,9 @@ namespace TranscendenceRL {
 							break;
 					}
 				}
+			}
+			if(e.HasElement("Weapons", out var xmlWeapons)) {
+				weapons = new WeaponList(xmlWeapons);
 			}
 			if(e.HasElement("Guards", out var xmlGuards)) {
 				guards = new ShipList(xmlGuards);

@@ -63,7 +63,7 @@ namespace TranscendenceRL {
             capacitor?.Update();
             if (fireTime > 0) {
                 fireTime--;
-            } else if (firing) {
+            } else /* if (firing) */ {  //Stations always fire for now
                 if (targetAngle != null) {
                     Fire(owner, targetAngle.Value);
                 }
