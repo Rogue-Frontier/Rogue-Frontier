@@ -3,14 +3,29 @@
 				name=		"Orion"
 		>
 		<System>
-			<Orbital	distance="120"
+			<Orbital	radius="120"
 						angle="random">
-				<Planet/>
-				<Orbital	distance="20"
-							angle="equidistant"
+				<Group>
+					<Planet	radius=	"5"/>
+					<Orbital	radius="20"
+								angle="random"
 							>
-					<Station	codename="stDaughters"/>
-				</Orbital>
+						<Group>
+							<Station	codename="stDaughtersOutpost"/>
+							<Orbital	radius="5"
+										angle="random"
+										>
+								<Marker		name="Start"/>
+							</Orbital>
+						</Group>
+					</Orbital>
+
+					<Orbital	radius="40"
+								angle="random"
+							>
+						<Station	codename="stOrionWarlordsCamp"/>
+					</Orbital>
+				</Group>
 			</Orbital>
 		</System>
 	</SystemType>

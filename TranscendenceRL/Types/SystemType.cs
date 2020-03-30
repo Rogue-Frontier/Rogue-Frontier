@@ -1,4 +1,6 @@
 ﻿using Common;
+using Microsoft.Xna.Framework;
+using SadConsole;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +23,15 @@ namespace TranscendenceRL {
                 system = new SystemGroup(e);
             }
         }
+        public void Generate(World world) {
+            system.Generate(new LocationContext() {
+            pos = new XY(0, 0),
+            focus = new XY(0, 0),
+            world = world,
+            angle = 0,
+            radius = 0
+            }, world.types);
+        }
     }
     public struct LocationContext {
         public World world;
@@ -35,8 +46,17 @@ namespace TranscendenceRL {
     public static class SSystemElement {
         public static SystemElement Create(XElement e) {
             switch(e.Name.LocalName) {
+                case "System":
+                case "Group":
+                    return new SystemGroup(e);
                 case "Orbital":
                     return new SystemOrbital(e);
+                case "Planet":
+                    return new SystemPlanet(e);
+                case "Station":
+                    return new SystemStation(e);
+                case "Marker":
+                    return new SystemMarker(e);
                 default:
                     throw new Exception($"Unknown system element <{e.Name}>");
             }
@@ -58,6 +78,9 @@ namespace TranscendenceRL {
         public SystemOrbital(XElement e) {
             subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
             switch (e.ExpectAttribute("angle")) {
+                case "random":
+                    angleGenerator = new Constant(new Random().Next(360));
+                    break;
                 case "equidistant":
                     angleGenerator = new Equidistant(e.Elements().Count());
                     break;
@@ -67,6 +90,8 @@ namespace TranscendenceRL {
                 case var i when int.TryParse(i, out var angle):
                     angleGenerator = new Constant(angle);
                     break;
+                case var unknown:
+                    throw new Exception($"Invalid angle {unknown}");
             }
             radius = e.ExpectAttributeInt("radius");
         }
@@ -126,6 +151,38 @@ namespace TranscendenceRL {
         public void Generate(LocationContext lc, TypeCollection tc) {
             var stationtype = tc.Lookup<StationType>(codename);
             lc.world.AddEntity(new Station(lc.world, stationtype, lc.pos));
+        }
+    }
+    public class SystemMarker : SystemElement {
+        string name;
+        public SystemMarker(XElement e) {
+            name = e.ExpectAttribute("name");
+        }
+        public void Generate(LocationContext lc, TypeCollection tc) {
+            lc.world.AddEntity(new Marker(name, lc.pos));
+        }
+    }
+    public class SystemPlanet : SystemElement {
+        private int radius;
+        public SystemPlanet(XElement e) {
+            this.radius = e.ExpectAttributeInt("radius");
+        }
+        public void Generate(LocationContext lc, TypeCollection tc) {
+            var diameter = radius * 2;
+            var center = new XY(radius, radius);
+            for(int x = 0; x < diameter; x++) {
+                //Change to diameter when we get a square tileset
+                for(int y = radius/2; y < radius + radius/2; y++) {
+                    var pos = new XY(x, y);
+                    var offset = (pos - center);
+                    //Try to optimize using manhattan
+                    if (/*offset.MaxCoord < radius || */offset.Magnitude < radius) {
+                        var tile = new ColoredGlyph('%', Color.Gray, Color.Black);
+                        lc.world.AddEffect(new FixedTile(tile, lc.pos + offset));
+                    }
+                }
+            }
+
         }
     }
 }

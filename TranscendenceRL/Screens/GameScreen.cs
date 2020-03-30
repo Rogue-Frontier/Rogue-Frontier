@@ -112,12 +112,16 @@ namespace TranscendenceRL {
 			World.AddEntity(enemy);
 			*/
 
+			world.types.Lookup<SystemType>("ssOrion").Generate(world);
+			World.UpdatePresent();
+			var playerStart = world.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
 			var playerSovereign = world.types.Lookup<Sovereign>("svPlayer");
-			player = new PlayerShip(new Ship(world, playerClass, playerSovereign, new XY(0, 0)));
+			player = new PlayerShip(new Ship(world, playerClass, playerSovereign, playerStart));
 			world.AddEntity(player);
+			/*
 			var daughters = new Station(world, world.types.Lookup<StationType>("stDaughtersOutpost"), new XY(5, 5));
 			world.AddEntity(daughters);
-
+			*/
 			player.messages.Add(new PlayerMessage("Welcome to Transcendence: Rogue Frontier!"));
 		}
 		public override void Update(TimeSpan delta) {
@@ -142,12 +146,7 @@ namespace TranscendenceRL {
 
 			camera = player.Position;
 
-			world.entities.all.UnionWith(world.entitiesAdded);
-			world.effects.all.UnionWith(world.effectsAdded);
-			world.entitiesAdded.Clear();
-			world.effectsAdded.Clear();
-			world.entities.all.RemoveWhere(e => !e.Active);
-			world.effects.all.RemoveWhere(e => !e.Active);
+			world.UpdatePresent();
 		}
 		public override void Draw(TimeSpan drawTime) {
 			var messageY = Height * 3 / 5;

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace TranscendenceRL {
     public static class SDamageSystem {
         public static void React(this DamageSystem ds, SpaceObject owner, SpaceObject source) {
-            if (source is PlayerShip ps) {
+            if (source is PlayerShip ps && owner.Sovereign.IsFriend(ps)) {
                 ps.AddMessage(new PlayerMessage(new ColoredString($@"""Watch your targets!"" - {owner.Name}", Color.White, Color.Transparent), 1));
             }
         }

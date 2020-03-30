@@ -21,5 +21,19 @@ namespace TranscendenceRL {
         public void AddEntity(Entity e) {
             entitiesAdded.Add(e);
         }
+        public void RemoveAll() {
+            entities.Clear();
+            effects.Clear();
+            entitiesAdded.Clear();
+            effectsAdded.Clear();
+        }
+        public void UpdatePresent() {
+            entities.all.UnionWith(entitiesAdded);
+            effects.all.UnionWith(effectsAdded);
+            entitiesAdded.Clear();
+            effectsAdded.Clear();
+            entities.all.RemoveWhere(e => !e.Active);
+            effects.all.RemoveWhere(e => !e.Active);
+        }
     }
 }

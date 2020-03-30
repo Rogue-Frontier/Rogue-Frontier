@@ -213,6 +213,8 @@ namespace TranscendenceRL {
         public AIShip(Ship ship, Order controller) {
             this.Ship = ship;
             this.controller = controller;
+
+            //To do: Don't add anything to world in the constructor
             ship.World.AddEffect(new Heading(this));
         }
         public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
@@ -258,6 +260,8 @@ namespace TranscendenceRL {
 
         public PlayerShip(Ship ship) {
             this.Ship = ship;
+
+            //To do: Don't add anything to world in the constructor
             ship.World.AddEffect(new Heading(this));
             messages = new List<PlayerMessage>();
             visible = new HashSet<Entity>();

@@ -99,6 +99,7 @@ namespace TranscendenceRL {
             entityDispositions[other] = Disposition.Neutral;
             return entityDispositions[other];
         }
+        public bool IsFriend(SpaceObject other) => GetDisposition(other) == Disposition.Friend;
         public bool IsEnemy(SpaceObject other) => GetDisposition(other) == Disposition.Enemy;
         public Disposition InitDisposition(Sovereign other) {
             if(other == this) {

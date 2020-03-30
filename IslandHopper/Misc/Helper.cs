@@ -339,14 +339,14 @@ namespace Common {
 
 				var factor = Math.Abs(halfWidth / cos);
 				return center + new XY(cos * factor, sin * factor);
-			} else if((angle < Math.PI - diagonalAngle && angle > diagonalAngle)	//Top side
+			} else /* if((angle < Math.PI - diagonalAngle && angle > diagonalAngle)	//Top side
 				|| (angle < 2 * Math.PI - diagonalAngle && angle > Math.PI + diagonalAngle)
-				) {
+				) */ {
 				var cos = Math.Cos(angle);
 				var sin = Math.Sin(angle);
 				var factor = Math.Abs(halfHeight / sin);
 				return center + new XY(cos * factor, sin * factor);
-			} else if(angle == diagonalAngle) {
+			} /* else if(angle == diagonalAngle) {
 				return new XY(dimensions.x, dimensions.y);
 			} else if(angle == Math.PI - diagonalAngle) {
 				return new XY(0, dimensions.y);
@@ -356,7 +356,7 @@ namespace Common {
 				return new XY(dimensions.x, 0);
 			} else {
 				throw new Exception($"Invalid angle: {angle}");
-			}
+			} */
 		}
 
 		public static List<string> Wrap(this string s, int width) {
