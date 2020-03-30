@@ -128,15 +128,24 @@ namespace TranscendenceRL {
             //Find the direction we need to go
             var offset = (target.Position - owner.Position);
 
-            //Face the target
-            var Face = new FaceOrder(owner, offset.Angle);
-            Face.Update();
 
-
-            var velocityTowards = (owner.Velocity - target.Velocity).Dot(offset.Normal);
-            //Approach
-            if (Math.Abs(Helper.AngleDiff(owner.rotationDegrees, offset.Angle * 180 / Math.PI)) < 10 && velocityTowards < 10) {
+            var speedTowards = (owner.Velocity - target.Velocity).Dot(offset.Normal);
+            if (speedTowards < -1) {
+                //Decelerate
+                var Face = new FaceOrder(owner, Math.PI + owner.Velocity.Angle);
+                Face.Update();
                 owner.SetThrusting(true);
+            } else {
+                //Approach
+
+                //Face the target
+                var Face = new FaceOrder(owner, offset.Angle);
+                Face.Update();
+                if (Math.Abs(Helper.AngleDiff(owner.rotationDegrees, offset.Angle * 180 / Math.PI)) < 10 && speedTowards < 10) {
+
+                    //Go
+                    owner.SetThrusting(true);
+                }
             }
         }
         public bool Active => true;
