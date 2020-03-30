@@ -27,7 +27,7 @@ namespace TranscendenceRL {
         public XY pos;
         public double angle;
         public double radius;
-        public XY prev;
+        public XY focus;
     }
     public interface SystemElement {
         List<SpaceObject> Generate(LocationContext lc, TypeCollection tc);
@@ -54,17 +54,75 @@ namespace TranscendenceRL {
         }
     }
     public class SystemOrbital : SystemElement {
-        List<SystemElement> subelements;
+        private List<SystemElement> subelements;
+        private AngleGenerator angleGenerator;
+        private int radius;
         public SystemOrbital(XElement e) {
             subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
+            switch (e.ExpectAttribute("angle")) {
+                case "equidistant":
+                    angleGenerator = new Equidistant(e.Elements().Count());
+                    break;
+                case "incrementing":
+                    angleGenerator = new Incrementing(e.ExpectAttributeInt("inc"));
+                    break;
+                case var i when int.TryParse(i, out var angle):
+                    angleGenerator = new Constant(angle);
+                    break;
+            }
+            radius = e.ExpectAttributeInt("radius");
         }
         public List<SpaceObject> Generate(LocationContext lc, TypeCollection tc) {
             //Modify the LocationContext
             //TO DO
 
             var result = new List<SpaceObject>();
-            subelements.ForEach(g => result.AddRange(g.Generate(lc, tc)));
+            foreach(var sub in subelements) {
+                var angle = angleGenerator.GetAngle();
+                var loc = new LocationContext() {
+                    world = lc.world,
+                    focus = lc.pos,
+                    angle = angle,
+                    radius = radius,
+                    pos = lc.pos + XY.Polar(angle * Math.PI / 180, radius)
+                };
+
+                result.AddRange(sub.Generate(loc, tc));
+            }
             return result;
+        }
+
+        interface AngleGenerator {
+            int GetAngle();
+        }
+        class Constant : AngleGenerator {
+            private int degrees;
+            public Constant(int degrees) {
+                this.degrees = degrees;
+            }
+            public int GetAngle() => degrees;
+        }
+        class Equidistant : AngleGenerator {
+            private int interval;
+            public int i;
+            public Equidistant(int count) {
+                this.interval = 360 / count;
+                this.i = 0;
+            }
+            public int GetAngle() {
+                return interval * i++;
+            }
+        }
+        class Incrementing : AngleGenerator {
+            private int start;
+            private int inc;
+            public Incrementing(int inc) {
+                this.start = new Random().Next(360);
+                this.inc = inc;
+            }
+            public int GetAngle() {
+                return start += inc;
+            }
         }
     }
     public class SystemStation : SystemElement {
