@@ -158,8 +158,8 @@ namespace TranscendenceRL {
 				messageY++;
 			}
 
-			var mapWidth = 16;
-			var mapHeight = 16;
+			var mapWidth = 24;
+			var mapHeight = 24;
 			var range = 128;
 			var mapScale = (range / (mapWidth / 2));
 
