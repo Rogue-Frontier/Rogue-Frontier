@@ -56,5 +56,8 @@ namespace TranscendenceRL {
             }
             owner.Destroy();
         }
+        public List<ColoredString> GetDesc() {
+            return new List<ColoredString>(layers.GroupBy(l => l.source.type).Select(l => new ColoredString(l.First().source.type.name + $" (x{l.Count()})")));
+        }
     }
 }

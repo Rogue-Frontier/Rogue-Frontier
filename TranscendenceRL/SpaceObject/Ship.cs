@@ -36,7 +36,7 @@ namespace TranscendenceRL {
         public bool Active { get; private set; }
         public HashSet<Item> Items;
         public DeviceSystem Devices { get; private set; }
-        private DamageSystem DamageSystem;
+        public DamageSystem DamageSystem;
 
         public Random destiny;
 
@@ -155,6 +155,8 @@ namespace TranscendenceRL {
         public XY Velocity => Ship.Velocity;
         public double rotationDegrees => Ship.rotationDegrees;
         public DeviceSystem Devices => Ship.Devices;
+
+        public DamageSystem DamageSystem => Ship.DamageSystem;
 
         public Ship Ship;
         public Order controller;

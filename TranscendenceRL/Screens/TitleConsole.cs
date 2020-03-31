@@ -19,8 +19,10 @@ namespace TranscendenceRL {
         int titleStart;
         World World = new World();
 
-        public IShip pov;
+        public AIShip pov;
         public int povTimer;
+        public List<PlayerMessage> povDesc;
+
         public XY camera;
         public Dictionary<(int, int), ColoredGlyph> tiles;
 
@@ -112,7 +114,8 @@ namespace TranscendenceRL {
                 World.entities.all.Add(enemy);
             }
             if(pov == null || povTimer < 1) {
-                pov = World.entities.all.OfType<IShip>().First();
+                pov = World.entities.all.OfType<AIShip>().First();
+                UpdatePOVDesc();
                 povTimer = 150;
             } else if(!pov.Active) {
                 povTimer--;
@@ -138,6 +141,19 @@ namespace TranscendenceRL {
             }
             */
         }
+        public void UpdatePOVDesc() {
+            povDesc = new List<PlayerMessage> {
+                    new PlayerMessage(pov.Name),
+                };
+            if (pov.DamageSystem is LayeredArmorSystem las) {
+                povDesc.AddRange(las.GetDesc().Select(m => new PlayerMessage(m)));
+            } else if (pov.DamageSystem is HPSystem hp) {
+                povDesc.Add(new PlayerMessage($"HP: {hp}"));
+            }
+            foreach (var device in pov.Ship.Devices.Installed) {
+                povDesc.Add(new PlayerMessage(device.source.type.name));
+            }
+        }
         public override void Draw(TimeSpan drawTime) {
             Clear();
 
@@ -151,8 +167,22 @@ namespace TranscendenceRL {
             }
             if (titleStart > 0) {
                 titleStart--;
-            }
+            } else {
+                int descX = Width / 2;
+                int descY = Height * 3 / 4;
 
+
+                bool indent = false;
+                foreach (var line in povDesc) {
+                    line.Update();
+
+                    var lineX = descX + (indent ? 8 : 0);
+
+                    Print(lineX, descY, line.Draw());
+                    indent = true;
+                    descY++;
+                }
+            }
             camera = pov.Position;
             for (int x = titleStart; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
