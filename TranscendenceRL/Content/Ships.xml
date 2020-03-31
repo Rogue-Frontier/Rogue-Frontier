@@ -167,6 +167,10 @@
 			<Armor  codename="itKnightscalePlate"/>
             <Armor  codename="itKnightscalePlate"/>
 		</LayeredArmorSystem>
+		<PlayerSettings
+			startingClass=  "false"
+			description=    "As an entry-level defender, the Knight-Errant-class gunship features two layers of reliable Knightscale plate."
+            />
 	</ShipClass>
 	<ShipClass codename=            "scVassal"
 			   name=                "Knight-Vassal-class gunship"
@@ -188,6 +192,10 @@
             <Armor  codename="itKnightscalePlate"/>
             <Armor  codename="itKnightscalePlate"/>
 		</LayeredArmorSystem>
+		<PlayerSettings
+			startingClass=  "false"
+			description=    "The Knight-Vassal-class gunship is a medium-priced entry in the Knight lineup of defense ships."
+            />
 	</ShipClass>
 
     <ShipClass codename=            "scTemplar"
@@ -200,7 +208,7 @@
 			   rotationMaxSpeed=    "4"
 
 			   char=                "k"
-			   foreground=          "LightBlue"
+			   foreground=          "Blue"
         >
 		<Devices>
 			<Weapon codename="itSabre"/>

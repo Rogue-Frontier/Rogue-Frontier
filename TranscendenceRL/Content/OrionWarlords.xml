@@ -79,7 +79,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				char=				"a"
+				char=				"o"
 				foreground=			"Blue"
 		>
 		<Devices>
@@ -87,8 +87,11 @@
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="itHunterscalePlate"/>
-			<Armor	codename="itHunterscalePlate"/>
 		</LayeredArmorSystem>
+		<PlayerSettings
+			startingClass=  "false"
+			description=    "Other than being a patched-up rustbucket, the Orion raider is known for its Orion bolter, a kinetic weapon that hits harder and faster when fully charged."
+            />
 	</ShipClass>
 	<ShipClass	codename=			"scOrionHuntsman"
 				name=				"Orion huntsman"
@@ -99,7 +102,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				char=				"H"
+				char=				"O"
 				foreground=			"Blue"
 		>
 		<Devices>
@@ -107,9 +110,11 @@
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="itSkullhelmPlate"/>
-			<Armor	codename="itHunterscalePlate"/>
 		</LayeredArmorSystem>
-		
+		<PlayerSettings
+			startingClass=  "false"
+			description=    "The Orion huntsman adapts to both short-range skirmishes and long-range duels with the Orion Longbow, which hits at high velocity when fully charged."
+            />
 	</ShipClass>
 	<StationType	codename="stOrionWarlordsCamp"
 					name=		"Orion Warlords camp"

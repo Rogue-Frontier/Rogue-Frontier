@@ -87,7 +87,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Screens\Dockscreen.cs" />
     <Compile Include="SpaceObject\Controller.cs" />
+    <Compile Include="SpaceObject\DeviceSystem.cs" />
+    <Compile Include="SpaceObject\Docking.cs" />
+    <Compile Include="SpaceObject\DockViewDesc.cs" />
     <Compile Include="SpaceObject\Generator.cs" />
     <Compile Include="SpaceObject\DamageSystem.cs" />
     <Compile Include="SpaceObject\Marker.cs" />
