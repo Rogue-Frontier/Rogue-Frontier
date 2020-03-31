@@ -79,7 +79,7 @@ namespace TranscendenceRL {
 
         public void Destroy() {
             var wreck = new Wreck(this);
-            wreck.items.UnionWith(Items);
+            wreck.Items.UnionWith(Items);
             World.AddEntity(wreck);
             Active = false;
         }
@@ -203,6 +203,8 @@ namespace TranscendenceRL {
         private int selectedPrimary;
 
         public Docking docking;
+
+        public HashSet<Item> Items => Ship.Items;
 
         public HashSet<Entity> visible;
         public HashSet<Station> known;

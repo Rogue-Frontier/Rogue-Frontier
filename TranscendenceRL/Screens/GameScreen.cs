@@ -147,6 +147,11 @@ namespace TranscendenceRL {
 			camera = player.Position;
 
 			world.UpdatePresent();
+
+			if(player.docking?.done == true && player.docking.target is Dockable d) {
+				player.docking = null;
+				new Dockscreen(Width, Height, d.MainView, this, player, d).Show(true); ;
+			}
 		}
 		public override void Draw(TimeSpan drawTime) {
 			var messageY = Height * 3 / 5;
@@ -263,7 +268,7 @@ namespace TranscendenceRL {
 					
 					player.docking = null;
 				} else {
-					var dest = world.entities.GetAll(p => (player.Position - p).Magnitude < 8).OfType<Station>().OrderBy(p => (p.Position - player.Position).Magnitude).FirstOrDefault();
+					var dest = world.entities.GetAll(p => (player.Position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.Position - player.Position).Magnitude).FirstOrDefault();
 					if(dest != null) {
 						player.AddMessage(new PlayerMessage("Docking sequence engaged"));
 						player.docking = new Docking(player.Ship, dest);

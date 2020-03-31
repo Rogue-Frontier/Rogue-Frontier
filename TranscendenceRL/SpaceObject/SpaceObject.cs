@@ -14,6 +14,10 @@ namespace TranscendenceRL {
         void Damage(SpaceObject source, int hp);
         void Destroy();
     }
+    public interface Dockable : SpaceObject {
+        HashSet<Item> Items { get; }
+        IDockViewDesc MainView { get; }
+    }
     public static class SSpaceObject {
         public static bool IsEqual(this SpaceObject o1, SpaceObject o2) {
             { if (o1 is AIShip s) o1 = s.Ship; }
