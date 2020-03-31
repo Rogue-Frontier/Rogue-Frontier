@@ -20,8 +20,8 @@ namespace TranscendenceRL {
                 this.parallaxFactor = parallaxFactor;
                 tiles = new GeneratedGrid<ColoredGlyph>(p => {
                     var (x, y) = p;
-                    var value = r.Next(28);
-                    var background = new Color(value, value, value + r.Next(12));
+                    var value = r.Next(51);
+                    var background = new Color(value, value, value + r.Next(25));
 
                     var init = new XY[] { new XY(1, 0), new XY(0, 1), new XY(0, -1), new XY(-1, 0) }.Select(xy => new XY(xy.xi + x, xy.yi + y)).Where(xy => tiles.IsInit(xy.xi, xy.yi));
 
@@ -52,11 +52,11 @@ namespace TranscendenceRL {
         }
         public Backdrop() {
             Random r = new Random();
-            int layerCount = 10;
+            int layerCount = 5;
             layers = new List<Layer>(layerCount);
             for(int i = 0; i < layerCount; i++) {
                 var n = r.Next(1, 5);
-                layers.Add(new Layer((double)n / (n + r.Next(1, n)), r));
+                layers.Add(new Layer((double)n / (n + r.Next(1, 4*n)), r));
             }
             layers = layers.OrderBy(l => l.parallaxFactor).ToList();
         }
