@@ -9,30 +9,24 @@ using System.Threading.Tasks;
 using TranscendenceRL;
 
 namespace TranscendenceRL {
-    public interface IStation : SpaceObject {
-        StationType StationType { get; }
-    }
-    public class Wreck : IStation {
-        public SpaceObject creator;
+    public class Wreck : SpaceObject {
         public string Name => $"Wreck of {creator.Name}";
-        public World World => creator.World;
-
-        public StationType StationType => null;
-
+        public SpaceObject creator;
+        public World World { get; private set; }
         public Sovereign Sovereign { get; private set; }
         public XY Position { get; private set; }
         public XY Velocity { get; private set; }
-
-
         public bool Active { get; private set; }
-
+        public HashSet<Item> items { get; private set; }
         public ColoredGlyph Tile => new ColoredGlyph(creator.Tile.GlyphCharacter, new Color(128, 128, 128), Color.Transparent);
         public Wreck(SpaceObject creator) {
             this.creator = creator;
+            this.World = creator.World;
             this.Sovereign = Sovereign.Inanimate;
             this.Position = creator.Position;
             this.Velocity = creator.Velocity;
             this.Active = true;
+            items = new HashSet<Item>();
         }
         public void Damage(SpaceObject source, int hp) {
         }
@@ -45,7 +39,7 @@ namespace TranscendenceRL {
             Position += Velocity / TranscendenceRL.TICKS_PER_SECOND;
         }
     }
-    public class Station : IStation {
+    public class Station : SpaceObject {
         public string Name => StationType.name;
         public World World { get; private set; }
         public StationType StationType { get; private set; }
@@ -99,7 +93,16 @@ namespace TranscendenceRL {
         }
         public void Destroy() {
             Active = false;
-            World.AddEntity(new Wreck(this));
+            var wreck = new Wreck(this);
+
+            var drop = weapons.Select(w => w.source);
+
+            foreach(var item in drop) {
+                item.RemoveWeapon();
+                wreck.items.Add(item);
+            }
+            
+            World.AddEntity(wreck);
             foreach(var segment in segments) {
                 World.AddEntity(new Wreck(segment));
             }
