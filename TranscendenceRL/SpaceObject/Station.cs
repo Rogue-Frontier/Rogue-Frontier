@@ -110,7 +110,7 @@ namespace TranscendenceRL {
         public ColoredGlyph Tile => StationType.tile.Glyph;
 
     }
-    public class Segment : IStation {
+    public class Segment : SpaceObject {
         //The segment essentially impersonates its parent station but with a different tile
         public string Name => Parent.Name;
         public World World => Parent.World;
