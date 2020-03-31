@@ -7,9 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TranscendenceRL;
+using static TranscendenceRL.StationType;
 
 namespace TranscendenceRL {
-    public class Wreck : SpaceObject {
+    public class Wreck : Dockable {
         public string Name => $"Wreck of {creator.Name}";
         public SpaceObject creator;
         public World World { get; private set; }
@@ -17,8 +18,9 @@ namespace TranscendenceRL {
         public XY Position { get; private set; }
         public XY Velocity { get; private set; }
         public bool Active { get; private set; }
-        public HashSet<Item> items { get; private set; }
+        public HashSet<Item> Items { get; private set; }
         public ColoredGlyph Tile => new ColoredGlyph(creator.Tile.GlyphCharacter, new Color(128, 128, 128), Color.Transparent);
+        public IDockViewDesc MainView => DockScreenDesc.WreckScreen;
         public Wreck(SpaceObject creator) {
             this.creator = creator;
             this.World = creator.World;
@@ -26,7 +28,7 @@ namespace TranscendenceRL {
             this.Position = creator.Position;
             this.Velocity = creator.Velocity;
             this.Active = true;
-            items = new HashSet<Item>();
+            Items = new HashSet<Item>();
         }
         public void Damage(SpaceObject source, int hp) {
         }
@@ -50,6 +52,7 @@ namespace TranscendenceRL {
         public bool Active { get; private set; }
         private List<Segment> segments;
         DamageSystem DamageSystem;
+        public HashSet<Item> Items { get; private set; }
         public List<Weapon> weapons;
         public List<AIShip> guards;
         public Station(World World, StationType Type, XY Position) {
@@ -62,14 +65,14 @@ namespace TranscendenceRL {
             segments = new List<Segment>();
             CreateSegments();
             DamageSystem = new HPSystem(this, Type.hp);
+            Items = new HashSet<Item>();
             weapons = StationType.weapons?.Generate(World.types);
             guards = new List<AIShip>();
             CreateGuards();
-
         }
         private void CreateSegments() {
             foreach(var segmentDesc in StationType.segments) {
-                var s = new Segment(this, segmentDesc.offset, segmentDesc.tile);
+                var s = new Segment(this, segmentDesc);
                 segments.Add(s);
                 World.AddEntity(s);
             }
@@ -86,7 +89,6 @@ namespace TranscendenceRL {
                     World.AddEntity(ship);
                 }
             }
-            
         }
         public void Damage(SpaceObject source, int hp) {
             DamageSystem.Damage(source, hp);
@@ -95,16 +97,19 @@ namespace TranscendenceRL {
             Active = false;
             var wreck = new Wreck(this);
 
-            var drop = weapons.Select(w => w.source);
-
-            foreach(var item in drop) {
-                item.RemoveWeapon();
-                wreck.items.Add(item);
+            var drop = weapons?.Select(w => w.source);
+            if(drop != null) {
+                foreach (var item in drop) {
+                    item.RemoveWeapon();
+                    wreck.Items.Add(item);
+                }
             }
             
             World.AddEntity(wreck);
             foreach(var segment in segments) {
-                World.AddEntity(new Wreck(segment));
+                var offset = segment.desc.offset;
+                var tile = new ColoredGlyph(segment.desc.tile.Glyph.GlyphCharacter, new Color(128, 128, 128), Color.Transparent);
+                World.AddEntity(new Segment(wreck, new SegmentDesc(offset, new StaticTile(tile))));
             }
         }
         public void Update() {
@@ -117,26 +122,21 @@ namespace TranscendenceRL {
         //The segment essentially impersonates its parent station but with a different tile
         public string Name => Parent.Name;
         public World World => Parent.World;
-        public XY Position => Parent.Position + Offset;
+        public XY Position => Parent.Position + desc.offset;
         public XY Velocity => Parent.Velocity;
         public Sovereign Sovereign => Parent.Sovereign;
-        public XY Offset { get; private set; }
-        private StaticTile _Tile;
-        public Station Parent;
-
-        public Segment(Station Parent, XY Offset, StaticTile tile) {
+        public SpaceObject Parent;
+        public SegmentDesc desc;
+        public Segment(SpaceObject Parent, SegmentDesc desc) {
             this.Parent = Parent;
-            this.Offset = Offset;
-            this._Tile = tile;
+            this.desc = desc;
         }
-
-        public StationType StationType => Parent.StationType;
         
         public bool Active => Parent.Active;
         public void Damage(SpaceObject source, int hp) => Parent.Damage(source, hp);
         public void Destroy() => Parent.Destroy();
         public void Update() {
         }
-        public ColoredGlyph Tile => _Tile.Glyph;
+        public ColoredGlyph Tile => desc.tile.Glyph;
     }
 }
