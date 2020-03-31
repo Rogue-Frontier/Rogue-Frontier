@@ -98,13 +98,13 @@ namespace TranscendenceRL {
 
         public double rotationDegrees { get; private set; }
         public double stoppingRotation { get {
-                var stoppingTime = 30 * Math.Abs(rotatingSpeed) / (ShipClass.rotationDecel);
-                return rotationDegrees + rotatingSpeed * stoppingTime - ((ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
+                var stoppingTime = TranscendenceRL.TICKS_PER_SECOND * Math.Abs(rotatingVel) / (ShipClass.rotationDecel);
+                return rotationDegrees + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
         }}
 
         public bool thrusting;
         public Rotating rotating;
-        public double rotatingSpeed;
+        public double rotatingVel;
         public bool decelerating;
         public Ship(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.World = world;
@@ -165,21 +165,21 @@ namespace TranscendenceRL {
                         rotatingSpeed += Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
                     }
                     */
-                    rotatingSpeed += ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
+                    rotatingVel += ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
                 } else if (rotating == Rotating.CW) {
                     /*
                     if(rotatingSpeed > 0) {
                         rotatingSpeed -= Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
                     }
                     */
-                    rotatingSpeed -= ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
+                    rotatingVel -= ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
                 }
-                rotatingSpeed = Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationMaxSpeed) * Math.Sign(rotatingSpeed);
+                rotatingVel = Math.Min(Math.Abs(rotatingVel), ShipClass.rotationMaxSpeed) * Math.Sign(rotatingVel);
                 rotating = Rotating.None;
             } else {
-                rotatingSpeed -= Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * Math.Sign(rotatingSpeed);
+                rotatingVel -= Math.Min(Math.Abs(rotatingVel), ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * Math.Sign(rotatingVel);
             }
-            rotationDegrees += rotatingSpeed;
+            rotationDegrees += rotatingVel;
 
             if (decelerating) {
                 if (Velocity.Magnitude > 0.05) {
