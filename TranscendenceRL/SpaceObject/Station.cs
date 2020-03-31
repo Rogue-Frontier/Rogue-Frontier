@@ -42,7 +42,7 @@ namespace TranscendenceRL {
         }
 
         public void Update() {
-            Position += Velocity / 30;
+            Position += Velocity / TranscendenceRL.TICKS_PER_SECOND;
         }
     }
     public class Station : IStation {

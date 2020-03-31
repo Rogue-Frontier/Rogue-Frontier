@@ -13,6 +13,8 @@ namespace TranscendenceRL {
 	/// This is the main type for your game.
 	/// </summary>
 	public class TranscendenceRL : SadConsole.Game {
+		public static int TICKS_PER_SECOND = 60;
+
 		public static readonly int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 16 - 2;
 		public static readonly int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 16 - 2;
 		public TranscendenceRL() : base("Content/Square.font", width, height, null) {

@@ -63,7 +63,7 @@ namespace TranscendenceRL {
         }
         public bool UpdateDocking() {
 
-            double decel = 10f / 30;
+            double decel = 10f / TranscendenceRL.TICKS_PER_SECOND;
             double stoppingTime = ship.Velocity.Magnitude / decel;
 
             double stoppingDistance = ship.Velocity.Magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
@@ -99,7 +99,7 @@ namespace TranscendenceRL {
         public double rotationDegrees { get; private set; }
         public double stoppingRotation { get {
                 var stoppingTime = 30 * Math.Abs(rotatingSpeed) / (ShipClass.rotationDecel);
-                return rotationDegrees + rotatingSpeed * stoppingTime - ((ShipClass.rotationDecel / 30) * stoppingTime * stoppingTime) / 2;
+                return rotationDegrees + rotatingSpeed * stoppingTime - ((ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
         }}
 
         public bool thrusting;
@@ -165,19 +165,19 @@ namespace TranscendenceRL {
                         rotatingSpeed += Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
                     }
                     */
-                    rotatingSpeed += ShipClass.rotationAccel / 30;
+                    rotatingSpeed += ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
                 } else if (rotating == Rotating.CW) {
                     /*
                     if(rotatingSpeed > 0) {
                         rotatingSpeed -= Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
                     }
                     */
-                    rotatingSpeed -= ShipClass.rotationAccel / 30;
+                    rotatingSpeed -= ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
                 }
                 rotatingSpeed = Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationMaxSpeed) * Math.Sign(rotatingSpeed);
                 rotating = Rotating.None;
             } else {
-                rotatingSpeed -= Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel / 30) * Math.Sign(rotatingSpeed);
+                rotatingSpeed -= Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * Math.Sign(rotatingSpeed);
             }
             rotationDegrees += rotatingSpeed;
 
@@ -191,7 +191,7 @@ namespace TranscendenceRL {
             }
         }
         public void UpdateMotion() {
-            Position += Velocity / 30;
+            Position += Velocity / TranscendenceRL.TICKS_PER_SECOND;
         }
         public ColoredGlyph Tile => ShipClass.tile.Glyph;
     }

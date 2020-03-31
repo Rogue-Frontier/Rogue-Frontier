@@ -15,7 +15,7 @@ namespace TranscendenceRL {
             public double arc;
             public double speed;
             public void Update() {
-                rotation += (speed) / 30;
+                rotation += (speed) / TranscendenceRL.TICKS_PER_SECOND;
                 rotation = Math.IEEERemainder(rotation, 2 * Math.PI);
             }
         }

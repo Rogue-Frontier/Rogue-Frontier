@@ -29,7 +29,7 @@ namespace TranscendenceRL {
         public ColoredGlyph Tile { get; private set; }
 
         public void Update() {
-            Position += Velocity / 30;
+            Position += Velocity / TranscendenceRL.TICKS_PER_SECOND;
             Lifetime--;
         }
     }
@@ -53,10 +53,10 @@ namespace TranscendenceRL {
         public bool Active => Lifetime > 0;
 
         public ColoredGlyph _Tile { get; private set; }
-        public ColoredGlyph Tile => new ColoredGlyph(_Tile.GlyphCharacter, _Tile.Foreground.WithValues(alpha: (int) (255 * Math.Min(1, Lifetime / 30f))), _Tile.Background);
+        public ColoredGlyph Tile => new ColoredGlyph(_Tile.GlyphCharacter, _Tile.Foreground.WithValues(alpha: (int) (255 * Math.Min(1, Lifetime / (float) TranscendenceRL.TICKS_PER_SECOND))), _Tile.Background);
 
         public void Update() {
-            Position += Velocity / 30;
+            Position += Velocity / TranscendenceRL.TICKS_PER_SECOND;
             Lifetime--;
         }
     }
