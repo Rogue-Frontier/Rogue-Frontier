@@ -49,7 +49,7 @@ namespace TranscendenceRL {
             }
         }
 
-        public void Update(IStation owner) {
+        public void Update(Station owner) {
             double? targetAngle = null;
             if (target == null) {
                 target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.range).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));

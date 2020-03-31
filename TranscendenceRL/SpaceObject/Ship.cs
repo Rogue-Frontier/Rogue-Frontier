@@ -26,63 +26,6 @@ namespace TranscendenceRL {
         ShipClass ShipClass { get; }
         double rotationDegrees { get; }
     }
-    public class DeviceSystem {
-        public List<Device> Installed;
-        public List<Weapon> Weapons;
-        public DeviceSystem() {
-            Installed = new List<Device>();
-            Weapons = new List<Weapon>();
-        }
-        public void Add(List<Device> Devices) {
-            this.Installed.AddRange(Devices);
-            UpdateDevices();
-        }
-        public void UpdateDevices() {
-            Weapons = Installed.OfType<Weapon>().ToList();
-        }
-        public void Update(IShip owner) {
-            Installed.ForEach(d => d.Update(owner));
-        }
-    }
-    public class Docking {
-        public Ship ship;
-        public SpaceObject target;
-        public bool done;
-        public Docking(Ship ship, SpaceObject target) {
-            this.ship = ship;
-            this.target = target;
-        }
-        public bool Update() {
-            if(!done) {
-                done = UpdateDocking();
-                if(done) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        public bool UpdateDocking() {
-
-            double decel = 10f / TranscendenceRL.TICKS_PER_SECOND;
-            double stoppingTime = ship.Velocity.Magnitude / decel;
-
-            double stoppingDistance = ship.Velocity.Magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
-            var stoppingPoint = ship.Position;
-            if (!ship.Velocity.IsZero) {
-                ship.Velocity -= XY.Polar(ship.Velocity.Angle, decel);
-                stoppingPoint += ship.Velocity.Normal * stoppingDistance;
-            }
-            var offset = target.Position - stoppingPoint;
-
-            if (offset.Magnitude > 0.25) {
-                ship.Velocity += XY.Polar(offset.Angle, decel * 6);
-            } else if ((ship.Position - target.Position).Magnitude < 1) {
-                ship.Velocity = new XY(0, 0);
-                return true;
-            }
-            return false;
-        }
-    }
     public class Ship : IShip {
         public string Name => ShipClass.name;
         public World World { get; private set; }
@@ -91,6 +34,7 @@ namespace TranscendenceRL {
         public XY Position { get; set; }
         public XY Velocity { get; set; }
         public bool Active { get; private set; }
+        public HashSet<Item> Items;
         public DeviceSystem Devices { get; private set; }
         private DamageSystem DamageSystem;
 
@@ -117,6 +61,8 @@ namespace TranscendenceRL {
 
             this.Active = true;
 
+            Items = new HashSet<Item>();
+
             Devices = new DeviceSystem();
             Devices.Add(shipClass.devices.Generate(world.types));
 
@@ -132,7 +78,9 @@ namespace TranscendenceRL {
         public void Damage(SpaceObject source, int hp) => DamageSystem.Damage(source, hp);
 
         public void Destroy() {
-            World.AddEntity(new Wreck(this));
+            var wreck = new Wreck(this);
+            wreck.items.UnionWith(Items);
+            World.AddEntity(wreck);
             Active = false;
         }
 
