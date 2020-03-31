@@ -15,7 +15,7 @@ namespace TranscendenceRL {
 	public class TranscendenceRL : SadConsole.Game {
 		public static int TICKS_PER_SECOND = 60;
 
-		public static readonly int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 16 - 2;
+		public static readonly int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 16;
 		public static readonly int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 16 - 2;
 		public TranscendenceRL() : base("Content/Square.font", width, height, null) {
 			Content.RootDirectory = "Content";
@@ -33,6 +33,8 @@ namespace TranscendenceRL {
 			base.Initialize();
 			//Settings.ToggleFullScreen();
 			// Create your console    
+
+			
 
 			var def = Library.Default.Colors;
 			def.ControlBack = Color.Transparent;
