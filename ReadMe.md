@@ -1,2 +1,3 @@
 # Transcendence: Rogue Frontier
-An ASCII-style roguelike taking place in an alternate universe of the roguelike space-opera game Transcendence.
+![Cover](https://github.com/INeedAUniqueUsername/TranscendenceRL/blob/master/TranscendenceRL/Preview/TitleScreen.PNG)
+An ASCII-style real-time roguelike set in an alternate universe of *Transcendence*, a roguelike space-opera game by George Moromisato. Developed for April Fools 2020.
