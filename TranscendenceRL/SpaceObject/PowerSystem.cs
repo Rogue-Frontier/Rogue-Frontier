@@ -5,12 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TranscendenceRL {
-    class PowerSystem {
+    public class PowerSystem {
         private DeviceSystem devices;
+        public int totalMaxOutput;
+        public int powerUsed;
         public PowerSystem(DeviceSystem devices) {
             this.devices = devices;
         }
         public void Update() {
+            if (!devices.Reactors.Any()) {
+                return;
+            }
+
             var reactors = new List<Reactor>();
             var batteries = new List<Reactor>();
             foreach(var reactor in devices.Reactors) {
@@ -22,21 +28,23 @@ namespace TranscendenceRL {
             }
             var sources = reactors.Concat(batteries).ToList();
 
-            int maxOutputLeft = sources.Sum(r => r.maxOutput);
+            totalMaxOutput = sources.Sum(r => r.maxOutput);
+            int maxOutputLeft = totalMaxOutput;
             int sourceIndex = 0;
+
             int sourceOutput = sources[sourceIndex].maxOutput;
 
-            int powerUse = 0;
+            int outputUsed = 0;
             foreach(var powered in devices.Powered.Where(p => p.enabled)) {
-                if(powerUse + powered.powerUse > maxOutputLeft) {
+                if(outputUsed + powered.powerUse > maxOutputLeft) {
                     powered.SetEnabled(false);
                 }
-                powerUse += powered.powerUse;
-                maxOutputLeft -= powerUse;
+                outputUsed += powered.powerUse;
+                maxOutputLeft -= outputUsed;
 
             CheckReactor:
-                if (powerUse > sourceOutput) {
-                    powerUse -= sourceOutput;
+                if (outputUsed > sourceOutput) {
+                    outputUsed -= sourceOutput;
                     sources[sourceIndex].energyDelta = -sourceOutput;
 
                     //Go to the next reactor
@@ -44,22 +52,22 @@ namespace TranscendenceRL {
                     sourceOutput = sources[sourceIndex].maxOutput;
                     goto CheckReactor;
                 } else {
-                    sources[sourceIndex].energyDelta = -powerUse;
+                    sources[sourceIndex].energyDelta = -outputUsed;
                 }
             }
 
-            int maxSourceOutputLeft = maxOutputLeft - batteries.Sum(b => b.maxOutput);
+            int maxReactorOutputLeft = maxOutputLeft - batteries.Sum(b => b.maxOutput);
             foreach(var battery in batteries.Where(b => b.energy < b.desc.capacity)) {
-                if(maxSourceOutputLeft > 0) {
-                    int delta = Math.Min(battery.maxOutput, maxSourceOutputLeft);
+                if(maxReactorOutputLeft > 0) {
+                    int delta = Math.Min(battery.maxOutput, maxReactorOutputLeft);
                     battery.energyDelta = delta;
 
-                    powerUse += delta;
-                    maxSourceOutputLeft -= delta;
+                    outputUsed += delta;
+                    maxReactorOutputLeft -= delta;
 
                 CheckReactor:
-                    if (powerUse > sourceOutput) {
-                        powerUse -= sourceOutput;
+                    if (outputUsed > sourceOutput) {
+                        outputUsed -= sourceOutput;
                         sources[sourceIndex].energyDelta = -sourceOutput;
 
                         //Go to the next reactor
@@ -67,10 +75,12 @@ namespace TranscendenceRL {
                         sourceOutput = sources[sourceIndex].maxOutput;
                         goto CheckReactor;
                     } else {
-                        sources[sourceIndex].energyDelta = -powerUse;
+                        sources[sourceIndex].energyDelta = -outputUsed;
                     }
                 }
             }
+
+            outputUsed = totalMaxOutput - maxOutputLeft;
         }
     }
 }

@@ -198,15 +198,16 @@ namespace TranscendenceRL {
         public XY Position => Ship.Position;
         public XY Velocity => Ship.Velocity;
         public double rotationDegrees => Ship.rotationDegrees;
+        public HashSet<Item> Items => Ship.Items;
 
         public bool firingPrimary;
         public Ship Ship;
-        public List<PlayerMessage> messages;
         private int selectedPrimary;
+        public PowerSystem power;
 
         public Docking docking;
 
-        public HashSet<Item> Items => Ship.Items;
+        public List<PlayerMessage> messages;
 
         public HashSet<Entity> visible;
         public HashSet<Station> known;
@@ -215,8 +216,20 @@ namespace TranscendenceRL {
         public PlayerShip(Ship ship) {
             this.Ship = ship;
 
+            ship.Devices.Add(new Item(new ItemType() {
+                level = 1,
+                mass = 1000,
+                name = "Reactor",
+                reactor = new ReactorDesc() {
+                    capacity = 1000,
+                    efficiency = 1,
+                    maxOutput = 200
+                }
+            }).InstallReactor());
+
             //To do: Don't add anything to world in the constructor
             ship.World.AddEffect(new Heading(this));
+            power = new PowerSystem(ship.Devices);
             messages = new List<PlayerMessage>();
             visible = new HashSet<Entity>();
             known = new HashSet<Station>();
@@ -259,6 +272,7 @@ namespace TranscendenceRL {
             //We update the ship's devices as ourselves because they need to know who the exact owner is
             //In case someone other than us needs to know who we are through our devices
             Ship.Devices.Update(this);
+            power.Update();
         }
         public void AddMessage(PlayerMessage message) {
             var existing = messages.FirstOrDefault(m => m.message.String.Equals(message.message.String));

@@ -182,6 +182,12 @@ namespace TranscendenceRL {
 			}
 
 
+			
+			if(player.power.totalMaxOutput > 0) {
+				Print(3, 3, $"-{new string('=', 16)}+", Color.White, Color.Transparent);
+				Print(3, 3, $"-{new string('=', 16 * player.power.powerUsed / player.power.totalMaxOutput)}", Color.Yellow, Color.Transparent);
+			}
+			
 
 			var rect = new XY(Width, Height);
 			var halfWidth = Width / 2;

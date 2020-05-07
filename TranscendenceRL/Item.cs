@@ -11,6 +11,7 @@ namespace TranscendenceRL {
         public Weapon weapon;
         public Armor armor;
         public Shields shields;
+        public Reactor reactor;
 
         public Item(ItemType type) {
             this.type = type;
@@ -22,10 +23,12 @@ namespace TranscendenceRL {
         public Weapon InstallWeapon() => weapon = new Weapon(this, type.weapon);
         public Armor InstallArmor() => armor = new Armor(this, type.armor);
         public Shields InstallShields() => shields = new Shields(this, type.shield);
+        public Reactor InstallReactor() => reactor = new Reactor(this, type.reactor);
 
         public void RemoveWeapon() => weapon = null;
         public void RemoveArmor() => armor = null;
         public void RemoveShields() => shields = null;
+        public void RemoveReactor() => reactor = null;
     }
     public interface Device {
         Item source { get; }
@@ -197,6 +200,10 @@ namespace TranscendenceRL {
         public int maxOutput => energy > 0 ? desc.maxOutput : 0;
         public Reactor(Item source, ReactorDesc desc) {
             this.source = source;
+            this.desc = desc;
+            energy = desc.capacity;
+            energyDelta = 0;
+            battery = false;
         }
         public void Update(IShip owner) {
             energy = Math.Max(0, Math.Min(energy - energyDelta, desc.capacity));

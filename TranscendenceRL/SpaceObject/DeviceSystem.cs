@@ -18,6 +18,10 @@ namespace TranscendenceRL {
             Installed.AddRange(Devices);
             UpdateDevices();
         }
+        public void Add(Device Device) {
+            Installed.Add(Device);
+            UpdateDevices();
+        }
         public void UpdateDevices() {
             Powered = Installed.OfType<Powered>().ToList();
             Reactors = Installed.OfType<Reactor>().ToList();
