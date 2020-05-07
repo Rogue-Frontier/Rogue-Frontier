@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SadConsole;
 using SadConsole.Themes;
+using System;
+using System.Runtime.InteropServices;
 using System.Xml.Linq;
 
 namespace TranscendenceRL {
@@ -15,8 +17,12 @@ namespace TranscendenceRL {
 	public class TranscendenceRL : SadConsole.Game {
 		public static int TICKS_PER_SECOND = 60;
 
+
+		public static readonly int screenwidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+		public static readonly int screenheight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+
 		public static readonly int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 16;
-		public static readonly int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 16 - 2;
+		public static readonly int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 16;
 		public TranscendenceRL() : base("Content/Square.font", width, height, null) {
 			Content.RootDirectory = "Content";
 		}
@@ -31,15 +37,16 @@ namespace TranscendenceRL {
 			IsMouseVisible = true;
 			// Finish the initialization of SadConsole    
 			base.Initialize();
-			//Settings.ToggleFullScreen();
-			// Create your console    
-
+			///Settings.ToggleFullScreen();
+			//Window.IsBorderless = true;
+			Window.Position = new Point(0, 0);
 			
 
 			var def = Library.Default.Colors;
 			def.ControlBack = Color.Transparent;
 			def.ControlHostBack = Color.Transparent;
 			def.ModalBackground = Color.Transparent;
+
 
 			//var types = new TypeCollection(XElement.Parse(Properties.Resources.Items));
 			SadConsole.Global.FontDefault = SadConsole.Global.FontDefault.Master.GetFont(Font.FontSizes.One);

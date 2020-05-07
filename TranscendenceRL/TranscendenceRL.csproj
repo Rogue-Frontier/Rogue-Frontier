@@ -25,8 +25,8 @@
     <UpdateIntervalUnits>Days</UpdateIntervalUnits>
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>1</ApplicationRevision>
+    <MapFileExtensions>false</MapFileExtensions>
+    <ApplicationRevision>5</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -95,6 +95,7 @@
     <Compile Include="SpaceObject\Generator.cs" />
     <Compile Include="SpaceObject\DamageSystem.cs" />
     <Compile Include="SpaceObject\Marker.cs" />
+    <Compile Include="SpaceObject\PowerSystem.cs" />
     <Compile Include="SpaceObject\Ship.cs" />
     <Compile Include="Screens\ShipScreen.cs" />
     <Compile Include="Screens\ShipSelector.cs" />
@@ -129,14 +130,16 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Cheepicus_12x12.png">
+    <Content Include="Content\Icon.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\IBM8x16.png" />
+    <Content Include="Content\Ideas.txt" />
     <Content Include="Content\Items.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Missions.xml" />
+    <Content Include="Content\Missions.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\OrionWarlords.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -146,13 +149,12 @@
     <Content Include="Content\Ships.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="Content\IBM.font" />
-    <None Include="Content\Square.font">
+    <Content Include="Content\Square.font">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="IBM8x12.font">
+    </Content>
+    <Content Include="Content\square.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
     <None Include="Resources\Crawl.txt" />
     <EmbeddedResource Include="Content\Title.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -169,12 +171,6 @@
     <Content Include="Content\Systems.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="IBM8x12NoPadding.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="IBM8x16.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Icon.ico" />
     <None Include="TranscendenceRL_TemporaryKey.pfx" />
   </ItemGroup>
@@ -182,12 +178,6 @@
     <MonoGameContentReference Include="Content\Content.mgcb" />
     <None Include="app.config" />
     <None Include="app.manifest" />
-    <None Include="Cheepicus12.font">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="IBM.font">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

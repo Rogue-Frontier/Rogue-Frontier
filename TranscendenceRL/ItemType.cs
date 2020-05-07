@@ -92,8 +92,8 @@ namespace TranscendenceRL {
         }
     }
     public class ReactorDesc {
-        public int maxPower;
-        public int maxFuel;
-        public int powerPerFuel;
+        public int maxOutput;
+        public int capacity;
+        public double efficiency;
     }
 }

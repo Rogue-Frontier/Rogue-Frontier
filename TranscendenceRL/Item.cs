@@ -31,6 +31,11 @@ namespace TranscendenceRL {
         Item source { get; }
         void Update(IShip owner);
     }
+    public interface Powered : Device {
+        bool enabled { get; }
+        void SetEnabled(bool enabled = true);
+        int powerUse { get; }
+    }
     public class Weapon : Device {
         public Item source { get; private set; }
         public WeaponDesc desc;
@@ -165,22 +170,36 @@ namespace TranscendenceRL {
         public Shields(Item source, ShieldDesc desc) {
             this.source = source;
             this.desc = desc;
-        } 
+        }
         public void Update(IShip owner) {
-            if(depletionTime > 0) {
+            if (depletionTime > 0) {
                 depletionTime--;
-            } else if(hp < desc.maxHP) {
+            } else if (hp < desc.maxHP) {
                 tick++;
-                if(tick%desc.ticksPerHP == 0) {
+                if (tick % desc.ticksPerHP == 0) {
                     hp++;
                 }
             }
         }
         public void Absorb(int damage) {
             hp = Math.Max(0, hp - damage);
-            if(hp == 0) {
+            if (hp == 0) {
                 depletionTime = desc.depletionDelay;
             }
+        }
+    }
+    public class Reactor : Device {
+        public Item source { get; private set; }
+        public ReactorDesc desc;
+        public double energy;
+        public double energyDelta;
+        public bool battery;        //If true, then we recharge using power from other reactors when available
+        public int maxOutput => energy > 0 ? desc.maxOutput : 0;
+        public Reactor(Item source, ReactorDesc desc) {
+            this.source = source;
+        }
+        public void Update(IShip owner) {
+            energy = Math.Max(0, Math.Min(energy - energyDelta, desc.capacity));
         }
     }
 }

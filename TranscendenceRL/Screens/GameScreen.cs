@@ -181,6 +181,8 @@ namespace TranscendenceRL {
 				Print(mapCenterX + offset.xi, mapCenterY - offset.yi, $"{tile.GlyphCharacter}", foreground, Color.Transparent);
 			}
 
+
+
 			var rect = new XY(Width, Height);
 			var halfWidth = Width / 2;
 			var halfHeight = Height / 2;
