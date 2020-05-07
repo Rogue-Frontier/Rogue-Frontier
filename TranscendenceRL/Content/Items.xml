@@ -5,6 +5,7 @@
 				mass=		"1000"
 		>
 		<Weapon
+			powerUse=		"10"
 			fireCooldown=	"20"
 			missileSpeed=	"100"
 			damageType=		"1"
@@ -20,6 +21,7 @@
 				mass=		"2000"
 		>
 		<Weapon
+			powerUse=		"20"
 			fireCooldown=	"10"
 			missileSpeed=	"100"
 			damageType=		"1"
@@ -37,6 +39,7 @@
 				mass=		"4000"
 		>
 		<Weapon
+			powerUse=		"20"
 			fireCooldown=	"12"
 			missileSpeed=	"40"
 			damageType=		"2"
@@ -57,6 +60,7 @@
 				mass=		"4000"
 		>
 		<Weapon
+			powerUse=		"20"
 			fireCooldown=	"20"
 			missileSpeed=	"30"
 			damageType=		"2"
@@ -75,6 +79,7 @@
 				mass=		"4000"
 		>
 		<Weapon
+			powerUse=		"20"
 			fireCooldown=	"30"
 			missileSpeed=	"30"
 			damageType=		"2"

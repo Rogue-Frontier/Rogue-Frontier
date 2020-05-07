@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 namespace TranscendenceRL {
     public class PowerSystem {
         private DeviceSystem devices;
+        private HashSet<Powered> disabled;
         public int totalMaxOutput;
-        public int powerUsed;
+        public int totalUsedOutput;
         public PowerSystem(DeviceSystem devices) {
             this.devices = devices;
+            this.disabled = new HashSet<Powered>();
         }
         public void Update() {
             if (!devices.Reactors.Any()) {
@@ -20,7 +22,8 @@ namespace TranscendenceRL {
             var reactors = new List<Reactor>();
             var batteries = new List<Reactor>();
             foreach(var reactor in devices.Reactors) {
-                if(reactor.battery) {
+                reactor.energyDelta = 0;
+                if(reactor.desc.battery) {
                     batteries.Add(reactor);
                 } else {
                     reactors.Add(reactor);
@@ -35,9 +38,10 @@ namespace TranscendenceRL {
             int sourceOutput = sources[sourceIndex].maxOutput;
 
             int outputUsed = 0;
-            foreach(var powered in devices.Powered.Where(p => p.enabled)) {
+            foreach(var powered in devices.Powered.Where(p => !disabled.Contains(p))) {
                 if(outputUsed + powered.powerUse > maxOutputLeft) {
-                    powered.SetEnabled(false);
+                    disabled.Add(powered);
+                    continue;
                 }
                 outputUsed += powered.powerUse;
                 maxOutputLeft -= outputUsed;
@@ -80,7 +84,7 @@ namespace TranscendenceRL {
                 }
             }
 
-            outputUsed = totalMaxOutput - maxOutputLeft;
+            totalUsedOutput = totalMaxOutput - maxOutputLeft;
         }
     }
 }

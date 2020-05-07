@@ -184,8 +184,18 @@ namespace TranscendenceRL {
 
 			
 			if(player.power.totalMaxOutput > 0) {
-				Print(3, 3, $"-{new string('=', 16)}+", Color.White, Color.Transparent);
-				Print(3, 3, $"-{new string('=', 16 * player.power.powerUsed / player.power.totalMaxOutput)}", Color.Yellow, Color.Transparent);
+				Print(3, 3, $"[{new string('=', 16)}]", Color.White, Color.Transparent);
+				if(player.power.totalUsedOutput > 0) {
+					Print(3, 3, $"[{new string('=', 16 * player.power.totalUsedOutput / player.power.totalMaxOutput)}", Color.Yellow, Color.Transparent);
+				}
+				int y = 4;
+				foreach (var reactor in player.Ship.Devices.Reactors) {
+					Print(3, y, $"[{new string('=', 16)}]", Color.White, Color.Transparent);
+					if (reactor.energy > 0) {
+						Print(3, y, $"[{new string('=', (int)(15 * reactor.energy / reactor.desc.capacity))}{(reactor.energyDelta < 1 ? '<' : reactor.energyDelta > 1 ? '>' : '=')}", Color.Green, Color.Transparent);
+					}
+					y++;
+				}
 			}
 			
 

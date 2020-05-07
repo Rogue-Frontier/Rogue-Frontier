@@ -40,6 +40,7 @@ namespace TranscendenceRL {
         }
     }
     public class WeaponDesc {
+        public int powerUse;
         public int fireCooldown;
         public int missileSpeed;
         public int damageType;
@@ -51,6 +52,7 @@ namespace TranscendenceRL {
 
         public CapacitorDesc capacitor;
         public WeaponDesc(XElement e) {
+            powerUse = e.ExpectAttributeInt("powerUse");
             fireCooldown = e.ExpectAttributeInt("fireCooldown");
             missileSpeed = e.ExpectAttributeInt("missileSpeed");
             damageType = e.ExpectAttributeInt("damageType");
@@ -95,5 +97,6 @@ namespace TranscendenceRL {
         public int maxOutput;
         public int capacity;
         public double efficiency;
+        public bool battery;        //If true, then we recharge using power from other reactors when available
     }
 }

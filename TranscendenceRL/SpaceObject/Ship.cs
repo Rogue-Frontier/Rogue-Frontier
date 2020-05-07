@@ -221,9 +221,20 @@ namespace TranscendenceRL {
                 mass = 1000,
                 name = "Reactor",
                 reactor = new ReactorDesc() {
-                    capacity = 1000,
+                    capacity = 10000,
                     efficiency = 1,
-                    maxOutput = 200
+                    maxOutput = 2
+                }
+            }).InstallReactor());
+            ship.Devices.Add(new Item(new ItemType() {
+                level = 1,
+                mass = 1000,
+                name = "Battery",
+                reactor = new ReactorDesc() {
+                    capacity = 10000,
+                    efficiency = 1,
+                    maxOutput = 10,
+                    battery = true
                 }
             }).InstallReactor());
 
