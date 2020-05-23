@@ -111,6 +111,7 @@ namespace Common {
 		public static double operator *(XYZ p1, XYZ p2) => (p1.x * p2.x) + (p1.y * p2.y) + (p1.z * p2.z);
 
         public static implicit operator (int, int, int)(XYZ p) => (p.xi, p.yi, p.zi);
+		public static implicit operator XYZ((int, int, int) p) => new XYZ(p.Item1, p.Item2, p.Item3);
 
 		public static implicit operator double(XYZ p) => p.Magnitude;
 

@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace IslandHopper {
-	class TitleConsole : Window {
+	class TitleConsole : ControlsConsole {
 		private double time = 0;
 
 		private int titleLines;
@@ -74,9 +74,7 @@ namespace IslandHopper {
 				Theme = BUTTON_THEME
 			};
 			start.Click += (btn, args) => {
-				Hide();
-                //new GameConsole(180, 60).Show(true);
-                new GameConsole(Width, Height).Show(true);
+                SadConsole.Global.CurrentScreen = new GameConsole(Width, Height);
             };
 			Add(start);
 

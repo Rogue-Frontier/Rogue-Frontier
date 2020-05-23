@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using static IslandHopper.IslandHelper;
 namespace IslandHopper {
 	public class TypeCollection {
 		public Dictionary<string, XElement> sources;

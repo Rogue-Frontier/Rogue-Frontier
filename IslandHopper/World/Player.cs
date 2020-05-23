@@ -10,6 +10,7 @@ namespace IslandHopper {
     interface Witness {
         void Witness(WorldEvent e);
     }
+
     public class Player : Entity, Witness, Damageable {
 		public XYZ Velocity { get; set; }
 		public XYZ Position { get; set; }

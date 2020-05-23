@@ -18,7 +18,8 @@ namespace IslandHopper {
     public class Reticle : Effect {
         public XYZ Position { get; set; }
         public Color Color;
-        public ColoredGlyph SymbolCenter => new ColoredGlyph('+', Color, Color.Black);
+        int ticks;
+        public ColoredGlyph SymbolCenter => ticks%20 < 10 ? new ColoredGlyph('+', Color, Color.Black) : new ColoredGlyph('+', Color.Black, Color.Black);
         private Func<bool> active;
         public Reticle(Func<bool> active, XYZ Position, Color? Color = null) {
             this.active = active;
@@ -26,7 +27,9 @@ namespace IslandHopper {
             this.Color = Color ?? new Color(255, 255, 255);
         }
         public bool Active => active();
-        public void UpdateRealtime(TimeSpan delta) {}
+        public void UpdateRealtime(TimeSpan delta) {
+            ticks++;
+        }
         public void UpdateStep() {}
     }
     public class Trail : Effect {

@@ -115,8 +115,41 @@ namespace IslandHopper {
 		public void Update() => ticks--;
 		public bool Done() => ticks == 0;
 	}
-    public interface CompoundAction : EntityAction {}
-    public class FollowPath : CompoundAction {
+    public interface ICompoundAction : EntityAction {}
+    public class CompoundAction : ICompoundAction {
+        public EntityAction[] actions;
+        int index = 0;
+        public CompoundAction(params EntityAction[] actions) {
+            this.actions = actions;
+        }
+        public void Update() {
+            if (Done()) {
+                return;
+            }
+            actions[index].Update();
+            if (actions[index].Done()) {
+                index++;
+            }
+        }
+        public bool Done() => index == actions.Length;
+    }
+    public class TakeItem : ICompoundAction {
+        public Entity actor;
+        public IItem item;
+        public bool done;
+        public TakeItem(Actor actor, IItem item) {
+            this.actor = actor;
+            this.item = item;
+        }
+        public void Update() {
+            if(actor.World.entities[actor.Position].Contains(item)) {
+                
+                done = true;
+            }
+        }
+        public bool Done() => done;
+    }
+    public class FollowPath : ICompoundAction {
         public Actor actor;
         public LinkedList<XYZ> points;
         private WalkAction action;

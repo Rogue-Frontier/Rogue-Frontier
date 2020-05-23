@@ -48,7 +48,7 @@ namespace IslandHopper {
 
             var title = new TitleConsole(width, height);
 			title.Position = new Point(0, 0);
-			title.Show(true);
+			SadConsole.Global.CurrentScreen = title;
 		}
 
 		/// <summary>
