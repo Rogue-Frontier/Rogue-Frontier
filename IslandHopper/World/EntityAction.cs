@@ -134,26 +134,26 @@ namespace IslandHopper {
         public bool Done() => index == actions.Length;
     }
     public class TakeItem : ICompoundAction {
-        public Entity actor;
+        public ICharacter actor;
         public IItem item;
         public bool done;
-        public TakeItem(Actor actor, IItem item) {
+        public TakeItem(ICharacter actor, IItem item) {
             this.actor = actor;
             this.item = item;
         }
         public void Update() {
             if(actor.World.entities[actor.Position].Contains(item)) {
-                
-                done = true;
+                actor.Inventory.Add(item);
             }
+            done = true;
         }
         public bool Done() => done;
     }
     public class FollowPath : ICompoundAction {
-        public Actor actor;
+        public ICharacter actor;
         public LinkedList<XYZ> points;
         private WalkAction action;
-        public FollowPath(Actor actor, LinkedList<XYZ> points) {
+        public FollowPath(ICharacter actor, LinkedList<XYZ> points) {
             this.actor = actor;
             this.points = points;
         }

@@ -9,7 +9,7 @@ using Priority_Queue;
 using SadConsole;
 
 namespace IslandHopper.World {
-    class Enemy : Entity, Actor, Damageable {
+    class Enemy : ICharacter {
         public Island World { get; set; }
         public XYZ Position { get; set; }
         public XYZ Velocity { get; set; }
@@ -19,8 +19,8 @@ namespace IslandHopper.World {
         public bool Active { get; set; } = true;
 
         private AI controller;
-        public HashSet<EntityAction> actions { get; private set; } = new HashSet<EntityAction>();
-        public HashSet<IItem> inventory = new HashSet<IItem>();
+        public HashSet<EntityAction> Actions { get; private set; } = new HashSet<EntityAction>();
+        public HashSet<IItem> Inventory { get; private set; } = new HashSet<IItem>();
         private Health health;
         private int tick = 0;
         public Enemy(Island World, XYZ Position) {
@@ -51,16 +51,16 @@ namespace IslandHopper.World {
             }
 
             controller.Update();
-            foreach(var a in actions) {
+            foreach(var a in Actions) {
                 a.Update();
             }
-            actions.RemoveWhere(a => a.Done());
-            foreach (var i in inventory) {
+            Actions.RemoveWhere(a => a.Done());
+            foreach (var i in Inventory) {
                 i.Position = Position;
                 i.Velocity = Velocity;
                 i.UpdateStep();
             }
-            inventory.RemoveWhere(i => !i.Active);
+            Inventory.RemoveWhere(i => !i.Active);
         }
         public void OnDamaged(Damager source) {
             if (source is Bullet b) {
@@ -84,8 +84,8 @@ namespace IslandHopper.World {
             UpdateMovement();
 
             void UpdateWeapon() {
-                if(weapon == null || !actor.inventory.Contains(weapon)) {
-                    weapon = actor.inventory.FirstOrDefault(i => i.Gun.AmmoLeft > 0 || i.Gun.ClipLeft > 0);
+                if(weapon == null || !actor.Inventory.Contains(weapon)) {
+                    weapon = actor.Inventory.FirstOrDefault(i => i.Gun.AmmoLeft > 0 || i.Gun.ClipLeft > 0);
                 }
             }
             void UpdateAttack() {
@@ -105,7 +105,7 @@ namespace IslandHopper.World {
                     }
                     var target = enemies.First();
                     attack = new ShootAction(actor, weapon, new TargetEntity(target));
-                    actor.actions.Add(attack);
+                    actor.Actions.Add(attack);
                 }
             }
             void UpdateMovement() {
@@ -113,16 +113,57 @@ namespace IslandHopper.World {
                     UpdateWeapon();
                     if(weapon == null) {
 
-                        var weapons = new List<Entity>();
+                        var weapons = new List<IItem>();
                         foreach (var point in actor.World.entities.space.Keys) {
                             if (((XYZ)point - actor.Position).Magnitude < 100) {
-                                weapons.AddRange(actor.World.entities[point].Where(e => (e is Item)));
+                                weapons.AddRange(actor.World.entities[point].OfType<IItem>());
                             }
                         }
                         if (!weapons.Any()) {
                             return;
                         }
+                        var target = weapons.First();
 
+                        Dictionary<(int, int, int), (int, int, int)> prev = new Dictionary<(int, int, int), (int, int, int)>();
+                        Queue<XYZ> points = new Queue<XYZ>();
+                        var start = target.Position;
+                        prev[start] = start;
+                        points.Enqueue(start);
+                        int seen = 0;
+                        bool success = true;
+                        while(points.Any() && seen < 500 && !success) {
+                            var point = points.Dequeue();
+                            
+                            foreach (var offset in new XYZ[] { new XYZ(0, 1), new XYZ(1, 0), new XYZ(0, -1), new XYZ(-1, 0) }) {
+                                var next = point + offset;
+                                if(prev.ContainsKey(next)) {
+                                    continue;
+                                } else if(CanOccupy(next)) {
+                                    prev[next] = point;
+                                    if(next == actor.Position) {
+                                        success = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if(success) {
+                            LinkedList<XYZ> path = new LinkedList<XYZ>();
+                            
+                            XYZ p = prev[actor.Position];
+                            path.AddLast(p);
+                            while(p != start) {
+                                p = prev[p];
+                                path.AddLast(p);
+                            }
+
+                            movement = new CompoundAction(new FollowPath(actor, null), new TakeItem(actor, weapons.First()));
+                        } else {
+                            UpdateWander();
+                        }
+                    } else {
+                        UpdateWander();
                     }
                     
                 }
@@ -165,7 +206,7 @@ namespace IslandHopper.World {
                     dest = next;
                 }
                 movement = new FollowPath(actor, path);
-                actor.actions.Add(movement);
+                actor.Actions.Add(movement);
             }
             bool CanOccupy(XYZ position) {
                 var v = actor.World.voxels.Try(position);

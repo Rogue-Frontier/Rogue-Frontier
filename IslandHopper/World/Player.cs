@@ -7,11 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace IslandHopper {
-    interface Witness {
-        void Witness(WorldEvent e);
-    }
-
-    public class Player : Entity, Witness, Damageable {
+	public interface ICharacter : Entity, Damageable {
+		HashSet<IItem> Inventory { get; }
+		HashSet<EntityAction> Actions { get; }
+		
+	}
+    public class Player : ICharacter {
 		public XYZ Velocity { get; set; }
 		public XYZ Position { get; set; }
 		public Island World { get; set; }

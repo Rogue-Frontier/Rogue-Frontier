@@ -48,7 +48,7 @@ namespace IslandHopper {
                     continue;
                 }
                 foreach (var hit in item.World.entities[pos]) {
-                    if(hit is Damageable d && hit != item) {
+                    if(hit is ICharacter d && hit != item) {
                         var multiplier = (radius2 - displacement.Magnitude2) / radius2;
                         ExplosionDamage damage = new ExplosionDamage() {
                             damage = (int)(type.explosionDamage * multiplier),

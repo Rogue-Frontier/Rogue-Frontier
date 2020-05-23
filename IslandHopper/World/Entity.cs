@@ -15,9 +15,6 @@ namespace IslandHopper {
         bool Active { get; }
     }
     */
-    public interface Actor : Entity {
-        HashSet<EntityAction> actions { get; }
-    }
     public interface Entity : Effect {
         Island World { get; }
 		//XYZ Position { get; set; }			//Position in meters
@@ -30,10 +27,10 @@ namespace IslandHopper {
 		//ColoredGlyph SymbolCenter { get; }
 		ColoredString Name { get; }
 	}
-    public interface Damageable {
-        void OnDamaged(Damager source);
-    }
-    public interface Damager {
+	public interface Damageable {
+		void OnDamaged(Damager source);
+	}
+	public interface Damager {
     }
 	public static class EntityHelper {
 		public static bool OnGround(this Entity g) => g.World.voxels.InBounds(g.Position) && (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-0.8)].Collision == VoxelType.Solid);
@@ -190,7 +187,7 @@ namespace IslandHopper {
             g.Position = final;
         }
         public static void Witness(this Entity e, WorldEvent we) {
-			if (e is Witness w)
+			if (e is ICharacter w)
 				w.Witness(we);
 		}
 	}
