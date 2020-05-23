@@ -17,8 +17,9 @@ namespace IslandHopper {
 	/// This is the main type for your game.
 	/// </summary>
 	public class IslandHopper : SadConsole.Game {
-
-		public IslandHopper() : base("IBM.font", 240, 64, null) {
+		const int width = 120;
+		const int height = 60;
+		public IslandHopper() : base("Content/IBMCGA.font", width, height, null) {
 			Content.RootDirectory = "Content";
 		}
 		/// <summary>
@@ -45,7 +46,7 @@ namespace IslandHopper {
 
             var types = new TypeCollection(XElement.Parse(Properties.Resources.Items));
 
-            var title = new TitleConsole(240, 64);
+            var title = new TitleConsole(width, height);
 			title.Position = new Point(0, 0);
 			title.Show(true);
 		}

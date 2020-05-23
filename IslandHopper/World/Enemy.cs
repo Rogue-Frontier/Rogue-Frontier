@@ -48,7 +48,6 @@ namespace IslandHopper.World {
             }
             if (health.bloodHP < 1 || health.bodyHP < 1) {
                 Active = false;
-                this.Witness(new InfoEvent("You have died"));
             }
 
             controller.Update();

@@ -118,9 +118,14 @@ namespace IslandHopper {
                     last.times++;
                     last.SetScreenTime();
 
-                    if(HistoryRecent.Count == 0 || HistoryRecent.Last()._desc.ToString() != desc.ToString()) {
-                        HistoryRecent.Add(last);
-                    }
+					if(HistoryRecent.Any()) {
+						if(HistoryRecent.Last() != last) {
+							HistoryRecent.Remove(last);
+							HistoryRecent.Add(last);
+						}
+					} else {
+						HistoryRecent.Add(last);
+					}
                 } else {
                     var entry = new HistoryEntry(desc);
                     HistoryLog.Add(entry);

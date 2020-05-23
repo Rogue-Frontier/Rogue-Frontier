@@ -475,7 +475,8 @@ namespace Common {
 			}
 			return result;
 		}
-		public static ColoredString SetOpacity(this ColoredString s, byte alpha) {
+		public static ColoredString WithOpacity(this ColoredString s, byte alpha) {
+			s = s.Clone();
 			foreach(var c in s) {
                 c.Foreground.A = alpha;
             }
