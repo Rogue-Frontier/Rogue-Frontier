@@ -174,7 +174,7 @@ namespace IslandHopper {
                         if (user is Player p) {
                             p.frameCounter = Math.Max(p.frameCounter, 20);
                         }
-                        if (ContinuousFire) {
+                        if (!ContinuousFire) {
                             user.Witness(new InfoEvent(user.Name + new ColoredString(" fires ") + item.Name.WithBackground(Color.Black) + (target != null ? (new ColoredString(" at ") + target.Name.WithBackground(Color.Black)) : new ColoredString(""))));
                         }
                         break;
