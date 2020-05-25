@@ -70,6 +70,9 @@ namespace IslandHopper.World {
                 Velocity += e.knockback;
             }
         }
+        public void Witness(WorldEvent we) {
+
+        }
     }
     class AI {
         private Enemy actor;
@@ -84,8 +87,8 @@ namespace IslandHopper.World {
             UpdateMovement();
 
             void UpdateWeapon() {
-                if(weapon == null || !actor.Inventory.Contains(weapon)) {
-                    weapon = actor.Inventory.FirstOrDefault(i => i.Gun.AmmoLeft > 0 || i.Gun.ClipLeft > 0);
+                if(weapon == null || !actor.Inventory.Contains(weapon) || weapon.Gun.AmmoLeft + weapon.Gun.ClipLeft == 0) {
+                    weapon = actor.Inventory.FirstOrDefault(i => i.Gun.AmmoLeft + i.Gun.ClipLeft > 0);
                 }
             }
             void UpdateAttack() {
@@ -94,12 +97,13 @@ namespace IslandHopper.World {
                     if (weapon == null) {
                         return;
                     }
-                    var enemies = new List<Entity>();
+                    var enemies = new HashSet<Entity>();
                     foreach (var point in actor.World.entities.space.Keys) {
                         if (((XYZ)point - actor.Position).Magnitude < 100) {
-                            enemies.AddRange(actor.World.entities[point].Where(e => !(e is Item)));
+                            enemies.UnionWith(actor.World.entities[point].Where(e => !(e is Item)));
                         }
                     }
+                    enemies.Remove(actor);
                     if (!enemies.Any()) {
                         return;
                     }
@@ -113,24 +117,27 @@ namespace IslandHopper.World {
                     UpdateWeapon();
                     if(weapon == null) {
 
-                        var weapons = new List<IItem>();
+                        var weapons = new HashSet<IItem>();
                         foreach (var point in actor.World.entities.space.Keys) {
                             if (((XYZ)point - actor.Position).Magnitude < 100) {
-                                weapons.AddRange(actor.World.entities[point].OfType<IItem>());
+                                weapons.UnionWith(actor.World.entities[point].OfType<IItem>());
                             }
                         }
                         if (!weapons.Any()) {
+                            UpdateWander();
                             return;
                         }
                         var target = weapons.First();
 
                         Dictionary<(int, int, int), (int, int, int)> prev = new Dictionary<(int, int, int), (int, int, int)>();
-                        Queue<XYZ> points = new Queue<XYZ>();
-                        var start = target.Position;
+                        var points = new SimplePriorityQueue<XYZ, double>();
+                        //Truncate to integer coordinates so we don't get confused by floats
+                        (int, int, int) start = target.Position.i;
+                        (int, int, int) actorPos = actor.Position.i;
                         prev[start] = start;
-                        points.Enqueue(start);
+                        points.Enqueue(start, 0);
                         int seen = 0;
-                        bool success = true;
+                        bool success = false;
                         while(points.Any() && seen < 500 && !success) {
                             var point = points.Dequeue();
                             
@@ -140,9 +147,12 @@ namespace IslandHopper.World {
                                     continue;
                                 } else if(CanOccupy(next)) {
                                     prev[next] = point;
-                                    if(next == actor.Position) {
+                                    //Truncate to integer coordinates so we don't get confused by floats
+                                    if (next.Equals(actorPos)) {
                                         success = true;
                                         break;
+                                    } else {
+                                        points.Enqueue(next, (next - actorPos).Magnitude);
                                     }
                                 }
                             }
@@ -153,12 +163,13 @@ namespace IslandHopper.World {
                             
                             XYZ p = prev[actor.Position];
                             path.AddLast(p);
-                            while(p != start) {
+                            while(!p.Equals(start)) {
                                 p = prev[p];
                                 path.AddLast(p);
                             }
 
-                            movement = new CompoundAction(new FollowPath(actor, null), new TakeItem(actor, weapons.First()));
+                            movement = new CompoundAction(new FollowPath(actor, path), new TakeItem(actor, target));
+                            actor.Actions.Add(movement);
                         } else {
                             UpdateWander();
                         }

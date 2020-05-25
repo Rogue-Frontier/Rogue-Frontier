@@ -94,13 +94,19 @@ namespace IslandHopper {
         public int ClipLeft;
         public int AmmoLeft;
 
+        public bool ContinuousFire;
+
         public Gun() { }
 
         public void OnHit(Damager b, Damageable d) {
 
         }
         public void Reload() {
-            ReloadTimeLeft = gunType.reloadTime;
+            if(gunType.reloadTime > 0) {
+                ReloadTimeLeft = gunType.reloadTime;
+            } else {
+                OnReload();
+            }
         }
         private void OnReload() {
             int reloaded = Math.Min(gunType.clipSize - ClipLeft, AmmoLeft);
@@ -129,21 +135,52 @@ namespace IslandHopper {
             }
             if (FireTimeLeft > 0) {
                 FireTimeLeft--;
+                ContinuousFire = true;
+            } else {
+                ContinuousFire = false;
             }
             return;
         }
         public void Fire(Entity user, IItem item, Entity target, XYZ targetPos) {
-            var bulletSpeed = 30;
-            var bulletVel = (targetPos - user.Position).Normal * bulletSpeed;
-            Bullet b = new Bullet(user, item, target, bulletVel);
-            user.World.AddEntity(b);
-            if (user is Player p) {
-                p.Watch.Add(b);
-                p.frameCounter = Math.Max(p.frameCounter, 30);
-            }
-            user.World.AddEffect(new Reticle(() => b.Active, targetPos, Color.Red));
-            user.Witness(new InfoEvent(user.Name + new ColoredString(" fires ") + item.Name.WithBackground(Color.Black) + (target != null ? (new ColoredString(" at ") + target.Name.WithBackground(Color.Black)) : new ColoredString(""))));
 
+            switch(gunType.projectile) {
+                case GunType.ProjectileType.bullet: {
+                        var bulletSpeed = 30;
+                        var bulletVel = (targetPos - user.Position).Normal * bulletSpeed;
+                        int damage = 20;
+                        if(ClipLeft == 0 && gunType.critOnLastShot) {
+                            damage *= 3;
+                        }
+                        Bullet b = new Bullet(user, item, target, bulletVel, damage);
+                        user.World.AddEntity(b);
+                        if (user is Player p) {
+                            p.Watch.Add(b);
+                            p.frameCounter = Math.Max(p.frameCounter, 30);
+                        }
+                        user.World.AddEffect(new Reticle(() => b.Active, targetPos, Color.Red));
+                        user.Witness(new InfoEvent(user.Name + new ColoredString(" fires ") + item.Name.WithBackground(Color.Black) + (target != null ? (new ColoredString(" at ") + target.Name.WithBackground(Color.Black)) : new ColoredString(""))));
+                        break;
+                    }
+                case GunType.ProjectileType.flame: {
+                        var flameSpeed = 1;
+                        var direction = (targetPos - user.Position).Normal;
+                        XYZ flameVel =
+                            (user.Velocity
+                            + direction * flameSpeed
+                            + direction.RotateZ(user.World.karma.NextDouble() * Math.PI - Math.PI / 2) * flameSpeed/4);
+                        var lifetime = user.World.karma.Next(20, 40);
+                        var flame = new Flame(user, item, user.Position + direction * 1.5, flameVel, lifetime);
+                        user.World.AddEntity(flame);
+                        if (user is Player p) {
+                            p.frameCounter = Math.Max(p.frameCounter, 20);
+                        }
+                        if (ContinuousFire) {
+                            user.Witness(new InfoEvent(user.Name + new ColoredString(" fires ") + item.Name.WithBackground(Color.Black) + (target != null ? (new ColoredString(" at ") + target.Name.WithBackground(Color.Black)) : new ColoredString(""))));
+                        }
+                        break;
+                    }
+            }
+            
             //Decrement ClipLeft last so that it doesn't affect the name display
             ClipLeft--;
             FireTimeLeft = gunType.fireTime;

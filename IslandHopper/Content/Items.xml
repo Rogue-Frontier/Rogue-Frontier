@@ -318,6 +318,20 @@ EASTER EGGS
 		</Gun>
 	</ItemType>
 	<ItemType
+		type=			"itHotRod"
+		name=			"The Hot Rod"
+		desc=			"Truly a very hot firing rod. The hottest. Best not to touch it."
+		>
+		<Gun
+			projectile=		"flame"
+			clipSize=		"100"
+			maxAmmo=		"100"
+			reloadTime=		"0"
+			fireTime=		"1"
+			>
+		</Gun>
+	</ItemType>
+	<ItemType
 		type=			"itSleepingDragon"
 		name=			"The Sleeping Dragon"
 		desc=			"This flamethrower is hotter than the sun. Too bad you can barely find any ammo for it."
@@ -477,6 +491,23 @@ EASTER EGGS
 					<Noise>
 						<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
 						<Strong>The strike of the Metal Pipe Device sings the signature clang of a Brass Pipe Device</Strong>
+					</Noise>
+				</Bludgeon>
+				<Gun
+					/>
+			</ItemType>
+			<ItemType
+				name=			"Brimsteel Pipe Device (The Infernal Orchestra)"
+				desc=			"The preferred instrument of the Marching Band of Hell is this trumpet that turns your breath into flame"
+				unknown=			"true"
+				unknownType=	"itMetalPipeDevice"
+				>
+				<Bludgeon
+					strength=		"40"
+					>
+					<Noise>
+						<Weak>The strike of the Metal Pipe Device mumbles a plain old Thud</Weak>
+						<Strong>The strike of the Metal Pipe Device sings the signature clang of a Brimsteel Pipe Device</Strong>
 					</Noise>
 				</Bludgeon>
 				<Gun

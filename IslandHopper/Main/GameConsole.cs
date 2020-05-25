@@ -59,7 +59,7 @@ namespace IslandHopper {
 
 			for(int i = 0; i < 1; i++) {
 
-				World.entities.Place(World.types.Lookup<ItemType>("itSevenShooter").GetItem(World, new XYZ(28.5, 29.5, 1)));
+				World.entities.Place(World.types.Lookup<ItemType>("itHotRod").GetItem(World, new XYZ(28.5, 29.5, 1)));
             }
 			
 			World.entities.Place(World.player);
@@ -264,7 +264,7 @@ namespace IslandHopper {
                     if (info.IsKeyDown(Keys.RightControl)) {
                         //Run
                         if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump)) {
-                            double runAccel = 2;
+                            double runAccel = 1;
                             int runCooldown = 10;
                             int runTime = 10;
                             World.player.Actions.Add(new Jump(World.player, direction * runAccel, runCooldown, runTime));

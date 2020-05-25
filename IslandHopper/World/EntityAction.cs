@@ -143,6 +143,7 @@ namespace IslandHopper {
         }
         public void Update() {
             if(actor.World.entities[actor.Position].Contains(item)) {
+                actor.World.RemoveEntity(item);
                 actor.Inventory.Add(item);
             }
             done = true;
@@ -164,14 +165,16 @@ namespace IslandHopper {
                     return;
                 }
                 //Make a new action
-                points.RemoveFirst();
+                
                 if(points.Count > 0) {
-                    action = new WalkAction(actor, points.First.Value - actor.Position);
+                    //Truncate to integer coordinates so that we don't get confused by floats
+                    action = new WalkAction(actor, points.First.Value.i - actor.Position.i);
+                    points.RemoveFirst();
                 }
             } else {
                 action.Update();
             }
         }
-        public bool Done() => points.Count == 0;
+        public bool Done() => points.Count == 0 && (action == null || action.Done());
     }
 }

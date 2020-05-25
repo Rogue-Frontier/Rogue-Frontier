@@ -10,7 +10,7 @@ namespace IslandHopper {
 	public interface ICharacter : Entity, Damageable {
 		HashSet<IItem> Inventory { get; }
 		HashSet<EntityAction> Actions { get; }
-		
+		void Witness(WorldEvent we);
 	}
     public class Player : ICharacter {
 		public XYZ Velocity { get; set; }

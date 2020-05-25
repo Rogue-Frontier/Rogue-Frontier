@@ -104,7 +104,68 @@ namespace IslandHopper {
             */
 		}
 	}
-	public class Bullet : Entity, Damager {
+
+    public class Flame : Entity, Damager {
+        public Island World { get; }
+        public XYZ Position { get; set; }
+        public XYZ Velocity { get; set; }
+        public bool Active { get; private set; }
+        public void OnRemoved() { }
+        public char glyph;
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(glyph, new Color(((tick%20 + 10) * 255 / 30), ((tick+10) % 20 + 10) * 255 / 30, 0, Math.Min(15, lifetime - tick) * 255 / 15), Color.Black);
+        public ColoredString Name => new ColoredString("Flame", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
+
+        private Entity Source;
+        private IItem Item;
+        private int tick;   //Used for sprite flashing
+        public int lifetime = 30;
+        public int damage { get; } = 20;
+
+        public Flame(Entity Source, IItem Item, XYZ Position, XYZ Velocity, int lifetime) {
+            this.Source = Source;
+            this.Item = Item;
+            this.World = Source.World;
+            this.Position = Position;
+            this.Velocity = Velocity;
+            Active = true;
+            tick = 0;
+            this.lifetime = lifetime;
+
+            glyph = new char[] { 'v', 'w', 'f', 'j' }[World.karma.Next(4)];
+        }
+        public void UpdateRealtime(TimeSpan delta) {
+            tick++;
+        }
+
+        public void UpdateStep() {
+            if (lifetime > 0) {
+                lifetime--;
+            } else {
+                Active = false;
+            }
+            Func<Entity, bool> collisionFilter = e => {
+
+                if(e is Flame) {
+                    return true;
+                }
+                Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
+                if (e is Damageable d) {
+                    d.OnDamaged(this);
+                    Item?.Gun?.OnHit(this, d);
+                }
+
+                Active = false;
+                return false;
+            };
+            this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
+            foreach (var point in trail) {
+
+                World.AddEffect(new Trail(point, 10, SymbolCenter));
+            }
+        }
+    }
+
+    public class Bullet : Entity, Damager {
 		public Island World { get; }
         public XYZ Position { get; set; }
         public XYZ Velocity { get; set; }
@@ -128,9 +189,9 @@ namespace IslandHopper {
 		private int tick;   //Used for sprite flashing
         public int lifetime = 30;
         public double knockback { get; } = 2;
-        public int damage { get; } = 20;
+        public int damage { get; }
 
-		public Bullet(Entity Source, IItem Item, Entity Target, XYZ Velocity) {
+		public Bullet(Entity Source, IItem Item, Entity Target, XYZ Velocity, int damage) {
             this.Source = Source;
             this.Item = Item;
             ignore = new HashSet<Entity>();
@@ -143,6 +204,7 @@ namespace IslandHopper {
             Active = true;
             tick = 0;
             lifetime = 30;
+            this.damage = damage;
         }
         public void UpdateRealtime(TimeSpan delta) {
             tick++;

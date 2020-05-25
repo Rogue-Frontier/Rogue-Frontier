@@ -240,7 +240,7 @@ namespace IslandHopper {
             private string inherit;
             private HashSet<string> sourceAttributes;
 			public enum ProjectileType {
-				beam, bullet
+				beam, bullet, flame
 			}
             public ProjectileType projectile;
             public int difficulty;
@@ -255,13 +255,13 @@ namespace IslandHopper {
             public int fireTime;
             public int reloadTime;
 
+            public bool critOnLastShot;
+
             public int clipSize;
             public int maxAmmo;
 
             public int initialClip;
             public int initialAmmo;
-
-            //TO DO: Implement critOnLastShot
 
 
 			public GunType(TypeCollection collection, XElement e) {
@@ -294,6 +294,8 @@ namespace IslandHopper {
                 spread = e.TryAttributeInt(nameof(spread), 0);
                 fireTime = e.TryAttributeInt(nameof(fireTime), 0);
                 reloadTime = e.TryAttributeInt(nameof(reloadTime), 0);
+
+                critOnLastShot = e.TryAttributeBool(nameof(critOnLastShot), false);
 
                 clipSize = e.TryAttributeInt(nameof(clipSize), 0);
                 maxAmmo = e.TryAttributeInt(nameof(maxAmmo), 0);
