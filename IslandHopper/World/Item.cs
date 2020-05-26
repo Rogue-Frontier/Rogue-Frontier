@@ -91,10 +91,10 @@ namespace IslandHopper {
         public int ReloadTimeLeft;
         public int FireTimeLeft;
 
+        public int TimeSinceLastFire;
+
         public int ClipLeft;
         public int AmmoLeft;
-
-        public bool ContinuousFire;
 
         public Gun() { }
 
@@ -135,24 +135,25 @@ namespace IslandHopper {
             }
             if (FireTimeLeft > 0) {
                 FireTimeLeft--;
-                ContinuousFire = true;
-            } else {
-                ContinuousFire = false;
             }
+            TimeSinceLastFire++;
             return;
         }
         public void Fire(Entity user, IItem item, Entity target, XYZ targetPos) {
 
             switch(gunType.projectile) {
                 case GunType.ProjectileType.bullet: {
-                        var bulletSpeed = 30;
-                        var bulletVel = (targetPos - user.Position).Normal * bulletSpeed;
-                        int damage = 20;
-                        if(ClipLeft == 0 && gunType.critOnLastShot) {
-                            damage *= 3;
+                        Bullet b = null;
+                        for(int i = 0; i < gunType.projectileCount; i++) {
+                            var bulletSpeed = 30;
+                            var bulletVel = (targetPos - user.Position).Normal * bulletSpeed;
+                            int damage = 20;
+                            if (ClipLeft == 0 && gunType.critOnLastShot) {
+                                damage *= 3;
+                            }
+                            b = new Bullet(user, item, target, bulletVel, damage);
+                            user.World.AddEntity(b);
                         }
-                        Bullet b = new Bullet(user, item, target, bulletVel, damage);
-                        user.World.AddEntity(b);
                         if (user is Player p) {
                             p.Watch.Add(b);
                             p.frameCounter = Math.Max(p.frameCounter, 30);
@@ -162,25 +163,29 @@ namespace IslandHopper {
                         break;
                     }
                 case GunType.ProjectileType.flame: {
-                        var flameSpeed = 1;
-                        var direction = (targetPos - user.Position).Normal;
-                        XYZ flameVel =
-                            (user.Velocity
-                            + direction * flameSpeed
-                            + direction.RotateZ(user.World.karma.NextDouble() * Math.PI - Math.PI / 2) * flameSpeed/4);
-                        var lifetime = user.World.karma.Next(20, 40);
-                        var flame = new Flame(user, item, user.Position + direction * 1.5, flameVel, lifetime);
-                        user.World.AddEntity(flame);
+                        for(int i = 0; i < gunType.projectileCount; i++) {
+                            var flameSpeed = 1;
+                            var direction = (targetPos - user.Position).Normal;
+                            XYZ flameVel =
+                                (user.Velocity
+                                + direction * (flameSpeed + user.World.karma.NextDouble() * 1)
+                                //+ direction.RotateZ(user.World.karma.NextDouble() * Math.PI - Math.PI / 2) * flameSpeed / 4);
+                                + direction.RotateZ(user.World.karma.NextDouble() * 2 * Math.PI) * flameSpeed / 8);
+                            var lifetime = user.World.karma.Next(20, 40);
+                            var flame = new Flame(user, item, user.Position + direction * 1.5, flameVel, lifetime);
+                            user.World.AddEntity(flame);
+                        }
+
                         if (user is Player p) {
                             p.frameCounter = Math.Max(p.frameCounter, 20);
                         }
-                        if (!ContinuousFire) {
+                        if (TimeSinceLastFire > gunType.fireTime * 2) {
                             user.Witness(new InfoEvent(user.Name + new ColoredString(" fires ") + item.Name.WithBackground(Color.Black) + (target != null ? (new ColoredString(" at ") + target.Name.WithBackground(Color.Black)) : new ColoredString(""))));
                         }
                         break;
                     }
             }
-            
+            TimeSinceLastFire = 0;
             //Decrement ClipLeft last so that it doesn't affect the name display
             ClipLeft--;
             FireTimeLeft = gunType.fireTime;

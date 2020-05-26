@@ -247,9 +247,9 @@ namespace IslandHopper {
             public int recoil;
             public int noiseRange;
             public int damage;
-            public int bulletSpeed;
+            public int projectileSpeed;
 
-            public int bulletsPerShot;
+            public int projectileCount;
             public int spread;
             public int knockback;
             public int fireTime;
@@ -287,9 +287,9 @@ namespace IslandHopper {
                 recoil = e.TryAttributeInt(nameof(recoil), 0);
 				noiseRange = e.TryAttributeInt(nameof(noiseRange), 0);
 				damage = e.TryAttributeInt(nameof(damage), 0);
-				bulletSpeed = e.TryAttributeInt(nameof(bulletSpeed), 0);
+				projectileSpeed = e.TryAttributeInt(nameof(projectileSpeed), 0);
 
-                bulletsPerShot = e.TryAttributeInt(nameof(bulletsPerShot), 0);
+                projectileCount = e.TryAttributeInt(nameof(projectileCount), 1);
                 knockback = e.TryAttributeInt(nameof(knockback), 0);
                 spread = e.TryAttributeInt(nameof(spread), 0);
                 fireTime = e.TryAttributeInt(nameof(fireTime), 0);

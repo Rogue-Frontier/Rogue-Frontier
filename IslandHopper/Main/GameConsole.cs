@@ -27,6 +27,7 @@ namespace IslandHopper {
         Island World;
         DateTime lastUpdate;
         int ticks;
+
         public GameConsole(int Width, int Height) : base(Width, Height) {
             Theme = new WindowTheme {
                 ModalTint = Color.Transparent,
@@ -245,6 +246,12 @@ namespace IslandHopper {
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
             this.DebugInfo("ProcessKeyboard");
             var player = World.player;
+
+            if(info.IsKeyDown(Keys.Escape) && info.IsKeyDown(Keys.RightShift)) {
+                Environment.Exit(0);
+                throw new Exception();
+            }
+
             if (info.IsKeyDown(Keys.Up) || info.IsKeyDown(Keys.Down) || info.IsKeyDown(Keys.Right) || info.IsKeyDown(Keys.Left)) {
                 XYZ direction = new XYZ();
                 if (info.IsKeyDown(Keys.Up)) {

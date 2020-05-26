@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace IslandHopper.World {
     public class ShootAction : EntityAction {
-        private Entity player;
+        private ICharacter player;
         public IItem item;
         public TargetMode targeting;
         private XYZ aim;    //Offset from the player. When player pos + aim is close enough to the target pos, we fire
@@ -17,7 +17,7 @@ namespace IslandHopper.World {
         public Reticle targetReticle;
         public Reticle aimReticle;
         //We need a way to cancel this action for the player and enemies
-        public ShootAction(Entity player, IItem item, TargetMode target, XYZ aim = null) {
+        public ShootAction(ICharacter player, IItem item, TargetMode target, XYZ aim = null) {
             this.player = player;
             this.item = item;
             this.targeting = target;
@@ -33,6 +33,10 @@ namespace IslandHopper.World {
         public void Update() {
             if (targeting.shotsLeft == 0)
                 return;
+            if (!player.Inventory.Contains(item)) {
+                targeting.shotsLeft = 0;
+            }
+
             targetReticle.Position = targeting.Position;
             /*
             var aimAngle = aim.xyAngle;

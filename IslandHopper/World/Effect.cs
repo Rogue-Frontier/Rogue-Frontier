@@ -32,6 +32,23 @@ namespace IslandHopper {
         }
         public void UpdateStep() {}
     }
+    public class FlameTrail : Effect {
+        public XYZ Position { get; set; }
+
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(symbol.Glyph, new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (byte)255), Color.Black);
+        public int lifetime;
+        ColoredGlyph symbol;
+        public bool Active => lifetime > 0;
+        public FlameTrail(XYZ Position, int lifetime, ColoredGlyph symbol) {
+            this.Position = Position;
+            this.lifetime = lifetime;
+            this.symbol = symbol;
+        }
+        public void UpdateRealtime(TimeSpan delta) { }
+        public void UpdateStep() {
+            lifetime--;
+        }
+    }
     public class Trail : Effect {
         public XYZ Position { get; set; }
 

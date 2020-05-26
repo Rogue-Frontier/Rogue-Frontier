@@ -112,8 +112,13 @@ namespace IslandHopper {
         public bool Active { get; private set; }
         public void OnRemoved() { }
         public char glyph;
-        public ColoredGlyph SymbolCenter => new ColoredGlyph(glyph, new Color(((tick%20 + 10) * 255 / 30), ((tick+10) % 20 + 10) * 255 / 30, 0, Math.Min(15, lifetime - tick) * 255 / 15), Color.Black);
-        public ColoredString Name => new ColoredString("Flame", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(glyph, new Color(
+            (int)(Math.Cos(tick * 3 / Math.PI) * 51) + 204,
+            (int)(Math.Sin(tick * 3 / Math.PI) * 51) + 102,
+            51,
+            Math.Min(6, lifetime) * 255 / 6
+            ), Color.Black);
+        public ColoredString Name => new ColoredString("Flame", SymbolCenter.Foreground, Color.Black);
 
         private Entity Source;
         private IItem Item;
@@ -158,9 +163,10 @@ namespace IslandHopper {
                 return false;
             };
             this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
-            foreach (var point in trail) {
+            Velocity -= Velocity * 0.5 / 30;
+            foreach (var point in trail.Reverse().Take(5)) {
 
-                World.AddEffect(new Trail(point, 10, SymbolCenter));
+                World.AddEffect(new FlameTrail(point, 5, SymbolCenter));
             }
         }
     }

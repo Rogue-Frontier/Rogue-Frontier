@@ -324,10 +324,11 @@ EASTER EGGS
 		>
 		<Gun
 			projectile=		"flame"
+			projectileCount="8"
 			clipSize=		"100"
 			maxAmmo=		"100"
 			reloadTime=		"0"
-			fireTime=		"1"
+			fireTime=		"4"
 			>
 		</Gun>
 	</ItemType>
