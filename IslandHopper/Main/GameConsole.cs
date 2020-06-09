@@ -79,7 +79,7 @@ namespace IslandHopper {
                 e.UpdateRealtime(delta);
             }
             var now = DateTime.Now;
-            if (World.player.AllowUpdate() && (now - lastUpdate).TotalSeconds > 1 / 60f) {
+            if (World.player.AllowUpdate() && IsFocused && (now - lastUpdate).TotalSeconds > 1 / 60f) {
                 lastUpdate = now;
                 this.DebugInfo("Global Update");
                 foreach (var e in new List<Entity>(World.entities.all)) {
@@ -136,25 +136,14 @@ namespace IslandHopper {
             printY = (Height - 3);
             foreach (var action in World.player.Actions) {
                 switch (action) {
-                    case WalkAction w:
-                        Print(1, printY, "Walking", Color.Cyan, Color.Black);
-                        break;
-                    case Jump j:
-                        if (j.z > 0) {
-                            Print(1, printY, "Jumping", Color.Cyan, Color.Black);
-                        } else {
-                            Print(1, printY, "Running", Color.Cyan, Color.Black);
-                        }
-                        break;
-                    case WaitAction wait:
-                        Print(1, printY, "Waiting", Color.Cyan, Color.Black);
-                        break;
                     case ShootAction fire:
                         var gun = fire.item.Gun;
                         var delay = gun.FireTimeLeft + gun.ReloadTimeLeft;
-                        Print(1, printY, new ColoredString(gun.ReloadTimeLeft > 0 ? "Reloading " : gun.FireTimeLeft > 0 ? "Firing " : "Aiming ", Color.Cyan, Color.Black)
-                            + fire.item.Name + new ColoredString(" ")
+                        Print(1, printY, fire.Name + new ColoredString(" ")
                             + new ColoredString(new string('>', delay)));
+                        break;
+                    default:
+                        Print(1, printY, action.Name);
                         break;
                 }
                 printY++;
@@ -297,7 +286,11 @@ namespace IslandHopper {
                     player.Actions.Add(new Jump(player, new XYZ(0, 0, 5)));
             } else if (info.IsKeyPressed(Keys.C)) {
                 //
-
+                new ListMenu<EntityAction>(Width, Height, "Select actions to cancel. Press ESC to finish.", player.Actions.Select(Action => new ListAction(Action)), Action => {
+                    //Just drop the item for now
+                    player.Actions.Remove(Action);
+                    return true;
+                }).Show(true);
 
             } else if (info.IsKeyPressed(Keys.D)) {
                 new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", player.Inventory.Select(Item => new ListItem(Item)), item => {

@@ -8,7 +8,8 @@ namespace IslandHopper {
 	public interface EntityAction {
 		void Update();
 		bool Done();
-	}
+        ColoredString Name { get; }
+    }
     /*
     public class DelayedAction: EntityAction {
         public EntityAction action;
@@ -66,6 +67,8 @@ namespace IslandHopper {
 			ticks--;
 		}
 		public bool Done() => ticks == 0;
+
+        public ColoredString Name => new ColoredString("Walk", Color.Cyan, Color.Black);
 	}
     //Impulse that lasts for a while so that the player cannot jump multiple times at once
     public class Jump : EntityAction {
@@ -90,6 +93,8 @@ namespace IslandHopper {
             ticks++;
         }
         public bool Done() => ticks > lifetime;
+
+        public ColoredString Name => z > 0 ? new ColoredString("Jump", Color.Cyan, Color.Black) : new ColoredString("Run", Color.Cyan, Color.Black);
     }
     public class Impulse : EntityAction {
 		private Entity player;
@@ -106,7 +111,8 @@ namespace IslandHopper {
 			done = true;
 		}
 		public bool Done() => done;
-	}
+        public ColoredString Name => new ColoredString("Jump", Color.Cyan, Color.Black);
+    }
 	public class WaitAction : EntityAction {
 		private int ticks;
 		public WaitAction(int ticks) {
@@ -114,7 +120,8 @@ namespace IslandHopper {
 		}
 		public void Update() => ticks--;
 		public bool Done() => ticks == 0;
-	}
+        public ColoredString Name => new ColoredString("Wait", Color.Cyan, Color.Black);
+    }
     public interface ICompoundAction : EntityAction {}
     public class CompoundAction : ICompoundAction {
         public EntityAction[] actions;
@@ -132,8 +139,9 @@ namespace IslandHopper {
             }
         }
         public bool Done() => index == actions.Length;
+        public ColoredString Name => new ColoredString("Compound Action", Color.Cyan, Color.Black);
     }
-    public class TakeItem : ICompoundAction {
+    public class TakeItem : EntityAction {
         public ICharacter actor;
         public IItem item;
         public bool done;
@@ -149,6 +157,7 @@ namespace IslandHopper {
             done = true;
         }
         public bool Done() => done;
+        public ColoredString Name => new ColoredString("Take ", Color.Cyan, Color.Black) + item.Name;
     }
     public class FollowPath : ICompoundAction {
         public ICharacter actor;
@@ -176,5 +185,6 @@ namespace IslandHopper {
             }
         }
         public bool Done() => points.Count == 0 && (action == null || action.Done());
+        public ColoredString Name => new ColoredString("Follow Path", Color.Cyan, Color.Black);
     }
 }

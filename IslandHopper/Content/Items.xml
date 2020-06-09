@@ -325,12 +325,27 @@ EASTER EGGS
 		<Gun
 			projectile=		"flame"
 			projectileCount="8"
-			clipSize=		"100"
-			maxAmmo=		"100"
-			reloadTime=		"0"
+			clipSize=		"50"
+			maxAmmo=		"150"
+			reloadTime=		"120"
 			fireTime=		"4"
 			>
 		</Gun>
+	</ItemType>
+	<ItemType
+		name=			"The Firebrand"
+		desc=			"Sure, a flamethrower makes a lot of flames. But it doesn't exactly throw anything, does it? Let's fix that."
+		>
+		<!--
+		<Gun
+			projectile=		"firegrenade"
+			projectileCount="8"
+			clipSize=		"100"
+			maxAmmo=		"100"
+			reloadTime=		"120"
+			fireTime=		"4"
+			>
+			-->
 	</ItemType>
 	<ItemType
 		type=			"itSleepingDragon"

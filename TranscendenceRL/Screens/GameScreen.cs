@@ -9,6 +9,7 @@ using static Microsoft.Xna.Framework.Input.Keys;
 using SadConsole;
 using SadConsole.Input;
 using SadConsole.Themes;
+using ASECII;
 
 namespace TranscendenceRL {
 	static class Themes {
@@ -122,7 +123,7 @@ namespace TranscendenceRL {
 			var daughters = new Station(world, world.types.Lookup<StationType>("stDaughtersOutpost"), new XY(5, 5));
 			world.AddEntity(daughters);
 			*/
-			player.messages.Add(new PlayerMessage("Welcome to Transcendence: Rogue Frontier!"));
+			player.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 		}
 		public override void Update(TimeSpan delta) {
 			tiles.Clear();
@@ -133,22 +134,22 @@ namespace TranscendenceRL {
 			//Update everything
 			foreach (var e in world.entities.all) {
 				e.Update();
-				if (e.Tile != null && !tiles.ContainsKey(e.Position)) {
-					tiles[e.Position] = e.Tile;
+				if (e.Tile != null && !tiles.ContainsKey(e.Position.RoundDown)) {
+					tiles[e.Position.RoundDown] = e.Tile;
 				}
 			}
 			foreach (var e in world.effects.all) {
 				e.Update();
-				if (e.Tile != null && !tiles.ContainsKey(e.Position)) {
-					tiles[e.Position] = e.Tile;
+				if (e.Tile != null && !tiles.ContainsKey(e.Position.RoundDown)) {
+					tiles[e.Position.RoundDown] = e.Tile;
 				}
 			}
 
-			camera = player.Position;
+			camera = player.Position.RoundDown;
 
 			world.UpdatePresent();
 
-			if(player.docking?.done == true && player.docking.target is Dockable d) {
+			if(player.docking?.docked == true && player.docking.target is Dockable d) {
 				player.docking = null;
 				new Dockscreen(Width, Height, d.MainView, this, player, d).Show(true); ;
 			}
@@ -156,10 +157,89 @@ namespace TranscendenceRL {
 		public override void Draw(TimeSpan drawTime) {
 			var messageY = Height * 3 / 5;
 			Clear();
-			foreach (var message in player.messages) {
+			for (int i = 0; i < player.messages.Count;i++) {
+				var message = player.messages[i];
 				var line = message.Draw();
 				var x = Width * 3 / 4 - line.Count;
 				Print(x, messageY, line);
+				if(message is Transmission t) {
+					//Draw a line from message to source
+
+					var screenCenterOffset = new XY(Width * 3 / 4, Height - messageY) - new XY(Width/2, Height/2);
+					var messagePos = camera + screenCenterOffset;
+
+					int screenX = Width * 3 / 4;
+					int screenY = messageY;
+
+					var (f, b) = line.Any() ? (line[0].Foreground, line[0].Background) : (Color.White, Color.Transparent);
+
+					screenX++;
+					messagePos.x++;
+					this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+						e = Line.Double,
+						n = Line.Single,
+						s = Line.Single
+					}], f, b));
+					screenX++;
+					messagePos.x++;
+					
+					for (int j = 0; j < i; j++) {
+						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+							e = Line.Double,
+							w = Line.Double
+						}], f, b));
+						screenX++;
+						messagePos.x++;
+                    }
+
+					var sourcePos = t.source.Position;
+					var offset = sourcePos - messagePos;
+
+					int lineY = Math.Max(-(screenY - 1), Math.Min(Height - screenY, offset.yi < 0 ? offset.yi - 1 : offset.yi));
+					int lineX = Math.Max(-(screenX - 1), Math.Min(Width - screenX, offset.xi));
+
+					if (lineY != 0) {
+						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+							n = offset.y > 0 ? Line.Double : Line.None,
+							s = offset.y < 0 ? Line.Double : Line.None,
+							w = Line.Double
+						}], f, b));
+						screenY -= Math.Sign(lineY);
+						lineY -= Math.Sign(lineY);
+
+						while (lineY != 0) {
+							this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+								n = Line.Double,
+								s = Line.Double
+							}], f, b));
+							screenY -= Math.Sign(lineY);
+							lineY -= Math.Sign(lineY);
+						}
+					}
+
+					if (lineX != 0) {
+						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+							n = offset.y < 0 ? Line.Double : Line.None,
+							s = offset.y > 0 ? Line.Double : Line.None,
+
+							e = offset.x > 0 ? Line.Double : Line.None,
+							w = offset.x < 0 ? Line.Double : Line.None
+						}], f, b));
+						screenX += Math.Sign(lineX);
+						lineX -= Math.Sign(lineX);
+
+						while (lineX != 0) {
+							this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+								e = Line.Double,
+								w = Line.Double
+							}], f, b));
+							screenX += Math.Sign(lineX);
+							lineX -= Math.Sign(lineX);
+						}
+					}
+
+
+				}
 				messageY++;
 			}
 
@@ -181,23 +261,56 @@ namespace TranscendenceRL {
 				Print(mapCenterX + offset.xi, mapCenterY - offset.yi, $"{tile.GlyphCharacter}", foreground, Color.Transparent);
 			}
 
-
-			
-			if(player.power.totalMaxOutput > 0) {
-				Print(3, 3, $"[{new string('=', 16)}]", Color.White, Color.Transparent);
-				if(player.power.totalUsedOutput > 0) {
-					Print(3, 3, $"[{new string('=', 16 * player.power.totalUsedOutput / player.power.totalMaxOutput)}", Color.Yellow, Color.Transparent);
-				}
-				int y = 4;
-				foreach (var reactor in player.Ship.Devices.Reactors) {
-					Print(3, y, $"[{new string('=', 16)}]", Color.White, Color.Transparent);
-					if (reactor.energy > 0) {
-						Print(3, y, $"[{new string('=', (int)(15 * reactor.energy / reactor.desc.capacity))}{(reactor.energyDelta < 1 ? '<' : reactor.energyDelta > 1 ? '>' : '=')}", Color.Green, Color.Transparent);
+			{
+				int x = 3;
+				int y = 3;
+				if (player.power.totalMaxOutput > 0) {
+					Print(x, y, $"[{new string('=', 16)}]", Color.White, Color.Transparent);
+					if (player.power.totalUsedOutput > 0) {
+						Print(x, y, $"[{new string('=', 16 * player.power.totalUsedOutput / player.power.totalMaxOutput)}", Color.Yellow, Color.Transparent);
 					}
 					y++;
+					foreach (var reactor in player.Ship.Devices.Reactors) {
+						Print(x, y, new ColoredString("[", Color.White, Color.Transparent) + new ColoredString(new string(' ', 16)) + new ColoredString("]", Color.White, Color.Transparent));
+						if (reactor.energy > 0) {
+							Color bar = Color.White;
+							char end = '=';
+							if(reactor.energyDelta < 0) {
+								bar = Color.Yellow;
+								end = '<';
+                            } else if(reactor.energyDelta > 0) {
+								end = '>';
+								bar = Color.Cyan;
+                            }
+							Print(x, y, $"[{new string('=', (int)(15 * reactor.energy / reactor.desc.capacity))}{end}", bar, Color.Transparent);
+						}
+						y++;
+					}
 				}
+				if (player.Ship.Devices.Weapons.Any()) {
+					foreach (var weapon in player.Ship.Devices.Weapons) {
+						Color foreground = Color.White;
+						if(player.power.disabled.Contains(weapon)) {
+							foreground = Color.Gray;
+                        } else if (weapon.firing || weapon.fireTime > 0) {
+							foreground = Color.Yellow;
+						}
+						Print(x, y, $"{weapon.source.type.name}{new string('>', weapon.fireTime / 3)}", foreground, Color.Transparent);
+						y++;
+					}
+				}
+				switch(player.Ship.DamageSystem) {
+					case LayeredArmorSystem las:
+						foreach(var armor in las.layers) {
+							Print(x, y, $"{armor.source.type.name}{new string('>', armor.hp/3)}", Color.White, Color.Transparent);
+							y++;
+						}
+						break;
+					case HPSystem hp:
+						Print(x, y, $"HP: {hp.hp}");
+						break;
+                }
 			}
-			
 
 			var rect = new XY(Width, Height);
 			var halfWidth = Width / 2;
@@ -278,17 +391,17 @@ namespace TranscendenceRL {
 			}
 			if(info.IsKeyPressed(D)) {
 				if(player.docking != null) {
-					if(player.docking.done) {
-						player.AddMessage(new PlayerMessage("Undocked"));
+					if(player.docking.docked) {
+						player.AddMessage(new InfoMessage("Undocked"));
 					} else {
-						player.AddMessage(new PlayerMessage("Docking sequence canceled"));
+						player.AddMessage(new InfoMessage("Docking sequence canceled"));
 					}
 					
 					player.docking = null;
 				} else {
 					var dest = world.entities.GetAll(p => (player.Position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.Position - player.Position).Magnitude).FirstOrDefault();
 					if(dest != null) {
-						player.AddMessage(new PlayerMessage("Docking sequence engaged"));
+						player.AddMessage(new InfoMessage("Docking sequence engaged"));
 						player.docking = new Docking(player.Ship, dest);
 					}
 					

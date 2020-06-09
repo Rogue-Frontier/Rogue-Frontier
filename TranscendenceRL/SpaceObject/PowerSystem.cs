@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace TranscendenceRL {
     public class PowerSystem {
         private DeviceSystem devices;
-        private HashSet<Powered> disabled;
+        public HashSet<Powered> disabled;
         public int totalMaxOutput;
         public int totalUsedOutput;
         public PowerSystem(DeviceSystem devices) {

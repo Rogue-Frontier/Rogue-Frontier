@@ -167,10 +167,10 @@ namespace IslandHopper {
                             var flameSpeed = 1;
                             var direction = (targetPos - user.Position).Normal;
                             XYZ flameVel =
-                                (user.Velocity
-                                + direction * (flameSpeed + user.World.karma.NextDouble() * 1)
-                                //+ direction.RotateZ(user.World.karma.NextDouble() * Math.PI - Math.PI / 2) * flameSpeed / 4);
-                                + direction.RotateZ(user.World.karma.NextDouble() * 2 * Math.PI) * flameSpeed / 8);
+                                user.Velocity +
+                                    direction * (flameSpeed + user.World.karma.NextDouble() * 1) +
+                                    direction.RotateZ(user.World.karma.NextDouble() * 2 * Math.PI) * flameSpeed / 8;
+                            //+ direction.RotateZ(user.World.karma.NextDouble() * Math.PI - Math.PI / 2) * flameSpeed / 4);
                             var lifetime = user.World.karma.Next(20, 40);
                             var flame = new Flame(user, item, user.Position + direction * 1.5, flameVel, lifetime);
                             user.World.AddEntity(flame);
@@ -286,6 +286,8 @@ namespace IslandHopper {
             if(source is Bullet b) {
                 Velocity += b.Velocity.Normal * b.knockback;
             }
+
+            //Flame / explosion should cause grenade to explode
         }
     }
 	public class Parachute : Entity, Damageable {

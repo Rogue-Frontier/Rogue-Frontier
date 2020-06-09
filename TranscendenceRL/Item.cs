@@ -58,12 +58,13 @@ namespace TranscendenceRL {
 
         public void Update(Station owner) {
             double? targetAngle = null;
-            if (target == null) {
+            if (target?.Active != true) {
                 target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.range).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));
             } else {
                 var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, desc.missileSpeed);
                 if (desc.omnidirectional) {
                     Heading.AimLine(owner.World, owner.Position, angle);
+                    Heading.Crosshair(owner.World, target.Position);
                 }
                 targetAngle = angle;
             }
@@ -81,12 +82,13 @@ namespace TranscendenceRL {
 
         public void Update(IShip owner) {
             double? targetAngle = null;
-            if(target == null) {
+            if(target?.Active != true) {
                 target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.range).OfType<SpaceObject>().FirstOrDefault(s => SShip.CanTarget(owner, s));
             } else {
                 var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, desc.missileSpeed);
                 if(desc.omnidirectional) {
                     Heading.AimLine(owner.World, owner.Position, angle);
+                    Heading.Crosshair(owner.World, target.Position);
                 }
                 targetAngle = angle;
             }
@@ -168,7 +170,7 @@ namespace TranscendenceRL {
         public ShieldDesc desc;
         public int hp;
         public int depletionTime;
-        private int tick;
+        public double regenHP;
         public Shields(Item source, ShieldDesc desc) {
             this.source = source;
             this.desc = desc;
@@ -177,10 +179,20 @@ namespace TranscendenceRL {
             if (depletionTime > 0) {
                 depletionTime--;
             } else if (hp < desc.maxHP) {
-                tick++;
-                if (tick % desc.ticksPerHP == 0) {
+                regenHP += desc.hpPerSecond / 30;
+
+                Regen:
+                if(regenHP >= 1) {
                     hp++;
+                    regenHP--;
+                    if(hp < desc.maxHP) {
+                        goto Regen;
+                    } else {
+                        regenHP = 0;
+                    }
                 }
+
+
             }
         }
         public void Absorb(int damage) {

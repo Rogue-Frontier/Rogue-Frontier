@@ -31,10 +31,13 @@ namespace IslandHopper.World {
             }
         }
         public void Update() {
-            if (targeting.shotsLeft == 0)
+            if (!targeting.Active()) {
+                active = false;
                 return;
+            }
             if (!player.Inventory.Contains(item)) {
-                targeting.shotsLeft = 0;
+                active = false;
+                return;
             }
 
             targetReticle.Position = targeting.Position;
@@ -131,8 +134,13 @@ namespace IslandHopper.World {
                 targeting.shotsLeft--;
             }
         }
-        public bool Active() => targeting.Active();
-        public bool Done() => !targeting.Active();
+        private bool active = true;
+        //Auto remove the reticles when we remove this action from the player
+        public bool Active() => player.Actions.Contains(this);
+        public bool Done() => !active;
+
+        public ColoredString Name => (new ColoredString(item.Gun.ReloadTimeLeft > 0 ? "Reload " : item.Gun.FireTimeLeft > 0 ? "Fire " : "Aim ", Color.Cyan, Color.Black)
+                            + item.Name);
 
     }
     public interface TargetMode {

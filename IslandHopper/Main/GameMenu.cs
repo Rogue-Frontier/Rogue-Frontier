@@ -16,6 +16,14 @@ namespace IslandHopper {
         ColoredGlyph GetSymbolCenter();
         ColoredString GetName();
     }
+    class ListAction : ListChoice<EntityAction> {
+        public EntityAction Value { get; }
+        public ListAction(EntityAction Value) {
+            this.Value = Value;
+        }
+        public ColoredGlyph GetSymbolCenter() => Value is ShootAction s ? s.item.SymbolCenter : new ColoredGlyph(' ');
+        public ColoredString GetName() => Value.Name;
+    }
     class ListItem : ListChoice<IItem> {
         public IItem Value { get; }
         public ListItem(IItem Value) {

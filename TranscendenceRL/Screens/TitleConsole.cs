@@ -21,7 +21,7 @@ namespace TranscendenceRL {
 
         public AIShip pov;
         public int povTimer;
-        public List<PlayerMessage> povDesc;
+        public List<InfoMessage> povDesc;
 
         public XY camera;
         public Dictionary<(int, int), ColoredGlyph> tiles;
@@ -142,16 +142,16 @@ namespace TranscendenceRL {
             */
         }
         public void UpdatePOVDesc() {
-            povDesc = new List<PlayerMessage> {
-                    new PlayerMessage(pov.Name),
+            povDesc = new List<InfoMessage> {
+                    new InfoMessage(pov.Name),
                 };
             if (pov.DamageSystem is LayeredArmorSystem las) {
-                povDesc.AddRange(las.GetDesc().Select(m => new PlayerMessage(m)));
+                povDesc.AddRange(las.GetDesc().Select(m => new InfoMessage(m)));
             } else if (pov.DamageSystem is HPSystem hp) {
-                povDesc.Add(new PlayerMessage($"HP: {hp}"));
+                povDesc.Add(new InfoMessage($"HP: {hp}"));
             }
             foreach (var device in pov.Ship.Devices.Installed) {
-                povDesc.Add(new PlayerMessage(device.source.type.name));
+                povDesc.Add(new InfoMessage(device.source.type.name));
             }
         }
         public override void Draw(TimeSpan drawTime) {

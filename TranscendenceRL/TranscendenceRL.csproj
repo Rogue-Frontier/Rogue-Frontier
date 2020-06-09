@@ -71,6 +71,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Backdrop.cs" />
+    <Compile Include="BoxGlyph.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="FixedTile.cs" />
     <Compile Include="Screens\CrawlScreen.cs" />
@@ -80,7 +81,7 @@
     <Compile Include="Item.cs" />
     <Compile Include="ItemType.cs" />
     <Compile Include="LoadingSymbol.cs" />
-    <Compile Include="PlayerMessage.cs" />
+    <Compile Include="InfoMessage.cs" />
     <Compile Include="Projectile.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

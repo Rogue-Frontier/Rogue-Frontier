@@ -24,12 +24,12 @@ namespace TranscendenceRL {
             
 
             //Otherwise find enemy to attack
-            if (target != null && !guard.CanTarget(target)) {
-                target = null;
-            }
-            target = target ?? owner.World.entities.GetAll(p => (guard.Position - p).Magnitude < 20).OfType<SpaceObject>().Where(o => !o.IsEqual(owner) &&  guard.CanTarget(o)).GetRandomOrDefault(owner.destiny);
+            if (target?.Active != true) {
+                target = owner.World.entities.GetAll(p => (guard.Position - p).Magnitude < 20).OfType<SpaceObject>().Where(o => !o.IsEqual(owner) && guard.CanTarget(o)).GetRandomOrDefault(owner.destiny);
 
-            if(target != null) {
+            }
+
+            if (target != null) {
                 //Attack now
                 new AttackOrder(owner, target).Update();
             } else {

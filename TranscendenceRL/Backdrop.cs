@@ -52,7 +52,7 @@ namespace TranscendenceRL {
         }
         public Backdrop() {
             Random r = new Random();
-            int layerCount = 5;
+            int layerCount = 3;
             layers = new List<Layer>(layerCount);
             for(int i = 0; i < layerCount; i++) {
                 var n = r.Next(1, 5);

@@ -81,7 +81,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				char=				"o"
+				char=				"r"
 				foreground=			"Blue"
 		>
 		<Devices>
@@ -104,7 +104,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				char=				"O"
+				char=				"R"
 				foreground=			"Blue"
 		>
 		<Devices>

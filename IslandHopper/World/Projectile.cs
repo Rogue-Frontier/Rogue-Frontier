@@ -117,14 +117,14 @@ namespace IslandHopper {
             (int)(Math.Sin(tick * 3 / Math.PI) * 51) + 102,
             51,
             Math.Min(6, lifetime) * 255 / 6
-            ), Color.Black);
+            ), new Color(255, 255, 255, (Math.Max(10, lifetime) * 51) / 10));
         public ColoredString Name => new ColoredString("Flame", SymbolCenter.Foreground, Color.Black);
 
         private Entity Source;
         private IItem Item;
         private int tick;   //Used for sprite flashing
         public int lifetime = 30;
-        public int damage { get; } = 20;
+        public int damage { get; } = 5;
 
         public Flame(Entity Source, IItem Item, XYZ Position, XYZ Velocity, int lifetime) {
             this.Source = Source;
@@ -164,10 +164,39 @@ namespace IslandHopper {
             };
             this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
             Velocity -= Velocity * 0.5 / 30;
-            foreach (var point in trail.Reverse().Take(5)) {
-
-                World.AddEffect(new FlameTrail(point, 5, SymbolCenter));
+            foreach (var point in trail.Reverse().Take(3)) {
+                World.AddEffect(new FlameTrail(point, 3, SymbolCenter));
             }
+            if(World.karma.Next(2) == 0) {
+                World.AddEffect(new Mirage(World, Position + new XYZ(World.karma.Next(-2, 3), World.karma.Next(-2, 3)), 5));
+            }
+            
+            
+        }
+    }
+    public class Fire : Entity {
+        public Entity burning { get; private set; }
+        public Island World => burning.World;
+        public XYZ Position { get; set; }
+        public XYZ Velocity { get; set; }
+        public ColoredGlyph SymbolCenter {
+            get {
+                var symbol = burning.SymbolCenter;
+                return new ColoredGlyph(symbol.Glyph, new Color(), symbol.Background);
+            }
+        }
+        public bool Active => true;
+        public ColoredString Name => new ColoredString("Fire", Color.Red, Color.Black);
+        public Fire(Entity burning) {
+            this.burning = burning;
+        }
+        public void UpdateRealtime(TimeSpan delta) { }
+        public void UpdateStep() {
+            Position = burning.Position;
+            Velocity = burning.Velocity;
+        }
+        public void OnRemoved() {
+
         }
     }
 

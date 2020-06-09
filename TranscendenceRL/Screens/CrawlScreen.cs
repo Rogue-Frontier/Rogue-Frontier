@@ -20,7 +20,7 @@ namespace TranscendenceRL {
 
         bool speedUp;
         LoadingSymbol loading;
-        int loadingTicks = 150;
+        int loadingTicks = 150 * 0;
 
         ColoredString[] effect;
         public CrawlScreen(int width ,int height, World World, ShipClass playerClass) : base(width, height) {

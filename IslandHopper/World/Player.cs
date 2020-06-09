@@ -143,7 +143,10 @@ namespace IslandHopper {
                 health.Damage(e.damage);
                 Velocity += e.knockback;
                 Witness(new InfoEvent(new ColoredString($"You are caught in an explosion and take {e.damage} damage!")));
-            }
+            } else if(source is Flame f) {
+				health.Damage(f.damage);
+				Witness(new InfoEvent(new ColoredString($"You are caught in flames!")));
+			}
         }
 
         public ColoredGlyph SymbolCenter => new ColoredString("@", Color.White, Color.Black)[0];

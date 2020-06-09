@@ -181,7 +181,7 @@
 			   rotationDecel=       "8"
 			   rotationMaxSpeed=    "4"
 
-			   char=                "k"
+			   char=                "K"
 			   foreground=          "LightBlue"
         >
 		<Devices>
@@ -207,8 +207,8 @@
 			   rotationDecel=       "8"
 			   rotationMaxSpeed=    "4"
 
-			   char=                "k"
-			   foreground=          "Blue"
+			   char=                "t"
+			   foreground=          "LightBlue"
         >
 		<Devices>
 			<Weapon codename="itSabre"/>

@@ -113,6 +113,10 @@ namespace TranscendenceRL {
                         rotatingSpeed += Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
                     }
                     */
+                    //Add decel if we're turning the other way
+                    if(rotatingVel < 0) {
+                        Decel();
+                    }
                     rotatingVel += ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
                 } else if (rotating == Rotating.CW) {
                     /*
@@ -120,13 +124,18 @@ namespace TranscendenceRL {
                         rotatingSpeed -= Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
                     }
                     */
+                    //Add decel if we're turning the other way
+                    if (rotatingVel > 0) {
+                        Decel();
+                    }
                     rotatingVel -= ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
                 }
                 rotatingVel = Math.Min(Math.Abs(rotatingVel), ShipClass.rotationMaxSpeed) * Math.Sign(rotatingVel);
                 rotating = Rotating.None;
             } else {
-                rotatingVel -= Math.Min(Math.Abs(rotatingVel), ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * Math.Sign(rotatingVel);
+                Decel();
             }
+            void Decel() => rotatingVel -= Math.Min(Math.Abs(rotatingVel), ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * Math.Sign(rotatingVel); ;
             rotationDegrees += rotatingVel;
 
             if (decelerating) {
@@ -207,7 +216,7 @@ namespace TranscendenceRL {
 
         public Docking docking;
 
-        public List<PlayerMessage> messages;
+        public List<IPlayerMessage> messages;
 
         public HashSet<Entity> visible;
         public HashSet<Station> known;
@@ -216,32 +225,10 @@ namespace TranscendenceRL {
         public PlayerShip(Ship ship) {
             this.Ship = ship;
 
-            ship.Devices.Add(new Item(new ItemType() {
-                level = 1,
-                mass = 1000,
-                name = "Reactor",
-                reactor = new ReactorDesc() {
-                    capacity = 10000,
-                    efficiency = 1,
-                    maxOutput = 2
-                }
-            }).InstallReactor());
-            ship.Devices.Add(new Item(new ItemType() {
-                level = 1,
-                mass = 1000,
-                name = "Battery",
-                reactor = new ReactorDesc() {
-                    capacity = 10000,
-                    efficiency = 1,
-                    maxOutput = 10,
-                    battery = true
-                }
-            }).InstallReactor());
-
             //To do: Don't add anything to world in the constructor
             ship.World.AddEffect(new Heading(this));
             power = new PowerSystem(ship.Devices);
-            messages = new List<PlayerMessage>();
+            messages = new List<IPlayerMessage>();
             visible = new HashSet<Entity>();
             known = new HashSet<Station>();
             ticks = 0;
@@ -262,7 +249,9 @@ namespace TranscendenceRL {
             messages.ForEach(m => m.Update());
             messages.RemoveAll(m => !m.Active);
             if(firingPrimary && selectedPrimary < Ship.Devices.Weapons.Count) {
-                Ship.Devices.Weapons[selectedPrimary].SetFiring(true);
+                if(!power.disabled.Contains(Ship.Devices.Weapons[selectedPrimary])) {
+                    Ship.Devices.Weapons[selectedPrimary].SetFiring(true);
+                }
                 firingPrimary = false;
             }
 
@@ -270,7 +259,7 @@ namespace TranscendenceRL {
             visible = new HashSet<Entity>(World.entities.GetAll(p => (Position - p).MaxCoord < 50));
             if (ticks%30 == 0) {
                 foreach (var s in visible.OfType<Station>().Where(s => !known.Contains(s))) {
-                    messages.Add(new PlayerMessage($"Discovered: {s.StationType.name}"));
+                    messages.Add(new Transmission(s, $"Discovered: {s.StationType.name}"));
                     known.Add(s);
                 }
             }
@@ -282,14 +271,15 @@ namespace TranscendenceRL {
 
             //We update the ship's devices as ourselves because they need to know who the exact owner is
             //In case someone other than us needs to know who we are through our devices
-            Ship.Devices.Update(this);
+            foreach (var enabled in Ship.Devices.Installed.Where(i => !power.disabled.Contains(i))) {
+                enabled.Update(this);
+            }
             power.Update();
         }
-        public void AddMessage(PlayerMessage message) {
+        public void AddMessage(IPlayerMessage message) {
             var existing = messages.FirstOrDefault(m => m.message.String.Equals(message.message.String));
             if (existing != null) {
-                existing.ticksRemaining = 150;
-                existing.flashTicks = 15;
+                existing.Reset();
             } else {
                 messages.Add(message);
             }

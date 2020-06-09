@@ -86,11 +86,11 @@ namespace TranscendenceRL {
     public class ShieldDesc {
         public int maxHP;
         public int depletionDelay;
-        public int ticksPerHP;
+        public double hpPerSecond;
         public ShieldDesc(XElement e) {
             maxHP = e.ExpectAttributeInt("maxHP");
             depletionDelay = e.ExpectAttributeInt("depletionDelay");
-            ticksPerHP = e.ExpectAttributeInt("ticksPerHP");
+            hpPerSecond = e.ExpectAttributeDouble("hpPerSecond");
         }
     }
     public class ReactorDesc {

@@ -17,13 +17,16 @@ namespace TranscendenceRL {
 	public class TranscendenceRL : SadConsole.Game {
 		public static int TICKS_PER_SECOND = 60;
 
-
+		/*
 		public static readonly int screenwidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
 		public static readonly int screenheight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
 		public static readonly int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 16;
 		public static readonly int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 16;
-		public TranscendenceRL() : base("Content/Square.font", width, height, null) {
+		*/
+		public static readonly int width = 150;
+		public static readonly int height = 90;
+		public TranscendenceRL() : base("Content/IBMCGA.font", width, height, null) {
 			Content.RootDirectory = "Content";
 		}
 		/// <summary>

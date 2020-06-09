@@ -32,10 +32,39 @@ namespace IslandHopper {
         }
         public void UpdateStep() {}
     }
+    public class Mirage : Effect {
+        public Island World { get; set; }
+        public XYZ Position { get; set; }
+        public ColoredGlyph SymbolCenter { get; private set; } 
+            
+            
+        public int lifetime;
+        public bool Active => lifetime > 0;
+        public Mirage(Island World, XYZ Position, int lifetime) {
+            this.World = World;
+            this.Position = Position;
+            this.lifetime = lifetime;
+            var ShiftedPosition = Position + new XYZ(World.karma.Next(-2, 3), World.karma.Next(-2, 3));
+            if(World.voxels.InBounds(ShiftedPosition)) {
+                HashSet<ColoredGlyph> glyphs = new HashSet<ColoredGlyph>();
+                glyphs.UnionWith(World.effects[ShiftedPosition].Where(e => !(e is Mirage)).Select(e => e.SymbolCenter));
+                glyphs.UnionWith(World.entities[ShiftedPosition].Select(e => e.SymbolCenter));
+                glyphs.Add(World.voxels[ShiftedPosition.PlusZ(-1)].CharAbove);
+                SymbolCenter = glyphs.GetRandom(World.karma);
+            } else {
+                this.lifetime = 0;
+                SymbolCenter = new ColoredGlyph(' ', Color.Transparent, Color.Transparent);
+            }
+        }
+        public void UpdateRealtime(TimeSpan delta) { }
+        public void UpdateStep() {
+            lifetime--;
+        }
+    }
     public class FlameTrail : Effect {
         public XYZ Position { get; set; }
 
-        public ColoredGlyph SymbolCenter => new ColoredGlyph(symbol.Glyph, new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (byte)255), Color.Black);
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(symbol.Glyph, new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (byte)255), symbol.Background);
         public int lifetime;
         ColoredGlyph symbol;
         public bool Active => lifetime > 0;

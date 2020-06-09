@@ -92,6 +92,13 @@ namespace TranscendenceRL {
         }
         public void Damage(SpaceObject source, int hp) {
             DamageSystem.Damage(source, hp);
+            if(source.Sovereign != Sovereign) {
+                foreach(var guard in World.entities.all.OfType<AIShip>()) {
+                    if(guard.controller is GuardOrder order && order.guard == this && order.target == null) {
+                        order.target = source;
+                    }
+                }
+            }
         }
         public void Destroy() {
             Active = false;

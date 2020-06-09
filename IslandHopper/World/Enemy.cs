@@ -63,11 +63,14 @@ namespace IslandHopper.World {
             Inventory.RemoveWhere(i => !i.Active);
         }
         public void OnDamaged(Damager source) {
+            //Should have blood particle effects on hit
             if (source is Bullet b) {
                 health.Damage(b.damage);
             } else if (source is ExplosionDamage e) {
                 health.Damage(e.damage);
                 Velocity += e.knockback;
+            } else if (source is Flame f) {
+                health.Damage(f.damage);
             }
         }
         public void Witness(WorldEvent we) {
