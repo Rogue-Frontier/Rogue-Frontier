@@ -157,6 +157,7 @@ namespace TranscendenceRL {
 		public override void Draw(TimeSpan drawTime) {
 			var messageY = Height * 3 / 5;
 			Clear();
+			XY screen = new XY(Width, Height);
 			for (int i = 0; i < player.messages.Count;i++) {
 				var message = player.messages[i];
 				var line = message.Draw();
@@ -193,12 +194,26 @@ namespace TranscendenceRL {
                     }
 
 					var sourcePos = t.source.Position;
+					/*
 					var offset = sourcePos - messagePos;
-
 					int screenLineY = Math.Max(-(Height - screenY - 2), Math.Min(screenY - 2, offset.yi < 0 ? offset.yi - 1 : offset.yi));
 					int screenLineX = Math.Max(-(screenX - 2), Math.Min(Width - screenX - 2, offset.xi));
+					*/
+					var offset = sourcePos - player.Position;
+					var offsetLeft = new XY(0, 0);
+					bool truncateX = Math.Abs(offset.x) > Width / 2 - 3;
+					bool truncateY = Math.Abs(offset.y) > Height / 2 - 3;
+					if (truncateX || truncateY) {
+						var sourcePosEdge = Helper.GetBoundaryPoint(screen, offset.Angle) - screen/2 + camera;
+						offset = sourcePosEdge - player.Position;
+						if (truncateX) { offset.x -= Math.Sign(offset.x) * (i+2); }
+						if (truncateY) { offset.y -= Math.Sign(offset.y) * (i+2); }
+						offsetLeft = sourcePos - sourcePosEdge;
+					}
+					offset += player.Position - messagePos;
 
-					XY offsetLeft = offset - new XY(screenLineX, screenLineY);
+					int screenLineY = offset.yi + (offset.yi < 0 ? -1 : 0);
+					int screenLineX = offset.xi;
 
 					if (screenLineY != 0) {
 						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
@@ -239,10 +254,11 @@ namespace TranscendenceRL {
 							screenLineX -= Math.Sign(screenLineX);
 						}
 					}
-
+					/*
 					screenX += Math.Sign(offsetLeft.x);
 					screenY -= Math.Sign(offsetLeft.y);
 					this.SetCellAppearance(screenX, screenY, new ColoredGlyph('*', f, b));
+					*/
 
 				}
 				messageY++;
