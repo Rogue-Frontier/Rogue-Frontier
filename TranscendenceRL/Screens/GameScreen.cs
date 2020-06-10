@@ -195,29 +195,31 @@ namespace TranscendenceRL {
 					var sourcePos = t.source.Position;
 					var offset = sourcePos - messagePos;
 
-					int lineY = Math.Max(-(screenY - 1), Math.Min(Height - screenY, offset.yi < 0 ? offset.yi - 1 : offset.yi));
-					int lineX = Math.Max(-(screenX - 1), Math.Min(Width - screenX, offset.xi));
+					int screenLineY = Math.Max(-(Height - screenY - 2), Math.Min(screenY - 2, offset.yi < 0 ? offset.yi - 1 : offset.yi));
+					int screenLineX = Math.Max(-(screenX - 2), Math.Min(Width - screenX - 2, offset.xi));
 
-					if (lineY != 0) {
+					XY offsetLeft = offset - new XY(screenLineX, screenLineY);
+
+					if (screenLineY != 0) {
 						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 							n = offset.y > 0 ? Line.Double : Line.None,
 							s = offset.y < 0 ? Line.Double : Line.None,
 							w = Line.Double
 						}], f, b));
-						screenY -= Math.Sign(lineY);
-						lineY -= Math.Sign(lineY);
+						screenY -= Math.Sign(screenLineY);
+						screenLineY -= Math.Sign(screenLineY);
 
-						while (lineY != 0) {
+						while (screenLineY != 0) {
 							this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 								n = Line.Double,
 								s = Line.Double
 							}], f, b));
-							screenY -= Math.Sign(lineY);
-							lineY -= Math.Sign(lineY);
+							screenY -= Math.Sign(screenLineY);
+							screenLineY -= Math.Sign(screenLineY);
 						}
 					}
 
-					if (lineX != 0) {
+					if (screenLineX != 0) {
 						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 							n = offset.y < 0 ? Line.Double : Line.None,
 							s = offset.y > 0 ? Line.Double : Line.None,
@@ -225,19 +227,22 @@ namespace TranscendenceRL {
 							e = offset.x > 0 ? Line.Double : Line.None,
 							w = offset.x < 0 ? Line.Double : Line.None
 						}], f, b));
-						screenX += Math.Sign(lineX);
-						lineX -= Math.Sign(lineX);
+						screenX += Math.Sign(screenLineX);
+						screenLineX -= Math.Sign(screenLineX);
 
-						while (lineX != 0) {
+						while (screenLineX != 0) {
 							this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 								e = Line.Double,
 								w = Line.Double
 							}], f, b));
-							screenX += Math.Sign(lineX);
-							lineX -= Math.Sign(lineX);
+							screenX += Math.Sign(screenLineX);
+							screenLineX -= Math.Sign(screenLineX);
 						}
 					}
 
+					screenX += Math.Sign(offsetLeft.x);
+					screenY -= Math.Sign(offsetLeft.y);
+					this.SetCellAppearance(screenX, screenY, new ColoredGlyph('*', f, b));
 
 				}
 				messageY++;
@@ -389,6 +394,10 @@ namespace TranscendenceRL {
 				Hide();
 				new ShipScreen(this, player).Show(true);
 			}
+			if(info.IsKeyPressed(T)) {
+				player.NextTarget();
+				//Note: Show a label on the target after select
+            }
 			if(info.IsKeyPressed(D)) {
 				if(player.docking != null) {
 					if(player.docking.docked) {
