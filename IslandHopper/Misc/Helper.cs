@@ -84,7 +84,7 @@ namespace Common {
 		public static Color WithValues(this Color c, int? red = null, int? green = null, int? blue = null, int? alpha = null) {
 			return new Color(red ?? c.R, green ?? c.G, blue ?? c.B, alpha ?? c.A);
 		}
-		public static double CalcFireAngle(XY posDiff, XY velDiff, double missileSpeed) {
+		public static double CalcFireAngle(XY posDiff, XY velDiff, double missileSpeed, out double timeToHit) {
 			/*
 			var timeToHit = posDiff.Magnitude / missileSpeed;
 			var posFuture = posDiff + velDiff * timeToHit;
@@ -102,7 +102,7 @@ namespace Common {
 			var t1 = -p - q;
 			var t2 = p + q;
 
-			var timeToHit = t1;
+			timeToHit = t1;
 			if(t1 > t2 && t2 > 0) {
 				timeToHit = t2;
 			}

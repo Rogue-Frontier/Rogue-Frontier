@@ -288,21 +288,35 @@ namespace TranscendenceRL {
             targetList = targetList.GetRange(targetIndex, targetList.Count - targetIndex);
             targetIndex = -1;
         }
+        public bool GetTarget(out SpaceObject target) {
+            if (targetIndex != -1) {
+                target = targetList[targetIndex];
+                if (target.Active) {
+                    return true;
+                } else {
+                    ForgetTarget();
+                    target = null;
+                    return false;
+                }
+            } else {
+                target = null;
+                return false;
+            }
+        }
+        public Weapon GetPrimary() {
+            if(selectedPrimary < Ship.Devices.Weapons.Count) {
+                return Ship.Devices.Weapons[selectedPrimary];
+            }
+            return null;
+        }
         public void Damage(SpaceObject source, int hp) => Ship.Damage(source, hp);
         public void Destroy(SpaceObject source) => Ship.Destroy(source);
         public void Update() {
             messages.ForEach(m => m.Update());
             messages.RemoveAll(m => !m.Active);
 
-            SpaceObject target = null;
-            if (targetIndex != -1) {
-                target = targetList[targetIndex];
-                if (target.Active) {
-                    Heading.Crosshair(World, target.Position);
-                } else {
-                    target = null;
-                    ForgetTarget();
-                }
+            if(GetTarget(out SpaceObject target)) {
+                Heading.Crosshair(World, target.Position);
             }
 
             if (firingPrimary && selectedPrimary < Ship.Devices.Weapons.Count) {

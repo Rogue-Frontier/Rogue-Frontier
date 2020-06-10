@@ -61,7 +61,7 @@ namespace TranscendenceRL {
             if (target?.Active != true) {
                 target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.range).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));
             } else {
-                var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, desc.missileSpeed);
+                var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, desc.missileSpeed, out var _);
                 if (desc.omnidirectional) {
                     Heading.AimLine(owner.World, owner.Position, angle);
                     Heading.Crosshair(owner.World, target.Position);
@@ -85,7 +85,7 @@ namespace TranscendenceRL {
             if(target?.Active != true) {
                 target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.range).OfType<SpaceObject>().FirstOrDefault(s => SShip.CanTarget(owner, s));
             } else {
-                var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, desc.missileSpeed);
+                var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, desc.missileSpeed, out var _);
                 if(desc.omnidirectional) {
                     Heading.AimLine(owner.World, owner.Position, angle);
                     Heading.Crosshair(owner.World, target.Position);

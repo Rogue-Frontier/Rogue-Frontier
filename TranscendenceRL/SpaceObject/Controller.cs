@@ -168,7 +168,7 @@ namespace TranscendenceRL {
         public Ship owner;
         public SpaceObject target;
         public double missileSpeed;
-        public double targetRads => Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed);
+        public double targetRads => Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
         public double angleDiff => Helper.AngleDiff(owner.rotationDegrees, targetRads * 180 / Math.PI);
         public AimOrder(Ship owner, SpaceObject target, double missileSpeed) {
             this.owner = owner;

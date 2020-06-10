@@ -158,6 +158,49 @@ namespace TranscendenceRL {
 			var messageY = Height * 3 / 5;
 			Clear();
 			XY screen = new XY(Width, Height);
+
+			if(player.GetTarget(out SpaceObject target)) {
+				var screenPos = (target.Position - player.Position) + screen / 2;
+				screenPos = screenPos.RoundDown;
+				screenPos.y += 1;
+				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+					e = Line.Single,
+					w = Line.Single,
+					n = Line.Double,
+				}], Color.White, Color.Transparent));
+				for(int i = 0; i < 3; i++) {
+					screenPos.y++;
+					this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+						n = Line.Double,
+						s = Line.Double,
+					}], Color.White, Color.Transparent));
+				}
+				screenPos.y++;
+				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+					e = Line.Double,
+					s = Line.Double,
+				}], Color.White, Color.Transparent));
+				screenPos.x++;
+				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+					w = Line.Double,
+					n = Line.Single,
+					s = Line.Single
+				}], Color.White, Color.Transparent));
+				screenPos.x++;
+				this.Print(screenPos.xi, Height - screenPos.yi, target.Name);
+				/*
+				Helper.CalcFireAngle(target.Position - player.Position, target.Velocity - player.Velocity, player.GetPrimary().desc.missileSpeed, out double timeToHit);
+
+				screenPos = (target.Position - player.Position) + screen / 2 + target.Velocity * timeToHit;
+				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+					e = Line.Double,
+					w = Line.Double,
+					n = Line.Double,
+					s = Line.Double
+				}], Color.White, Color.Transparent));
+				*/
+			}
+
 			for (int i = 0; i < player.messages.Count;i++) {
 				var message = player.messages[i];
 				var line = message.Draw();
