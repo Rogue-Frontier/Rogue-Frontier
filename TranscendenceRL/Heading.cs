@@ -47,7 +47,8 @@ namespace TranscendenceRL {
             }
         }
         public static void Crosshair(World World, XY point) {
-            Color foreground = new Color(153, 153, 153);
+            //Color foreground = new Color(153, 153, 153);
+            Color foreground = new Color(204, 204, 0);
             Color background = Color.Transparent;
             World.AddEffect(new EffectParticle(point + new XY(1, 0), new ColoredGlyph('-', foreground, background), 1));
             World.AddEffect(new EffectParticle(point + new XY(-1, 0), new ColoredGlyph('-', foreground, background), 1));

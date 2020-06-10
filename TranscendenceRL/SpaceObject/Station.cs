@@ -33,7 +33,7 @@ namespace TranscendenceRL {
         public void Damage(SpaceObject source, int hp) {
         }
 
-        public void Destroy() {
+        public void Destroy(SpaceObject source) {
             Active = false;
         }
 
@@ -100,7 +100,7 @@ namespace TranscendenceRL {
                 }
             }
         }
-        public void Destroy() {
+        public void Destroy(SpaceObject source) {
             Active = false;
             var wreck = new Wreck(this);
 
@@ -141,7 +141,7 @@ namespace TranscendenceRL {
         
         public bool Active => Parent.Active;
         public void Damage(SpaceObject source, int hp) => Parent.Damage(source, hp);
-        public void Destroy() => Parent.Destroy();
+        public void Destroy(SpaceObject source) => Parent.Destroy(source);
         public void Update() {
         }
         public ColoredGlyph Tile => desc.tile.Glyph;

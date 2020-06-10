@@ -77,7 +77,7 @@ namespace TranscendenceRL {
 
         public void Damage(SpaceObject source, int hp) => DamageSystem.Damage(source, hp);
 
-        public void Destroy() {
+        public void Destroy(SpaceObject source) {
             var wreck = new Wreck(this);
             wreck.Items.UnionWith(Items);
             World.AddEntity(wreck);
@@ -182,7 +182,12 @@ namespace TranscendenceRL {
         public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);
         public void SetDecelerating(bool decelerating = true) => Ship.SetDecelerating(decelerating);
         public void Damage(SpaceObject source, int hp) => Ship.Damage(source, hp);
-        public void Destroy() => Ship.Destroy();
+        public void Destroy(SpaceObject source) {
+            if (source is PlayerShip ps) {
+                ps.shipsDestroyed.Add(ShipClass);
+            }
+            Ship.Destroy(source);
+        }
         public void Update() {
 
             controller.Update();
@@ -209,18 +214,24 @@ namespace TranscendenceRL {
         public double rotationDegrees => Ship.rotationDegrees;
         public HashSet<Item> Items => Ship.Items;
 
-        public bool firingPrimary;
+        public int targetIndex = -1;
+        public List<SpaceObject> targetList = new List<SpaceObject>();
+
+        public bool firingPrimary = false;
+        private int selectedPrimary = 0;
+
         public Ship Ship;
-        private int selectedPrimary;
         public PowerSystem power;
 
         public Docking docking;
 
-        public List<IPlayerMessage> messages;
+        public List<IPlayerMessage> messages = new List<IPlayerMessage>();
 
-        public HashSet<Entity> visible;
-        public HashSet<Station> known;
-        int ticks;
+        public HashSet<Entity> visible = new HashSet<Entity>();
+        public HashSet<Station> known = new HashSet<Station>();
+        int ticks = 0;
+
+        public DictCounter<ShipClass> shipsDestroyed = new DictCounter<ShipClass>();
 
         public PlayerShip(Ship ship) {
             this.Ship = ship;
@@ -228,10 +239,6 @@ namespace TranscendenceRL {
             //To do: Don't add anything to world in the constructor
             ship.World.AddEffect(new Heading(this));
             power = new PowerSystem(ship.Devices);
-            messages = new List<IPlayerMessage>();
-            visible = new HashSet<Entity>();
-            known = new HashSet<Station>();
-            ticks = 0;
         }
         public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
         public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);
@@ -243,14 +250,64 @@ namespace TranscendenceRL {
                 selectedPrimary = 0;
             }
         }
+        public void NextTarget() {
+            bool canRefresh = true;
+            if(targetIndex >= targetList.Count - 1) {
+                Refresh();
+            }
+
+        CheckTarget:
+            targetIndex++;
+            if(targetIndex < targetList.Count) {
+                var target = targetList[targetIndex];
+                if(!this.CanTarget(target)) {
+                    goto CheckTarget;
+                } else if (!target.Active) {
+                    goto CheckTarget;
+                } else if((target.Position - Position).Magnitude > 100) {
+                    goto CheckTarget;
+                } else {
+                    //Found target
+                }
+            } else {
+                targetIndex = -1;
+                if (canRefresh) {
+                    Refresh();
+                    goto CheckTarget;
+                } else {
+                    //Could not find target
+                }
+            }
+
+            void Refresh() {
+                targetList = World.entities.all.OfType<SpaceObject>().Where(e => this.CanTarget(e)).ToList();
+                canRefresh = false;
+            }
+        }
+        public void ForgetTarget() {
+            targetList = targetList.GetRange(targetIndex, targetList.Count - targetIndex);
+            targetIndex = -1;
+        }
         public void Damage(SpaceObject source, int hp) => Ship.Damage(source, hp);
-        public void Destroy() => Ship.Destroy();
+        public void Destroy(SpaceObject source) => Ship.Destroy(source);
         public void Update() {
             messages.ForEach(m => m.Update());
             messages.RemoveAll(m => !m.Active);
-            if(firingPrimary && selectedPrimary < Ship.Devices.Weapons.Count) {
+
+            SpaceObject target = null;
+            if (targetIndex != -1) {
+                target = targetList[targetIndex];
+                if (target.Active) {
+                    Heading.Crosshair(World, target.Position);
+                } else {
+                    target = null;
+                    ForgetTarget();
+                }
+            }
+
+            if (firingPrimary && selectedPrimary < Ship.Devices.Weapons.Count) {
                 if(!power.disabled.Contains(Ship.Devices.Weapons[selectedPrimary])) {
-                    Ship.Devices.Weapons[selectedPrimary].SetFiring(true);
+                    Ship.Devices.Weapons[selectedPrimary].SetFiring(true, target);
                 }
                 firingPrimary = false;
             }

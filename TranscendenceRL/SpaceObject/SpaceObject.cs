@@ -12,7 +12,7 @@ namespace TranscendenceRL {
         Sovereign Sovereign { get; }
         XY Velocity { get; }
         void Damage(SpaceObject source, int hp);
-        void Destroy();
+        void Destroy(SpaceObject source = null);
     }
     public interface Dockable : SpaceObject {
         HashSet<Item> Items { get; }

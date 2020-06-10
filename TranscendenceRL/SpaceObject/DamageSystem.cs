@@ -28,7 +28,7 @@ namespace TranscendenceRL {
             this.React(owner, source);
             this.hp -= hp;
             if(this.hp < 1) {
-                owner.Destroy();
+                owner.Destroy(source);
             }
         }
     }
@@ -54,7 +54,7 @@ namespace TranscendenceRL {
                     }
                 }
             }
-            owner.Destroy();
+            owner.Destroy(source);
         }
         public List<ColoredString> GetDesc() {
             return new List<ColoredString>(layers.GroupBy(l => l.source.type).Select(l => new ColoredString(l.First().source.type.name + $" (x{l.Count()})")));
