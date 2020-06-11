@@ -18,7 +18,7 @@ namespace TranscendenceRL {
             layers = new List<GeneratedLayer>(layerCount);
             for(int i = 0; i < layerCount; i++) {
                 var n = r.Next(1, 5);
-                var layer = new GeneratedLayer((double)n / (n + r.Next(1, 4 * n)), r);
+                var layer = new GeneratedLayer((double)2 * n / (n + n / 2 + r.Next(1, 4 * n)), r);
                 layers.Insert(0, layer);
             }
         }
@@ -52,7 +52,7 @@ namespace TranscendenceRL {
         public double parallaxFactor { get; private set; }
         public Dictionary<(int, int), ColoredGlyph> tiles;
         public ColoredGlyph GetTile(XY point, XY camera) {
-            var apparent = point - camera * parallaxFactor;
+            var apparent = point - camera * (1 - parallaxFactor);
             return tiles.TryGetValue(apparent.RoundDown, out var result) ? result : new ColoredGlyph(' ', Color.Transparent, Color.Transparent);
         }
     }
@@ -67,14 +67,22 @@ namespace TranscendenceRL {
                 var value = r.Next(51);
                 var background = new Color(value, value, value + r.Next(25));
 
-                var init = new XY[] { new XY(1, 0), new XY(0, 1), new XY(0, -1), new XY(-1, 0) }.Select(xy => new XY(xy.xi + x, xy.yi + y)).Where(xy => tiles.IsInit(xy.xi, xy.yi));
+                var init = new XY[] {
+                    new XY(-1, -1),
+                    new XY(-1, 0),
+                    new XY(-1, 1),
+                    new XY(0, -1),
+                    new XY(0, 1),
+                    new XY(1, -1),
+                    new XY(1, 0),
+                    new XY(1, 1),}.Select(xy => new XY(xy.xi + x, xy.yi + y)).Where(xy => tiles.IsInit(xy.xi, xy.yi));
 
                 var count = init.Count() + 1;
                 foreach (var xy in init) {
                     background = background.Add(tiles.Get(xy.xi, xy.yi).Background);
                 }
                 background = background.Divide(count);
-                background.A = (byte)r.Next(51, 153);
+                background.A = (byte)r.Next(25, 104);
 
                 if (r.NextDouble() * 100 < (1 / parallaxFactor) / 10) {
                     const string vwls = "?&%~=+;";
@@ -87,7 +95,7 @@ namespace TranscendenceRL {
             });
         }
         public ColoredGlyph GetTile(XY point, XY camera) {
-            var apparent = point - camera * parallaxFactor;
+            var apparent = point - camera * (1 - parallaxFactor);
             return tiles[apparent.RoundDown.xi, apparent.RoundDown.yi];
         }
         public ColoredGlyph GetTileFixed(XY point) {
