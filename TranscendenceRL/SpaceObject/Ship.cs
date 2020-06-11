@@ -12,6 +12,12 @@ namespace TranscendenceRL {
         None, CCW, CW
     }
     public static class SShip {
+        public static bool IsEnemy(this IShip owner, SpaceObject target) {
+            return owner.CanTarget(target) && owner.Sovereign.IsEnemy(target) && !(target is Wreck);
+        }
+        public static bool IsFriendly(this IShip owner, SpaceObject target) {
+            return owner.CanTarget(target) && owner.Sovereign.IsFriend(target) && !(target is Wreck);
+        }
         public static bool CanTarget(this IShip owner, SpaceObject target) {
 
             { owner = (owner is AIShip s) ? s.Ship : owner; }
@@ -19,7 +25,7 @@ namespace TranscendenceRL {
             { target = (target is AIShip s) ? s.Ship : target; }
             { target = (target is PlayerShip s) ? s.Ship : target; }
 
-            return owner != target && owner.Sovereign.IsEnemy(target) && !(target is Wreck);
+            return owner != target;
         }
     }
     public interface IShip : SpaceObject {
@@ -215,6 +221,7 @@ namespace TranscendenceRL {
         public HashSet<Item> Items => Ship.Items;
 
         public int targetIndex = -1;
+        public bool targetFriends = false;
         public List<SpaceObject> targetList = new List<SpaceObject>();
 
         public bool firingPrimary = false;
@@ -250,9 +257,13 @@ namespace TranscendenceRL {
                 selectedPrimary = 0;
             }
         }
-        public void NextTarget() {
+        public void NextTargetEnemy() {
             bool canRefresh = true;
-            if(targetIndex >= targetList.Count - 1) {
+
+            if(targetFriends) {
+                Refresh();
+                targetFriends = false;
+            } else if(targetIndex >= targetList.Count - 1) {
                 Refresh();
             }
 
@@ -260,7 +271,7 @@ namespace TranscendenceRL {
             targetIndex++;
             if(targetIndex < targetList.Count) {
                 var target = targetList[targetIndex];
-                if(!this.CanTarget(target)) {
+                if(!this.IsEnemy(target)) {
                     goto CheckTarget;
                 } else if (!target.Active) {
                     goto CheckTarget;
@@ -280,12 +291,54 @@ namespace TranscendenceRL {
             }
 
             void Refresh() {
-                targetList = World.entities.all.OfType<SpaceObject>().Where(e => this.CanTarget(e)).ToList();
+                targetList = World.entities.all.OfType<SpaceObject>().Where(e => this.IsEnemy(e)).OrderBy(e => (e.Position - Position).Magnitude).ToList();
+                canRefresh = false;
+            }
+        }
+        public void NextTargetFriendly() {
+            bool canRefresh = true;
+
+            if (!targetFriends) {
+                Refresh();
+                targetFriends = true;
+            } else if (targetIndex >= targetList.Count - 1) {
+                Refresh();
+            }
+
+        CheckTarget:
+            targetIndex++;
+            if (targetIndex < targetList.Count) {
+                var target = targetList[targetIndex];
+                if (!this.IsFriendly(target)) {
+                    goto CheckTarget;
+                } else if (!target.Active) {
+                    goto CheckTarget;
+                } else if ((target.Position - Position).Magnitude > 100) {
+                    goto CheckTarget;
+                } else {
+                    //Found target
+                }
+            } else {
+                targetIndex = -1;
+                if (canRefresh) {
+                    Refresh();
+                    goto CheckTarget;
+                } else {
+                    //Could not find target
+                }
+            }
+
+            void Refresh() {
+                targetList = World.entities.all.OfType<SpaceObject>().Where(e => this.IsFriendly(e)).OrderBy(e => (e.Position - Position).Magnitude).ToList();
                 canRefresh = false;
             }
         }
         public void ForgetTarget() {
             targetList = targetList.GetRange(targetIndex, targetList.Count - targetIndex);
+            targetIndex = -1;
+        }
+        public void ClearTarget() {
+            targetList.Clear();
             targetIndex = -1;
         }
         public bool GetTarget(out SpaceObject target) {

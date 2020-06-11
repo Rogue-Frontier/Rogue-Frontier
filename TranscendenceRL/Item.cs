@@ -83,7 +83,7 @@ namespace TranscendenceRL {
         public void Update(IShip owner) {
             double? targetAngle = null;
             if(target?.Active != true) {
-                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.range).OfType<SpaceObject>().FirstOrDefault(s => SShip.CanTarget(owner, s));
+                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.range).OfType<SpaceObject>().FirstOrDefault(s => SShip.IsEnemy(owner, s));
             } else {
                 var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, desc.missileSpeed, out var _);
                 if(desc.omnidirectional) {

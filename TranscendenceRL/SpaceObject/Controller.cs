@@ -55,7 +55,7 @@ namespace TranscendenceRL {
                 if(weapon == null) {
                     return;
                 }
-                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.range).OfType<SpaceObject>().Where(so => owner.CanTarget(so)).GetRandomOrDefault(owner.destiny);
+                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.range).OfType<SpaceObject>().Where(so => owner.IsEnemy(so)).GetRandomOrDefault(owner.destiny);
             } else {
                 new AttackOrder(owner, target).Update();
             }

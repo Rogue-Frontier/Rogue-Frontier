@@ -62,22 +62,20 @@ namespace TranscendenceRL {
             this.Velocity = new XY();
             this.Active = true;
             this.Sovereign = Type.Sovereign;
-            segments = new List<Segment>();
-            CreateSegments();
             DamageSystem = new HPSystem(this, Type.hp);
             Items = new HashSet<Item>();
             weapons = StationType.weapons?.Generate(World.types);
-            guards = new List<AIShip>();
-            CreateGuards();
         }
-        private void CreateSegments() {
+        public void CreateSegments() {
+            segments = new List<Segment>();
             foreach(var segmentDesc in StationType.segments) {
                 var s = new Segment(this, segmentDesc);
                 segments.Add(s);
                 World.AddEntity(s);
             }
         }
-        private void CreateGuards() {
+        public void CreateGuards() {
+            guards = new List<AIShip>();
             if(StationType.guards != null) {
                 //Suppose we should pass in the owner object
                 var generated = StationType.guards.Generate(World.types, this);
@@ -90,6 +88,15 @@ namespace TranscendenceRL {
                 }
             }
         }
+        /*
+        public HashSet<SpaceObject> GetParts() {
+            var set = new HashSet<SpaceObject>();
+            set.Add(this);
+            set.UnionWith(segments);
+            set.UnionWith(guards);
+            return set;
+        }
+        */
         public void Damage(SpaceObject source, int hp) {
             DamageSystem.Damage(source, hp);
             if(source.Sovereign != Sovereign) {

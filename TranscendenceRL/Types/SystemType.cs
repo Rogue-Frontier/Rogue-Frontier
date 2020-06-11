@@ -153,7 +153,10 @@ namespace TranscendenceRL {
         }
         public void Generate(LocationContext lc, TypeCollection tc) {
             var stationtype = tc.Lookup<StationType>(codename);
-            lc.world.AddEntity(new Station(lc.world, stationtype, lc.pos));
+            var s = new Station(lc.world, stationtype, lc.pos);
+            lc.world.AddEntity(s);
+            s.CreateSegments();
+            s.CreateGuards();
         }
     }
     public class SystemMarker : SystemElement {

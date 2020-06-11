@@ -212,6 +212,11 @@ namespace TranscendenceRL {
 					var screenCenterOffset = new XY(Width * 3 / 4, Height - messageY) - new XY(Width/2, Height/2);
 					var messagePos = camera + screenCenterOffset;
 
+					var sourcePos = t.source.Position.RoundDown;
+					if (messagePos.RoundDown.yi == sourcePos.RoundDown.yi) {
+						continue;
+                    }
+
 					int screenX = Width * 3 / 4;
 					int screenY = messageY;
 
@@ -236,13 +241,14 @@ namespace TranscendenceRL {
 						messagePos.x++;
                     }
 
-					var sourcePos = t.source.Position;
 					/*
 					var offset = sourcePos - messagePos;
 					int screenLineY = Math.Max(-(Height - screenY - 2), Math.Min(screenY - 2, offset.yi < 0 ? offset.yi - 1 : offset.yi));
 					int screenLineX = Math.Max(-(screenX - 2), Math.Min(Width - screenX - 2, offset.xi));
 					*/
+
 					var offset = sourcePos - player.Position;
+
 					var offsetLeft = new XY(0, 0);
 					bool truncateX = Math.Abs(offset.x) > Width / 2 - 3;
 					bool truncateY = Math.Abs(offset.y) > Height / 2 - 3;
@@ -454,10 +460,18 @@ namespace TranscendenceRL {
 				new ShipScreen(this, player).Show(true);
 			}
 			if(info.IsKeyPressed(T)) {
-				player.NextTarget();
+				player.NextTargetEnemy();
 				//Note: Show a label on the target after select
             }
-			if(info.IsKeyPressed(D)) {
+			if (info.IsKeyPressed(F)) {
+				player.NextTargetFriendly();
+				//Note: Show a label on the target after select
+			}
+			if (info.IsKeyPressed(R)) {
+				player.ClearTarget();
+				//Note: Show a label on the target after select
+			}
+			if (info.IsKeyPressed(D)) {
 				if(player.docking != null) {
 					if(player.docking.docked) {
 						player.AddMessage(new InfoMessage("Undocked"));
