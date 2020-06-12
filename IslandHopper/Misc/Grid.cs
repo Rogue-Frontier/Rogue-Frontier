@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -53,6 +54,7 @@ namespace Common {
 
 		public double Dot(XY other) => x * other.x + y * other.y;
 		public bool IsZero => Magnitude < 0.1;
+		public XY Scale(XY origin, double scale) => (this - origin) * scale + origin;
 		public double MaxCoord => Math.Max(Math.Abs(x), Math.Abs(y));
 		public double Manhattan => Math.Abs(x) + Math.Abs(y);
 		public double Magnitude => Math.Sqrt(x * x + y * y);

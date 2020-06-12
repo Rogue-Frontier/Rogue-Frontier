@@ -88,7 +88,7 @@ namespace TranscendenceRL {
                 loadingTicks--;
             } else {
                 Hide();
-                new GameConsole(Width, Height, World, playerClass).Show(true);
+                new PlayerMain(Width, Height, World, playerClass).Show(true);
             }
         }
         public override void Draw(TimeSpan drawTime) {

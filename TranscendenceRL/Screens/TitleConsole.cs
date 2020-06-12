@@ -232,7 +232,7 @@ namespace TranscendenceRL {
 #if DEBUG
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {
                 Hide();
-                new GameConsole(Width, Height, World, World.types.Lookup<ShipClass>("scAmethyst")).Show(true);
+                new PlayerMain(Width, Height, World, World.types.Lookup<ShipClass>("scAmethyst")).Show(true);
             }
 #endif
             return base.ProcessKeyboard(info);

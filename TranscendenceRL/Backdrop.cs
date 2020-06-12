@@ -59,13 +59,13 @@ namespace TranscendenceRL {
     public class GeneratedLayer : ILayer {
         public double parallaxFactor { get; private set; }                   //Multiply the camera by this value
         public GeneratedGrid<ColoredGlyph> tiles;  //Dynamically generated grid of tiles
-        public GeneratedLayer(double parallaxFactor, Random r) {
+        public GeneratedLayer(double parallaxFactor, Random random) {
             //Random r = new Random();
             this.parallaxFactor = parallaxFactor;
             tiles = new GeneratedGrid<ColoredGlyph>(p => {
                 var (x, y) = p;
-                var value = r.Next(51);
-                var background = new Color(value, value, value + r.Next(25));
+                var value = random.Next(51);
+                var (r, g, b) = (value, value, value + random.Next(25));
 
                 var init = new XY[] {
                     new XY(-1, -1),
@@ -79,15 +79,17 @@ namespace TranscendenceRL {
 
                 var count = init.Count() + 1;
                 foreach (var xy in init) {
-                    background = background.Add(tiles.Get(xy.xi, xy.yi).Background);
+                    var t = tiles.Get(xy.xi, xy.yi).Background;
+                    (r, g, b) = (r + t.R, g + t.G, b + t.B);
                 }
-                background = background.Divide(count);
-                background.A = (byte)r.Next(25, 104);
+                (r, g, b) = (r / count, g / count, b / count);
+                var a = (byte)random.Next(25, 104);
+                var background = new Color(r, g, b, a);
 
-                if (r.NextDouble() * 100 < (1 / parallaxFactor) / 10) {
+                if (random.NextDouble() * 100 < (1 / (parallaxFactor + 1))) {
                     const string vwls = "?&%~=+;";
-                    var star = vwls[r.Next(vwls.Length)];
-                    var foreground = new Color(255, 255 - r.Next(25, 51), 255 - r.Next(25, 51), (byte)(204 * parallaxFactor));
+                    var star = vwls[random.Next(vwls.Length)];
+                    var foreground = new Color(255, 255 - random.Next(25, 51), 255 - random.Next(25, 51), (byte)(204 * parallaxFactor));
                     return new ColoredGlyph(star, foreground, background);
                 } else {
                     return new ColoredGlyph(' ', Color.Transparent, background);

@@ -22,67 +22,22 @@ namespace TranscendenceRL {
 			FillStyle = new Cell(Color.Transparent, Color.Transparent)
 		};
 	}
-	class GameConsole : Window {
-		private PlayerMain main;
-		public GameConsole(int Width, int Height, World World, ShipClass playerClass) : base(Width, Height) {
-			Theme = new WindowTheme {
-				ModalTint = Color.Transparent,
-				FillStyle = new Cell(Color.White, Color.Black),
-			};
-			UseKeyboard = true;
-			UseMouse = true;
-			this.DebugInfo($"Width: {Width}", $"Height: {Height}");
-			main = new PlayerMain(this, Width, Height, World, playerClass);
-		}
-		public override void Show(bool modal) {
-			base.Show(modal);
-			main.Show(true);
-		}
-		public override void Update(TimeSpan delta) {
-		}
-		private int HalfWidth { get => Width / 2; }
-		private int HalfHeight { get => Height / 2; }
-		public override void Draw(TimeSpan delta) {
-			this.DebugInfo($"Draw({delta})");
-			Clear();
-
-			int ViewWidth = Width;
-			int ViewHeight = Height;
-			int HalfViewWidth = ViewWidth / 2;
-			int HalfViewHeight = ViewHeight / 2;
-			//var i = 0;
-			for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
-				for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
-					XY location = main.camera + new XY(x, y);
-
-					var xScreen = x + HalfViewWidth;
-					//var xScreen = x;
-					var yScreen = ViewHeight - (y + HalfViewHeight);
-					Print(xScreen, yScreen, main.GetTile(location));
-				}
-				//i++;
-				//Print(main.camera.xi + x + HalfViewWidth, 0, new ColoredGlyph('0' + i/10, Color.White, Color.Transparent));
-				//Print(0, 0, new ColoredString(main.camera.xi.ToString(), new Cell(Color.White, Color.Black)));
-			}
-			base.Draw(delta);
-		}
-		public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
-			return base.ProcessKeyboard(info);
-		}
-	}
 	class PlayerMain : Window {
-		public Window parent;
 		public XY camera;
 		public World world;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		public PlayerShip player;
 
-		bool showLargeMap = false;
-		public PlayerMain(Window parent, int Width, int Height, World World, ShipClass playerClass) : base(Width, Height) {
-			this.parent = parent;
+		double viewScale = 1;
+
+		GeneratedLayer backVoid;
+
+		public PlayerMain(int Width, int Height, World World, ShipClass playerClass) : base(Width, Height) {
 			camera = new XY();
 			this.world = World;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
+
+			backVoid = new GeneratedLayer(1, new Random());
 			/*
 			var shipClass =  new ShipClass() { thrust = 0.5, maxSpeed = 20, rotationAccel = 4, rotationDecel = 2, rotationMaxSpeed = 3 };
 			world.AddEntity(player = new PlayerShip(new Ship(world, shipClass, new XY(0, 0))));
@@ -160,62 +115,65 @@ namespace TranscendenceRL {
 			var messageY = Height * 3 / 5;
 			Clear();
 			XY screenSize = new XY(Width, Height);
-			XY screenCenter = screenSize/2;
+			XY screenCenter = screenSize / 2;
 
-			if(showLargeMap) {
-				int n = (int)Math.Pow(Math.Min(Width, Height) / 2, 2);
+			{
 
-				double scale = 2;
-				var downscaled = tiles.Downsample(scale);
+				int ViewWidth = Width;
+				int ViewHeight = Height;
+				int HalfViewWidth = ViewWidth / 2;
+				int HalfViewHeight = ViewHeight / 2;
 
+				if (viewScale > 1) {
+					var scaled = tiles.Downsample(viewScale);
+					for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
+						for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
+							var screenCenterOffset = new XY(x, y);
+							XY location = camera / viewScale + screenCenterOffset;
 
-				XY direction = new XY(0, 1);
-				XY point = screenCenter;
-				int i = 0;
-				int interval = 1;
+							var xScreen = x + HalfViewWidth;
+							var yScreen = ViewHeight - (y + HalfViewHeight);
+							var visible = scaled[location];
+							if(visible.Any()) {
+								this.SetCellAppearance(xScreen, yScreen, visible.First());
+								visible.Remove(visible.First());
+							} else {
+								var backX = Math.Abs(screenCenterOffset.xi * viewScale);
+								var backY = Math.Abs(screenCenterOffset.yi * viewScale);
+								if (backX < HalfViewWidth && backY < HalfViewHeight) {
+									
 
-				//Draw system map with spiral animation
-				bool active = i < n;
-				StartDraw:
-				for (int j = 0; j < 2; j++) {
-					for (int k = 0; k < interval; k++) {
-						if (active) {
-							point += direction;
-							var offset = point - screenCenter;
-							var tiles = downscaled[camera / scale + offset];
-							if(tiles.Any()) {
-								this.Print(point.xi, Height - point.yi, tiles.First());
-							}
-						/*
-						for(int x = location.xi; x != (int)(location.xi * scale) + 1; x += location.xi < 0 ? -1 : 1) {
-							for (int y = location.yi; y != (int)(location.yi * scale) + 1; y += location.yi < 0 ? -1 : 1) {
-								if(GetForegroundTile(new XY(x, y), out ColoredGlyph tile)) {
-									visible = tile;
-									goto DrawTile;
-								}
+									var back = world.backdrop.GetTile(camera + (screenCenterOffset + new XY(0.5, 0.5)) * viewScale, camera / viewScale).Clone();
+
+									back.Background = (backVoid.GetTile(screenCenterOffset * Math.Sqrt(viewScale), camera).Background).Blend(back.Background * (float)(1 / viewScale));
+
+									this.SetCellAppearance(xScreen, yScreen, back);   //Reduce parallax on zoom out)
+								} else {
+
+									//var value = (int)(51 * Math.Sqrt(HalfViewWidth * HalfViewWidth + HalfViewHeight * HalfViewHeight) / Math.Sqrt(backX * backX + backY * backY));
+
+									//var value = 51 / (int)Math.Sqrt(1+ Math.Pow(HalfViewWidth - backX, 2) + Math.Pow(HalfViewHeight - backY, 2));
+									//var c = new Color(value, value, value);
+
+									var back = backVoid.GetTile(screenCenterOffset * Math.Sqrt(viewScale), camera).Clone();
+									back.Background = back.Background * 2;
+									this.SetCellAppearance(xScreen, yScreen, back);
+                                }
 							}
 						}
-						goto Done;
-						DrawTile:
-						*/
-						Done:
-
-							i++;
-							active = i < n;
-						} else {
-							goto EndDraw;
-                        }
 					}
-					direction = new XY(direction.y, -direction.x);
-				}
-				interval++;
+				} else {
+					for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
+						for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
+							XY location = camera + new XY(x, y);
 
-				if (active) {
-					goto StartDraw;
+							var xScreen = x + HalfViewWidth;
+							var yScreen = ViewHeight - (y + HalfViewHeight);
+							this.SetCellAppearance(xScreen, yScreen, GetTile(location));
+						}
+					}
 				}
-
-			EndDraw:
-				int a;
+				
 			}
 
 			if(player.GetTarget(out SpaceObject target)) {
@@ -246,7 +204,13 @@ namespace TranscendenceRL {
 					s = Line.Single
 				}], Color.White, Color.Transparent));
 				screenPos.x++;
-				this.Print(screenPos.xi, Height - screenPos.yi, target.Name);
+
+
+				foreach(var cc in target.Name) {
+					this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(cc, Color.White, Color.Transparent));
+					screenPos.xi++;
+				}
+				
 				/*
 				Helper.CalcFireAngle(target.Position - player.Position, target.Velocity - player.Velocity, player.GetPrimary().desc.missileSpeed, out double timeToHit);
 
@@ -529,7 +493,6 @@ namespace TranscendenceRL {
 			}
 			if(info.IsKeyPressed(Escape)) {
 				Hide();
-				parent.Hide();
 				new TitleConsole(Width, Height).Show(true);
 			}
 			if(info.IsKeyPressed(S)) {
@@ -548,6 +511,18 @@ namespace TranscendenceRL {
 				player.ClearTarget();
 				//Note: Show a label on the target after select
 			}
+			if(info.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.OemMinus)) {
+				viewScale += Math.Min(viewScale / (2 * 30), 1);
+				if(viewScale < 1) {
+					viewScale = 1;
+                }
+            }
+			if(info.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.OemPlus)) {
+				viewScale -= Math.Min(viewScale / (2 * 30), 1);
+				if(viewScale < 1) {
+					viewScale = 1;
+                }
+            }
 			if (info.IsKeyPressed(D)) {
 				if(player.docking != null) {
 					if(player.docking.docked) {
