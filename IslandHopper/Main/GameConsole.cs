@@ -43,8 +43,8 @@ namespace IslandHopper {
             int height = 30;
             World = new Island() {
                 karma = new Random(0),
-                entities = new SetDict<Entity, (int, int, int)>(e => e.Position),
-                effects = new SetDict<Effect, (int, int, int)>(e => e.Position),
+                entities = new LocatorDict<Entity, (int, int, int)>(e => e.Position),
+                effects = new LocatorDict<Effect, (int, int, int)>(e => e.Position),
                 voxels = new ArraySpace<Voxel>(size, size, height, new Air()),
                 camera = new XYZ(0, 0, 0),
                 types = new TypeCollection(XElement.Parse(Properties.Resources.Items))

@@ -66,7 +66,7 @@ namespace TranscendenceRL {
             }
             */
 
-            World.types.Load(Directory.GetFiles("Content", "*.xml"));
+            World.types.Load(Directory.GetFiles("Content", "Main.xml"));
 
         }
         private void StartGame() {

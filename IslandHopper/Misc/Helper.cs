@@ -15,6 +15,21 @@ namespace Common {
 	public static class Helper {
 		public static T GetRandom<T>(this IEnumerable<T> e, Random r) => e.ElementAt(r.Next(e.Count()));
 		public static T GetRandomOrDefault<T>(this IEnumerable<T> e, Random r) => e.Any() ? e.ElementAt(r.Next(e.Count())) : default(T);
+		public static SetDict<(int, int), T> Downsample<T>(this Dictionary<(int, int), T> from, double scale) {
+			var result = new SetDict<(int, int), T>();
+			foreach ((int x, int y) p in from.Keys) {
+				result.Add(((int)(p.x / scale), (int)(p.y / scale)), from[p]);
+			}
+			return result;
+		}
+		public static double step(double from, double to) {
+			double difference = to - from;
+			if(Math.Abs(difference) > 1) {
+				return Math.Sign(difference);
+            } else {
+				return difference;
+            }
+        }
 		public static bool CalcAim(XYZ difference, double speed, out double lower, out double higher) {
 			double horizontal = difference.xy.Magnitude;
 			double vertical = difference.z;

@@ -1,0 +1,18 @@
+﻿<Module>
+	<ItemType	codename=	"it"
+				name=		"Amethyst laser cannon"
+				level=		"1"
+				mass=		"1000"
+		>
+		<Weapon
+			powerUse=		"10"
+			fireCooldown=	"20"
+			missileSpeed=	"100"
+			damageType=		"1"
+			damageHP=		"6"
+			lifetime=		"90"
+			char=			"."
+			foreground=		"Magenta"
+			/>
+	</ItemType>
+</Module>

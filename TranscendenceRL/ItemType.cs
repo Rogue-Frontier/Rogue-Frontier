@@ -31,6 +31,9 @@ namespace TranscendenceRL {
             if (e.HasElement("Shield", out var xmlShield)) {
                 shield = new ShieldDesc(xmlShield);
             }
+            if(e.HasElement("Reactor", out var xmlReactor)) {
+                reactor = new ReactorDesc(xmlReactor);
+            }
         }
     }
     public class ArmorDesc {
@@ -52,13 +55,13 @@ namespace TranscendenceRL {
 
         public CapacitorDesc capacitor;
         public WeaponDesc(XElement e) {
-            powerUse = e.ExpectAttributeInt("powerUse");
-            fireCooldown = e.ExpectAttributeInt("fireCooldown");
-            missileSpeed = e.ExpectAttributeInt("missileSpeed");
-            damageType = e.ExpectAttributeInt("damageType");
-            damageHP = e.ExpectAttributeInt("damageHP");
-            lifetime = e.ExpectAttributeInt("lifetime");
-            omnidirectional = e.TryAttributeBool("omnidirectional", false);
+            powerUse = e.ExpectAttributeInt(nameof(powerUse));
+            fireCooldown = e.ExpectAttributeInt(nameof(fireCooldown));
+            missileSpeed = e.ExpectAttributeInt(nameof(missileSpeed));
+            damageType = e.ExpectAttributeInt(nameof(damageType));
+            damageHP = e.ExpectAttributeInt(nameof(damageHP));
+            lifetime = e.ExpectAttributeInt(nameof(lifetime));
+            omnidirectional = e.TryAttributeBool(nameof(omnidirectional), false);
 
             effect = new StaticTile(e);
             if(e.HasElement("Capacitor", out var xmlCapacitor)) {
@@ -75,12 +78,12 @@ namespace TranscendenceRL {
         public double bonusLifetimePerCharge;
 
         public CapacitorDesc(XElement e) {
-            dischargePerShot = e.ExpectAttributeDouble("dischargePerShot");
-            chargePerTick = e.ExpectAttributeDouble("chargePerTick");
-            maxCharge = e.ExpectAttributeDouble("maxCharge");
-            bonusSpeedPerCharge = e.ExpectAttributeDouble("bonusSpeedPerCharge");
-            bonusDamagePerCharge = e.ExpectAttributeDouble("bonusDamagePerCharge");
-            bonusLifetimePerCharge = e.ExpectAttributeDouble("bonusLifetimePerCharge");
+            dischargePerShot = e.ExpectAttributeDouble(nameof(dischargePerShot));
+            chargePerTick = e.ExpectAttributeDouble(nameof(chargePerTick));
+            maxCharge = e.ExpectAttributeDouble(nameof(maxCharge));
+            bonusSpeedPerCharge = e.ExpectAttributeDouble(nameof(bonusSpeedPerCharge));
+            bonusDamagePerCharge = e.ExpectAttributeDouble(nameof(bonusDamagePerCharge));
+            bonusLifetimePerCharge = e.ExpectAttributeDouble(nameof(bonusLifetimePerCharge));
         }
     }
     public class ShieldDesc {
@@ -88,9 +91,9 @@ namespace TranscendenceRL {
         public int depletionDelay;
         public double hpPerSecond;
         public ShieldDesc(XElement e) {
-            maxHP = e.ExpectAttributeInt("maxHP");
-            depletionDelay = e.ExpectAttributeInt("depletionDelay");
-            hpPerSecond = e.ExpectAttributeDouble("hpPerSecond");
+            maxHP = e.ExpectAttributeInt(nameof(maxHP));
+            depletionDelay = e.ExpectAttributeInt(nameof(depletionDelay));
+            hpPerSecond = e.ExpectAttributeDouble(nameof(hpPerSecond));
         }
     }
     public class ReactorDesc {
@@ -98,5 +101,12 @@ namespace TranscendenceRL {
         public int capacity;
         public double efficiency;
         public bool battery;        //If true, then we recharge using power from other reactors when available
+
+        public ReactorDesc(XElement e) {
+            maxOutput = e.ExpectAttributeInt(nameof(maxOutput));
+            capacity = e.ExpectAttributeInt(nameof(capacity));
+            efficiency = e.ExpectAttributeDouble(nameof(efficiency));
+            battery = e.ExpectAttributeBool(nameof(battery));
+        }
     }
 }

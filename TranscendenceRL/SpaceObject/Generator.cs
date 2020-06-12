@@ -129,6 +129,12 @@ namespace TranscendenceRL {
 					case "Weapon":
 						generators.Add(new WeaponEntry(element));
 						break;
+					case "Shields":
+						generators.Add(new ShieldsEntry(element));
+						break;
+					case "Reactor":
+						generators.Add(new ReactorEntry(element));
+						break;
 					default:
 						throw new Exception($"Unknown <Devices> subelement {element.Name}");
 				}
@@ -140,6 +146,55 @@ namespace TranscendenceRL {
 			return result;
 		}
 	}
+
+	class ReactorEntry : DeviceGenerator {
+		public string codename;
+		public ReactorEntry(XElement e) {
+			this.codename = e.ExpectAttribute("codename");
+		}
+		List<Device> DeviceGenerator.Generate(TypeCollection tc) {
+			var type = tc.Lookup<ItemType>(codename);
+			var item = new Item(type);
+			if (item.InstallReactor() != null) {
+				return new List<Device> { item.reactor };
+			} else {
+				throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
+			}
+		}
+		//In case we want to make sure immediately that the type is valid
+		public void ValidateEager(TypeCollection tc) {
+			var type = tc.Lookup<ItemType>(codename);
+			var item = new Item(type);
+			if (item.InstallReactor() == null) {
+				throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
+			}
+		}
+	}
+
+	class ShieldsEntry : DeviceGenerator {
+		public string codename;
+		public ShieldsEntry(XElement e) {
+			this.codename = e.ExpectAttribute("codename");
+		}
+		List<Device> DeviceGenerator.Generate(TypeCollection tc) {
+			var type = tc.Lookup<ItemType>(codename);
+			var item = new Item(type);
+			if (item.InstallShields() != null) {
+				return new List<Device> { item.shields };
+			} else {
+				throw new Exception($"Expected <ItemType> type with <Shields> desc: {codename}");
+			}
+		}
+		//In case we want to make sure immediately that the type is valid
+		public void ValidateEager(TypeCollection tc) {
+			var type = tc.Lookup<ItemType>(codename);
+			var item = new Item(type);
+			if (item.InstallReactor() == null) {
+				throw new Exception($"Expected <ItemType> type with <Shields> desc: {codename}");
+			}
+		}
+	}
+
 	public interface WeaponGenerator {
 		List<Weapon> Generate(TypeCollection tc);
 	}

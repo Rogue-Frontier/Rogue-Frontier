@@ -336,12 +336,12 @@ namespace Common {
 		public bool InBounds(XYZ p) => p.xi > -1 && p.xi < Width && p.yi > -1 && p.yi < Height && p.zi > -1 && p.zi < Depth;
 	}
 
-    public class SetDict<T, U> {
+    public class LocatorDict<T, U> {
         public HashSet<T> all;
         public Dictionary<U, HashSet<T>> space { get; private set; }
         private Func<T, U> locator;
         public HashSet<T> this[U u] => space.TryGetValue(u, out var value) ? value : new HashSet<T>();
-        public SetDict(Func<T, U> locator) {
+        public LocatorDict(Func<T, U> locator) {
             all = new HashSet<T>();
             space = new Dictionary<U, HashSet<T>>();
             this.locator = locator;
@@ -383,4 +383,39 @@ namespace Common {
             }
         }
     }
+
+	public class SetDict<U, T> {
+		HashSet<T> all;
+		public Dictionary<U, HashSet<T>> space { get; private set; }
+		public HashSet<T> this[U u] => space.TryGetValue(u, out var value) ? value : new HashSet<T>();
+		public SetDict() {
+			all = new HashSet<T>();
+			space = new Dictionary<U, HashSet<T>>();
+		}
+		public void Clear() {
+			all.Clear();
+			space.Clear();
+		}
+		public bool Contains(T t) => all.Contains(t);
+		public HashSet<T> GetAll(Predicate<U> keySelector) {
+			HashSet<T> result = new HashSet<T>();
+			foreach (var pair in space) {
+				if (keySelector(pair.Key)) {
+					result.UnionWith(pair.Value);
+				}
+			}
+			return result;
+		}
+		public void Add(U u, T t) {
+			Initialize(u);
+			this[u].Add(t);
+			all.Add(t);
+		}
+		private void Initialize(U u) {
+			if (!space.ContainsKey(u)) {
+				space[u] = new HashSet<T>();
+			}
+		}
+	}
+
 }

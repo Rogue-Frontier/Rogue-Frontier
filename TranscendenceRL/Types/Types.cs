@@ -47,7 +47,7 @@ namespace TranscendenceRL {
 			//We do two passes
 			//The first pass creates DesignType references for each type and stores the source code
 			foreach(var m in modules) {
-				ProcessRoot(m);
+				ProcessRoot("", m);
 			}
 			
 			//The second pass initializes each type from the source code
@@ -65,7 +65,7 @@ namespace TranscendenceRL {
 		}
 		public void Load(params string[] modules) {
 			foreach (var m in modules) {
-				ProcessRoot(XElement.Parse(File.ReadAllText(m)));
+				ProcessRoot(m, XElement.Parse(File.ReadAllText(m)));
 			}
 			if(state == InitState.Uninitialized) {
 				//We do two passes
@@ -75,16 +75,17 @@ namespace TranscendenceRL {
 				Initialize();
 			}
 		}
-		void ProcessRoot(XElement root) {
+		void ProcessRoot(string file, XElement root) {
 			foreach (var element in root.Elements()) {
-				ProcessElement(element);
+				ProcessElement(file, element);
 			}
 		}
-		public void ProcessElement(XElement element) {
+		public void ProcessElement(string file, XElement element) {
 			switch (element.Name.LocalName) {
 				case "Module":
-					XElement module = XDocument.Load(element.ExpectAttribute("file")).Root.ExpectElement("Module");
-					ProcessRoot(module);
+					var subfile = Path.Combine(Directory.GetParent(file).FullName, element.ExpectAttribute("file"));
+					XElement module = XDocument.Load(subfile).Root;
+					ProcessRoot(file, module);
 					break;
                 case "Source":
                     AddSource(element);

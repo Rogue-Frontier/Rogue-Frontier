@@ -76,6 +76,8 @@ namespace TranscendenceRL {
 		public World world;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		public PlayerShip player;
+
+		bool showLargeMap = false;
 		public PlayerMain(Window parent, int Width, int Height, World World, ShipClass playerClass) : base(Width, Height) {
 			this.parent = parent;
 			camera = new XY();
@@ -157,10 +159,67 @@ namespace TranscendenceRL {
 		public override void Draw(TimeSpan drawTime) {
 			var messageY = Height * 3 / 5;
 			Clear();
-			XY screen = new XY(Width, Height);
+			XY screenSize = new XY(Width, Height);
+			XY screenCenter = screenSize/2;
+
+			if(showLargeMap) {
+				int n = (int)Math.Pow(Math.Min(Width, Height) / 2, 2);
+
+				double scale = 2;
+				var downscaled = tiles.Downsample(scale);
+
+
+				XY direction = new XY(0, 1);
+				XY point = screenCenter;
+				int i = 0;
+				int interval = 1;
+
+				//Draw system map with spiral animation
+				bool active = i < n;
+				StartDraw:
+				for (int j = 0; j < 2; j++) {
+					for (int k = 0; k < interval; k++) {
+						if (active) {
+							point += direction;
+							var offset = point - screenCenter;
+							var tiles = downscaled[camera / scale + offset];
+							if(tiles.Any()) {
+								this.Print(point.xi, Height - point.yi, tiles.First());
+							}
+						/*
+						for(int x = location.xi; x != (int)(location.xi * scale) + 1; x += location.xi < 0 ? -1 : 1) {
+							for (int y = location.yi; y != (int)(location.yi * scale) + 1; y += location.yi < 0 ? -1 : 1) {
+								if(GetForegroundTile(new XY(x, y), out ColoredGlyph tile)) {
+									visible = tile;
+									goto DrawTile;
+								}
+							}
+						}
+						goto Done;
+						DrawTile:
+						*/
+						Done:
+
+							i++;
+							active = i < n;
+						} else {
+							goto EndDraw;
+                        }
+					}
+					direction = new XY(direction.y, -direction.x);
+				}
+				interval++;
+
+				if (active) {
+					goto StartDraw;
+				}
+
+			EndDraw:
+				int a;
+			}
 
 			if(player.GetTarget(out SpaceObject target)) {
-				var screenPos = (target.Position - player.Position) + screen / 2;
+				var screenPos = (target.Position - player.Position) + screenSize / 2;
 				screenPos = screenPos.RoundDown;
 				screenPos.y += 1;
 				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
@@ -209,7 +268,7 @@ namespace TranscendenceRL {
 				if(message is Transmission t) {
 					//Draw a line from message to source
 
-					var screenCenterOffset = new XY(Width * 3 / 4, Height - messageY) - new XY(Width/2, Height/2);
+					var screenCenterOffset = new XY(Width * 3 / 4, Height - messageY) - screenCenter;
 					var messagePos = camera + screenCenterOffset;
 
 					var sourcePos = t.source.Position.RoundDown;
@@ -253,7 +312,7 @@ namespace TranscendenceRL {
 					bool truncateX = Math.Abs(offset.x) > Width / 2 - 3;
 					bool truncateY = Math.Abs(offset.y) > Height / 2 - 3;
 					if (truncateX || truncateY) {
-						var sourcePosEdge = Helper.GetBoundaryPoint(screen, offset.Angle) - screen/2 + camera;
+						var sourcePosEdge = Helper.GetBoundaryPoint(screenSize, offset.Angle) - screenSize/2 + camera;
 						offset = sourcePosEdge - player.Position;
 						if (truncateX) { offset.x -= Math.Sign(offset.x) * (i+2); }
 						if (truncateY) { offset.y -= Math.Sign(offset.y) * (i+2); }
@@ -312,25 +371,6 @@ namespace TranscendenceRL {
 				}
 				messageY++;
 			}
-
-			var mapWidth = 24;
-			var mapHeight = 24;
-			var range = 128;
-			var mapScale = (range / (mapWidth / 2));
-
-			var mapX = Width - mapWidth;
-			var mapY = 0;
-			var mapCenterX = mapX + mapWidth / 2;
-			var mapCenterY = mapY + mapHeight / 2;
-
-			var nearby = world.entities.GetAll(((int, int) p) => (player.Position - p).MaxCoord < range).OfType<SpaceObject>();
-			foreach(var entity in nearby) {
-				var offset = (entity.Position - player.Position) / mapScale;
-				var tile = entity.Tile;
-				var foreground = tile.Foreground.WithValues(alpha:229);
-				Print(mapCenterX + offset.xi, mapCenterY - offset.yi, $"{tile.GlyphCharacter}", foreground, Color.Transparent);
-			}
-
 			{
 				int x = 3;
 				int y = 3;
@@ -382,47 +422,84 @@ namespace TranscendenceRL {
                 }
 			}
 
-			var rect = new XY(Width, Height);
 			var halfWidth = Width / 2;
 			var halfHeight = Height / 2;
-			foreach(var entity in nearby) {
+
+
+			var range = 128;
+			var nearby = world.entities.GetAll(((int, int) p) => (player.Position - p).MaxCoord < range);
+			foreach (var entity in nearby) {
 				var offset = (entity.Position - player.Position);
 				if (Math.Abs(offset.x) > halfWidth || Math.Abs(offset.y) > halfHeight) {
 
-					(int x, int y) = Helper.GetBoundaryPoint(rect, offset.Angle);
+					(int x, int y) = Helper.GetBoundaryPoint(screenSize, offset.Angle);
 
 					Color c = Color.Transparent;
-					switch(player.Sovereign.GetDisposition(entity)) {
-						case Disposition.Enemy:
-							c = Color.Red;
-							break;
-						case Disposition.Neutral:
-							c = Color.Gray;
-							break;
-						case Disposition.Friend:
-							c = Color.Green;
-							break;
-					}
-					if(y == 0) {
+					if(entity is SpaceObject so) {
+						switch (player.Sovereign.GetDisposition(so)) {
+							case Disposition.Enemy:
+								c = new Color(255, 51, 51);
+								break;
+							case Disposition.Neutral:
+								c = new Color(204, 102, 51);
+								break;
+							case Disposition.Friend:
+								c = new Color(51, 255, 51);
+								break;
+						}
+					} else if(entity is Projectile) {
+						//Draw projectiles as yellow
+						c = new Color(204, 204, 51);
+                    }
+					if (y == 0) {
 						y = 1;
 					}
 					Print(x, Height - y, "#", c, Color.Transparent);
+
 				}
 			}
 
-			for(int x = mapX; x < mapX + mapWidth; x++) {
-				for(int y = mapY; y < mapY + mapHeight; y++) {
-					if(GetGlyph(x, y) == 0) {
-						Print(x, y, "=", new Color(255, 255, 255, 204), Color.Transparent);
+			var mapWidth = 24;
+			var mapHeight = 24;
+			var mapScale = (range / (mapWidth / 2));
+
+			var mapX = Width - mapWidth;
+			var mapY = 0;
+			var mapCenterX = mapX + mapWidth / 2;
+			var mapCenterY = mapY + mapHeight / 2;
+
+			var mapSample = tiles.Downsample(mapScale);
+			for (int x = -mapWidth/2; x < mapWidth/2; x++) {
+				for(int y = -mapHeight/2; y < mapHeight/2; y++) {
+					var tiles = mapSample[((x + player.Position.xi / mapScale), (y + player.Position.yi / mapScale))];
+					if (tiles.Any()) {
+						Print(mapCenterX + x, mapCenterY - y, tiles.First());
+					} else {
+						Print(mapCenterX + x, mapCenterY - y, "=", new Color(255, 255, 255, 204), Color.Transparent);
 					}
 				}
 			}
 
 			base.Draw(drawTime);
 		}
+		public bool GetForegroundTile(XY xy, out ColoredGlyph result) {
+			if (tiles.TryGetValue(xy, out result)) {
+				result = result.Clone();	//Don't modify the source
+				var back = GetBackTile(xy);
+				if (result.Background == Color.Transparent) {
+					result.Background = back.Background;
+				}
+				return true;
+			} else {
+				result = null;
+				return false;
+				//return GetBackTile(xy);
+			}
+		}
 		public ColoredGlyph GetTile(XY xy) {
 			var back = GetBackTile(xy);
 			if (tiles.TryGetValue(xy, out ColoredGlyph g)) {
+				g = g.Clone();			//Don't modify the source
 				if(g.Background == Color.Transparent) {
 					g.Background = back.Background;
 				}
