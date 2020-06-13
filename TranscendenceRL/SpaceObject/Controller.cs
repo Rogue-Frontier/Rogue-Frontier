@@ -10,17 +10,15 @@ using static TranscendenceRL.SSpaceObject;
 namespace TranscendenceRL {
     public interface Order {
         bool Active { get; }
-        void Update();
+        void Update(AIShip owner);
     }
     public class GuardOrder : Order {
-        public Ship owner;
         public SpaceObject guard;
         public SpaceObject target;
-        public GuardOrder(Ship owner, SpaceObject guard) {
-            this.owner = owner;
+        public GuardOrder(SpaceObject guard) {
             this.guard = guard;
         }
-        public void Update() {
+        public void Update(AIShip owner) {
             
 
             //Otherwise find enemy to attack
@@ -31,25 +29,22 @@ namespace TranscendenceRL {
 
             if (target != null) {
                 //Attack now
-                new AttackOrder(owner, target).Update();
+                new AttackOrder(target).Update(owner);
             } else {
                 if((owner.Position - guard.Position).Magnitude < 6) {
                     //If no enemy in range of station, dock at station
-                    new Docking(owner, guard).Update();
+
+                    owner.docking = new Docking(guard);
                 } else {
-                    new ApproachOrder(owner, guard).Update();
+                    new ApproachOrder(guard).Update(owner);
                 }
             }
         }
         public bool Active => guard.Active;
     }
     public class AttackAllOrder : Order {
-        public Ship owner;
         public SpaceObject target;
-        public AttackAllOrder(Ship owner) {
-            this.owner = owner;
-        }
-        public void Update() {
+        public void Update(AIShip owner) {
             if(!(target?.Active ?? false)) {
                 var weapon = owner.Devices.Weapons.FirstOrDefault();
                 if(weapon == null) {
@@ -57,34 +52,35 @@ namespace TranscendenceRL {
                 }
                 target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.range).OfType<SpaceObject>().Where(so => owner.IsEnemy(so)).GetRandomOrDefault(owner.destiny);
             } else {
-                new AttackOrder(owner, target).Update();
+                new AttackOrder(target).Update(owner);
             }
         }
         public bool Active => true;
     }
-    public class AttackOrder {
-        public Ship owner;
+    public class AttackOrder : Order {
         public SpaceObject target;
         private Weapon weapon;
-        public AttackOrder(Ship owner, SpaceObject target) {
-            this.owner = owner;
+        public AttackOrder(SpaceObject target) {
             this.target = target;
-            this.weapon = owner.Devices.Weapons.FirstOrDefault();
         }
-        public void Update() {
+        public void Update(AIShip owner) {
             if (weapon == null) {
                 weapon = owner.Devices.Weapons.FirstOrDefault();
                 if(weapon == null) {
                     return;
                 }
             }
+
+            //Remove dock
+            owner.docking = null;
+
             var offset = (target.Position - owner.Position);
             var dist = offset.Magnitude;
             if(dist < 10) {
                 //If we are too close, then move away
 
                 //Face away from the target
-                new FaceOrder(owner, offset.Angle + Math.PI).Update();
+                new FaceOrder(offset.Angle + Math.PI).Update(owner);
 
                 //Get moving!
                 owner.SetThrusting(true);
@@ -92,24 +88,24 @@ namespace TranscendenceRL {
                 //If we are in range, then aim and fire
 
                 //Aim at the target
-                var aim = new AimOrder(owner, target, weapon.desc.missileSpeed);
-                aim.Update();
+                var aim = new AimOrder(target, weapon.desc.missileSpeed);
+                aim.Update(owner);
 
-                if(Math.Abs(aim.angleDiff) < 10 && (owner.Velocity - target.Velocity).Magnitude < 5) {
+                if(Math.Abs(aim.GetAngleDiff(owner)) < 10 && (owner.Velocity - target.Velocity).Magnitude < 5) {
                     owner.SetThrusting(true);
                 }
                 //Fire if we are close enough
-                if (weapon.desc.omnidirectional || Math.Abs(aim.angleDiff) < 30) {
+                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
                     weapon.SetFiring(true, target);
                 }
             } else {
                 //Otherwise, get closer
 
-                new ApproachOrder(owner, target).Update();
+                new ApproachOrder(target).Update(owner);
 
-                var aim = new AimOrder(owner, target, weapon.desc.missileSpeed);
+                var aim = new AimOrder(target, weapon.desc.missileSpeed);
                 //Fire if we are close enough
-                if (weapon.desc.omnidirectional || Math.Abs(aim.angleDiff) < 30) {
+                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
                     weapon.SetFiring(true, target);
                 }
 
@@ -118,13 +114,14 @@ namespace TranscendenceRL {
         public bool Active => target.Active && weapon != null;
     }
     public class ApproachOrder : Order {
-        Ship owner;
         SpaceObject target;
-        public ApproachOrder(Ship owner, SpaceObject target) {
-            this.owner = owner;
+        public ApproachOrder(SpaceObject target) {
             this.target = target;
         }
-        public void Update() {
+        public void Update(AIShip owner) {
+            //Remove dock
+            owner.docking = null;
+
             //Find the direction we need to go
             var offset = (target.Position - owner.Position);
 
@@ -135,15 +132,15 @@ namespace TranscendenceRL {
             var speedTowards = (owner.Velocity - target.Velocity).Dot(offset.Normal);
             if (speedTowards < -1) {
                 //Decelerate
-                var Face = new FaceOrder(owner, Math.PI + owner.Velocity.Angle);
-                Face.Update();
+                var Face = new FaceOrder(Math.PI + owner.Velocity.Angle);
+                Face.Update(owner);
                 owner.SetThrusting(true);
             } else {
                 //Approach
 
                 //Face the target
-                var Face = new FaceOrder(owner, offset.Angle);
-                Face.Update();
+                var Face = new FaceOrder(offset.Angle);
+                Face.Update(owner);
                 if (Math.Abs(Helper.AngleDiff(owner.rotationDegrees, offset.Angle * 180 / Math.PI)) < 10 && speedTowards < 10) {
 
                     //Go
@@ -155,29 +152,29 @@ namespace TranscendenceRL {
     }
     public class AimOnceOrder : Order {
         public AimOrder order;
-        public AimOnceOrder(Ship owner, Ship target, double missileSpeed) {
-            this.order = new AimOrder(owner, target, missileSpeed);
+        public AimOnceOrder(BaseShip owner, BaseShip target, double missileSpeed) {
+            this.order = new AimOrder(target, missileSpeed);
+            Active = true;
         }
-        public void Update() {
-            order.Update();
+        public void Update(AIShip owner) {
+            order.Update(owner);
+            Active = Math.Abs(order.GetAngleDiff(owner)) > 1;
         }
 
-        public bool Active => Math.Abs(order.angleDiff) > 1;
+        public bool Active { get; private set; }
     }
     public class AimOrder : Order {
-        public Ship owner;
         public SpaceObject target;
         public double missileSpeed;
-        public double targetRads => Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
-        public double angleDiff => Helper.AngleDiff(owner.rotationDegrees, targetRads * 180 / Math.PI);
-        public AimOrder(Ship owner, SpaceObject target, double missileSpeed) {
-            this.owner = owner;
+        public double GetTargetRads(AIShip owner) => Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
+        public double GetAngleDiff(AIShip owner) => Helper.AngleDiff(owner.rotationDegrees, GetTargetRads(owner) * 180 / Math.PI);
+        public AimOrder(SpaceObject target, double missileSpeed) {
             this.target = target;
             this.missileSpeed = missileSpeed;
         }
         public bool Active => true;
-        public void Update() {
-            var targetRads = this.targetRads;
+        public void Update(AIShip owner) {
+            var targetRads = this.GetTargetRads(owner);
             var facingRads = owner.stoppingRotation * Math.PI / 180;
 
             var ccw = (XY.Polar(facingRads + 1 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;
@@ -190,13 +187,11 @@ namespace TranscendenceRL {
         }
     }
     public class FaceOrder : Order {
-        Ship owner;
         double targetRads;
-        public FaceOrder(Ship owner, double targetRads) {
-            this.owner = owner;
+        public FaceOrder(double targetRads) {
             this.targetRads = targetRads;
         }
-        public void Update() {
+        public void Update(AIShip owner) {
             var facingRads = owner.stoppingRotation * Math.PI / 180;
 
             var ccw = (XY.Polar(facingRads + 1 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;

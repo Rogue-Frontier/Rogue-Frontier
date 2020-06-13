@@ -98,7 +98,7 @@
     <Compile Include="SpaceObject\DamageSystem.cs" />
     <Compile Include="SpaceObject\Marker.cs" />
     <Compile Include="SpaceObject\PowerSystem.cs" />
-    <Compile Include="SpaceObject\Ship.cs" />
+    <Compile Include="SpaceObject\BaseShip.cs" />
     <Compile Include="Screens\ShipScreen.cs" />
     <Compile Include="Screens\ShipSelector.cs" />
     <Compile Include="Sovereign.cs" />

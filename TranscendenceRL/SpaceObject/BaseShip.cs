@@ -19,20 +19,18 @@ namespace TranscendenceRL {
             return owner.CanTarget(target) && owner.Sovereign.IsFriend(target) && !(target is Wreck);
         }
         public static bool CanTarget(this IShip owner, SpaceObject target) {
-
-            { owner = (owner is AIShip s) ? s.Ship : owner; }
-            { owner = (owner is PlayerShip s) ? s.Ship : owner; }
-            { target = (target is AIShip s) ? s.Ship : target; }
-            { target = (target is PlayerShip s) ? s.Ship : target; }
-
             return owner != target;
         }
     }
     public interface IShip : SpaceObject {
+        XY Position { get; set; }
+        XY Velocity { get; set; }
+        DeviceSystem Devices { get; }
         ShipClass ShipClass { get; }
         double rotationDegrees { get; }
+        Docking docking { get; set; }
     }
-    public class Ship : IShip {
+    public class BaseShip : SpaceObject {
         public string Name => ShipClass.name;
         public World World { get; private set; }
         public ShipClass ShipClass { get; private set; }
@@ -56,7 +54,7 @@ namespace TranscendenceRL {
         public Rotating rotating;
         public double rotatingVel;
         public bool decelerating;
-        public Ship(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
+        public BaseShip(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.World = world;
             this.ShipClass = shipClass;
 
@@ -80,20 +78,17 @@ namespace TranscendenceRL {
             this.rotating = rotating;
         }
         public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
-
         public void Damage(SpaceObject source, int hp) => DamageSystem.Damage(source, hp);
-
         public void Destroy(SpaceObject source) {
             var wreck = new Wreck(this);
             wreck.Items.UnionWith(Items);
             World.AddEntity(wreck);
             Active = false;
         }
-
         public void Update() {
             UpdateControls();
             UpdateMotion();
-            Devices.Update(this);
+            //Devices.Update(this);
         }
         public void UpdateControls() {
             if (thrusting) {
@@ -159,25 +154,26 @@ namespace TranscendenceRL {
         public ColoredGlyph Tile => ShipClass.tile.Glyph;
     }
     public class AIShip : IShip {
-
         public static int ID = 0;
         public int Id = ID++;
         public string Name => Ship.Name;
         public World World => Ship.World;
         public ShipClass ShipClass => Ship.ShipClass;
         public Sovereign Sovereign => Ship.Sovereign;
-        public XY Position => Ship.Position;
-        public XY Velocity => Ship.Velocity;
+        public XY Position { get => Ship.Position; set => Ship.Position = value; }
+        public XY Velocity { get => Ship.Velocity; set => Ship.Velocity = value; }
         public double rotationDegrees => Ship.rotationDegrees;
         public DeviceSystem Devices => Ship.Devices;
 
         public DamageSystem DamageSystem => Ship.DamageSystem;
 
-        public Ship Ship;
+        public BaseShip Ship;
         public Order controller;
-        public Docking docking;
+        public Docking docking { get; set; }
+        public Random destiny => Ship.destiny;
+        public double stoppingRotation => Ship.stoppingRotation;
 
-        public AIShip(Ship ship, Order controller) {
+        public AIShip(BaseShip ship, Order controller) {
             this.Ship = ship;
             this.controller = controller;
 
@@ -196,9 +192,9 @@ namespace TranscendenceRL {
         }
         public void Update() {
 
-            controller.Update();
+            controller.Update(this);
 
-            docking?.Update();
+            docking?.Update(this);
 
             Ship.UpdateControls();
             Ship.UpdateMotion();
@@ -215,8 +211,8 @@ namespace TranscendenceRL {
         public World World => Ship.World;
         public ShipClass ShipClass => Ship.ShipClass;
         public Sovereign Sovereign => Ship.Sovereign;
-        public XY Position => Ship.Position;
-        public XY Velocity => Ship.Velocity;
+        public XY Position { get => Ship.Position; set => Ship.Position = value; }
+        public XY Velocity { get => Ship.Velocity; set => Ship.Velocity = value; }
         public double rotationDegrees => Ship.rotationDegrees;
         public HashSet<Item> Items => Ship.Items;
 
@@ -226,11 +222,10 @@ namespace TranscendenceRL {
 
         public bool firingPrimary = false;
         private int selectedPrimary = 0;
-
-        public Ship Ship;
+        public DeviceSystem Devices => Ship.Devices;
+        public BaseShip Ship;
         public PowerSystem power;
-
-        public Docking docking;
+        public Docking docking { get; set; }
 
         public List<IPlayerMessage> messages = new List<IPlayerMessage>();
 
@@ -240,7 +235,7 @@ namespace TranscendenceRL {
 
         public DictCounter<ShipClass> shipsDestroyed = new DictCounter<ShipClass>();
 
-        public PlayerShip(Ship ship) {
+        public PlayerShip(BaseShip ship) {
             this.Ship = ship;
 
             //To do: Don't add anything to world in the constructor
@@ -388,7 +383,7 @@ namespace TranscendenceRL {
                 }
             }
 
-            docking?.Update();
+            docking?.Update(this);
 
             Ship.UpdateControls();
             Ship.UpdateMotion();

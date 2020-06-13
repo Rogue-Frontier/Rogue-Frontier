@@ -81,7 +81,7 @@ namespace TranscendenceRL {
                 var generated = StationType.guards.Generate(World.types, this);
                 foreach(var guard in generated) {
                     //Add the order
-                    var ship = new AIShip(guard, new GuardOrder(guard, this));
+                    var ship = new AIShip(guard, new GuardOrder(this));
 
                     guards.Add(ship);
                     World.AddEntity(ship);

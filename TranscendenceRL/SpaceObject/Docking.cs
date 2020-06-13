@@ -2,26 +2,24 @@
 
 namespace TranscendenceRL {
     public class Docking {
-        public Ship ship;
         public SpaceObject target;
         public bool docked;
-        public Docking(Ship ship, SpaceObject target) {
-            this.ship = ship;
+        public Docking(SpaceObject target) {
             this.target = target;
         }
-        public bool Update() {
+        public bool Update(IShip owner) {
             if(!docked) {
-                docked = UpdateDocking();
+                docked = UpdateDocking(owner);
                 if(docked) {
                     return true;
                 }
             } else {
-                ship.Position = target.Position;
-                ship.Velocity = target.Velocity;
+                owner.Position = target.Position;
+                owner.Velocity = target.Velocity;
             }
             return false;
         }
-        public bool UpdateDocking() {
+        public bool UpdateDocking(IShip ship) {
             double decel = ship.ShipClass.thrust / 2 * TranscendenceRL.TICKS_PER_SECOND;
             double stoppingTime = (ship.Velocity - target.Velocity).Magnitude / decel;
 

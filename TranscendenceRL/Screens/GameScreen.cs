@@ -74,7 +74,7 @@ namespace TranscendenceRL {
 			World.UpdatePresent();
 			var playerStart = world.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
 			var playerSovereign = world.types.Lookup<Sovereign>("svPlayer");
-			player = new PlayerShip(new Ship(world, playerClass, playerSovereign, playerStart));
+			player = new PlayerShip(new BaseShip(world, playerClass, playerSovereign, playerStart));
 			world.AddEntity(player);
 			/*
 			var daughters = new Station(world, world.types.Lookup<StationType>("stDaughtersOutpost"), new XY(5, 5));
@@ -536,7 +536,7 @@ namespace TranscendenceRL {
 					var dest = world.entities.GetAll(p => (player.Position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.Position - player.Position).Magnitude).FirstOrDefault();
 					if(dest != null) {
 						player.AddMessage(new InfoMessage("Docking sequence engaged"));
-						player.docking = new Docking(player.Ship, dest);
+						player.docking = new Docking(dest);
 					}
 					
 				}

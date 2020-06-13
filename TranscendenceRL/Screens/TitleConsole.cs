@@ -67,7 +67,6 @@ namespace TranscendenceRL {
             */
 
             World.types.Load(Directory.GetFiles("Content", "Main.xml"));
-
         }
         private void StartGame() {
             Hide();
@@ -109,8 +108,8 @@ namespace TranscendenceRL {
                 var angle = World.karma.NextDouble() * Math.PI * 2;
                 var distance = World.karma.Next(10, 20);
                 var center = World.entities.all.FirstOrDefault()?.Position ?? new XY(0, 0);
-                var ship = new Ship(World, shipClass, Sovereign.Gladiator, center + XY.Polar(angle, distance));
-                var enemy = new AIShip(ship, new AttackAllOrder(ship));
+                var ship = new BaseShip(World, shipClass, Sovereign.Gladiator, center + XY.Polar(angle, distance));
+                var enemy = new AIShip(ship, new AttackAllOrder());
                 World.entities.all.Add(enemy);
             }
             if(pov == null || povTimer < 1) {
