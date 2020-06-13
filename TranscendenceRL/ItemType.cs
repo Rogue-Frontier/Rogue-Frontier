@@ -105,8 +105,8 @@ namespace TranscendenceRL {
         public ReactorDesc(XElement e) {
             maxOutput = e.ExpectAttributeInt(nameof(maxOutput));
             capacity = e.ExpectAttributeInt(nameof(capacity));
-            efficiency = e.ExpectAttributeDouble(nameof(efficiency));
-            battery = e.ExpectAttributeBool(nameof(battery));
+            efficiency = e.TryAttributeDouble(nameof(efficiency), 1);
+            battery = e.TryAttributeBool(nameof(battery), false);
         }
     }
 }

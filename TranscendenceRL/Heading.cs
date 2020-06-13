@@ -25,7 +25,7 @@ namespace TranscendenceRL {
                 return;
             }
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
-            ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(255, 255, 255, 153), Color.Transparent);
+            ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 153), Color.Transparent);
             XY point = parent.Position.Truncate;
             XY inc = XY.Polar(parent.rotationDegrees * Math.PI / 180, 1);
             int length = 20;

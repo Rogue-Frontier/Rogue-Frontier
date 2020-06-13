@@ -1,18 +1,27 @@
 ﻿<Module>
-	<ItemType	codename=	"it"
-				name=		"Amethyst laser cannon"
+	<ItemType	codename=	"itFoundryReactor"
+				name=		"Foundry-class generator"
 				level=		"1"
 				mass=		"1000"
 		>
-		<Weapon
-			powerUse=		"10"
-			fireCooldown=	"20"
-			missileSpeed=	"100"
-			damageType=		"1"
-			damageHP=		"6"
-			lifetime=		"90"
-			char=			"."
-			foreground=		"Magenta"
+		<Reactor
+			maxOutput=		"40"
+			capacity=		"8000"
+			efficiency=		"1.0"
+			battery=		"false"
+			/>
+	</ItemType>
+
+	<ItemType	codename=	"itFoundryMegacell"
+			name=		"Foundry-class megacell"
+			level=		"1"
+			mass=		"1000"
+		>
+		<Reactor
+			maxOutput=		"15"
+			capacity=		"500"
+			efficiency=		"1.0"
+			battery=		"true"
 			/>
 	</ItemType>
 </Module>

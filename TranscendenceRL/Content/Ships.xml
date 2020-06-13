@@ -4,15 +4,16 @@
                 thrust="0.5"
                 maxSpeed="25"
 
-                rotationAccel="4"
-                rotationDecel="9"
-                rotationMaxSpeed="4"
+                rotationAccel="8"
+                rotationDecel="12"
+                rotationMaxSpeed="10"
 
                 char="A"
                 foreground="Magenta"
     >
 	    <Devices>
 		    <Weapon codename="itAmethystLaser"/>
+			<Reactor codename="itFoundryReactor"/>
         </Devices>
         <LayeredArmorSystem>
 			<Armor  codename="itCrystalsteelPlate"/>
@@ -51,15 +52,16 @@
 				  thrust="1"
 				  maxSpeed="30"
 
-				  rotationAccel="6"
-				  rotationDecel="12"
-				  rotationMaxSpeed="6"
+				  rotationAccel="8"
+				  rotationDecel="15"
+				  rotationMaxSpeed="10"
 
 				  char="B"
 				  foreground="White"
         >
 		<Devices>
 			<Weapon codename="itBeowulfDualCannon"/>
+			<Reactor codename="itFoundryReactor"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="itKnightscalePlate"/>
@@ -98,15 +100,17 @@
                thrust=              "0.3"
 			   maxSpeed=            "20"
 
-			   rotationAccel=       "4"
-			   rotationDecel=       "8"
-			   rotationMaxSpeed=    "4"
+			   rotationAccel=       "6"
+			   rotationDecel=       "12"
+			   rotationMaxSpeed=    "8"
 
                char=                "W"
                foreground=          "Orange"
         >
         <Devices>
 			<Weapon codename="itRifleTurret"/>
+			<Reactor codename="itFoundryReactor"/>
+			<Reactor codename="itFoundryMegacell"/>
 		</Devices>
         <LayeredArmorSystem>
 			<Armor  codename="itBumpersteelPlate"/>

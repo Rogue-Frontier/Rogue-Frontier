@@ -40,7 +40,7 @@ namespace TranscendenceRL {
     public class Weapon : Powered {
         public Item source { get; private set; }
         public WeaponDesc desc;
-        public int powerUse => desc.powerUse;
+        public int powerUse => fireTime > 0 ? desc.powerUse : 0;
         public Capacitor capacitor;
         public SpaceObject target;
         public int fireTime;
@@ -215,7 +215,7 @@ namespace TranscendenceRL {
             energyDelta = 0;
         }
         public void Update(IShip owner) {
-            energy = Math.Max(0, Math.Min(energy + energyDelta, desc.capacity));
+            energy = Math.Max(0, Math.Min(energy + (energyDelta < 0 ? energyDelta / desc.efficiency : energyDelta) / 30, desc.capacity));
         }
     }
 }
