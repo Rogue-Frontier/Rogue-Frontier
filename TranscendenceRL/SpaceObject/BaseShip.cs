@@ -50,6 +50,14 @@ namespace TranscendenceRL {
                 return rotationDegrees + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
         }}
 
+        public double stoppingRotationWithCounterTurn {
+            get {
+                var stoppingRate = ShipClass.rotationDecel + ShipClass.rotationAccel;
+                var stoppingTime = Math.Abs(TranscendenceRL.TICKS_PER_SECOND * rotatingVel / stoppingRate);
+                return rotationDegrees + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((stoppingRate / TranscendenceRL.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
+            }
+        }
+
         public bool thrusting;
         public Rotating rotating;
         public double rotatingVel;

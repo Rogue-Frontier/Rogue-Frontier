@@ -41,6 +41,12 @@ namespace TranscendenceRL {
         public Item source { get; private set; }
         public WeaponDesc desc;
         public int powerUse => fireTime > 0 ? desc.powerUse : 0;
+        public int missileSpeed { get {
+                int result = desc.missileSpeed;
+                capacitor?.ModifyMissileSpeed(ref result);
+                return result;
+            }}
+        public int currentRange => missileSpeed * desc.lifetime / TranscendenceRL.TICKS_PER_SECOND;
         public Capacitor capacitor;
         public SpaceObject target;
         public int fireTime;
@@ -58,8 +64,9 @@ namespace TranscendenceRL {
 
         public void Update(Station owner) {
             double? targetAngle = null;
-            if (target?.Active != true) {
-                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.range).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));
+            if (target?.Active != true || (target.Position - owner.Position).Magnitude > desc.minRange) {
+                //minRange is constant and currentRange is variable, so using minRange is more consistent
+                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));
             } else {
                 var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, desc.missileSpeed, out var _);
                 if (desc.omnidirectional) {
@@ -83,7 +90,7 @@ namespace TranscendenceRL {
         public void Update(IShip owner) {
             double? targetAngle = null;
             if(target?.Active != true) {
-                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.range).OfType<SpaceObject>().FirstOrDefault(s => SShip.IsEnemy(owner, s));
+                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => SShip.IsEnemy(owner, s));
             } else {
                 var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, desc.missileSpeed, out var _);
                 if(desc.omnidirectional) {
@@ -140,6 +147,9 @@ namespace TranscendenceRL {
                 if(charge > desc.maxCharge) {
                     charge = desc.maxCharge;
                 }
+            }
+            public void ModifyMissileSpeed(ref int missileSpeed) {
+                missileSpeed += (int)(desc.bonusSpeedPerCharge * charge);
             }
             public void Modify(ref int damage, ref int missileSpeed, ref int lifetime) {
                 damage += (int) (desc.bonusDamagePerCharge * charge);

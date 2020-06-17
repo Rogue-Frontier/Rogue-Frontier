@@ -7,7 +7,7 @@
 		<Weapon
 			powerUse=		"10"
 			fireCooldown=	"20"
-			missileSpeed=	"100"
+			missileSpeed=	"300"
 			damageType=		"1"
 			damageHP=		"6"
 			lifetime=		"90"

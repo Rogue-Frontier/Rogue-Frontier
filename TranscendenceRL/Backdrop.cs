@@ -98,10 +98,10 @@ namespace TranscendenceRL {
         }
         public ColoredGlyph GetTile(XY point, XY camera) {
             var apparent = point - camera * (1 - parallaxFactor);
-            return tiles[apparent.RoundDown.xi, apparent.RoundDown.yi];
+            return tiles[apparent.xi, apparent.yi];
         }
         public ColoredGlyph GetTileFixed(XY point) {
-            return tiles[point.RoundDown.xi, point.RoundDown.yi];
+            return tiles[point.xi, point.yi];
         }
     }
 

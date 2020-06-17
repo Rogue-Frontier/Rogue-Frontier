@@ -186,33 +186,22 @@ namespace TranscendenceRL {
             for (int x = titleStart; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
                     var g = GetGlyph(x, y);
+
+                    var offset = new XY(x, y) - new XY(Width / 2, Height / 2);
+                    var location = camera + offset;
                     if (g == 0 || g == ' ') {
                         
-                        var offset = new XY(x, y) - new XY(Width / 2, Height / 2);
-                        var location = camera + offset;
+                        
                         if(tiles.TryGetValue(location, out var tile)) {
                             if(tile.Background == Color.Transparent) {
                                 tile.Background = World.backdrop.GetBackground(location, camera);
                             }
-                            Print(x, y, tile);
+                            this.SetCellAppearance(x, y, tile);
                         } else {
-                            Print(x, y, World.backdrop.GetTile(location, camera));
+                            this.SetCellAppearance(x, y, World.backdrop.GetTile(location, camera));
                         }
-                        
-                        /*
-                        var e = World.entities[location].FirstOrDefault() ?? World.effects[location].FirstOrDefault();
-                        if (e != null) {
-                            var tile = e.Tile;
-                            if(tile.Background == Color.Transparent) {
-                                tile.Background = World.backdrop.GetBackground(location, camera);
-                            }
-                            Print(x, y, tile);
-                        } else {
-                            Print(x, y, World.backdrop.GetTile(new XY(x, y), camera));
-                        }
-                        */
                     } else {
-                        SetBackground(x, y, World.backdrop.GetBackground(new XY(x, y), camera));
+                        SetBackground(x, y, World.backdrop.GetBackground(location, camera));
                     }
                     
                 }

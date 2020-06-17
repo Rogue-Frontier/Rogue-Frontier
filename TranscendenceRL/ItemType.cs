@@ -50,7 +50,7 @@ namespace TranscendenceRL {
         public int damageHP;
         public int lifetime;
         public bool omnidirectional;
-        public int range => missileSpeed * lifetime / TranscendenceRL.TICKS_PER_SECOND;
+        public int minRange => missileSpeed * lifetime / TranscendenceRL.TICKS_PER_SECOND; //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
 
         public CapacitorDesc capacitor;

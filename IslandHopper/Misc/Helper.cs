@@ -18,7 +18,7 @@ namespace Common {
 		public static SetDict<(int, int), T> Downsample<T>(this Dictionary<(int, int), T> from, double scale) {
 			var result = new SetDict<(int, int), T>();
 			foreach ((int x, int y) p in from.Keys) {
-				result.Add(((int)(p.x / scale), (int)(p.y / scale)), from[p]);
+				result.Add(new XY((p.x / scale), (int)(p.y / scale)).RoundDown, from[p]);
 			}
 			return result;
 		}

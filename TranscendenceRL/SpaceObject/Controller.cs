@@ -50,7 +50,8 @@ namespace TranscendenceRL {
                 if(weapon == null) {
                     return;
                 }
-                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.range).OfType<SpaceObject>().Where(so => owner.IsEnemy(so)).GetRandomOrDefault(owner.destiny);
+                //currentRange is variable and minRange is constant, so weapon dynamics may affect attack range
+                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.minRange).OfType<SpaceObject>().Where(so => owner.IsEnemy(so)).GetRandomOrDefault(owner.destiny);
             } else {
                 new AttackOrder(target).Update(owner);
             }
@@ -84,11 +85,11 @@ namespace TranscendenceRL {
 
                 //Get moving!
                 owner.SetThrusting(true);
-            } else if (dist < weapon.desc.range/4) {
+            } else if (dist < weapon.currentRange/2) {
                 //If we are in range, then aim and fire
 
                 //Aim at the target
-                var aim = new AimOrder(target, weapon.desc.missileSpeed);
+                var aim = new AimOrder(target, weapon.missileSpeed);
                 aim.Update(owner);
 
                 if(Math.Abs(aim.GetAngleDiff(owner)) < 10 && (owner.Velocity - target.Velocity).Magnitude < 5) {
@@ -103,7 +104,7 @@ namespace TranscendenceRL {
 
                 new ApproachOrder(target).Update(owner);
 
-                var aim = new AimOrder(target, weapon.desc.missileSpeed);
+                var aim = new AimOrder(target, weapon.missileSpeed);
                 //Fire if we are close enough
                 if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
                     weapon.SetFiring(true, target);
@@ -192,7 +193,7 @@ namespace TranscendenceRL {
             this.targetRads = targetRads;
         }
         public void Update(AIShip owner) {
-            var facingRads = owner.stoppingRotation * Math.PI / 180;
+            var facingRads = owner.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
 
             var ccw = (XY.Polar(facingRads + 1 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;
             var cw = (XY.Polar(facingRads - 1 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;
@@ -200,6 +201,12 @@ namespace TranscendenceRL {
                 owner.SetRotating(Rotating.CCW);
             } else if (cw < ccw) {
                 owner.SetRotating(Rotating.CW);
+            } else {
+                if (owner.Ship.rotatingVel > 0) {
+                    owner.SetRotating(Rotating.CW);
+                } else {
+                    owner.SetRotating(Rotating.CCW);
+                }
             }
         }
         public bool Active => true;
