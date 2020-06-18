@@ -126,8 +126,8 @@
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="SadConsole, Version=8.99.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SadConsole.8.99.0\lib\netstandard2.0\SadConsole.dll</HintPath>
+    <Reference Include="SadConsole, Version=8.99.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SadConsole.8.99.1\lib\netstandard2.0\SadConsole.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
