@@ -13,6 +13,7 @@
     >
 	    <Devices>
 		    <Weapon codename="itAmethystLaser"/>
+			<Weapon codename="itDynamite"/>
 			<Reactor codename="itFoundryReactor"/>
         </Devices>
         <LayeredArmorSystem>
@@ -108,7 +109,7 @@
                foreground=          "Orange"
         >
         <Devices>
-			<Weapon codename="itRifleTurret"/>
+			<Weapon codename="itMusket"/>
 			<Reactor codename="itFoundryReactor"/>
 			<Reactor codename="itFoundryMegacell"/>
 		</Devices>
@@ -165,7 +166,7 @@
 			   foreground=          "Cyan"
         >
 		<Devices>
-			<Weapon codename="itBacksword"/>
+			<Weapon codename="itFlintlock"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="itKnightscalePlate"/>
@@ -189,7 +190,7 @@
 			   foreground=          "LightBlue"
         >
 		<Devices>
-			<Weapon codename="itBacksword"/>
+			<Weapon codename="itFlintlock"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="itKnightscalePlate"/>

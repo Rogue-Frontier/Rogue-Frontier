@@ -33,8 +33,8 @@
 			>
 		</Weapon>
 	</ItemType>
-	<ItemType	codename=	"itRifleTurret"
-				name=		"Rifle turret"
+	<ItemType	codename=	"itMusket"
+				name=		"Musket turret"
 				level=		"2"
 				mass=		"4000"
 		>
@@ -54,8 +54,8 @@
 		</Weapon>
 	</ItemType>
 
-	<ItemType	codename=	"itBacksword"
-				name=		"Backsword mass driver"
+	<ItemType	codename=	"itFlintlock"
+				name=		"Flintlock mass driver"
 				level=		"2"
 				mass=		"4000"
 		>
@@ -127,4 +127,49 @@
 		</Armor>
 	</ItemType>
 
+	<ItemType	codename=	"itDynamite"
+			name=		"Dynamite cannon"
+			level=		"1"
+			mass=		"2000"
+		>
+		<Weapon
+			powerUse=		"10"
+			fireCooldown=	"20"
+			missileSpeed=	"20"
+			damageType=		"1"
+			damageHP=		"5"
+			lifetime=		"90"
+
+			char=			"i"
+			foreground=		"Red"
+			>
+			<Fragment
+			
+				count=			"36"
+
+				spreadAngle=	"360"
+
+				missileSpeed=	"40"
+				damageType=		"1"
+				damageHP=		"5"
+				lifetime=		"6"
+
+				char=			"z"
+				foreground=		"FF7F00FF"
+				/>
+			<Fragment
+				count=			"15"
+
+				spreadAngle=	"360"
+
+				missileSpeed=	"30"
+				damageType=		"1"
+				damageHP=		"5"
+				lifetime=		"60"
+
+				char=			"z"
+				foreground=		"FF0000FF"
+				/>
+		</Weapon>
+	</ItemType>
 </Module>

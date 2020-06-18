@@ -229,7 +229,7 @@ namespace TranscendenceRL {
         public List<SpaceObject> targetList = new List<SpaceObject>();
 
         public bool firingPrimary = false;
-        private int selectedPrimary = 0;
+        public int selectedPrimary = 0;
         public DeviceSystem Devices => Ship.Devices;
         public BaseShip Ship;
         public PowerSystem power;

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using SadConsole;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -193,22 +194,37 @@ namespace TranscendenceRL {
 	public class StaticTile {
 		public ColoredGlyph Glyph { get; private set; }
 		public StaticTile(XElement e) {
-			var c = e.TryAttribute("char", "?")[0];
+			char c;
+			var s = e.TryAttribute("char", "?");
+			if (s.Length == 1) {
+				c = s.First();
+			} else if (s.StartsWith("\\") && int.TryParse(s.Substring(1), out var result)) {
+				c = (char)result;
+            } else {
+				throw new Exception($"Invalid char {s}");
+			}
+
 			Color background;
-			var s = e.TryAttribute("background", "Transparent");
-			try {
+			s = e.TryAttribute("background", "Transparent");
+			if(int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
+				background = new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
+			} else try {
 				background = (Color)typeof(Color).GetProperty(s).GetValue(null, null);
 			} catch {
 				throw new Exception($"Invalid background color {s}");
 			}
 
+
 			Color foreground;
 			s = e.TryAttribute("foreground", "White");
-			try {
+			if (int.TryParse(s, NumberStyles.HexNumber, null, out packed)) {
+				foreground = new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
+			} else try {
 				foreground = (Color)typeof(Color).GetProperty(s).GetValue(null, null);
 			} catch {
 				throw new Exception($"Invalid foreground color {s}");
 			}
+
 			Glyph = new ColoredGlyph(c, foreground, background);
 		}
 		public StaticTile(char c) {

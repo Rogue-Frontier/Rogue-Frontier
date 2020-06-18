@@ -125,7 +125,8 @@ namespace TranscendenceRL {
                 source.Position + XY.Polar(direction),
                 source.Velocity + XY.Polar(direction, missileSpeed),
                 damageHP,
-                lifetime);
+                lifetime,
+                desc.fragments);
             source.World.AddEntity(shot);
         }
         public void SetFiring(bool firing = true) => this.firing = firing;

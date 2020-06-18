@@ -17,7 +17,8 @@ namespace TranscendenceRL {
         public ColoredGlyph Tile { get; private set; }
         public int damage;
         public int lifetime;
-        public Projectile(SpaceObject Source, World World, ColoredGlyph Tile, XY Position, XY Velocity, int damage, int lifetime) {
+        public HashSet<FragmentDesc> fragments;
+        public Projectile(SpaceObject Source, World World, ColoredGlyph Tile, XY Position, XY Velocity, int damage, int lifetime, HashSet<FragmentDesc> fragments) {
             this.Source = Source;
             this.World = World;
             this.Tile = Tile;
@@ -25,38 +26,55 @@ namespace TranscendenceRL {
             this.Velocity = Velocity;
             this.damage = damage;
             this.lifetime = lifetime;
+            this.fragments = fragments;
         }
         public void Update() {
-            if(lifetime > 0) {
+            if(lifetime > 1) {
+                lifetime--;
+
+                var dest = Position + Velocity / TranscendenceRL.TICKS_PER_SECOND;
+                var inc = Velocity.Normal * 0.5;
+                var steps = Velocity.Magnitude * 2 / TranscendenceRL.TICKS_PER_SECOND;
+                var maxTrailLength = Velocity.Magnitude;
+                var trailPoint = steps - maxTrailLength * 2;
+                for (int i = 0; i < steps; i++) {
+                    Position += inc;
+
+
+                    var hit = World.entities[Position].OfType<SpaceObject>().FirstOrDefault(o => !SSpaceObject.IsEqual(o, Source));
+                    if (hit != null) {
+                        lifetime = 0;
+                        hit.Damage(Source, damage);
+                        Fragment();
+                        var angle = (hit.Position - Position).Angle;
+                        World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph('x', Color.Yellow, Color.Transparent), 5));
+                        return;
+                    }
+
+                    if (i >= trailPoint) {
+                        World.AddEffect(new EffectParticle(Position, Tile, 1));
+                    }
+
+                }
+
+                Position = dest;
+            } else if(lifetime == 1) {
+                Fragment();
                 lifetime--;
             }
 
 
-            var dest = Position + Velocity / TranscendenceRL.TICKS_PER_SECOND;
-            var inc = Velocity.Normal * 0.5;
-            var steps = Velocity.Magnitude * 2 / TranscendenceRL.TICKS_PER_SECOND;
-            var maxTrailLength = Velocity.Magnitude;
-            var trailPoint = steps - maxTrailLength * 2;
-            for (int i = 0; i < steps; i++) {
-                Position += inc;
-
-
-                var hit = World.entities[Position].OfType<SpaceObject>().FirstOrDefault(o => !SSpaceObject.IsEqual(o, Source));
-                if (hit != null) {
-                    lifetime = 0;
-                    hit.Damage(Source, damage);
-
-                    var angle = (hit.Position - Position).Angle;
-                    World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph('x', Color.Yellow, Color.Transparent), 5));
-                    return;
-                }
-
-                if(i >= trailPoint) {
-                    World.AddEffect(new EffectParticle(Position, Tile, 1));
+            
+        }
+        public void Fragment() {
+            foreach (var fragment in fragments) {
+                double angleInterval = fragment.spreadAngle / fragment.count;
+                for (int i = 0; i < fragment.count; i++) {
+                    double angle = Velocity.Angle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
+                    World.AddEntity(new Projectile(Source, World, fragment.effect.Glyph, Position + XY.Polar(angle, 0.5), Velocity + XY.Polar(angle, fragment.missileSpeed), fragment.damageHP, fragment.lifetime, fragment.fragments));
                 }
             }
-
-            Position = dest;
         }
     }
+
 }

@@ -238,6 +238,9 @@ namespace TranscendenceRL {
 				Hide();
 				new ShipScreen(this, player).Show(true);
 			}
+			if(info.IsKeyPressed(W)) {
+				player.NextWeapon();
+            }
 			if(info.IsKeyPressed(T)) {
 				player.NextTargetEnemy();
 				//Note: Show a label on the target after select
@@ -441,7 +444,7 @@ namespace TranscendenceRL {
 					}
 					offset += player.Position - messagePos;
 
-					int screenLineY = offset.yi + (offset.yi < 0 ? -1 : 0);
+					int screenLineY = offset.yi;
 					int screenLineX = offset.xi;
 
 					if (screenLineY != 0) {
@@ -519,6 +522,7 @@ namespace TranscendenceRL {
 					}
 				}
 				if (player.Ship.Devices.Weapons.Any()) {
+					int i = 0;
 					foreach (var weapon in player.Ship.Devices.Weapons) {
 						Color foreground = Color.White;
 						if (player.power.disabled.Contains(weapon)) {
@@ -526,8 +530,9 @@ namespace TranscendenceRL {
 						} else if (weapon.firing || weapon.fireTime > 0) {
 							foreground = Color.Yellow;
 						}
-						Print(x, y, $"{weapon.source.type.name}{new string('>', weapon.fireTime / 3)}", foreground, Color.Transparent);
+						Print(x, y, $"{(i == player.selectedPrimary ? ">" : "")}{weapon.source.type.name}{new string('>', weapon.fireTime / 3)}", foreground, Color.Transparent);
 						y++;
+						i++;
 					}
 				}
 				switch (player.Ship.DamageSystem) {

@@ -74,6 +74,7 @@
     <Compile Include="BoxGlyph.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="DictCounter.cs" />
+    <Compile Include="ElementReader.cs" />
     <Compile Include="FixedTile.cs" />
     <Compile Include="Screens\CrawlScreen.cs" />
     <Compile Include="EffectParticle.cs" />

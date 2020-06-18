@@ -3,6 +3,7 @@ using SadConsole;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -52,8 +53,8 @@ namespace TranscendenceRL {
         public bool omnidirectional;
         public int minRange => missileSpeed * lifetime / TranscendenceRL.TICKS_PER_SECOND; //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
-
         public CapacitorDesc capacitor;
+        public HashSet<FragmentDesc> fragments;
         public WeaponDesc(XElement e) {
             powerUse = e.ExpectAttributeInt(nameof(powerUse));
             fireCooldown = e.ExpectAttributeInt(nameof(fireCooldown));
@@ -67,6 +68,34 @@ namespace TranscendenceRL {
             if(e.HasElement("Capacitor", out var xmlCapacitor)) {
                 capacitor = new CapacitorDesc(xmlCapacitor);
             }
+
+            fragments = new HashSet<FragmentDesc>();
+            if(e.HasElements("Fragment", out var fragmentsList)) {
+                fragments.UnionWith(fragmentsList.Select(f => new FragmentDesc(f)));
+            }
+        }
+    }
+    public class FragmentDesc {
+        public int count;
+        public double spreadAngle;
+        public int missileSpeed;
+        public int damageType;
+        public int damageHP;
+        public int lifetime;
+        public HashSet<FragmentDesc> fragments;
+        public StaticTile effect;
+        public FragmentDesc(XElement e) {
+            count = e.ExpectAttributeInt(nameof(count));
+            spreadAngle = e.ExpectAttributeDouble(nameof(spreadAngle)) * Math.PI / 180;
+            missileSpeed = e.ExpectAttributeInt(nameof(missileSpeed));
+            damageType = e.ExpectAttributeInt(nameof(damageType));
+            damageHP = e.ExpectAttributeInt(nameof(damageHP));
+            lifetime = e.ExpectAttributeInt(nameof(lifetime));
+            fragments = new HashSet<FragmentDesc>();
+            if (e.HasElements("Fragment", out var fragmentsList)) {
+                fragments.UnionWith(fragmentsList.Select(f => new FragmentDesc(f)));
+            }
+            effect = new StaticTile(e);
         }
     }
     public class CapacitorDesc {
