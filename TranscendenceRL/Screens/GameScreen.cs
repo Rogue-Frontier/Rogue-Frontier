@@ -444,7 +444,7 @@ namespace TranscendenceRL {
 					}
 					offset += player.Position - messagePos;
 
-					int screenLineY = offset.yi;
+					int screenLineY = offset.yi + (offset.yi < 0 ? 0 : 1);
 					int screenLineX = offset.xi;
 
 					if (screenLineY != 0) {

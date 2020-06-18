@@ -1,6 +1,7 @@
 ﻿<Module>
 
 	<Module file="OrionWarlords.xml"/>
+	<Module file="Genomes.xml"/>
 	<Module file="Items.xml"/>
 	<Module file="Player.xml"/>
 	<Module file="Reactors.xml"/>

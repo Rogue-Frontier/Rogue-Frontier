@@ -24,8 +24,8 @@ namespace TranscendenceRL {
         }
         public Color GetBackgroundFixed(XY point) => GetBackground(point, XY.Zero);
         public Color GetBackground(XY point, XY camera) {
-            Color result = layers.First().GetTile(point, camera).Background;
-            foreach(var layer in layers.Skip(1)) {
+            Color result = Color.Black;
+            foreach(var layer in layers) {
                 result = result.Blend(layer.GetTile(point, camera).Background);
             }
             return result;

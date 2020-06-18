@@ -1,0 +1,5 @@
+﻿<Module>
+	<GenomeType codename="genHumanMale"		name="Human Male"		species="human"	gender="male"		subjective="he"		objective="him"	possessiveAdj="his"		possessiveNoun="his"	reflexive="himself"/>
+	<GenomeType codename="genHumanFemale"	name="Human Female"		species="human"	gender="female"		subjective="she"	objective="her"	possessiveAdj="her"		possessiveNoun="hers"	reflexive="herself"/>
+	<GenomeType codename="genHumanVariant"	name="Human Variant"	species="human"	gender="variant"	subjective="they"	objective="them"	possessiveAdj="their"	possessiveNoun="theirs" reflexive="theirself"/>
+</Module>

@@ -13,6 +13,7 @@ namespace TranscendenceRL {
 	public class TypeCollection {
 		public Dictionary<string, XElement> sources;
         public Dictionary<string, DesignType> all;
+		public Dictionary<string, GenomeType> genomeType;
 		public Dictionary<string, ItemType> itemType;
 		public Dictionary<string, ShipClass> shipClass;
 		public Dictionary<string, StationType> stationType;
@@ -30,6 +31,7 @@ namespace TranscendenceRL {
 		public TypeCollection() {
 			sources = new Dictionary<string, XElement>();
 			all = new Dictionary<string, DesignType>();
+			genomeType = new Dictionary<string, GenomeType>();
 			itemType = new Dictionary<string, ItemType>();
 			shipClass = new Dictionary<string, ShipClass>();
 			stationType = new Dictionary<string, StationType>();
@@ -91,6 +93,9 @@ namespace TranscendenceRL {
                 case "Source":
                     AddSource(element);
                     break;
+				case "GenomeType":
+					AddType<GenomeType>(element);
+					break;
 				case "ItemType":
 					AddType<ItemType>(element);
 					break;
@@ -137,6 +142,9 @@ namespace TranscendenceRL {
 				T t = new T();
 				all[type] = t;
                 switch(t) {
+					case GenomeType gn:
+						genomeType[type] = gn;
+						break;
 					case ItemType it:
 						itemType[type] = it;
 						break;
