@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+﻿using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -11,17 +11,17 @@ namespace IslandHopper {
         Air, Grass
     }
 	static class VoxelHelp {
-		public static Voxel FromString(string name) {
+		public static Voxel FromString(string name, Island World) {
 			switch(name) {
 				case "Air": return new Air();
-				case "Grass": return new Grass();
+				case "Grass": return new Grass(World);
 				default: throw new Exception("Unknown voxel type");
 			}
 		}
-        public static Voxel Create(VoxelDefaults v) {
+        public static Voxel Create(VoxelDefaults v, Island World) {
             switch (v) {
                 case VoxelDefaults.Air: return new Air();
-                case VoxelDefaults.Grass: return new Grass();
+                case VoxelDefaults.Grass: return new Grass(World);
                 default: throw new Exception("Unknown voxel type");
             }
         }
@@ -39,7 +39,7 @@ namespace IslandHopper {
 	public class Air : Voxel {
 		public VoxelType Collision => VoxelType.Empty;
 
-        public ColoredGlyph CharAbove => new ColoredGlyph(176, Color.White, Color.Transparent);
+        public ColoredGlyph CharAbove => new ColoredGlyph(Color.White, Color.Transparent, 176);
         public ColoredGlyph CharCenter => CharAbove;
 	}
 	public class Grass : Voxel {
@@ -50,14 +50,14 @@ namespace IslandHopper {
 		private char[] symbols = {
 			'"', '\'', 'w', 'v', ',', '.', '`',
 		};
-		public Grass() {
-			foreground = new Color(Global.Random.Next(102), 153, Global.Random.Next(102));
-            int r = Global.Random.Next(26);
-            background = new Color(r, Global.Random.Next(26) + 13, 26 - r);
-			s = symbols[Global.Random.Next(symbols.Length)];
+		public Grass(Island World) {
+			foreground = new Color(World.karma.Next(102), 153, World.karma.Next(102));
+            int r = World.karma.Next(26);
+            background = new Color(r, World.karma.Next(26) + 13, 26 - r);
+			s = symbols[World.karma.Next(symbols.Length)];
 		}
-		public ColoredGlyph CharAbove => new ColoredGlyph(s, foreground, background);
-		public ColoredGlyph CharCenter => new ColoredGlyph(' ', Color.Transparent, foreground);
+		public ColoredGlyph CharAbove => new ColoredGlyph(foreground, background, s);
+		public ColoredGlyph CharCenter => new ColoredGlyph(Color.Transparent, foreground, ' ');
 	}
 	public class Floor : Voxel {
 		public VoxelType Collision => VoxelType.Floor;
@@ -65,7 +65,7 @@ namespace IslandHopper {
 		public Floor(Color c) {
 			this.color = c;
 		}
-		public ColoredGlyph CharAbove => new ColoredGlyph('.', color, Color.Transparent);
-		public ColoredGlyph CharCenter => new ColoredGlyph('+', Color.Transparent, color);
+		public ColoredGlyph CharAbove => new ColoredGlyph(color, Color.Transparent, '.');
+		public ColoredGlyph CharCenter => new ColoredGlyph(Color.Transparent, color, '+');
 	}
 }

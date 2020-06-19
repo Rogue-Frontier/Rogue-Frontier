@@ -1,15 +1,19 @@
-﻿using Microsoft.Xna.Framework;
-using SadConsole;
+﻿using SadConsole;
 using SadConsole.Input;
+using SadConsole.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Common.Helper;
+using static SadConsole.ColoredString;
+using SadRogue.Primitives;
+using Console = SadConsole.Console;
+using TranscendenceRL.Screens;
 
 namespace TranscendenceRL {
-    class CrawlScreen : Window {
+    class CrawlScreen : Console {
         World World;
         ShipClass playerClass;
 
@@ -23,6 +27,23 @@ namespace TranscendenceRL {
         int loadingTicks = 150 * 0;
 
         ColoredString[] effect;
+
+        class ParticleCloud {
+            public List<Point> points = new List<Point>();
+            public List<ColoredGlyph> particles = new List<ColoredGlyph>();
+            public void Update(Random random) {
+                points = new List<Point>(points.Select(p => p + new Point(1, 0)));
+                foreach(var p in particles) {
+                    var f = p.Foreground;
+                    var (r, g, b, a) = (f.R, f.G, f.B, f.A);
+                    Func<int, int> transform = i => Math.Max(0, i - random.Next(0, 2));
+                    p.Foreground = new Color(transform(r), transform(g), transform(b), transform(a));
+                }
+            }
+        }
+        List<ParticleCloud> clouds;
+
+        Random random = new Random();
         public CrawlScreen(int width ,int height, World World, ShipClass playerClass) : base(width, height) {
             this.World = World;
             this.playerClass = playerClass;
@@ -35,16 +56,16 @@ namespace TranscendenceRL {
             int effectWidth = Width * 3 / 5;
             int effectHeight = Height * 3 / 5;
 
-            Random r = new Random();
             effect = new ColoredString[effectHeight];
             for(int y = 0; y < effectHeight; y++) {
                 effect[y] = new ColoredString(effectWidth);
                 for(int x = 0; x < effectWidth; x++) {
                     effect[y][x] = GetGlyph(x, y);
                 }
+
             }
 
-            
+            clouds = new List<ParticleCloud>();
 
             Color Front(int value) {
                 return new Color(255 - value / 2, 255 - value, 255, 255 - value / 4);
@@ -52,23 +73,23 @@ namespace TranscendenceRL {
             }
             Color Back(int value) {
                 //return new Color(255 - value, 255 - value, 255 - value).Noise(r, 0.3).Round(17).Subtract(25);
-                return new Color(204 - value, 204 - value, 255 - value).Noise(r, 0.3).Round(17).Subtract(25);
+                return new Color(204 - value, 204 - value, 255 - value).Noise(random, 0.3).Round(17).Subtract(25);
             }
-            ColoredGlyph GetGlyph(int x, int y) {
+            ColoredGlyphEffect GetGlyph(int x, int y) {
                 Color front = Front(255 * x / effectWidth);
                 Color back = Back(255 * x / effectWidth);
                 char c;
-                if (r.Next(x) < 5
-                    || (effect[y][x-1].GlyphCharacter != ' ' && r.Next(x) < 10)
+                if (random.Next(x) < 5
+                    || (effect[y][x-1].GlyphCharacter != ' ' && random.Next(x) < 10)
                     ) {
                     const string vwls = "?&%~=+;";
-                    c = vwls[r.Next(vwls.Length)];
+                    c = vwls[random.Next(vwls.Length)];
                 } else {
                     c = ' ';
                 }
                 
                 
-                return new ColoredGlyph(c, front, back);
+                return new ColoredGlyphEffect() { Foreground = front, Background = back, Glyph = c };
             }
         }
         public override void Update(TimeSpan time) {
@@ -81,24 +102,85 @@ namespace TranscendenceRL {
                         index++;
                     }
                 }
+                if(tick%8 == 0) {
+                    clouds.ForEach(c => c.Update(random));
+                }
+                if(tick%64 == 0) {
+
+                    int effectMinY = Height / 5;
+                    int effectMaxY = 4 * Height / 5;
+
+                    ParticleCloud cloud = new ParticleCloud();
+
+                    
+                    
+                    var cloudPoint = new Point(0, random.Next(effectMinY, effectMaxY));
+                    var cloudParticle = new ColoredGlyph(new Color(204 + random.Next(0, 51), 0, 204 + random.Next(0, 51)), Color.Transparent, GetRandomChar());
+
+                    cloud.points.Add(cloudPoint);
+                    cloud.particles.Add(cloudParticle);
+
+                    double i = 1;
+                    while(random.NextDouble() < 0.9) {
+                        cloudPoint += new Point(-1, (random.Next(0, 5) - 2)/2);
+
+                        cloudParticle = new ColoredGlyph(new Color(204 + random.Next(0, 51), 0, 225 + random.Next(0, 25)), Color.Transparent, GetRandomChar());
+
+                        cloud.points.Add(cloudPoint);
+                        cloud.particles.Add(cloudParticle);
+                        for (int y = 1; y < random.Next(2, 5); y++) {
+                            var verticalPoint = cloudPoint + new Point(0, y);
+
+                            cloudParticle = new ColoredGlyph(new Color(225 + random.Next(0, 25), 153 + random.Next(102), 225 + random.Next(0, 25)), Color.Transparent, GetRandomChar());
+
+                            cloud.points.Add(verticalPoint);
+                            cloud.particles.Add(cloudParticle);
+                        }
+
+
+                        i++;
+                    }
+                    clouds.Add(cloud);
+
+                    char GetRandomChar() {
+                        const string vwls = "?&%~=+;";
+                        return vwls[random.Next(vwls.Length)];
+                    }
+                }
             } else if (loading == null) {
                 loading = new LoadingSymbol(16);
             } else if(loadingTicks > 0) {
                 loading.Update();
                 loadingTicks--;
             } else {
-                Hide();
-                new PlayerMain(Width, Height, World, playerClass).Show(true);
+                var main = new PlayerMain(Width, Height, World, playerClass) { IsFocused = true };
+                main.Update(time);
+                main.PlaceTiles();
+                main.DrawWorld();
+                SadConsole.Game.Instance.Screen = new CrawlTransition(Width, Height, this, main);
             }
         }
         public override void Draw(TimeSpan drawTime) {
-            Clear();
+            this.Clear();
+            //Print background
             int effectY = Height / 5;
             foreach (var line in effect) {
-                Print(0, effectY, line);
+                this.Print(0, effectY, line);
                 effectY++;
             }
 
+            foreach(var cloud in clouds) {
+                var points = cloud.points;
+                var particles = cloud.particles;
+                for(int i = 0; i < points.Count; i++) {
+                    var (x, y) = points[i];
+                    this.SetForeground(x, y, particles[i].Foreground);
+                    this.SetGlyph(x, y, particles[i].Glyph);
+                }
+            }
+
+
+            //Print text
             int ViewWidth = Width;
             int ViewHeight = Height;
 
@@ -114,27 +196,28 @@ namespace TranscendenceRL {
                     textY++;
                 } else {
                     if (c != ' ') {
-                        Print(textX, textY, "" + c, Color.White, GetBackground(textX, textY));
+                        this.Print(textX, textY, "" + c, Color.White, this.GetBackground(textX, textY));
                     }
                     textX++;
                 }
             }
 
+            //Show loading circle
             if(loading != null) {
                 var symbol = loading.Draw();
                 int symbolX = Width - symbol[0].Count;
                 int symbolY = Height - symbol.Length;
                 foreach (var line in symbol) {
-                    Print(symbolX, symbolY, line);
+                    this.Print(symbolX, symbolY, line);
                     symbolY++;
                 }
 
-                Print(0, Height - 1, "[Creating Game...]");
+                this.Print(0, Height - 1, "[Creating Game...]");
             } else {
                 if(speedUp) {
-                    Print(0, Height - 1, "[Press Enter again to skip intro]");
+                    this.Print(0, Height - 1, "[Press Enter again to skip intro]");
                 } else {
-                    Print(0, Height - 1, "[Press Enter to speed up intro]");
+                    this.Print(0, Height - 1, "[Press Enter to speed up intro]");
                 }
                 
             }
@@ -143,7 +226,7 @@ namespace TranscendenceRL {
             base.Draw(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
-            if(info.IsKeyPressed(Microsoft.Xna.Framework.Input.Keys.Enter)) {
+            if(info.IsKeyPressed(SadConsole.Input.Keys.Enter)) {
                 if(speedUp) {
                     index = text.Length;
                 } else {

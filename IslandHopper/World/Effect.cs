@@ -1,5 +1,5 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace IslandHopper {
         public XYZ Position { get; set; }
         public Color Color;
         int ticks;
-        public ColoredGlyph SymbolCenter => ticks%20 < 10 ? new ColoredGlyph('+', Color, Color.Black) : new ColoredGlyph('+', Color.Black, Color.Black);
+        public ColoredGlyph SymbolCenter => ticks%20 < 10 ? new ColoredGlyph(Color, Color.Black, '+') : new ColoredGlyph(Color.Black, Color.Black, '+');
         private Func<bool> active;
         public Reticle(Func<bool> active, XYZ Position, Color? Color = null) {
             this.active = active;
@@ -53,7 +53,7 @@ namespace IslandHopper {
                 SymbolCenter = glyphs.GetRandom(World.karma);
             } else {
                 this.lifetime = 0;
-                SymbolCenter = new ColoredGlyph(' ', Color.Transparent, Color.Transparent);
+                SymbolCenter = new ColoredGlyph(Color.Transparent, Color.Transparent, ' ');
             }
         }
         public void UpdateRealtime(TimeSpan delta) { }
@@ -64,7 +64,7 @@ namespace IslandHopper {
     public class FlameTrail : Effect {
         public XYZ Position { get; set; }
 
-        public ColoredGlyph SymbolCenter => new ColoredGlyph(symbol.Glyph, new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (byte)255), symbol.Background);
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (byte)255), symbol.Background, symbol.Glyph);
         public int lifetime;
         ColoredGlyph symbol;
         public bool Active => lifetime > 0;
@@ -81,14 +81,14 @@ namespace IslandHopper {
     public class Trail : Effect {
         public XYZ Position { get; set; }
 
-        public ColoredGlyph SymbolCenter => new ColoredGlyph(symbol.Glyph, new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (int) (255 * (lifetime > 5 ? 1 : (lifetime + 5)/10f))), Color.Black);
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (int) (255 * (lifetime > 5 ? 1 : (lifetime + 5)/10f))), Color.Black, symbol.Glyph);
         public int lifetime;
         ColoredGlyph symbol;
         public bool Active => lifetime > 0;
         public Trail(XYZ Position, int lifetime, char symbol) {
             this.Position = Position;
             this.lifetime = lifetime;
-            this.symbol = new ColoredGlyph(symbol, Color.White, Color.Black);
+            this.symbol = new ColoredGlyph(Color.White, Color.Black, symbol);
         }
         public Trail(XYZ Position, int lifetime, ColoredGlyph symbol) {
             this.Position = Position;
@@ -103,14 +103,14 @@ namespace IslandHopper {
     public class RealtimeTrail : Effect {
         public XYZ Position { get; set; }
 
-        public ColoredGlyph SymbolCenter => new ColoredGlyph(symbol.Glyph, new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (int)(255 * Math.Min(Math.Max(lifetime * 2, 0.5), 1))), Color.Black);
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (int)(255 * Math.Min(Math.Max(lifetime * 2, 0.5), 1))), Color.Black, symbol.Glyph);
         public double lifetime;
         ColoredGlyph symbol;
         public bool Active => lifetime > 0;
         public RealtimeTrail(XYZ Position, double lifetime, char symbol) {
             this.Position = Position;
             this.lifetime = lifetime;
-            this.symbol = new ColoredGlyph(symbol, Color.White, Color.Black);
+            this.symbol = new ColoredGlyph(Color.White, Color.Black, symbol);
         }
         public RealtimeTrail(XYZ Position, double lifetime, ColoredGlyph symbol) {
             this.Position = Position;

@@ -1,94 +1,29 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
+﻿using System;
 using SadConsole;
-using SadConsole.Themes;
-using System;
-using System.Runtime.InteropServices;
-using System.Xml.Linq;
+using Console = SadConsole.Console;
+using TranscendenceRL;
 
 namespace TranscendenceRL {
-	/// <summary>
-	/// This is the main type for your game.
-	/// </summary>
-	/// <summary>
-	/// This is the main type for your game.
-	/// </summary>
-	public class TranscendenceRL : SadConsole.Game {
+	class TranscendenceRL {
+
 		public static int TICKS_PER_SECOND = 60;
-
-		/*
-		public static readonly int screenwidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-		public static readonly int screenheight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-
-		public static readonly int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 16;
-		public static readonly int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 16;
-		*/
-		public static readonly int width = 150;
-		public static readonly int height = 90;
-		public TranscendenceRL() : base("Content/IBMCGA.font", width, height, null) {
-			Content.RootDirectory = "Content";
-		}
-		/// <summary>
-		/// Allows the game to perform any initialization it needs to before starting to run.
-		/// This is where it can query for any required services and load any non-graphic
-		/// related content.  Calling base.Initialize will enumerate through any components
-		/// and initialize them as well.
-		/// </summary>
-		protected override void Initialize() {
-			// Generally you don't want to hide the mouse from the user
-			IsMouseVisible = true;
-			// Finish the initialization of SadConsole    
-			base.Initialize();
-			///Settings.ToggleFullScreen();
-			//Window.IsBorderless = true;
-			Window.Position = new Point(0, 0);
-			
-
-			var def = Library.Default.Colors;
-			def.ControlBack = Color.Transparent;
-			def.ControlHostBack = Color.Transparent;
-			def.ModalBackground = Color.Transparent;
+		public static int Width = 150, Height = 90;
 
 
-			//var types = new TypeCollection(XElement.Parse(Properties.Resources.Items));
-			SadConsole.Global.FontDefault = SadConsole.Global.FontDefault.Master.GetFont(Font.FontSizes.One);
-			var title = new TitleConsole(width, height);
-			title.Position = new Point(0, 0);
-			title.Show(true);
+		static void Main(string[] args) {
+			// Setup the engine and create the main window.
+			SadConsole.Game.Create(Width, Height, "Content/IBMCGA.font");
+
+            // Hook the start event so we can add consoles to the system.
+            SadConsole.Game.Instance.OnStart = Init;
+
+			// Start the game.
+			SadConsole.Game.Instance.Run();
+			SadConsole.Game.Instance.Dispose();
 		}
 
-		/// <summary>
-		/// LoadContent will be called once per game and is the place to load
-		/// all of your content.
-		/// </summary>
-		protected override void LoadContent() {
-
-		}
-
-		/// <summary>
-		/// UnloadContent will be called once per game and is the place to unload
-		/// game-specific content.
-		/// </summary>
-		protected override void UnloadContent() {
-		}
-
-		/// <summary>
-		/// Allows the game to run logic such as updating the world,
-		/// checking for collisions, gathering input, and playing audio.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
-		protected override void Update(GameTime gameTime) {
-			base.Update(gameTime);
-		}
-
-		/// <summary>
-		/// This is called when the game should draw itself.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
-		protected override void Draw(GameTime gameTime) {
-			GraphicsDevice.Clear(Color.Black);
-			base.Draw(gameTime);
+		private static void Init() {
+			GameHost.Instance.Screen = new TitleConsole(Width, Height) { IsFocused = true };
 		}
 	}
 }

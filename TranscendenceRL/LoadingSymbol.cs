@@ -1,5 +1,5 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -62,7 +62,7 @@ namespace TranscendenceRL {
                         const string directions = @"|/-\|/-\|/-\|/-\|";
                         int index = (int)((angle + interval / 2) / interval);
                         char c = directions[index];
-                        effect[y][x] = new ColoredGlyph(c, new Color(255, 204, 153), new Color(204, 153, 102));
+                        effect[y][x] = new ColoredGlyph(new Color(255, 204, 153), new Color(204, 153, 102), c).ToEffect();
                     }
                 }
             }

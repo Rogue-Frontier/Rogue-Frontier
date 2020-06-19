@@ -1,14 +1,14 @@
 ﻿using Common;
 using IslandHopper.World;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
+using SadRogue.Primitives;
+using SadConsole.Input;
 using SadConsole;
-using SadConsole.Themes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Console = SadConsole.Console;
 
 namespace IslandHopper {
     interface ListChoice<T> {
@@ -21,7 +21,7 @@ namespace IslandHopper {
         public ListAction(EntityAction Value) {
             this.Value = Value;
         }
-        public ColoredGlyph GetSymbolCenter() => Value is ShootAction s ? s.item.SymbolCenter : new ColoredGlyph(' ');
+        public ColoredGlyph GetSymbolCenter() => Value is ShootAction s ? s.item.SymbolCenter : new ColoredGlyph() { Glyph = ' ' };
         public ColoredString GetName() => Value.Name;
     }
     class ListItem : ListChoice<IItem> {
@@ -40,7 +40,7 @@ namespace IslandHopper {
         public ColoredGlyph GetSymbolCenter() => Value.SymbolCenter;
         public ColoredString GetName() => Value.Name;
     }
-    class ListMenu<T> : Window {
+    class ListMenu<T> : Console {
         string hint;
         HashSet<ListChoice<T>> Choices;
         Func<T, bool> select;       //Fires when we select an item. If true, then we remove the item from the selections
@@ -49,14 +49,12 @@ namespace IslandHopper {
             return new ListMenu<IItem>(Width, Height, hint, Items.Select(item => new ListItem(item)), select);
         }
         public ListMenu(int Width, int Height, string hint, IEnumerable<ListChoice<T>> Choices, Func<T, bool> select) : base(Width, Height) {
-            Theme = Themes.Sub;
+            UseKeyboard = true;
+
             this.hint = hint;
             this.Choices = new HashSet<ListChoice<T>>(Choices);
             this.select = select;
             startIndex = 0;
-
-            this.Transparent();
-            Theme.ModalTint = Color.Transparent;
         }
         public override void Update(TimeSpan delta) {
             base.Update(delta);
@@ -65,19 +63,19 @@ namespace IslandHopper {
             this.Clear();
             int x = 5;
             int y = 5;
-            Print(x, y, hint, Color.White, Color.Black);
+            this.Print(x, y, hint, Color.White, Color.Black);
             y++;
             if (Choices.Count > 0) {
                 string UP = ((char)24).ToString();
                 string LEFT = ((char)27).ToString();
-                Print(x, y, "    ", foreground: Color.White, background: Color.Black);
+                this.Print(x, y, "    ", foreground: Color.White, background: Color.Black);
                 if (CanScrollUp) {
-                    Print(x, y, UP, Color.White, Color.Black);
+                    this.Print(x, y, UP, Color.White, Color.Black);
                     if (CanPageUp)
-                        Print(x + 2, y, LEFT, Color.White, Color.Black);
-                    Print(x + 4, y, startIndex.ToString(), Color.White, Color.Black);
+                        this.Print(x + 2, y, LEFT, Color.White, Color.Black);
+                    this.Print(x + 4, y, startIndex.ToString(), Color.White, Color.Black);
                 } else {
-                    Print(x, y, "-", Color.White, Color.Black);
+                    this.Print(x, y, "-", Color.White, Color.Black);
                 }
                 y++;
 
@@ -85,32 +83,32 @@ namespace IslandHopper {
                 for (int i = startIndex; i < startIndex + 26; i++) {
                     if (i < Choices.Count) {
                         char binding = (char)('a' + (i - startIndex));
-                        Print(x, y, "" + binding, Color.LimeGreen, Color.Transparent);
-                        Print(x + 1, y, " ", Color.Black, Color.Black);
-                        Print(x + 2, y, list[i].GetSymbolCenter().ToColoredString());
-                        Print(x + 3, y, " ", Color.Black, Color.Black);
-                        Print(x + 4, y, list[i].GetName());
+                        this.Print(x, y, "" + binding, Color.LimeGreen, Color.Black);
+                        this.Print(x + 1, y, " ", Color.Black, Color.Black);
+                        this.Print(x + 2, y, list[i].GetSymbolCenter().ToColoredString());
+                        this.Print(x + 3, y, " ", Color.Black, Color.Black);
+                        this.Print(x + 4, y, list[i].GetName());
                     } else {
-                        Print(x, y, ".", Color.Gray, Color.Black);
+                        this.Print(x, y, ".", Color.Gray, Color.Black);
                     }
                     y++;
                 }
 
                 string DOWN = ((char)25).ToString();
                 string RIGHT = ((char)26).ToString();
-                Print(x, y, "    ", foreground:Color.White, background: Color.Black);
+                this.Print(x, y, "    ", foreground:Color.White, background: Color.Black);
                 if (CanScrollDown) {
-                    Print(x, y, DOWN, Color.White, Color.Black);
+                    this.Print(x, y, DOWN, Color.White, Color.Black);
                     if (CanPageDown)
-                        Print(x + 2, y, RIGHT, Color.White, Color.Black);
-                    Print(x + 4, y, ((Choices.Count - 26) - startIndex).ToString(), Color.White, Color.Black);
+                        this.Print(x + 2, y, RIGHT, Color.White, Color.Black);
+                    this.Print(x + 4, y, ((Choices.Count - 26) - startIndex).ToString(), Color.White, Color.Black);
                 } else {
-                    Print(x, y, "-", Color.White, Color.Black);
+                    this.Print(x, y, "-", Color.White, Color.Black);
                 }
 
                 y++;
             } else {
-                Print(x, y, "There is nothing here.", Color.Red, Color.Black);
+                this.Print(x, y, "There is nothing here.", Color.Red, Color.Black);
             }
 
             base.Draw(delta);
@@ -121,7 +119,8 @@ namespace IslandHopper {
         private bool CanPageDown => startIndex + 26 + 25 < Choices.Count;
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
             if (info.IsKeyPressed(Keys.Escape)) {
-                Hide();
+                Parent.IsFocused = true;
+                Parent.Children.Remove(this);
             } else {
                 ListControls(info);
             }
@@ -170,75 +169,62 @@ namespace IslandHopper {
             }
         }
     }
-    class ShootMenu : Window {
+    class ShootMenu : Console {
         Island w;
         Player p;
         ListMenu<IItem> itemSelector;
         LookMenu targetSelector;
 
         public ShootMenu(int width, int height, Island w, Player p) : base(width, height) {
-            Theme = Themes.Sub;
+            UseKeyboard = true;
+
             this.w = w;
             this.p = p;
-
-            this.Transparent();
         }
         public override void Update(TimeSpan time) {
             base.Update(time);
             if (itemSelector == null) {
                 UpdateItemSelector();
             }
-            if (targetSelector != null) {
-                targetSelector.Update(time);
-            } else {
-                itemSelector.Update(time);
-            }
+            ((Console)targetSelector ?? itemSelector).Update(time);
         }
         public override void Draw(TimeSpan drawTime) {
             this.Clear();
             base.Draw(drawTime);
-            if (targetSelector != null) {
-                targetSelector.Draw(drawTime);
-            } else {
-                itemSelector.Draw(drawTime);
-            }
+            ((Console)targetSelector ?? itemSelector).Draw(drawTime);
         }
         public void UpdateItemSelector() {
-            Hide();
             itemSelector = new ListMenu<IItem>(Width, Height, "Select item to shoot with. ESC to cancel.", p.Inventory.Where(Item => Item.Gun != null).Select(Item => new ListItem(Item)), item => {
-                itemSelector.Hide();
+                //Remove the item selector and add a location selector
                 targetSelector = new LookMenu(Width, Height, w, "Select target to shoot at. Enter to select a general location. ESC to cancel.", target => {
-                    targetSelector.Hide();
                     p.Actions.Add(new ShootAction(p, item, new TargetEntity(target)));
+                    Close();
                     return false;
                 }, xyz => {
                     p.Actions.Add(new ShootAction(p, item, new TargetPoint(xyz)));
-                    targetSelector.Hide();
+                    Close();
                 });
-                targetSelector.Show(true);
                 return false;
             });
-            itemSelector.Show(true);
+        }
+        public void Close() {
+            Parent.IsFocused = true;
+            Parent.Children.Remove(this);
         }
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
-            if (info.IsKeyDown(Keys.Escape)) {
+            if (info.IsKeyPressed(Keys.Escape)) {
                 if (targetSelector != null) {
-                    targetSelector.Hide();
                     targetSelector = null;
-                    UpdateItemSelector();
+                    //UpdateItemSelector();
                 } else {
-                    itemSelector.Hide();
+                    Close();
                 }
                 return true;
             } else {
-                if (targetSelector != null) {
-                    return targetSelector.ProcessKeyboard(info);
-                } else {
-                    return itemSelector.ProcessKeyboard(info);
-                }
+                return ((Console)targetSelector ?? itemSelector).ProcessKeyboard(info);
             }
         }
-        class FireMenu : Window {
+        class FireMenu : Console {
             Player p;
             Gun g;
             Entity target;
@@ -249,24 +235,26 @@ namespace IslandHopper {
             }
         }
     }
-    class ThrowMenu : Window {
+    class ThrowMenu : Console {
         Island w;
         Player p;
         ListMenu<IItem> itemSelector;
         LookMenu targetSelector;
         public ThrowMenu(int width, int height, Island w, Player p) : base(width, height) {
-            Theme = Themes.Sub;
-
             this.w = w;
             this.p = p;
 
             this.Transparent();
+
+            UpdateItemSelector();
         }
         public override void Update(TimeSpan time) {
             base.Update(time);
+            /*
             if (itemSelector == null) {
                 UpdateItemSelector();
             }
+            */
             if (targetSelector != null) {
                 targetSelector.Update(time);
             } else {
@@ -276,29 +264,20 @@ namespace IslandHopper {
         public override void Draw(TimeSpan drawTime) {
             this.Clear();
             base.Draw(drawTime);
-            if (targetSelector != null) {
-                targetSelector.Draw(drawTime);
-            } else {
-                itemSelector.Draw(drawTime);
-            }
+            ((Console)targetSelector ?? itemSelector).Draw(drawTime);
         }
         public void UpdateItemSelector() {
-            Hide();
             itemSelector = new ListMenu<IItem>(Width, Height, "Select item to throw. ESC to cancel.", p.Inventory.Select(Item => new ListItem(Item)), item => {
-                itemSelector.Hide();
                 targetSelector = new LookMenu(Width, Height, w, "Select target to throw item at. Enter to select a general location. ESC to cancel.", target => {
-                    targetSelector.Hide();
-
                     ThrowItem(target, item);
+                    Close();
                     return false;
                 }, point => {
-                    targetSelector.Hide();
                     ThrowItem(point, item);
-                });
-                targetSelector.Show(true);
+                    Close();
+                }) { IsFocused = false };
                 return false;
-            });
-            itemSelector.Show(true);
+            }) { IsFocused = false };
         }
         public void ThrowItem(Entity target, IItem item) {
             if (Helper.CalcAim2(target.Position - p.Position, 60, out XYZ lower, out XYZ _)) {
@@ -324,26 +303,25 @@ namespace IslandHopper {
                 p.Witness(new InfoEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black)));
             }
         }
+        public void Close() {
+            Parent.IsFocused = true;
+            Parent.Children.Remove(this);
+        }
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
-            if (info.IsKeyDown(Keys.Escape)) {
+            if (info.IsKeyPressed(Keys.Escape)) {
                 if (targetSelector != null) {
-                    targetSelector.Hide();
                     targetSelector = null;
-                    UpdateItemSelector();
+                    //UpdateItemSelector();
                 } else {
-                    itemSelector.Hide();
+                    Close();
                 }
                 return true;
             } else {
-                if (targetSelector != null) {
-                    return targetSelector.ProcessKeyboard(info);
-                } else {
-                    return itemSelector.ProcessKeyboard(info);
-                }
+                return ((Console)targetSelector ?? itemSelector).ProcessKeyboard(info);
             }
         }
     }
-    class LookMenu : Window {
+    class LookMenu : Console {
         Island world;
 
         string hint;
@@ -355,9 +333,11 @@ namespace IslandHopper {
 
         ListMenu<Entity> examineMenu;
 
-        readonly ColoredGlyph cursor = new ColoredGlyph('?', Color.Yellow, Color.Black);
+        readonly ColoredGlyph cursor = new ColoredGlyph(Color.Yellow, Color.Black, '?');
         
         public LookMenu(int width, int height, Island world, string hint = null, Func<Entity, bool> select = null, Action<XYZ> selectAt = null) : base(width, height) {
+            UseKeyboard = true;
+
             this.world = world;
             this.hint = hint ?? "Select an entity to examine";
             this.select = select ?? (e => false);
@@ -401,7 +381,9 @@ namespace IslandHopper {
                 UpdateExamine();
             } else if (info.IsKeyPressed(Keys.Escape)) {
                 world.camera = world.player.Position;
-                Hide();
+
+                Parent.IsFocused = true;
+                Parent.Children.Remove(this);
             } else if (info.IsKeyPressed(Keys.Enter)) {
                 selectAt(world.camera);
             } else {
@@ -410,10 +392,10 @@ namespace IslandHopper {
             return true;
         }
         public override void Draw(TimeSpan delta) {
-            Clear();
+            this.Clear();
             if (cursorVisible) {
                 this.DebugInfo($"Draw Cursor @ ({Width / 2}, {Height / 2})");
-                Print(Width / 2, Height / 2, cursor);
+                this.Print(Width / 2, Height / 2, cursor);
             }
             base.Draw(delta);
             examineMenu?.Draw(delta);
@@ -423,19 +405,99 @@ namespace IslandHopper {
             cursorBlink.Update(delta.TotalSeconds);
             base.Update(delta);
         }
-        public override void Hide() {
-            base.Hide();
-            examineMenu?.Hide();
-        }
         public void UpdateExamine() {
-
-            examineMenu?.Hide();
             var ent = world.entities[world.camera];
             if (ent != null) {
                 examineMenu = new ListMenu<Entity>(Width, Height, hint, ent.Select(e => new ListEntity(e)), select) {
-                    IsVisible = true
+                    IsVisible = true,
                 };
             }
+        }
+    }
+    class MeleeMenu : Console {
+        Player p;
+        ListMenu<Entity> targetSelector;
+        ListMenu<IItem> weaponSelector;
+        public MeleeMenu(int Width, int Height, Player player, IEnumerable<Entity> targets) : base(Width, Height) {
+            this.p = player;
+            this.Transparent();
+
+            targetSelector = new ListMenu<Entity>(Width, Height, "Select an entity to attack", targets.Select(t => new ListEntity(t)), target => {
+                weaponSelector = new ListMenu<IItem>(Width, Height, "Select an item to attack with", player.Inventory.Select(i => new ListItem(i)), weapon => {
+                    if(!player.Actions.OfType<AttackAction>().Any()) {
+                        player.Actions.Add(new AttackAction(player, target, weapon));
+                        Close();
+                    } else {
+                        //To do: prevent multiple attacks
+                    }
+                    return false;
+                });
+                return false;
+            });
+        }
+        public override void Update(TimeSpan delta) {
+            base.Update(delta);
+            ((Console)weaponSelector ?? targetSelector).Update(delta);
+        }
+        public override void Draw(TimeSpan delta) {
+            base.Draw(delta);
+            ((Console)weaponSelector ?? targetSelector).Draw(delta);
+        }
+        public void Close() {
+
+            Parent.IsFocused = true;
+            Parent.Children.Remove(this);
+        }
+        public override bool ProcessKeyboard(Keyboard keyboard) {
+            if(keyboard.IsKeyPressed(Keys.Escape)) {
+                if(weaponSelector != null) {
+                    weaponSelector = null;
+                } else {
+                    Close();
+                }
+            } else {
+                ((Console)weaponSelector ?? targetSelector).ProcessKeyboard(keyboard);
+            }
+            return base.ProcessKeyboard(keyboard);
+        }
+    }
+    class HistoryMenu : Console {
+        List<HistoryEntry> history;
+        int bottomIndex;
+        public HistoryMenu(int Width, int Height, List<HistoryEntry> history) : base(Width, Height) {
+            this.history = history;
+        }
+        public override void Draw(TimeSpan delta) {
+            int x = 0;
+            int y = Height-1;
+            for(int i = history.Count - bottomIndex - 1; i > -1; i--) {
+                this.Print(x, y, history[i].Desc);
+                y--;
+            }
+            base.Draw(delta);
+        }
+        public override bool ProcessKeyboard(Keyboard info) {
+            if (info.IsKeyPressed(Keys.Escape)) {
+                Parent.IsFocused = true;
+                Parent.Children.Remove(this);
+            }
+            int delta = 0;
+            if(info.IsKeyPressed(Keys.Up)) {
+                delta = 1;
+            }
+            if(info.IsKeyPressed(Keys.PageUp)) {
+                delta = 8;
+            }
+            if (info.IsKeyPressed(Keys.Down)) {
+                delta = -1;
+            }
+            if (info.IsKeyPressed(Keys.PageDown)) {
+                delta = -8;
+            }
+            if(delta != 0) {
+                bottomIndex = Math.Max(0, Math.Min(bottomIndex + delta, history.Count - Height));
+            }
+            return base.ProcessKeyboard(info);
         }
     }
 }

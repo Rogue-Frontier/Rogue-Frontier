@@ -1,5 +1,5 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -214,7 +214,7 @@ namespace IslandHopper {
             public int r => symbol.Foreground.R;
             public int g => symbol.Foreground.G;
             public int b => symbol.Foreground.B;
-            public ColoredGlyph SymbolCenter => new ColoredGlyph(c, new Color(r, g, b, (int)(255 * (lifetime > 5 ? 1 : (lifetime + 5) / 10f))), Color.Black);
+            public ColoredGlyph SymbolCenter => new ColoredGlyph(new Color(r, g, b, (int)(255 * (lifetime > 5 ? 1 : (lifetime + 5) / 10f))), Color.Black, c);
             public XYZ Position { get; set; }
             public XYZ Velocity { get; set; }
             public double lifetime;
@@ -243,7 +243,7 @@ namespace IslandHopper {
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
 
-        public ColoredGlyph SymbolCenter { get; set; } = new ColoredGlyph('r', Color.White, Color.Black);
+        public ColoredGlyph SymbolCenter { get; set; } = new ColoredGlyph(Color.White, Color.Black, 'r');
         public ColoredString ModifierName {  get {
                 ColoredString result = BaseName;
                 ItemComponent[] components = {

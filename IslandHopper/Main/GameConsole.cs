@@ -1,27 +1,19 @@
 ﻿using Common;
 using IslandHopper.World;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
+using static SadConsole.Input.Keys;
+using SadRogue.Primitives;
 using SadConsole;
-using SadConsole.Themes;
+using SadConsole.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Resources;
 using System.Xml.Linq;
 using static IslandHopper.Constants;
-
+using SadConsole.Input;
 
 namespace IslandHopper {
 	static class Themes {
-		public static WindowTheme Main = new SadConsole.Themes.WindowTheme() {
-			ModalTint = Color.Transparent,
-			FillStyle = new Cell(Color.White, Color.Black),
-		};
-		public static WindowTheme Sub = new WindowTheme() {
-			ModalTint = Color.Transparent,
-			FillStyle = new Cell(Color.Transparent, Color.Transparent)
-		};
 	}
 	class GameConsole : ControlsConsole {
         Island World;
@@ -29,10 +21,8 @@ namespace IslandHopper {
         int ticks;
 
         public GameConsole(int Width, int Height) : base(Width, Height) {
-            Theme = new WindowTheme {
-                ModalTint = Color.Transparent,
-                FillStyle = new Cell(Color.White, Color.Black),
-            };
+            DefaultBackground = Color.Black;
+
             IsFocused = true;
             UseKeyboard = true;
 			UseMouse = true;
@@ -54,7 +44,7 @@ namespace IslandHopper {
 
 			for (int x = 0; x < World.voxels.Width; x++) {
 				for(int y = 0; y < World.voxels.Height; y++) {
-					World.voxels[new XYZ(x, y, 0)] = new Grass();
+					World.voxels[new XYZ(x, y, 0)] = new Grass(World);
 				}
 			}
 
@@ -112,25 +102,25 @@ namespace IslandHopper {
 		private int HalfHeight { get => Height / 2; }
 		public override void Draw(TimeSpan delta) {
             this.DebugInfo($"Draw({delta})");
-            Clear();
+            this.Clear();
 
-            int HalfViewWidth = 90;
-            int HalfViewHeight = 30;
+            int HalfViewWidth = Width/2 - 8;
+            int HalfViewHeight = Height/2 - 8;
 			for(int x = -HalfViewWidth; x < HalfViewWidth; x++) {
 				for(int y = -HalfViewHeight; y < HalfViewHeight; y++) {
 					XYZ location = World.camera + new XYZ(x, y, 0);
-					
-					Print(x + HalfWidth, Height - (y + HalfHeight), GetGlyph(location));
+
+                    this.Print(x + HalfWidth, Height - (y + HalfHeight), GetGlyph(location));
 				}
 			}
 
-            Print(1, 1, "" + World.player.Position.z, Color.White);
-            Print(1, 2, "" + World.camera.z, Color.White);
+            this.Print(1, 1, "" + World.player.Position.z, Color.White);
+            this.Print(1, 2, "" + World.camera.z, Color.White);
             var printY = (Height - 4);
             for (int i = 0; i < 30 && i < World.player.HistoryRecent.Count(); i++) {
                 var entry = World.player.HistoryRecent[World.player.HistoryRecent.Count() - 1 - i];
                 printY--;
-                Print(1, printY, entry.ScreenTime > 1 ? entry.Desc : entry.Desc.WithOpacity((byte)(255 * entry.ScreenTime)));
+                this.Print(1, printY, entry.ScreenTime > 1 ? entry.Desc : entry.Desc.WithOpacity((byte)(255 * entry.ScreenTime)));
             }
 
             printY = (Height - 3);
@@ -139,11 +129,11 @@ namespace IslandHopper {
                     case ShootAction fire:
                         var gun = fire.item.Gun;
                         var delay = gun.FireTimeLeft + gun.ReloadTimeLeft;
-                        Print(1, printY, fire.Name + new ColoredString(" ")
+                        this.Print(1, printY, fire.Name + new ColoredString(" ")
                             + new ColoredString(new string('>', delay)));
                         break;
                     default:
-                        Print(1, printY, action.Name);
+                        this.Print(1, printY, action.Name);
                         break;
                 }
                 printY++;
@@ -151,9 +141,9 @@ namespace IslandHopper {
 
             int printX;
             (printX, printY) = (Width - 16, Height - 2);
-            Print(printX, printY, new ColoredString("Body HP:  ") + new ColoredString(World.player.health.bodyHP.ToString(), Color.Red, Color.Black));
+            this.Print(printX, printY, new ColoredString("Body HP:  ") + new ColoredString(World.player.health.bodyHP.ToString(), Color.Red, Color.Black));
             printY++;
-            Print(printX, printY, new ColoredString("Blood HP: ") + new ColoredString(World.player.health.bloodHP.ToString(), Color.Red, Color.Black));
+            this.Print(printX, printY, new ColoredString("Blood HP: ") + new ColoredString(World.player.health.bloodHP.ToString(), Color.Red, Color.Black));
 
 
             int PreviewWidth = 10;
@@ -166,7 +156,7 @@ namespace IslandHopper {
                 for (int x = -PreviewWidth / 2; x < PreviewWidth / 2; x++) {
                     for (int y = -PreviewHeight / 2; y < PreviewHeight / 2; y++) {
                         XYZ location = watching.Position + new XYZ(x, y, 0);
-                        Print(x + previewX, -y + previewY, GetGlyph(location));
+                        this.Print(x + previewX, -y + previewY, GetGlyph(location));
                     }
                 }
                 previewY += PreviewHeight;
@@ -174,7 +164,7 @@ namespace IslandHopper {
             base.Draw(delta);
 		}
 		public ColoredGlyph GetGlyph(XYZ location) {
-			var c = new ColoredGlyph(' ', Color.Transparent, Color.Transparent);
+			var c = new ColoredGlyph(Color.Transparent, Color.Transparent, ' ');
 			if (World.voxels.InBounds(location)) {
                 var effects = VisibleOnly(World.effects[location].Select(e => e.SymbolCenter)).ToList();
                 var items = VisibleOnly(World.entities[location].Where(e => e is Item).Select(e => e.SymbolCenter)).ToList();
@@ -196,22 +186,22 @@ namespace IslandHopper {
                             case 0:
                             case 2:
                             case 3:
-                                c = new ColoredGlyph('|', Color.White, Color.Black);
+                                c = new ColoredGlyph(Color.White, Color.Black, '|');
                                 break;
                             case 4:
                             case 5:
                             case 6:
-                                c = new ColoredGlyph('\\', Color.White, Color.Black);
+                                c = new ColoredGlyph(Color.White, Color.Black, '\\');
                                 break;
                             case 7:
                             case 8:
                             case 9:
-                                c = new ColoredGlyph('-', Color.White, Color.Black);
+                                c = new ColoredGlyph(Color.White, Color.Black, '-');
                                 break;
                             case 10:
                             case 11:
                             case 12:
-                                c = new ColoredGlyph('/', Color.White, Color.Black);
+                                c = new ColoredGlyph(Color.White, Color.Black, '/');
                                 break;
                             default:
                                 c = entities[entityIndex];
@@ -284,58 +274,64 @@ namespace IslandHopper {
                 //Running is also a jump action but without z > 0, so we can jump while running
                 if (player.OnGround() && !player.Actions.Any(a => a is Jump j && j.z > 0))
                     player.Actions.Add(new Jump(player, new XYZ(0, 0, 5)));
+            } else if(info.IsKeyPressed(Keys.A)) {
+                if(info.IsKeyDown(Keys.LeftShift)) {
+                    Children.Add(new MeleeMenu(Width, Height, player, World.entities.all.Where(e => (e.Position - player.Position).Magnitude < 1.5)) { IsFocused = true });
+                } else {
+                    Children.Add(new HistoryMenu(Width, Height, player.HistoryLog) { IsFocused = true });
+                }
             } else if (info.IsKeyPressed(Keys.C)) {
                 //
-                new ListMenu<EntityAction>(Width, Height, "Select actions to cancel. Press ESC to finish.", player.Actions.Select(Action => new ListAction(Action)), Action => {
-                    //Just drop the item for now
+                Children.Add(new ListMenu<EntityAction>(Width, Height, "Select actions to cancel. Press ESC to finish.", player.Actions.Select(Action => new ListAction(Action)), Action => {
+                    //Just cancel the action immediately for now
                     player.Actions.Remove(Action);
                     return true;
-                }).Show(true);
+                }) { IsFocused = true });
 
             } else if (info.IsKeyPressed(Keys.D)) {
-                new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", player.Inventory.Select(Item => new ListItem(Item)), item => {
+                Children.Add(new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", player.Inventory.Select(Item => new ListItem(Item)), item => {
                     //Just drop the item for now
                     player.Inventory.Remove(item);
                     World.entities.Place(item);
 
                     World.player.Witness(new InfoEvent(new ColoredString("You drop: ") + item.Name.WithBackground(Color.Black)));
                     return true;
-                }).Show(true);
+                }) { IsFocused = true });
             } else if (info.IsKeyPressed(Keys.U)) {
                 //World.AddEntity(new ExplosionSource(World, World.player.Position, 10));
                 //Use menu
-                new ListMenu<IItem>(Width, Height, "Select items to use. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
+                Children.Add(new ListMenu<IItem>(Width, Height, "Select items to use. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
 
                     if (item.Grenade != null && !item.Grenade.Armed) {
                         item.Grenade.Arm();
                         player.Witness(new InfoEvent(new ColoredString("You arm: ") + item.Name.WithBackground(Color.Black)));
                     }
                     return false;
-                }).Show(true);
+                }) { IsFocused = true });
             } else if (info.IsKeyPressed(Keys.G)) {
-                new ListMenu<IItem>(Width, Height, "Select items to get. Press ESC to finish.", World.entities[World.player.Position].OfType<IItem>().Select(Item => new ListItem(Item)), item => {
+                Children.Add(new ListMenu<IItem>(Width, Height, "Select items to get. Press ESC to finish.", World.entities[World.player.Position].OfType<IItem>().Select(Item => new ListItem(Item)), item => {
                     //Just take the item for now
                     World.player.Inventory.Add(item);
                     World.entities.Remove(item);
 
                     World.player.Witness(new InfoEvent(new ColoredString("You get: ") + item.Name.WithBackground(Color.Black)));
                     return true;
-                }).Show(true);
+                }) { IsFocused = true });
             } else if (info.IsKeyPressed(Keys.I)) {
-                new ListMenu<IItem>(Width, Height, "Select inventory items to examine. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
+                Children.Add(new ListMenu<IItem>(Width, Height, "Select inventory items to examine. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
                     //	Later, we might have a chance of identifying the item upon selecting it in the inventory
 
                     //World.player.Witness(new SelfEvent(new ColoredString("You examine: ") + item.Name.WithBackground(Color.Black)));
                     return false;
-                }).Show(true);
+                }) { IsFocused = true });
             } else if (info.IsKeyPressed(Keys.L)) {
-                new LookMenu(Width, Height, World).Show(true);
+                Children.Add(new LookMenu(Width, Height, World) { IsFocused = true });
             } else if (info.IsKeyPressed(Keys.S)) {
                 //TODO: Ask the player if they want to cancel their current ShootAction
 
-                new ShootMenu(Width, Height, World, World.player).Show(true);
+                Children.Add(new ShootMenu(Width, Height, World, World.player) { IsFocused = true });
             } else if (info.IsKeyPressed(Keys.T)) {
-                new ThrowMenu(Width, Height, World, World.player).Show(true);
+                Children.Add(new ThrowMenu(Width, Height, World, World.player) { IsFocused = true });
             } else if (info.IsKeyDown(Keys.OemPeriod) && info.IsKeyDown(Keys.RightControl)) {
                 if (!World.player.Actions.Any(a => a is WaitAction)) {
                     World.player.Actions.Add(new WaitAction(1));

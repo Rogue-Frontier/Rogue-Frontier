@@ -1,15 +1,17 @@
 ﻿using Common;
 using SadConsole;
 using SadConsole.Input;
+using SadConsole.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Microsoft.Xna.Framework.Input.Keys;
+using static SadConsole.Input.Keys;
+using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
-    class ShipSelector : Window {
+    class ShipSelector : Console {
         World World;
         List<ShipClass> playable;
         int index;
@@ -20,7 +22,7 @@ namespace TranscendenceRL {
             this.index = 0;
         }
         public override void Draw(TimeSpan drawTime) {
-            Clear();
+            this.Clear();
 
             var current = playable[index];
             
@@ -29,45 +31,45 @@ namespace TranscendenceRL {
             var mapX = 0;
             var mapY = 3;
             foreach(var line in current.playerSettings.map) {
-                Print(mapX, mapY, line);
+                this.Print(mapX, mapY, line);
                 mapY++;
             }
 
             string s = "[Image is for promotional use only]";
             var strX = Width/4 - s.Length / 2;
-            Print(strX, mapY, s);
+            this.Print(strX, mapY, s);
 
             var nameX = Width / 4 - current.name.Length/2;
             var nameY = 2;
-            Print(nameX, nameY, current.name);
+            this.Print(nameX, nameY, current.name);
 
             var descX = Width / 2;
             var descY = 2;
             foreach(var line in current.playerSettings.description.Wrap(Width/2)) {
-                Print(descX, descY, line);
+                this.Print(descX, descY, line);
                 descY++;
             }
 
             descY++;
 
             //Show installed devices on the right pane
-            Print(descX, descY, "Installed Devices:");
+            this.Print(descX, descY, "Installed Devices:");
             descY++;
             foreach (var device in current.devices.Generate(World.types)) {
-                Print(descX+4, descY, device.source.type.name);
+                this.Print(descX+4, descY, device.source.type.name);
             }
 
             if (index > 0) {
                 string leftArrow = "<===  [Left Arrow]";
-                Print(Width / 3 - leftArrow.Length - 1, 0, leftArrow);
+                this.Print(Width / 3 - leftArrow.Length - 1, 0, leftArrow);
             }
             if(index < playable.Count - 1) {
                 string rightArrow = "[Right Arrow] ===>";
-                Print(Width * 2 / 3 + 1, 0, rightArrow);
+                this.Print(Width * 2 / 3 + 1, 0, rightArrow);
             }
 
             string start = "[Enter] Start";
-            Print(Width - start.Length, Height - 1, start);
+            this.Print(Width - start.Length, Height - 1, start);
 
             base.Draw(drawTime);
         }
@@ -79,12 +81,10 @@ namespace TranscendenceRL {
                 index = (playable.Count + index - 1) % playable.Count;
             }
             if(info.IsKeyPressed(Escape)) {
-                Hide();
-                new TitleConsole(Width, Height).Show(true);
+                SadConsole.Game.Instance.Screen = new TitleConsole(Width, Height) { IsFocused = true };
             }
             if(info.IsKeyPressed(Enter)) {
-                Hide();
-                new CrawlScreen(Width, Height, World, playable[index]).Show(true);
+                SadConsole.Game.Instance.Screen = new CrawlScreen(Width, Height, World, playable[index]) { IsFocused = true };
             }
             return base.ProcessKeyboard(info);
         }

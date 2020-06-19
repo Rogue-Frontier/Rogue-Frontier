@@ -1,4 +1,4 @@
-﻿using static Microsoft.Xna.Framework.Input.Keys;
+﻿using static SadConsole.Input.Keys;
 using SadConsole;
 using SadConsole.Input;
 using System;
@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using System.Xml.Linq;
 
 namespace TranscendenceRL {
@@ -53,7 +53,7 @@ namespace TranscendenceRL {
     public interface IDockView {
         void Update();
         void Handle(Keyboard info);
-        void Draw(CellSurface w);
+        void Draw(ICellSurface w);
     }
     class TextView : IDockView {
         public Action<IDockView> setPane;
@@ -69,7 +69,7 @@ namespace TranscendenceRL {
         public void Handle(Keyboard info) {
 
         }
-        public void Draw(CellSurface w) {
+        public void Draw(ICellSurface w) {
 
         }
     }
@@ -138,10 +138,10 @@ namespace TranscendenceRL {
                 setPane(null);
             }
         }
-        public void Draw(CellSurface w) {
+        public void Draw(ICellSurface w) {
             int x = 16;
             int y = 16;
-            int entries = w.Height - 32;
+            int entries = w.ViewHeight - 32;
 
             w.Print(x, y, player.Name, Color.White, Color.Black);
             y++;
@@ -165,7 +165,7 @@ namespace TranscendenceRL {
                 y++;
             }
 
-            x = w.Width/2 + 16;
+            x = w.ViewWidth/2 + 16;
             y = 16;
             w.Print(x, y, dock.Name, Color.White, Color.Black);
             y++;

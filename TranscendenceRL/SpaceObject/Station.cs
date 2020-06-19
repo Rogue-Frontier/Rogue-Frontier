@@ -1,5 +1,5 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace TranscendenceRL {
         public XY Velocity { get; private set; }
         public bool Active { get; private set; }
         public HashSet<Item> Items { get; private set; }
-        public ColoredGlyph Tile => new ColoredGlyph(creator.Tile.GlyphCharacter, new Color(128, 128, 128), Color.Transparent);
+        public ColoredGlyph Tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.Tile.GlyphCharacter);
         public IDockViewDesc MainView => DockScreenDesc.WreckScreen;
         public Wreck(SpaceObject creator) {
             this.creator = creator;
@@ -122,7 +122,7 @@ namespace TranscendenceRL {
             World.AddEntity(wreck);
             foreach(var segment in segments) {
                 var offset = segment.desc.offset;
-                var tile = new ColoredGlyph(segment.desc.tile.Glyph.GlyphCharacter, new Color(128, 128, 128), Color.Transparent);
+                var tile = new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, segment.desc.tile.Glyph.GlyphCharacter);
                 World.AddEntity(new Segment(wreck, new SegmentDesc(offset, new StaticTile(tile))));
             }
         }

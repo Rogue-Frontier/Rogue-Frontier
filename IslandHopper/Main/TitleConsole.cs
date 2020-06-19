@@ -1,14 +1,14 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
-using SadConsole.Controls;
-using SadConsole.Themes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SadConsole.UI;
+using SadConsole.UI.Controls;
 
 namespace IslandHopper {
 	class TitleConsole : ControlsConsole {
@@ -51,46 +51,33 @@ namespace IslandHopper {
 
 		private List<ITimer> timers;
 
-		private Random Random = Global.Random;
-
-		ButtonTheme BUTTON_THEME = new SadConsole.Themes.ButtonTheme() {
-			Normal = new SadConsole.Cell(Color.Yellow, Color.Transparent),
-			Disabled = new Cell(Color.Gray, Color.Transparent),
-			Focused = new Cell(Color.Red, Color.Transparent),
-			MouseDown = new Cell(Color.White, Color.Transparent),
-			MouseOver = new Cell(Color.Red, Color.Transparent)
-		};
+		private Random Random = new Random();
 
 		public TitleConsole(int width, int height) : base(width, height) {
+			DefaultBackground = Color.Black;
 
 			landGrid = new bool[Width, Height];
-			Theme = new WindowTheme {
-				ModalTint = Color.Transparent,
-				FillStyle = new Cell(Color.White, Color.Black),
-			};
-			var start = new SadConsole.Controls.Button(10, 1) {
+			var start = new Button(10, 1) {
 				Position = new Point(5, 5),
 				Text = "START",
-				Theme = BUTTON_THEME
 			};
 			start.Click += (btn, args) => {
-                SadConsole.Global.CurrentScreen = new GameConsole(Width, Height);
+                SadConsole.Game.Instance.Screen = new GameConsole(Width, Height) { IsFocused = true };
             };
-			Add(start);
+			this.ControlHostComponent.Add(start);
 
 			var quit = new Button(10, 1) {
 				Position = new Point(5, 6),
 				Text = "QUIT",
-				Theme = BUTTON_THEME,
 			};
 			quit.Click += (btn, args) => {
 				//Nuclear self destruct effect
 				//new ExitWindow(Width, Height).Show(true);
 			};
-			Add(quit);
+			this.ControlHostComponent.Add(quit);
 
 			titleLines = 0;
-			waterLevel = 50;
+			waterLevel = Height - 10;
 
 			timers = new List<ITimer> {
 				new TimerLimited(0.25, () => {
@@ -99,17 +86,17 @@ namespace IslandHopper {
 				new TimerLimited(5, () => {
 					timers = new List<ITimer> {
 						new Timer(waterLineInterval, () => {
-							waterLines.Add(new XY(0, waterLevel + Global.Random.Next(waterHeight)));
+							waterLines.Add(new XY(0, waterLevel + Random.Next(waterHeight)));
 						}),
 						new Timer(waterTrailInterval, () => {
 							waterLines.ForEach(line => waterTrails.Add(new WaterTrail(line.x, line.y, waterTrailLifespan)));
 						}),
 						new Timer(planeInterval, () => {
-							planes.Add(new XY(0, planeLevel + Global.Random.Next(10)));
+							planes.Add(new XY(0, planeLevel + Random.Next(10)));
 						}),
 						new Timer(playerInterval, () => {
 							planes.ForEach(plane => {
-								if (Helper.InRange(plane.x + PLANE.LineLength(), Width/2, 30) && Global.Random.Next(2) < 1)
+								if (Helper.InRange(plane.x + PLANE.LineLength(), Width/2, 30) && Random.Next(2) < 1)
 									players.Add(plane.clone + new XY(8, 1));
 							});
 						}),
@@ -155,7 +142,7 @@ namespace IslandHopper {
 
 		}
 		public override void Draw(TimeSpan delta) {
-			Clear();
+			this.Clear();
 			PrintTitle();
 			PrintWater();
 			PrintPlanes();
@@ -180,10 +167,10 @@ namespace IslandHopper {
 		private void PrintWater() {
 
 			foreach (var trail in waterTrails) {
-				Print((int)trail.x, (int)trail.y, "=", new Color(Color.Blue, (int)(255 * trail.lifetime / trail.lifespan)));
+				this.Print((int)trail.x, (int)trail.y, "=", new Color(Color.Blue, (int)(255 * trail.lifetime / trail.lifespan)));
 			}
 			foreach (var line in waterLines) {
-				Print((int)line.x, (int)line.y, "=", Color.Blue);
+				this.Print((int)line.x, (int)line.y, "=", Color.Blue);
 			}
 		}
 		private void PrintPlanes() {

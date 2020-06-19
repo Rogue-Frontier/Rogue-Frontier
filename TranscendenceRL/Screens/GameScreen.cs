@@ -4,25 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Common;
-using Microsoft.Xna.Framework;
-using static Microsoft.Xna.Framework.Input.Keys;
+using SadRogue.Primitives;
+using static SadConsole.Input.Keys;
 using SadConsole;
 using SadConsole.Input;
-using SadConsole.Themes;
 using ASECII;
+using SadConsole.UI;
+using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
-	static class Themes {
-		public static WindowTheme Main = new SadConsole.Themes.WindowTheme() {
-			ModalTint = Color.Transparent,
-			FillStyle = new Cell(Color.White, Color.Black),
-		};
-		public static WindowTheme Sub = new WindowTheme() {
-			ModalTint = Color.Transparent,
-			FillStyle = new Cell(Color.Transparent, Color.Transparent)
-		};
-	}
-	class PlayerMain : Window {
+	public class PlayerMain : Console {
 		public XY camera;
 		public World world;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
@@ -89,6 +80,19 @@ namespace TranscendenceRL {
 			};
 			this.Children.Add(ui);
 		}
+		public void PlaceTiles() {
+			tiles.Clear();
+			foreach (var e in world.entities.all) {
+				if (e.Tile != null && !tiles.ContainsKey(e.Position.RoundDown)) {
+					tiles[e.Position.RoundDown] = e.Tile;
+				}
+			}
+			foreach (var e in world.effects.all) {
+				if (e.Tile != null && !tiles.ContainsKey(e.Position.RoundDown)) {
+					tiles[e.Position.RoundDown] = e.Tile;
+				}
+			}
+		}
 		public override void Update(TimeSpan delta) {
 			tiles.Clear();
 			//Place everything in the grid
@@ -113,7 +117,7 @@ namespace TranscendenceRL {
 			if(active) {
 				if (player.docking?.docked == true && player.docking.target is Dockable d) {
 					player.docking = null;
-					new Dockscreen(Width, Height, d.MainView, this, player, d).Show(true); ;
+					this.Children.Add(new Dockscreen(Width, Height, d.MainView, this, player, d));
 				}
 				if (!player.Active) {
 
@@ -122,68 +126,65 @@ namespace TranscendenceRL {
 			}
 		}
 		public override void Draw(TimeSpan drawTime) {
-			Clear();
+			DrawWorld();
+			base.Draw(drawTime);
+		}
+		public void DrawWorld() {
+			this.Clear();
+			int ViewWidth = Width;
+			int ViewHeight = Height;
+			int HalfViewWidth = ViewWidth / 2;
+			int HalfViewHeight = ViewHeight / 2;
 
-			{
+			if (viewScale > 1) {
+				var scaled = tiles.Downsample(viewScale);
+				for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
+					for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
+						var screenCenterOffset = new XY(x, y);
+						XY location = camera / viewScale + screenCenterOffset;
 
-				int ViewWidth = Width;
-				int ViewHeight = Height;
-				int HalfViewWidth = ViewWidth / 2;
-				int HalfViewHeight = ViewHeight / 2;
+						var xScreen = x + HalfViewWidth;
+						var yScreen = ViewHeight - (y + HalfViewHeight);
+						var visible = scaled[location];
+						if (visible.Any()) {
+							this.SetCellAppearance(xScreen, yScreen, visible.First());
+							visible.Remove(visible.First());
+						} else {
+							var backX = Math.Abs(screenCenterOffset.xi * viewScale);
+							var backY = Math.Abs(screenCenterOffset.yi * viewScale);
+							if (backX < HalfViewWidth && backY < HalfViewHeight) {
 
-				if (viewScale > 1) {
-					var scaled = tiles.Downsample(viewScale);
-					for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
-						for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
-							var screenCenterOffset = new XY(x, y);
-							XY location = camera / viewScale + screenCenterOffset;
 
-							var xScreen = x + HalfViewWidth;
-							var yScreen = ViewHeight - (y + HalfViewHeight);
-							var visible = scaled[location];
-							if(visible.Any()) {
-								this.SetCellAppearance(xScreen, yScreen, visible.First());
-								visible.Remove(visible.First());
+								var back = world.backdrop.GetTile(camera + (screenCenterOffset + new XY(0.5, 0.5)) * viewScale, camera / viewScale).Clone();
+
+								//back.Background = (backVoid.GetTile(screenCenterOffset * Math.Sqrt(viewScale), camera).Background).Blend(back.Background * (float)(1 / viewScale));
+
+								this.SetCellAppearance(xScreen, yScreen, back);   //Reduce parallax on zoom out)
 							} else {
-								var backX = Math.Abs(screenCenterOffset.xi * viewScale);
-								var backY = Math.Abs(screenCenterOffset.yi * viewScale);
-								if (backX < HalfViewWidth && backY < HalfViewHeight) {
-									
 
-									var back = world.backdrop.GetTile(camera + (screenCenterOffset + new XY(0.5, 0.5)) * viewScale, camera / viewScale).Clone();
+								//var value = (int)(51 * Math.Sqrt(HalfViewWidth * HalfViewWidth + HalfViewHeight * HalfViewHeight) / Math.Sqrt(backX * backX + backY * backY));
 
-									//back.Background = (backVoid.GetTile(screenCenterOffset * Math.Sqrt(viewScale), camera).Background).Blend(back.Background * (float)(1 / viewScale));
+								//var value = 51 / (int)Math.Sqrt(1+ Math.Pow(HalfViewWidth - backX, 2) + Math.Pow(HalfViewHeight - backY, 2));
+								//var c = new Color(value, value, value);
 
-									this.SetCellAppearance(xScreen, yScreen, back);   //Reduce parallax on zoom out)
-								} else {
-
-									//var value = (int)(51 * Math.Sqrt(HalfViewWidth * HalfViewWidth + HalfViewHeight * HalfViewHeight) / Math.Sqrt(backX * backX + backY * backY));
-
-									//var value = 51 / (int)Math.Sqrt(1+ Math.Pow(HalfViewWidth - backX, 2) + Math.Pow(HalfViewHeight - backY, 2));
-									//var c = new Color(value, value, value);
-
-									var back = backVoid.GetTile(screenCenterOffset * Math.Sqrt(viewScale), camera).Clone();
-									back.Background = back.Background * 2;
-									this.SetCellAppearance(xScreen, yScreen, back);
-                                }
+								var back = backVoid.GetTile(screenCenterOffset * Math.Sqrt(viewScale), camera).Clone();
+								back.Background = back.Background * 2;
+								this.SetCellAppearance(xScreen, yScreen, back);
 							}
 						}
 					}
-				} else {
-					for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
-						for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
-							XY location = camera + new XY(x, y);
+				}
+			} else {
+				for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
+					for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
+						XY location = camera + new XY(x, y);
 
-							var xScreen = x + HalfViewWidth;
-							var yScreen = ViewHeight - (y + HalfViewHeight);
-							this.SetCellAppearance(xScreen, yScreen, GetTile(location));
-						}
+						var xScreen = x + HalfViewWidth;
+						var yScreen = ViewHeight - (y + HalfViewHeight);
+						this.SetCellAppearance(xScreen, yScreen, GetTile(location));
 					}
 				}
-				
 			}
-
-			base.Draw(drawTime);
 		}
 		public bool GetForegroundTile(XY xy, out ColoredGlyph result) {
 			if (tiles.TryGetValue(xy, out result)) {
@@ -231,12 +232,10 @@ namespace TranscendenceRL {
 				player.SetDecelerating();
 			}
 			if(info.IsKeyPressed(Escape)) {
-				Hide();
-				new TitleConsole(Width, Height).Show(true);
+				SadConsole.Game.Instance.Screen = new TitleConsole(Width, Height) { IsFocused = true };
 			}
 			if(info.IsKeyPressed(S)) {
-				Hide();
-				new ShipScreen(this, player).Show(true);
+				SadConsole.Game.Instance.Screen = new ShipScreen(this, player) { IsFocused = true };
 			}
 			if(info.IsKeyPressed(W)) {
 				player.NextWeapon();
@@ -253,13 +252,13 @@ namespace TranscendenceRL {
 				player.ClearTarget();
 				//Note: Show a label on the target after select
 			}
-			if(info.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.OemMinus)) {
+			if(info.IsKeyDown(OemMinus)) {
 				viewScale += Math.Min(viewScale / (2 * 30), 1);
 				if(viewScale < 1) {
 					viewScale = 1;
                 }
             }
-			if(info.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.OemPlus)) {
+			if(info.IsKeyDown(OemPlus)) {
 				viewScale -= Math.Min(viewScale / (2 * 30), 1);
 				if(viewScale < 1) {
 					viewScale = 1;
@@ -288,11 +287,11 @@ namespace TranscendenceRL {
 			}
 			return base.ProcessKeyboard(info);
 		}
-		public override bool ProcessMouse(MouseConsoleState state) {
-			if(state.IsOnConsole) {
+		public override bool ProcessMouse(MouseScreenObjectState state) {
+			if(state.IsOnScreenObject) {
 
 
-				var cell = state.ConsoleCellPosition;
+				var cell = state.SurfaceCellPosition;
 				var offset = new XY(cell.X, Height - cell.Y) - new XY(Width / 2, Height / 2);
 				if(offset.xi != 0 && offset.yi != 0) {
 					var mouseRads = offset.Angle;
@@ -323,7 +322,7 @@ namespace TranscendenceRL {
 			return base.ProcessMouse(state);
 		}
 	}
-	class PlayerUI : Window {
+	class PlayerUI : Console {
 		PlayerShip player;
 		Dictionary<(int, int), ColoredGlyph> tiles;
 		public PlayerUI(PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
@@ -331,7 +330,7 @@ namespace TranscendenceRL {
 			this.tiles = tiles;
         }
         public override void Draw(TimeSpan drawTime) {
-			Clear();
+			this.Clear();
 			XY screenSize = new XY(Width, Height);
 			var messageY = Height * 3 / 5;
 			XY screenCenter = screenSize / 2;
@@ -340,34 +339,34 @@ namespace TranscendenceRL {
 				var screenPos = (target.Position - player.Position) + screenSize / 2;
 				screenPos = screenPos.RoundDown;
 				screenPos.y += 1;
-				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 					e = Line.Single,
 					w = Line.Single,
 					n = Line.Double,
-				}], Color.White, Color.Transparent));
+				}]));
 				for (int i = 0; i < 3; i++) {
 					screenPos.y++;
-					this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+					this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 						n = Line.Double,
 						s = Line.Double,
-					}], Color.White, Color.Transparent));
+					}]));
 				}
 				screenPos.y++;
-				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 					e = Line.Double,
 					s = Line.Double,
-				}], Color.White, Color.Transparent));
+				}]));
 				screenPos.x++;
-				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 					w = Line.Double,
 					n = Line.Single,
 					s = Line.Single
-				}], Color.White, Color.Transparent));
+				}]));
 				screenPos.x++;
 
 
 				foreach (var cc in target.Name) {
-					this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(cc, Color.White, Color.Transparent));
+					this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, cc));
 					screenPos.xi++;
 				}
 
@@ -388,7 +387,7 @@ namespace TranscendenceRL {
 				var message = player.messages[i];
 				var line = message.Draw();
 				var x = Width * 3 / 4 - line.Count;
-				Print(x, messageY, line);
+				this.Print(x, messageY, line);
 				if (message is Transmission t) {
 					//Draw a line from message to source
 
@@ -407,19 +406,19 @@ namespace TranscendenceRL {
 
 					screenX++;
 					messagePos.x++;
-					this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+					this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 						e = Line.Double,
 						n = Line.Single,
 						s = Line.Single
-					}], f, b));
+					}]));
 					screenX++;
 					messagePos.x++;
 
 					for (int j = 0; j < i; j++) {
-						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 							e = Line.Double,
 							w = Line.Double
-						}], f, b));
+						}]));
 						screenX++;
 						messagePos.x++;
 					}
@@ -448,40 +447,40 @@ namespace TranscendenceRL {
 					int screenLineX = offset.xi;
 
 					if (screenLineY != 0) {
-						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 							n = offset.y > 0 ? Line.Double : Line.None,
 							s = offset.y < 0 ? Line.Double : Line.None,
 							w = Line.Double
-						}], f, b));
+						}]));
 						screenY -= Math.Sign(screenLineY);
 						screenLineY -= Math.Sign(screenLineY);
 
 						while (screenLineY != 0) {
-							this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+							this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 								n = Line.Double,
 								s = Line.Double
-							}], f, b));
+							}]));
 							screenY -= Math.Sign(screenLineY);
 							screenLineY -= Math.Sign(screenLineY);
 						}
 					}
 
 					if (screenLineX != 0) {
-						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+						this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 							n = offset.y < 0 ? Line.Double : Line.None,
 							s = offset.y > 0 ? Line.Double : Line.None,
 
 							e = offset.x > 0 ? Line.Double : Line.None,
 							w = offset.x < 0 ? Line.Double : Line.None
-						}], f, b));
+						}]));
 						screenX += Math.Sign(screenLineX);
 						screenLineX -= Math.Sign(screenLineX);
 
 						while (screenLineX != 0) {
-							this.SetCellAppearance(screenX, screenY, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+							this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 								e = Line.Double,
 								w = Line.Double
-							}], f, b));
+							}]));
 							screenX += Math.Sign(screenLineX);
 							screenLineX -= Math.Sign(screenLineX);
 						}
@@ -499,13 +498,13 @@ namespace TranscendenceRL {
 				int x = 3;
 				int y = 3;
 				if (player.power.totalMaxOutput > 0) {
-					Print(x, y, $"[{new string('=', 16)}]", Color.White, Color.Transparent);
+					this.Print(x, y, $"[{new string('=', 16)}]", Color.White, Color.Transparent);
 					if (player.power.totalUsedOutput > 0) {
-						Print(x, y, $"[{new string('=', 16 * player.power.totalUsedOutput / player.power.totalMaxOutput)}", Color.Yellow, Color.Transparent);
+						this.Print(x, y, $"[{new string('=', 16 * player.power.totalUsedOutput / player.power.totalMaxOutput)}", Color.Yellow, Color.Transparent);
 					}
 					y++;
 					foreach (var reactor in player.Ship.Devices.Reactors) {
-						Print(x, y, new ColoredString("[", Color.White, Color.Transparent) + new ColoredString(new string(' ', 16)) + new ColoredString("]", Color.White, Color.Transparent));
+						this.Print(x, y, new ColoredString("[", Color.White, Color.Transparent) + new ColoredString(new string(' ', 16)) + new ColoredString("]", Color.White, Color.Transparent));
 						if (reactor.energy > 0) {
 							Color bar = Color.White;
 							char end = '=';
@@ -516,7 +515,7 @@ namespace TranscendenceRL {
 								end = '>';
 								bar = Color.Cyan;
 							}
-							Print(x, y, $"[{new string('=', (int)(15 * reactor.energy / reactor.desc.capacity))}{end}", bar, Color.Transparent);
+							this.Print(x, y, $"[{new string('=', (int)(15 * reactor.energy / reactor.desc.capacity))}{end}", bar, Color.Transparent);
 						}
 						y++;
 					}
@@ -530,7 +529,7 @@ namespace TranscendenceRL {
 						} else if (weapon.firing || weapon.fireTime > 0) {
 							foreground = Color.Yellow;
 						}
-						Print(x, y, $"{(i == player.selectedPrimary ? ">" : "")}{weapon.source.type.name}{new string('>', weapon.fireTime / 3)}", foreground, Color.Transparent);
+						this.Print(x, y, $"{(i == player.selectedPrimary ? ">" : "")}{weapon.source.type.name}{new string('>', weapon.fireTime / 3)}", foreground, Color.Transparent);
 						y++;
 						i++;
 					}
@@ -538,12 +537,12 @@ namespace TranscendenceRL {
 				switch (player.Ship.DamageSystem) {
 					case LayeredArmorSystem las:
 						foreach (var armor in las.layers) {
-							Print(x, y, $"{armor.source.type.name}{new string('>', armor.hp / 3)}", Color.White, Color.Transparent);
+							this.Print(x, y, $"{armor.source.type.name}{new string('>', armor.hp / 3)}", Color.White, Color.Transparent);
 							y++;
 						}
 						break;
 					case HPSystem hp:
-						Print(x, y, $"HP: {hp.hp}");
+						this.Print(x, y, $"HP: {hp.hp}");
 						break;
 				}
 			}
@@ -580,7 +579,7 @@ namespace TranscendenceRL {
 					if (y == 0) {
 						y = 1;
 					}
-					Print(x, Height - y, "#", c, Color.Transparent);
+					this.Print(x, Height - y, "#", c, Color.Transparent);
 
 				}
 			}
@@ -599,9 +598,9 @@ namespace TranscendenceRL {
 				for (int y = -mapHeight / 2; y < mapHeight / 2; y++) {
 					var tiles = mapSample[((x + player.Position.xi / mapScale), (y + player.Position.yi / mapScale))];
 					if (tiles.Any()) {
-						Print(mapCenterX + x, mapCenterY - y, tiles.First());
+						this.Print(mapCenterX + x, mapCenterY - y, tiles.First());
 					} else {
-						Print(mapCenterX + x, mapCenterY - y, "=", new Color(255, 255, 255, 204), Color.Transparent);
+						this.Print(mapCenterX + x, mapCenterY - y, "=", new Color(255, 255, 255, 204), Color.Transparent);
 					}
 				}
 			}

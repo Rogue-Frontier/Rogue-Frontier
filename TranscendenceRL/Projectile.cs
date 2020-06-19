@@ -1,5 +1,5 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -47,7 +47,7 @@ namespace TranscendenceRL {
                         hit.Damage(Source, damage);
                         Fragment();
                         var angle = (hit.Position - Position).Angle;
-                        World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph('x', Color.Yellow, Color.Transparent), 5));
+                        World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
                         return;
                     }
 

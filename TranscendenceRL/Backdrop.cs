@@ -1,12 +1,9 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
 using SadConsole;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework.Graphics;
+using SadRogue.Primitives;
 
 namespace TranscendenceRL {
     //A space background made up of randomly generated layers with different depths
@@ -31,7 +28,7 @@ namespace TranscendenceRL {
             return result;
         }
         public ColoredGlyph GetTile(XY point, XY camera) {
-            ColoredGlyph result = new ColoredGlyph(' ', Color.Transparent, Color.Black);
+            ColoredGlyph result = new ColoredGlyph(Color.Transparent, Color.Black, ' ');
             foreach (var layer in layers) {
                 var tile = layer.GetTile(point, camera);
                 result.Background = result.Background.Blend(tile.Background);
@@ -53,7 +50,7 @@ namespace TranscendenceRL {
         public Dictionary<(int, int), ColoredGlyph> tiles;
         public ColoredGlyph GetTile(XY point, XY camera) {
             var apparent = point - camera * (1 - parallaxFactor);
-            return tiles.TryGetValue(apparent.RoundDown, out var result) ? result : new ColoredGlyph(' ', Color.Transparent, Color.Transparent);
+            return tiles.TryGetValue(apparent.RoundDown, out var result) ? result : new ColoredGlyph(Color.Transparent, Color.Transparent, ' ');
         }
     }
     public class GeneratedLayer : ILayer {
@@ -90,9 +87,9 @@ namespace TranscendenceRL {
                     const string vwls = "?&%~=+;";
                     var star = vwls[random.Next(vwls.Length)];
                     var foreground = new Color(255, 255 - random.Next(25, 51), 255 - random.Next(25, 51), (byte)(204 * parallaxFactor));
-                    return new ColoredGlyph(star, foreground, background);
+                    return new ColoredGlyph(foreground, background, star);
                 } else {
-                    return new ColoredGlyph(' ', Color.Transparent, background);
+                    return new ColoredGlyph(Color.Transparent, background, ' ');
                 }
             });
         }

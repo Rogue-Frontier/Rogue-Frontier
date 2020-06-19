@@ -1,6 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
+﻿using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -10,6 +8,11 @@ using System.Linq;
 using Common;
 using IslandHopper;
 using System.Text.RegularExpressions;
+using static SadConsole.ColoredString;
+using System.Reflection.Metadata.Ecma335;
+using SadConsole.UI;
+using SadConsole.Input;
+using SadConsole.Effects;
 
 namespace Common {
 	public static class Helper {
@@ -156,7 +159,7 @@ namespace Common {
 			result.Append(lines.LastItem());
 			return result.ToString();
 		}
-		public static void PrintLines(this SadConsole.Console console, int x, int y, string lines, Color? foreground = null, Color? background = null, SpriteEffects mirror = SpriteEffects.None) {
+		public static void PrintLines(this SadConsole.Console console, int x, int y, string lines, Color? foreground = null, Color? background = null, Mirror mirror = Mirror.None) {
 			foreach (var line in lines.Replace("\r\n", "\n").Split('\n')) {
 				console.Print(x, y, line, foreground ?? Color.White, background ?? Color.Black, mirror);
 				y++;
@@ -474,9 +477,7 @@ namespace Common {
 			return karma.Next(coverage) > karma.Next(accuracy);
 		}
 		public static ColoredGlyph Colored(char c, Color foreground, Color background) {
-			ColoredGlyph result = new ColoredGlyph(new Cell(foreground, background));
-			result.GlyphCharacter = c;
-			return result;
+			return new ColoredGlyph(foreground, background, c);
 		}
 		public static ColoredString WithBackground(this ColoredString c, Color? Background = null) {
 			var result = c.SubString(0, c.Count);
@@ -493,15 +494,22 @@ namespace Common {
 		public static ColoredString WithOpacity(this ColoredString s, byte alpha) {
 			s = s.Clone();
 			foreach(var c in s) {
-                c.Foreground.A = alpha;
+                c.Foreground = new Color(c.Foreground.R, c.Foreground.G, c.Foreground.B, alpha);
             }
             return s;
 		}
 		public static ColoredString Brighten(this ColoredString s, int intensity) {
 			return s.Adjust(new Color(intensity, intensity, intensity, 0));
 		}
+		public static ColoredGlyphEffect ToEffect(this ColoredGlyph cg) {
+			return new ColoredGlyphEffect() {
+				Foreground = cg.Foreground,
+				Background = cg.Background,
+				Glyph = cg.Glyph
+			};
+        }
 		public static ColoredString ToColoredString(this ColoredGlyph c) {
-			return new ColoredString(new ColoredGlyph[] { c });
+			return new ColoredString(c.ToEffect());
 		}
 		public static ColoredGlyph Brighten(this ColoredGlyph c, int intensity) {
 			ColoredGlyph result = c.Clone();
@@ -526,8 +534,8 @@ namespace Common {
 		}
 		//https://stackoverflow.com/a/12016968
 		public static Color Blend(this Color background, Color foreground) {
-			byte alpha = (byte) (foreground.A + 1);
-			byte inv_alpha = (byte)(256 - foreground.A);
+			byte alpha = (byte) (foreground.A);
+			byte inv_alpha = (byte)(255 - foreground.A);
 			return new Color(
 				r: (byte)((alpha * foreground.R + inv_alpha * background.R) >> 8),
 				g: (byte)((alpha * foreground.G + inv_alpha * background.G) >> 8),

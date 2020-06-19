@@ -1,5 +1,5 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -186,5 +186,32 @@ namespace IslandHopper {
         }
         public bool Done() => points.Count == 0 && (action == null || action.Done());
         public ColoredString Name => new ColoredString("Follow Path", Color.Cyan, Color.Black);
+    }
+    public class AttackAction : EntityAction, Damager {
+        Entity attacker, target;
+        IItem weapon;
+        int ticks;
+        public AttackAction(Entity attacker, Entity target, IItem weapon) {
+            this.attacker = attacker;
+            this.target = target;
+            this.weapon = weapon;
+            ticks = 10;
+        }
+        public void Update() {
+            ticks--;
+            if(ticks == 0) {
+                var ev = new InfoEvent(attacker.Name + new ColoredString(" strikes ", Color.White, Color.Black) + target.Name + new ColoredString(" with ", Color.White, Color.Black) + weapon.Name);
+                attacker.Witness(ev);
+                target.Witness(ev);
+                
+                //To do: Damage calculation
+                if(target is Damageable d) {
+                    d.OnDamaged(this);
+                }
+            }
+        }
+        public bool Done() => ticks == 0;
+
+        public ColoredString Name => new ColoredString("Walk", Color.Cyan, Color.Black);
     }
 }

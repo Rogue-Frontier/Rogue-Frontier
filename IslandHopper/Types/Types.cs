@@ -1,5 +1,5 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -312,7 +312,7 @@ namespace IslandHopper {
 				background = (Color)typeof(Color).GetProperty(e.TryAttribute("background", "black")).GetValue(null, null);
 				foreground = (Color)typeof(Color).GetProperty(e.TryAttribute("foreground", "red")).GetValue(null, null);
 			}
-			public ColoredGlyph String => new ColoredGlyph(c, background, foreground);
+			public ColoredGlyph String => new ColoredGlyph(background, foreground, c);
 		}
 	}
 }

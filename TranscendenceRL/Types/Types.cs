@@ -1,5 +1,5 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -233,15 +233,15 @@ namespace TranscendenceRL {
 				throw new Exception($"Invalid foreground color {s}");
 			}
 
-			Glyph = new ColoredGlyph(c, foreground, background);
+			Glyph = new ColoredGlyph(foreground, background, c);
 		}
 		public StaticTile(char c) {
-			Glyph = new ColoredGlyph(c, Color.White, Color.Black);
+			Glyph = new ColoredGlyph(Color.White, Color.Black, c);
 		}
 		public StaticTile(char c, string foreground, string background) {
 			var fore = (Color)typeof(Color).GetProperty(foreground).GetValue(null, null);
 			var back = (Color)typeof(Color).GetProperty(background).GetValue(null, null);
-			Glyph = new ColoredGlyph(c, fore, back);
+			Glyph = new ColoredGlyph(fore, back, c);
 		}
 		public StaticTile(ColoredGlyph Glyph) {
 			this.Glyph = Glyph;

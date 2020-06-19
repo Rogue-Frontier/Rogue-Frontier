@@ -1,5 +1,5 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -67,7 +67,7 @@ namespace IslandHopper {
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredGlyph('~', tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
+		public ColoredGlyph SymbolCenter => new ColoredGlyph(tick % 20 < 10 ? Color.White : Color.Gray, Color.Black, '~');
 		public ColoredString Name => new ColoredString("Beam", tick % 20 < 10 ? new Color(255, 0, 0, 255) : new Color(204, 0, 0, 255), Color.Black);
 
 		private Entity Source;
@@ -112,12 +112,13 @@ namespace IslandHopper {
         public bool Active { get; private set; }
         public void OnRemoved() { }
         public char glyph;
-        public ColoredGlyph SymbolCenter => new ColoredGlyph(glyph, new Color(
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(new Color(
             (int)(Math.Cos(tick * 3 / Math.PI) * 51) + 204,
             (int)(Math.Sin(tick * 3 / Math.PI) * 51) + 102,
             51,
             Math.Min(6, lifetime) * 255 / 6
-            ), new Color(255, 255, 255, (Math.Max(10, lifetime) * 51) / 10));
+            ), new Color(255, 255, 255, (Math.Max(10, lifetime) * 51) / 10),
+            glyph);
         public ColoredString Name => new ColoredString("Flame", SymbolCenter.Foreground, Color.Black);
 
         private Entity Source;
@@ -182,7 +183,7 @@ namespace IslandHopper {
         public ColoredGlyph SymbolCenter {
             get {
                 var symbol = burning.SymbolCenter;
-                return new ColoredGlyph(symbol.Glyph, new Color(), symbol.Background);
+                return new ColoredGlyph(new Color(), symbol.Background, symbol.Glyph);
             }
         }
         public bool Active => true;
@@ -214,7 +215,7 @@ namespace IslandHopper {
             };
             return chars[(int)angle];
         }
-		public ColoredGlyph SymbolCenter => new ColoredGlyph(GetSymbol(), tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
+		public ColoredGlyph SymbolCenter => new ColoredGlyph(tick % 20 < 10 ? Color.White : Color.Gray, Color.Black, GetSymbol());
         public ColoredString Name => new ColoredString("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
 
         private Entity Source;
@@ -312,7 +313,7 @@ namespace IslandHopper {
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredGlyph('M', tick % 8 < 4 ? Color.White : Color.Gray, Color.Black);
+		public ColoredGlyph SymbolCenter => new ColoredGlyph(tick % 8 < 4 ? Color.White : Color.Gray, Color.Black, 'M');
 		public ColoredString Name => new ColoredString("Missile", tick % 8 < 4 ? Color.White : Color.Gray, Color.Black);
 
 		private Entity Source;
@@ -349,7 +350,7 @@ namespace IslandHopper {
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredGlyph('*', tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
+		public ColoredGlyph SymbolCenter => new ColoredGlyph(tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black, '*');
 		public ColoredString Name => new ColoredString("Explosion", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 
 		private int tick;
@@ -378,7 +379,7 @@ namespace IslandHopper {
 		public XYZ Velocity { get; set; }
 		public bool Active { get; private set; }
 		public void OnRemoved() { }
-		public ColoredGlyph SymbolCenter => new ColoredGlyph('*', (int)tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
+		public ColoredGlyph SymbolCenter => new ColoredGlyph((int)tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black, '*');
 		public ColoredString Name => new ColoredString("Explosion", (int)tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 
 		private double tick;   //Used for sprite flashing

@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+﻿using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;

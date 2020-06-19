@@ -1,20 +1,20 @@
-﻿using Microsoft.Xna.Framework;
-using SadConsole;
-using SadConsole.Controls;
+﻿using SadConsole;
+using SadRogue.Primitives;
 using SadConsole.Input;
-using SadConsole.Themes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Microsoft.Xna.Framework.Input.Keys;
+using static SadConsole.Input.Keys;
 using static Common.Helper;
+using SadConsole.UI;
 using Common;
 using System.IO;
+using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
-    class TitleConsole : Window {
+    class TitleConsole : Console {
         string[] title = Properties.Resources.Title.Replace("\r\n", "\n").Split('\n');
         int titleStart;
         World World = new World();
@@ -28,13 +28,6 @@ namespace TranscendenceRL {
 
         public TitleConsole(int width, int height) : base(width, height) {
             UseKeyboard = true;
-            ButtonTheme BUTTON_THEME = new SadConsole.Themes.ButtonTheme() {
-                Normal = new SadConsole.Cell(Color.Blue, Color.Transparent),
-                Disabled = new Cell(Color.Gray, Color.Transparent),
-                Focused = new Cell(Color.Cyan, Color.Transparent),
-                MouseDown = new Cell(Color.White, Color.Transparent),
-                MouseOver = new Cell(Color.Cyan, Color.Transparent),
-            };
             camera = new XY(0, 0);
             tiles = new Dictionary<(int, int), ColoredGlyph>();
             titleStart = Width;
@@ -69,9 +62,7 @@ namespace TranscendenceRL {
             World.types.Load(Directory.GetFiles("Content", "Main.xml"));
         }
         private void StartGame() {
-            Hide();
-            //new GameConsole(Width/2, Height/2).Show(true);
-            new ShipSelector(Width, Height, World).Show(true);
+            SadConsole.Game.Instance.Screen = new ShipSelector(Width, Height, World) { IsFocused = true };
         }
         private void Exit() {
             Environment.Exit(0);
@@ -154,13 +145,13 @@ namespace TranscendenceRL {
             }
         }
         public override void Draw(TimeSpan drawTime) {
-            Clear();
+            this.Clear();
 
             var titleY = 0;
             
             foreach(var line in title) {
                 if(titleStart < line.Length) {
-                    Print(titleStart, titleY, line.Substring(titleStart), Color.White, Color.Transparent);
+                    this.Print(titleStart, titleY, line.Substring(titleStart), Color.White, Color.Transparent);
                 }
                 titleY++;
             }
@@ -177,7 +168,7 @@ namespace TranscendenceRL {
 
                     var lineX = descX + (indent ? 8 : 0);
 
-                    Print(lineX, descY, line.Draw());
+                    this.Print(lineX, descY, line.Draw());
                     indent = true;
                     descY++;
                 }
@@ -185,7 +176,7 @@ namespace TranscendenceRL {
             camera = pov.Position;
             for (int x = titleStart; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
-                    var g = GetGlyph(x, y);
+                    var g = this.GetGlyph(x, y);
 
                     var offset = new XY(x, y) - new XY(Width / 2, Height / 2);
                     var location = camera + offset;
@@ -201,7 +192,7 @@ namespace TranscendenceRL {
                             this.SetCellAppearance(x, y, World.backdrop.GetTile(location, camera));
                         }
                     } else {
-                        SetBackground(x, y, World.backdrop.GetBackground(location, camera));
+                        this.SetBackground(x, y, World.backdrop.GetBackground(location, camera));
                     }
                     
                 }
@@ -219,8 +210,7 @@ namespace TranscendenceRL {
             }
 #if DEBUG
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {
-                Hide();
-                new PlayerMain(Width, Height, World, World.types.Lookup<ShipClass>("scAmethyst")).Show(true);
+                SadConsole.Game.Instance.Screen = new PlayerMain(Width, Height, World, World.types.Lookup<ShipClass>("scAmethyst")) { IsFocused = true };
             }
 #endif
             return base.ProcessKeyboard(info);

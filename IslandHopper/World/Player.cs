@@ -1,6 +1,6 @@
 ﻿using Common;
 using IslandHopper.World;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -25,21 +25,6 @@ namespace IslandHopper {
         public Health health;
 
         //TO DO: Implement equipment and body
-
-		public class HistoryEntry {
-            public ColoredString Desc => times == 1 ? _desc : (_desc + new ColoredString($" (x{times})", Color.White, Color.Black));
-            public ColoredString _desc;
-            public int times;
-			public double ScreenTime;
-			public HistoryEntry(ColoredString Desc, double ScreenTime = 4) {
-				this._desc = Desc;
-				this.ScreenTime = ScreenTime;
-                this.times = 1;
-			}
-            public void SetScreenTime(double ScreenTime = 4) {
-                this.ScreenTime = ScreenTime;
-            }
-		}
 
 		public int frameCounter = 0;
         public int tick = 0;
@@ -70,7 +55,7 @@ namespace IslandHopper {
             tick++;
             health.UpdateStep();
             if (health.bleeding > 0 && tick % 5 == 0) {
-                World.AddEffect(new Trail(Position, 150, new ColoredGlyph('+', Color.Red, Color.Black)));
+                World.AddEffect(new Trail(Position, 150, new ColoredGlyph(Color.Red, Color.Black, '+')));
             }
             if (health.bloodHP < 1 || health.bodyHP < 1) {
                 Active = false;
@@ -151,6 +136,20 @@ namespace IslandHopper {
 
         public ColoredGlyph SymbolCenter => new ColoredString("@", Color.White, Color.Black)[0];
 		public ColoredString Name => new ColoredString("Player", Color.White, Color.Black);
+	}
+	public class HistoryEntry {
+		public ColoredString Desc => times == 1 ? _desc : (_desc + new ColoredString($" (x{times})", Color.White, Color.Black));
+		public ColoredString _desc;
+		public int times;
+		public double ScreenTime;
+		public HistoryEntry(ColoredString Desc, double ScreenTime = 4) {
+			this._desc = Desc;
+			this.ScreenTime = ScreenTime;
+			this.times = 1;
+		}
+		public void SetScreenTime(double ScreenTime = 4) {
+			this.ScreenTime = ScreenTime;
+		}
 	}
 
 	/*

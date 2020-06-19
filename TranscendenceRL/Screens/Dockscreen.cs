@@ -1,16 +1,18 @@
 ﻿using SadConsole;
 using SadConsole.Input;
+using SadConsole.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
-    class Dockscreen : Window {
+    class Dockscreen : Console {
         public IDockView view;
-        public Window previous;
-        public Dockscreen(int Width, int Height, IDockViewDesc desc, Window previous, PlayerShip player, Dockable dock) : base(Width, Height) {
+        public Console previous;
+        public Dockscreen(int Width, int Height, IDockViewDesc desc, Console previous, PlayerShip player, Dockable dock) : base(Width, Height) {
             this.view = desc.Get(Navigate, player, dock);
             this.previous = previous;
         }
@@ -22,15 +24,15 @@ namespace TranscendenceRL {
         }
         public void Navigate(IDockView view) {
             if (view == null) {
-                Hide();
-                previous.Show();
+                SadConsole.Game.Instance.Screen = previous;
+                previous.IsFocused = true;
             } else {
                 this.view = view;
             }
         }
         public override void Draw(TimeSpan drawTime) {
-            Clear();
-            view.Draw(this);
+            this.Clear();
+            view.Draw(this.Surface);
             base.Draw(drawTime);
         }
     }

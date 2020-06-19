@@ -1,5 +1,5 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -183,7 +183,7 @@ namespace TranscendenceRL {
                     var offset = (pos - center);
                     //Try to optimize using manhattan
                     if (/*offset.MaxCoord < radius || */offset.Magnitude < radius) {
-                        var tile = new ColoredGlyph('%', Color.Gray, Color.Black);
+                        var tile = new ColoredGlyph(Color.Gray, Color.Black, '%');
                         lc.world.AddEffect(new FixedTile(tile, lc.pos + offset));
                     }
                 }

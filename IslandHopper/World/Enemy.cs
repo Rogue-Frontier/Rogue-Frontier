@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using Priority_Queue;
 using SadConsole;
 
@@ -14,7 +14,7 @@ namespace IslandHopper.World {
         public XYZ Position { get; set; }
         public XYZ Velocity { get; set; }
         public ColoredString Name => new ColoredString("Enemy");
-        public ColoredGlyph SymbolCenter => new ColoredGlyph('E');
+        public ColoredGlyph SymbolCenter => new ColoredGlyph() { Glyph = 'E' };
 
         public bool Active { get; set; } = true;
 
@@ -44,7 +44,7 @@ namespace IslandHopper.World {
 
             health.UpdateStep();
             if (health.bleeding > 0 && tick % 5 == 0) {
-                World.AddEffect(new Trail(Position, 150, new ColoredGlyph('+', Color.Red, Color.Black)));
+                World.AddEffect(new Trail(Position, 150, new ColoredGlyph(Color.Red, Color.Black, '+')));
             }
             if (health.bloodHP < 1 || health.bodyHP < 1) {
                 Active = false;

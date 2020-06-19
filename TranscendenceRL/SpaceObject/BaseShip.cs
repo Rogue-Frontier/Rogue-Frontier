@@ -1,5 +1,5 @@
 ﻿using Common;
-using Microsoft.Xna.Framework;
+using SadRogue.Primitives;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -104,7 +104,7 @@ namespace TranscendenceRL {
 
                 var exhaust = new EffectParticle(Position + XY.Polar(rotationRads, -1),
                     Velocity + XY.Polar(rotationRads, -ShipClass.thrust),
-                    new ColoredGlyph('.', Color.Yellow, Color.Transparent),
+                    new ColoredGlyph(Color.Yellow, Color.Transparent, '.'),
                     4);
                 World.AddEffect(exhaust);
 

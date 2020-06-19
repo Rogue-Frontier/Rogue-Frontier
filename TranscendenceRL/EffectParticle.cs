@@ -53,7 +53,7 @@ namespace TranscendenceRL {
         public bool Active => Lifetime > 0;
 
         public ColoredGlyph _Tile { get; private set; }
-        public ColoredGlyph Tile => new ColoredGlyph(_Tile.GlyphCharacter, _Tile.Foreground.WithValues(alpha: (int) (255 * Math.Min(1, Lifetime / (float) TranscendenceRL.TICKS_PER_SECOND))), _Tile.Background);
+        public ColoredGlyph Tile => new ColoredGlyph(_Tile.Foreground.WithValues(alpha: (int) (255 * Math.Min(1, Lifetime / (float) TranscendenceRL.TICKS_PER_SECOND))), _Tile.Background, _Tile.GlyphCharacter);
 
         public void Update() {
             Position += Velocity / TranscendenceRL.TICKS_PER_SECOND;
