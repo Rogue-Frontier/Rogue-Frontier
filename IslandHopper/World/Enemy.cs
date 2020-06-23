@@ -71,6 +71,7 @@ namespace IslandHopper.World {
                 Velocity += e.knockback;
             } else if (source is Flame f) {
                 health.Damage(f.damage);
+                World.AddEffect(new Burn(this, 60));
             }
         }
         public void Witness(WorldEvent we) {

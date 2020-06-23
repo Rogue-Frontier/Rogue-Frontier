@@ -51,9 +51,9 @@ namespace TranscendenceRL {
                         return;
                     }
 
-                    if (i >= trailPoint) {
+                    //if (i >= trailPoint) {
                         World.AddEffect(new EffectParticle(Position, Tile, 1));
-                    }
+                    //}
 
                 }
 

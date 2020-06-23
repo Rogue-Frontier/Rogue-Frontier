@@ -11,6 +11,7 @@ using static SadConsole.ColoredString;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
 using TranscendenceRL.Screens;
+using System.IO;
 
 namespace TranscendenceRL {
     class CrawlScreen : Console {
@@ -48,7 +49,7 @@ namespace TranscendenceRL {
             this.World = World;
             this.playerClass = playerClass;
 
-            text = Properties.Resources.Crawl.Replace("\r\n", "\n");
+            text = File.ReadAllText("Content/Crawl.txt").Replace("\r\n", "\n");
             lines = text.Count(c => c == '\n') + 1;
             index = 0;
             tick = 0;

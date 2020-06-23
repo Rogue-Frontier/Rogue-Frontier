@@ -25,6 +25,9 @@ namespace TranscendenceRL {
 		PlayerUI ui;
 
 		public PlayerMain(int Width, int Height, World World, ShipClass playerClass) : base(Width, Height) {
+			UseMouse = true;
+			UseKeyboard = true;
+
 			camera = new XY();
 			this.world = World;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
@@ -78,7 +81,6 @@ namespace TranscendenceRL {
 			ui = new PlayerUI(player, tiles, Width, Height) {
 			IsVisible = true
 			};
-			this.Children.Add(ui);
 		}
 		public void PlaceTiles() {
 			tiles.Clear();
@@ -124,10 +126,12 @@ namespace TranscendenceRL {
 					active = false;
 				}
 			}
+			ui.Update(delta);
 		}
 		public override void Draw(TimeSpan drawTime) {
-			DrawWorld();
 			base.Draw(drawTime);
+			DrawWorld();
+			ui.Draw(drawTime);
 		}
 		public void DrawWorld() {
 			this.Clear();
@@ -288,36 +292,32 @@ namespace TranscendenceRL {
 			return base.ProcessKeyboard(info);
 		}
 		public override bool ProcessMouse(MouseScreenObjectState state) {
-			if(state.IsOnScreenObject) {
+			var cell = state.SurfaceCellPosition;
+			var offset = new XY(cell.X, Height - cell.Y) - new XY(Width / 2, Height / 2);
+			if (offset.xi != 0 && offset.yi != 0) {
+				var mouseRads = offset.Angle;
+				var facingRads = player.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
 
-
-				var cell = state.SurfaceCellPosition;
-				var offset = new XY(cell.X, Height - cell.Y) - new XY(Width / 2, Height / 2);
-				if(offset.xi != 0 && offset.yi != 0) {
-					var mouseRads = offset.Angle;
-					var facingRads = player.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
-
-					var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
-					var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
-					if (ccw < cw) {
-						player.SetRotating(Rotating.CCW);
-					} else if (cw < ccw) {
+				var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
+				var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
+				if (ccw < cw) {
+					player.SetRotating(Rotating.CCW);
+				} else if (cw < ccw) {
+					player.SetRotating(Rotating.CW);
+				} else {
+					if (player.Ship.rotatingVel > 0) {
 						player.SetRotating(Rotating.CW);
 					} else {
-						if (player.Ship.rotatingVel > 0) {
-							player.SetRotating(Rotating.CW);
-						} else {
-							player.SetRotating(Rotating.CCW);
-						}
+						player.SetRotating(Rotating.CCW);
 					}
 				}
+			}
 
-				if (state.Mouse.LeftButtonDown) {
-					player.SetFiringPrimary();
-				}
-				if(state.Mouse.RightButtonDown) {
-					player.SetThrusting();
-				}
+			if (state.Mouse.LeftButtonDown) {
+				player.SetFiringPrimary();
+			}
+			if (state.Mouse.RightButtonDown) {
+				player.SetThrusting();
 			}
 			return base.ProcessMouse(state);
 		}
@@ -523,13 +523,15 @@ namespace TranscendenceRL {
 				if (player.Ship.Devices.Weapons.Any()) {
 					int i = 0;
 					foreach (var weapon in player.Ship.Devices.Weapons) {
+						string tag = $"{(i == player.selectedPrimary ? ">" : "")}{weapon.source.type.name}{new string('>', 16 * weapon.fireTime / weapon.desc.fireCooldown).PadRight(16)}";
 						Color foreground = Color.White;
 						if (player.power.disabled.Contains(weapon)) {
 							foreground = Color.Gray;
 						} else if (weapon.firing || weapon.fireTime > 0) {
 							foreground = Color.Yellow;
 						}
-						this.Print(x, y, $"{(i == player.selectedPrimary ? ">" : "")}{weapon.source.type.name}{new string('>', weapon.fireTime / 3)}", foreground, Color.Transparent);
+
+						this.Print(x, y, tag, foreground, Color.Transparent);
 						y++;
 						i++;
 					}
@@ -537,7 +539,7 @@ namespace TranscendenceRL {
 				switch (player.Ship.DamageSystem) {
 					case LayeredArmorSystem las:
 						foreach (var armor in las.layers) {
-							this.Print(x, y, $"{armor.source.type.name}{new string('>', armor.hp / 3)}", Color.White, Color.Transparent);
+							this.Print(x, y, $"{armor.source.type.name}{new string('>', 16 * armor.hp / armor.desc.maxHP)}", Color.White, Color.Transparent);
 							y++;
 						}
 						break;

@@ -17,6 +17,10 @@ namespace Common {
 			x = 0;
 			y = 0;
 		}
+		public XY(XY xy) {
+			this.x = xy.x;
+			this.y = xy.y;
+        }
 		public XY(Point p) {
 			this.x = p.X;
 			this.y = p.Y;
@@ -31,6 +35,14 @@ namespace Common {
 		public static XY operator -(XY p, (int x, int y) other) => new XY(p.x - other.x, p.y - other.y);
 		public static XY operator *(XY p, double scalar) => new XY(p.x * scalar, p.y * scalar);
 		public static XY operator /(XY p, double scalar) => new XY(p.x / scalar, p.y / scalar);
+		public static XY operator %(XY p, XY limit) {
+			XY result = new XY(p);
+			while (result.x < 0) result.x += limit.x;
+			while (result.y < 0) result.y += limit.y;
+			while (result.x >= limit.x) result.x -= limit.x;
+			while (result.y >= limit.y) result.y -= limit.y;
+			return result;
+		}
 		public void Deconstruct(out int x, out int y) {
 			x = (int)this.x;
 			y = (int)this.y;
@@ -108,6 +120,7 @@ namespace Common {
 		public XY xy => new XY(x, y);
         public XYZ i => new XYZ(xi, yi, zi);
 		public static XYZ operator +(XYZ p1, XYZ p2) => new XYZ(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
+		public static XYZ operator +(XYZ p1, XY p2) => new XYZ(p1.x + p2.x, p1.y + p2.y);
 		public static XYZ operator -(XYZ p1, XYZ p2) => p1 + (-p2);
 		public static XYZ operator -(XYZ p1) => new XYZ(-p1.x, -p1.y, -p1.z);
 		public static double operator *(XYZ p1, XYZ p2) => (p1.x * p2.x) + (p1.y * p2.y) + (p1.z * p2.z);

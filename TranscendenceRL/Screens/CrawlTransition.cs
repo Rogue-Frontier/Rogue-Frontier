@@ -70,6 +70,7 @@ namespace TranscendenceRL.Screens {
             } else if(tick < 750) {
             } else {
                 SadConsole.Game.Instance.Screen = next;
+                next.IsFocused = true;
             }
 
             base.Update(delta);

@@ -15,7 +15,7 @@ using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
     class TitleConsole : Console {
-        string[] title = Properties.Resources.Title.Replace("\r\n", "\n").Split('\n');
+        string[] title = File.ReadAllText("Content/Title.txt").Replace("\r\n", "\n").Split('\n');
         int titleStart;
         World World = new World();
 
@@ -59,7 +59,7 @@ namespace TranscendenceRL {
             }
             */
 
-            World.types.Load(Directory.GetFiles("Content", "Main.xml"));
+            World.types.Load("Content/Main.xml");
         }
         private void StartGame() {
             SadConsole.Game.Instance.Screen = new ShipSelector(Width, Height, World) { IsFocused = true };
@@ -146,10 +146,8 @@ namespace TranscendenceRL {
         }
         public override void Draw(TimeSpan drawTime) {
             this.Clear();
-
             var titleY = 0;
-            
-            foreach(var line in title) {
+            foreach (var line in title) {
                 if(titleStart < line.Length) {
                     this.Print(titleStart, titleY, line.Substring(titleStart), Color.White, Color.Transparent);
                 }
@@ -180,7 +178,7 @@ namespace TranscendenceRL {
 
                     var offset = new XY(x, y) - new XY(Width / 2, Height / 2);
                     var location = camera + offset;
-                    if (g == 0 || g == ' ') {
+                    if (g == 0 || g == ' ' || this.GetForeground(x,y).A == 0) {
                         
                         
                         if(tiles.TryGetValue(location, out var tile)) {
@@ -197,8 +195,6 @@ namespace TranscendenceRL {
                     
                 }
             }
-
-            Base:
             base.Draw(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {

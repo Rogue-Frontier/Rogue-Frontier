@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SadConsole.UI;
 using SadConsole.UI.Controls;
+using SadConsole.Input;
 
 namespace IslandHopper {
 	class TitleConsole : ControlsConsole {
@@ -62,7 +63,7 @@ namespace IslandHopper {
 				Text = "START",
 			};
 			start.Click += (btn, args) => {
-                SadConsole.Game.Instance.Screen = new GameConsole(Width, Height) { IsFocused = true };
+				StartGame();
             };
 			this.ControlHostComponent.Add(start);
 
@@ -71,8 +72,7 @@ namespace IslandHopper {
 				Text = "QUIT",
 			};
 			quit.Click += (btn, args) => {
-				//Nuclear self destruct effect
-				//new ExitWindow(Width, Height).Show(true);
+				ExitGame();
 			};
 			this.ControlHostComponent.Add(quit);
 
@@ -107,6 +107,21 @@ namespace IslandHopper {
 					};
 				}),
 			};
+		}
+        public override bool ProcessKeyboard(Keyboard keyboard) {
+			if(keyboard.IsKeyPressed(Keys.Enter)) {
+				StartGame();
+            }
+			if(keyboard.IsKeyPressed(Keys.Escape)) {
+				ExitGame();
+            }
+            return base.ProcessKeyboard(keyboard);
+        }
+		public void ExitGame() {
+
+        }
+        public void StartGame() {
+			SadConsole.Game.Instance.Screen = new GameConsole(Width, Height) { IsFocused = true };
 		}
 		public override void Update(TimeSpan delta) {
 

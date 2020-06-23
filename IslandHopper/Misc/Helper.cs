@@ -92,12 +92,22 @@ namespace Common {
 		}
 		public static Color NextColor(this Random r, int range) => new Color(r.Next(range), r.Next(range), r.Next(range));
 		public static Color Round(this Color c, int factor) => new Color(factor * (c.R / factor), factor * (c.G / factor), factor * (c.B / factor));
-		public static Color Add(this Color c, int value) => c.Add(new Color(value, value, value));
+		//public static Color Add(this Color c, int value) => c.Add(new Color(value, value, value));
+		public static Color Add(this Color c1, int r = 0, int g = 0, int b = 0) => new Color(Math.Min(255, c1.R + r), Math.Min(255, c1.G + g), Math.Min(255, c1.B + b));
 		public static Color Add(this Color c1, Color c2) => new Color(Math.Min(255, c1.R + c2.R), Math.Min(255, c1.G + c2.G), Math.Min(255, c1.B + c2.B));
 		public static Color Subtract(this Color c, int value) => c.Subtract(new Color(value, value, value));
 		public static Color Subtract(this Color c1, Color c2) => new Color(Math.Max(0, c1.R - c2.R), Math.Max(0, c1.G - c2.G), Math.Max(0, c1.B - c2.B));
 		public static Color Divide(this Color c, int scale) {
 			return new Color(c.R / scale, c.G / scale, c.B / scale);
+		}
+		public static Color Multiply(this Color c, double r = 1, double g = 1, double b = 1, double a = 1) {
+			return new Color((int)(c.R * r), (int)(c.G * g), (int)(c.B * b), (int)(c.A * a));
+		}
+		public static Color Divide(this Color c, double scale) {
+			return new Color((int)(c.R / scale), (int)(c.G / scale), (int)(c.B / scale));
+		}
+		public static Color Clamp(this Color c, int max) {
+			return new Color(Math.Min(c.R, max),Math.Min(c.G,max), Math.Min(c.B, max));
 		}
 		public static Color WithValues(this Color c, int? red = null, int? green = null, int? blue = null, int? alpha = null) {
 			return new Color(red ?? c.R, green ?? c.G, blue ?? c.B, alpha ?? c.A);

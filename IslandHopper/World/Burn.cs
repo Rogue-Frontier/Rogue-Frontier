@@ -1,0 +1,33 @@
+﻿using Common;
+using SadConsole;
+using System;
+using SadRogue.Primitives;
+using System.Collections.Generic;
+using System.Text;
+
+namespace IslandHopper.World {
+    class Burn : Effect {
+        public ICharacter burning;
+        public double duration = 150;
+        public XYZ Position { get; set; }
+        public bool Active => duration > 0;
+        public ColoredGlyph SymbolCenter => new ColoredGlyph((((int)ticks % 13) % 5) > 2 ? Color.Red : Color.Orange, Color.Black, 'v');
+        private int ticks;
+        public Burn(ICharacter burning, int duration) {
+            this.burning = burning;
+            this.duration = duration;
+        }
+        public void UpdateStep() {
+            var delta = (Position - burning.Position).Magnitude;
+            duration -= (int)delta;
+
+            Position = burning.Position;
+
+
+            duration--;
+        }
+        public void UpdateRealtime(TimeSpan delta) {
+            ticks++;
+        }
+    }
+}

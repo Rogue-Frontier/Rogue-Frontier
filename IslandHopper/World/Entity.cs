@@ -35,15 +35,32 @@ namespace IslandHopper {
 	public static class EntityHelper {
 		public static bool OnGround(this Entity g) => g.World.voxels.InBounds(g.Position) && (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-0.8)].Collision == VoxelType.Solid);
 		public static void UpdateGravity(this Entity g) {
-            g.UpdateFriction();
             //	Fall or hit the ground
             if (g.OnGround()) {
-                if(g.Velocity.z < 0) {
-                    g.Velocity.z = 0;
-                }
+				UpdateFriction();
+				StopFalling();
 			} else {
-				Debug.Print("fall");
-				g.Velocity += new XYZ(0, 0, -9.8 / STEPS_PER_SECOND);
+				var down = g.Position.PlusZ(-0.8);
+				var standable = g.World.voxels.InBounds(down) ? g.World.entities[down].OfType<Standable>().FirstOrDefault() : null;
+				if (standable != null) {
+					//Friction
+					var velDiff = g.Velocity - standable.Velocity;
+					g.Velocity = standable.Velocity + velDiff * 0.9;
+
+					StopFalling();
+				} else {
+					Debug.Print("fall");
+					g.Velocity += new XYZ(0, 0, -9.8 / STEPS_PER_SECOND);
+				}
+			}
+			void UpdateFriction() {
+				g.Velocity.x *= 0.9;
+				g.Velocity.y *= 0.9;
+			}
+			void StopFalling() {
+				if (g.Velocity.z < 0) {
+					g.Velocity.z = 0;
+				}
 			}
 		}
 		//We attempt to enforce continuous collision detection by incrementing the motion in small steps
@@ -52,13 +69,6 @@ namespace IslandHopper {
 				return Velocity / 4;
 			} else {
 				return Velocity.Normal / 4;
-			}
-		}
-		private static void UpdateFriction(this Entity g) {
-			//Ground friction
-			if (g.OnGround()) {
-				g.Velocity.x *= 0.9;
-				g.Velocity.y *= 0.9;
 			}
 		}
 		public static void UpdateMotion(this Entity g) {
