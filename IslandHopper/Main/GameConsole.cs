@@ -216,14 +216,14 @@ namespace IslandHopper {
                     //See the glyph right here
 					c = World.voxels[location].CharCenter;
                     //Remember this glyph
-                    visibleVoxelHeight[location.xy] = location.zi;
+                    visibleVoxelHeight[location.xy] = location.zi + 1;
 				} else {
                     location = location.PlusZ(-1);
 					if (World.voxels.InBounds(location) && !(World.voxels[location] is Air)) {
                         //See the glyph below us
 						c = World.voxels[location].CharAbove;
                         //Remember this glyph
-                        visibleVoxelHeight[location.xy] = location.zi;
+                        visibleVoxelHeight[location.xy] = location.zi = 1;
 					} else if(visibleVoxelHeight.TryGetValue(location.xy, out int z) && z <= location.zi) {
                         var originalZ = location.zi;
                         c = GetFromAbove(originalZ, z);
@@ -231,8 +231,12 @@ namespace IslandHopper {
                         var originalZ = location.zi;
                         //Scan for highest voxel below us
                         location = location.PlusZ(-1);
-                        while (World.voxels.InBounds(location) && !(World.voxels[location] is Air)) {
+                        while (World.voxels.InBounds(location) && (World.voxels[location] is Air)) {
                             location = location.PlusZ(-1);
+                        }
+                        if(!(World.voxels[location] is Air)) {
+                            //Make sure we get the view from above
+                            location = location.PlusZ(1);
                         }
                         visibleVoxelHeight[location.xy] = location.zi;
                         c = GetFromAbove(originalZ, location.zi);
@@ -242,9 +246,13 @@ namespace IslandHopper {
                         //var glyph = 177;
                         var glyph = '.';
                         if (visibleZ > -1) {
-                            var Symbol = World.voxels[new XYZ(location.x, location.y, visibleZ)].CharAbove;
+                            //var Symbol = World.voxels[new XYZ(location.x, location.y, visibleZ)].CharAbove;
+                            var Symbol = GetGlyph(new XYZ(location.x, location.y, visibleZ));
                             var heightDiff = originalZ - visibleZ;
-                            return new ColoredGlyph(Symbol.Foreground.Blend(Color.White.WithValues(alpha: heightDiff)), Symbol.Background.Blend(Color.White.WithValues(alpha:heightDiff)), Symbol.Glyph);
+                            return new ColoredGlyph(
+                                Color.White.Blend(Symbol.Foreground.WithValues(alpha: Symbol.Foreground.A - heightDiff)),
+                                Color.White.Blend(Symbol.Background.WithValues(alpha: Symbol.Background.A - heightDiff)),
+                                Symbol.Glyph);
                         } else {
                             return new ColoredGlyph(Color.Black, Color.Black);
                         }
