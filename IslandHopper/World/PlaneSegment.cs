@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace IslandHopper {
-    class Segment : Entity {
+    class PlaneSegment : Entity, Standable {
         public Entity parent { get; }
 
         public Island World => parent.World;
@@ -23,7 +23,7 @@ namespace IslandHopper {
         public bool Active => parent.Active;
 
         private XYZ offset;
-        public Segment(Entity parent, XYZ offset) {
+        public PlaneSegment(Entity parent, XYZ offset) {
             this.parent = parent;
             this.offset = offset;
         }

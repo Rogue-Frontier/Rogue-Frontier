@@ -12,22 +12,22 @@ namespace IslandHopper {
     }
     class Plane : Entity, Standable {
         string plane =
-            "           ###           \n" +
-            "          #####          \n" +
-            "          #####          \n" +
-            "        #########        \n" +
-            "      #############      \n" +
-            "    #################    \n" +
-            "  ####    #####    ####  \n" +
-            "          #####          \n" +
-            "          #####          \n" +
-            "         #######         \n" +
-            "        #########        \n";
+            "           ###           \n" + "           ###           \n" +
+            "          #####          \n" + "          #####          \n" +
+            "          #####          \n" + "          #####          \n" +
+            "        #########        \n" + "        #########        \n" +
+            "      #############      \n" + "      #############      \n" +
+            "    #################    \n" + "    #################    \n" +
+            "  ####    #####    ####  \n" + "  ####    #####    ####  \n" +
+            "          #####          \n" + "          #####          \n" +
+            "          #####          \n" + "          #####          \n" +
+            "         #######         \n" + "         #######         \n" +
+            "        #########        \n" + "        #########        ";
 
         public Island World { get; set; }
         public XYZ Position { get; set; }
         public XYZ Velocity { get; set; }
-        public bool Active { get; set; }
+        public bool Active { get; set; } = true;
         public Plane(Island World, XYZ Position, XYZ Velocity) {
             this.World = World;
             this.Position = Position;
@@ -42,13 +42,17 @@ namespace IslandHopper {
         }
 
         public void OnAdded() {
-            HashSet<Segment> segments = new HashSet<Segment>();
-            var grid = plane.Split('\n').Select(line => line.Split().ToArray()).ToArray();
+            HashSet<PlaneSegment> segments = new HashSet<PlaneSegment>();
+            var grid = plane.Split('\n').Select(line => line.ToArray()).ToArray();
             var gridCenter = new XY(grid[0].Length / 2, grid.Length / 2);
             for(int y = 0; y < grid.Length; y++) {
                 for(int x = 0; x < grid[y].Length; x++) {
-                    XY offset = new XY(x, y) - gridCenter;
-                    var s = new Segment(this, Position + offset);
+                    if(grid[y][x] == ' ') {
+                        continue;
+                    }
+
+                    XY offset = gridCenter - new XY(x, y);
+                    var s = new PlaneSegment(this, new XYZ(offset));
                     segments.Add(s);
                     World.AddEntity(s);
                 }

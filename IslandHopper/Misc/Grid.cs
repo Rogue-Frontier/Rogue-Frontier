@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace Common {
 	public class XY {
@@ -94,26 +95,19 @@ namespace Common {
 			y = 0;
 			z = 0;
 		}
-		public XYZ(int x, int y) {
+		public XYZ(XY xy) : this(xy.x, xy.y) { }
+		public XYZ(int x, int y) : this(x, y, 0) { }
+		public XYZ(double x, double y) : this(x, y, 0) { }
+		public XYZ(int x, int y, int z) {
 			this.x = x;
 			this.y = y;
-			this.z = 0;
+			this.z = z;
 		}
-        public XYZ(double x, double y) {
-            this.x = x;
-            this.y = y;
-            this.z = 0;
-        }
 		public XYZ(double x, double y, double z) {
 			this.x = x;
 			this.y = y;
 			this.z = z;
 		}
-        public XYZ(int x, int y, int z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
         public XYZ copy => new XYZ(x, y, z);
 		public double xyAngle => xy.Angle;
 		public double zAngle => Math.Atan2(z, xy.Magnitude);

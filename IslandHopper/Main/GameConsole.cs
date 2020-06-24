@@ -54,9 +54,12 @@ namespace IslandHopper {
 
 				World.entities.Place(World.types.Lookup<ItemType>("itHotRod").GetItem(World, new XYZ(28.5, 29.5, 1)));
             }
-			
 			World.entities.Place(World.player);
             World.entities.Place(new Enemy(World, new XYZ(35, 35, 1)));
+
+            var plane = new Plane(World, new XYZ(60, 20, 1), new XYZ(0, 0, 0));
+            World.AddEntity(plane);
+            plane.OnAdded();
 		}
         public override void Update(TimeSpan delta) {
             base.Update(delta);
@@ -313,7 +316,7 @@ namespace IslandHopper {
 
                 //Running is also a jump action but without z > 0, so we can jump while running
                 if (player.OnGround() && !player.Actions.Any(a => a is Jump j && j.z > 0))
-                    player.Actions.Add(new Jump(player, new XYZ(0, 0, 2.5), 10));
+                    player.Actions.Add(new Jump(player, new XYZ(0, 0, 3), 10));
             } else if(info.IsKeyPressed(Keys.A)) {
                 if(info.IsKeyDown(Keys.LeftShift)) {
                     Children.Add(new MeleeMenu(Width, Height, player, World.entities.all.Where(e => (e.Position - player.Position).Magnitude < 1.5)) { IsFocused = true });

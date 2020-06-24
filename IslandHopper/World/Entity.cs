@@ -33,7 +33,10 @@ namespace IslandHopper {
 	public interface Damager {
     }
 	public static class EntityHelper {
-		public static bool OnGround(this Entity g) => g.World.voxels.InBounds(g.Position) && (g.World.voxels[g.Position].Collision == VoxelType.Floor || g.World.voxels[g.Position.PlusZ(-0.8)].Collision == VoxelType.Solid);
+		public static bool OnGround(this Entity g) => g.World.voxels.InBounds(g.Position)
+			&& (g.World.voxels[g.Position].Collision == VoxelType.Floor
+			|| g.World.voxels[g.Position.PlusZ(-0.8)].Collision == VoxelType.Solid
+			|| g.World.entities[g.Position.PlusZ(-0.8)].OfType<Standable>().Any());
 		public static void UpdateGravity(this Entity g) {
             //	Fall or hit the ground
             if (g.OnGround()) {

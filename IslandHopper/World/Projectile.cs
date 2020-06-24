@@ -112,13 +112,18 @@ namespace IslandHopper {
         public bool Active { get; private set; }
         public void OnRemoved() { }
         public char glyph;
-        public ColoredGlyph SymbolCenter => new ColoredGlyph(new Color(
-            (int)(Math.Cos(tick * 3 / Math.PI) * 51) + 204,
-            (int)(Math.Sin(tick * 3 / Math.PI) * 51) + 102,
-            51,
-            Math.Min(6, lifetime) * 255 / 6
-            ), new Color(255, 255, 255, (Math.Max(10, lifetime) * 51) / 10),
-            glyph);
+        public ColoredGlyph SymbolCenter {
+            get {
+                var background = (Math.Max(0, 10 - lifetime) * 51) / 10;
+                return new ColoredGlyph(new Color(
+                    (int)(Math.Cos(tick * 3 / Math.PI) * 51) + 204,
+                    (int)(Math.Sin(tick * 3 / Math.PI) * 51) + 102,
+                    51,
+                    Math.Min(6, lifetime) * 255 / 6
+                    ), new Color(background,background,background, 255),
+                    glyph);
+            }
+        }
         public ColoredString Name => new ColoredString("Flame", SymbolCenter.Foreground, Color.Black);
 
         private Entity Source;
