@@ -145,7 +145,7 @@ namespace IslandHopper {
                 case GunType.ProjectileType.bullet: {
                         Bullet b = null;
                         for(int i = 0; i < gunType.projectileCount; i++) {
-                            var bulletSpeed = 30;
+                            var bulletSpeed = 90;
                             var bulletVel = (targetPos - user.Position).Normal * bulletSpeed;
                             int damage = 20;
                             if (ClipLeft == 0 && gunType.critOnLastShot) {
@@ -164,7 +164,7 @@ namespace IslandHopper {
                     }
                 case GunType.ProjectileType.flame: {
                         for(int i = 0; i < gunType.projectileCount; i++) {
-                            var flameSpeed = 1;
+                            var flameSpeed = 20;
                             var direction = (targetPos - user.Position).Normal;
                             XYZ flameVel =
                                 user.Velocity +

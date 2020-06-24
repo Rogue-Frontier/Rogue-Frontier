@@ -290,10 +290,10 @@ namespace IslandHopper {
                     if (info.IsKeyDown(Keys.RightControl)) {
                         //Run
                         if (World.player.OnGround() && !World.player.Actions.Any(a => a is Jump)) {
-                            double runAccel = 1;
-                            int runCooldown = 10;
-                            int runTime = 10;
-                            World.player.Actions.Add(new Jump(World.player, direction * runAccel, runCooldown, runTime));
+                            double runAccel = 30;
+                            int runTime = 15;
+                            World.player.Actions.Add(new Jump(World.player, direction * runAccel, runTime));
+                            World.player.Actions.Add(new Jump(World.player, new XYZ(0, 0, 2), 5));
                         }
                     } else {
                         if (World.player.OnGround() && !World.player.Actions.Any(a => a is WalkAction))
@@ -313,7 +313,7 @@ namespace IslandHopper {
 
                 //Running is also a jump action but without z > 0, so we can jump while running
                 if (player.OnGround() && !player.Actions.Any(a => a is Jump j && j.z > 0))
-                    player.Actions.Add(new Jump(player, new XYZ(0, 0, 5)));
+                    player.Actions.Add(new Jump(player, new XYZ(0, 0, 2.5), 10));
             } else if(info.IsKeyPressed(Keys.A)) {
                 if(info.IsKeyDown(Keys.LeftShift)) {
                     Children.Add(new MeleeMenu(Width, Height, player, World.entities.all.Where(e => (e.Position - player.Position).Magnitude < 1.5)) { IsFocused = true });

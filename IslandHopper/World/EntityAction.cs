@@ -78,21 +78,20 @@ namespace IslandHopper {
         private int lifetime;
         private int deltaTime;
         public double z => velocity.z;
-        public Jump(Entity actor, XYZ velocity, int lifetime = 20, int deltaTime = 1) {
+        public Jump(Entity actor, XYZ velocity, int lifetime = 20) {
             this.player = actor;
             this.velocity = velocity;
             ticks = 0;
             this.lifetime = lifetime;
-            this.deltaTime = deltaTime;
         }
         public void Update() {
-            if(ticks < deltaTime) {
-                player.Velocity += velocity / deltaTime;
+            if(ticks < lifetime) {
+                player.Velocity += velocity;
                 Debug.Print("JUMP");
             }
             ticks++;
         }
-        public bool Done() => ticks > lifetime;
+        public bool Done() => ticks >= lifetime;
 
         public ColoredString Name => z > 0 ? new ColoredString("Jump", Color.Cyan, Color.Black) : new ColoredString("Run", Color.Cyan, Color.Black);
     }

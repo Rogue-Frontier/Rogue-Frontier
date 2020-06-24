@@ -66,25 +66,25 @@ namespace IslandHopper {
 		//We attempt to enforce continuous collision detection by incrementing the motion in small steps
 		private static XYZ CalcMotionStep(XYZ Velocity) {
 			if (Velocity.Magnitude < 1) {
-				return Velocity / 4;
+				return Velocity / 2;
 			} else {
-				return Velocity.Normal / 4;
+				return Velocity.Normal / 2;
 			}
 		}
 		public static void UpdateMotion(this Entity g) {
-            //TO DO: Implement fall damage
-
-			if(g.Velocity < 0.1) {
-                var p = g.Position + g.Velocity;
+			//TO DO: Implement fall damage
+			var Velocity = g.Velocity / 30;
+			if(Velocity < 0.1) {
+                var p = g.Position + Velocity / 30;
                 var v = g.World.voxels.Try(p);
                 if (v is Air) {
                     g.Position = p;
                 }
                 return;
 			}
-			XYZ step = CalcMotionStep(g.Velocity);
+			XYZ step = CalcMotionStep(Velocity / 30);
 			XYZ final = g.Position;
-			for (XYZ p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
+			for (XYZ p = g.Position + step; (g.Position - p).Magnitude < Velocity.Magnitude / 30; p += step) {
 				if (g.World.voxels.Try(p) is Air) {
 					final = p;
 				} else {
@@ -101,9 +101,10 @@ namespace IslandHopper {
 			g.Position = final;
 		}
 		public static void UpdateMotionCollision(this Entity g, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
-            //If the velocity is too small, then we get an infinite loop from trying to increment
-            if (g.Velocity < 0.1) {
-                var p = g.Position + g.Velocity;
+			//If the velocity is too small, then we get an infinite loop from trying to increment
+			var Velocity = g.Velocity / 30;
+            if (Velocity < 0.1) {
+                var p = g.Position + Velocity;
                 var v = g.World.voxels.Try(p);
                 if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
                     if (ignoreEntityCollision != null) {
@@ -122,9 +123,9 @@ namespace IslandHopper {
 			}
             //ignoreEntityCollision = ignoreEntityCollision ?? (e => true);
             //ignoreTileCollision = ignoreTileCollision ?? (v => false);
-			XYZ step = CalcMotionStep(g.Velocity);
+			XYZ step = CalcMotionStep(Velocity);
 			XYZ final = g.Position;
-			for (XYZ p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
+			for (XYZ p = g.Position + step; (g.Position - p).Magnitude < Velocity.Magnitude; p += step) {
 				var v = g.World.voxels.Try(p);
 				if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
 					if(ignoreEntityCollision != null) {
@@ -147,9 +148,9 @@ namespace IslandHopper {
 		}
         public static void UpdateMotionCollisionTrail(this Entity g, out HashSet<XYZ> trail, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
             trail = new HashSet<XYZ>(new XYZGridComparer());
-
-            if (g.Velocity < 0.1) {
-                var p = g.Position + g.Velocity;
+			var Velocity = g.Velocity / 30;
+            if (Velocity < 0.1) {
+                var p = g.Position + Velocity;
                 var v = g.World.voxels.Try(p);
                 if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
                     if (ignoreEntityCollision != null) {
@@ -170,10 +171,10 @@ namespace IslandHopper {
 
             //ignoreEntityCollision = ignoreEntityCollision ?? (e => true);
             //ignoreTileCollision = ignoreTileCollision ?? (v => false);
-            XYZ step = CalcMotionStep(g.Velocity);
+            XYZ step = CalcMotionStep(Velocity);
             XYZ final = g.Position;
             trail.Add(final.i);
-            for (XYZ p = g.Position + step; (g.Position - p).Magnitude < g.Velocity.Magnitude; p += step) {
+            for (XYZ p = g.Position + step; (g.Position - p).Magnitude < Velocity.Magnitude; p += step) {
                 var v = g.World.voxels.Try(p);
                 if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
                     if (ignoreEntityCollision != null) {
