@@ -250,8 +250,8 @@ namespace IslandHopper {
                             var Symbol = GetGlyph(new XYZ(location.x, location.y, visibleZ));
                             var heightDiff = originalZ - visibleZ;
                             return new ColoredGlyph(
-                                Color.White.Blend(Symbol.Foreground.WithValues(alpha: Symbol.Foreground.A - heightDiff)),
-                                Color.White.Blend(Symbol.Background.WithValues(alpha: Symbol.Background.A - heightDiff)),
+                                Color.White.Blend(Symbol.Foreground.WithValues(alpha: Symbol.Foreground.A - heightDiff * 2)),
+                                Color.White.Blend(Symbol.Background.WithValues(alpha: Symbol.Background.A - heightDiff * 2)),
                                 Symbol.Glyph);
                         } else {
                             return new ColoredGlyph(Color.Black, Color.Black);
