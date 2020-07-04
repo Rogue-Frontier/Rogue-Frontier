@@ -14,6 +14,9 @@ namespace IslandHopper {
         Grenade Grenade { get; set; }
 		Gun Gun { get; set; }
 
+        ItemType Type { get; }
+        public ColoredString GetApparentName(Player p);
+
 	}
     public interface ItemComponent {
         void UpdateRealtime();
@@ -255,18 +258,26 @@ namespace IslandHopper {
                 return result;
             }
         }
-        public ColoredString BaseName => new ColoredString(type.name, Color.White, Color.Black);
+        public ColoredString BaseName => new ColoredString(Type.name, Color.White, Color.Black);
         public ColoredString Name => ModifierName;
 
 
-        public ItemType type;
+        public ItemType Type { get; set; }
         public Grenade Grenade { get; set; }
 		public Gun Gun { get; set; }
 
         public bool Active { get; private set; } = true;
 		public void OnRemoved() { }
 
-		public void UpdateRealtime(TimeSpan delta) {
+        public ColoredString GetApparentName(Player p) {
+            if(p.known.Contains(Type)) {
+                return Name;
+            } else {
+                return new ColoredString(Type.unknownType.name);
+            }
+        }
+
+        public void UpdateRealtime(TimeSpan delta) {
             Grenade?.UpdateRealtime();
             Gun?.UpdateRealtime();
         }

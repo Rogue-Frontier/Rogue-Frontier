@@ -12,46 +12,46 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Content\Brass Fire %28Brass Pipe Device%29.tmp">
+    <None Update="IslandHopperContent\Brass Fire (Brass Pipe Device).tmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Characters.xml">
+    <None Update="IslandHopperContent\Characters.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Content.mgcb">
+    <None Update="IslandHopperContent\Content.mgcb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\IBMCGA.font">
+    <None Update="IslandHopperContent\IBMCGA.font">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\IBMCGA.png">
+    <None Update="IslandHopperContent\IBMCGA.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Icon.pdn">
+    <None Update="IslandHopperContent\Icon.pdn">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Icon.png">
+    <None Update="IslandHopperContent\Icon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\IconBold.ico">
+    <None Update="IslandHopperContent\IconBold.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\IconBold.pdn">
+    <None Update="IslandHopperContent\IconBold.pdn">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Intro.txt">
+    <None Update="IslandHopperContent\Intro.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Island.txt">
+    <None Update="IslandHopperContent\Island.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Items.xml">
+    <None Update="IslandHopperContent\Items.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\The Seventh Striker v2.tmp">
+    <None Update="IslandHopperContent\The Seventh Striker v2.tmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Title.txt">
+    <None Update="IslandHopperContent\Title.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -151,6 +151,18 @@ namespace IslandHopper {
         public void Update() {
             if(actor.World.entities[actor.Position].Contains(item)) {
                 actor.World.RemoveEntity(item);
+                /*
+                if(actor is Player p) {
+                    if(p.found.Add(item.Type)) {
+                        if(item.Type.knownChance == 100) {
+                            p.known.Add(item.Type);
+                        } else if(p.World.karma.Next(0, 100) < item.Type.knownChance) {
+                            p.Witness(new InfoEvent(item.GetApparentName(p) + new ColoredString(" is identified as ") + item.Name));
+                            p.known.Add(item.Type);
+                        }
+                    }
+                }
+                */
                 actor.Inventory.Add(item);
             }
             done = true;

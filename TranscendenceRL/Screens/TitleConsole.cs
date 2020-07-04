@@ -15,7 +15,7 @@ using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
     class TitleConsole : Console {
-        string[] title = File.ReadAllText("Content/Title.txt").Replace("\r\n", "\n").Split('\n');
+        string[] title = File.ReadAllText("RogueFrontierContent/Title.txt").Replace("\r\n", "\n").Split('\n');
         int titleStart;
         World World = new World();
 
@@ -59,7 +59,7 @@ namespace TranscendenceRL {
             }
             */
 
-            World.types.Load("Content/Main.xml");
+            World.types.Load("RogueFrontierContent/Main.xml");
         }
         private void StartGame() {
             SadConsole.Game.Instance.Screen = new ShipSelector(Width, Height, World) { IsFocused = true };

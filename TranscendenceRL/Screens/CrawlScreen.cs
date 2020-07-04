@@ -49,7 +49,7 @@ namespace TranscendenceRL {
             this.World = World;
             this.playerClass = playerClass;
 
-            text = File.ReadAllText("Content/Crawl.txt").Replace("\r\n", "\n");
+            text = File.ReadAllText("RogueFrontierContent/Crawl.txt").Replace("\r\n", "\n");
             lines = text.Count(c => c == '\n') + 1;
             index = 0;
             tick = 0;

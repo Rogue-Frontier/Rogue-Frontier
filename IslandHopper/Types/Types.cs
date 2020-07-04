@@ -140,7 +140,7 @@ namespace IslandHopper {
 
         public Item GetItem(Island World, XYZ Position) {
             Item i = new Item() {
-                type = this,
+                Type = this,
                 World = World,
                 Position = Position,
                 Velocity = new XYZ(),
@@ -198,6 +198,8 @@ namespace IslandHopper {
 		}
         public class GrenadeType {
             public static string Tag = "Grenade";
+
+            private string inherit;
             //TO DO: Implement DetonateOnDamage / DeonateOnImpact
             public bool detonateOnDamage;
             public bool detonateOnImpact;
@@ -208,7 +210,7 @@ namespace IslandHopper {
             public int explosionForce;
 
             public GrenadeType(TypeCollection collection, XElement e) {
-                string inherit = e.TryAttribute(nameof(inherit), null);
+                inherit = e.TryAttribute(nameof(inherit), null);
                 if (inherit != null) {
                     var source = collection.sources[inherit].Element(Tag);
                     e.InheritAttributes(source);
@@ -238,7 +240,6 @@ namespace IslandHopper {
                 ReloadTimeLeft = 0
             };
             private string inherit;
-            private HashSet<string> sourceAttributes;
 			public enum ProjectileType {
 				beam, bullet, flame
 			}
@@ -267,7 +268,7 @@ namespace IslandHopper {
 			public GunType(TypeCollection collection, XElement e) {
                 //Don't modify the original source when we inherit
                 e = new XElement(e);
-                string inherit = e.TryAttribute(nameof(inherit), null);
+                inherit = e.TryAttribute(nameof(inherit), null);
                 if (inherit != null) {
                     var source = collection.sources[inherit].Element(Tag);
                     e.InheritAttributes(source);

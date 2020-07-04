@@ -12,7 +12,7 @@ namespace IslandHopper {
 
 		static void Main(string[] args) {
 			// Setup the engine and create the main window.
-			SadConsole.Game.Create(Width, Height, "Content/IBMCGA.font");
+			SadConsole.Game.Create(Width, Height, "IslandHopperContent/IBMCGA.font");
 
 			// Hook the start event so we can add consoles to the system.
 			SadConsole.Game.Instance.OnStart = Init;

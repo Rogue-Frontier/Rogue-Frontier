@@ -24,6 +24,9 @@ namespace IslandHopper {
 
         public Health health;
 
+		public HashSet<ItemType> found;
+		public HashSet<ItemType> known;
+
         //TO DO: Implement equipment and body
 
 		public int frameCounter = 0;

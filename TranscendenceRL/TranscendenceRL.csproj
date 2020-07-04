@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="RogueFrontierContent\Items.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="RogueFrontierContent\Items.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="OptimizedPriorityQueue" Version="4.2.0" />
     <PackageReference Include="SadConsole.Host.MonoGame" Version="9.0.0-alpha6" />
   </ItemGroup>
@@ -16,70 +26,67 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Content\Crawl.txt">
+    <None Update="RogueFrontierContent\Crawl.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Genomes.xml">
+    <None Update="RogueFrontierContent\Genomes.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\IBMCGA.font">
+    <None Update="RogueFrontierContent\IBMCGA.font">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\IBMCGA.png">
+    <None Update="RogueFrontierContent\IBMCGA.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Icon.pdn">
+    <None Update="RogueFrontierContent\Icon.pdn">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Icon.txt">
+    <None Update="RogueFrontierContent\Icon.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Ideas.txt">
+    <None Update="RogueFrontierContent\Ideas.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Items.xml">
+    <None Update="RogueFrontierContent\Main.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Main.xml">
+    <None Update="RogueFrontierContent\Missions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Missions.xml">
+    <None Update="RogueFrontierContent\OrionWarlords.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\OrionWarlords.xml">
+    <None Update="RogueFrontierContent\Player.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Player.xml">
+    <None Update="RogueFrontierContent\Reactors.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Reactors.xml">
+    <None Update="RogueFrontierContent\Ships.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Ships.xml">
+    <None Update="RogueFrontierContent\Sovereign.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Sovereign.xml">
+    <None Update="RogueFrontierContent\Square.font">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Square.font">
+    <None Update="RogueFrontierContent\Square.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Square.png">
+    <None Update="RogueFrontierContent\square.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\square.ttf">
+    <None Update="RogueFrontierContent\Square.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Square.zip">
+    <None Update="RogueFrontierContent\Stations.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Stations.xml">
+    <None Update="RogueFrontierContent\Systems.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Systems.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Content\Title.txt">
+    <None Update="RogueFrontierContent\Title.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
