@@ -11,6 +11,7 @@ using SadConsole.Input;
 using ASECII;
 using SadConsole.UI;
 using Console = SadConsole.Console;
+using Helper = Common.Helper;
 
 namespace TranscendenceRL {
 	public class PlayerMain : Console {

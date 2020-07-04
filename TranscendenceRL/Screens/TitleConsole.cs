@@ -62,7 +62,7 @@ namespace TranscendenceRL {
             World.types.Load("RogueFrontierContent/Main.xml");
         }
         private void StartGame() {
-            SadConsole.Game.Instance.Screen = new ShipSelector(Width, Height, World) { IsFocused = true };
+            SadConsole.Game.Instance.Screen = new PlayerCreator(Width, Height, World) { IsFocused = true };
         }
         private void Exit() {
             Environment.Exit(0);
