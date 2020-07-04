@@ -16,7 +16,6 @@ using Console = SadConsole.Console;
 namespace TranscendenceRL {
     class TitleConsole : Console {
         string[] title = File.ReadAllText("RogueFrontierContent/Title.txt").Replace("\r\n", "\n").Split('\n');
-        int titleStart;
         World World = new World();
 
         public AIShip pov;
@@ -30,7 +29,6 @@ namespace TranscendenceRL {
             UseKeyboard = true;
             camera = new XY(0, 0);
             tiles = new Dictionary<(int, int), ColoredGlyph>();
-            titleStart = Width;
             /*
             {
                 var size = 20;
@@ -62,7 +60,10 @@ namespace TranscendenceRL {
             World.types.Load("RogueFrontierContent/Main.xml");
         }
         private void StartGame() {
+            //Need to fix transition
+            //SadConsole.Game.Instance.Screen = new TitleTransition(Width, Height, this, new PlayerCreator(Width, Height, World) { IsFocused = true });
             SadConsole.Game.Instance.Screen = new PlayerCreator(Width, Height, World) { IsFocused = true };
+
         }
         private void Exit() {
             Environment.Exit(0);
@@ -148,14 +149,13 @@ namespace TranscendenceRL {
             this.Clear();
             var titleY = 0;
             foreach (var line in title) {
-                if(titleStart < line.Length) {
-                    this.Print(titleStart, titleY, line.Substring(titleStart), Color.White, Color.Transparent);
-                }
+                this.Print(0, titleY, line, Color.White, Color.Transparent);
                 titleY++;
             }
-            if (titleStart > 0) {
-                titleStart--;
-            } else {
+
+            //Wait until we are focused to print the POV desc
+            //This will happen when TitleSlide transition finishes
+            if(IsFocused) {
                 int descX = Width / 2;
                 int descY = Height * 3 / 4;
 
@@ -171,8 +171,9 @@ namespace TranscendenceRL {
                     descY++;
                 }
             }
+            
             camera = pov.Position;
-            for (int x = titleStart; x < Width; x++) {
+            for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
                     var g = this.GetGlyph(x, y);
 

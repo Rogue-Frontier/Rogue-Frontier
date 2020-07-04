@@ -2,6 +2,7 @@
 using SadConsole;
 using Console = SadConsole.Console;
 using TranscendenceRL;
+using TranscendenceRL.Screens;
 
 namespace TranscendenceRL {
 	class TranscendenceRL {
@@ -23,7 +24,7 @@ namespace TranscendenceRL {
 		}
 
 		private static void Init() {
-			GameHost.Instance.Screen = new TitleConsole(Width, Height) { IsFocused = true };
+			GameHost.Instance.Screen = new TitleSlide(Width, Height, new TitleConsole(Width, Height)) { IsFocused = true };
 		}
 	}
 }
