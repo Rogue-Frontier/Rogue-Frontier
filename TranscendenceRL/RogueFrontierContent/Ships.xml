@@ -76,7 +76,7 @@
 				  rotationDecel="15"
 				  rotationMaxSpeed="10"
 
-				  char="B"
+				  char="b"
 				  foreground="White"
         >
 		<Devices>
@@ -144,7 +144,7 @@
 			   rotationDecel=       "12"
 			   rotationMaxSpeed=    "8"
 
-               char=                "W"
+               char=                "w"
                foreground=          "Orange"
         >
         <Devices>
