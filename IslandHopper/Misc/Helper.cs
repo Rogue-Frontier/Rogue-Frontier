@@ -542,8 +542,11 @@ namespace Common {
 		public static Color Sum(Color c, Color c2) {
 			return new Color(Range(0, 255, c.R + c2.R), Range(0, 255, c.G + c2.G), Range(0, 255, c.B + c2.B), Range(0, 255, c.A + c2.A));
 		}
+		//Essentially the same as blending this color over Color.Black
+		public static Color Premultiply(this Color c) => new Color((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, c.A);
 		//https://stackoverflow.com/a/12016968
 		public static Color Blend(this Color background, Color foreground) {
+			//Background should be premultiplied because we ignore its alpha value
 			byte alpha = (byte) (foreground.A);
 			byte inv_alpha = (byte)(255 - foreground.A);
 			return new Color(

@@ -11,7 +11,7 @@ using Common;
 namespace TranscendenceRL {
     class TitleTransition : Console {
         //Slide down background over prev console, then fade in next console
-        public int y = 0;
+        public double y = 0;
         public double alpha;
 
         public Console prev;
@@ -22,12 +22,14 @@ namespace TranscendenceRL {
             this.prev = prev;
             this.next = next;
 
+            //Draw one frame now so that we don't cut out for one frame
+            Draw(new TimeSpan());
         }
         public override void Update(TimeSpan delta) {
             if(y < Height) {
-                y += (int)((Height - y) * 0.1 / 30);   
-            } else if (alpha < 255) {
-                alpha += delta.TotalSeconds * 5;
+                y += delta.TotalSeconds * Math.Max(((Height - y)) * 4, 8);   
+            } else if (alpha < 1) {
+                alpha += delta.TotalSeconds * Math.Max((1 - alpha) * 2, 1/2f);
             } else {
                 SadConsole.Game.Instance.Screen = next;
                 next.IsFocused = true;
@@ -43,27 +45,43 @@ namespace TranscendenceRL {
             prev.Draw(delta);
             next.Draw(delta);
             base.Draw(delta);
+            this.Clear();
+
+            var blank = new ColoredGlyph(Color.Black, Color.Black);
             if (this.y < Height) {
-                this.Clear();
-                for (int y = 0; y < Height - this.y; y++) {
+                var edge = Height - (int)this.y;
+                for (int y = 0; y < edge; y++) {
                     for (int x = 0; x < Width; x++) {
                         this.SetCellAppearance(x, y, prev.GetCellAppearance(x, y));
                     }
                 }
-                for (int y = Height - this.y; y < Height; y++) {
+                for (int y = edge; y < Height; y++) {
                     for (int x = 0; x < Width; x++) {
-                        this.SetBackground(x, y, Color.Black);
+                        this.SetCellAppearance(x, y, blank);
+                    }
+                }
+                for (int y  = Math.Max(0, edge - 16); y < edge; y++) {
+                    for (int x = 0; x < Width; x++) {
+                        var glyph = prev.GetGlyph(x, y);
+                        var value = 255 - 255 / 16 * (edge - y);
+
+                        var fore = prev.GetForeground(x, y);
+                        fore = fore.Premultiply().Blend(Color.Black.WithValues(alpha: value));
+
+                        var back = prev.GetBackground(x, y);
+                        back = back.Premultiply().Blend(Color.Black.WithValues(alpha: value));
+
+                        this.SetCellAppearance(x, y, new ColoredGlyph(fore, back, glyph));
                     }
                 }
             } else {
-                this.Clear();
-                for(int y = 0; y < Height; y++) {
+                for (int y = 0; y < Height; y++) {
                     for(int x = 0; x < Width; x++) {
                         var glyph = next.GetGlyph(x, y);
                         var foreground = next.GetForeground(x, y);
                         var background = next.GetBackground(x, y);
-                        foreground = foreground.WithValues(alpha: (int)alpha);
-                        background = background.WithValues(alpha: (int)alpha);
+                        foreground = foreground.WithValues(alpha: (int)(foreground.A * alpha));
+                        background = background.WithValues(alpha: (int)(background.A * alpha));
                         this.SetCellAppearance(x, y, new ColoredGlyph(foreground, background, glyph));
                     }
                 }

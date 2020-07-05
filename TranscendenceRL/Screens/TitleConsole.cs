@@ -61,8 +61,8 @@ namespace TranscendenceRL {
         }
         private void StartGame() {
             //Need to fix transition
-            //SadConsole.Game.Instance.Screen = new TitleTransition(Width, Height, this, new PlayerCreator(Width, Height, World) { IsFocused = true });
-            SadConsole.Game.Instance.Screen = new PlayerCreator(Width, Height, World) { IsFocused = true };
+            SadConsole.Game.Instance.Screen = new TitleTransition(Width, Height, this, new PlayerCreator(Width, Height, this, World));
+            //SadConsole.Game.Instance.Screen = new PlayerCreator(Width, Height, World) { IsFocused = true };
 
         }
         private void Exit() {

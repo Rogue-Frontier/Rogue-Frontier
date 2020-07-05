@@ -12,6 +12,7 @@ using static SadConsole.Input.Keys;
 using Console = SadConsole.Console;
 using SadConsole.UI.Controls;
 using ASECII;
+using TranscendenceRL.Screens;
 
 namespace TranscendenceRL {
 
@@ -27,6 +28,7 @@ namespace TranscendenceRL {
         public GenomeType playerGenome;
     }
     class PlayerCreator : ControlsConsole {
+        private Console prev;
         private ShipSelectorModel context;
 
         private ref World World => ref context.World;
@@ -37,10 +39,8 @@ namespace TranscendenceRL {
         private ref GenomeType playerGenome => ref context.playerGenome;
 
         double time = 0;
-
-        TextBox nameBox;
-
-        public PlayerCreator(int width, int height, World World) : base(width, height) {
+        public PlayerCreator(int width, int height, Console prev, World World) : base(width, height) {
+            this.prev = prev;
             DefaultBackground = Color.Black;
             DefaultForeground = Color.White;
 
@@ -166,6 +166,19 @@ namespace TranscendenceRL {
             string start = "[Enter] Start";
             this.Print(Width - start.Length, Height - 1, start);
 
+            for(y = 0; y < Height; y++) {
+                for(int x = 0; x < Width; x++) {
+
+                    var g = this.GetGlyph(x, y);
+                    if (g == 0 || g == ' ') {
+                        this.SetCellAppearance(x, y, new ColoredGlyph(
+                            new Color(255, 255, 255, (int)(51 * Math.Sin(time * Math.Sin(x - y) + Math.Sin(x) * 5 + Math.Sin(y) * 5))),
+                            Color.Black,
+                            '='));
+                    }
+                }
+            }
+
             base.Draw(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
@@ -176,7 +189,8 @@ namespace TranscendenceRL {
                 index = (playable.Count + index - 1) % playable.Count;
             }
             if(info.IsKeyPressed(Escape)) {
-                SadConsole.Game.Instance.Screen = new TitleConsole(Width, Height) { IsFocused = true };
+                IsFocused = false;
+                SadConsole.Game.Instance.Screen = new TitleSlide(Width, Height, prev) { IsFocused = true };
             }
             if(info.IsKeyPressed(Enter)) {
                 SadConsole.Game.Instance.Screen = new CrawlScreen(Width, Height, World, playable[index]) { IsFocused = true };
