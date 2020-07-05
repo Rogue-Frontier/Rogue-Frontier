@@ -62,7 +62,7 @@ namespace TranscendenceRL {
             this.Velocity = new XY();
             this.Active = true;
             this.Sovereign = Type.Sovereign;
-            DamageSystem = new HPSystem(this, Type.hp);
+            DamageSystem = new HPSystem(Type.hp);
             Items = new HashSet<Item>();
             weapons = StationType.weapons?.Generate(World.types);
         }
@@ -98,7 +98,7 @@ namespace TranscendenceRL {
         }
         */
         public void Damage(SpaceObject source, int hp) {
-            DamageSystem.Damage(source, hp);
+            DamageSystem.Damage(this, source, hp);
             if(source.Sovereign != Sovereign) {
                 foreach(var guard in World.entities.all.OfType<AIShip>()) {
                     if(guard.controller is GuardOrder order && order.guard == this && order.target == null) {

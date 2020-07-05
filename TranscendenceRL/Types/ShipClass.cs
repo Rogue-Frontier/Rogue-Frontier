@@ -55,7 +55,7 @@ namespace TranscendenceRL {
 			maxHP = e.ExpectAttributeInt("maxHP");
 		}
 		public DamageSystem Create(SpaceObject owner) {
-			return new HPSystem(owner, maxHP);
+			return new HPSystem(maxHP);
 		}
 	}
 	public class LayeredArmorDesc : DamageSystemDesc {
@@ -64,7 +64,7 @@ namespace TranscendenceRL {
 			armorList = new ArmorList(e);
 		}
 		public DamageSystem Create(SpaceObject owner) {
-			return new LayeredArmorSystem(owner, armorList.Generate(owner.World.types));
+			return new LayeredArmorSystem(armorList.Generate(owner.World.types));
 		}
 	}
 	public class PlayerSettings {

@@ -109,6 +109,7 @@ namespace Common {
 		public static Color Clamp(this Color c, int max) {
 			return new Color(Math.Min(c.R, max),Math.Min(c.G,max), Math.Min(c.B, max));
 		}
+		public static Color Gray(int value) => new Color(value, value, value, 255);
 		public static Color WithValues(this Color c, int? red = null, int? green = null, int? blue = null, int? alpha = null) {
 			return new Color(red ?? c.R, green ?? c.G, blue ?? c.B, alpha ?? c.A);
 		}

@@ -16,6 +16,7 @@ using System.IO;
 namespace TranscendenceRL {
     class CrawlScreen : Console {
         World World;
+        Player player;
         ShipClass playerClass;
 
         private readonly string text;
@@ -45,8 +46,9 @@ namespace TranscendenceRL {
         List<ParticleCloud> clouds;
 
         Random random = new Random();
-        public CrawlScreen(int width ,int height, World World, ShipClass playerClass) : base(width, height) {
+        public CrawlScreen(int width ,int height, World World, Player player, ShipClass playerClass) : base(width, height) {
             this.World = World;
+            this.player = player;
             this.playerClass = playerClass;
 
             text = File.ReadAllText("RogueFrontierContent/Crawl.txt").Replace("\r\n", "\n");
@@ -154,7 +156,7 @@ namespace TranscendenceRL {
                 loading.Update();
                 loadingTicks--;
             } else {
-                var main = new PlayerMain(Width, Height, World, playerClass) { IsFocused = true };
+                var main = new PlayerMain(Width, Height, World, player, playerClass) { IsFocused = true };
                 main.Update(time);
                 main.PlaceTiles();
                 main.DrawWorld();

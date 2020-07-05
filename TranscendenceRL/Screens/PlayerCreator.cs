@@ -193,7 +193,11 @@ namespace TranscendenceRL {
                 SadConsole.Game.Instance.Screen = new TitleSlide(Width, Height, prev) { IsFocused = true };
             }
             if(info.IsKeyPressed(Enter)) {
-                SadConsole.Game.Instance.Screen = new CrawlScreen(Width, Height, World, playable[index]) { IsFocused = true };
+                Player player = new Player() {
+                    name = context.playerName,
+                    genome = context.playerGenome
+                };
+                SadConsole.Game.Instance.Screen = new CrawlScreen(Width, Height, World, player, playable[index]) { IsFocused = true };
             }
             return base.ProcessKeyboard(info);
         }

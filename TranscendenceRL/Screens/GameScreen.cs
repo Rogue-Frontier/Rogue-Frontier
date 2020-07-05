@@ -12,20 +12,21 @@ using ASECII;
 using SadConsole.UI;
 using Console = SadConsole.Console;
 using Helper = Common.Helper;
+using TranscendenceRL.Screens;
 
 namespace TranscendenceRL {
 	public class PlayerMain : Console {
 		public XY camera;
 		public World world;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
-		public PlayerShip player;
+		public PlayerShip playerShip;
 		public bool active;
 		double viewScale = 1;
 		GeneratedLayer backVoid;
 
 		PlayerUI ui;
 
-		public PlayerMain(int Width, int Height, World World, ShipClass playerClass) : base(Width, Height) {
+		public PlayerMain(int Width, int Height, World World, Player player, ShipClass playerClass) : base(Width, Height) {
 			UseMouse = true;
 			UseKeyboard = true;
 
@@ -70,18 +71,42 @@ namespace TranscendenceRL {
 			World.UpdatePresent();
 			var playerStart = world.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
 			var playerSovereign = world.types.Lookup<Sovereign>("svPlayer");
-			player = new PlayerShip(new BaseShip(world, playerClass, playerSovereign, playerStart));
+			playerShip = new PlayerShip(player, new BaseShip(world, playerClass, playerSovereign, playerStart));
+			playerShip.onDestroyed += (p, d) => EndGame(d);
 			active = true;
-			world.AddEntity(player);
+			world.AddEntity(playerShip);
 			/*
 			var daughters = new Station(world, world.types.Lookup<StationType>("stDaughtersOutpost"), new XY(5, 5));
 			world.AddEntity(daughters);
 			*/
-			player.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+			playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
-			ui = new PlayerUI(player, tiles, Width, Height) {
+			ui = new PlayerUI(playerShip, tiles, Width, Height) {
 			IsVisible = true
 			};
+		}
+		public void EndGame(SpaceObject destroyer) {
+
+			//Get a snapshot of the player
+			var size = 32;
+			var deathFrame = new ColoredGlyph[size, size];
+			var halfWidth = Width / 2;
+			var halfHeight = Height / 2;
+			XY center = new XY(size / 2, size / 2);
+			for (int y = 0; y < size; y++) {
+				for(int x = 0; x < size; x++) {
+					var tile = GetTile(camera + new XY(x, y) - center);
+					tile.Foreground = Helper.Gray((int)(255 * tile.Foreground.Premultiply().GetBrightness()));
+					tile.Background = Helper.Gray((int)(255 * tile.Background.Premultiply().GetBrightness()));
+					deathFrame[x, y] = tile;
+
+				}
+            }
+			var epitaph = new Epitaph() {
+				desc = $"Destroyed by {destroyer.Name}",
+				deathFrame = deathFrame
+			};
+			SadConsole.Game.Instance.Screen = new DeathTransition(this, new DeathScreen(Width, Height, world, playerShip, epitaph)) { IsFocused = true };
 		}
 		public void PlaceTiles() {
 			tiles.Clear();
@@ -96,36 +121,17 @@ namespace TranscendenceRL {
 				}
 			}
 		}
+		public void UpdateWorld() {
+			world.UpdateAll();
+		}
 		public override void Update(TimeSpan delta) {
-			tiles.Clear();
-			//Place everything in the grid
-			world.entities.UpdateSpace();
-			world.effects.UpdateSpace();
-
-			//Update everything
-			foreach (var e in world.entities.all) {
-				e.Update();
-				if (e.Tile != null && !tiles.ContainsKey(e.Position.RoundDown)) {
-					tiles[e.Position.RoundDown] = e.Tile;
-				}
-			}
-			foreach (var e in world.effects.all) {
-				e.Update();
-				if (e.Tile != null && !tiles.ContainsKey(e.Position.RoundDown)) {
-					tiles[e.Position.RoundDown] = e.Tile;
-				}
-			}
-			camera = player.Position.RoundDown;
+			UpdateWorld();
+			PlaceTiles();
+			camera = playerShip.Position.RoundDown;
 			world.UpdatePresent();
-			if(active) {
-				if (player.docking?.docked == true && player.docking.target is Dockable d) {
-					player.docking = null;
-					this.Children.Add(new Dockscreen(Width, Height, d.MainView, this, player, d));
-				}
-				if (!player.Active) {
-
-					active = false;
-				}
+			if (playerShip.docking?.docked == true && playerShip.docking.target is Dockable d) {
+				playerShip.docking = null;
+				this.Children.Add(new Dockscreen(Width, Height, d.MainView, this, playerShip, d));
 			}
 			ui.Update(delta);
 		}
@@ -225,36 +231,36 @@ namespace TranscendenceRL {
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
 			if(info.IsKeyDown(Up)) {
-				player.SetThrusting();
+				playerShip.SetThrusting();
 			}
 			if (info.IsKeyDown(Left)) {
-				player.SetRotating(Rotating.CCW);
+				playerShip.SetRotating(Rotating.CCW);
 			}
 			if (info.IsKeyDown(Right)) {
-				player.SetRotating(Rotating.CW);
+				playerShip.SetRotating(Rotating.CW);
 			}
 			if(info.IsKeyDown(Down)) {
-				player.SetDecelerating();
+				playerShip.SetDecelerating();
 			}
 			if(info.IsKeyPressed(Escape)) {
 				SadConsole.Game.Instance.Screen = new TitleConsole(Width, Height) { IsFocused = true };
 			}
 			if(info.IsKeyPressed(S)) {
-				SadConsole.Game.Instance.Screen = new ShipScreen(this, player) { IsFocused = true };
+				SadConsole.Game.Instance.Screen = new ShipScreen(this, playerShip) { IsFocused = true };
 			}
 			if(info.IsKeyPressed(W)) {
-				player.NextWeapon();
+				playerShip.NextWeapon();
             }
 			if(info.IsKeyPressed(T)) {
-				player.NextTargetEnemy();
+				playerShip.NextTargetEnemy();
 				//Note: Show a label on the target after select
             }
 			if (info.IsKeyPressed(F)) {
-				player.NextTargetFriendly();
+				playerShip.NextTargetFriendly();
 				//Note: Show a label on the target after select
 			}
 			if (info.IsKeyPressed(R)) {
-				player.ClearTarget();
+				playerShip.ClearTarget();
 				//Note: Show a label on the target after select
 			}
 			if(info.IsKeyDown(OemMinus)) {
@@ -270,25 +276,25 @@ namespace TranscendenceRL {
                 }
             }
 			if (info.IsKeyPressed(D)) {
-				if(player.docking != null) {
-					if(player.docking.docked) {
-						player.AddMessage(new InfoMessage("Undocked"));
+				if(playerShip.docking != null) {
+					if(playerShip.docking.docked) {
+						playerShip.AddMessage(new InfoMessage("Undocked"));
 					} else {
-						player.AddMessage(new InfoMessage("Docking sequence canceled"));
+						playerShip.AddMessage(new InfoMessage("Docking sequence canceled"));
 					}
 					
-					player.docking = null;
+					playerShip.docking = null;
 				} else {
-					var dest = world.entities.GetAll(p => (player.Position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.Position - player.Position).Magnitude).FirstOrDefault();
+					var dest = world.entities.GetAll(p => (playerShip.Position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.Position - playerShip.Position).Magnitude).FirstOrDefault();
 					if(dest != null) {
-						player.AddMessage(new InfoMessage("Docking sequence engaged"));
-						player.docking = new Docking(dest);
+						playerShip.AddMessage(new InfoMessage("Docking sequence engaged"));
+						playerShip.docking = new Docking(dest);
 					}
 					
 				}
 			}
 			if(info.IsKeyDown(X)) {
-				player.SetFiringPrimary();
+				playerShip.SetFiringPrimary();
 			}
 			return base.ProcessKeyboard(info);
 		}
@@ -297,28 +303,28 @@ namespace TranscendenceRL {
 			var offset = new XY(cell.X, Height - cell.Y) - new XY(Width / 2, Height / 2);
 			if (offset.xi != 0 && offset.yi != 0) {
 				var mouseRads = offset.Angle;
-				var facingRads = player.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
+				var facingRads = playerShip.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
 
 				var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
 				var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
 				if (ccw < cw) {
-					player.SetRotating(Rotating.CCW);
+					playerShip.SetRotating(Rotating.CCW);
 				} else if (cw < ccw) {
-					player.SetRotating(Rotating.CW);
+					playerShip.SetRotating(Rotating.CW);
 				} else {
-					if (player.Ship.rotatingVel > 0) {
-						player.SetRotating(Rotating.CW);
+					if (playerShip.Ship.rotatingVel > 0) {
+						playerShip.SetRotating(Rotating.CW);
 					} else {
-						player.SetRotating(Rotating.CCW);
+						playerShip.SetRotating(Rotating.CCW);
 					}
 				}
 			}
 
 			if (state.Mouse.LeftButtonDown) {
-				player.SetFiringPrimary();
+				playerShip.SetFiringPrimary();
 			}
 			if (state.Mouse.RightButtonDown) {
-				player.SetThrusting();
+				playerShip.SetThrusting();
 			}
 			return base.ProcessMouse(state);
 		}

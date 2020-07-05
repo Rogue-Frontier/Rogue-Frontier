@@ -44,6 +44,9 @@ namespace TranscendenceRL {
 
         public Random destiny;
 
+        public delegate void Destroyed(BaseShip ship, SpaceObject destroyer);
+        public event Destroyed OnDestroyed;
+
         public double rotationDegrees { get; private set; }
         public double stoppingRotation { get {
                 var stoppingTime = TranscendenceRL.TICKS_PER_SECOND * Math.Abs(rotatingVel) / (ShipClass.rotationDecel);
@@ -86,8 +89,9 @@ namespace TranscendenceRL {
             this.rotating = rotating;
         }
         public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
-        public void Damage(SpaceObject source, int hp) => DamageSystem.Damage(source, hp);
+        public void Damage(SpaceObject source, int hp) => DamageSystem.Damage(this, source, hp);
         public void Destroy(SpaceObject source) {
+            OnDestroyed?.Invoke(this, source);
             var wreck = new Wreck(this);
             wreck.Items.UnionWith(Items);
             World.AddEntity(wreck);
@@ -215,6 +219,7 @@ namespace TranscendenceRL {
         public ColoredGlyph Tile => Ship.Tile;
     }
     public class PlayerShip : IShip {
+        public Player player;
         public string Name => Ship.Name;
         public World World => Ship.World;
         public ShipClass ShipClass => Ship.ShipClass;
@@ -243,12 +248,19 @@ namespace TranscendenceRL {
 
         public DictCounter<ShipClass> shipsDestroyed = new DictCounter<ShipClass>();
 
-        public PlayerShip(BaseShip ship) {
+        public delegate void PlayerDestroyed(PlayerShip playerShip, SpaceObject destroyer);
+
+        public event PlayerDestroyed onDestroyed;
+
+        public PlayerShip(Player player, BaseShip ship) {
+            this.player = player;
             this.Ship = ship;
 
             //To do: Don't add anything to world in the constructor
             ship.World.AddEffect(new Heading(this));
             power = new PowerSystem(ship.Devices);
+
+            ship.OnDestroyed += (s, source) => onDestroyed?.Invoke(this, source);
         }
         public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
         public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);
@@ -366,7 +378,9 @@ namespace TranscendenceRL {
             return null;
         }
         public void Damage(SpaceObject source, int hp) => Ship.Damage(source, hp);
-        public void Destroy(SpaceObject source) => Ship.Destroy(source);
+        public void Destroy(SpaceObject source) {
+            Ship.Destroy(source);
+        }
         public void Update() {
             messages.ForEach(m => m.Update());
             messages.RemoveAll(m => !m.Active);

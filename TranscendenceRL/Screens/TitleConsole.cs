@@ -207,7 +207,11 @@ namespace TranscendenceRL {
             }
 #if DEBUG
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {
-                SadConsole.Game.Instance.Screen = new PlayerMain(Width, Height, World, World.types.Lookup<ShipClass>("scAmethyst")) { IsFocused = true };
+                Player player = new Player() {
+                    name = "Player",
+                    genome = World.types.genomeType.Values.First()
+                };
+                SadConsole.Game.Instance.Screen = new PlayerMain(Width, Height, World, player, World.types.Lookup<ShipClass>("scAmethyst")) { IsFocused = true };
             }
 #endif
             return base.ProcessKeyboard(info);

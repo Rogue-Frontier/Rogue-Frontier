@@ -35,5 +35,18 @@ namespace TranscendenceRL {
             entities.all.RemoveWhere(e => !e.Active);
             effects.all.RemoveWhere(e => !e.Active);
         }
+        public void UpdateAll() {
+            //Place everything in the grid
+            entities.UpdateSpace();
+            effects.UpdateSpace();
+
+            //Update everything
+            foreach (var e in entities.all) {
+                e.Update();
+            }
+            foreach (var e in effects.all) {
+                e.Update();
+            }
+        }
     }
 }

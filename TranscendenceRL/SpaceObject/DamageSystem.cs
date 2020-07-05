@@ -15,16 +15,14 @@ namespace TranscendenceRL {
         }
     }
     public interface DamageSystem {
-        void Damage(SpaceObject source, int hp);
+        void Damage(SpaceObject owner, SpaceObject source, int hp);
     }
     public class HPSystem : DamageSystem {
-        SpaceObject owner;
         public int hp;
-        public HPSystem(SpaceObject owner, int hp) {
-            this.owner = owner;
+        public HPSystem(int hp) {
             this.hp = hp;
         }
-        public void Damage(SpaceObject source, int hp) {
+        public void Damage(SpaceObject owner, SpaceObject source, int hp) {
             this.React(owner, source);
             this.hp -= hp;
             if(this.hp < 1) {
@@ -34,13 +32,11 @@ namespace TranscendenceRL {
     }
     //WMD would allow the attacker to hit multiple layers at a time, multiplying the damage
     public class LayeredArmorSystem : DamageSystem {
-        SpaceObject owner;
         public List<Armor> layers;
-        public LayeredArmorSystem(SpaceObject owner, List<Armor> layers) {
-            this.owner = owner;
+        public LayeredArmorSystem(List<Armor> layers) {
             this.layers = layers;
         }
-        public void Damage(SpaceObject source, int hp) {
+        public void Damage(SpaceObject owner, SpaceObject source, int hp) {
             for(int i = layers.Count-1; i > -1; i--) {
                 var layer = layers[i];
                 if(layer == null) {
