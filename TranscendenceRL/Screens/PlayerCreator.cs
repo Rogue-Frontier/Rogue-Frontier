@@ -39,7 +39,7 @@ namespace TranscendenceRL {
         private ref GenomeType playerGenome => ref context.playerGenome;
 
         double time = 0;
-        public PlayerCreator(int width, int height, Console prev, World World) : base(width, height) {
+        public PlayerCreator(Console prev, World World) : base(prev.Width, prev.Height) {
             this.prev = prev;
             DefaultBackground = Color.Black;
             DefaultForeground = Color.White;
@@ -190,7 +190,7 @@ namespace TranscendenceRL {
             }
             if(info.IsKeyPressed(Escape)) {
                 IsFocused = false;
-                SadConsole.Game.Instance.Screen = new TitleSlide(Width, Height, prev) { IsFocused = true };
+                SadConsole.Game.Instance.Screen = new TitleSlideOut(prev) { IsFocused = true };
             }
             if(info.IsKeyPressed(Enter)) {
                 Player player = new Player() {

@@ -37,14 +37,14 @@ namespace TranscendenceRL {
         public Sovereign Sovereign { get; private set; }
         public XY Position { get; set; }
         public XY Velocity { get; set; }
-        public bool Active { get; private set; }
+        public bool Active { get; set; }
         public HashSet<Item> Items;
         public DeviceSystem Devices { get; private set; }
         public DamageSystem DamageSystem;
 
         public Random destiny;
 
-        public delegate void Destroyed(BaseShip ship, SpaceObject destroyer);
+        public delegate void Destroyed(BaseShip ship, SpaceObject destroyer, Wreck wreck);
         public event Destroyed OnDestroyed;
 
         public double rotationDegrees { get; private set; }
@@ -91,10 +91,11 @@ namespace TranscendenceRL {
         public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
         public void Damage(SpaceObject source, int hp) => DamageSystem.Damage(this, source, hp);
         public void Destroy(SpaceObject source) {
-            OnDestroyed?.Invoke(this, source);
             var wreck = new Wreck(this);
             wreck.Items.UnionWith(Items);
             World.AddEntity(wreck);
+
+            OnDestroyed?.Invoke(this, source, wreck);
             Active = false;
         }
         public void Update() {
@@ -188,9 +189,6 @@ namespace TranscendenceRL {
         public AIShip(BaseShip ship, Order controller) {
             this.Ship = ship;
             this.controller = controller;
-
-            //To do: Don't add anything to world in the constructor
-            ship.World.AddEffect(new Heading(this));
         }
         public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
         public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);
@@ -248,19 +246,19 @@ namespace TranscendenceRL {
 
         public DictCounter<ShipClass> shipsDestroyed = new DictCounter<ShipClass>();
 
-        public delegate void PlayerDestroyed(PlayerShip playerShip, SpaceObject destroyer);
+        public delegate void PlayerDestroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);
 
-        public event PlayerDestroyed onDestroyed;
+        public event PlayerDestroyed OnDestroyed;
 
         public PlayerShip(Player player, BaseShip ship) {
             this.player = player;
             this.Ship = ship;
 
-            //To do: Don't add anything to world in the constructor
-            ship.World.AddEffect(new Heading(this));
             power = new PowerSystem(ship.Devices);
 
-            ship.OnDestroyed += (s, source) => onDestroyed?.Invoke(this, source);
+            //Remember to create the Heading when you add or replace this ship in the World
+
+            ship.OnDestroyed += (s, source, wreck) => OnDestroyed?.Invoke(this, source, wreck);
         }
         public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
         public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);

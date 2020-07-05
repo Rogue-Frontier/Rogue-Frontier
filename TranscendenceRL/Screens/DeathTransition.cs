@@ -43,9 +43,9 @@ namespace TranscendenceRL {
         public override void Update(TimeSpan delta) {
             prev.Update(delta);
             time += delta.TotalSeconds/2;
-            if(time < 2) {
+            if(time < 4) {
                 return;
-            } else if(time < 8) {
+            } else if(time < 9) {
                 foreach (var p in particles) {
                     if(p.delay > 0) {
                         p.delay -= delta.TotalSeconds/2;
@@ -67,10 +67,10 @@ namespace TranscendenceRL {
             for(int y = 0; y < Height; y++) {
                 for(int x = 0; x < Width; x++) {
                     var cell = prev.GetCellAppearance(x, y);
-                    var baseValue = (Math.Clamp(time - 2, 0, 2) * 102);
+                    var baseValue = (Math.Clamp(time - 2, 0, 4) * 51);
 
-                    var value = (int)(baseValue + Math.Clamp(time / 2, 0, 2) * 51 * Math.Sin(time + Math.Sin(x) + Math.Sin(y)));
-                    var shift = Math.Clamp(time - 1.5, 0, 4) / 4;
+                    var value = (int)(baseValue + Math.Clamp(Math.Max(time - 2, 0) / 2, 0, 3) * 51 * Math.Sin(time + Math.Sin(x) + Math.Sin(y)));
+                    var shift = Math.Clamp(time - 4, 0, 4) / 4;
                     var back = cell.Background.Premultiply().Blend(new Color(255, (int)(255 - shift * 255), (int)(255 - shift*255), value));
                     var front = cell.Foreground.Premultiply().Blend(new Color(255, (int)(255 - shift * 255), (int)(255 - shift * 255), value));
                     this.SetCellAppearance(x, y, new ColoredGlyph(front, back, cell.Glyph));

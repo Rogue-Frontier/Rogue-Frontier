@@ -24,7 +24,7 @@ namespace TranscendenceRL {
 		}
 
 		private static void Init() {
-			GameHost.Instance.Screen = new TitleSlide(Width, Height, new TitleConsole(Width, Height)) { IsFocused = true };
+			GameHost.Instance.Screen = new TitleSlideOut(new TitleConsole(Width, Height)) { IsFocused = true };
 		}
 	}
 }

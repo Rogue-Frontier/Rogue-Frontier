@@ -60,8 +60,7 @@ namespace TranscendenceRL {
             World.types.Load("RogueFrontierContent/Main.xml");
         }
         private void StartGame() {
-            //Need to fix transition
-            SadConsole.Game.Instance.Screen = new TitleTransition(Width, Height, this, new PlayerCreator(Width, Height, this, World));
+            SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new FadeIn(new PlayerCreator(this, World))) { IsFocused = true };
             //SadConsole.Game.Instance.Screen = new PlayerCreator(Width, Height, World) { IsFocused = true };
 
         }
@@ -102,7 +101,10 @@ namespace TranscendenceRL {
                 var center = World.entities.all.FirstOrDefault()?.Position ?? new XY(0, 0);
                 var ship = new BaseShip(World, shipClass, Sovereign.Gladiator, center + XY.Polar(angle, distance));
                 var enemy = new AIShip(ship, new AttackAllOrder());
-                World.entities.all.Add(enemy);
+                World.AddEntity(enemy);
+                World.AddEffect(new Heading(enemy));
+                //Update now in case we need a POV
+                World.UpdatePresent();
             }
             if(pov == null || povTimer < 1) {
                 pov = World.entities.all.OfType<AIShip>().First();

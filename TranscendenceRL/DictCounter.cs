@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     public class DictCounter<T> {
-        Dictionary<T, int> dict;
+        public Dictionary<T, int> dict;
         public int this[T t] {
             get => dict.TryGetValue(t, out int result) ? result : 0;
             set => dict[t] = value;

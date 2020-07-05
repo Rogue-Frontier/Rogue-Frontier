@@ -72,7 +72,8 @@ namespace TranscendenceRL {
 			var playerStart = world.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
 			var playerSovereign = world.types.Lookup<Sovereign>("svPlayer");
 			playerShip = new PlayerShip(player, new BaseShip(world, playerClass, playerSovereign, playerStart));
-			playerShip.onDestroyed += (p, d) => EndGame(d);
+            World.AddEffect(new Heading(playerShip));
+			playerShip.OnDestroyed += (p, d, wreck) => EndGame(d, wreck);
 			active = true;
 			world.AddEntity(playerShip);
 			/*
@@ -85,17 +86,17 @@ namespace TranscendenceRL {
 			IsVisible = true
 			};
 		}
-		public void EndGame(SpaceObject destroyer) {
+		public void EndGame(SpaceObject destroyer, Wreck wreck) {
 
 			//Get a snapshot of the player
-			var size = 32;
+			var size = 60;
 			var deathFrame = new ColoredGlyph[size, size];
 			var halfWidth = Width / 2;
 			var halfHeight = Height / 2;
 			XY center = new XY(size / 2, size / 2);
 			for (int y = 0; y < size; y++) {
 				for(int x = 0; x < size; x++) {
-					var tile = GetTile(camera + new XY(x, y) - center);
+					var tile = GetTile(camera - new XY(x, y) + center);
 					tile.Foreground = Helper.Gray((int)(255 * tile.Foreground.Premultiply().GetBrightness()));
 					tile.Background = Helper.Gray((int)(255 * tile.Background.Premultiply().GetBrightness()));
 					deathFrame[x, y] = tile;
@@ -104,9 +105,10 @@ namespace TranscendenceRL {
             }
 			var epitaph = new Epitaph() {
 				desc = $"Destroyed by {destroyer.Name}",
-				deathFrame = deathFrame
+				deathFrame = deathFrame,
+				wreck = wreck
 			};
-			SadConsole.Game.Instance.Screen = new DeathTransition(this, new DeathScreen(Width, Height, world, playerShip, epitaph)) { IsFocused = true };
+			SadConsole.Game.Instance.Screen = new DeathTransition(this, new DeathScreen(this, world, playerShip, epitaph)) { IsFocused = true };
 		}
 		public void PlaceTiles() {
 			tiles.Clear();
@@ -243,8 +245,11 @@ namespace TranscendenceRL {
 				playerShip.SetDecelerating();
 			}
 			if(info.IsKeyPressed(Escape)) {
-				SadConsole.Game.Instance.Screen = new TitleConsole(Width, Height) { IsFocused = true };
+				//SadConsole.Game.Instance.Screen = new TitleConsole(Width, Height) { IsFocused = true };
 			}
+			if(info.KeysDown.Select(d => d.Key).Intersect<Keys>(new Keys[] { Keys.LeftControl, Keys.LeftShift, Keys.Enter }).Count() == 3) {
+				playerShip.Destroy(playerShip);
+            }
 			if(info.IsKeyPressed(S)) {
 				SadConsole.Game.Instance.Screen = new ShipScreen(this, playerShip) { IsFocused = true };
 			}
