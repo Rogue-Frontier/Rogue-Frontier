@@ -38,7 +38,7 @@ namespace TranscendenceRL {
         }
         public static void AimLine(World World, XY start, double angle) {
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
-            ColoredGlyph pointEffect = new ColoredGlyph(new Color(255, 255, 0, 153), Color.Transparent, '.');
+            ColoredGlyph pointEffect = new ColoredGlyph(new Color(255, 255, 0, 204), Color.Transparent, '.');
             XY point = start;
             XY inc = XY.Polar(angle);
             int length = 20;

@@ -23,6 +23,7 @@ namespace TranscendenceRL {
 		public bool active;
 		double viewScale = 1;
 		GeneratedLayer backVoid;
+		Point mousePos;
 
 		PlayerUI ui;
 
@@ -258,16 +259,16 @@ namespace TranscendenceRL {
             }
 			if(info.IsKeyPressed(T)) {
 				playerShip.NextTargetEnemy();
-				//Note: Show a label on the target after select
             }
 			if (info.IsKeyPressed(F)) {
 				playerShip.NextTargetFriendly();
-				//Note: Show a label on the target after select
 			}
 			if (info.IsKeyPressed(R)) {
-				playerShip.ClearTarget();
-				//Note: Show a label on the target after select
+				if(playerShip.targetIndex > -1) {
+					playerShip.ClearTarget();
+				}
 			}
+
 			if(info.IsKeyDown(OemMinus)) {
 				viewScale += Math.Min(viewScale / (2 * 30), 1);
 				if(viewScale < 1) {
@@ -304,8 +305,30 @@ namespace TranscendenceRL {
 			return base.ProcessKeyboard(info);
 		}
 		public override bool ProcessMouse(MouseScreenObjectState state) {
-			var cell = state.SurfaceCellPosition;
-			var offset = new XY(cell.X, Height - cell.Y) - new XY(Width / 2, Height / 2);
+			mousePos = state.SurfaceCellPosition;
+			var offset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
+
+			var worldPos = offset + camera;
+			if(state.Mouse.MiddleClicked) {
+				var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
+				playerShip.targetList = targetList;
+				playerShip.targetIndex = 0;
+				playerShip.UpdateAutoAim();
+
+				/*
+				//Attempt to skip the beginning items of both lists that already match
+				int i = 0;
+				for(i = 0; i < Math.Min(playerShip.targetIndex + 1, Math.Min(playerShip.targetList.Count, targetList.Count)); i++) {
+					if(targetList[i] == playerShip.targetList[i]) {
+						i++;
+                    }
+                }
+				if(i < targetList.Count) {
+					playerShip.targetIndex = i;
+                }
+				*/
+			}
+
 			if (offset.xi != 0 && offset.yi != 0) {
 				var mouseRads = offset.Angle;
 				var facingRads = playerShip.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
@@ -348,6 +371,8 @@ namespace TranscendenceRL {
 			XY screenCenter = screenSize / 2;
 
 			if (player.GetTarget(out SpaceObject target)) {
+
+				/*
 				var screenPos = (target.Position - player.Position) + screenSize / 2;
 				screenPos = screenPos.RoundDown;
 				screenPos.y += 1;
@@ -381,18 +406,46 @@ namespace TranscendenceRL {
 					this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, cc));
 					screenPos.xi++;
 				}
-
+				*/
 				/*
 				Helper.CalcFireAngle(target.Position - player.Position, target.Velocity - player.Velocity, player.GetPrimary().desc.missileSpeed, out double timeToHit);
 
-				screenPos = (target.Position - player.Position) + screen / 2 + target.Velocity * timeToHit;
-				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+				var screenPos = (target.Position - player.Position) + new XY(Width/2, Height/2) / 2 + target.Velocity * timeToHit;
+				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
 					e = Line.Double,
 					w = Line.Double,
 					n = Line.Double,
 					s = Line.Double
-				}], Color.White, Color.Transparent));
+				}]));
 				*/
+
+				var x = Width / 3;
+				var y = 1;
+
+				this.Print(x, y++, "[Targeting]");
+				this.Print(x, y++, target.Name);
+				if(target is AIShip ai) {
+					if(ai.DamageSystem is HPSystem hp) {
+						this.Print(x, y++, $"HP: {hp.hp}");
+                    } else if(ai.DamageSystem is LayeredArmorSystem las) {
+						this.Print(x, y++, $"[Armor]");
+						foreach(var layer in las.layers) {
+							this.Print(x, y++, $"{layer.source.type.name}{new string('>', (16 * layer.hp) / layer.desc.maxHP)}");
+                        }
+					}
+					if(ai.Devices.Installed.Any()) {
+						this.Print(x, y++, $"[Devices]");
+						foreach (var d in ai.Devices.Installed) {
+							if (d is Weapon w) {
+								this.Print(x, y++, $"{d.source.type.name}{new string('>', (16 * w.fireTime) / w.desc.fireCooldown)}");
+							} else {
+								this.Print(x, y++, $"{d.source.type.name}");
+							}
+
+						}
+					}
+					
+                }
 			}
 
 			for (int i = 0; i < player.messages.Count; i++) {

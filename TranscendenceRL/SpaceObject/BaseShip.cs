@@ -292,6 +292,7 @@ namespace TranscendenceRL {
                     goto CheckTarget;
                 } else {
                     //Found target
+                    UpdateAutoAim();
                 }
             } else {
                 targetIndex = -1;
@@ -330,6 +331,7 @@ namespace TranscendenceRL {
                     goto CheckTarget;
                 } else {
                     //Found target
+                    UpdateAutoAim();
                 }
             } else {
                 targetIndex = -1;
@@ -346,11 +348,33 @@ namespace TranscendenceRL {
                 canRefresh = false;
             }
         }
+        //Remember to call this before we set the targetIndex == -1
+        public void ResetAutoAim() {
+            var target = targetList[targetIndex];
+            if (selectedPrimary < Ship.Devices.Weapons.Count) {
+                var primary = Ship.Devices.Weapons[selectedPrimary];
+                if(primary.target == target) {
+                    primary.target = null;
+                }
+            }
+        }
+        //Remember to call this after we set the targetIndex > -1
+        public void UpdateAutoAim() {
+            var target = targetList[targetIndex];
+            if (selectedPrimary < Ship.Devices.Weapons.Count) {
+                var primary = Ship.Devices.Weapons[selectedPrimary];
+                primary.target = target;
+            }
+        }
+        //Stop targeting, but remember our remaining targets
         public void ForgetTarget() {
+            ResetAutoAim();
             targetList = targetList.GetRange(targetIndex, targetList.Count - targetIndex);
             targetIndex = -1;
         }
+        //Stop targeting and clear our target list
         public void ClearTarget() {
+            ResetAutoAim();
             targetList.Clear();
             targetIndex = -1;
         }
