@@ -32,10 +32,85 @@ namespace TranscendenceRL {
             this.offset = offset;
         }
         public void Update(AIShip owner) {
-            var offset = this.offset.Rotate(target.stoppingRotation);
-            new ApproachOrder(target, offset).Update(owner);
+            var offset = this.offset.Rotate(target.stoppingRotation * Math.PI / 180);
+            Heading.Crosshair(owner.World, target.Position + offset);
+            new ApproachOrder(target, this.offset).Update(owner);
         }
         public bool Active => target.Active;
+    }
+    public class ApproachOrder : Order {
+        IShip target;
+        XY offset;
+        public ApproachOrder(IShip target, XY offset) {
+            this.target = target;
+            this.offset = offset;
+        }
+
+        public void Update(AIShip owner) {
+            //Remove dock
+            owner.docking = null;
+
+            var velDiff = owner.Velocity - target.Velocity;
+            double decel = owner.ShipClass.thrust * TranscendenceRL.TICKS_PER_SECOND / 2;
+            double stoppingTime = velDiff.Magnitude / decel;
+            double stoppingDistance = owner.Velocity.Magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
+            var stoppingPoint = owner.Position;
+            if (!owner.Velocity.IsZero) {
+                stoppingPoint += owner.Velocity.Normal * stoppingDistance;
+            }
+            var dest = target.Position + (target.Velocity * stoppingTime) + this.offset.Rotate(target.stoppingRotation * Math.PI / 180);
+            var offset = dest - stoppingPoint;
+
+            Heading.Crosshair(owner.World, dest);
+
+            var velProjection = velDiff * velDiff.Dot(offset.Normal) / velDiff.Dot(velDiff);
+            var velRejection = velDiff - velProjection;
+
+            //Make sure we're going the right way
+            if (velDiff.Magnitude > 5 && velRejection.Magnitude > velProjection.Magnitude/2) {
+                //Decelerate
+                var backAngle = Math.PI + velRejection.Angle;
+                var faceBack = new FaceOrder(backAngle);
+                faceBack.Update(owner);
+                var angleDiff = Math.Abs(Helper.AngleDiff(owner.rotationDegrees, backAngle * 180 / Math.PI));
+                if (angleDiff < 5) {
+                    owner.SetThrusting(true);
+                }
+            } else {
+                //Prepare to decelerate
+                if (offset.Magnitude < 1) {
+                    //If we're close enough to dest, then just teleport there
+                    if((dest - owner.Position).Magnitude > 0.8) {
+                        owner.SetDecelerating(true);
+                    } else {
+                        owner.Velocity = target.Velocity;
+                        owner.Position = dest;
+
+                        //Match the target's facing
+                        var Face = new FaceOrder(target.rotationDegrees * Math.PI / 180);
+                        Face.Update(owner);
+                    }
+
+                } else {
+                    //Approach the target
+
+                    //Face the target
+                    var Face = new FaceOrder(offset.Angle);
+                    Face.Update(owner);
+
+                    //If we're facing close enough
+                    if (Math.Abs(Helper.AngleDiff(owner.rotationDegrees, offset.Angle * 180 / Math.PI)) < 10 && (velProjection.Magnitude < offset.Magnitude/2 || velDiff.Magnitude == 0)) {
+
+                        //Go
+                        owner.SetThrusting(true);
+                    }
+                }
+
+                
+            }
+            
+        }
+        public bool Active => true;
     }
     public class GuardOrder : Order {
         public SpaceObject guard;
@@ -61,7 +136,7 @@ namespace TranscendenceRL {
 
                     owner.docking = new Docking(guard);
                 } else {
-                    new ApproachOrder(guard).Update(owner);
+                    new ApproachOrbitOrder(guard).Update(owner);
                 }
             }
         }
@@ -127,7 +202,7 @@ namespace TranscendenceRL {
             } else {
                 //Otherwise, get closer
 
-                new ApproachOrder(target).Update(owner);
+                new ApproachOrbitOrder(target).Update(owner);
 
                 var aim = new AimOrder(target, weapon.missileSpeed);
                 //Fire if we are close enough
@@ -139,15 +214,10 @@ namespace TranscendenceRL {
         }
         public bool Active => target.Active && weapon != null;
     }
-    public class ApproachOrder : Order {
+    public class ApproachOrbitOrder : Order {
         SpaceObject target;
-        XY offset;
-        public ApproachOrder(SpaceObject target) : this(target, new XY()) {
-
-        }
-        public ApproachOrder(SpaceObject target, XY offset) {
+        public ApproachOrbitOrder(SpaceObject target) {
             this.target = target;
-            this.offset = offset;
         }
 
         public void Update(AIShip owner) {
@@ -155,14 +225,14 @@ namespace TranscendenceRL {
             owner.docking = null;
 
             //Find the direction we need to go
-            var offset = (target.Position - owner.Position) + this.offset;
+            var offset = (target.Position - owner.Position);
 
             var randomOffset = new XY((2 * owner.destiny.NextDouble() - 1) * offset.x, (2 * owner.destiny.NextDouble() - 1) * offset.y) / 5;
 
             offset += randomOffset;
 
             var speedTowards = (owner.Velocity - target.Velocity).Dot(offset.Normal);
-            if (speedTowards < -1) {
+            if (speedTowards < 0) {
                 //Decelerate
                 var Face = new FaceOrder(Math.PI + owner.Velocity.Angle);
                 Face.Update(owner);

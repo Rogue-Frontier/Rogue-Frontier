@@ -20,71 +20,21 @@ namespace TranscendenceRL {
 		public World world;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		public PlayerShip playerShip;
-		public bool active;
 		double viewScale = 1;
 		GeneratedLayer backVoid;
 		Point mousePos;
 
 		PlayerUI ui;
 
-		public PlayerMain(int Width, int Height, World World, Player player, ShipClass playerClass) : base(Width, Height) {
+		public PlayerMain(int Width, int Height, World World, Player player, PlayerShip playerShip) : base(Width, Height) {
 			UseMouse = true;
 			UseKeyboard = true;
-
 			camera = new XY();
 			this.world = World;
+			this.playerShip = playerShip;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
-
 			backVoid = new GeneratedLayer(1, new Random());
-			/*
-			var shipClass =  new ShipClass() { thrust = 0.5, maxSpeed = 20, rotationAccel = 4, rotationDecel = 2, rotationMaxSpeed = 3 };
-			world.AddEntity(player = new PlayerShip(new Ship(world, shipClass, new XY(0, 0))));
-			world.AddEffect(new Heading(player));
-
-			
-			
-			StationType stDaughters = new StationType() {
-				name = "Daughters of the Orator",
-				segments = new List<StationType.SegmentDesc> {
-					new StationType.SegmentDesc(new XY(-1, 0), new StaticTile('<')),
-					new StationType.SegmentDesc(new XY(1, 0), new StaticTile('>')),
-				},
-				tile = new StaticTile(new ColoredGlyph('S', Color.Pink, Color.Transparent))
-			};
-			var daughters = new Station(world, stDaughters, new XY(5, 5));
-			world.AddEntity(daughters);
-			*/
-			/*
-			player = new PlayerShip(new Ship(world, world.types.Lookup<ShipClass>("scAmethyst"), new XY(0, 0)));
-			world.AddEntity(player);
-			*/
-			world.entities.all.Clear();
-			world.effects.all.Clear();
-			/*
-			var shipClasses = World.types.shipClass.Values;
-			var shipClass = shipClasses.ElementAt(new Random().Next(shipClasses.Count));
-			var ship = new Ship(World, shipClass, Sovereign.Gladiator, new XY(-10, -10));
-			var enemy = new AIShip(ship, new AttackAllOrder(ship));
-			World.AddEntity(enemy);
-			*/
-
-			world.types.Lookup<SystemType>("ssOrion").Generate(world);
-			World.UpdatePresent();
-			var playerStart = world.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
-			var playerSovereign = world.types.Lookup<Sovereign>("svPlayer");
-			playerShip = new PlayerShip(player, new BaseShip(world, playerClass, playerSovereign, playerStart));
-            World.AddEffect(new Heading(playerShip));
-			playerShip.OnDestroyed += (p, d, wreck) => EndGame(d, wreck);
-			active = true;
-			world.AddEntity(playerShip);
-			/*
-			var daughters = new Station(world, world.types.Lookup<StationType>("stDaughtersOutpost"), new XY(5, 5));
-			world.AddEntity(daughters);
-			*/
-			playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
-
 			ui = new PlayerUI(playerShip, tiles, Width, Height) {
-			IsVisible = true
 			};
 		}
 		public void EndGame(SpaceObject destroyer, Wreck wreck) {
@@ -305,54 +255,56 @@ namespace TranscendenceRL {
 			return base.ProcessKeyboard(info);
 		}
 		public override bool ProcessMouse(MouseScreenObjectState state) {
-			mousePos = state.SurfaceCellPosition;
-			var offset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
+			if(state.IsOnScreenObject) {
+				mousePos = state.SurfaceCellPosition;
+				var offset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
 
-			var worldPos = offset + camera;
-			if(state.Mouse.MiddleClicked) {
-				var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
-				playerShip.targetList = targetList;
-				playerShip.targetIndex = 0;
-				playerShip.UpdateAutoAim();
+				var worldPos = offset + camera;
+				if (state.Mouse.MiddleClicked) {
+					var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
+					playerShip.targetList = targetList;
+					playerShip.targetIndex = 0;
+					playerShip.UpdateAutoAim();
 
-				/*
-				//Attempt to skip the beginning items of both lists that already match
-				int i = 0;
-				for(i = 0; i < Math.Min(playerShip.targetIndex + 1, Math.Min(playerShip.targetList.Count, targetList.Count)); i++) {
-					if(targetList[i] == playerShip.targetList[i]) {
-						i++;
-                    }
-                }
-				if(i < targetList.Count) {
-					playerShip.targetIndex = i;
-                }
-				*/
-			}
+					/*
+					//Attempt to skip the beginning items of both lists that already match
+					int i = 0;
+					for(i = 0; i < Math.Min(playerShip.targetIndex + 1, Math.Min(playerShip.targetList.Count, targetList.Count)); i++) {
+						if(targetList[i] == playerShip.targetList[i]) {
+							i++;
+						}
+					}
+					if(i < targetList.Count) {
+						playerShip.targetIndex = i;
+					}
+					*/
+				}
 
-			if (offset.xi != 0 && offset.yi != 0) {
-				var mouseRads = offset.Angle;
-				var facingRads = playerShip.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
+				if (offset.xi != 0 && offset.yi != 0) {
+					var mouseRads = offset.Angle;
+					var facingRads = playerShip.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
 
-				var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
-				var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
-				if (ccw < cw) {
-					playerShip.SetRotating(Rotating.CCW);
-				} else if (cw < ccw) {
-					playerShip.SetRotating(Rotating.CW);
-				} else {
-					if (playerShip.Ship.rotatingVel > 0) {
+					var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
+					var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
+					if (ccw < cw) {
+						playerShip.SetRotating(Rotating.CCW);
+					} else if (cw < ccw) {
 						playerShip.SetRotating(Rotating.CW);
 					} else {
-						playerShip.SetRotating(Rotating.CCW);
+						if (playerShip.Ship.rotatingVel > 0) {
+							playerShip.SetRotating(Rotating.CW);
+						} else {
+							playerShip.SetRotating(Rotating.CCW);
+						}
 					}
 				}
-			}
 
-			if (state.Mouse.LeftButtonDown) {
-				playerShip.SetFiringPrimary();
-			}
-			if (state.Mouse.RightButtonDown) {
-				playerShip.SetThrusting();
+				if (state.Mouse.LeftButtonDown) {
+					playerShip.SetFiringPrimary();
+				}
+				if (state.Mouse.RightButtonDown) {
+					playerShip.SetThrusting();
+				}
 			}
 			return base.ProcessMouse(state);
 		}

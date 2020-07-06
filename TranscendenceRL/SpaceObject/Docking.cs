@@ -22,7 +22,6 @@ namespace TranscendenceRL {
         public bool UpdateDocking(IShip ship) {
             double decel = ship.ShipClass.thrust / 2 * TranscendenceRL.TICKS_PER_SECOND;
             double stoppingTime = (ship.Velocity - target.Velocity).Magnitude / decel;
-
             double stoppingDistance = ship.Velocity.Magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
             var stoppingPoint = ship.Position;
             if (!ship.Velocity.IsZero) {

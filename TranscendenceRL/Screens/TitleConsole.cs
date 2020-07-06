@@ -173,8 +173,15 @@ namespace TranscendenceRL {
                     descY++;
                 }
             }
-            
-            camera = pov.Position;
+            if((camera - pov.Position).Magnitude < pov.Velocity.Magnitude/15 + 1) {
+                camera = pov.Position;
+            } else {
+                var step = (pov.Position - camera) / 15;
+                if(step.Magnitude < 1) {
+                    step = step.Normal;
+                }
+                camera += step;
+            }
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
                     var g = this.GetGlyph(x, y);
@@ -201,6 +208,14 @@ namespace TranscendenceRL {
             base.Draw(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
+            if(info.IsKeyPressed(Keys.K)) {
+                if (pov.Active) {
+                    pov.Destroy(pov);
+                }
+            }
+            if(info.IsKeyPressed(Keys.P)) {
+
+            }
             if(info.IsKeyPressed(Enter)) {
                 StartGame();
             }
@@ -213,7 +228,32 @@ namespace TranscendenceRL {
                     name = "Player",
                     genome = World.types.genomeType.Values.First()
                 };
-                SadConsole.Game.Instance.Screen = new PlayerMain(Width, Height, World, player, World.types.Lookup<ShipClass>("scAmethyst")) { IsFocused = true };
+
+                World.entities.all.Clear();
+                World.effects.all.Clear();
+                World.types.Lookup<SystemType>("ssOrion").Generate(World);
+                World.UpdatePresent();
+
+                var playerClass = World.types.Lookup<ShipClass>("scAmethyst");
+                var playerStart = World.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
+                var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
+                var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
+                playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+
+                World.AddEffect(new Heading(playerShip));
+                World.AddEntity(playerShip);
+
+                var wingmateClass = World.types.Lookup<ShipClass>("scBeowulf");
+
+                var wingmate = new AIShip(new BaseShip(World, wingmateClass, playerSovereign, playerStart), new FollowOrder(playerShip, new XY(-5, 0)));
+                World.AddEntity(wingmate);
+                World.AddEffect(new Heading(wingmate));
+
+                var playerMain = new PlayerMain(Width, Height, World, player, playerShip);
+                playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
+
+                SadConsole.Game.Instance.Screen = playerMain;
+                playerMain.IsFocused = true;
             }
 #endif
             return base.ProcessKeyboard(info);

@@ -85,6 +85,7 @@ namespace TranscendenceRL {
 
                     guards.Add(ship);
                     World.AddEntity(ship);
+                    World.AddEffect(new Heading(ship));
                 }
             }
         }

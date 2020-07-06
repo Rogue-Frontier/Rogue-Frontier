@@ -130,7 +130,7 @@ namespace TranscendenceRL {
             next.Update(delta);
             base.Update(delta);
             if (alpha < 1) {
-                alpha += delta.TotalSeconds * Math.Max((1 - alpha) * 2, 1 / 2f);
+                alpha += delta.TotalSeconds * Math.Max((1 - alpha) * 4, 1);
             } else {
                 SadConsole.Game.Instance.Screen = next;
                 next.IsFocused = true;

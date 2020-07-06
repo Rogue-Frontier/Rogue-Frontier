@@ -156,11 +156,28 @@ namespace TranscendenceRL {
                 loading.Update();
                 loadingTicks--;
             } else {
-                var main = new PlayerMain(Width, Height, World, player, playerClass) { IsFocused = true };
-                main.Update(time);
-                main.PlaceTiles();
-                main.DrawWorld();
-                SadConsole.Game.Instance.Screen = new CrawlTransition(Width, Height, this, main);
+
+                World.entities.all.Clear();
+                World.effects.all.Clear();
+                World.types.Lookup<SystemType>("ssOrion").Generate(World);
+                World.UpdatePresent();
+
+                var playerClass = World.types.Lookup<ShipClass>("scAmethyst");
+                var playerStart = World.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
+                var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
+                var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
+                playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+
+                World.AddEffect(new Heading(playerShip));
+                World.AddEntity(playerShip);
+
+                var playerMain = new PlayerMain(Width, Height, World, player, playerShip);
+                playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
+
+                playerMain.Update(time);
+                playerMain.PlaceTiles();
+                playerMain.DrawWorld();
+                SadConsole.Game.Instance.Screen = new CrawlTransition(Width, Height, this, playerMain) { IsFocused = true };
             }
         }
         public override void Draw(TimeSpan drawTime) {
