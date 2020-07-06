@@ -12,6 +12,31 @@ namespace TranscendenceRL {
         bool Active { get; }
         void Update(AIShip owner);
     }
+    public class EscortOrder : Order {
+        public IShip target;
+        public XY offset;
+        public EscortOrder(IShip target, XY offset) {
+            this.target = target;
+            this.offset = offset;
+        }
+        public void Update(AIShip owner) {
+            new FollowOrder(target, offset).Update(owner);
+        }
+        public bool Active => target.Active;
+    }
+    public class FollowOrder : Order {
+        public IShip target;
+        public XY offset;
+        public FollowOrder(IShip target, XY offset) {
+            this.target = target;
+            this.offset = offset;
+        }
+        public void Update(AIShip owner) {
+            var offset = this.offset.Rotate(target.stoppingRotation);
+            new ApproachOrder(target, offset).Update(owner);
+        }
+        public bool Active => target.Active;
+    }
     public class GuardOrder : Order {
         public SpaceObject guard;
         public SpaceObject target;
@@ -116,15 +141,21 @@ namespace TranscendenceRL {
     }
     public class ApproachOrder : Order {
         SpaceObject target;
-        public ApproachOrder(SpaceObject target) {
-            this.target = target;
+        XY offset;
+        public ApproachOrder(SpaceObject target) : this(target, new XY()) {
+
         }
+        public ApproachOrder(SpaceObject target, XY offset) {
+            this.target = target;
+            this.offset = offset;
+        }
+
         public void Update(AIShip owner) {
             //Remove dock
             owner.docking = null;
 
             //Find the direction we need to go
-            var offset = (target.Position - owner.Position);
+            var offset = (target.Position - owner.Position) + this.offset;
 
             var randomOffset = new XY((2 * owner.destiny.NextDouble() - 1) * offset.x, (2 * owner.destiny.NextDouble() - 1) * offset.y) / 5;
 
@@ -142,6 +173,8 @@ namespace TranscendenceRL {
                 //Face the target
                 var Face = new FaceOrder(offset.Angle);
                 Face.Update(owner);
+
+                //If we're facing close enough
                 if (Math.Abs(Helper.AngleDiff(owner.rotationDegrees, offset.Angle * 180 / Math.PI)) < 10 && speedTowards < 10) {
 
                     //Go
@@ -151,6 +184,7 @@ namespace TranscendenceRL {
         }
         public bool Active => true;
     }
+
     public class AimOnceOrder : Order {
         public AimOrder order;
         public AimOnceOrder(BaseShip owner, BaseShip target, double missileSpeed) {

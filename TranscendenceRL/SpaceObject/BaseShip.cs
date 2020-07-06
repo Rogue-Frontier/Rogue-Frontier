@@ -28,6 +28,7 @@ namespace TranscendenceRL {
         DeviceSystem Devices { get; }
         ShipClass ShipClass { get; }
         double rotationDegrees { get; }
+        public double stoppingRotation { get; }
         Docking docking { get; set; }
     }
     public class BaseShip : SpaceObject {
@@ -225,6 +226,7 @@ namespace TranscendenceRL {
         public XY Position { get => Ship.Position; set => Ship.Position = value; }
         public XY Velocity { get => Ship.Velocity; set => Ship.Velocity = value; }
         public double rotationDegrees => Ship.rotationDegrees;
+        public double stoppingRotation => Ship.stoppingRotation;
         public HashSet<Item> Items => Ship.Items;
 
         public int targetIndex = -1;

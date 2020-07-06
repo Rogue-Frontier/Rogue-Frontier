@@ -78,6 +78,12 @@ namespace Common {
 			}
 		}
 		public double Angle => Math.Atan2(y, x);
+
+		public XY Rotate(double angle) {
+			var sin = Math.Sin(angle);
+			var cos = Math.Cos(angle);
+			return new XY(x * cos - y * sin, x * sin + y * cos);
+		}
 	}
     public class XYZGridComparer : IEqualityComparer<XYZ> {
         public bool Equals(XYZ p1, XYZ p2) => (p1.xi == p2.xi && p1.yi == p2.yi && p1.zi == p2.zi);
