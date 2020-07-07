@@ -12,7 +12,6 @@ using static SadConsole.Input.Keys;
 using Console = SadConsole.Console;
 using SadConsole.UI.Controls;
 using ASECII;
-using TranscendenceRL.Screens;
 
 namespace TranscendenceRL {
 

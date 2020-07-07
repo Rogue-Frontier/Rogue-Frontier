@@ -4,7 +4,7 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace TranscendenceRL {
-    class SceneType : DesignType {
+    public class SceneType : DesignType {
         public void Initialize(TypeCollection collection, XElement e) {
         }
     }

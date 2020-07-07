@@ -162,7 +162,7 @@ namespace TranscendenceRL {
 						itemType[type] = it;
 						break;
 					case SceneType st:
-						SceneType[type] = st;
+						sceneType[type] = st;
 						break;
 					case StationType st:
                         stationType[type] = st;

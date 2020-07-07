@@ -2,7 +2,6 @@
 using SadConsole;
 using Console = SadConsole.Console;
 using TranscendenceRL;
-using TranscendenceRL.Screens;
 
 namespace TranscendenceRL {
 	class TranscendenceRL {

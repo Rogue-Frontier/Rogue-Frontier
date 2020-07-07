@@ -10,7 +10,6 @@ using static Common.Helper;
 using static SadConsole.ColoredString;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
-using TranscendenceRL.Screens;
 using System.IO;
 
 namespace TranscendenceRL {
