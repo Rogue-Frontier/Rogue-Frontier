@@ -233,10 +233,10 @@ namespace TranscendenceRL {
 
                 World.entities.all.Clear();
                 World.effects.all.Clear();
-                World.types.Lookup<SystemType>("ssOrion").Generate(World);
+                World.types.Lookup<SystemType>("system_orion").Generate(World);
                 World.UpdatePresent();
 
-                var playerClass = World.types.Lookup<ShipClass>("scAmethyst");
+                var playerClass = World.types.Lookup<ShipClass>("ship_amethyst");
                 var playerStart = World.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
                 var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
                 var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
@@ -245,7 +245,7 @@ namespace TranscendenceRL {
                 World.AddEffect(new Heading(playerShip));
                 World.AddEntity(playerShip);
 
-                var wingmateClass = World.types.Lookup<ShipClass>("scBeowulf");
+                var wingmateClass = World.types.Lookup<ShipClass>("ship_beowulf");
 
                 var wingmate = new AIShip(new BaseShip(World, wingmateClass, playerSovereign, playerStart), new FollowOrder(playerShip, new XY(-5, 0)));
                 World.AddEntity(wingmate);

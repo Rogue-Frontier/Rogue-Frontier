@@ -14,10 +14,12 @@ namespace TranscendenceRL {
 		public Dictionary<string, XElement> sources;
         public Dictionary<string, DesignType> all;
 		public Dictionary<string, GenomeType> genomeType;
+		public Dictionary<string, ImageType> imageType;
 		public Dictionary<string, ItemType> itemType;
+		public Dictionary<string, SceneType> sceneType;
 		public Dictionary<string, ShipClass> shipClass;
-		public Dictionary<string, StationType> stationType;
 		public Dictionary<string, Sovereign> sovereign;
+		public Dictionary<string, StationType> stationType;
 		public Dictionary<string, SystemType> systemType;
 
 		enum InitState {
@@ -32,7 +34,9 @@ namespace TranscendenceRL {
 			sources = new Dictionary<string, XElement>();
 			all = new Dictionary<string, DesignType>();
 			genomeType = new Dictionary<string, GenomeType>();
+			imageType = new Dictionary<string, ImageType>();
 			itemType = new Dictionary<string, ItemType>();
+			sceneType = new Dictionary<string, SceneType>();
 			shipClass = new Dictionary<string, ShipClass>();
 			stationType = new Dictionary<string, StationType>();
 			sovereign = new Dictionary<string, Sovereign>();
@@ -96,8 +100,14 @@ namespace TranscendenceRL {
 				case "GenomeType":
 					AddType<GenomeType>(element);
 					break;
+				case "ImageType":
+					AddType<ImageType>(element);
+					break;
 				case "ItemType":
 					AddType<ItemType>(element);
+					break;
+				case "SceneType":
+					AddType<SceneType>(element);
 					break;
 				case "ShipClass":
 					AddType<ShipClass>(element);
@@ -145,10 +155,16 @@ namespace TranscendenceRL {
 					case GenomeType gn:
 						genomeType[type] = gn;
 						break;
+					case ImageType im:
+						imageType[type] = im;
+						break;
 					case ItemType it:
 						itemType[type] = it;
 						break;
-                    case StationType st:
+					case SceneType st:
+						SceneType[type] = st;
+						break;
+					case StationType st:
                         stationType[type] = st;
                         break;
 					case ShipClass sc:

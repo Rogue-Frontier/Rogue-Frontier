@@ -12,7 +12,7 @@ using ASECII;
 using SadConsole.UI;
 using Console = SadConsole.Console;
 using Helper = Common.Helper;
-using TranscendenceRL.Screens;
+
 
 namespace TranscendenceRL {
 	public class PlayerMain : Console {

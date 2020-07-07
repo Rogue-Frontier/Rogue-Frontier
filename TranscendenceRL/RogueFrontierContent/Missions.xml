@@ -1,8 +1,8 @@
 ﻿<Module>
-	<Image codename="image_benedict_portrait">
+	<ImageType codename="image_benedict_portrait">
 		
-	</Image>
-	<Scene codename="scene_benedict_intro"
+	</ImageType>
+	<SceneType codename="scene_benedict_intro"
 		>
 		<When once="true">
 			<Station type="station_daughters_outpost"/>
@@ -13,5 +13,5 @@
 
 			The Orator 
 		</Text>
-	</Scene>
+	</SceneType>
 </Module>

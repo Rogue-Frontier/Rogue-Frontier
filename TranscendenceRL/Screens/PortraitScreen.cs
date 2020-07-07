@@ -8,7 +8,7 @@ using SadConsole.Input;
 using SadRogue.Primitives;
 using System.Security.Cryptography.X509Certificates;
 
-namespace TranscendenceRL.Screens {
+namespace TranscendenceRL {
     class PortraitScreen : Console {
         Point cursor;
         ColoredGlyph[,] image;

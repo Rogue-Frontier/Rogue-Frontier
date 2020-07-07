@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using Console = SadConsole.Console;
 
-namespace TranscendenceRL.Screens {
+namespace TranscendenceRL {
     class GlyphParticle {
         public Color foregound;
         public char glyph;
