@@ -426,6 +426,11 @@ namespace Common {
 			this[u].Add(t);
 			all.Add(t);
 		}
+		public void AddRange(U u, IEnumerable<T> t) {
+			Initialize(u);
+			this[u].UnionWith(t);
+			all.UnionWith(t);
+		}
 		private void Initialize(U u) {
 			if (!space.ContainsKey(u)) {
 				space[u] = new HashSet<T>();

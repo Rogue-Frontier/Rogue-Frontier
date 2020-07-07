@@ -25,6 +25,13 @@ namespace Common {
 			}
 			return result;
 		}
+		public static SetDict<(int,int), T> DownsampleSet<T>(this Dictionary<(int, int), HashSet<T>> from, double scale) {
+			var result = new SetDict<(int, int), T>();
+			foreach ((int x, int y) p in from.Keys) {
+				result.AddRange(new XY((p.x / scale), (int)(p.y / scale)).RoundDown, from[p]);
+			}
+			return result;
+		}
 		public static double step(double from, double to) {
 			double difference = to - from;
 			if(Math.Abs(difference) > 1) {

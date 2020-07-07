@@ -173,6 +173,8 @@ namespace TranscendenceRL {
                     descY++;
                 }
             }
+
+            //Smoothly move the camera to where it should be
             if((camera - pov.Position).Magnitude < pov.Velocity.Magnitude/15 + 1) {
                 camera = pov.Position;
             } else {
