@@ -1,5 +1,5 @@
 ﻿<Module>
-	<SystemType	codename=	"ssOrion"
+	<SystemType	codename=	"system_orion"
 				name=		"Orion"
 		>
 		<System>
@@ -11,7 +11,7 @@
 								angle="random"
 							>
 						<Group>
-							<Station	codename="stDaughtersOutpost"/>
+							<Station	codename="station_daughters_outpost"/>
 							<Orbital	radius="5"
 										angle="random"
 										>
@@ -23,7 +23,7 @@
 					<Orbital	radius="40"
 								angle="random"
 							>
-						<Station	codename="stOrionWarlordsCamp"/>
+						<Station	codename="station_orion_warlords_camp"/>
 					</Orbital>
 				</Group>
 			</Orbital>

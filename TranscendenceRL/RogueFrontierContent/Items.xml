@@ -1,5 +1,5 @@
 ﻿<Module>
-	<ItemType	codename=	"itAmethystLaser"
+	<ItemType	codename=	"item_amethyst_laser"
 				name=		"Amethyst laser cannon"
 				level=		"1"
 				mass=		"1000"
@@ -15,7 +15,7 @@
 			foreground=		"Magenta"
 			/>
 	</ItemType>
-	<ItemType	codename=	"itBeowulfDualCannon"
+	<ItemType	codename=	"item_beowulf_dual_cannon"
 				name=		"Beowulf dual laser cannon"
 				level=		"1"
 				mass=		"2000"
@@ -33,7 +33,7 @@
 			>
 		</Weapon>
 	</ItemType>
-	<ItemType	codename=	"itMusket"
+	<ItemType	codename=	"item_musket_cannon"
 				name=		"Musket turret"
 				level=		"2"
 				mass=		"4000"
@@ -54,7 +54,7 @@
 		</Weapon>
 	</ItemType>
 
-	<ItemType	codename=	"itFlintlock"
+	<ItemType	codename=	"item_flintlock"
 				name=		"Flintlock mass driver"
 				level=		"2"
 				mass=		"4000"
@@ -73,7 +73,7 @@
 		</Weapon>
 	</ItemType>
 
-	<ItemType	codename=	"itSabre"
+	<ItemType	codename=	"item_sabre"
 				name=		"Sabre mass driver"
 				level=		"2"
 				mass=		"4000"
@@ -92,7 +92,7 @@
 		</Weapon>
 	</ItemType>
 
-	<ItemType	codename=	"itCrystalsteelPlate"
+	<ItemType	codename=	"item_crystalsteel_plate"
 				name=		"Crystalsteel plate"
 				mass=		"4000"
 				level=		"1"
@@ -103,7 +103,7 @@
 
 
 
-	<ItemType	codename=	"itKnightscalePlate"
+	<ItemType	codename=	"item_knightscale_plate"
 				name=		"Knightscale plate"
 				mass=		"6000"
 				level=		"1"
@@ -117,7 +117,7 @@
 
 	<!--Rustbucket plate-->
 
-	<ItemType	codename=	"itBumpersteelPlate"
+	<ItemType	codename=	"item_bumpersteel_plate"
 				name=		"Bumpersteel Plate"
 				mass=		"8000"
 				level=		"2"
@@ -127,7 +127,7 @@
 		</Armor>
 	</ItemType>
 
-	<ItemType	codename=	"itDynamite"
+	<ItemType	codename=	"item_dynamite_cannon"
 			name=		"Dynamite cannon"
 			level=		"1"
 			mass=		"2000"

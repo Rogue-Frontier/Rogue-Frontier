@@ -1,5 +1,5 @@
 ﻿<Module>
-    <ShipClass  codename="scAmethyst"
+    <ShipClass  codename="ship_amethyst"
                 name="Amethyst-class yacht"
                 thrust="0.5"
                 maxSpeed="25"
@@ -12,12 +12,12 @@
                 foreground="Magenta"
     >
 	    <Devices>
-		    <Weapon codename="itAmethystLaser"/>
-			<Weapon codename="itDynamite"/>
-			<Reactor codename="itFoundryReactor"/>
+		    <Weapon codename="item_amethyst_laser"/>
+			<Weapon codename="item_dynamite_cannon"/>
+			<Reactor codename="item_foundry_reactor"/>
         </Devices>
         <LayeredArmorSystem>
-			<Armor  codename="itCrystalsteelPlate"/>
+			<Armor  codename="item_crystalsteel_plate"/>
         </LayeredArmorSystem>
         <PlayerSettings
             startingClass="true"
@@ -67,7 +67,7 @@
         </PlayerSettings>
     </ShipClass>
 
-	<ShipClass    codename="scBeowulf"
+	<ShipClass    codename="ship_beowulf"
 				  name="Beowulf-class gunship"
 				  thrust="1"
 				  maxSpeed="30"
@@ -80,11 +80,11 @@
 				  foreground="White"
         >
 		<Devices>
-			<Weapon codename="itBeowulfDualCannon"/>
-			<Reactor codename="itFoundryReactor"/>
+			<Weapon codename="item_beowulf_dual_cannon"/>
+			<Reactor codename="item_foundry_reactor"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="itKnightscalePlate"/>
+			<Armor  codename="item_knightscale_plate"/>
         </LayeredArmorSystem>
 		<PlayerSettings
 			startingClass="true"
@@ -135,7 +135,7 @@
 		</PlayerSettings>
 	</ShipClass>
 
-    <ShipClass codename=            "scWagon"
+    <ShipClass codename=            "ship_wagon"
                name=                "Wagon-class transport"
                thrust=              "0.3"
 			   maxSpeed=            "20"
@@ -148,12 +148,12 @@
                foreground=          "Orange"
         >
         <Devices>
-			<Weapon codename="itMusket"/>
-			<Reactor codename="itFoundryReactor"/>
-			<Reactor codename="itFoundryMegacell"/>
+			<Weapon codename="item_musket_cannon"/>
+			<Reactor codename="item_foundry_reactor"/>
+			<Reactor codename="item_foundry_battery"/>
 		</Devices>
         <LayeredArmorSystem>
-			<Armor  codename="itBumpersteelPlate"/>
+			<Armor  codename="item_bumpersteel_plate"/>
         </LayeredArmorSystem>
 		<PlayerSettings
             startingClass=  "true"
@@ -214,7 +214,7 @@
     </ShipClass>
     -->
 
-	<ShipClass codename=            "scErrant"
+	<ShipClass codename=            "ship_errant"
 			   name=                "Knight-Errant-class gunship"
 			   thrust=              "0.15"
 			   maxSpeed=            "20"
@@ -227,18 +227,18 @@
 			   foreground=          "Cyan"
         >
 		<Devices>
-			<Weapon codename="itFlintlock"/>
+			<Weapon codename="item_flintlock"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="itKnightscalePlate"/>
-            <Armor  codename="itKnightscalePlate"/>
+			<Armor  codename="item_knightscale_plate"/>
+            <Armor  codename="item_knightscale_plate"/>
 		</LayeredArmorSystem>
 		<PlayerSettings
 			startingClass=  "false"
 			description=    "As an entry-level defender, the Knight-Errant-class gunship features two layers of reliable Knightscale plate."
             />
 	</ShipClass>
-	<ShipClass codename=            "scVassal"
+	<ShipClass codename=            "ship_vassal"
 			   name=                "Knight-Vassal-class gunship"
 			   thrust=              "0.25"
 			   maxSpeed=            "20"
@@ -251,12 +251,12 @@
 			   foreground=          "LightBlue"
         >
 		<Devices>
-			<Weapon codename="itFlintlock"/>
+			<Weapon codename="item_flintlock"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="itKnightscalePlate"/>
-            <Armor  codename="itKnightscalePlate"/>
-            <Armor  codename="itKnightscalePlate"/>
+			<Armor  codename="item_knightscale_plate"/>
+            <Armor  codename="item_knightscale_plate"/>
+            <Armor  codename="item_knightscale_plate"/>
 		</LayeredArmorSystem>
 		<PlayerSettings
 			startingClass=  "false"
@@ -264,7 +264,7 @@
             />
 	</ShipClass>
 
-    <ShipClass codename=            "scTemplar"
+    <ShipClass codename=            "ship_templar"
 			   name=                "Templar-class gunship"
 			   thrust=              "0.25"
 			   maxSpeed=            "20"
@@ -277,11 +277,11 @@
 			   foreground=          "LightBlue"
         >
 		<Devices>
-			<Weapon codename="itSabre"/>
+			<Weapon codename="item_sabre"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="itKnightscalePlate"/>
-            <Armor  codename="itKnightscalePlate"/>
+			<Armor  codename="item_knightscale_plate"/>
+            <Armor  codename="item_knightscale_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 </Module>

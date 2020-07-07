@@ -118,7 +118,7 @@
 			description=    "The Orion huntsman adapts to both short-range skirmishes and long-range duels with the Orion Longbow, which hits at high velocity when fully charged."
             />
 	</ShipClass>
-	<StationType	codename="stOrionWarlordsCamp"
+	<StationType	codename="station_orion_warlords_camp"
 					name=		"Orion Warlords camp"
 					sovereign=	"svOrionWarlords"
 

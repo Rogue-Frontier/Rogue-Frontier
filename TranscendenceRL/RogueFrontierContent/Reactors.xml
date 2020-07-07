@@ -1,5 +1,5 @@
 ﻿<Module>
-	<ItemType	codename=	"itFoundryReactor"
+	<ItemType	codename=	"item_foundry_reactor"
 				name=		"Foundry-class generator"
 				level=		"1"
 				mass=		"1000"
@@ -12,7 +12,7 @@
 			/>
 	</ItemType>
 
-	<ItemType	codename=	"itFoundryMegacell"
+	<ItemType	codename=	"item_foundry_battery"
 			name=		"Foundry-class megacell"
 			level=		"1"
 			mass=		"1000"
