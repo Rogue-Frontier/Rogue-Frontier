@@ -1,6 +1,14 @@
 ﻿<Module>
-	<ImageType codename="image_benedict_portrait">
-		
+	<ImageType codename="image_benedict_portrait_test">
+	_______====
+ ===-------========
+=wwwwwwwwwwww==
+| ===   === |__ 
+|  e> y  e> |ea|
+\    yy     /r/
+ \\   O   //|
+  \=======//
+   \\www//|
 	</ImageType>
 	<SceneType codename="scene_benedict_intro"
 		>
