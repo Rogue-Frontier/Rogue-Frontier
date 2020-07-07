@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
-    class Dockscreen : Console {
-        public IDockView view;
-        public Console previous;
-        public Dockscreen(int Width, int Height, IDockViewDesc desc, Console previous, PlayerShip player, Dockable dock) : base(Width, Height) {
+    class SceneScreen : Console {
+        public IScene view;
+        public SceneScreen(int Width, int Height, ISceneDesc desc, PlayerShip player, Dockable dock) : base(Width, Height) {
             this.view = desc.Get(Navigate, player, dock);
-            this.previous = previous;
         }
         public override bool ProcessKeyboard(Keyboard info) {
             view.Handle(info);
@@ -22,10 +20,11 @@ namespace TranscendenceRL {
         }
         public override void Update(TimeSpan ts) {
         }
-        public void Navigate(IDockView view) {
+        public void Navigate(IScene view) {
             if (view == null) {
-                SadConsole.Game.Instance.Screen = previous;
-                previous.IsFocused = true;
+                var p = Parent;
+                Parent.Children.Remove(this);
+                p.IsFocused = true;
             } else {
                 this.view = view;
             }

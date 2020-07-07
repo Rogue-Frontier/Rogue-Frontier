@@ -35,6 +35,8 @@ namespace TranscendenceRL {
 			backVoid = new GeneratedLayer(1, new Random());
 			ui = new PlayerUI(playerShip, tiles, Width, Height) {
 			};
+
+			FocusOnMouseClick = false;
 		}
 		public void EndGame(SpaceObject destroyer, Wreck wreck) {
 
@@ -99,7 +101,7 @@ namespace TranscendenceRL {
 			world.UpdatePresent();
 			if (playerShip.docking?.docked == true && playerShip.docking.target is Dockable d) {
 				playerShip.docking = null;
-				this.Children.Add(new Dockscreen(Width, Height, d.MainView, this, playerShip, d));
+				this.Children.Add(new SceneScreen(Width, Height, d.MainView, playerShip, d) { IsFocused = true });
 			}
 			ui.Update(delta);
 		}

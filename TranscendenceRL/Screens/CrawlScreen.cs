@@ -161,7 +161,6 @@ namespace TranscendenceRL {
                 World.types.Lookup<SystemType>("system_orion").Generate(World);
                 World.UpdatePresent();
 
-                var playerClass = World.types.Lookup<ShipClass>("ship_amethyst");
                 var playerStart = World.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
                 var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
                 var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));

@@ -16,7 +16,7 @@ namespace TranscendenceRL {
     }
     public interface Dockable : SpaceObject {
         HashSet<Item> Items { get; }
-        IDockViewDesc MainView { get; }
+        ISceneDesc MainView { get; }
     }
     public static class SSpaceObject {
         public static bool IsEqual(this SpaceObject o1, SpaceObject o2) {
