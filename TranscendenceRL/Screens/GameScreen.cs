@@ -80,7 +80,23 @@ namespace TranscendenceRL {
 		public override void Update(TimeSpan delta) {
 			UpdateWorld();
 			PlaceTiles();
-			camera = playerShip.Position.RoundDown;
+
+			/*
+			//SM64-style camera: We smoothly point ahead of where the player is going
+			var offset = playerShip.Velocity / 3;
+			var dest = playerShip.Position + offset;
+			if ((camera - dest).Magnitude < playerShip.Velocity.Magnitude / 15 + 1) {
+				camera = dest;
+			} else {
+				var step = (dest - camera) / 15;
+				if (step.Magnitude < 1) {
+					step = step.Normal;
+				}
+				camera += step;
+			
+			}
+			*/
+			camera = playerShip.Position;
 			world.UpdatePresent();
 			if (playerShip.docking?.docked == true && playerShip.docking.target is Dockable d) {
 				playerShip.docking = null;
@@ -257,9 +273,9 @@ namespace TranscendenceRL {
 		public override bool ProcessMouse(MouseScreenObjectState state) {
 			if(state.IsOnScreenObject) {
 				mousePos = state.SurfaceCellPosition;
-				var offset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
+				var centerOffset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
 
-				var worldPos = offset + camera;
+				var worldPos = centerOffset + camera;
 				if (state.Mouse.MiddleClicked) {
 					var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
 					playerShip.targetList = targetList;
@@ -280,8 +296,9 @@ namespace TranscendenceRL {
 					*/
 				}
 
-				if (offset.xi != 0 && offset.yi != 0) {
-					var mouseRads = offset.Angle;
+				var playerOffset = worldPos - playerShip.Position;
+				if (playerOffset.xi != 0 && playerOffset.yi != 0) {
+					var mouseRads = playerOffset.Angle;
 					var facingRads = playerShip.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
 
 					var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
@@ -321,6 +338,14 @@ namespace TranscendenceRL {
 			XY screenSize = new XY(Width, Height);
 			var messageY = Height * 3 / 5;
 			XY screenCenter = screenSize / 2;
+
+			for(int i = 0; i < 8; i++) {
+				var alpha = 255 - i * 25;
+				var outline = new Rectangle(i, i, Width - i*2, Height - i*2);
+				foreach(var point in outline.PerimeterPositions()) {
+					this.SetBackground(point.X, point.Y, new Color(0, 0, 0, alpha));
+                }
+            }
 
 			if (player.GetTarget(out SpaceObject target)) {
 
@@ -568,7 +593,6 @@ namespace TranscendenceRL {
 
 			var halfWidth = Width / 2;
 			var halfHeight = Height / 2;
-
 
 			var range = 128;
 			var nearby = player.World.entities.GetAll(((int, int) p) => (player.Position - p).MaxCoord < range);
