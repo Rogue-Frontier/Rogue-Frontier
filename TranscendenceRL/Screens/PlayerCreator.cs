@@ -194,7 +194,7 @@ namespace TranscendenceRL {
             }
             if(info.IsKeyPressed(Escape)) {
                 IsFocused = false;
-                SadConsole.Game.Instance.Screen = new TitleSlideOut(prev) { IsFocused = true };
+                SadConsole.Game.Instance.Screen = new TitleSlideOut(this, prev) { IsFocused = true };
             }
             if(info.IsKeyPressed(Enter)) {
                 Player player = new Player() {

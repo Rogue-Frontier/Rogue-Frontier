@@ -28,11 +28,11 @@ namespace TranscendenceRL {
                 playerShip.Ship.Active = true;
                 world.entities.all.Add(playerShip);
                 world.effects.all.Add(new Heading(playerShip));
-                SadConsole.Game.Instance.Screen = new TitleSlideOut(new Pause(playerMain)) { IsFocused = true };
+                SadConsole.Game.Instance.Screen = new TitleSlideOpening(new Pause(playerMain)) { IsFocused = true };
             }) { Position = new Point(Width - 16, Height - 4) });
 
             this.Children.Add(new LabelButton("Title Screen", () => {
-                SadConsole.Game.Instance.Screen = new TitleSlideOut(new TitleConsole(Width, Height)) { IsFocused = true };
+                SadConsole.Game.Instance.Screen = new TitleSlideOpening(new TitleConsole(Width, Height)) { IsFocused = true };
             }) { Position = new Point(Width - 16, Height - 2) });
         }
         public override void Update(TimeSpan delta) {

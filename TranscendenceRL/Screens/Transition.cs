@@ -9,13 +9,13 @@ using Common;
 using SadConsole.Input;
 
 namespace TranscendenceRL {
-    public class TitleSlideOut : Console {
+    public class TitleSlideOpening : Console {
         public Console next;
         int x = 0;
         double time = 0;
         double interval;
         bool fast;
-        public TitleSlideOut(Console next) : base(next.Width, next.Height) {
+        public TitleSlideOpening(Console next) : base(next.Width, next.Height) {
             x = next.Width;
             this.next = next;
             interval = 4f / Width;
@@ -73,6 +73,64 @@ namespace TranscendenceRL {
             return base.ProcessKeyboard(keyboard);
         }
     }
+    public class TitleSlideOut : Console {
+        public Console prev, next;
+        int x = 0;
+        double time = 0;
+        double interval;
+        bool fast;
+        public TitleSlideOut(Console prev, Console next) : base(next.Width, next.Height) {
+            x = next.Width;
+            this.prev = prev;
+            this.next = next;
+            interval = 4f / Width;
+
+            //Draw one frame now so that we don't cut out for one frame
+            next.Update(new TimeSpan());
+            Draw(new TimeSpan());
+        }
+        public override void Update(TimeSpan delta) {
+            next.Update(delta);
+            base.Update(delta);
+            if(x > -16) {
+                x -= (int)(Width * delta.TotalSeconds);
+            } else {
+                SadConsole.Game.Instance.Screen = next;
+                next.IsFocused = true;
+                return;
+            }
+        }
+        public override void Draw(TimeSpan delta) {
+            next.Draw(delta);
+            base.Draw(delta);
+            this.Clear();
+            var blank = new ColoredGlyph(Color.Black, Color.Black);
+            for (int y = 0; y < Height; y++) {
+                for (int x = 0; x < this.x; x++) {
+                    this.SetCellAppearance(x, y, prev.GetCellAppearance(x,y));
+                }
+                for (int x = Math.Max(0, this.x); x < Math.Min(Width, this.x + 16); x++) {
+
+                    var glyph = next.GetGlyph(x, y);
+                    var value = 255 - 255 / 16 * (x - this.x);
+
+                    var fore = next.GetForeground(x, y);
+                    fore = fore.Premultiply().Blend(prev.GetForeground(x, y).Premultiply().WithValues(alpha: value));
+
+                    var back = next.GetBackground(x, y);
+                    back = back.Premultiply().Blend(prev.GetBackground(x,y).Premultiply().WithValues(alpha: value));
+
+                    this.SetCellAppearance(x, y, new ColoredGlyph(fore, back, glyph));
+                }
+            }
+        }
+        public override bool ProcessKeyboard(Keyboard keyboard) {
+            if (keyboard.IsKeyPressed(Keys.Enter)) {
+                fast = true;
+            }
+            return base.ProcessKeyboard(keyboard);
+        }
+    }
     public class TitleSlideIn : Console {
         public Console prev;
         public Console next;
@@ -103,12 +161,14 @@ namespace TranscendenceRL {
             next.IsFocused = true;
         }
         public override void Draw(TimeSpan delta) {
+            next.Draw(delta);
             prev.Draw(delta);
             base.Draw(delta);
             var blank = new ColoredGlyph(Color.Black, Color.Black);
             for (int y = 0; y < Height; y++) {
                 for (int x = 0; x < this.x; x++) {
-                    this.SetCellAppearance(x, y, blank);
+                    //this.SetCellAppearance(x, y, blank);
+                    this.SetCellAppearance(x, y, next.GetCellAppearance(x, y));
                 }
                 //Fading opacity edge
                 for (int x = Math.Max(0, this.x); x < Math.Min(Width, this.x + 16); x++) {
@@ -117,10 +177,10 @@ namespace TranscendenceRL {
                     var value = 255 - 255 / 16 * (x - this.x);
 
                     var fore = prev.GetForeground(x, y);
-                    fore = fore.Premultiply().Blend(Color.Black.WithValues(alpha: value));
+                    fore = fore.Premultiply().Blend(next.GetForeground(x,y).Premultiply().WithValues(alpha: value));
 
                     var back = prev.GetBackground(x, y);
-                    back = back.Premultiply().Blend(Color.Black.WithValues(alpha: value));
+                    back = back.Premultiply().Blend(next.GetBackground(x, y).Premultiply().WithValues(alpha: value));
 
                     this.SetCellAppearance(x, y, new ColoredGlyph(fore, back, glyph));
                 }
