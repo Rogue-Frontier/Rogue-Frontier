@@ -21,7 +21,7 @@ namespace TranscendenceRL {
         public ColoredGlyph Tile => null;
 
         public void Update() {
-            if(parent.docking?.docked == true) {
+            if(parent.Dock?.docked == true) {
                 return;
             }
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);

@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TranscendenceRL.Types;
+using IslandHopper;
 
 namespace TranscendenceRL {
     public enum Rotating {
@@ -29,7 +31,7 @@ namespace TranscendenceRL {
         ShipClass ShipClass { get; }
         double rotationDegrees { get; }
         public double stoppingRotation { get; }
-        Docking docking { get; set; }
+        Docking Dock { get; set; }
     }
     public class BaseShip : SpaceObject {
         public string Name => ShipClass.name;
@@ -183,7 +185,7 @@ namespace TranscendenceRL {
 
         public BaseShip Ship;
         public Order controller;
-        public Docking docking { get; set; }
+        public Docking Dock { get; set; }
         public Random destiny => Ship.destiny;
         public double stoppingRotation => Ship.stoppingRotation;
 
@@ -197,7 +199,7 @@ namespace TranscendenceRL {
         public void Damage(SpaceObject source, int hp) => Ship.Damage(source, hp);
         public void Destroy(SpaceObject source) {
             if (source is PlayerShip ps) {
-                ps.shipsDestroyed.Add(ShipClass);
+                ps.ShipsDestroyed.Add(ShipClass);
             }
             Ship.Destroy(source);
         }
@@ -205,7 +207,7 @@ namespace TranscendenceRL {
 
             controller.Update(this);
 
-            docking?.Update(this);
+            Dock?.Update(this);
 
             Ship.UpdateControls();
             Ship.UpdateMotion();
@@ -235,31 +237,40 @@ namespace TranscendenceRL {
 
         public bool firingPrimary = false;
         public int selectedPrimary = 0;
+
+        public int mortalChances = 3;
+        public int mortalTicks = 0;
         public DeviceSystem Devices => Ship.Devices;
         public BaseShip Ship;
-        public PowerSystem power;
-        public Docking docking { get; set; }
+        public EnergySystem Energy;
+        public List<Power> Powers;
+        public Docking Dock { get; set; }
 
-        public List<IPlayerMessage> messages = new List<IPlayerMessage>();
+        public List<IPlayerMessage> Messages = new List<IPlayerMessage>();
 
-        public HashSet<Entity> visible = new HashSet<Entity>();
-        public HashSet<Station> known = new HashSet<Station>();
+        public HashSet<Entity> Visible = new HashSet<Entity>();
+        public HashSet<Station> Known = new HashSet<Station>();
         int ticks = 0;
 
-        public DictCounter<ShipClass> shipsDestroyed = new DictCounter<ShipClass>();
+        public DictCounter<ShipClass> ShipsDestroyed = new DictCounter<ShipClass>();
 
         public delegate void PlayerDestroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);
 
         public event PlayerDestroyed OnDestroyed;
+        public delegate void PlayerDamaged(PlayerShip playerShip, SpaceObject damager, int hp);
+        public event PlayerDamaged OnDamaged;
 
         public PlayerShip(Player player, BaseShip ship) {
             this.player = player;
             this.Ship = ship;
 
-            power = new PowerSystem(ship.Devices);
+            Energy = new EnergySystem(ship.Devices);
+            Powers = new List<Power>();
 
             //Remember to create the Heading when you add or replace this ship in the World
 
+
+            //Hook up our own event to the ship since calling Damage can call base ship's Destroy without calling our own Destroy()
             ship.OnDestroyed += (s, source, wreck) => OnDestroyed?.Invoke(this, source, wreck);
         }
         public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
@@ -269,6 +280,12 @@ namespace TranscendenceRL {
         public void NextWeapon() {
             selectedPrimary++;
             if(selectedPrimary >= Ship.Devices.Weapons.Count) {
+                selectedPrimary = 0;
+            }
+        }
+        public void PrevWeapon() {
+            selectedPrimary--;
+            if (selectedPrimary < 0) {
                 selectedPrimary = 0;
             }
         }
@@ -401,52 +418,70 @@ namespace TranscendenceRL {
             }
             return null;
         }
-        public void Damage(SpaceObject source, int hp) => Ship.Damage(source, hp);
+        public void Damage(SpaceObject source, int hp) {
+            //Base ship can get destroyed without calling our own Destroy(), so we need to hook up an OnDestroyed event to this
+            Ship.Damage(source, hp);
+
+            if(hp > Ship.DamageSystem.GetHP() / 3) {
+                if(mortalTicks == 0) {
+                    if(mortalChances > 0) {
+                        mortalTicks = mortalChances * 240;
+                        mortalChances--;
+                    }
+                }
+            }
+
+            OnDamaged?.Invoke(this, source, hp);
+        }
         public void Destroy(SpaceObject source) {
             Ship.Destroy(source);
         }
         public void Update() {
-            messages.ForEach(m => m.Update());
-            messages.RemoveAll(m => !m.Active);
+            Messages.ForEach(m => m.Update());
+            Messages.RemoveAll(m => !m.Active);
 
             if(GetTarget(out SpaceObject target)) {
                 Heading.Crosshair(World, target.Position);
             }
 
             if (firingPrimary && selectedPrimary < Ship.Devices.Weapons.Count) {
-                if(!power.disabled.Contains(Ship.Devices.Weapons[selectedPrimary])) {
+                if(!Energy.disabled.Contains(Ship.Devices.Weapons[selectedPrimary])) {
                     Ship.Devices.Weapons[selectedPrimary].SetFiring(true, target);
                 }
                 firingPrimary = false;
             }
 
+            if(mortalTicks > 0) {
+                mortalTicks--;
+            }
+
             ticks++;
-            visible = new HashSet<Entity>(World.entities.GetAll(p => (Position - p).MaxCoord < 50));
+            Visible = new HashSet<Entity>(World.entities.GetAll(p => (Position - p).MaxCoord < 50));
             if (ticks%30 == 0) {
-                foreach (var s in visible.OfType<Station>().Where(s => !known.Contains(s))) {
-                    messages.Add(new Transmission(s, $"Discovered: {s.StationType.name}"));
-                    known.Add(s);
+                foreach (var s in Visible.OfType<Station>().Where(s => !Known.Contains(s))) {
+                    Messages.Add(new Transmission(s, $"Discovered: {s.StationType.name}"));
+                    Known.Add(s);
                 }
             }
 
-            docking?.Update(this);
+            Dock?.Update(this);
 
             Ship.UpdateControls();
             Ship.UpdateMotion();
 
             //We update the ship's devices as ourselves because they need to know who the exact owner is
             //In case someone other than us needs to know who we are through our devices
-            foreach (var enabled in Ship.Devices.Installed.Where(i => !power.disabled.Contains(i))) {
+            foreach (var enabled in Ship.Devices.Installed.Where(i => !Energy.disabled.Contains(i))) {
                 enabled.Update(this);
             }
-            power.Update();
+            Energy.Update();
         }
         public void AddMessage(IPlayerMessage message) {
-            var existing = messages.FirstOrDefault(m => m.message.String.Equals(message.message.String));
+            var existing = Messages.FirstOrDefault(m => m.message.String.Equals(message.message.String));
             if (existing != null) {
                 existing.Reset();
             } else {
-                messages.Add(message);
+                Messages.Add(message);
             }
         }
         public bool Active => Ship.Active;

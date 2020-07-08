@@ -61,7 +61,7 @@ Final Cargo
 {string.Join('\n', playerShip.Items.Select(item => $"    {item.type.name}"))}
 
 Ships Destroyed
-{string.Join('\n', playerShip.shipsDestroyed.dict.Select(pair => $"    {pair.Key.name, -16}{pair.Value, 4}"))}
+{string.Join('\n', playerShip.ShipsDestroyed.dict.Select(pair => $"    {pair.Key.name, -16}{pair.Value, 4}"))}
 ".Replace("\r", "");
             y = 2;
             foreach(var line in str.Split('\n')) {

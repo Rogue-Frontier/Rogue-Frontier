@@ -48,7 +48,7 @@ namespace TranscendenceRL {
 
         public void Update(AIShip owner) {
             //Remove dock
-            owner.docking = null;
+            owner.Dock = null;
 
             var velDiff = owner.Velocity - target.Velocity;
             double decel = owner.ShipClass.thrust * TranscendenceRL.TICKS_PER_SECOND / 2;
@@ -134,7 +134,7 @@ namespace TranscendenceRL {
                 if((owner.Position - guard.Position).Magnitude < 6) {
                     //If no enemy in range of station, dock at station
 
-                    owner.docking = new Docking(guard);
+                    owner.Dock = new Docking(guard);
                 } else {
                     new ApproachOrbitOrder(guard).Update(owner);
                 }
@@ -173,7 +173,7 @@ namespace TranscendenceRL {
             }
 
             //Remove dock
-            owner.docking = null;
+            owner.Dock = null;
 
             var offset = (target.Position - owner.Position);
             var dist = offset.Magnitude;
@@ -222,7 +222,7 @@ namespace TranscendenceRL {
 
         public void Update(AIShip owner) {
             //Remove dock
-            owner.docking = null;
+            owner.Dock = null;
 
             //Find the direction we need to go
             var offset = (target.Position - owner.Position);

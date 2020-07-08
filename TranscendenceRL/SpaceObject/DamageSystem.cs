@@ -15,12 +15,17 @@ namespace TranscendenceRL {
         }
     }
     public interface DamageSystem {
+
+        int GetHP();
+        int GetMaxHP();
         void Damage(SpaceObject owner, SpaceObject source, int hp);
     }
     public class HPSystem : DamageSystem {
+        public int maxHP;
         public int hp;
-        public HPSystem(int hp) {
-            this.hp = hp;
+        public HPSystem(int maxHP) {
+            this.maxHP = maxHP;
+            this.hp = maxHP;
         }
         public void Damage(SpaceObject owner, SpaceObject source, int hp) {
             this.React(owner, source);
@@ -29,6 +34,8 @@ namespace TranscendenceRL {
                 owner.Destroy(source);
             }
         }
+        public int GetHP() => hp;
+        public int GetMaxHP() => maxHP;
     }
     //WMD would allow the attacker to hit multiple layers at a time, multiplying the damage
     public class LayeredArmorSystem : DamageSystem {
@@ -55,5 +62,8 @@ namespace TranscendenceRL {
         public List<ColoredString> GetDesc() {
             return new List<ColoredString>(layers.GroupBy(l => l.source.type).Select(l => new ColoredString(l.First().source.type.name + $" (x{l.Count()})")));
         }
+
+        public int GetHP() => layers.Sum(l => l.hp);
+        public int GetMaxHP() => layers.Sum(l => l.source.armor.desc.maxHP);
     }
 }

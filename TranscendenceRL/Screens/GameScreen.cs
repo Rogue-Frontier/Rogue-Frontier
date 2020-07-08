@@ -24,6 +24,7 @@ namespace TranscendenceRL {
 		Point mousePos;
 
 		PlayerUI ui;
+		PowerMenu powerMenu;
 
 		public PlayerMain(int Width, int Height, World World, Player player, PlayerShip playerShip) : base(Width, Height) {
 			UseMouse = true;
@@ -33,9 +34,14 @@ namespace TranscendenceRL {
 			this.playerShip = playerShip;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
 			backVoid = new GeneratedLayer(1, new Random());
+
 			ui = new PlayerUI(playerShip, tiles, Width, Height) {
 			};
+			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
+			ui.Children.Add(powerMenu);
+			//Set power menu as child of the UI so that it doesn't get covered by the vignette
 
+			//Don't allow anyone to get focus via mouse click
 			FocusOnMouseClick = false;
 		}
 		public void EndGame(SpaceObject destroyer, Wreck wreck) {
@@ -79,9 +85,6 @@ namespace TranscendenceRL {
 			world.UpdateAll();
 		}
 		public override void Update(TimeSpan delta) {
-			UpdateWorld();
-			PlaceTiles();
-
 			/*
 			//SM64-style camera: We smoothly point ahead of where the player is going
 			var offset = playerShip.Velocity / 3;
@@ -97,10 +100,25 @@ namespace TranscendenceRL {
 			
 			}
 			*/
+
+			//If the player is in mortality, then slow down time
+			bool passTime = true;
+			if(playerShip.mortalTicks > 0) {
+				var interval = Math.Max(2, playerShip.mortalTicks / 60);
+				if (playerShip.mortalTicks % interval > 0) {
+					passTime = false;
+                }
+				playerShip.mortalTicks--;
+            }
+			if(passTime) {
+				UpdateWorld();
+				PlaceTiles();
+				world.UpdatePresent();
+			}
+
 			camera = playerShip.Position;
-			world.UpdatePresent();
-			if (playerShip.docking?.docked == true && playerShip.docking.target is Dockable d) {
-				playerShip.docking = null;
+			if (playerShip.Dock?.docked == true && playerShip.Dock.target is Dockable d) {
+				playerShip.Dock = null;
 				this.Children.Add(new SceneScreen(Width, Height, d.MainView, playerShip, d) { IsFocused = true });
 			}
 			ui.Update(delta);
@@ -161,7 +179,9 @@ namespace TranscendenceRL {
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
 			ui.ProcessKeyboard(info);
-			if(info.IsKeyDown(Up)) {
+
+			//Move the player
+			if (info.IsKeyDown(Up)) {
 				playerShip.SetThrusting();
 			}
 			if (info.IsKeyDown(Left)) {
@@ -170,57 +190,74 @@ namespace TranscendenceRL {
 			if (info.IsKeyDown(Right)) {
 				playerShip.SetRotating(Rotating.CW);
 			}
-			if(info.IsKeyDown(Down)) {
+			if (info.IsKeyDown(Down)) {
 				playerShip.SetDecelerating();
 			}
-			if(info.IsKeyPressed(Escape)) {
-				//SadConsole.Game.Instance.Screen = new TitleConsole(Width, Height) { IsFocused = true };
-			}
-			if(info.KeysDown.Select(d => d.Key).Intersect<Keys>(new Keys[] { Keys.LeftControl, Keys.LeftShift, Keys.Enter }).Count() == 3) {
-				playerShip.Destroy(playerShip);
-            }
-			if(info.IsKeyPressed(S)) {
-				SadConsole.Game.Instance.Screen = new ShipScreen(this, playerShip) { IsFocused = true };
-			}
-			if(info.IsKeyPressed(W)) {
-				playerShip.NextWeapon();
-            }
-			if(info.IsKeyPressed(T)) {
-				playerShip.NextTargetEnemy();
-            }
-			if (info.IsKeyPressed(F)) {
-				playerShip.NextTargetFriendly();
-			}
-			if (info.IsKeyPressed(R)) {
-				if(playerShip.targetIndex > -1) {
-					playerShip.ClearTarget();
+
+			//Intercept the alphanumeric/Escape keys if the power menu is active
+			if (powerMenu.IsVisible) {
+				powerMenu.ProcessKeyboard(info);
+            } else {
+				if (info.IsKeyPressed(Escape)) {
+					//SadConsole.Game.Instance.Screen = new TitleConsole(Width, Height) { IsFocused = true };
 				}
-			}
-			if (info.IsKeyPressed(D)) {
-				if(playerShip.docking != null) {
-					if(playerShip.docking.docked) {
-						playerShip.AddMessage(new InfoMessage("Undocked"));
+				if (info.KeysDown.Select(d => d.Key).Intersect<Keys>(new Keys[] { Keys.LeftControl, Keys.LeftShift, Keys.Enter }).Count() == 3) {
+					playerShip.Destroy(playerShip);
+				}
+				if (info.IsKeyPressed(S)) {
+					SadConsole.Game.Instance.Screen = new ShipScreen(this, playerShip) { IsFocused = true };
+				}
+				if (info.IsKeyPressed(V)) {
+					powerMenu.IsVisible = true;
+				}
+				if (info.IsKeyPressed(W)) {
+					playerShip.NextWeapon();
+				}
+				if (info.IsKeyPressed(T)) {
+					playerShip.NextTargetEnemy();
+				}
+				if (info.IsKeyPressed(F)) {
+					playerShip.NextTargetFriendly();
+				}
+				if (info.IsKeyPressed(R)) {
+					if (playerShip.targetIndex > -1) {
+						playerShip.ClearTarget();
+					}
+				}
+				if (info.IsKeyPressed(D)) {
+					if (playerShip.Dock != null) {
+						if (playerShip.Dock.docked) {
+							playerShip.AddMessage(new InfoMessage("Undocked"));
+						} else {
+							playerShip.AddMessage(new InfoMessage("Docking sequence canceled"));
+						}
+
+						playerShip.Dock = null;
 					} else {
-						playerShip.AddMessage(new InfoMessage("Docking sequence canceled"));
+						var dest = world.entities.GetAll(p => (playerShip.Position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.Position - playerShip.Position).Magnitude).FirstOrDefault();
+						if (dest != null) {
+							playerShip.AddMessage(new InfoMessage("Docking sequence engaged"));
+							playerShip.Dock = new Docking(dest);
+						}
+
 					}
-					
-					playerShip.docking = null;
-				} else {
-					var dest = world.entities.GetAll(p => (playerShip.Position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.Position - playerShip.Position).Magnitude).FirstOrDefault();
-					if(dest != null) {
-						playerShip.AddMessage(new InfoMessage("Docking sequence engaged"));
-						playerShip.docking = new Docking(dest);
-					}
-					
 				}
-			}
-			if(info.IsKeyDown(X)) {
-				playerShip.SetFiringPrimary();
+				if (info.IsKeyDown(X)) {
+					playerShip.SetFiringPrimary();
+				}
 			}
 			return base.ProcessKeyboard(info);
 		}
 		public override bool ProcessMouse(MouseScreenObjectState state) {
 			if(state.IsOnScreenObject) {
+
+				//Placeholder for mouse wheel-based weapon selection
+				if(state.Mouse.ScrollWheelValueChange > 100) {
+					playerShip.NextWeapon();
+                } else if(state.Mouse.ScrollWheelValueChange < -100) {
+					playerShip.PrevWeapon();
+                }
+
 				mousePos = state.SurfaceCellPosition;
 				var centerOffset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
 
@@ -283,6 +320,8 @@ namespace TranscendenceRL {
 		public PlayerUI(PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
 			this.player = player;
 			this.tiles = tiles;
+
+			FocusOnMouseClick = false;
         }
         public override bool ProcessKeyboard(Keyboard info) {
 			if (info.IsKeyDown(OemMinus)) {
@@ -329,14 +368,17 @@ namespace TranscendenceRL {
 					}
 				}
 			}
-			
 
 
+			(int r, int g, int b) borderColor = (0, 0, 0);
+			if(player.mortalTicks > 0) {
+				borderColor.r = Math.Max(255, player.mortalTicks * 255 / 300);
+            }
 			for(int i = 0; i < 8; i++) {
 				var alpha = 255 - i * 25;
 				var screenPerimeter = new Rectangle(i, i, Width - i*2, Height - i*2);
 				foreach(var point in screenPerimeter.PerimeterPositions()) {
-					this.SetBackground(point.X, point.Y, new Color(0, 0, 0, alpha));
+					this.SetBackground(point.X, point.Y, new Color(borderColor.r, borderColor.g, borderColor.b, alpha));
                 }
             }
 
@@ -418,8 +460,8 @@ namespace TranscendenceRL {
                 }
 			}
 
-			for (int i = 0; i < player.messages.Count; i++) {
-				var message = player.messages[i];
+			for (int i = 0; i < player.Messages.Count; i++) {
+				var message = player.Messages[i];
 				var line = message.Draw();
 				var x = Width * 3 / 4 - line.Count;
 				this.Print(x, messageY, line);
@@ -532,10 +574,10 @@ namespace TranscendenceRL {
 			{
 				int x = 3;
 				int y = 3;
-				if (player.power.totalMaxOutput > 0) {
+				if (player.Energy.totalMaxOutput > 0) {
 					this.Print(x, y, $"[{new string('=', 16)}]", Color.White, Color.Transparent);
-					if (player.power.totalUsedOutput > 0) {
-						this.Print(x, y, $"[{new string('=', 16 * player.power.totalUsedOutput / player.power.totalMaxOutput)}", Color.Yellow, Color.Transparent);
+					if (player.Energy.totalUsedOutput > 0) {
+						this.Print(x, y, $"[{new string('=', 16 * player.Energy.totalUsedOutput / player.Energy.totalMaxOutput)}", Color.Yellow, Color.Transparent);
 					}
 					y++;
 					foreach (var reactor in player.Ship.Devices.Reactors) {
@@ -560,7 +602,7 @@ namespace TranscendenceRL {
 					foreach (var weapon in player.Ship.Devices.Weapons) {
 						string tag = $"{(i == player.selectedPrimary ? ">" : "")}{weapon.source.type.name}{new string('>', 16 * weapon.fireTime / weapon.desc.fireCooldown).PadRight(16)}";
 						Color foreground = Color.White;
-						if (player.power.disabled.Contains(weapon)) {
+						if (player.Energy.disabled.Contains(weapon)) {
 							foreground = Color.Gray;
 						} else if (weapon.firing || weapon.fireTime > 0) {
 							foreground = Color.Yellow;
@@ -642,5 +684,122 @@ namespace TranscendenceRL {
 			}
 			base.Draw(drawTime);
         }
+    }
+	public class PowerMenu : Console {
+		PlayerShip playerShip;
+		int ticks;
+		public PowerMenu(int width, int height, PlayerShip playerShip) : base(width, height) {
+			this.playerShip = playerShip;
+			FocusOnMouseClick = false;
+        }
+        public override void Update(TimeSpan delta) {
+			ticks++;
+			foreach(var p in playerShip.Powers) {
+				if(p.charging) {
+					//We don't need to check ready because we already do that before we set charging
+					//Charging up
+					if(p.invokeCharge < p.invokeDelay) {
+						p.invokeCharge++;
+                    } else {
+						//Invoke now!
+						p.cooldownLeft = p.cooldownPeriod;
+						p.type.Effect.Invoke(playerShip);
+
+						//Reset charge
+						p.invokeCharge = 0;
+						p.charging = false;
+                    }
+
+					p.charging = false;
+                } else if(p.cooldownLeft > 0) {
+					p.cooldownLeft--;
+                } else if(p.invokeCharge > 0) {
+					p.invokeCharge--;
+				}
+            }
+            base.Update(delta);
+        }
+        public override bool ProcessKeyboard(Keyboard keyboard) {
+			foreach(var k in keyboard.KeysDown) {
+				if(k.Character == 0 || k.Character == ' ') {
+					continue;
+                }
+				//If we're pressing a digit/letter, then we're charging up a power
+				int powerIndex = -1;
+				var ch = char.ToLower(k.Character);
+				if (char.IsDigit(ch)) {
+					powerIndex = ch - '0';
+                } else if(char.IsLetter(ch)) {
+					powerIndex = 10 + ch - 'a';
+                }
+
+				//Find the power
+				if(powerIndex < playerShip.Powers.Count) {
+					var power = playerShip.Powers[powerIndex];
+					//Make sure this power is available
+					if(power.ready) {
+						//Enable charging
+						power.charging = true;
+					}
+                }
+            }
+			if(keyboard.IsKeyPressed(Keys.Escape)) {
+				//Set charge for all powers back to 0
+				foreach(var p in playerShip.Powers) {
+					p.invokeCharge = 0;
+					p.charging = false;
+                }
+
+				//Hide menu
+				IsVisible = false;
+            }
+            return base.ProcessKeyboard(keyboard);
+        }
+		public static char indexToKey(int index) {
+			if (index < 10) {
+				return (char)('0' + index);
+			} else {
+				index -= 10;
+				if (index < 26) {
+					return (char)('a' + index);
+				} else {
+					throw new IndexOutOfRangeException();
+				}
+			}
+		}
+        public override void Draw(TimeSpan delta) {
+			int x = 3;
+			int y = 32;
+			int index = 0;
+
+			this.Clear();
+
+			Color foreground = Color.White;
+			if(ticks%30 < 15) {
+				foreground = Color.Yellow;
+            }
+			this.Print(x, y++, "[Powers]", foreground);
+			this.Print(x, y++, "[Press ESC to cancel]", foreground);
+			this.Print(x, y++, "[Press key to invoke]", foreground);
+			y++;
+			foreach (var p in playerShip.Powers) {
+				char key = indexToKey(index);
+				if(p.cooldownLeft > 0) {
+					this.Print(x, y++, $"[{key}] {p.type.name}{new string('>', 16 - 16 * p.cooldownLeft / p.cooldownPeriod)}", Color.Gray);
+                } else if(p.invokeCharge > 0) {
+					var chargeMeter = 16 * p.invokeCharge / p.invokeDelay;
+					this.Print(x, y++,
+						new ColoredString($"[{key}] {p.type.name}{new string('>', chargeMeter)}", Color.Yellow, Color.Transparent)
+						+ new ColoredString(new string('>', 16 - chargeMeter), Color.Gray, Color.Transparent)
+						);
+				} else {
+					this.Print(x, y++, new ColoredString($"[{key}] {p.type.name}", Color.White, Color.Transparent) + new ColoredString($"{new string('>', 16)}", Color.Gray, Color.Transparent));
+				}
+				index++;
+            }
+
+            base.Draw(delta);
+        }
+
     }
 }

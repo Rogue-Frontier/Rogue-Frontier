@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TranscendenceRL {
-    public class PowerSystem {
+    public class EnergySystem {
         private DeviceSystem devices;
         public HashSet<Powered> disabled;
         public int totalMaxOutput;
         public int totalUsedOutput;
-        public PowerSystem(DeviceSystem devices) {
+        public EnergySystem(DeviceSystem devices) {
             this.devices = devices;
             this.disabled = new HashSet<Powered>();
         }
