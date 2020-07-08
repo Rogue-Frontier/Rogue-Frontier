@@ -133,11 +133,16 @@ namespace TranscendenceRL {
             var mapWidth = map.Select(line => line.Length).Max();
             var mapX = Width/4 - mapWidth/2;
             y++;
+            //We print each line twice since the art gets flattened by the square font
+            //Ideally the art looks like the original with an added 3D effect
             foreach(var line in current.playerSettings.map) {
                 for(int i = 0; i < line.Length; i++) {
                     this.SetCellAppearance(mapX + i, y, new ColoredGlyph(new Color(255, 255, 255, 230 + (int)(Math.Sin(time*1.5 + Math.Sin(i)*5 + Math.Sin(y)*5)*25)), Color.Black, line[i]));
                 }
-                //this.Print(mapX, y, line);
+                y++;
+                for (int i = 0; i < line.Length; i++) {
+                    this.SetCellAppearance(mapX + i, y, new ColoredGlyph(new Color(255, 255, 255, 230 + (int)(Math.Sin(time * 1.5 + Math.Sin(i) * 5 + Math.Sin(y) * 5) * 25)), Color.Black, line[i]));
+                }
                 y++;
             }
 

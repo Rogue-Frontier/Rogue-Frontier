@@ -128,7 +128,18 @@ namespace Common {
 			var posDiffPrev = posDiff;
 			posDiff = posFuture;
 			*/
+			timeToHit = posDiff.Magnitude / missileSpeed;
+			XY posDiffNext = null;
+			double timeToHitPrev;
+			int i = 10;
+			do {
+				posDiffNext = posDiff + velDiff * timeToHit;
+				timeToHitPrev = timeToHit;
+				timeToHit = posDiffNext.Magnitude / missileSpeed;
+			} while (Math.Abs(timeToHit - timeToHitPrev) > 0.1 && i --> 0);
 
+			return posDiffNext.Angle;
+			/*
 			var a = velDiff.Dot(velDiff) - missileSpeed * missileSpeed;
 			var b = 2 * velDiff.Dot(posDiff);
 			var c = posDiff.Dot(posDiff);
@@ -144,6 +155,7 @@ namespace Common {
 			}
 			var posFuture = posDiff + velDiff * timeToHit;
 			return posFuture.Angle;
+			*/
 		}
 
 		/*

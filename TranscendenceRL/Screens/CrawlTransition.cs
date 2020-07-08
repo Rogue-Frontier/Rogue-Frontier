@@ -1,6 +1,7 @@
 ﻿
 using Common;
 using SadConsole;
+using SadConsole.Input;
 using SadRogue.Primitives;
 using System;
 using System.Collections.Generic;
@@ -44,6 +45,13 @@ namespace TranscendenceRL {
 
             //Draw one frame now so that we don't cut out for one frame
             Draw(new TimeSpan());
+        }
+        public override bool ProcessKeyboard(Keyboard keyboard) {
+            if(keyboard.IsKeyPressed(Keys.Enter) && stage < Stage.StartGame) {
+                delay = 0;
+                stage = Stage.StartGame;
+            }
+            return base.ProcessKeyboard(keyboard);
         }
         public override void Update(TimeSpan delta) {
             if(delay > 0) {

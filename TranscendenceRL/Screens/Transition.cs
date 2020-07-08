@@ -83,15 +83,24 @@ namespace TranscendenceRL {
             //Draw one frame now so that we don't cut out for one frame
             Draw(new TimeSpan());
         }
+        public override bool ProcessKeyboard(Keyboard keyboard) {
+            if(keyboard.IsKeyPressed(Keys.Enter)) {
+                Next();
+            }
+            return base.ProcessKeyboard(keyboard);
+        }
         public override void Update(TimeSpan delta) {
             prev.Update(delta);
             base.Update(delta);
             if (x < Width) {
                 x += (int)(Width * delta.TotalSeconds);
             } else {
-                SadConsole.Game.Instance.Screen = next;
-                next.IsFocused = true;
+                Next();
             }
+        }
+        public void Next() {
+            SadConsole.Game.Instance.Screen = next;
+            next.IsFocused = true;
         }
         public override void Draw(TimeSpan delta) {
             prev.Draw(delta);
