@@ -8,13 +8,23 @@ using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     public class World {
-        public TypeCollection types = new TypeCollection();
+        public TypeCollection types;
         public LocatorDict<Entity, (int, int)> entities = new LocatorDict<Entity, (int, int)>(e => (e.Position.xi, e.Position.yi));
         public List<Entity> entitiesAdded = new List<Entity>();
         public LocatorDict<Effect, (int, int)> effects = new LocatorDict<Effect, (int, int)>(e => (e.Position.xi, e.Position.yi));
         public List<Effect> effectsAdded = new List<Effect>();
-        public Random karma = new Random();
-        public Backdrop backdrop = new Backdrop();
+        public Random karma;
+        public Backdrop backdrop;
+        public World(TypeCollection types, Random karma, Backdrop backdrop) {
+            this.types = types;
+            this.karma = karma;
+            this.backdrop = backdrop;
+        }
+        public World() {
+            types = new TypeCollection();
+            karma = new Random();
+            backdrop = new Backdrop();
+        }
         public void AddEffect(Effect e) {
             effectsAdded.Add(e);
         }

@@ -32,7 +32,6 @@ namespace TranscendenceRL.Types {
             this.desc = desc;
         }
         public void Invoke(PlayerShip invoker) {
-
         }
     }
     public class Power {

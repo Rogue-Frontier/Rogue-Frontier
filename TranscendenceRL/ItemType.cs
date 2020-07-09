@@ -46,23 +46,24 @@ namespace TranscendenceRL {
     public class WeaponDesc {
         public int powerUse;
         public int fireCooldown;
-        public int missileSpeed;
-        public int damageType;
-        public int damageHP;
-        public int lifetime;
         public bool omnidirectional;
-        public int minRange => missileSpeed * lifetime / TranscendenceRL.TICKS_PER_SECOND; //DOES NOT INCLUDE CAPACITOR EFFECTS
+        public FragmentDesc shot;
+
+        public int missileSpeed => shot.missileSpeed;
+        public int damageType => shot.damageType;
+        public int damageHP => shot.damageHP;
+        public int lifetime => shot.lifetime;
+
+        public int minRange => shot.missileSpeed * shot.lifetime / TranscendenceRL.TICKS_PER_SECOND; //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
         public CapacitorDesc capacitor;
         public HashSet<FragmentDesc> fragments;
         public WeaponDesc(XElement e) {
             powerUse = e.ExpectAttributeInt(nameof(powerUse));
             fireCooldown = e.ExpectAttributeInt(nameof(fireCooldown));
-            missileSpeed = e.ExpectAttributeInt(nameof(missileSpeed));
-            damageType = e.ExpectAttributeInt(nameof(damageType));
-            damageHP = e.ExpectAttributeInt(nameof(damageHP));
-            lifetime = e.ExpectAttributeInt(nameof(lifetime));
             omnidirectional = e.TryAttributeBool(nameof(omnidirectional), false);
+            shot = new FragmentDesc(e);
+
 
             effect = new StaticTile(e);
             if(e.HasElement("Capacitor", out var xmlCapacitor)) {
@@ -85,8 +86,8 @@ namespace TranscendenceRL {
         public HashSet<FragmentDesc> fragments;
         public StaticTile effect;
         public FragmentDesc(XElement e) {
-            count = e.ExpectAttributeInt(nameof(count));
-            spreadAngle = e.ExpectAttributeDouble(nameof(spreadAngle)) * Math.PI / 180;
+            count = e.TryAttributeInt(nameof(count), 1);
+            spreadAngle = e.TryAttributeDouble(nameof(spreadAngle), count == 0 ? 0 : 30) * Math.PI / 180;
             missileSpeed = e.ExpectAttributeInt(nameof(missileSpeed));
             damageType = e.ExpectAttributeInt(nameof(damageType));
             damageHP = e.ExpectAttributeInt(nameof(damageHP));

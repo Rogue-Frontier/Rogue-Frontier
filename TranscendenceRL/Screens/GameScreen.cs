@@ -327,13 +327,14 @@ namespace TranscendenceRL {
 	class PlayerUI : Console {
 		PlayerShip player;
 		Dictionary<(int, int), ColoredGlyph> tiles;
-        
+		/*
 		struct Snow {
 			public char c;
 			public double factor;
         }
 		Snow[,] snow;
-
+		*/
+		GeneratedLayer BackVoid;
 		public double mortalOpacity;
 
 		public double viewScale;
@@ -343,7 +344,8 @@ namespace TranscendenceRL {
 			Random r = new Random();
 			this.player = player;
 			this.tiles = tiles;
-
+			BackVoid = new GeneratedLayer(1, new Random());
+			/*
 			char[] particles = {
 				'%', '&', '?', '~'
 			};
@@ -356,7 +358,7 @@ namespace TranscendenceRL {
 					};
                 }
             }
-
+			*/
 			FocusOnMouseClick = false;
         }
         public override bool ProcessKeyboard(Keyboard info) {
@@ -385,22 +387,32 @@ namespace TranscendenceRL {
 			XY screenCenter = screenSize / 2;
 
 			if(viewScale > 1) {
-				if (time % 0.5 < 0.25) {
+				for(int x = 0; x < Width; x++) {
+					for(int y = 0; y < Height; y++) {
+						var back = BackVoid.GetTileFixed(new XY(x,y));
+						//Make sure to clone this so that we don't apply alpha changes to the original
+						back = back.Clone();
+						var glyph = back.Glyph;
+						var alpha = (byte)(255 * Math.Min(1, (viewScale - 1)));
+						back.Background = back.Background.Premultiply().SetAlpha(alpha);
+						back.Foreground = back.Foreground.Premultiply().SetAlpha(alpha);
+						this.SetCellAppearance(x, y, back);
+                    }
+                }
 
-					var visiblePerimeter = new Rectangle((int)(Width/2 - Width / (2 * viewScale)), (int)(Height/2 - Height / (2 * viewScale)), (int)(Width / viewScale), (int)(Height / viewScale));
-					foreach (var point in visiblePerimeter.PerimeterPositions()) {
-						this.SetBackground(point.X, point.Y, new Color(255, 255, 255, 128));
-					}
+				var visiblePerimeter = new Rectangle((int)(Width / 2 - Width / (2 * viewScale)), (int)(Height / 2 - Height / (2 * viewScale)), (int)(Width / viewScale), (int)(Height / viewScale));
+				foreach (var point in visiblePerimeter.PerimeterPositions()) {
+					this.SetBackground(point.X, point.Y, this.GetBackground(point.X,point.Y).Premultiply().Blend(new Color(255, 255, 255, 128)));
+				}
 
-					var scaledMap = player.World.entities.space.DownsampleSet(viewScale);
-					foreach ((var p, HashSet<Entity> set) in scaledMap.space) {
-						var visible = set.Where(t => t.Tile != null).Where(t => !(t is Segment));
-						if (visible.Any()) {
-							var e = visible.ElementAt((int)time % visible.Count());
-							var (x, y) = (e.Position - player.Position) / viewScale + screenCenter;
+				var scaledMap = player.World.entities.space.DownsampleSet(viewScale);
+				foreach ((var p, HashSet<Entity> set) in scaledMap.space) {
+					var visible = set.Where(t => t.Tile != null).Where(t => !(t is Segment));
+					if (visible.Any()) {
+						var e = visible.ElementAt((int)time % visible.Count());
+						var (x, y) = (e.Position - player.Position) / viewScale + screenCenter;
 
-							this.SetCellAppearance(x, Height - y, e.Tile);
-						}
+						this.SetCellAppearance(x, Height - y, e.Tile);
 					}
 				}
 			}
@@ -408,7 +420,9 @@ namespace TranscendenceRL {
 
 			//Set the color of the vignette
 			Color borderColor = Color.Black;
-			if(player.mortalTime > 0) {
+			int borderSize = 8;
+
+			if (player.mortalTime > 0) {
 				//Vignette is red when the player is mortal
 				if(mortalOpacity < player.mortalTime) {
 					mortalOpacity += player.mortalTime / 30;
@@ -422,12 +436,20 @@ namespace TranscendenceRL {
 				*/
 				borderColor = borderColor.SetRed(Math.Min((byte)255, (byte)(Math.Min(3, mortalOpacity) * 255 / 3f)));
 				borderColor = borderColor.Premultiply();
+
+				var fraction = (player.mortalTime - Math.Truncate(player.mortalTime));
+
+				borderSize += (int) (2 * borderSize * fraction);
             }
-			for(int i = 0; i < 8; i++) {
-				byte alpha = (byte)(255 - i * 25);
+			int dec = 255 / borderSize;
+			for(int i = 0; i < borderSize; i++) {
+				byte alpha = (byte)Math.Max(0, 255 - i * dec);
 				var screenPerimeter = new Rectangle(i, i, Width - i*2, Height - i*2);
 				foreach(var point in screenPerimeter.PerimeterPositions()) {
-					this.SetBackground(point.X, point.Y, borderColor.SetAlpha(alpha));
+					var color = borderColor.SetAlpha(alpha);
+					//var back = this.GetBackground(point.X, point.Y).Premultiply();
+
+					this.SetBackground(point.X, point.Y, color);
                 }
             }
 
@@ -727,7 +749,7 @@ namespace TranscendenceRL {
 					if (tiles.Any()) {
 						this.Print(mapCenterX + x, mapCenterY - y, tiles.First());
 					} else {
-						this.Print(mapCenterX + x, mapCenterY - y, "=", new Color(255, 255, 255, 204), Color.Transparent);
+						this.Print(mapCenterX + x, mapCenterY - y, "#", new Color(255, 255, 255, 128), Color.Black);
 					}
 				}
 			}

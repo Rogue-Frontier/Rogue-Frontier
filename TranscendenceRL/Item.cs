@@ -42,11 +42,11 @@ namespace TranscendenceRL {
         public WeaponDesc desc;
         public int powerUse => fireTime > 0 ? desc.powerUse : 0;
         public int missileSpeed { get {
-                int result = desc.missileSpeed;
+                int result = desc.shot.missileSpeed;
                 capacitor?.ModifyMissileSpeed(ref result);
                 return result;
             }}
-        public int currentRange => missileSpeed * desc.lifetime / TranscendenceRL.TICKS_PER_SECOND;
+        public int currentRange => missileSpeed * desc.shot.lifetime / TranscendenceRL.TICKS_PER_SECOND;
         public Capacitor capacitor;
         public SpaceObject target;
         public int fireTime;
@@ -114,7 +114,7 @@ namespace TranscendenceRL {
         }
         public void Fire(SpaceObject source, double direction) {
             int damageHP = desc.damageHP;
-            int missileSpeed = desc.missileSpeed;
+            int missileSpeed = desc.shot.missileSpeed;
             int lifetime = desc.lifetime;
 
             capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);

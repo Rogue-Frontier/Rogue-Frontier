@@ -9,8 +9,10 @@ namespace TranscendenceRL {
     //A space background made up of randomly generated layers with different depths
     public class Backdrop {
         List<GeneratedLayer> layers;
-        public Backdrop() {
-            Random r = new Random();
+        public Backdrop() : this(new Random()) {
+
+        }
+        public Backdrop(Random r) {
             int layerCount = 3;
             layers = new List<GeneratedLayer>(layerCount);
             for(int i = 0; i < layerCount; i++) {

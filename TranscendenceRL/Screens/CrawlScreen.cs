@@ -155,9 +155,9 @@ namespace TranscendenceRL {
                 loading.Update();
                 loadingTicks--;
             } else {
-
-                World.entities.all.Clear();
-                World.effects.all.Clear();
+                //Name is seed
+                var seed = player.name.GetHashCode();
+                World = new World(World.types, new Random(seed), new Backdrop(new Random(seed)));
                 World.types.Lookup<SystemType>("system_orion").Generate(World);
                 World.UpdatePresent();
 
