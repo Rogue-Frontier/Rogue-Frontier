@@ -22,10 +22,16 @@ namespace TranscendenceRL {
             this.epitaph = epitaph;
 
             this.Children.Add(new LabelButton("Resurrect", () => {
+                //Restore mortality chances
+                playerShip.mortalChances = 3;
+
+                //To do: Restore player HP
+                playerShip.Ship.DamageSystem.Restore();
 
                 //Resurrect the player; remove wreck and restore ship + heading
                 world.entities.all.Remove(epitaph.wreck);
                 playerShip.Ship.Active = true;
+                playerShip.AddMessage(new InfoMessage("A vision of disaster flashes before your eyes"));
                 world.entities.all.Add(playerShip);
                 world.effects.all.Add(new Heading(playerShip));
                 SadConsole.Game.Instance.Screen = new TitleSlideOpening(new Pause(playerMain)) { IsFocused = true };

@@ -23,6 +23,7 @@ namespace TranscendenceRL {
 		GeneratedLayer backVoid;
 		Point mousePos;
 
+		MegaMap map;
 		PlayerUI ui;
 		PowerMenu powerMenu;
 
@@ -37,11 +38,12 @@ namespace TranscendenceRL {
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
 			backVoid = new GeneratedLayer(1, new Random());
 
+			map = new MegaMap(playerShip, Width, Height);
 			ui = new PlayerUI(playerShip, tiles, Width, Height) {
 			};
 			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
-			ui.Children.Add(powerMenu);
-			//Set power menu as child of the UI so that it doesn't get covered by the vignette
+			map.Children.Add(ui);			//Set UI over the map since we don't want it to interfere with the vignette transparency
+			ui.Children.Add(powerMenu);		//Set power menu as child of the UI so that it doesn't get covered by the vignette
 
 			//Don't allow anyone to get focus via mouse click
 			FocusOnMouseClick = false;
@@ -130,12 +132,12 @@ namespace TranscendenceRL {
 				playerShip.Dock = null;
 				this.Children.Add(new SceneScreen(Width, Height, d.MainView, playerShip, d) { IsFocused = true });
 			}
-			ui.Update(delta);
+			map.Update(delta);
 		}
 		public override void Draw(TimeSpan drawTime) {
 			base.Draw(drawTime);
 			DrawWorld();
-			ui.Draw(drawTime);
+			map.Draw(drawTime);
 		}
 		public void DrawWorld() {
 			this.Clear();
@@ -187,7 +189,7 @@ namespace TranscendenceRL {
 			return back;
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
-			ui.ProcessKeyboard(info);
+			map.ProcessKeyboard(info);
 
 			//Move the player
 			if (info.IsKeyDown(Up)) {
@@ -324,9 +326,71 @@ namespace TranscendenceRL {
 			return base.ProcessMouse(state);
 		}
 	}
-	class PlayerUI : Console {
+	class MegaMap : Console {
 		PlayerShip player;
-		Dictionary<(int, int), ColoredGlyph> tiles;
+		GeneratedLayer BackVoid;
+		public double viewScale;
+		double time;
+		public MegaMap(PlayerShip player, int width, int height) : base(width, height) {
+			this.player = player;
+			BackVoid = new GeneratedLayer(1, new Random());
+			viewScale = 1;
+			time = 0;
+		}
+		public override bool ProcessKeyboard(Keyboard info) {
+			if (info.IsKeyDown(OemMinus)) {
+				viewScale += Math.Min(viewScale / (2 * 30), 1);
+			}
+			if (info.IsKeyDown(OemPlus)) {
+				viewScale -= Math.Min(viewScale / (2 * 30), 1);
+				if (viewScale < 1) {
+					viewScale = 1;
+				}
+			}
+			return base.ProcessKeyboard(info);
+		}
+        public override void Update(TimeSpan delta) {
+			time += delta.TotalSeconds;
+			base.Update(delta);
+        }
+        public override void Draw(TimeSpan delta) {
+			this.Clear();
+			if (viewScale > 1) {
+				XY screenSize = new XY(Width, Height);
+				XY screenCenter = screenSize / 2;
+				for (int x = 0; x < Width; x++) {
+					for (int y = 0; y < Height; y++) {
+						var back = BackVoid.GetTileFixed(new XY(x, y));
+						//Make sure to clone this so that we don't apply alpha changes to the original
+						back = back.Clone();
+						var glyph = back.Glyph;
+						var alpha = (byte)(255 * Math.Min(1, (viewScale - 1)));
+						back.Background = back.Background.Premultiply().SetAlpha(alpha);
+						back.Foreground = back.Foreground.Premultiply().SetAlpha(alpha);
+						this.SetCellAppearance(x, y, back);
+					}
+				}
+
+				var visiblePerimeter = new Rectangle((int)(Width / 2 - Width / (2 * viewScale)), (int)(Height / 2 - Height / (2 * viewScale)), (int)(Width / viewScale), (int)(Height / viewScale));
+				foreach (var point in visiblePerimeter.PerimeterPositions()) {
+					this.SetBackground(point.X, point.Y, this.GetBackground(point.X, point.Y).Premultiply().Blend(new Color(255, 255, 255, 128)));
+				}
+
+				var scaledMap = player.World.entities.space.DownsampleSet(viewScale);
+				foreach ((var p, HashSet<Entity> set) in scaledMap.space) {
+					var visible = set.Where(t => t.Tile != null).Where(t => !(t is Segment));
+					if (visible.Any()) {
+						var e = visible.ElementAt((int)time % visible.Count());
+						var (x, y) = (e.Position - player.Position) / viewScale + screenCenter;
+
+						this.SetCellAppearance(x, Height - y, e.Tile);
+					}
+				}
+			}
+			base.Draw(delta);
+        }
+    }
+	class PlayerUI : Console {
 		/*
 		struct Snow {
 			public char c;
@@ -334,17 +398,14 @@ namespace TranscendenceRL {
         }
 		Snow[,] snow;
 		*/
-		GeneratedLayer BackVoid;
+		PlayerShip player;
+		Dictionary<(int, int), ColoredGlyph> tiles;
 		public double mortalOpacity;
 
-		public double viewScale;
-
-		double time;
 		public PlayerUI(PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
 			Random r = new Random();
 			this.player = player;
 			this.tiles = tiles;
-			BackVoid = new GeneratedLayer(1, new Random());
 			/*
 			char[] particles = {
 				'%', '&', '?', '~'
@@ -361,62 +422,11 @@ namespace TranscendenceRL {
 			*/
 			FocusOnMouseClick = false;
         }
-        public override bool ProcessKeyboard(Keyboard info) {
-			if (info.IsKeyDown(OemMinus)) {
-				viewScale += Math.Min(viewScale / (2 * 30), 1);
-				if (viewScale < 1) {
-					viewScale = 1;
-				}
-			}
-			if (info.IsKeyDown(OemPlus)) {
-				viewScale -= Math.Min(viewScale / (2 * 30), 1);
-				if (viewScale < 1) {
-					viewScale = 1;
-				}
-			}
-			return base.ProcessKeyboard(info);
-        }
-        public override void Update(TimeSpan delta) {
-			time += delta.TotalSeconds;
-            base.Update(delta);
-        }
         public override void Draw(TimeSpan drawTime) {
 			this.Clear();
 			XY screenSize = new XY(Width, Height);
-			var messageY = Height * 3 / 5;
 			XY screenCenter = screenSize / 2;
-
-			if(viewScale > 1) {
-				for(int x = 0; x < Width; x++) {
-					for(int y = 0; y < Height; y++) {
-						var back = BackVoid.GetTileFixed(new XY(x,y));
-						//Make sure to clone this so that we don't apply alpha changes to the original
-						back = back.Clone();
-						var glyph = back.Glyph;
-						var alpha = (byte)(255 * Math.Min(1, (viewScale - 1)));
-						back.Background = back.Background.Premultiply().SetAlpha(alpha);
-						back.Foreground = back.Foreground.Premultiply().SetAlpha(alpha);
-						this.SetCellAppearance(x, y, back);
-                    }
-                }
-
-				var visiblePerimeter = new Rectangle((int)(Width / 2 - Width / (2 * viewScale)), (int)(Height / 2 - Height / (2 * viewScale)), (int)(Width / viewScale), (int)(Height / viewScale));
-				foreach (var point in visiblePerimeter.PerimeterPositions()) {
-					this.SetBackground(point.X, point.Y, this.GetBackground(point.X,point.Y).Premultiply().Blend(new Color(255, 255, 255, 128)));
-				}
-
-				var scaledMap = player.World.entities.space.DownsampleSet(viewScale);
-				foreach ((var p, HashSet<Entity> set) in scaledMap.space) {
-					var visible = set.Where(t => t.Tile != null).Where(t => !(t is Segment));
-					if (visible.Any()) {
-						var e = visible.ElementAt((int)time % visible.Count());
-						var (x, y) = (e.Position - player.Position) / viewScale + screenCenter;
-
-						this.SetCellAppearance(x, Height - y, e.Tile);
-					}
-				}
-			}
-
+			var messageY = Height * 3 / 5;
 
 			//Set the color of the vignette
 			Color borderColor = Color.Black;

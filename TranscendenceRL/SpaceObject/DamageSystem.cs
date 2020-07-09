@@ -15,7 +15,7 @@ namespace TranscendenceRL {
         }
     }
     public interface DamageSystem {
-
+        void Restore();
         int GetHP();
         int GetMaxHP();
         void Damage(SpaceObject owner, SpaceObject source, int hp);
@@ -36,6 +36,7 @@ namespace TranscendenceRL {
         }
         public int GetHP() => hp;
         public int GetMaxHP() => maxHP;
+        public void Restore() => hp = maxHP;
     }
     //WMD would allow the attacker to hit multiple layers at a time, multiplying the damage
     public class LayeredArmorSystem : DamageSystem {
@@ -65,5 +66,8 @@ namespace TranscendenceRL {
 
         public int GetHP() => layers.Sum(l => l.hp);
         public int GetMaxHP() => layers.Sum(l => l.source.armor.desc.maxHP);
+        public void Restore() {
+            layers.ForEach(l => l.hp = l.source.armor.desc.maxHP);
+        }
     }
 }

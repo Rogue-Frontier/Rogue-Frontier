@@ -425,7 +425,9 @@ namespace TranscendenceRL {
             if(hp > Ship.DamageSystem.GetHP() / 3) {
                 if(mortalTime <= 0) {
                     if(mortalChances > 0) {
-                        mortalTime = mortalChances * 2.0 + 1;
+                        AddMessage(new InfoMessage(new ColoredString("Escape while you can!", Color.Red, Color.Black)));
+
+                        mortalTime = mortalChances * 3.0 + 1;
                         mortalChances--;
                     }
                 }
