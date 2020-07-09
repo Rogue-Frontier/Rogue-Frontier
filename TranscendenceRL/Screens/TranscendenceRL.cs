@@ -4,6 +4,7 @@ using Console = SadConsole.Console;
 using TranscendenceRL;
 
 namespace TranscendenceRL {
+
 	class TranscendenceRL {
 
 		public static int TICKS_PER_SECOND = 60;
@@ -16,10 +17,20 @@ namespace TranscendenceRL {
 
             // Hook the start event so we can add consoles to the system.
             SadConsole.Game.Instance.OnStart = Init;
-
+#if DEBUG
 			// Start the game.
 			SadConsole.Game.Instance.Run();
 			SadConsole.Game.Instance.Dispose();
+#else
+			try {
+				// Start the game.
+				SadConsole.Game.Instance.Run();
+			} catch (Exception e) {
+				throw;
+			} finally {
+				SadConsole.Game.Instance.Dispose();
+			}
+#endif
 		}
 
 		private static void Init() {

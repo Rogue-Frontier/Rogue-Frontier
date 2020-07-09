@@ -1,0 +1,8 @@
+﻿<Module>
+	<PowerType codename="power_silence"
+		invokeDelay=	"60"
+		cooldownTime=	"3600"
+		>
+		<Weapon></Weapon>
+	</PowerType>
+</Module>

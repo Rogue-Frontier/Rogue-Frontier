@@ -9,6 +9,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using TranscendenceRL.Types;
+using System.Runtime.InteropServices;
+
 namespace TranscendenceRL {
 	public class TypeCollection {
 		public Dictionary<string, XElement> sources;
@@ -16,6 +19,7 @@ namespace TranscendenceRL {
 		public Dictionary<string, GenomeType> genomeType;
 		public Dictionary<string, ImageType> imageType;
 		public Dictionary<string, ItemType> itemType;
+		public Dictionary<string, PowerType> powerType;
 		public Dictionary<string, SceneType> sceneType;
 		public Dictionary<string, ShipClass> shipClass;
 		public Dictionary<string, Sovereign> sovereign;
@@ -36,6 +40,7 @@ namespace TranscendenceRL {
 			genomeType = new Dictionary<string, GenomeType>();
 			imageType = new Dictionary<string, ImageType>();
 			itemType = new Dictionary<string, ItemType>();
+			powerType = new Dictionary<string, PowerType>();
 			sceneType = new Dictionary<string, SceneType>();
 			shipClass = new Dictionary<string, ShipClass>();
 			stationType = new Dictionary<string, StationType>();
@@ -106,6 +111,9 @@ namespace TranscendenceRL {
 				case "ItemType":
 					AddType<ItemType>(element);
 					break;
+				case "PowerType":
+					AddType<PowerType>(element);
+					break;
 				case "SceneType":
 					AddType<SceneType>(element);
 					break;
@@ -160,6 +168,9 @@ namespace TranscendenceRL {
 						break;
 					case ItemType it:
 						itemType[type] = it;
+						break;
+					case PowerType pt:
+						powerType[type] = pt;
 						break;
 					case SceneType st:
 						sceneType[type] = st;

@@ -239,7 +239,7 @@ namespace TranscendenceRL {
         public int selectedPrimary = 0;
 
         public int mortalChances = 3;
-        public int mortalTicks = 0;
+        public double mortalTime = 0;
         public DeviceSystem Devices => Ship.Devices;
         public BaseShip Ship;
         public EnergySystem Energy;
@@ -423,9 +423,9 @@ namespace TranscendenceRL {
             Ship.Damage(source, hp);
 
             if(hp > Ship.DamageSystem.GetHP() / 3) {
-                if(mortalTicks == 0) {
+                if(mortalTime <= 0) {
                     if(mortalChances > 0) {
-                        mortalTicks = mortalChances * 240;
+                        mortalTime = mortalChances * 2.0 + 1;
                         mortalChances--;
                     }
                 }
@@ -449,10 +449,6 @@ namespace TranscendenceRL {
                     Ship.Devices.Weapons[selectedPrimary].SetFiring(true, target);
                 }
                 firingPrimary = false;
-            }
-
-            if(mortalTicks > 0) {
-                mortalTicks--;
             }
 
             ticks++;

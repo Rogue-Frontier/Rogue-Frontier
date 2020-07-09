@@ -12,8 +12,12 @@ namespace TranscendenceRL.Types {
 
         public PowerEffect Effect;
         public void Initialize(TypeCollection collection, XElement e) {
+            name = e.ExpectAttribute(nameof(name));
+            cooldownTime = e.ExpectAttributeInt(nameof(cooldownTime));
+            invokeDelay = e.ExpectAttributeInt(nameof(invokeDelay));
+
             if(e.HasElement("Weapon", out XElement weapon)) {
-                Effect = new PowerWeapon(new WeaponDesc(e));
+                Effect = new PowerWeapon(new FragmentDesc(e));
             }
         }
     }
@@ -23,8 +27,8 @@ namespace TranscendenceRL.Types {
     }
     //Power that generates a weapon effect
     public class PowerWeapon : PowerEffect {
-        WeaponDesc desc;
-        public PowerWeapon(WeaponDesc desc) {
+        FragmentDesc desc;
+        public PowerWeapon(FragmentDesc desc) {
             this.desc = desc;
         }
         public void Invoke(PlayerShip invoker) {

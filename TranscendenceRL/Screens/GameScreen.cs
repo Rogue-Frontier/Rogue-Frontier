@@ -26,6 +26,8 @@ namespace TranscendenceRL {
 		PlayerUI ui;
 		PowerMenu powerMenu;
 
+		double updateWait;
+
 		public PlayerMain(int Width, int Height, World World, Player player, PlayerShip playerShip) : base(Width, Height) {
 			UseMouse = true;
 			UseKeyboard = true;
@@ -103,13 +105,20 @@ namespace TranscendenceRL {
 
 			//If the player is in mortality, then slow down time
 			bool passTime = true;
-			if(playerShip.mortalTicks > 0) {
-				var interval = Math.Max(2, playerShip.mortalTicks / 60);
-				if (playerShip.mortalTicks % interval > 0) {
+			if(playerShip.mortalTime > 0) {
+
+				//Note that while the world updates are slowed down, the game window actually updates faster since there's less work per frame
+				var timePassed = delta.TotalSeconds;
+				updateWait += timePassed;
+
+				var interval = Math.Max(2, playerShip.mortalTime);
+				if (updateWait < interval / 60) {
 					passTime = false;
+				} else {
+					updateWait = 0;
                 }
-				playerShip.mortalTicks--;
-            }
+				playerShip.mortalTime -= timePassed;
+			}
 			if(passTime) {
 				UpdateWorld();
 				PlaceTiles();
@@ -245,6 +254,9 @@ namespace TranscendenceRL {
 				if (info.IsKeyDown(X)) {
 					playerShip.SetFiringPrimary();
 				}
+				if(info.IsKeyPressed(C)) {
+					playerShip.Damage(playerShip, playerShip.Ship.DamageSystem.GetHP() - 5);
+                }
 			}
 			return base.ProcessKeyboard(info);
 		}
@@ -315,11 +327,35 @@ namespace TranscendenceRL {
 	class PlayerUI : Console {
 		PlayerShip player;
 		Dictionary<(int, int), ColoredGlyph> tiles;
+        
+		struct Snow {
+			public char c;
+			public double factor;
+        }
+		Snow[,] snow;
+
+		public double mortalOpacity;
+
 		public double viewScale;
+
 		double time;
 		public PlayerUI(PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
+			Random r = new Random();
 			this.player = player;
 			this.tiles = tiles;
+
+			char[] particles = {
+				'%', '&', '?', '~'
+			};
+			snow = new Snow[width, height];
+			for(int x = 0; x < width; x++) {
+				for(int y = 0; y < height; y++) {
+					snow[x, y] = new Snow() {
+						c = particles.GetRandom(r),
+						factor = r.NextDouble()
+					};
+                }
+            }
 
 			FocusOnMouseClick = false;
         }
@@ -370,15 +406,28 @@ namespace TranscendenceRL {
 			}
 
 
-			(int r, int g, int b) borderColor = (0, 0, 0);
-			if(player.mortalTicks > 0) {
-				borderColor.r = Math.Max(255, player.mortalTicks * 255 / 300);
+			//Set the color of the vignette
+			Color borderColor = Color.Black;
+			if(player.mortalTime > 0) {
+				//Vignette is red when the player is mortal
+				if(mortalOpacity < player.mortalTime) {
+					mortalOpacity += player.mortalTime / 30;
+                } else {
+					mortalOpacity = player.mortalTime;
+                }
+				/*
+				borderColor = borderColor.SetRed(Math.Min((byte)255, (byte)(Math.Min(2, mortalOpacity) * 128)));
+				borderColor = borderColor.SetBlue(Math.Min((byte)255, (byte)((3 - Math.Min(3, mortalOpacity)) * 25)));
+				borderColor = borderColor.SetAlpha(Math.Min((byte)255, (byte)Math.Min(255, 255 * mortalOpacity / 3)));
+				*/
+				borderColor = borderColor.SetRed(Math.Min((byte)255, (byte)(Math.Min(3, mortalOpacity) * 255 / 3f)));
+				borderColor = borderColor.Premultiply();
             }
 			for(int i = 0; i < 8; i++) {
-				var alpha = 255 - i * 25;
+				byte alpha = (byte)(255 - i * 25);
 				var screenPerimeter = new Rectangle(i, i, Width - i*2, Height - i*2);
 				foreach(var point in screenPerimeter.PerimeterPositions()) {
-					this.SetBackground(point.X, point.Y, new Color(borderColor.r, borderColor.g, borderColor.b, alpha));
+					this.SetBackground(point.X, point.Y, borderColor.SetAlpha(alpha));
                 }
             }
 
