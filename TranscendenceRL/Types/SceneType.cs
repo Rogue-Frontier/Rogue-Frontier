@@ -11,15 +11,16 @@ namespace TranscendenceRL {
     public class SceneType : DesignType, ISceneDesc {
         public void Initialize(TypeCollection collection, XElement e) {
         }
-        public IScene Get(Action<IScene> setPane, PlayerShip player, Dockable dock) {
+        public IScene Get(SetScene setPane, PlayerShip player, Dockable dock) {
             throw new NotImplementedException();
         }
     }
     public class LocalScene : ISceneDesc {
-        public IScene Get(Action<IScene> setPane, PlayerShip player, Dockable dock) {
+        public IScene Get(SetScene setPane, PlayerShip player, Dockable dock) {
             throw new NotImplementedException();
         }
     }
+    public delegate void SetScene(IScene next);
     public class SceneOption {
         bool escape;
         bool enter;
@@ -28,28 +29,18 @@ namespace TranscendenceRL {
         ISceneDesc next;
     }
     public interface ISceneDesc {
-        IScene Get(Action<IScene> setPane, PlayerShip player, Dockable dock);
+        IScene Get(SetScene setPane, PlayerShip player, Dockable dock);
     }
     public class TextSceneDesc : ISceneDesc {
         public string description;
-        public Dictionary<string, string> navigation;
-        public Dictionary<string, ISceneDesc> map;
+        public List<SceneOption> navigation;
 
-        public TextSceneDesc(string description, Dictionary<string, string> navigation, Dictionary<string, ISceneDesc> map) {
+        public TextSceneDesc(string description, List<SceneOption> navigation) {
             this.description = description;
             this.navigation = navigation;
-            this.map = map;
         }
-        public IScene Get(Action<IScene> setScene, PlayerShip player, Dockable dock) {
-            return new TextScene(setScene, description, navigation.ToDictionary(pair => pair.Key, pair => map[pair.Value].Get(setScene, player, dock)));
-        }
-    }
-    public class ExchangeSceneDesc : ISceneDesc {
-        public ExchangeSceneDesc() {
-
-        }
-        public IScene Get(Action<IScene> setScene, PlayerShip player, Dockable dock) {
-            return new ExchangeView(setScene, player, dock);
+        public IScene Get(SetScene setScene, PlayerShip player, Dockable dock) {
+            return new TextScene(setScene, description, navigation);
         }
     }
     public interface IScene {
@@ -57,32 +48,14 @@ namespace TranscendenceRL {
         void Handle(Keyboard info);
         void Draw(ICellSurface w);
     }
-    public class TextSceneIntro : IScene {
-        //First we introduce the hero image in the center of the screen, line by line starting from the top
-        //Then we introduce the area for the message box
-        Action<IScene> setScene;
-        public ColoredGlyph[,] heroImage;
-        public TextSceneIntro(Action<IScene> setScene, string desc, Dictionary<string, IScene> navigation) {
-            this.setScene = setScene;
-        }
-        public void Update() {
-
-        }
-        public void Handle(Keyboard info) {
-
-        }
-        public void Draw(ICellSurface w) {
-
-        }
-    }
     class TextScene : IScene {
-        public Action<IScene> setScene;
-        public ColoredGlyph[,] heroImage;
+        SetScene setScene;
         public string desc;
-        Dictionary<string, IScene> next;
-        public TextScene(Action<IScene> setScene, string desc, Dictionary<string, IScene> navigation) {
+        List<SceneOption> navigation;
+        public TextScene(SetScene setScene, string desc, List<SceneOption> navigation) {
             this.setScene = setScene;
             this.desc = desc;
+            this.navigation = navigation;
         }
         public void Update() {
 
@@ -94,15 +67,15 @@ namespace TranscendenceRL {
 
         }
     }
-    class ExchangeView : IScene {
-        public Action<IScene> setPane;
+    class WreckScene : IScene {
+        SetScene setPane;
         PlayerShip player;
         Dockable dock;
         HashSet<Item> playerItems => player.Items;
         HashSet<Item> dockItems => dock.Items;
         bool playerSide;
         int? index;
-        public ExchangeView(Action<IScene> setScene, PlayerShip player, Dockable dock) {
+        public WreckScene(SetScene setScene, PlayerShip player, Dockable dock) {
             this.player = player;
             this.dock = dock;
             this.setPane = setScene;

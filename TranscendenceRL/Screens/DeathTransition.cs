@@ -42,7 +42,7 @@ namespace TranscendenceRL {
         }
         public override void Update(TimeSpan delta) {
             prev.Update(delta);
-            time += delta.TotalSeconds/2;
+            time += delta.TotalSeconds / 2;
             if(time < 4) {
                 return;
             } else if(time < 9) {
