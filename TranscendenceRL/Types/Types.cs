@@ -229,36 +229,9 @@ namespace TranscendenceRL {
 	public class StaticTile {
 		public ColoredGlyph Glyph { get; private set; }
 		public StaticTile(XElement e) {
-			char c;
-			var s = e.TryAttribute("char", "?");
-			if (s.Length == 1) {
-				c = s.First();
-			} else if (s.StartsWith("\\") && int.TryParse(s.Substring(1), out var result)) {
-				c = (char)result;
-            } else {
-				throw new Exception($"Invalid char {s}");
-			}
-
-			Color background;
-			s = e.TryAttribute("background", "Transparent");
-			if(int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
-				background = new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
-			} else try {
-				background = (Color)typeof(Color).GetProperty(s).GetValue(null, null);
-			} catch {
-				throw new Exception($"Invalid background color {s}");
-			}
-
-
-			Color foreground;
-			s = e.TryAttribute("foreground", "White");
-			if (int.TryParse(s, NumberStyles.HexNumber, null, out packed)) {
-				foreground = new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
-			} else try {
-				foreground = (Color)typeof(Color).GetProperty(s).GetValue(null, null);
-			} catch {
-				throw new Exception($"Invalid foreground color {s}");
-			}
+			char c = e.TryAttributeChar("char", '?');
+			Color foreground = e.TryAttributeColor("foreground", Color.White);
+			Color background = e.TryAttributeColor("background", Color.Transparent);
 
 			Glyph = new ColoredGlyph(foreground, background, c);
 		}

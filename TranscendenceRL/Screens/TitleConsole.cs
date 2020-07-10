@@ -241,7 +241,7 @@ namespace TranscendenceRL {
                 var playerStart = World.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
                 var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
                 var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
-                playerShip.Powers.Add(new Power(new PowerType() { cooldownTime = 120, invokeDelay = 120, name = "Silence", Effect = new PowerWeapon(null) }));
+                playerShip.Powers.Add(new Power(World.types.Lookup<PowerType>("power_silence")));
                 playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
                 World.AddEffect(new Heading(playerShip));

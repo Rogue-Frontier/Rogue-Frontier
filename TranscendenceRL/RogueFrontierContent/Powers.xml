@@ -1,10 +1,20 @@
 ﻿<Module>
-<!--
 	<PowerType codename="power_silence"
+		name=			"Silence"
 		invokeDelay=	"60"
 		cooldownTime=	"3600"
 		>
-		<Weapon></Weapon>
+		<Weapon
+			count=			"60"
+			spreadAngle=	"360"
+			missileSpeed=	"40"
+			damageType=		"1"
+			damageHP=		"12"
+			lifetime=		"30"
+			char=			"*"
+			foreground=		"FF55FFFF"
+			>
+			<Trail lifetime="30" background="CC88DDFF"/>
+		</Weapon>
 	</PowerType>
--->
 </Module>

@@ -11,12 +11,12 @@ namespace TranscendenceRL {
     public class SceneType : DesignType, ISceneDesc {
         public void Initialize(TypeCollection collection, XElement e) {
         }
-        public IScene Get(SetScene setPane, PlayerShip player, Dockable dock) {
+        public IScene Get(SetScene setScene, PlayerShip player, Dockable dock) {
             throw new NotImplementedException();
         }
     }
     public class LocalScene : ISceneDesc {
-        public IScene Get(SetScene setPane, PlayerShip player, Dockable dock) {
+        public IScene Get(SetScene setScene, PlayerShip player, Dockable dock) {
             throw new NotImplementedException();
         }
     }
@@ -29,7 +29,10 @@ namespace TranscendenceRL {
         ISceneDesc next;
     }
     public interface ISceneDesc {
-        IScene Get(SetScene setPane, PlayerShip player, Dockable dock);
+        IScene Get(SetScene setScene, PlayerShip player, Dockable dock);
+    }
+    public class WreckSceneDesc : ISceneDesc {
+        public IScene Get(SetScene setScene, PlayerShip player, Dockable dock) => new WreckScene(setScene, player, dock);
     }
     public class TextSceneDesc : ISceneDesc {
         public string description;

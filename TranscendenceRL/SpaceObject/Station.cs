@@ -20,7 +20,7 @@ namespace TranscendenceRL {
         public bool Active { get; private set; }
         public HashSet<Item> Items { get; private set; }
         public ColoredGlyph Tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.Tile.GlyphCharacter);
-        public ISceneDesc MainView => new ExchangeSceneDesc();
+        public ISceneDesc MainView => new WreckSceneDesc();
         public Wreck(SpaceObject creator) {
             this.creator = creator;
             this.World = creator.World;

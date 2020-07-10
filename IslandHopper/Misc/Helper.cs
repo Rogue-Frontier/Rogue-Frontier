@@ -13,6 +13,8 @@ using System.Reflection.Metadata.Ecma335;
 using SadConsole.UI;
 using SadConsole.Input;
 using SadConsole.Effects;
+using System.Globalization;
+using SadRogue.Primitives;
 
 namespace Common {
 	public static class Helper {
@@ -294,6 +296,34 @@ namespace Common {
 		public static string TryAttribute(this XElement e, string attribute, string fallback = "") {
 			return e.Attribute(attribute)?.Value ?? fallback;
 		}
+		public static char TryAttributeChar(this XElement e, string attribute, char fallback) {
+			if(e.TryAttribute("char", out string s)) {
+				if (s.Length == 1) {
+					return s.First();
+				} else if (s.StartsWith("\\") && int.TryParse(s.Substring(1), out var result)) {
+					return (char)result;
+				} else {
+					throw new Exception($"Char value expected:{attribute}=\"{s}\"");
+				}
+			} else {
+				return fallback;
+            }
+			
+		}
+		public static Color TryAttributeColor(this XElement e, string attribute, Color fallback) {
+			if(e.TryAttribute(attribute, out string s)) {
+				if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
+					return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
+				} else try {
+						return (Color)typeof(Color).GetProperty(s).GetValue(null, null);
+					} catch {
+						throw new Exception($"Color value expected: {attribute}=\"{s}\"");
+					}
+			} else {
+				return fallback;
+            }
+			
+		}
         public static int TryAttributeInt(this XElement e, string attribute, int fallback = 0) => TryAttributeInt(e.Attribute(attribute), fallback);
 		//We expect either no value or a valid value; an invalid value gets an exception
 		public static int TryAttributeInt(this XAttribute a, int fallback = 0) {
@@ -303,6 +333,19 @@ namespace Common {
 				return result;
 			} else {
 				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\"");
+			}
+		}
+		public static Color ExpectAttributeColor(this XElement e, string attribute) {
+			if (e.TryAttribute(attribute, out string s)) {
+				if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
+					return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
+				} else try {
+						return (Color)typeof(Color).GetProperty(s).GetValue(null, null);
+					} catch {
+						throw new Exception($"Color value expected: {attribute}=\"{s}\"");
+					}
+			} else {
+				throw new Exception($"{e.Name} requires color attribute {attribute}");
 			}
 		}
 		public static int ExpectAttributeInt(this XElement e, string attribute) {

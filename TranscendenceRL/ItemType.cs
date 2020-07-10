@@ -7,6 +7,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using SadRogue.Primitives;
 
 namespace TranscendenceRL {
     public class ItemType : DesignType {
@@ -57,7 +58,6 @@ namespace TranscendenceRL {
         public int minRange => shot.missileSpeed * shot.lifetime / TranscendenceRL.TICKS_PER_SECOND; //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
         public CapacitorDesc capacitor;
-        public HashSet<FragmentDesc> fragments;
         public WeaponDesc(XElement e) {
             powerUse = e.ExpectAttributeInt(nameof(powerUse));
             fireCooldown = e.ExpectAttributeInt(nameof(fireCooldown));
@@ -68,11 +68,6 @@ namespace TranscendenceRL {
             effect = new StaticTile(e);
             if(e.HasElement("Capacitor", out var xmlCapacitor)) {
                 capacitor = new CapacitorDesc(xmlCapacitor);
-            }
-
-            fragments = new HashSet<FragmentDesc>();
-            if(e.HasElements("Fragment", out var fragmentsList)) {
-                fragments.UnionWith(fragmentsList.Select(f => new FragmentDesc(f)));
             }
         }
     }
@@ -85,9 +80,10 @@ namespace TranscendenceRL {
         public int lifetime;
         public HashSet<FragmentDesc> fragments;
         public StaticTile effect;
+        public TrailDesc trail;
         public FragmentDesc(XElement e) {
             count = e.TryAttributeInt(nameof(count), 1);
-            spreadAngle = e.TryAttributeDouble(nameof(spreadAngle), count == 0 ? 0 : 30) * Math.PI / 180;
+            spreadAngle = e.TryAttributeDouble(nameof(spreadAngle), count == 1 ? 0 : 3) * Math.PI / 180;
             missileSpeed = e.ExpectAttributeInt(nameof(missileSpeed));
             damageType = e.ExpectAttributeInt(nameof(damageType));
             damageHP = e.ExpectAttributeInt(nameof(damageHP));
@@ -96,8 +92,20 @@ namespace TranscendenceRL {
             if (e.HasElements("Fragment", out var fragmentsList)) {
                 fragments.UnionWith(fragmentsList.Select(f => new FragmentDesc(f)));
             }
+            if(e.HasElement("Trail", out var trail)) {
+                this.trail = new TrailDesc(trail);
+            }
             effect = new StaticTile(e);
         }
+    }
+    public class TrailDesc {
+        public int lifetime;
+        public Color background;
+        public TrailDesc(XElement e) {
+            lifetime = e.ExpectAttributeInt(nameof(lifetime));
+            background = e.ExpectAttributeColor("background");
+        }
+        public GetTrail GetTrail() => (Position) => new FadingTrail(Position, new ColoredGlyph(Color.Transparent, background), lifetime);
     }
     public class CapacitorDesc {
         public double dischargePerShot;

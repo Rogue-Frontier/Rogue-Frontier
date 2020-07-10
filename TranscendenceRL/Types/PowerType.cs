@@ -17,7 +17,7 @@ namespace TranscendenceRL.Types {
             invokeDelay = e.ExpectAttributeInt(nameof(invokeDelay));
 
             if(e.HasElement("Weapon", out XElement weapon)) {
-                Effect = new PowerWeapon(new FragmentDesc(e));
+                Effect = new PowerWeapon(new FragmentDesc(weapon));
             }
         }
     }
@@ -31,8 +31,7 @@ namespace TranscendenceRL.Types {
         public PowerWeapon(FragmentDesc desc) {
             this.desc = desc;
         }
-        public void Invoke(PlayerShip invoker) {
-        }
+        public void Invoke(PlayerShip invoker) => SWeapon.CreateShot(desc, invoker, invoker.rotationDegrees * Math.PI / 180);
     }
     public class Power {
         public PowerType type;

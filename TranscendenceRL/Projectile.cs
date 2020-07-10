@@ -8,20 +8,24 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TranscendenceRL {
-    class Projectile : Entity {
+    public delegate Effect GetTrail(XY Position);
+    public class Projectile : Entity {
         public World World { get; private set; }
         SpaceObject Source;
         public XY Position { get; private set; }
         public XY Velocity { get; private set; }
         public bool Active => lifetime > 0;
         public ColoredGlyph Tile { get; private set; }
+        public GetTrail GetTrail;
+
         public int damage;
         public int lifetime;
         public HashSet<FragmentDesc> fragments;
-        public Projectile(SpaceObject Source, World World, ColoredGlyph Tile, XY Position, XY Velocity, int damage, int lifetime, HashSet<FragmentDesc> fragments) {
+        public Projectile(SpaceObject Source, World World, ColoredGlyph Tile, GetTrail GetTrail, XY Position, XY Velocity, int damage, int lifetime, HashSet<FragmentDesc> fragments) {
             this.Source = Source;
             this.World = World;
             this.Tile = Tile;
+            this.GetTrail = GetTrail ?? ((p) => new EffectParticle(this.Position, this.Tile, 1));
             this.Position = Position;
             this.Velocity = Velocity;
             this.damage = damage;
@@ -52,7 +56,7 @@ namespace TranscendenceRL {
                     }
 
                     //if (i >= trailPoint) {
-                        World.AddEffect(new EffectParticle(Position, Tile, 1));
+                    World.AddEffect(GetTrail(Position));
                     //}
 
                 }
@@ -71,7 +75,10 @@ namespace TranscendenceRL {
                 double angleInterval = fragment.spreadAngle / fragment.count;
                 for (int i = 0; i < fragment.count; i++) {
                     double angle = Velocity.Angle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-                    World.AddEntity(new Projectile(Source, World, fragment.effect.Glyph, Position + XY.Polar(angle, 0.5), Velocity + XY.Polar(angle, fragment.missileSpeed), fragment.damageHP, fragment.lifetime, fragment.fragments));
+                    var trail = fragment.trail;
+                    Projectile p = null;
+                    p = new Projectile(Source, World, fragment.effect.Glyph, trail?.GetTrail(), Position + XY.Polar(angle, 0.5), Velocity + XY.Polar(angle, fragment.missileSpeed), fragment.damageHP, fragment.lifetime, fragment.fragments);
+                    World.AddEntity(p);
                 }
             }
         }

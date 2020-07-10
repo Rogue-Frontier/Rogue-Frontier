@@ -3,12 +3,13 @@
 	<Module file="OrionWarlords.xml"/>
 	<Module file="Genomes.xml"/>
 	<Module file="Items.xml"/>
+	<Module file="Missions.xml"/>
+	<Module file="Powers.xml"/>
 	<Module file="Player.xml"/>
 	<Module file="Reactors.xml"/>
 	<Module file="Ships.xml"/>
 	<Module file="Sovereign.xml"/>
 	<Module file="Stations.xml"/>
 	<Module file="Systems.xml"/>
-	<Module file="Missions.xml"/>
 
 </Module>

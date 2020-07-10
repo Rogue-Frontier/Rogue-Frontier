@@ -1,4 +1,5 @@
 ﻿using Common;
+using SadConsole;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,33 @@ namespace TranscendenceRL {
     }
     public interface Powered : Device {
         int powerUse { get; }
+    }
+    public static class SWeapon {
+        public static void CreateShot(this FragmentDesc fragment, SpaceObject Source, double direction) {
+            int damageHP = fragment.damageHP;
+            int missileSpeed = fragment.missileSpeed;
+            int lifetime = fragment.lifetime;
+
+            var World = Source.World;
+            var Position = Source.Position;
+            var Velocity = Source.Velocity;
+            var angleInterval = fragment.spreadAngle / fragment.count;
+
+            for (int i = 0; i < fragment.count; i++) {
+                double angle = Velocity.Angle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
+                var trail = fragment.trail;
+                Projectile p = null;
+                p = new Projectile(Source, World,
+                    fragment.effect.Glyph,
+                    trail?.GetTrail(),
+                    Position + XY.Polar(angle, 0.5),
+                    Velocity + XY.Polar(angle, fragment.missileSpeed),
+                    fragment.damageHP,
+                    fragment.lifetime,
+                    fragment.fragments);
+                World.AddEntity(p);
+            }
+        }
     }
     public class Weapon : Powered {
         public Item source { get; private set; }
@@ -119,14 +147,16 @@ namespace TranscendenceRL {
 
             capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);
             capacitor?.Discharge();
-
-            var shot = new Projectile(source, source.World,
+            var trail = desc.shot.trail;
+            Projectile shot = null;
+            shot = new Projectile(source, source.World,
                 desc.effect.Glyph,
+                trail?.GetTrail(),
                 source.Position + XY.Polar(direction),
                 source.Velocity + XY.Polar(direction, missileSpeed),
                 damageHP,
                 lifetime,
-                desc.fragments);
+                desc.shot.fragments);
             source.World.AddEntity(shot);
         }
         public void SetFiring(bool firing = true) => this.firing = firing;
