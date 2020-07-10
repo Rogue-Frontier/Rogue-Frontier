@@ -802,16 +802,20 @@ namespace TranscendenceRL {
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
 			foreach(var k in keyboard.KeysDown) {
-				if(k.Character == 0 || k.Character == ' ') {
+				var ch = k.Character;
+				if (ch == 0 || ch == ' ') {
 					continue;
                 }
+
+				ch = char.ToLower(ch);
 				//If we're pressing a digit/letter, then we're charging up a power
 				int powerIndex = -1;
-				var ch = char.ToLower(k.Character);
 				if (char.IsDigit(ch)) {
 					powerIndex = ch - '0';
                 } else if(char.IsLetter(ch)) {
 					powerIndex = 10 + ch - 'a';
+                } else {
+					continue;
                 }
 
 				//Find the power

@@ -20,6 +20,13 @@ namespace TranscendenceRL {
             throw new NotImplementedException();
         }
     }
+    public class SceneOption {
+        bool escape;
+        bool enter;
+        char key;
+        string name;
+        ISceneDesc next;
+    }
     public interface ISceneDesc {
         IScene Get(Action<IScene> setPane, PlayerShip player, Dockable dock);
     }
