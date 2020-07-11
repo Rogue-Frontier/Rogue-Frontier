@@ -47,7 +47,7 @@ namespace TranscendenceRL {
 			map.Children.Add(ui);			//Set UI over the map since we don't want it to interfere with the vignette transparency
 			ui.Children.Add(powerMenu);     //Set power menu as child of the UI so that it doesn't get covered by the vignette
 
-			crosshair = new Marker("Player Mouse", new XY());
+			crosshair = new Marker("Mouse Cursor", new XY());
 
 			//Don't allow anyone to get focus via mouse click
 			FocusOnMouseClick = false;
@@ -288,15 +288,21 @@ namespace TranscendenceRL {
 
 				if (state.Mouse.MiddleClicked) {
 					//Set target to object closest to mouse cursor
-					//If there is no target closer to the cursor than the playership, then we enable aiming by crosshair
+					//If there is no target closer to the cursor than the playership, then we toggle aiming by crosshair
+
 					var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
-					if(targetList.First() == playerShip) {
-						playerShip.SetTargetList(new List<SpaceObject>() { crosshair });
+					if (targetList.First() == playerShip) {
+						if (playerShip.GetTarget(out var t) && t == crosshair) {
+							playerShip.ClearTarget();
+						} else {
+							playerShip.SetTargetList(new List<SpaceObject>() { crosshair });
+						}
 					} else {
 						playerShip.targetList = targetList;
 						playerShip.targetIndex = 0;
 						playerShip.UpdateAutoAim();
 					}
+
 
 
 					/*
