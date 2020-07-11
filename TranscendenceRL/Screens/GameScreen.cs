@@ -27,7 +27,7 @@ namespace TranscendenceRL {
 		PlayerUI ui;
 		PowerMenu powerMenu;
 
-		Marker crosshair;
+		TargetingMarker crosshair;
 
 		double updateWait;
 
@@ -47,7 +47,7 @@ namespace TranscendenceRL {
 			map.Children.Add(ui);			//Set UI over the map since we don't want it to interfere with the vignette transparency
 			ui.Children.Add(powerMenu);     //Set power menu as child of the UI so that it doesn't get covered by the vignette
 
-			crosshair = new Marker("Mouse Cursor", new XY());
+			crosshair = new TargetingMarker(playerShip, "Mouse Cursor", new XY());
 
 			//Don't allow anyone to get focus via mouse click
 			FocusOnMouseClick = false;
@@ -323,10 +323,23 @@ namespace TranscendenceRL {
 				if (playerShip.GetTarget(out var target) && target == crosshair) {
 					crosshair.Position = worldPos;
 					crosshair.Velocity = playerShip.Velocity;
-					Heading.Crosshair(playerShip.World, worldPos);
+					Heading.Crosshair(world, worldPos);
 				} else {
 					var playerOffset = worldPos - playerShip.Position;
+
 					if (playerOffset.xi != 0 && playerOffset.yi != 0) {
+
+						//Draw an effect for the cursor
+						world.AddEffect(new EffectParticle(worldPos, new ColoredGlyph(Color.White, Color.Transparent, '+'), 1));
+						{
+							//Draw a trail leading back to the player
+							var norm = playerOffset.Normal;
+							var trailLength = Math.Min(3, playerOffset.Magnitude / 4);
+							for (int i = 1; i < trailLength; i++) {
+								world.AddEffect(new EffectParticle(worldPos - norm * i, new ColoredGlyph(Color.White, Color.Transparent, '.'), 1));
+							}
+						}
+
 						var mouseRads = playerOffset.Angle;
 						var facingRads = playerShip.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
 
