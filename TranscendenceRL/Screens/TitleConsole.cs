@@ -76,14 +76,17 @@ namespace TranscendenceRL {
             //Update everything
             foreach (var e in World.entities.all) {
                 e.Update();
-                if (e.Tile != null && !tiles.ContainsKey(e.Position)) {
-                    tiles[e.Position] = e.Tile;
+
+                var p = e.Position.RoundDown;
+                if (e.Tile != null && !tiles.ContainsKey(p)) {
+                    tiles[p] = e.Tile;
                 }
             }
             foreach (var e in World.effects.all) {
                 e.Update();
-                if (e.Tile != null && !tiles.ContainsKey(e.Position)) {
-                    tiles[e.Position] = e.Tile;
+                var p = e.Position.RoundDown;
+                if (e.Tile != null && !tiles.ContainsKey(p)) {
+                    tiles[p] = e.Tile;
                 }
             }
 
@@ -194,7 +197,7 @@ namespace TranscendenceRL {
                     if (g == 0 || g == ' ' || this.GetForeground(x,y).A == 0) {
                         
                         
-                        if(tiles.TryGetValue(location, out var tile)) {
+                        if(tiles.TryGetValue(location.RoundDown, out var tile)) {
                             if(tile.Background == Color.Transparent) {
                                 tile.Background = World.backdrop.GetBackground(location, camera);
                             }
@@ -253,7 +256,7 @@ namespace TranscendenceRL {
                 World.AddEntity(wingmate);
                 World.AddEffect(new Heading(wingmate));
 
-                var playerMain = new PlayerMain(Width, Height, World, player, playerShip);
+                var playerMain = new PlayerMain(Width, Height, World, playerShip);
                 playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
 
                 SadConsole.Game.Instance.Screen = playerMain;

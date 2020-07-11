@@ -161,7 +161,9 @@ namespace TranscendenceRL {
                 World.types.Lookup<SystemType>("system_orion").Generate(World);
                 World.UpdatePresent();
 
-                var playerStart = World.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
+                var start = World.entities.all.OfType<Marker>().First(m => m.Name == "Start");
+                start.Active = false;
+                var playerStart = start.Position;
                 var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
                 var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
                 playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
@@ -169,7 +171,7 @@ namespace TranscendenceRL {
                 World.AddEffect(new Heading(playerShip));
                 World.AddEntity(playerShip);
 
-                var playerMain = new PlayerMain(Width, Height, World, player, playerShip);
+                var playerMain = new PlayerMain(Width, Height, World, playerShip);
                 playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
 
                 playerMain.Update(time);

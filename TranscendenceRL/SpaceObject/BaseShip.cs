@@ -397,6 +397,20 @@ namespace TranscendenceRL {
             targetList.Clear();
             targetIndex = -1;
         }
+
+        public void SetTargetList(List<SpaceObject> targetList) {
+            if(targetIndex > -1) {
+                ResetAutoAim();
+            }
+            this.targetList = targetList;
+            if(targetList.Count > 0) {
+                targetIndex = 0;
+                UpdateAutoAim();
+            } else {
+                targetIndex = -1;
+
+            }
+        }
         public bool GetTarget(out SpaceObject target) {
             if (targetIndex != -1) {
                 target = targetList[targetIndex];

@@ -27,9 +27,11 @@ namespace TranscendenceRL {
 		PlayerUI ui;
 		PowerMenu powerMenu;
 
+		Marker crosshair;
+
 		double updateWait;
 
-		public PlayerMain(int Width, int Height, World World, Player player, PlayerShip playerShip) : base(Width, Height) {
+		public PlayerMain(int Width, int Height, World World, PlayerShip playerShip) : base(Width, Height) {
 			UseMouse = true;
 			UseKeyboard = true;
 			camera = new XY();
@@ -43,7 +45,9 @@ namespace TranscendenceRL {
 			};
 			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
 			map.Children.Add(ui);			//Set UI over the map since we don't want it to interfere with the vignette transparency
-			ui.Children.Add(powerMenu);		//Set power menu as child of the UI so that it doesn't get covered by the vignette
+			ui.Children.Add(powerMenu);     //Set power menu as child of the UI so that it doesn't get covered by the vignette
+
+			crosshair = new Marker("Player Mouse", new XY());
 
 			//Don't allow anyone to get focus via mouse click
 			FocusOnMouseClick = false;
@@ -70,6 +74,7 @@ namespace TranscendenceRL {
 				deathFrame = deathFrame,
 				wreck = wreck
 			};
+			playerShip.player.epitaphs.Add(epitaph);
 			SadConsole.Game.Instance.Screen = new DeathTransition(this, new DeathScreen(this, world, playerShip, epitaph)) { IsFocused = true };
 		}
 		public void PlaceTiles() {
@@ -157,7 +162,8 @@ namespace TranscendenceRL {
 			}
 		}
 		public bool GetForegroundTile(XY xy, out ColoredGlyph result) {
-			if (tiles.TryGetValue(xy, out result)) {
+			//Round down to ensure we don't get duplicated tiles along the origin
+			if (tiles.TryGetValue(xy.RoundDown, out result)) {
 				result = result.Clone();	//Don't modify the source
 				var back = GetBackTile(xy);
 				if (result.Background.A == 0) {
@@ -172,7 +178,8 @@ namespace TranscendenceRL {
 		}
 		public ColoredGlyph GetTile(XY xy) {
 			var back = GetBackTile(xy);
-			if (tiles.TryGetValue(xy, out ColoredGlyph g)) {
+			//Round down to ensure we don't get duplicated tiles along the origin
+			if (tiles.TryGetValue(xy.RoundDown, out ColoredGlyph g)) {
 				g = g.Clone();			//Don't modify the source
 				if(g.Background.A == 0) {
 					g.Background = back.Background;
@@ -184,11 +191,13 @@ namespace TranscendenceRL {
 			}
 		}
 		public ColoredGlyph GetBackTile(XY xy) {
-			//var value = backSpace.Get(xy - (camera * 3) / 4);
-			var back = world.backdrop.GetTile(xy, camera.RoundDown);
+			//Don't round down since this function does it for us
+			var back = world.backdrop.GetTile(xy, camera);
 			return back;
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
+
+
 			map.ProcessKeyboard(info);
 
 			//Move the player
@@ -276,11 +285,19 @@ namespace TranscendenceRL {
 				var centerOffset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
 
 				var worldPos = centerOffset + camera;
+
 				if (state.Mouse.MiddleClicked) {
+					//Set target to object closest to mouse cursor
+					//If there is no target closer to the cursor than the playership, then we enable aiming by crosshair
 					var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
-					playerShip.targetList = targetList;
-					playerShip.targetIndex = 0;
-					playerShip.UpdateAutoAim();
+					if(targetList.First() == playerShip) {
+						playerShip.SetTargetList(new List<SpaceObject>() { crosshair });
+					} else {
+						playerShip.targetList = targetList;
+						playerShip.targetIndex = 0;
+						playerShip.UpdateAutoAim();
+					}
+
 
 					/*
 					//Attempt to skip the beginning items of both lists that already match
@@ -296,25 +313,33 @@ namespace TranscendenceRL {
 					*/
 				}
 
-				var playerOffset = worldPos - playerShip.Position;
-				if (playerOffset.xi != 0 && playerOffset.yi != 0) {
-					var mouseRads = playerOffset.Angle;
-					var facingRads = playerShip.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
+				//Aiming with crosshair disables mouse turning
+				if (playerShip.GetTarget(out var target) && target == crosshair) {
+					crosshair.Position = worldPos;
+					crosshair.Velocity = playerShip.Velocity;
+					Heading.Crosshair(playerShip.World, worldPos);
+				} else {
+					var playerOffset = worldPos - playerShip.Position;
+					if (playerOffset.xi != 0 && playerOffset.yi != 0) {
+						var mouseRads = playerOffset.Angle;
+						var facingRads = playerShip.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
 
-					var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
-					var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
-					if (ccw < cw) {
-						playerShip.SetRotating(Rotating.CCW);
-					} else if (cw < ccw) {
-						playerShip.SetRotating(Rotating.CW);
-					} else {
-						if (playerShip.Ship.rotatingVel > 0) {
+						var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
+						var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
+						if (ccw < cw) {
+							playerShip.SetRotating(Rotating.CCW);
+						} else if (cw < ccw) {
 							playerShip.SetRotating(Rotating.CW);
 						} else {
-							playerShip.SetRotating(Rotating.CCW);
+							if (playerShip.Ship.rotatingVel > 0) {
+								playerShip.SetRotating(Rotating.CW);
+							} else {
+								playerShip.SetRotating(Rotating.CCW);
+							}
 						}
 					}
 				}
+
 
 				if (state.Mouse.LeftButtonDown) {
 					playerShip.SetFiringPrimary();
