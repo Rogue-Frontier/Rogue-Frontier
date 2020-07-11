@@ -341,21 +341,7 @@ namespace TranscendenceRL {
 						}
 
 						var mouseRads = playerOffset.Angle;
-						var facingRads = playerShip.Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
-
-						var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
-						var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(mouseRads)).Magnitude;
-						if (ccw < cw) {
-							playerShip.SetRotating(Rotating.CCW);
-						} else if (cw < ccw) {
-							playerShip.SetRotating(Rotating.CW);
-						} else {
-							if (playerShip.Ship.rotatingVel > 0) {
-								playerShip.SetRotating(Rotating.CW);
-							} else {
-								playerShip.SetRotating(Rotating.CCW);
-							}
-						}
+						playerShip.SetRotatingToFace(mouseRads);
 					}
 				}
 

@@ -277,6 +277,23 @@ namespace TranscendenceRL {
         public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);
         public void SetDecelerating(bool decelerating = true) => Ship.SetDecelerating(decelerating);
         public void SetFiringPrimary(bool firingPrimary = true) => this.firingPrimary = firingPrimary;
+        public void SetRotatingToFace(double targetRads) {
+            var facingRads = Ship.stoppingRotationWithCounterTurn * Math.PI / 180;
+
+            var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;
+            var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;
+            if (ccw < cw) {
+                SetRotating(Rotating.CCW);
+            } else if (cw < ccw) {
+                SetRotating(Rotating.CW);
+            } else {
+                if (Ship.rotatingVel > 0) {
+                    SetRotating(Rotating.CW);
+                } else {
+                    SetRotating(Rotating.CCW);
+                }
+            }
+        }
         public void NextWeapon() {
             selectedPrimary++;
             if(selectedPrimary >= Ship.Devices.Weapons.Count) {
