@@ -265,7 +265,12 @@ namespace TranscendenceRL {
 				if (info.IsKeyDown(X)) {
 					playerShip.SetFiringPrimary();
 				}
-				if(info.IsKeyPressed(C)) {
+				if (info.IsKeyDown(Z)) {
+					if(playerShip.GetTarget(out SpaceObject target) && playerShip.GetPrimary(out Weapon w)) {
+						playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.Position - playerShip.Position, target.Velocity - playerShip.Velocity, w.missileSpeed, out _));
+					}
+				}
+				if (info.IsKeyPressed(C)) {
 					playerShip.Damage(playerShip, playerShip.Ship.DamageSystem.GetHP() - 5);
                 }
 			}
@@ -302,6 +307,7 @@ namespace TranscendenceRL {
 
 					//Set target to object closest to mouse cursor
 					//If there is no target closer to the cursor than the playership, then we toggle aiming by crosshair
+					//Using the crosshair, we can effectively force any omnidirectional weapons to point at the crosshair
 					if (targetList.First() == playerShip) {
 						if (playerShip.GetTarget(out t) && t == crosshair) {
 							playerShip.ClearTarget();
@@ -336,6 +342,8 @@ namespace TranscendenceRL {
 				if (playerShip.GetTarget(out t) && t == crosshair) {
 					crosshair.Position = worldPos;
 					crosshair.Velocity = playerShip.Velocity;
+					//If we set velocity to match player's velocity, then the weapon will aim directly at the crosshair
+					//If we set the velocity to zero, then the weapon will aim to the lead angle of the crosshair
 
 					crosshair.Update();
 

@@ -449,6 +449,14 @@ namespace TranscendenceRL {
             }
             return null;
         }
+        public bool GetPrimary(out Weapon result) {
+            if (selectedPrimary < Ship.Devices.Weapons.Count) {
+                result = Ship.Devices.Weapons[selectedPrimary];
+                return true;
+            }
+            result = null;
+            return false;
+        }
         public void Damage(SpaceObject source, int hp) {
             //Base ship can get destroyed without calling our own Destroy(), so we need to hook up an OnDestroyed event to this
             Ship.Damage(source, hp);
