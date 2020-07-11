@@ -285,14 +285,25 @@ namespace TranscendenceRL {
 				var centerOffset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
 
 				var worldPos = centerOffset + camera;
-
+				SpaceObject t;
 				if (state.Mouse.MiddleClicked) {
+
+					//Idea: Let the crosshair auto-snap to the nearest enemy, so middle-clicking would set target to enemy
+					//No: Maybe we shouldn't get in the way of the player
+					//No: That would be redundant; we already have middle-click to target nearest
+					/*
+					var crosshairPos = worldPos;
+					if (playerShip.GetTarget(out var t) && t == crosshair) {
+						crosshairPos = crosshair.Position;
+					}
+					var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - crosshairPos).Magnitude));
+					*/
+					var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
+
 					//Set target to object closest to mouse cursor
 					//If there is no target closer to the cursor than the playership, then we toggle aiming by crosshair
-
-					var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
 					if (targetList.First() == playerShip) {
-						if (playerShip.GetTarget(out var t) && t == crosshair) {
+						if (playerShip.GetTarget(out t) && t == crosshair) {
 							playerShip.ClearTarget();
 						} else {
 							playerShip.SetTargetList(new List<SpaceObject>() { crosshair });
@@ -319,26 +330,36 @@ namespace TranscendenceRL {
 					*/
 				}
 
-				//Aiming with crosshair disables mouse turning
-				if (playerShip.GetTarget(out var target) && target == crosshair) {
+
+				bool enableMouseTurn = true;
+				//Update the crosshair if we're aiming with it
+				if (playerShip.GetTarget(out t) && t == crosshair) {
 					crosshair.Position = worldPos;
 					crosshair.Velocity = playerShip.Velocity;
-					Heading.Crosshair(world, worldPos);
-				} else {
+
+					crosshair.Update();
+
+					Heading.Crosshair(world, crosshair.Position);
+
+					//Idea: Aiming with crosshair disables mouse turning
+					enableMouseTurn = false;
+				}
+
+				if(enableMouseTurn) {
 					var playerOffset = worldPos - playerShip.Position;
 
 					if (playerOffset.xi != 0 && playerOffset.yi != 0) {
 
 						//Draw an effect for the cursor
 						world.AddEffect(new EffectParticle(worldPos, new ColoredGlyph(Color.White, Color.Transparent, '+'), 1));
-						{
-							//Draw a trail leading back to the player
-							var norm = playerOffset.Normal;
-							var trailLength = Math.Min(3, playerOffset.Magnitude / 4);
-							for (int i = 1; i < trailLength; i++) {
-								world.AddEffect(new EffectParticle(worldPos - norm * i, new ColoredGlyph(Color.White, Color.Transparent, '.'), 1));
-							}
+
+						//Draw a trail leading back to the player
+						var trailNorm = playerOffset.Normal;
+						var trailLength = Math.Min(3, playerOffset.Magnitude / 4) + 1;
+						for (int i = 1; i < trailLength; i++) {
+							world.AddEffect(new EffectParticle(worldPos - trailNorm * i, new ColoredGlyph(Color.White, Color.Transparent, '.'), 1));
 						}
+
 
 						var mouseRads = playerOffset.Angle;
 						playerShip.SetRotatingToFace(mouseRads);
