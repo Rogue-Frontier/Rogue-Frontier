@@ -24,6 +24,7 @@ namespace TranscendenceRL {
 		Point mousePos;
 
 		MegaMap map;
+		PlayerBorder vignette;
 		PlayerUI ui;
 		PowerMenu powerMenu;
 
@@ -41,6 +42,7 @@ namespace TranscendenceRL {
 			backVoid = new GeneratedLayer(1, new Random());
 
 			map = new MegaMap(playerShip, Width, Height);
+			vignette = new PlayerBorder(playerShip, Width, Height);
 			ui = new PlayerUI(playerShip, tiles, Width, Height);
 			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
 			/*
@@ -139,6 +141,7 @@ namespace TranscendenceRL {
 				this.Children.Add(new SceneScan(new SceneScreen(Width, Height, d.MainView, playerShip, d)) { IsFocused = true });
 			}
 			map.Update(delta);
+			vignette.Update(delta);
 			ui.Update(delta);
 			powerMenu.Update(delta);
 
@@ -148,14 +151,16 @@ namespace TranscendenceRL {
 		public override void Draw(TimeSpan drawTime) {
 			base.Draw(drawTime);
 			DrawWorld();
-
-			if(Children.Count == 0) {
+			if (Children.Count == 0) {
 				if (map.IsVisible)
 					map.Draw(drawTime);
+				vignette.Draw(drawTime);
 				ui.Draw(drawTime);
 				if (powerMenu.IsVisible)
 					powerMenu.Draw(drawTime);
-			}
+			} else {
+				//We should have a way to draw the vignette below the current dockscreen
+            }
 		}
 		public void DrawWorld() {
 			this.Clear();
@@ -462,6 +467,57 @@ namespace TranscendenceRL {
 			base.Draw(delta);
         }
     }
+	class PlayerBorder : Console {
+		PlayerShip player;
+		public double mortalOpacity;
+
+		public PlayerBorder(PlayerShip player, int width, int height) : base(width, height) {
+			this.player = player;
+			FocusOnMouseClick = false;
+		}
+        public override void Update(TimeSpan delta) {
+			if (mortalOpacity < player.mortalTime) {
+				mortalOpacity += player.mortalTime / 30;
+			} else {
+				mortalOpacity = player.mortalTime;
+			}
+			base.Update(delta);
+        }
+        public override void Draw(TimeSpan delta) {
+			XY screenSize = new XY(Width, Height);
+
+			//Set the color of the vignette
+			Color borderColor = Color.Black;
+			int borderSize = 8;
+
+			if (player.mortalTime > 0) {
+				//Vignette is red when the player is mortal
+				/*
+				borderColor = borderColor.SetRed(Math.Min((byte)255, (byte)(Math.Min(2, mortalOpacity) * 128)));
+				borderColor = borderColor.SetBlue(Math.Min((byte)255, (byte)((3 - Math.Min(3, mortalOpacity)) * 25)));
+				borderColor = borderColor.SetAlpha(Math.Min((byte)255, (byte)Math.Min(255, 255 * mortalOpacity / 3)));
+				*/
+				borderColor = borderColor.SetRed(Math.Min((byte)255, (byte)(Math.Min(3, mortalOpacity) * 255 / 3f)));
+				borderColor = borderColor.Premultiply();
+
+				var fraction = (player.mortalTime - Math.Truncate(player.mortalTime));
+
+				borderSize += (int)(2 * borderSize * fraction);
+			}
+			int dec = 255 / borderSize;
+			for (int i = 0; i < borderSize; i++) {
+				byte alpha = (byte)Math.Max(0, 255 - i * dec);
+				var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
+				foreach (var point in screenPerimeter.PerimeterPositions()) {
+					var color = borderColor.SetAlpha(alpha);
+					//var back = this.GetBackground(point.X, point.Y).Premultiply();
+
+					this.SetBackground(point.X, point.Y, color);
+				}
+			}
+			base.Draw(delta);
+        }
+    }
 	class PlayerUI : Console {
 		/*
 		struct Snow {
@@ -475,7 +531,6 @@ namespace TranscendenceRL {
 		public double mortalOpacity;
 
 		public PlayerUI(PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
-			Random r = new Random();
 			this.player = player;
 			this.tiles = tiles;
 			/*
@@ -499,41 +554,6 @@ namespace TranscendenceRL {
 			XY screenSize = new XY(Width, Height);
 			XY screenCenter = screenSize / 2;
 			var messageY = Height * 3 / 5;
-
-			//Set the color of the vignette
-			Color borderColor = Color.Black;
-			int borderSize = 8;
-
-			if (player.mortalTime > 0) {
-				//Vignette is red when the player is mortal
-				if(mortalOpacity < player.mortalTime) {
-					mortalOpacity += player.mortalTime / 30;
-                } else {
-					mortalOpacity = player.mortalTime;
-                }
-				/*
-				borderColor = borderColor.SetRed(Math.Min((byte)255, (byte)(Math.Min(2, mortalOpacity) * 128)));
-				borderColor = borderColor.SetBlue(Math.Min((byte)255, (byte)((3 - Math.Min(3, mortalOpacity)) * 25)));
-				borderColor = borderColor.SetAlpha(Math.Min((byte)255, (byte)Math.Min(255, 255 * mortalOpacity / 3)));
-				*/
-				borderColor = borderColor.SetRed(Math.Min((byte)255, (byte)(Math.Min(3, mortalOpacity) * 255 / 3f)));
-				borderColor = borderColor.Premultiply();
-
-				var fraction = (player.mortalTime - Math.Truncate(player.mortalTime));
-
-				borderSize += (int) (2 * borderSize * fraction);
-            }
-			int dec = 255 / borderSize;
-			for(int i = 0; i < borderSize; i++) {
-				byte alpha = (byte)Math.Max(0, 255 - i * dec);
-				var screenPerimeter = new Rectangle(i, i, Width - i*2, Height - i*2);
-				foreach(var point in screenPerimeter.PerimeterPositions()) {
-					var color = borderColor.SetAlpha(alpha);
-					//var back = this.GetBackground(point.X, point.Y).Premultiply();
-
-					this.SetBackground(point.X, point.Y, color);
-                }
-            }
 
 			if (player.GetTarget(out SpaceObject target)) {
 
