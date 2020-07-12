@@ -29,8 +29,8 @@ namespace TranscendenceRL {
             x = Math.Max(0, Width / 4 - map.Select(line => line.Length).Max() / 2);
             y = 2;
             foreach (var line in map) {
-                this.Print(x, y, line);
-                y++;
+                this.Print(x, y++, line);
+                this.Print(x, y++, line);
             }
             y++;
 
@@ -58,8 +58,8 @@ namespace TranscendenceRL {
             base.Draw(delta);
         }
         public override bool ProcessKeyboard(Keyboard info) {
-            if(info.IsKeyPressed(SadConsole.Input.Keys.S)) {
-                SadConsole.Game.Instance.Screen = prev;
+            if(info.IsKeyPressed(SadConsole.Input.Keys.S) || info.IsKeyPressed(Keys.Escape)) {
+                prev.Children.Remove(this);
                 prev.IsFocused = true;
             }
             return base.ProcessKeyboard(info);

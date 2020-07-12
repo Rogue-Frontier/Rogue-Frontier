@@ -306,6 +306,46 @@ namespace TranscendenceRL {
                 selectedPrimary = 0;
             }
         }
+        /*
+        //No, let the player always choose the closest target to cursor. No iteration.
+        public void NextTargetSet(SpaceObject next) {
+            var index = targetList.IndexOf(next);
+            if(index != -1) {
+                if(index <= targetIndex) {
+                    bool canRefresh = true;
+
+                CheckTarget:
+                    targetIndex++;
+                    if (targetIndex < targetList.Count) {
+                        var target = targetList[targetIndex];
+                        if (!target.Active) {
+                            goto CheckTarget;
+                        } else if ((target.Position - Position).Magnitude > 100) {
+                            goto CheckTarget;
+                        } else {
+                            //Found target
+                            UpdateAutoAim();
+                        }
+                    } else {
+                        targetIndex = -1;
+                        if (canRefresh) {
+                            Refresh();
+                            goto CheckTarget;
+                        } else {
+                            //Could not find target
+                        }
+                    }
+
+                    void Refresh() {
+                        targetList = World.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - Position).Magnitude).ToList();
+                        canRefresh = false;
+                    }
+                }
+            } else {
+
+            }
+        }
+        */
         public void NextTargetEnemy() {
             bool canRefresh = true;
 

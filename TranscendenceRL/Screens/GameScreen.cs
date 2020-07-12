@@ -41,12 +41,13 @@ namespace TranscendenceRL {
 			backVoid = new GeneratedLayer(1, new Random());
 
 			map = new MegaMap(playerShip, Width, Height);
-			ui = new PlayerUI(playerShip, tiles, Width, Height) {
-			};
+			ui = new PlayerUI(playerShip, tiles, Width, Height);
 			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
+			/*
 			map.Children.Add(ui);			//Set UI over the map since we don't want it to interfere with the vignette transparency
 			ui.Children.Add(powerMenu);     //Set power menu as child of the UI so that it doesn't get covered by the vignette
-
+			*/
+			
 			crosshair = new TargetingMarker(playerShip, "Mouse Cursor", new XY());
 
 			//Don't allow anyone to get focus via mouse click
@@ -135,14 +136,26 @@ namespace TranscendenceRL {
 			camera = playerShip.Position;
 			if (playerShip.Dock?.docked == true && playerShip.Dock.target is Dockable d) {
 				playerShip.Dock = null;
-				this.Children.Add(new SceneScreen(Width, Height, d.MainView, playerShip, d) { IsFocused = true });
+				this.Children.Add(new SceneScan(new SceneScreen(Width, Height, d.MainView, playerShip, d)) { IsFocused = true });
 			}
 			map.Update(delta);
+			ui.Update(delta);
+			powerMenu.Update(delta);
+
+			//Required to update children
+			base.Update(delta);
 		}
 		public override void Draw(TimeSpan drawTime) {
 			base.Draw(drawTime);
 			DrawWorld();
-			map.Draw(drawTime);
+
+			if(Children.Count == 0) {
+				if (map.IsVisible)
+					map.Draw(drawTime);
+				ui.Draw(drawTime);
+				if (powerMenu.IsVisible)
+					powerMenu.Draw(drawTime);
+			}
 		}
 		public void DrawWorld() {
 			this.Clear();
@@ -225,7 +238,7 @@ namespace TranscendenceRL {
 					playerShip.Destroy(playerShip);
 				}
 				if (info.IsKeyPressed(S)) {
-					SadConsole.Game.Instance.Screen = new ShipScreen(this, playerShip) { IsFocused = true };
+					Children.Add(new SceneScan(new ShipScreen(this, playerShip)) { IsFocused = true });
 				}
 				if (info.IsKeyPressed(V)) {
 					powerMenu.IsVisible = true;
@@ -419,7 +432,7 @@ namespace TranscendenceRL {
 				XY screenCenter = screenSize / 2;
 				for (int x = 0; x < Width; x++) {
 					for (int y = 0; y < Height; y++) {
-						var back = BackVoid.GetTileFixed(new XY(x, y));
+						var back = BackVoid.GetTileFixed(new XY(x * 2, y * 2));
 						//Make sure to clone this so that we don't apply alpha changes to the original
 						back = back.Clone();
 						var glyph = back.Glyph;
@@ -862,23 +875,10 @@ namespace TranscendenceRL {
         public override bool ProcessKeyboard(Keyboard keyboard) {
 			foreach(var k in keyboard.KeysDown) {
 				var ch = k.Character;
-				if (ch == 0 || ch == ' ') {
-					continue;
-                }
-
-				ch = char.ToLower(ch);
 				//If we're pressing a digit/letter, then we're charging up a power
-				int powerIndex = -1;
-				if (char.IsDigit(ch)) {
-					powerIndex = ch - '0';
-                } else if(char.IsLetter(ch)) {
-					powerIndex = 10 + ch - 'a';
-                } else {
-					continue;
-                }
-
+				int powerIndex = keyToIndex(ch);
 				//Find the power
-				if(powerIndex < playerShip.Powers.Count) {
+				if(powerIndex > -1 && powerIndex < playerShip.Powers.Count) {
 					var power = playerShip.Powers[powerIndex];
 					//Make sure this power is available
 					if(power.ready) {
@@ -900,18 +900,32 @@ namespace TranscendenceRL {
             return base.ProcessKeyboard(keyboard);
         }
 		public static char indexToKey(int index) {
+			//0 is the last key; 1 is the first
 			if (index < 10) {
-				return (char)('0' + index);
+				return (char)('0' + (index + 1) % 10);
 			} else {
 				index -= 10;
 				if (index < 26) {
 					return (char)('a' + index);
 				} else {
-					throw new IndexOutOfRangeException();
+					return '\0';
 				}
 			}
 		}
-        public override void Draw(TimeSpan delta) {
+		public static int keyToIndex(char ch) {
+			//0 is the last key; 1 is the first
+			if (ch >= '0' && ch <= '9') {
+				return (ch - '0' + 9) % 10;
+			} else {
+				ch = char.ToLower(ch);
+				if (ch >= 'a' && ch <= 'z') {
+					return (ch - 'a') + 10;
+				} else {
+					return -1;
+				}
+			}
+		}
+		public override void Draw(TimeSpan delta) {
 			int x = 3;
 			int y = 32;
 			int index = 0;
@@ -919,10 +933,11 @@ namespace TranscendenceRL {
 			this.Clear();
 
 			Color foreground = Color.White;
-			if(ticks%30 < 15) {
+			if(ticks%60 < 30) {
 				foreground = Color.Yellow;
             }
 			this.Print(x, y++, "[Powers]", foreground);
+			this.Print(x, y++, "[Ship control locked]", foreground);
 			this.Print(x, y++, "[Press ESC to cancel]", foreground);
 			this.Print(x, y++, "[Press key to invoke]", foreground);
 			y++;
