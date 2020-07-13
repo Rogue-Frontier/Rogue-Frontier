@@ -26,7 +26,7 @@ namespace TranscendenceRL {
 
 		MegaMap map;
 		PlayerBorder vignette;
-		//Console scene;
+		Console sceneContainer;
 		PlayerUI ui;
 		PowerMenu powerMenu;
 
@@ -45,6 +45,8 @@ namespace TranscendenceRL {
 
 			map = new MegaMap(playerShip, Width, Height);
 			vignette = new PlayerBorder(playerShip, Width, Height);
+			sceneContainer = new Console(Width, Height);
+			sceneContainer.Focused += (e, o) => this.IsFocused = true;
 			ui = new PlayerUI(playerShip, tiles, Width, Height);
 			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
 			/*
@@ -99,6 +101,9 @@ namespace TranscendenceRL {
 			world.UpdateAll();
 		}
 		public override void Update(TimeSpan delta) {
+			if(sceneContainer.Children.Count > 0) {
+				sceneContainer.Update(delta);
+            }
 			/*
 			//SM64-style camera: We smoothly point ahead of where the player is going
 			var offset = playerShip.Velocity / 3;
@@ -140,7 +145,7 @@ namespace TranscendenceRL {
 			camera = playerShip.Position;
 			if (playerShip.Dock?.docked == true && playerShip.Dock.target is Dockable d) {
 				playerShip.Dock = null;
-				this.Children.Add(new SceneScan(new SceneScreen(Width, Height, d.MainView, playerShip, d)) { IsFocused = true });
+				sceneContainer.Children.Add(new SceneScan(d.GetScene(this, playerShip)) { IsFocused = true });
 			}
 			map.Update(delta);
 			vignette.Update(delta);
@@ -153,16 +158,17 @@ namespace TranscendenceRL {
 		public override void Draw(TimeSpan drawTime) {
 			base.Draw(drawTime);
 			DrawWorld();
-			if (Children.Count == 0) {
+			if (sceneContainer.Children.Count > 0) {
+				vignette.Draw(drawTime);
+				sceneContainer.Draw(drawTime);
+			} else {
 				if (map.IsVisible)
 					map.Draw(drawTime);
 				vignette.Draw(drawTime);
 				ui.Draw(drawTime);
 				if (powerMenu.IsVisible)
 					powerMenu.Draw(drawTime);
-			} else {
-				//We should have a way to draw the vignette below the current dockscreen
-            }
+			}
 		}
 		public void DrawWorld() {
 			this.Clear();
@@ -245,7 +251,7 @@ namespace TranscendenceRL {
 					playerShip.Destroy(playerShip);
 				}
 				if (info.IsKeyPressed(S)) {
-					Children.Add(new SceneScan(new ShipScreen(this, playerShip)) { IsFocused = true });
+					sceneContainer.Children.Add(new SceneScan(new ShipScreen(this, playerShip)) { IsFocused = true });
 				}
 				if (info.IsKeyPressed(V)) {
 					powerMenu.IsVisible = true;
@@ -297,7 +303,9 @@ namespace TranscendenceRL {
 			return base.ProcessKeyboard(info);
 		}
 		public override bool ProcessMouse(MouseScreenObjectState state) {
-			if(state.IsOnScreenObject) {
+			if(sceneContainer.Children.Count > 0) {
+				sceneContainer.ProcessMouse(state);
+            } else if(state.IsOnScreenObject) {
 
 				//Placeholder for mouse wheel-based weapon selection
 				if(state.Mouse.ScrollWheelValueChange > 100) {

@@ -8,95 +8,112 @@ using System;
 using SadConsole;
 using static SadConsole.Input.Keys;
 using static UI;
+using Console = SadConsole.Console;
+using Common;
+
 namespace TranscendenceRL {
-    public class SceneType : DesignType, ISceneDesc {
+    public class SceneType : DesignType {
         public void Initialize(TypeCollection collection, XElement e) {
         }
-        public IScene Get(SetScene setScene, PlayerShip player, Dockable dock) {
+    }
+    public class SceneDesc : ISceneDesc {
+        public SceneDesc(XElement e) {
+
+        }
+
+        public Console Get(Console prev, PlayerShip player) {
+            //Read thru the desc, generate all the consoles, and return the main one here
             throw new NotImplementedException();
         }
     }
-    public class LocalScene : ISceneDesc {
-        public IScene Get(SetScene setScene, PlayerShip player, Dockable dock) {
-            throw new NotImplementedException();
-        }
+    public interface ISceneDesc {
+        Console Get(Console prev, PlayerShip player);
     }
-    public delegate void SetScene(IScene next);
+    public class StationScene : Console {
+        Console prev;
+        PlayerShip player;
+        Station station;
+
+        double time;
+        public StationScene(Console prev, PlayerShip player, Station station) : base(prev.Width, prev.Height) {
+            this.prev = prev;
+            this.player = player;
+            this.station = station;
+
+
+        }
+        public override void Update(TimeSpan delta) {
+            time += delta.TotalSeconds;
+            base.Update(delta);
+        }
+        public override void Draw(TimeSpan delta) {
+            var heroImage = station.StationType.heroImage;
+            int width = heroImage.Max(line => line.Length);
+            int height = heroImage.Length;
+            int x = 8;
+            int y = (Height - height * 2)/2;
+
+            var tint = station.StationType.heroImageTint;
+            byte GetAlpha(int x, int y) {
+                return (byte)(Math.Sin(time * 1.5 + Math.Sin(x) * 5 + Math.Sin(y) * 5) * 25 + 230);
+            }
+            int lineY = 0;
+            foreach(var line in heroImage) {
+                void DrawLine() {
+                    for (int lineX = 0; lineX < line.Length; lineX++) {
+                        var color = tint.SetAlpha(GetAlpha(lineX, lineY));
+                        this.SetCellAppearance(x + lineX, y + lineY, new ColoredGlyph(color, Color.Black, line[lineX]));
+                    }
+                    lineY++;
+                }
+                DrawLine();
+                DrawLine();
+            }
+
+            base.Draw(delta);
+        }
+
+    }
     public class SceneOption {
         bool escape;
         bool enter;
         char key;
         string name;
-        ISceneDesc next;
+        Console next;
     }
-    public interface ISceneDesc {
-        IScene Get(SetScene setScene, PlayerShip player, Dockable dock);
-    }
-    public class WreckSceneDesc : ISceneDesc {
-        public IScene Get(SetScene setScene, PlayerShip player, Dockable dock) => new WreckScene(setScene, player, dock);
-    }
-    public class TextSceneDesc : ISceneDesc {
-        public string description;
-        public List<SceneOption> navigation;
-
-        public TextSceneDesc(string description, List<SceneOption> navigation) {
-            this.description = description;
-            this.navigation = navigation;
-        }
-        public IScene Get(SetScene setScene, PlayerShip player, Dockable dock) {
-            return new TextScene(setScene, description, navigation);
-        }
-    }
-    public interface IScene {
-        void Update();
-        void Handle(Keyboard info);
-        void Draw(ICellSurface w);
-    }
-    class TextScene : IScene {
-        SetScene setScene;
+    class TextScene : Console {
+        Console prev;
         public string desc;
         List<SceneOption> navigation;
-        public TextScene(SetScene setScene, string desc, List<SceneOption> navigation) {
-            this.setScene = setScene;
+        public TextScene(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
+            this.prev = prev;
             this.desc = desc;
             this.navigation = navigation;
         }
-        public void Update() {
-
-        }
-        public void Handle(Keyboard info) {
-
-        }
-        public void Draw(ICellSurface w) {
-
-        }
     }
-    class WreckScene : IScene {
-        SetScene setPane;
+    class WreckScene : Console {
+        Console prev;
         PlayerShip player;
-        Dockable docked;
+        Wreck docked;
         HashSet<Item> playerItems => player.Items;
         HashSet<Item> dockedItems => docked.Items;
         bool playerSide;
         int? playerIndex;
         int? dockedIndex;
-        public WreckScene(SetScene setScene, PlayerShip player, Dockable dock) {
+        public WreckScene(Console prev, PlayerShip player, Wreck docked) : base(prev.Width, prev.Height) {
+            this.prev = prev;
             this.player = player;
-            this.docked = dock;
-            this.setPane = setScene;
+            this.docked = docked;
             this.playerSide = false;
 
             if(player.Items.Any()) {
                 playerIndex = 0;
             }
-            if(docked.Items.Any()) {
+            if(this.docked.Items.Any()) {
                 dockedIndex = 0;
             }
         }
-        public void Update() {
-
-        }
-        public void Handle(Keyboard keyboard) {
+        public override bool ProcessKeyboard(Keyboard keyboard) {
             var from = playerSide ? playerItems : dockedItems;
             var to = playerSide ? dockedItems : playerItems;
             ref int? index = ref (playerSide ? ref playerIndex : ref dockedIndex);
@@ -164,7 +181,8 @@ namespace TranscendenceRL {
                         }
                         break;
                     case Keys.Escape:
-                        setPane(null);
+                        Parent.Children.Remove(this);
+                        prev.IsFocused = true;
                         break;
                     default:
                         var ch = char.ToLower(key.Character);
@@ -185,16 +203,17 @@ namespace TranscendenceRL {
                         break;
                 }
             }
+            return base.ProcessKeyboard(keyboard);
         }
-        public void Draw(ICellSurface w) {
+        public override void Draw(TimeSpan delta) {
             int x = 16;
             int y = 16;
 
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
-                w.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
+                this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
 
-            w.Print(x, y, player.Name, playerSide ? Color.Yellow : Color.White, Color.Black);
+            this.Print(x, y, player.Name, playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
             int i = 0;
             int? highlight = null;
@@ -210,7 +229,7 @@ namespace TranscendenceRL {
                 var highlightColor = i == highlight ? Color.Yellow : Color.White;
                 var name = new ColoredString($"{UI.indexToLetter(i)}. ", playerSide ? highlightColor : Color.Gray, Color.Transparent)
                          + new ColoredString(playerItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
-                w.Print(x, y, name);
+                this.Print(x, y, name);
 
                 i++;
                 y++;
@@ -219,10 +238,10 @@ namespace TranscendenceRL {
             x += 32;
             y = 16;
             foreach(var point in new Rectangle(x, y, 32, 26).Positions()) {
-                w.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
+                this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
 
-            w.Print(x, y, docked.Name, !playerSide ? Color.Yellow : Color.White, Color.Black);
+            this.Print(x, y, docked.Name, !playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
             i = 0;
             highlight = null;
@@ -235,11 +254,13 @@ namespace TranscendenceRL {
                 var highlightColor = (i == highlight ? Color.Yellow : Color.White);
                 var name = new ColoredString($"{UI.indexToLetter(i)}. ", !playerSide ? highlightColor : Color.Gray, Color.Transparent)
                          + new ColoredString(dockedItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
-                w.Print(x, y, name);
+                this.Print(x, y, name);
 
                 i++;
                 y++;
             }
+            base.Draw(delta);
         }
+        
     }
 }

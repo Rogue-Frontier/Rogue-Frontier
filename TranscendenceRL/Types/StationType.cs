@@ -1,10 +1,8 @@
 ﻿using Common;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
+using SadRogue.Primitives;
+using Color = SadRogue.Primitives.Color;
 
 namespace TranscendenceRL {
 	public class StationType : DesignType {
@@ -16,6 +14,11 @@ namespace TranscendenceRL {
 		public WeaponList weapons;
 		public List<SegmentDesc> segments;
 		public ShipList guards;
+		
+		public string[] heroImage;
+		public Color heroImageTint;
+
+		public SceneDesc scene;
 
 		public void Initialize(TypeCollection collection, XElement e) {
 			codename = e.ExpectAttribute("codename");
@@ -43,6 +46,10 @@ namespace TranscendenceRL {
 			}
 			if(e.HasElement("Guards", out var xmlGuards)) {
 				guards = new ShipList(xmlGuards);
+			}
+			if (e.HasElement("HeroImage", out var heroImage)) {
+				this.heroImage = heroImage.Value.Replace("\r\n", "\n").Split('\n');
+				this.heroImageTint = heroImage.TryAttributeColor("tint", Color.White);
 			}
 		}
 		public static List<SegmentDesc> CreateRing(string foreground = "White", string background = "Black") {

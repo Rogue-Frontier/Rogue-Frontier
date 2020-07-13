@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TranscendenceRL;
 using static TranscendenceRL.StationType;
+using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
     public class Wreck : Dockable {
@@ -20,7 +21,6 @@ namespace TranscendenceRL {
         public bool Active { get; private set; }
         public HashSet<Item> Items { get; private set; }
         public ColoredGlyph Tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.Tile.GlyphCharacter);
-        public ISceneDesc MainView => new WreckSceneDesc();
         public Wreck(SpaceObject creator) {
             this.creator = creator;
             this.World = creator.World;
@@ -30,6 +30,7 @@ namespace TranscendenceRL {
             this.Active = true;
             Items = new HashSet<Item>();
         }
+        public Console GetScene(Console prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
         public void Damage(SpaceObject source, int hp) {
         }
 
@@ -41,7 +42,7 @@ namespace TranscendenceRL {
             Position += Velocity / TranscendenceRL.TICKS_PER_SECOND;
         }
     }
-    public class Station : SpaceObject {
+    public class Station : SpaceObject, Dockable {
         public string Name => StationType.name;
         public World World { get; private set; }
         public StationType StationType { get; private set; }
@@ -130,6 +131,9 @@ namespace TranscendenceRL {
         public void Update() {
             weapons?.ForEach(w => w.Update(this));
         }
+
+        public Console GetScene(Console prev, PlayerShip playerShip) => new StationScene(prev, playerShip, this);
+
         public ColoredGlyph Tile => StationType.tile.Glyph;
 
     }

@@ -1,9 +1,5 @@
 ﻿using Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SadConsole;
 
 namespace TranscendenceRL {
     public interface SpaceObject : Entity {
@@ -15,8 +11,7 @@ namespace TranscendenceRL {
         void Destroy(SpaceObject source = null);
     }
     public interface Dockable : SpaceObject {
-        HashSet<Item> Items { get; }
-        ISceneDesc MainView { get; }
+        Console GetScene(Console prev, PlayerShip playerShip);
     }
     public static class SSpaceObject {
         public static bool IsEqual(this SpaceObject o1, SpaceObject o2) {

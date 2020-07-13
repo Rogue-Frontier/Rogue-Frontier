@@ -75,7 +75,7 @@ namespace TranscendenceRL {
 			startingClass = e.ExpectAttributeBool("startingClass");
 			description = e.ExpectAttribute("description");
 			if(e.HasElement("Map", out var xmlMap)) {
-				map = xmlMap.Value.Replace("\r\n", "\n").Split('\n');
+				map = xmlMap.Value.Replace("\r", "").Split('\n');
 			}
 		}
 	}
