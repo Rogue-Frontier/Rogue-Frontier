@@ -7,6 +7,7 @@ using SadRogue.Primitives;
 using System;
 using SadConsole;
 using static SadConsole.Input.Keys;
+using static UI;
 namespace TranscendenceRL {
     public class SceneType : DesignType, ISceneDesc {
         public void Initialize(TypeCollection collection, XElement e) {
@@ -73,111 +74,168 @@ namespace TranscendenceRL {
     class WreckScene : IScene {
         SetScene setPane;
         PlayerShip player;
-        Dockable dock;
+        Dockable docked;
         HashSet<Item> playerItems => player.Items;
-        HashSet<Item> dockItems => dock.Items;
+        HashSet<Item> dockedItems => docked.Items;
         bool playerSide;
-        int? index;
+        int? playerIndex;
+        int? dockedIndex;
         public WreckScene(SetScene setScene, PlayerShip player, Dockable dock) {
             this.player = player;
-            this.dock = dock;
+            this.docked = dock;
             this.setPane = setScene;
             this.playerSide = false;
 
-            var items = (playerSide ? this.playerItems : this.dockItems);
-            if (items.Any()) {
-                index = 0;
+            if(player.Items.Any()) {
+                playerIndex = 0;
+            }
+            if(docked.Items.Any()) {
+                dockedIndex = 0;
             }
         }
         public void Update() {
 
         }
         public void Handle(Keyboard keyboard) {
-            var from = playerSide ? playerItems : dockItems;
+            var from = playerSide ? playerItems : dockedItems;
+            var to = playerSide ? dockedItems : playerItems;
+            ref int? index = ref (playerSide ? ref playerIndex : ref dockedIndex);
+            
+            foreach(var key in keyboard.KeysPressed) {
+                switch(key.Key) {
+                    case Keys.Up:
+                        if (from.Any()) {
+                            if (index == null) {
+                                index = from.Count - 1;
+                            } else {
+                                index = Math.Max(index.Value - 1, 0);
+                            }
+                        } else {
+                            index = null;
+                        }
+                        break;
+                    case Keys.Down:
+                        if (from.Any()) {
+                            if (index == null) {
+                                index = 0;
+                            } else {
+                                index = Math.Min(index.Value + 1, from.Count - 1);
+                            }
+                        } else {
+                            index = null;
+                        }
+                        break;
+                    case Keys.Left:
+                        playerSide = true;
 
-            if (keyboard.IsKeyPressed(Up)) {
-                if (index == null && from.Any()) {
-                    index = from.Count - 1;
-                } else if (index != null) {
-                    index = Math.Min(index.Value, from.Count - 1);
-                }
-            }
-            if (keyboard.IsKeyPressed(Down)) {
-                if (index == null && from.Any()) {
-                    index = 0;
-                } else if (index != null) {
-                    index = Math.Min(index.Value, from.Count - 1);
-                }
-            }
-            if (keyboard.IsKeyPressed(Left) || keyboard.IsKeyPressed(Right)) {
-                playerSide = !playerSide;
-                from = playerSide ? playerItems : dockItems;
-                if (from.Any()) {
-                    index = Math.Min(index ?? 0, from.Count - 1);
-                } else {
-                    index = null;
-                }
-            }
-            if (keyboard.IsKeyPressed(Enter) && index != null) {
-                var to = playerSide ? dockItems : playerItems;
+                        from = playerItems;
+                        index = ref playerIndex;
 
-                var item = from.ElementAt(index.Value);
-                from.Remove(item);
-                to.Add(item);
+                        if (from.Any()) {
+                            index = Math.Min(index ?? 0, from.Count - 1);
+                        } else {
+                            index = null;
+                        }
+                        break;
+                    case Keys.Right:
+                        playerSide = false;
 
-                if (from.Any()) {
-                    index = Math.Min(index ?? 0, from.Count - 1);
-                } else {
-                    index = null;
+                        from = dockedItems;
+                        index = ref dockedIndex;
+
+                        if (from.Any()) {
+                            index = Math.Min(index ?? 0, from.Count - 1);
+                        } else {
+                            index = null;
+                        }
+                        break;
+                    case Keys.Enter:
+                        if (index != null) {
+
+                            var item = from.ElementAt(index.Value);
+                            from.Remove(item);
+                            to.Add(item);
+
+                            if (from.Any()) {
+                                index = Math.Min(index ?? 0, from.Count - 1);
+                            } else {
+                                index = null;
+                            }
+                        }
+                        break;
+                    case Keys.Escape:
+                        setPane(null);
+                        break;
+                    default:
+                        var ch = char.ToLower(key.Character);
+                        if(ch >= 'a' && ch <= 'z') {
+                            var letterIndex = letterToIndex(ch);
+                            if(letterIndex < from.Count) {
+                                var item = from.ElementAt(letterIndex);
+                                from.Remove(item);
+                                to.Add(item);
+
+                                if(from.Any()) {
+                                    index = Math.Min(index.Value, from.Count - 1);
+                                } else {
+                                    index = null;
+                                }
+                            }
+                        }
+                        break;
                 }
-            }
-            if (keyboard.IsKeyPressed(Escape)) {
-                setPane(null);
             }
         }
         public void Draw(ICellSurface w) {
             int x = 16;
             int y = 16;
-            int entries = w.ViewHeight - 32;
 
-            w.Print(x, y, player.Name, Color.White, Color.Black);
-            y++;
-            int i;
-            int? highlight;
-
-            i = 0;
-            highlight = null;
-            if (playerSide && index != null) {
-                i = Math.Max(index.Value - 16, 0);
-                highlight = index;
+            foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
+                w.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
+
+            w.Print(x, y, player.Name, playerSide ? Color.Yellow : Color.White, Color.Black);
+            y++;
+            int i = 0;
+            int? highlight = null;
+
+            if (playerSide && playerIndex != null) {
+                i = Math.Max(playerIndex.Value - 16, 0);
+                highlight = playerIndex;
+            }
+
+
             while (i < playerItems.Count) {
-                if (i == highlight) {
-                    w.Print(x, y, playerItems.ElementAt(i).type.name, Color.Yellow, Color.Black);
-                } else {
-                    w.Print(x, y, playerItems.ElementAt(i).type.name, Color.White, Color.Black);
-                }
+
+                var highlightColor = i == highlight ? Color.Yellow : Color.White;
+                var name = new ColoredString($"{UI.indexToLetter(i)}. ", playerSide ? highlightColor : Color.Gray, Color.Transparent)
+                         + new ColoredString(playerItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
+                w.Print(x, y, name);
 
                 i++;
                 y++;
             }
 
-            x = w.ViewWidth / 2 + 16;
+            x += 32;
             y = 16;
-            w.Print(x, y, dock.Name, Color.White, Color.Black);
+            foreach(var point in new Rectangle(x, y, 32, 26).Positions()) {
+                w.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
+            }
+
+            w.Print(x, y, docked.Name, !playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
             i = 0;
             highlight = null;
-            if (!playerSide && index != null) {
-                i = Math.Max(index.Value - 16, 0);
-                highlight = index;
+            if (!playerSide && dockedIndex != null) {
+                i = Math.Max(dockedIndex.Value - 16, 0);
+                highlight = dockedIndex;
             }
-            while (i < dockItems.Count) {
-                if (i == highlight) {
-                    w.Print(x, y, dockItems.ElementAt(i).type.name, Color.Yellow, Color.Black);
-                } else {
-                    w.Print(x, y, dockItems.ElementAt(i).type.name, Color.White, Color.Black);
-                }
+            while (i < dockedItems.Count) {
+
+                var highlightColor = (i == highlight ? Color.Yellow : Color.White);
+                var name = new ColoredString($"{UI.indexToLetter(i)}. ", !playerSide ? highlightColor : Color.Gray, Color.Transparent)
+                         + new ColoredString(dockedItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
+                w.Print(x, y, name);
 
                 i++;
                 y++;

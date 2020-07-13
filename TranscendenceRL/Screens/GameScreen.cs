@@ -12,6 +12,7 @@ using ASECII;
 using SadConsole.UI;
 using Console = SadConsole.Console;
 using Helper = Common.Helper;
+using static UI;
 
 
 namespace TranscendenceRL {
@@ -25,6 +26,7 @@ namespace TranscendenceRL {
 
 		MegaMap map;
 		PlayerBorder vignette;
+		//Console scene;
 		PlayerUI ui;
 		PowerMenu powerMenu;
 
@@ -919,32 +921,6 @@ namespace TranscendenceRL {
             }
             return base.ProcessKeyboard(keyboard);
         }
-		public static char indexToKey(int index) {
-			//0 is the last key; 1 is the first
-			if (index < 10) {
-				return (char)('0' + (index + 1) % 10);
-			} else {
-				index -= 10;
-				if (index < 26) {
-					return (char)('a' + index);
-				} else {
-					return '\0';
-				}
-			}
-		}
-		public static int keyToIndex(char ch) {
-			//0 is the last key; 1 is the first
-			if (ch >= '0' && ch <= '9') {
-				return (ch - '0' + 9) % 10;
-			} else {
-				ch = char.ToLower(ch);
-				if (ch >= 'a' && ch <= 'z') {
-					return (ch - 'a') + 10;
-				} else {
-					return -1;
-				}
-			}
-		}
 		public override void Draw(TimeSpan delta) {
 			int x = 3;
 			int y = 32;

@@ -17,9 +17,15 @@ namespace TranscendenceRL {
             this.next = next;
             next.Draw(new TimeSpan());
         }
+        public override bool ProcessKeyboard(Keyboard keyboard) {
+            if(keyboard.IsKeyPressed(Keys.Enter)) {
+                y = next.Height;
+            }
+            return base.ProcessKeyboard(keyboard);
+        }
         public override void Update(TimeSpan delta) {
             if(y < next.Height) {
-                y++;
+                y += 1;
             } else {
                 var p = Parent;
                 p.Children.Remove(this);

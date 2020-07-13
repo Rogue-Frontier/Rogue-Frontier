@@ -247,6 +247,17 @@ namespace TranscendenceRL {
                 playerShip.Powers.Add(new Power(World.types.Lookup<PowerType>("power_silence")));
                 playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
+                Func<Item> item = () => new Item(new ItemType() { name = "aa" });
+                playerShip.Items.Add(item());
+                playerShip.Items.Add(item());
+                playerShip.Items.Add(item());
+
+                var wreck = new Wreck(playerShip);
+                wreck.Items.Add(item());
+                wreck.Items.Add(item());
+                wreck.Items.Add(item());
+                World.AddEntity(wreck);
+
                 World.AddEffect(new Heading(playerShip));
                 World.AddEntity(playerShip);
 
