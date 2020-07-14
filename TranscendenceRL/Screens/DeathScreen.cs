@@ -38,7 +38,7 @@ namespace TranscendenceRL {
             }) { Position = new Point(Width - 16, Height - 4) });
 
             this.Children.Add(new LabelButton("Title Screen", () => {
-                SadConsole.Game.Instance.Screen = new TitleSlideOpening(new TitleConsole(Width, Height)) { IsFocused = true };
+                SadConsole.Game.Instance.Screen = new TitleSlideOpening(new TitleScreen(Width, Height)) { IsFocused = true };
             }) { Position = new Point(Width - 16, Height - 2) });
         }
         public override void Update(TimeSpan delta) {

@@ -50,7 +50,7 @@ namespace TranscendenceRL {
         public delegate void Destroyed(BaseShip ship, SpaceObject destroyer, Wreck wreck);
         public event Destroyed OnDestroyed;
 
-        public double rotationDegrees { get; private set; }
+        public double rotationDegrees { get; set; }
         public double stoppingRotation { get {
                 var stoppingTime = TranscendenceRL.TICKS_PER_SECOND * Math.Abs(rotatingVel) / (ShipClass.rotationDecel);
                 return rotationDegrees + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
@@ -68,6 +68,9 @@ namespace TranscendenceRL {
         public Rotating rotating;
         public double rotatingVel;
         public bool decelerating;
+
+        public static BaseShip empty => new BaseShip(new World(), ShipClass.empty, new Sovereign(), new XY());
+
         public BaseShip(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.World = world;
             this.ShipClass = shipClass;

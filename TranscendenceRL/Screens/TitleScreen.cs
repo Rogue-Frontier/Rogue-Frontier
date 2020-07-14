@@ -15,7 +15,7 @@ using Console = SadConsole.Console;
 using TranscendenceRL.Types;
 
 namespace TranscendenceRL {
-    class TitleConsole : Console {
+    class TitleScreen : Console {
         string[] title = File.ReadAllText("RogueFrontierContent/Title.txt").Replace("\r\n", "\n").Split('\n');
         World World = new World();
 
@@ -26,7 +26,7 @@ namespace TranscendenceRL {
         public XY camera;
         public Dictionary<(int, int), ColoredGlyph> tiles;
 
-        public TitleConsole(int width, int height) : base(width, height) {
+        public TitleScreen(int width, int height) : base(width, height) {
             UseKeyboard = true;
             camera = new XY(0, 0);
             tiles = new Dictionary<(int, int), ColoredGlyph>();
@@ -69,33 +69,11 @@ namespace TranscendenceRL {
             Environment.Exit(0);
         }
         public override void Update(TimeSpan timeSpan) {
-            World.entities.UpdateSpace();
-            World.effects.UpdateSpace();
-
             tiles.Clear();
-            //Update everything
-            foreach (var e in World.entities.all) {
-                e.Update();
 
-                var p = e.Position.RoundDown;
-                if (e.Tile != null && !tiles.ContainsKey(p)) {
-                    tiles[p] = e.Tile;
-                }
-            }
-            foreach (var e in World.effects.all) {
-                e.Update();
-                var p = e.Position.RoundDown;
-                if (e.Tile != null && !tiles.ContainsKey(p)) {
-                    tiles[p] = e.Tile;
-                }
-            }
-
-            World.entitiesAdded.ForEach(e => World.entities.all.Add(e));
-            World.effectsAdded.ForEach(e => World.effects.all.Add(e));
-            World.entitiesAdded.Clear();
-            World.effectsAdded.Clear();
-            World.entities.all.RemoveWhere(e => !e.Active);
-            World.effects.all.RemoveWhere(e => !e.Active);
+            World.UpdateAdded();
+            World.UpdateActive(tiles);
+            World.UpdateRemoved();
 
             if(World.entities.all.OfType<IShip>().Count() < 5) {
                 var shipClasses = World.types.shipClass.Values;
@@ -227,6 +205,9 @@ namespace TranscendenceRL {
             }
             if(info.IsKeyPressed(Escape)) {
                 Exit();
+            }
+            if(info.IsKeyDown(LeftShift) && info.IsKeyPressed(A)) {
+                SadConsole.Game.Instance.Screen = new ArenaScreen(this, World) { IsFocused = true };
             }
 #if DEBUG
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {

@@ -235,6 +235,7 @@ namespace TranscendenceRL {
 
 			Glyph = new ColoredGlyph(foreground, background, c);
 		}
+		public StaticTile(ColoredGlyph Glyph) => this.Glyph = Glyph;
 		public StaticTile(char c) {
 			Glyph = new ColoredGlyph(Color.White, Color.Black, c);
 		}
@@ -243,8 +244,7 @@ namespace TranscendenceRL {
 			var back = (Color)typeof(Color).GetProperty(background).GetValue(null, null);
 			Glyph = new ColoredGlyph(fore, back, c);
 		}
-		public StaticTile(ColoredGlyph Glyph) {
-			this.Glyph = Glyph;
-		}
+		public static implicit operator ColoredGlyph(StaticTile t) => t.Glyph;
+		public static implicit operator StaticTile(ColoredGlyph cg) => new StaticTile(cg);
 	}
 }

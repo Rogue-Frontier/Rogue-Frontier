@@ -98,7 +98,7 @@ namespace TranscendenceRL {
 			}
 		}
 		public void UpdateWorld() {
-			world.UpdateAll();
+			world.UpdateActive();
 		}
 		public override void Update(TimeSpan delta) {
 			if(sceneContainer.Children.Count > 0) {

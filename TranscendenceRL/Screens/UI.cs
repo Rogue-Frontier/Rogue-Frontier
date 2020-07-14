@@ -6,8 +6,140 @@ using SadConsole;
 using SadConsole.UI;
 using SadConsole.UI.Controls;
 using SadConsole.UI.Themes;
+using Console = SadConsole.Console;
+using System.Linq;
 
 static class UI {
+    public class TextField : Console {
+        public int index {
+            get => _index;
+            set {
+                _index = Math.Clamp(value, 0, text.Length);
+                UpdateTextStart();
+            }
+        }
+        private int _index;
+        private int textStart;
+        public string text;
+        public string placeholder;
+        private double time;
+        private MouseWatch mouse;
+
+        public delegate void TextChange(TextField source, char ch);
+        public event TextChange TextChanged;
+        public TextField(int Width) : base(Width, 1) {
+            _index = 0;
+            text = "";
+            placeholder = new string('.', Width);
+            time = 0;
+            mouse = new MouseWatch();
+            FocusOnMouseClick = true;
+        }
+        public void UpdateTextStart() {
+            textStart = Math.Max(Math.Min(text.Length, _index) - Width + 1, 0);
+        }
+        public override void Update(TimeSpan delta) {
+            time += delta.TotalSeconds;
+            base.Update(delta);
+        }
+        public override void Draw(TimeSpan delta) {
+            this.Clear();
+
+
+            var text = this.text;
+            var showPlaceholder = this.text.Length == 0 && !IsFocused;
+            if (showPlaceholder) {
+                text = placeholder;
+            }
+            int x2 = Math.Min(text.Length - textStart, Width);
+
+            bool showCursor = time % 2 < 1;
+
+            Color foreground = IsMouseOver ? Color.Yellow : Color.White;
+            Color background = IsFocused ? new Color(51, 51, 51, 255) : Color.Black;
+
+            if(mouse.left == MouseState.Held) {
+                (foreground, background) = (background, foreground);
+            }
+            for (int x = 0; x < Width; x++) {
+                this.SetBackground(x, 0, background);
+            }
+            Func<int, ColoredGlyph> getGlyph = (i) => new ColoredGlyph(foreground, background, text[i]);
+            if(showCursor && IsFocused) {
+                if (_index < text.Length) {
+                    getGlyph = i =>
+                               i == _index ? new ColoredGlyph(background, foreground, text[i])
+                                           : new ColoredGlyph(foreground, background, text[i]);
+                } else {
+                    this.SetBackground(x2, 0, foreground);
+                }
+            }
+            for (int x = 0; x < x2; x++) {
+                var i = textStart + x;
+                this.SetCellAppearance(x, 0, getGlyph(i));
+            }
+            base.Draw(delta);
+        }
+        public override bool ProcessKeyboard(Keyboard keyboard) {
+            foreach(var key in keyboard.KeysPressed) {
+                switch(key.Key) {
+                    case Keys.Up:
+                        _index = 0;
+                        time = 0;
+                        UpdateTextStart();
+                        break;
+                    case Keys.Down:
+                        _index = text.Length;
+                        time = 0; 
+                        UpdateTextStart();
+                        break;
+                    case Keys.Right:
+                        _index = Math.Min(_index + 1, text.Length);
+                        time = 0;
+                        UpdateTextStart();
+                        break;
+                    case Keys.Left:
+                        _index = Math.Max(_index - 1, 0);
+                        time = 0; 
+                        UpdateTextStart();
+                        break;
+                    case Keys.Back:
+                        if(text.Length > 0) {
+                            if (_index == text.Length) {
+                                text = text.Substring(0, text.Length - 1);
+                            } else if (_index > 0) {
+                                text = text.Substring(0, _index) + text.Substring(_index + 1);
+                            }
+                            _index--;
+                            time = 0;
+                            UpdateTextStart();
+                        }
+                        
+                        break;
+                    default:
+                        if(key.Character != 0) {
+                            if(_index == text.Length) {
+                                text += key.Character;
+                                _index++;
+                            } else if(_index > 0) {
+                                text = text.Substring(0, index) + key.Character + text.Substring(index, 0);
+                                _index++;
+                            } else {
+                                text = (key.Character) + text;
+                            }
+                            time = 0;
+                            UpdateTextStart();
+                        }
+                        break;
+                }
+            }
+            return base.ProcessKeyboard(keyboard);
+        }
+        public override bool ProcessMouse(MouseScreenObjectState state) {
+            return base.ProcessMouse(state);
+        }
+    }
+
     public static char indexToLetter(int index) {
         if (index < 26) {
             return (char)('a' + index);

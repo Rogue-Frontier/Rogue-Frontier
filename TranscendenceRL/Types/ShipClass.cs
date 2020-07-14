@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Xml.Linq;
 namespace TranscendenceRL {
     public class ShipClass : DesignType {
+		public static ShipClass empty => new ShipClass() { devices = new DeviceList(), damageDesc = new HPSystemDesc(), rotationDecel = 1 };
+
 		public string codename;
 		public string name;
 		public double thrust;
@@ -16,7 +18,11 @@ namespace TranscendenceRL {
 		public DeviceList devices;
 		public PlayerSettings playerSettings;
 		
-
+		public void Validate() {
+			if(rotationDecel == 0) {
+				throw new Exception();
+            }
+        }
 		public void Initialize(TypeCollection collection, XElement e) {
 			codename = e.ExpectAttribute("codename");
 			name = e.ExpectAttribute("name");
@@ -51,6 +57,7 @@ namespace TranscendenceRL {
 	}
 	public class HPSystemDesc : DamageSystemDesc {
 		public int maxHP;
+		public HPSystemDesc() { }
 		public HPSystemDesc(XElement e) {
 			maxHP = e.ExpectAttributeInt("maxHP");
 		}

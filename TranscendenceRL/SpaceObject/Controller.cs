@@ -61,7 +61,7 @@ namespace TranscendenceRL {
             var dest = target.Position + (target.Velocity * stoppingTime) + this.offset.Rotate(target.stoppingRotation * Math.PI / 180);
             var offset = dest - stoppingPoint;
 
-            Heading.Crosshair(owner.World, dest);
+            //Heading.Crosshair(owner.World, dest);
 
             var velProjection = velDiff * velDiff.Dot(offset.Normal) / velDiff.Dot(velDiff);
             var velRejection = velDiff - velProjection;
@@ -80,7 +80,7 @@ namespace TranscendenceRL {
                 //Prepare to decelerate
                 if (offset.Magnitude < 1) {
                     //If we're close enough to dest, then just teleport there
-                    if((dest - owner.Position).Magnitude > 0.8) {
+                    if((dest - owner.Position).Magnitude > 1) {
                         owner.SetDecelerating(true);
                     } else {
                         owner.Velocity = target.Velocity;
@@ -96,6 +96,7 @@ namespace TranscendenceRL {
 
                     //Face the target
                     var Face = new FaceOrder(offset.Angle);
+                    //var Face = new FaceOrder(Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, owner.ShipClass.thrust * 30, out _));
                     Face.Update(owner);
 
                     //If we're facing close enough
@@ -151,7 +152,7 @@ namespace TranscendenceRL {
                     return;
                 }
                 //currentRange is variable and minRange is constant, so weapon dynamics may affect attack range
-                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.minRange).OfType<SpaceObject>().Where(so => owner.IsEnemy(so)).GetRandomOrDefault(owner.destiny);
+                target = owner.World.entities.all.OfType<SpaceObject>().Where(so => owner.IsEnemy(so)).GetRandomOrDefault(owner.destiny);
             } else {
                 new AttackOrder(target).Update(owner);
             }
