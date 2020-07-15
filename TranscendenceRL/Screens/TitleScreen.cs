@@ -23,11 +23,16 @@ namespace TranscendenceRL {
         public int povTimer;
         public List<InfoMessage> povDesc;
 
+        XY screenCenter;
+
         public XY camera;
         public Dictionary<(int, int), ColoredGlyph> tiles;
 
         public TitleScreen(int width, int height) : base(width, height) {
             UseKeyboard = true;
+
+            screenCenter = new XY(Width / 2, Height / 2);
+
             camera = new XY(0, 0);
             tiles = new Dictionary<(int, int), ColoredGlyph>();
             /*
@@ -170,7 +175,7 @@ namespace TranscendenceRL {
                 for (int y = 0; y < Height; y++) {
                     var g = this.GetGlyph(x, y);
 
-                    var offset = new XY(x, y) - new XY(Width / 2, Height / 2);
+                    var offset = new XY(x, Height - y) - new XY(Width / 2, Height / 2);
                     var location = camera + offset;
                     if (g == 0 || g == ' ' || this.GetForeground(x,y).A == 0) {
                         

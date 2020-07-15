@@ -30,60 +30,63 @@ namespace TranscendenceRL {
             tiles = new Dictionary<(int, int), ColoredGlyph>();
             screenCenter = new XY(Width / 2, Height / 2);
             mouse = new MouseWatch();
-
-            var sovereign = Sovereign.Gladiator;
-
-            {
-
-                var x = 8;
-                var y = 7;
-                var label = new Label("Sovereign") { Position = new Point(x, y++) };
-                var field = new TextField(24) { Position = new Point(x, y++) };
-                ButtonList buttons = new ButtonList(this, new Point(x, y++));
-                field.TextChanged += _ => UpdateSovereignListing();
-
-                this.Children.Add(label);
-                this.Children.Add(field);
-                UpdateSovereignLabel();
-                UpdateSovereignListing();
-                void UpdateSovereignListing() {
-                    var text = field.text;
-                    buttons.Clear();
-                    var sovereignDict = World.types.sovereign;
-                    foreach (var type in sovereignDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
-                        buttons.Add(type, (Action)(() => {
-                            sovereign = sovereignDict[type];
-                            UpdateSovereignLabel();
-                        }));
-                    }
-                }
-                void UpdateSovereignLabel() {
-                    label.text = new ColoredString($"Sovereign: {sovereign.codename}");
-                }
-            }
-            {
-                var x = 36;
-                var y = 8;
-                var field = new TextField(24) { Position = new Point(x, y++) };
-                ButtonList buttons = new ButtonList(this, new Point(x, y++));
-                field.TextChanged += _ => UpdateShipListing();
-                this.Children.Add(field);
-                UpdateShipListing();
-
-                void UpdateShipListing() {
-                    var text = field.text;
-                    buttons.Clear();
-                    var shipClassDict = World.types.shipClass;
-                    foreach (var type in shipClassDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
-                        buttons.Add(type, () => {
-                            var ship = new AIShip(new BaseShip(World, shipClassDict[type], sovereign, camera), new AttackAllOrder());
-                            World.AddEntity(ship);
-                            World.AddEffect(new Heading(ship));
-                        });
-                    }
-                }
-            }
             FocusOnMouseClick = true;
+
+            InitControls();
+            void InitControls() {
+                var sovereign = Sovereign.Gladiator;
+
+                {
+
+                    var x = 8;
+                    var y = 7;
+                    var label = new Label("Sovereign") { Position = new Point(x, y++) };
+                    var field = new TextField(24) { Position = new Point(x, y++) };
+                    ButtonList buttons = new ButtonList(this, new Point(x, y++));
+                    field.TextChanged += _ => UpdateSovereignListing();
+
+                    Children.Add(label);
+                    Children.Add(field);
+                    UpdateSovereignLabel();
+                    UpdateSovereignListing();
+                    void UpdateSovereignListing() {
+                        var text = field.text;
+                        buttons.Clear();
+                        var sovereignDict = World.types.sovereign;
+                        foreach (var type in sovereignDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
+                            buttons.Add(type, (Action)(() => {
+                                sovereign = sovereignDict[type];
+                                UpdateSovereignLabel();
+                            }));
+                        }
+                    }
+                    void UpdateSovereignLabel() {
+                        label.text = new ColoredString($"Sovereign: {sovereign.codename}");
+                    }
+                }
+                {
+                    var x = 36;
+                    var y = 8;
+                    var field = new TextField(24) { Position = new Point(x, y++) };
+                    ButtonList buttons = new ButtonList(this, new Point(x, y++));
+                    field.TextChanged += _ => UpdateShipListing();
+                    Children.Add(field);
+                    UpdateShipListing();
+
+                    void UpdateShipListing() {
+                        var text = field.text;
+                        buttons.Clear();
+                        var shipClassDict = World.types.shipClass;
+                        foreach (var type in shipClassDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
+                            buttons.Add(type, () => {
+                                var ship = new AIShip(new BaseShip(World, shipClassDict[type], sovereign, camera), new AttackAllOrder());
+                                World.AddEntity(ship);
+                                World.AddEffect(new Heading(ship));
+                            });
+                        }
+                    }
+                }
+            }
         }
         public override void Update(TimeSpan timeSpan) {
             World.UpdateAdded();
@@ -92,22 +95,38 @@ namespace TranscendenceRL {
             World.UpdateActive(tiles);
             World.UpdateRemoved();
 
-            XY worldPos = new XY(mouse.nowPos) - screenCenter + camera;
-            nearest = World.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude).FirstOrDefault();
+            if(pov?.Active == false) {
+                pov = null;
+            }
 
             if(pov != null) {
-                //Smoothly move the camera to where it should be
-                if ((camera - pov.Position).Magnitude < pov.Velocity.Magnitude / 15 + 1) {
-                    camera = pov.Position;
-                } else {
-                    var step = (pov.Position - camera) / 15;
-                    if (step.Magnitude < 1) {
-                        step = step.Normal;
+                if(pov.Active) {
+                    UpdateNearest();
+
+                    //Smoothly move the camera to where it should be
+                    if ((camera - pov.Position).Magnitude < pov.Velocity.Magnitude / 15 + 1) {
+                        camera = pov.Position;
+                    } else {
+                        var step = (pov.Position - camera) / 15;
+                        if (step.Magnitude < 1) {
+                            step = step.Normal;
+                        }
+                        camera += step;
                     }
-                    camera += step;
+                } else {
+                    pov = null;
+                    UpdateNearest();
                 }
+            } else {
+                UpdateNearest();
             }
             
+            void UpdateNearest() {
+                XY worldPos = new XY(mouse.nowPos) - screenCenter + camera;
+                nearest = World.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude).FirstOrDefault();
+            }
+
+
 
             Heading.Crosshair(World, nearest.Position);
 
@@ -120,7 +139,7 @@ namespace TranscendenceRL {
                 for (int y = 0; y < Height; y++) {
                     var g = this.GetGlyph(x, y);
 
-                    var offset = new XY(x, y) - screenCenter;
+                    var offset = new XY(x, Height - y) - screenCenter;
                     var location = camera + offset;
                     if (g == 0 || g == ' ' || this.GetForeground(x, y).A == 0) {
 
@@ -141,21 +160,39 @@ namespace TranscendenceRL {
             base.Draw(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
-            if(info.IsKeyPressed(Keys.F)) {
+            if (info.IsKeyPressed(Keys.A)) {
+                if (nearest is AIShip a) {
+                    World.RemoveEntity(a);
+                    var playerShip = new PlayerShip(new Player(), a.Ship);
+
+                    var playerMain = new PlayerMain(Width, Height, World, playerShip) { IsFocused = true, camera = camera };
+                    SadConsole.Game.Instance.Screen = playerMain;
+                    playerMain.Draw(new TimeSpan());
+                    playerShip.OnDestroyed += (p, s, w) => {
+                        SadConsole.Game.Instance.Screen = this;
+                        this.camera = playerMain.camera;
+                        this.IsFocused = true;
+                    };
+                    World.AddEntity(playerShip);
+
+                    pov = playerShip;
+                }
+            }
+            if (info.IsKeyPressed(Keys.F)) {
                 if (pov == nearest) {
                     pov = null;
                 } else {
                     pov = nearest;
                 }
             }
-            foreach(var pressed in info.KeysDown) {
+            foreach (var pressed in info.KeysDown) {
                 var delta = 1 / 3f;
-                switch(pressed.Key) {
+                switch (pressed.Key) {
                     case Keys.Up:
-                        camera += new XY(0, -delta);
+                        camera += new XY(0, delta);
                         break;
                     case Keys.Down:
-                        camera += new XY(0, delta);
+                        camera += new XY(0, -delta);
                         break;
                     case Keys.Right:
                         camera += new XY(delta, 0);
@@ -165,13 +202,16 @@ namespace TranscendenceRL {
                         break;
                 }
             }
+
             return base.ProcessKeyboard(info);
         }
         public override bool ProcessMouse(MouseScreenObjectState state) {
             mouse.Update(state, IsMouseOver);
+            mouse.nowPos = new Point(mouse.nowPos.X, Height - mouse.nowPos.Y);
             if(mouse.left == MouseState.Held) {
                 camera += new XY(mouse.prevPos - mouse.nowPos);
             }
+
             return base.ProcessMouse(state);
         }
     }

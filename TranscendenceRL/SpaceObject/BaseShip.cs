@@ -34,6 +34,8 @@ namespace TranscendenceRL {
         Docking Dock { get; set; }
     }
     public class BaseShip : SpaceObject {
+        public static BaseShip dead => new BaseShip(World.empty, ShipClass.empty, Sovereign.Gladiator, XY.Zero) { Active = false };
+
         public string Name => ShipClass.name;
         public World World { get; private set; }
         public ShipClass ShipClass { get; private set; }
@@ -68,8 +70,6 @@ namespace TranscendenceRL {
         public Rotating rotating;
         public double rotatingVel;
         public bool decelerating;
-
-        public static BaseShip empty => new BaseShip(new World(), ShipClass.empty, new Sovereign(), new XY());
 
         public BaseShip(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.World = world;

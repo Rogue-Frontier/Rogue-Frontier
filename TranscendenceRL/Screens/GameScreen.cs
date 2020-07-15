@@ -18,9 +18,10 @@ using static UI;
 namespace TranscendenceRL {
 	public class PlayerMain : Console {
 		public XY camera;
-		public World world;
+		public World World;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		public PlayerShip playerShip;
+		public PlayerControls playerControls;
 		GeneratedLayer backVoid;
 		Point mousePos;
 
@@ -38,7 +39,7 @@ namespace TranscendenceRL {
 			UseMouse = true;
 			UseKeyboard = true;
 			camera = new XY();
-			this.world = World;
+			this.World = World;
 			this.playerShip = playerShip;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
 			backVoid = new GeneratedLayer(1, new Random());
@@ -49,12 +50,9 @@ namespace TranscendenceRL {
 			sceneContainer.Focused += (e, o) => this.IsFocused = true;
 			ui = new PlayerUI(playerShip, tiles, Width, Height);
 			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
-			/*
-			map.Children.Add(ui);			//Set UI over the map since we don't want it to interfere with the vignette transparency
-			ui.Children.Add(powerMenu);     //Set power menu as child of the UI so that it doesn't get covered by the vignette
-			*/
-			
 			crosshair = new TargetingMarker(playerShip, "Mouse Cursor", new XY());
+
+			this.playerControls = new PlayerControls(playerShip, this, powerMenu, sceneContainer);
 
 			//Don't allow anyone to get focus via mouse click
 			FocusOnMouseClick = false;
@@ -82,23 +80,23 @@ namespace TranscendenceRL {
 				wreck = wreck
 			};
 			playerShip.player.epitaphs.Add(epitaph);
-			SadConsole.Game.Instance.Screen = new DeathTransition(this, new DeathScreen(this, world, playerShip, epitaph)) { IsFocused = true };
+			SadConsole.Game.Instance.Screen = new DeathTransition(this, new DeathScreen(this, World, playerShip, epitaph)) { IsFocused = true };
 		}
 		public void PlaceTiles() {
 			tiles.Clear();
-			foreach (var e in world.entities.all) {
+			foreach (var e in World.entities.all) {
 				if (e.Tile != null && !tiles.ContainsKey(e.Position.RoundDown)) {
 					tiles[e.Position.RoundDown] = e.Tile;
 				}
 			}
-			foreach (var e in world.effects.all) {
+			foreach (var e in World.effects.all) {
 				if (e.Tile != null && !tiles.ContainsKey(e.Position.RoundDown)) {
 					tiles[e.Position.RoundDown] = e.Tile;
 				}
 			}
 		}
 		public void UpdateWorld() {
-			world.UpdateActive();
+			World.UpdateActive();
 		}
 		public override void Update(TimeSpan delta) {
 			if(sceneContainer.Children.Count > 0) {
@@ -139,7 +137,7 @@ namespace TranscendenceRL {
 			if(passTime) {
 				UpdateWorld();
 				PlaceTiles();
-				world.UpdatePresent();
+				World.UpdatePresent();
 			}
 
 			camera = playerShip.Position;
@@ -218,88 +216,17 @@ namespace TranscendenceRL {
 		}
 		public ColoredGlyph GetBackTile(XY xy) {
 			//Don't round down since this function does it for us
-			var back = world.backdrop.GetTile(xy, camera);
+			var back = World.backdrop.GetTile(xy, camera);
 			return back;
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
-
-
 			map.ProcessKeyboard(info);
-
-			//Move the player
-			if (info.IsKeyDown(Up)) {
-				playerShip.SetThrusting();
-			}
-			if (info.IsKeyDown(Left)) {
-				playerShip.SetRotating(Rotating.CCW);
-			}
-			if (info.IsKeyDown(Right)) {
-				playerShip.SetRotating(Rotating.CW);
-			}
-			if (info.IsKeyDown(Down)) {
-				playerShip.SetDecelerating();
-			}
-
 			//Intercept the alphanumeric/Escape keys if the power menu is active
 			if (powerMenu.IsVisible) {
 				powerMenu.ProcessKeyboard(info);
-            } else {
-				if (info.IsKeyPressed(Escape)) {
-					//SadConsole.Game.Instance.Screen = new TitleConsole(Width, Height) { IsFocused = true };
-				}
-				if (info.KeysDown.Select(d => d.Key).Intersect<Keys>(new Keys[] { Keys.LeftControl, Keys.LeftShift, Keys.Enter }).Count() == 3) {
-					playerShip.Destroy(playerShip);
-				}
-				if (info.IsKeyPressed(S)) {
-					sceneContainer.Children.Add(new SceneScan(new ShipScreen(this, playerShip)) { IsFocused = true });
-				}
-				if (info.IsKeyPressed(V)) {
-					powerMenu.IsVisible = true;
-				}
-				if (info.IsKeyPressed(W)) {
-					playerShip.NextWeapon();
-				}
-				if (info.IsKeyPressed(T)) {
-					playerShip.NextTargetEnemy();
-				}
-				if (info.IsKeyPressed(F)) {
-					playerShip.NextTargetFriendly();
-				}
-				if (info.IsKeyPressed(R)) {
-					if (playerShip.targetIndex > -1) {
-						playerShip.ClearTarget();
-					}
-				}
-				if (info.IsKeyPressed(D)) {
-					if (playerShip.Dock != null) {
-						if (playerShip.Dock.docked) {
-							playerShip.AddMessage(new InfoMessage("Undocked"));
-						} else {
-							playerShip.AddMessage(new InfoMessage("Docking sequence canceled"));
-						}
-
-						playerShip.Dock = null;
-					} else {
-						var dest = world.entities.GetAll(p => (playerShip.Position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.Position - playerShip.Position).Magnitude).FirstOrDefault();
-						if (dest != null) {
-							playerShip.AddMessage(new InfoMessage("Docking sequence engaged"));
-							playerShip.Dock = new Docking(dest);
-						}
-
-					}
-				}
-				if (info.IsKeyDown(X)) {
-					playerShip.SetFiringPrimary();
-				}
-				if (info.IsKeyDown(Z)) {
-					if(playerShip.GetTarget(out SpaceObject target) && playerShip.GetPrimary(out Weapon w)) {
-						playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.Position - playerShip.Position, target.Velocity - playerShip.Velocity, w.missileSpeed, out _));
-					}
-				}
-				if (info.IsKeyPressed(C)) {
-					playerShip.Damage(playerShip, playerShip.Ship.DamageSystem.GetHP() - 5);
-                }
-			}
+			} else {
+				playerControls.ProcessKeyboard(info);
+            }
 			return base.ProcessKeyboard(info);
 		}
 		public override bool ProcessMouse(MouseScreenObjectState state) {
@@ -331,7 +258,7 @@ namespace TranscendenceRL {
 					}
 					var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - crosshairPos).Magnitude));
 					*/
-					var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
+					var targetList = new List<SpaceObject>(World.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
 
 					//Set target to object closest to mouse cursor
 					//If there is no target closer to the cursor than the playership, then we toggle aiming by crosshair
@@ -375,7 +302,7 @@ namespace TranscendenceRL {
 
 					crosshair.Update();
 
-					Heading.Crosshair(world, crosshair.Position);
+					Heading.Crosshair(World, crosshair.Position);
 
 					//Idea: Aiming with crosshair disables mouse turning
 					enableMouseTurn = false;
@@ -387,13 +314,13 @@ namespace TranscendenceRL {
 					if (playerOffset.xi != 0 && playerOffset.yi != 0) {
 
 						//Draw an effect for the cursor
-						world.AddEffect(new EffectParticle(worldPos, new ColoredGlyph(Color.White, Color.Transparent, '+'), 1));
+						World.AddEffect(new EffectParticle(worldPos, new ColoredGlyph(Color.White, Color.Transparent, '+'), 1));
 
 						//Draw a trail leading back to the player
 						var trailNorm = playerOffset.Normal;
 						var trailLength = Math.Min(3, playerOffset.Magnitude / 4) + 1;
 						for (int i = 1; i < trailLength; i++) {
-							world.AddEffect(new EffectParticle(worldPos - trailNorm * i, new ColoredGlyph(Color.White, Color.Transparent, '.'), 1));
+							World.AddEffect(new EffectParticle(worldPos - trailNorm * i, new ColoredGlyph(Color.White, Color.Transparent, '.'), 1));
 						}
 
 
