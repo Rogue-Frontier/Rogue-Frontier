@@ -8,8 +8,18 @@ using SadConsole.UI.Controls;
 using SadConsole.UI.Themes;
 using Console = SadConsole.Console;
 using System.Linq;
+using System.Collections.Generic;
 
 static class UI {
+    public class ListItem<T> {
+        public string name;
+        public T item;
+        public ListItem(string name, T item) {
+            this.name = name;
+            this.item = item;
+        }
+        public static implicit operator T(ListItem<T> i) => i.item;
+    }
     public class TextField : Console {
         public int index {
             get => _index;
@@ -25,7 +35,7 @@ static class UI {
         private double time;
         private MouseWatch mouse;
 
-        public delegate void TextChange(TextField source, char ch);
+        public delegate void TextChange(TextField source);
         public event TextChange TextChanged;
         public TextField(int Width) : base(Width, 1) {
             _index = 0;
@@ -81,56 +91,65 @@ static class UI {
             base.Draw(delta);
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
-            foreach(var key in keyboard.KeysPressed) {
-                switch(key.Key) {
-                    case Keys.Up:
-                        _index = 0;
-                        time = 0;
-                        UpdateTextStart();
-                        break;
-                    case Keys.Down:
-                        _index = text.Length;
-                        time = 0; 
-                        UpdateTextStart();
-                        break;
-                    case Keys.Right:
-                        _index = Math.Min(_index + 1, text.Length);
-                        time = 0;
-                        UpdateTextStart();
-                        break;
-                    case Keys.Left:
-                        _index = Math.Max(_index - 1, 0);
-                        time = 0; 
-                        UpdateTextStart();
-                        break;
-                    case Keys.Back:
-                        if(text.Length > 0) {
-                            if (_index == text.Length) {
-                                text = text.Substring(0, text.Length - 1);
-                            } else if (_index > 0) {
-                                text = text.Substring(0, _index) + text.Substring(_index + 1);
-                            }
-                            _index--;
+            if (keyboard.KeysPressed.Any()) {
+                //bool moved = false;
+                bool changed = false;
+                foreach (var key in keyboard.KeysPressed) {
+                    switch (key.Key) {
+                        case Keys.Up:
+                            _index = 0;
                             time = 0;
                             UpdateTextStart();
-                        }
-                        
-                        break;
-                    default:
-                        if(key.Character != 0) {
-                            if(_index == text.Length) {
-                                text += key.Character;
-                                _index++;
-                            } else if(_index > 0) {
-                                text = text.Substring(0, index) + key.Character + text.Substring(index, 0);
-                                _index++;
-                            } else {
-                                text = (key.Character) + text;
-                            }
+                            break;
+                        case Keys.Down:
+                            _index = text.Length;
                             time = 0;
                             UpdateTextStart();
-                        }
-                        break;
+                            break;
+                        case Keys.Right:
+                            _index = Math.Min(_index + 1, text.Length);
+                            time = 0;
+                            UpdateTextStart();
+                            break;
+                        case Keys.Left:
+                            _index = Math.Max(_index - 1, 0);
+                            time = 0;
+                            UpdateTextStart();
+                            break;
+                        case Keys.Back:
+                            if (text.Length > 0) {
+                                if (_index == text.Length) {
+                                    text = text.Substring(0, text.Length - 1);
+                                } else if (_index > 0) {
+                                    text = text.Substring(0, _index) + text.Substring(_index + 1);
+                                }
+                                _index--;
+                                time = 0;
+                                UpdateTextStart();
+                                changed = true;
+                            }
+
+                            break;
+                        default:
+                            if (key.Character != 0) {
+                                if (_index == text.Length) {
+                                    text += key.Character;
+                                    _index++;
+                                } else if (_index > 0) {
+                                    text = text.Substring(0, index) + key.Character + text.Substring(index, 0);
+                                    _index++;
+                                } else {
+                                    text = (key.Character) + text;
+                                }
+                                time = 0;
+                                UpdateTextStart();
+                                changed = true;
+                            }
+                            break;
+                    }
+                }
+                if(changed) {
+                    TextChanged?.Invoke(this);
                 }
             }
             return base.ProcessKeyboard(keyboard);
@@ -138,6 +157,31 @@ static class UI {
         public override bool ProcessMouse(MouseScreenObjectState state) {
             return base.ProcessMouse(state);
         }
+    }
+
+    public class ButtonList {
+        public Console Parent;
+        public Point Position;
+        public List<LabelButton> buttons;
+        public ButtonList(Console Parent, Point Position) {
+            this.Parent = Parent;
+            this.Position = Position;
+            buttons = new List<LabelButton>();
+        }
+        public void Add(string label, Action clicked) {
+            var b = new LabelButton(label, clicked) {
+                Position = Position + new Point(0, buttons.Count),
+            };
+            buttons.Add(b);
+            Parent.Children.Add(b);
+        }
+        public void Clear() {
+            foreach(var b in buttons) {
+                Parent.Children.Remove(b);
+            }
+            buttons.Clear();
+        }
+
     }
 
     public static char indexToLetter(int index) {

@@ -15,13 +15,8 @@ namespace TranscendenceRL {
         public static readonly Sovereign Inanimate = new Sovereign() {
             alignment = Alignment.Neutral
         };
-        public static readonly Sovereign Gladiator;
-        static Sovereign() {
-            Gladiator = new Sovereign();
-            Gladiator.alignment = Alignment.DestructiveChaos;
-            Gladiator.sovDispositions[Gladiator] = Disposition.Enemy;
-        }
-        string codename;
+        public static readonly Sovereign Gladiator = new Sovereign() { AutoSovereignDisposition = s => Disposition.Enemy, AutoSpaceObjectDisposition = s => Disposition.Enemy };
+        public string codename;
         Alignment alignment;
         //private Sovereign parent;
         private Dictionary<Sovereign, Disposition> sovDispositions;
@@ -61,9 +56,16 @@ namespace TranscendenceRL {
             }},
         };
 
+        public delegate Disposition AutoSovereign(Sovereign other);
+        public delegate Disposition AutoSpaceObject(SpaceObject other);
+        public AutoSovereign AutoSovereignDisposition;
+        public AutoSpaceObject AutoSpaceObjectDisposition;
+
         public Sovereign() {
             sovDispositions = new Dictionary<Sovereign, Disposition>();
             entityDispositions = new Dictionary<Entity, Disposition>();
+            AutoSovereignDisposition = null;
+            AutoSpaceObjectDisposition = null;
         }
         public void Initialize(TypeCollection tc, XElement e) {
             codename = e.ExpectAttribute("codename");
@@ -82,7 +84,7 @@ namespace TranscendenceRL {
                 ) {
                 return d;
             } else {
-                sovDispositions[other] = InitDisposition(other);
+                sovDispositions[other] = GetAutoDisposition(other);
                 return sovDispositions[other];
             }
         }
@@ -96,19 +98,25 @@ namespace TranscendenceRL {
             if (other.Sovereign != null) {
                 return GetDisposition(other.Sovereign);
             }
-            entityDispositions[other] = Disposition.Neutral;
+            entityDispositions[other] = GetAutoDisposition(other);
             return entityDispositions[other];
         }
         public bool IsFriend(SpaceObject other) => GetDisposition(other) == Disposition.Friend;
         public bool IsEnemy(SpaceObject other) => GetDisposition(other) == Disposition.Enemy;
-        public Disposition InitDisposition(Sovereign other) {
-            if(other == this) {
+        public Disposition GetAutoDisposition(Sovereign other) {
+            var d = AutoSovereignDisposition?.Invoke(other);
+            if(d.HasValue) {
+                return d.Value;
+            } else if (other == this) {
                 //We don't fight ourselves (usually)
                 return Friend;
             } else {
                 //Initialize from default values given our alignments
                 return dispositionTable[alignment][other.alignment];
             }
+        }
+        public Disposition GetAutoDisposition(SpaceObject other) {
+            return Disposition.Neutral;
         }
     }
     public enum Disposition {
