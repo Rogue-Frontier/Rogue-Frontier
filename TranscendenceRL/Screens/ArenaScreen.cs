@@ -23,6 +23,8 @@ namespace TranscendenceRL {
         SpaceObject pov;
         SpaceObject nearest;
 
+        PlayerMain playerMain;
+
         public ArenaScreen(Console prev, World World) : base(prev.Width, prev.Height) {
             UseKeyboard = true;
             this.World = World;
@@ -89,6 +91,12 @@ namespace TranscendenceRL {
             }
         }
         public override void Update(TimeSpan timeSpan) {
+            if (playerMain != null) {
+                playerMain.Update(timeSpan);
+                return;
+            }
+
+            base.Update(timeSpan);
             World.UpdateAdded();
 
             tiles.Clear();
@@ -129,12 +137,14 @@ namespace TranscendenceRL {
 
 
             Heading.Crosshair(World, nearest.Position);
-
-            base.Update(timeSpan);
         }
         public override void Draw(TimeSpan drawTime) {
-            this.Clear();
+            if (playerMain != null) {
+                playerMain.Draw(drawTime);
+                return;
+            }
 
+            this.Clear();
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
                     var g = this.GetGlyph(x, y);
@@ -160,17 +170,20 @@ namespace TranscendenceRL {
             base.Draw(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
+            if(playerMain != null) {
+                return playerMain.ProcessKeyboard(info);
+            }
+
             if (info.IsKeyPressed(Keys.A)) {
                 if (nearest is AIShip a) {
                     World.RemoveEntity(a);
                     var playerShip = new PlayerShip(new Player(), a.Ship);
 
-                    var playerMain = new PlayerMain(Width, Height, World, playerShip) { IsFocused = true, camera = camera };
-                    SadConsole.Game.Instance.Screen = playerMain;
-                    playerMain.Draw(new TimeSpan());
+                    playerMain = new PlayerMain(Width, Height, World, playerShip) { IsFocused = true, camera = camera };
                     playerShip.OnDestroyed += (p, s, w) => {
-                        SadConsole.Game.Instance.Screen = this;
+                        Children.Remove(playerMain);
                         this.camera = playerMain.camera;
+                        playerMain = null;
                         this.IsFocused = true;
                     };
                     World.AddEntity(playerShip);
@@ -206,6 +219,10 @@ namespace TranscendenceRL {
             return base.ProcessKeyboard(info);
         }
         public override bool ProcessMouse(MouseScreenObjectState state) {
+            if (playerMain != null) {
+                return playerMain.ProcessMouse(state);
+            }
+
             mouse.Update(state, IsMouseOver);
             mouse.nowPos = new Point(mouse.nowPos.X, Height - mouse.nowPos.Y);
             if(mouse.left == MouseState.Held) {
