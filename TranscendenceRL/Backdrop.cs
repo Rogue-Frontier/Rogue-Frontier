@@ -13,11 +13,10 @@ namespace TranscendenceRL {
 
         }
         public Backdrop(Random r) {
-            int layerCount = 3;
+            int layerCount = 5;
             layers = new List<GeneratedLayer>(layerCount);
             for(int i = 0; i < layerCount; i++) {
-                var n = r.Next(1, 5);
-                var layer = new GeneratedLayer((double)2 * n / (n + n / 2 + r.Next(1, 4 * n)), r);
+                var layer = new GeneratedLayer(1f / (i * i * 1.5 + i + 1), r);
                 layers.Insert(0, layer);
             }
         }
@@ -33,7 +32,7 @@ namespace TranscendenceRL {
             ColoredGlyph result = new ColoredGlyph(Color.Transparent, Color.Black, ' ');
             foreach (var layer in layers) {
                 var tile = layer.GetTile(point, camera);
-                result.Background = result.Background.Blend(tile.Background);
+                result.Background = result.Background.Premultiply().Blend(tile.Background);
                 if(tile.GlyphCharacter != ' ') {
                     result.GlyphCharacter = tile.GlyphCharacter;
                     result.Foreground = tile.Foreground;
@@ -88,7 +87,7 @@ namespace TranscendenceRL {
                 if (random.NextDouble() * 100 < (1 / (parallaxFactor + 1))) {
                     const string vwls = "?&%~=+;";
                     var star = vwls[random.Next(vwls.Length)];
-                    var foreground = new Color(255, 255 - random.Next(25, 51), 255 - random.Next(25, 51), (byte)(204 * parallaxFactor));
+                    var foreground = new Color(255, 255 - random.Next(25, 51), 255 - random.Next(25, 51), (byte)(225 * Math.Sqrt(parallaxFactor)));
                     return new ColoredGlyph(foreground, background, star);
                 } else {
                     return new ColoredGlyph(Color.Transparent, background, ' ');
