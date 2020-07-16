@@ -6,10 +6,8 @@ using TranscendenceRL;
 namespace TranscendenceRL {
 
 	class TranscendenceRL {
-
 		public static int TICKS_PER_SECOND = 60;
 		public static int Width = 150, Height = 90;
-
 
 		static void Main(string[] args) {
 			// Setup the engine and create the main window.

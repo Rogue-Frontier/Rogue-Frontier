@@ -788,7 +788,7 @@ namespace TranscendenceRL {
 					if (tiles.Any()) {
 						this.Print(mapCenterX + x, mapCenterY - y, tiles.First());
 					} else {
-						this.Print(mapCenterX + x, mapCenterY - y, "#", new Color(255, 255, 255, 128), Color.Black);
+						this.Print(mapCenterX + x, mapCenterY - y, "#", new Color(255, 255, 255, 102), Color.Black);
 					}
 				}
 			}
