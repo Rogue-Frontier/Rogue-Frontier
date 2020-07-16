@@ -26,6 +26,8 @@ namespace TranscendenceRL {
             }
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 153), Color.Transparent);
+
+            //Idea: Highlight a segment of the aimline based on the firetime left on the weapon
             XY point = parent.Position;
             XY inc = XY.Polar(parent.rotationDegrees * Math.PI / 180, 1);
             int length = 20;
@@ -46,6 +48,30 @@ namespace TranscendenceRL {
             for (int i = 0; i < length / interval; i++) {
                 point += inc * interval;
                 World.AddEffect(new EffectParticle(point, pointEffect, 1));
+            }
+        }
+        public static void AimLine(SpaceObject owner, double angle, Weapon w) {
+            //Idea: Highlight a segment of the aimline based on the firetime left on the weapon
+
+            var start = owner.Position;
+            var World = owner.World;
+
+            //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
+            //ColoredGlyph dark = new ColoredGlyph(new Color(255, 255, 0, 102), Color.Transparent, '.');
+            ColoredGlyph bright = new ColoredGlyph(new Color(255, 255, 0, 204), Color.Transparent, '.');
+            XY point = start;
+            XY inc = XY.Polar(angle);
+            //var length = w.target == null ? 20 : (w.target.Position - owner.Position).Magnitude;
+            var length = 20;
+            int interval = 4;
+
+            var points = length / interval;
+            //var highlights = points * (1 - w.fireTime / w.desc.fireCooldown);
+
+            for (int i = 0; i < points; i++) {
+                point += inc * interval;
+                //World.AddEffect(new EffectParticle(point, i < highlights ? bright : dark, 1));
+                World.AddEffect(new EffectParticle(point, bright, 1));
             }
         }
         public static void Crosshair(World World, XY point) {

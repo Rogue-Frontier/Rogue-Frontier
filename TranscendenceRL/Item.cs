@@ -98,7 +98,7 @@ namespace TranscendenceRL {
             } else {
                 var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
                 if (desc.omnidirectional) {
-                    Heading.AimLine(owner.World, owner.Position, angle);
+                    Heading.AimLine(owner, angle, this);
                     Heading.Crosshair(owner.World, target.Position);
                 }
                 targetAngle = angle;
@@ -122,7 +122,7 @@ namespace TranscendenceRL {
             } else {
                 var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
                 if(desc.omnidirectional) {
-                    Heading.AimLine(owner.World, owner.Position, angle);
+                    Heading.AimLine(owner, angle, this);
                     Heading.Crosshair(owner.World, target.Position);
                 }
                 targetAngle = angle;
