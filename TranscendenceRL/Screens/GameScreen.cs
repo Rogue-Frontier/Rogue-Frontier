@@ -710,15 +710,34 @@ namespace TranscendenceRL {
 				if (player.Ship.Devices.Weapons.Any()) {
 					int i = 0;
 					foreach (var weapon in player.Ship.Devices.Weapons) {
-						string tag = $"{(i == player.selectedPrimary ? ">" : "")}{weapon.source.type.name}{new string('>', 16 * weapon.fireTime / weapon.desc.fireCooldown).PadRight(16)}";
+						string tag = $"{(i == player.selectedPrimary ? ">" : "")}{weapon.source.type.name}";
 						Color foreground = Color.White;
 						if (player.Energy.disabled.Contains(weapon)) {
 							foreground = Color.Gray;
 						} else if (weapon.firing || weapon.fireTime > 0) {
 							foreground = Color.Yellow;
 						}
-
 						this.Print(x, y, tag, foreground, Color.Transparent);
+
+						var xBar = x + tag.Length;
+
+						ColoredString bar;
+						if(weapon.fireTime > 0) {
+							bar = new ColoredString(new string('>', 16 - (int)(16f * weapon.fireTime / weapon.desc.fireCooldown)),
+													Color.Gray, Color.Transparent
+													);
+						} else {
+							bar = new ColoredString(new string('>', 16),
+													Color.White, Color.Transparent);
+						}
+						if (weapon.capacitor != null) {
+							var n = 16 * weapon.capacitor.charge / weapon.capacitor.desc.maxCharge;
+							for (int j = 0; j < n; j++) {
+								bar[j].Foreground = bar[j].Foreground.Blend(Color.Cyan.SetAlpha(128));
+							}
+						}
+
+						this.Print(xBar, y, bar);
 						y++;
 						i++;
 					}
