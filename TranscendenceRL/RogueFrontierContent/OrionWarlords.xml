@@ -20,7 +20,7 @@
 				dischargePerShot=		"50"
 				chargePerTick=			"0.1677"
 				maxCharge=				"50"
-				bonusSpeedPerCharge=	"0.60"
+				bonusSpeedPerCharge=	"0.70"
 				bonusDamagePerCharge=	"0.30"
 				bonusLifetimePerCharge=	"0.90"
 				/>
@@ -46,7 +46,7 @@
 						chargePerTick=			"0.333"
 						maxCharge=				"100"
 
-						bonusSpeedPerCharge=	"0.60"
+						bonusSpeedPerCharge=	"0.70"
 						bonusDamagePerCharge=	"0.30"
 						bonusLifetimePerCharge=	"0.90"
 				/>
@@ -72,7 +72,7 @@
 			>
 		</Armor>
 	</ItemType>
-	<ShipClass	codename=			"scOrionRaider"
+	<ShipClass	codename=			"ship_orion_raider"
 				name=				"Orion raider"
 				thrust=				"0.1"
 				maxSpeed=			"10"
@@ -95,7 +95,7 @@
 			description=    "Other than being a patched-up rustbucket, the Orion raider is known for its Orion bolter, a kinetic weapon that hits harder and faster when fully charged."
             />
 	</ShipClass>
-	<ShipClass	codename=			"scOrionHuntsman"
+	<ShipClass	codename=			"ship_orion_huntsman"
 				name=				"Orion huntsman"
 				thrust=				"0.3"
 				maxSpeed=			"15"
@@ -131,11 +131,11 @@
 			<Ring/>
 		</Segments>
 		<Guards>
-			<Ship	codename="scOrionRaider"/>
-			<Ship	codename="scOrionRaider"/>
-			<Ship	codename="scOrionRaider"/>
-			<Ship	codename="scOrionRaider"/>
-			<Ship	codename="scOrionRaider"/>
+			<Ship	codename="ship_orion_raider"/>
+			<Ship	codename="ship_orion_raider"/>
+			<Ship	codename="ship_orion_raider"/>
+			<Ship	codename="ship_orion_raider"/>
+			<Ship	codename="ship_orion_raider"/>
 		</Guards>
 		<Weapons>
 			<Weapon	codename="itOrionBolter"/>
@@ -154,11 +154,11 @@
 			<Ring/>
 		</Segments>
 		<Guards>
-			<Ship	codename="scOrionRaider"/>
-			<Ship	codename="scOrionRaider"/>
-			<Ship	codename="scOrionRaider"/>
-			<Ship	codename="scOrionRaider"/>
-			<Ship	codename="scOrionHuntsman"/>
+			<Ship	codename="ship_orion_raider"/>
+			<Ship	codename="ship_orion_raider"/>
+			<Ship	codename="ship_orion_raider"/>
+			<Ship	codename="ship_orion_raider"/>
+			<Ship	codename="ship_orion_huntsman"/>
 		</Guards>
 		<Weapons>
 			<Weapon	codename="itOrionBow"/>
