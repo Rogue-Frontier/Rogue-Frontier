@@ -1,7 +1,7 @@
 ﻿<Module>
 	<PowerType codename="power_silence"
 		name=			"Silence"
-		invokeDelay=	"60"
+		invokeDelay=	"120"
 		cooldownTime=	"3600"
 		>
 		<Weapon
@@ -10,7 +10,7 @@
 			missileSpeed=	"40"
 			damageType=		"1"
 			damageHP=		"12"
-			lifetime=		"30"
+			lifetime=		"60"
 			char=			"*"
 			foreground=		"FF55FFFF"
 			>

@@ -340,6 +340,29 @@ namespace TranscendenceRL {
 			return base.ProcessMouse(state);
 		}
 	}
+
+	class BackdropConsole : Console {
+		public Func<XY> camera;
+		Backdrop backdrop;
+		public BackdropConsole(int width, int height, Backdrop backdrop, Func<XY> camera) : base(width, height) {
+			this.backdrop = backdrop;
+		}
+		public override void Draw(TimeSpan drawTime) {
+			this.Clear();
+			XY camera = this.camera();
+
+			for (int x = 0; x < Width; x++) {
+				for (int y = 0; y < Height; y++) {
+					var g = this.GetGlyph(x, y);
+
+					var offset = new XY(x, Height - y) - new XY(Width / 2, Height / 2);
+					var location = camera + offset;
+					this.SetBackground(x, y, backdrop.GetBackground(location, camera));
+				}
+			}
+			base.Draw(drawTime);
+		}
+	}
 	class MegaMap : Console {
 		PlayerShip player;
 		GeneratedLayer BackVoid;
@@ -406,8 +429,8 @@ namespace TranscendenceRL {
     }
 	class PlayerBorder : Console {
 		PlayerShip player;
-		public double mortalOpacity;
 		public char[,] mortalBorder;
+		public float powerAlpha;
 		public PlayerBorder(PlayerShip player, int width, int height) : base(width, height) {
 			this.player = player;
 			FocusOnMouseClick = false;
@@ -423,21 +446,31 @@ namespace TranscendenceRL {
 
 		}
         public override void Update(TimeSpan delta) {
-			if (mortalOpacity < player.mortalTime) {
-				mortalOpacity += player.mortalTime / 30;
+			var charging = player.Powers.Where(p => p.invokeCharge > 0);
+			if(charging.Any()) {
+				var charge = Math.Min(1, charging.Max(p => (float) p.invokeCharge / p.invokeDelay));
+				if(powerAlpha < charge) {
+					powerAlpha += (charge - powerAlpha) / 10f;
+                }
 			} else {
-				mortalOpacity = player.mortalTime;
+				powerAlpha -= powerAlpha / 120;
 			}
 			base.Update(delta);
         }
         public override void Draw(TimeSpan delta) {
+			this.Clear();
+
 			XY screenSize = new XY(Width, Height);
 
 			//Set the color of the vignette
 
 			Color borderFront = Color.Black;
 			int borderSize = 8;
+			if (powerAlpha > 0) {
+				borderFront = borderFront.Blend(new Color(204, 153, 255, 255) * (float)Math.Min(1, powerAlpha * 1.5)).Premultiply();
 
+				borderSize += (int)(12 * powerAlpha);
+			}
 			if (player.mortalTime > 0) {
 				//Vignette is red when the player is mortal
 				/*
@@ -445,21 +478,23 @@ namespace TranscendenceRL {
 				borderColor = borderColor.SetBlue(Math.Min((byte)255, (byte)((3 - Math.Min(3, mortalOpacity)) * 25)));
 				borderColor = borderColor.SetAlpha(Math.Min((byte)255, (byte)Math.Min(255, 255 * mortalOpacity / 3)));
 				*/
-				borderFront = borderFront.SetRed(Math.Min((byte)255, (byte)(Math.Min(3, mortalOpacity / 1.5) * 255 / 3f)));
+				borderFront = borderFront.SetRed(Math.Min((byte)255, (byte)(Math.Min(3, player.mortalTime / 1.5) * 255 / 3f)));
 				borderFront = borderFront.Premultiply();
 
 				var fraction = (player.mortalTime - Math.Truncate(player.mortalTime));
 
-				borderSize += (int)(2 * borderSize * fraction);
+				borderSize += (int)(12 * fraction);
 			}
 			Color borderBack = Color.Black;
 			int dec = 255 / borderSize;
 			for (int i = 0; i < borderSize; i++) {
-				byte alpha = (byte)Math.Max(0, 255 - i * dec);
+				var decrease = i * dec;
+				byte backAlpha = (byte)Math.Max(0, 255 - decrease);
+				byte frontAlpha = (byte)Math.Min(255, 4 * backAlpha / 3);
 				var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
 				foreach (var point in screenPerimeter.PerimeterPositions()) {
-					var back = borderBack.SetAlpha(alpha);
-					var front = borderFront.SetAlpha(alpha);
+					var back = borderBack.SetAlpha(backAlpha);
+					var front = borderFront.SetAlpha(frontAlpha);
 					//var back = this.GetBackground(point.X, point.Y).Premultiply();
 					var (x, y) = point;
 					this.SetCellAppearance(x, y, new ColoredGlyph(front, back, mortalBorder[x, y]));
