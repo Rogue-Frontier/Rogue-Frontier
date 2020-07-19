@@ -25,6 +25,7 @@ namespace TranscendenceRL {
 		GeneratedLayer backVoid;
 		Point mousePos;
 
+		BackdropConsole back;
 		MegaMap map;
 		PlayerBorder vignette;
 		Console sceneContainer;
@@ -44,6 +45,7 @@ namespace TranscendenceRL {
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
 			backVoid = new GeneratedLayer(1, new Random());
 
+			back = new BackdropConsole(Width, Height, World.backdrop, () => camera);
 			map = new MegaMap(playerShip, Width, Height);
 			vignette = new PlayerBorder(playerShip, Width, Height);
 			sceneContainer = new Console(Width, Height);
@@ -80,6 +82,8 @@ namespace TranscendenceRL {
 				wreck = wreck
 			};
 			playerShip.player.epitaphs.Add(epitaph);
+
+			//Bug: Background is not included because it is a separate console
 			SadConsole.Game.Instance.Screen = new DeathTransition(this, new DeathScreen(this, World, playerShip, epitaph)) { IsFocused = true };
 		}
 		public void PlaceTiles() {
@@ -154,8 +158,10 @@ namespace TranscendenceRL {
 			base.Update(delta);
 		}
 		public override void Draw(TimeSpan drawTime) {
-			base.Draw(drawTime);
+			this.Clear();
+			back.Draw(drawTime);
 			DrawWorld();
+			base.Draw(drawTime);
 			if (sceneContainer.Children.Count > 0) {
 				vignette.Draw(drawTime);
 				sceneContainer.Draw(drawTime);
@@ -169,7 +175,6 @@ namespace TranscendenceRL {
 			}
 		}
 		public void DrawWorld() {
-			this.Clear();
 			int ViewWidth = Width;
 			int ViewHeight = Height;
 			int HalfViewWidth = ViewWidth / 2;
@@ -179,45 +184,25 @@ namespace TranscendenceRL {
 				for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
 					XY location = camera + new XY(x, y);
 
-					var xScreen = x + HalfViewWidth;
-					var yScreen = ViewHeight - (y + HalfViewHeight);
-					this.SetCellAppearance(xScreen, yScreen, GetTile(location));
+					if (tiles.TryGetValue(location.RoundDown, out var tile)) {
+						var xScreen = x + HalfViewWidth;
+						var yScreen = ViewHeight - (y + HalfViewHeight);
+						this.SetCellAppearance(xScreen, yScreen, tile);
+					}
 				}
-			}
-		}
-		public bool GetForegroundTile(XY xy, out ColoredGlyph result) {
-			//Round down to ensure we don't get duplicated tiles along the origin
-			if (tiles.TryGetValue(xy.RoundDown, out result)) {
-				result = result.Clone();	//Don't modify the source
-				var back = GetBackTile(xy);
-				if (result.Background.A == 0) {
-					result.Background = back.Background;
-				}
-				return true;
-			} else {
-				result = null;
-				return false;
-				//return GetBackTile(xy);
 			}
 		}
 		public ColoredGlyph GetTile(XY xy) {
-			var back = GetBackTile(xy);
+			var back = World.backdrop.GetTile(xy, camera);
 			//Round down to ensure we don't get duplicated tiles along the origin
 			if (tiles.TryGetValue(xy.RoundDown, out ColoredGlyph g)) {
-				g = g.Clone();			//Don't modify the source
-				if(g.Background.A == 0) {
-					g.Background = back.Background;
-				}
+				g = g.Clone();          //Don't modify the source
+				g.Background = back.Background.Premultiply().Blend(g.Background);
 				return g;
 			} else {
 				return back;
 				//return GetBackTile(xy);
 			}
-		}
-		public ColoredGlyph GetBackTile(XY xy) {
-			//Don't round down since this function does it for us
-			var back = World.backdrop.GetTile(xy, camera);
-			return back;
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
 			map.ProcessKeyboard(info);
@@ -343,9 +328,12 @@ namespace TranscendenceRL {
 
 	class BackdropConsole : Console {
 		public Func<XY> camera;
+		XY screenCenter;
 		Backdrop backdrop;
 		public BackdropConsole(int width, int height, Backdrop backdrop, Func<XY> camera) : base(width, height) {
 			this.backdrop = backdrop;
+			screenCenter = new XY(Width / 2f, Height / 2f);
+			this.camera = camera;
 		}
 		public override void Draw(TimeSpan drawTime) {
 			this.Clear();
@@ -355,9 +343,9 @@ namespace TranscendenceRL {
 				for (int y = 0; y < Height; y++) {
 					var g = this.GetGlyph(x, y);
 
-					var offset = new XY(x, Height - y) - new XY(Width / 2, Height / 2);
+					var offset = new XY(x, Height - y) - screenCenter;
 					var location = camera + offset;
-					this.SetBackground(x, y, backdrop.GetBackground(location, camera));
+					this.SetCellAppearance(x, y, backdrop.GetTile(location, camera));
 				}
 			}
 			base.Draw(drawTime);
