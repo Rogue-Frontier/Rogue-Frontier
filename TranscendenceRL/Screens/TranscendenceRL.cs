@@ -31,6 +31,12 @@ namespace TranscendenceRL {
 		}
 
 		private static void Init() {
+			if(false) {
+
+				GameHost.Instance.Screen = new BackdropConsole(Width, Height, new Backdrop(), () => new Common.XY(0.5, 0.5));
+				return;
+			}
+			
 			var title = new TitleSlideOpening(new TitleScreen(Width, Height)) { IsFocused = true };
 			GameHost.Instance.Screen = new SplashScreen(title) { IsFocused = true };
 		}

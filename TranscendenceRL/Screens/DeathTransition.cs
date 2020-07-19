@@ -64,18 +64,6 @@ namespace TranscendenceRL {
             prev.Draw(delta);
             base.Draw(delta);
             this.Clear();
-            for(int y = 0; y < Height; y++) {
-                for(int x = 0; x < Width; x++) {
-                    var cell = prev.GetCellAppearance(x, y);
-                    var baseValue = (Math.Clamp(time - 2, 0, 4) * 51);
-
-                    var value = (int)(baseValue + Math.Clamp(Math.Max(time - 2, 0) / 2, 0, 3) * 51 * Math.Sin(time + Math.Sin(x) + Math.Sin(y)));
-                    var shift = Math.Clamp(time - 4, 0, 4) / 4;
-                    var back = cell.Background.Premultiply().Blend(new Color(255, (int)(255 - shift * 255), (int)(255 - shift*255), value));
-                    var front = cell.Foreground.Premultiply().Blend(new Color(255, (int)(255 - shift * 255), (int)(255 - shift * 255), value));
-                    this.SetCellAppearance(x, y, new ColoredGlyph(front, back, cell.Glyph));
-                }
-            }
             foreach(var p in particles) {
                 this.SetCellAppearance(p.x, (int)p.y, new ColoredGlyph(Color.Black, Color.Black, ' '));
             }

@@ -81,7 +81,11 @@ namespace TranscendenceRL {
 				}
 			}
 			if (info.IsKeyPressed(C)) {
-				playerShip.Damage(playerShip, playerShip.Ship.DamageSystem.GetHP() - 5);
+				if(info.IsKeyDown(LeftShift)) {
+					playerShip.Destroy(playerShip);
+                } else {
+					playerShip.Damage(playerShip, playerShip.Ship.DamageSystem.GetHP() - 5);
+				}
 			}
 		}
     }
