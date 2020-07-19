@@ -407,10 +407,20 @@ namespace TranscendenceRL {
 	class PlayerBorder : Console {
 		PlayerShip player;
 		public double mortalOpacity;
-
+		public char[,] mortalBorder;
 		public PlayerBorder(PlayerShip player, int width, int height) : base(width, height) {
 			this.player = player;
 			FocusOnMouseClick = false;
+
+			char[] letters = new char[] { 'A', 'E', 'I', 'H', 'B', 'M', 'V' };
+			mortalBorder = new char[width, height];
+
+			for (int x = 0; x < width; x++) {
+				for(int y = 0; y < height; y++) {
+					mortalBorder[x, y] = letters[x % 2 + (x / 2) % 2 + (x / 4) % 2 + y % 2 + (y / 2) % 2 + (y / 4) % 2];
+				}
+            }
+
 		}
         public override void Update(TimeSpan delta) {
 			if (mortalOpacity < player.mortalTime) {
@@ -424,7 +434,8 @@ namespace TranscendenceRL {
 			XY screenSize = new XY(Width, Height);
 
 			//Set the color of the vignette
-			Color borderColor = Color.Black;
+
+			Color borderFront = Color.Black;
 			int borderSize = 8;
 
 			if (player.mortalTime > 0) {
@@ -434,22 +445,24 @@ namespace TranscendenceRL {
 				borderColor = borderColor.SetBlue(Math.Min((byte)255, (byte)((3 - Math.Min(3, mortalOpacity)) * 25)));
 				borderColor = borderColor.SetAlpha(Math.Min((byte)255, (byte)Math.Min(255, 255 * mortalOpacity / 3)));
 				*/
-				borderColor = borderColor.SetRed(Math.Min((byte)255, (byte)(Math.Min(3, mortalOpacity) * 255 / 3f)));
-				borderColor = borderColor.Premultiply();
+				borderFront = borderFront.SetRed(Math.Min((byte)255, (byte)(Math.Min(3, mortalOpacity / 1.5) * 255 / 3f)));
+				borderFront = borderFront.Premultiply();
 
 				var fraction = (player.mortalTime - Math.Truncate(player.mortalTime));
 
 				borderSize += (int)(2 * borderSize * fraction);
 			}
+			Color borderBack = Color.Black;
 			int dec = 255 / borderSize;
 			for (int i = 0; i < borderSize; i++) {
 				byte alpha = (byte)Math.Max(0, 255 - i * dec);
 				var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
 				foreach (var point in screenPerimeter.PerimeterPositions()) {
-					var color = borderColor.SetAlpha(alpha);
+					var back = borderBack.SetAlpha(alpha);
+					var front = borderFront.SetAlpha(alpha);
 					//var back = this.GetBackground(point.X, point.Y).Premultiply();
-
-					this.SetBackground(point.X, point.Y, color);
+					var (x, y) = point;
+					this.SetCellAppearance(x, y, new ColoredGlyph(front, back, mortalBorder[x, y]));
 				}
 			}
 			base.Draw(delta);
@@ -465,7 +478,6 @@ namespace TranscendenceRL {
 		*/
 		PlayerShip player;
 		Dictionary<(int, int), ColoredGlyph> tiles;
-		public double mortalOpacity;
 
 		public PlayerUI(PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
 			this.player = player;
