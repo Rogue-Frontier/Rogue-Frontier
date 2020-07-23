@@ -180,7 +180,7 @@ namespace TranscendenceRL {
                 SadConsole.Game.Instance.Screen = new CrawlTransition(Width, Height, this, playerMain) { IsFocused = true };
             }
         }
-        public override void Draw(TimeSpan drawTime) {
+        public override void Render(TimeSpan drawTime) {
             this.Clear();
             //Print background
             int effectY = Height / 5;
@@ -243,7 +243,7 @@ namespace TranscendenceRL {
             }
             
 
-            base.Draw(drawTime);
+            base.Render(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
             if(info.IsKeyPressed(SadConsole.Input.Keys.Enter)) {

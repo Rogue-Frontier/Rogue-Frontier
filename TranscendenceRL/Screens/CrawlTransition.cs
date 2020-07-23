@@ -44,7 +44,7 @@ namespace TranscendenceRL {
             stage = Stage.Brighten;
 
             //Draw one frame now so that we don't cut out for one frame
-            Draw(new TimeSpan());
+            Render(new TimeSpan());
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
             if(keyboard.IsKeyPressed(Keys.Enter) && stage < Stage.StartGame) {
@@ -127,13 +127,15 @@ namespace TranscendenceRL {
             base.Update(delta);
 
         }
-        public override void Draw(TimeSpan delta) {
-            base.Draw(delta);
+        public override void Render(TimeSpan delta) {
+            base.Render(delta);
             foreach (var glyph in glyphs) {
                 var (x, y) = glyph.pos;
                 this.SetForeground(x, y, glyph.foregound);
                 this.SetGlyph(x, y, glyph.glyph);
             }
+
+            //To do: Simplify this so we just draw next with some alpha background
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
                     this.SetBackground(x, y, next.GetBackground(x,y).Blend(background[x, y]));

@@ -12,6 +12,7 @@ using static SadConsole.Input.Keys;
 using Console = SadConsole.Console;
 using SadConsole.UI.Controls;
 using ASECII;
+using Label = ASECII.Label;
 
 namespace TranscendenceRL {
 
@@ -55,8 +56,7 @@ namespace TranscendenceRL {
 
             int y = 2;
 
-            var nameField = new LabeledControl("Name           ", context.playerName) { Position = new Point(0, y) };
-            nameField.textBox.TextChanged += (e, s) => context.playerName = nameField.textBox.Text;
+            var nameField = new LabeledField("Name           ", context.playerName, (e, text) => context.playerName = text) { Position = new Point(0, y) };
             this.Children.Add(nameField);
 
             y++;
@@ -89,14 +89,14 @@ namespace TranscendenceRL {
                             possessiveNoun="theirs",
                             reflexive="theirself"
                         };
-                        this.Children.Add(new LabeledControl("Identity       ", playerGenome.name, s => playerGenome.name = s) { Position = new Point(0, y++)});
-                        this.Children.Add(new LabeledControl("Species        ", playerGenome.species, s => playerGenome.species = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledControl("Gender         ", playerGenome.gender, s => playerGenome.gender = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledControl("Subjective     ", playerGenome.subjective, s => playerGenome.subjective = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledControl("Objective      ", playerGenome.objective, s => playerGenome.objective = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledControl("Possessive Adj.", playerGenome.possessiveAdj, s => playerGenome.possessiveAdj = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledControl("Possessive Noun", playerGenome.possessiveNoun, s => playerGenome.possessiveNoun = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledControl("Reflexive      ", playerGenome.reflexive, s => playerGenome.reflexive = s) { Position = new Point(0, y++) });
+                        this.Children.Add(new LabeledField("Identity       ", playerGenome.name, (e, s) => playerGenome.name = s) { Position = new Point(0, y++)});
+                        this.Children.Add(new LabeledField("Species        ", playerGenome.species, (e, s) => playerGenome.species = s) { Position = new Point(0, y++) });
+                        this.Children.Add(new LabeledField("Gender         ", playerGenome.gender, (e, s) => playerGenome.gender = s) { Position = new Point(0, y++) });
+                        this.Children.Add(new LabeledField("Subjective     ", playerGenome.subjective, (e, s) => playerGenome.subjective = s) { Position = new Point(0, y++) });
+                        this.Children.Add(new LabeledField("Objective      ", playerGenome.objective, (e, s) => playerGenome.objective = s) { Position = new Point(0, y++) });
+                        this.Children.Add(new LabeledField("Possessive Adj.", playerGenome.possessiveAdj, (e, s) => playerGenome.possessiveAdj = s) { Position = new Point(0, y++) });
+                        this.Children.Add(new LabeledField("Possessive Noun", playerGenome.possessiveNoun, (e, s) => playerGenome.possessiveNoun = s) { Position = new Point(0, y++) });
+                        this.Children.Add(new LabeledField("Reflexive      ", playerGenome.reflexive, (e, s) => playerGenome.reflexive = s) { Position = new Point(0, y++) });
                     }
                 }
                 lastClick = time;
@@ -109,7 +109,7 @@ namespace TranscendenceRL {
             time += delta.TotalSeconds;
             base.Update(delta);
         }
-        public override void Draw(TimeSpan drawTime) {
+        public override void Render(TimeSpan drawTime) {
             this.Clear();
 
             var current = playable[index];
@@ -183,7 +183,7 @@ namespace TranscendenceRL {
                 }
             }
 
-            base.Draw(drawTime);
+            base.Render(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
             if(info.IsKeyPressed(Right) && index < playable.Count - 1) {

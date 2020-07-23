@@ -27,7 +27,7 @@ namespace TranscendenceRL {
             time += delta.TotalSeconds;
             base.Update(delta);
         }
-        public override void Draw(TimeSpan delta) {
+        public override void Render(TimeSpan delta) {
             for(int y = 0; y < 16; y++) {
                 for(int x = 0; x < 16; x++) {
                     this.SetCellAppearance(x, y, image[x, y]);
@@ -36,7 +36,7 @@ namespace TranscendenceRL {
             if((int)time % 2 == 0) {
                 this.SetCellAppearance(cursor.X, cursor.Y, new ColoredGlyph(Color.White, Color.Black, '_'));
             }
-            base.Draw(delta);
+            base.Render(delta);
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
             foreach(var pressed in keyboard.KeysPressed) {

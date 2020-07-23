@@ -134,7 +134,7 @@ namespace TranscendenceRL {
                 povDesc.Add(new InfoMessage(device.source.type.name));
             }
         }
-        public override void Draw(TimeSpan drawTime) {
+        public override void Render(TimeSpan drawTime) {
             this.Clear();
             var titleY = 0;
             foreach (var line in title) {
@@ -194,7 +194,7 @@ namespace TranscendenceRL {
                     
                 }
             }
-            base.Draw(drawTime);
+            base.Render(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
             if(info.IsKeyPressed(Keys.K)) {

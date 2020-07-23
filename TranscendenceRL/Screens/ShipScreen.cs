@@ -18,7 +18,7 @@ namespace TranscendenceRL {
             this.prev = prev;
             this.PlayerShip = PlayerShip;
         }
-        public override void Draw(TimeSpan delta) {
+        public override void Render(TimeSpan delta) {
             this.Clear();
             var name = PlayerShip.ShipClass.name;
             var x = Width / 4 - name.Length / 2;
@@ -55,7 +55,7 @@ namespace TranscendenceRL {
             }
             */
 
-            base.Draw(delta);
+            base.Render(delta);
         }
         public override bool ProcessKeyboard(Keyboard info) {
             if(info.IsKeyPressed(SadConsole.Input.Keys.S) || info.IsKeyPressed(Keys.Escape)) {

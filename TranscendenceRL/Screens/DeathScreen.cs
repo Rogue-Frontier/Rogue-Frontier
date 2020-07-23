@@ -1,4 +1,5 @@
 ﻿
+using ASECII;
 using Microsoft.Xna.Framework.Graphics;
 using SadConsole;
 using SadConsole.Input;
@@ -44,7 +45,7 @@ namespace TranscendenceRL {
         public override void Update(TimeSpan delta) {
             base.Update(delta);
         }
-        public override void Draw(TimeSpan delta) {
+        public override void Render(TimeSpan delta) {
             var size = epitaph.deathFrame.GetLength(0);
             int y;
             for (y = 0; y < size; y++) {
@@ -74,7 +75,7 @@ Ships Destroyed
                 this.Print(2, y++, line);
             }
 
-            base.Draw(delta);
+            base.Render(delta);
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
             return base.ProcessKeyboard(keyboard);

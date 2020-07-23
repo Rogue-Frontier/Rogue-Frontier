@@ -15,7 +15,7 @@ namespace TranscendenceRL {
         public SceneScan(Console next) : base(next.Width, next.Height) {
             y = 0;
             this.next = next;
-            next.Draw(new TimeSpan());
+            next.Render(new TimeSpan());
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
             if(keyboard.IsKeyPressed(Keys.Enter)) {
@@ -34,7 +34,7 @@ namespace TranscendenceRL {
             }
             base.Update(delta);
         }
-        public override void Draw(TimeSpan delta) {
+        public override void Render(TimeSpan delta) {
             this.Clear();
 
             var last = this.y - 1;
@@ -49,7 +49,7 @@ namespace TranscendenceRL {
             for (int x = 0; x < Width; x++) {
                 this.SetCellAppearance(x, y, new ColoredGlyph(Color.Transparent, Color.White.SetAlpha(128)));
             }
-            base.Draw(delta);
+            base.Render(delta);
         }
     }
 }

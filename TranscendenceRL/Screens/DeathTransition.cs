@@ -60,9 +60,9 @@ namespace TranscendenceRL {
             }
             base.Update(delta);
         }
-        public override void Draw(TimeSpan delta) {
-            prev.Draw(delta);
-            base.Draw(delta);
+        public override void Render(TimeSpan delta) {
+            prev.Render(delta);
+            base.Render(delta);
             this.Clear();
             foreach(var p in particles) {
                 this.SetCellAppearance(p.x, (int)p.y, new ColoredGlyph(Color.Black, Color.Black, ' '));

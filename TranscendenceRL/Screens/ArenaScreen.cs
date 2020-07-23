@@ -138,9 +138,9 @@ namespace TranscendenceRL {
 
             Heading.Crosshair(World, nearest.Position);
         }
-        public override void Draw(TimeSpan drawTime) {
+        public override void Render(TimeSpan drawTime) {
             if (playerMain != null) {
-                playerMain.Draw(drawTime);
+                playerMain.Render(drawTime);
                 return;
             }
 
@@ -167,7 +167,7 @@ namespace TranscendenceRL {
                     }
                 }
             }
-            base.Draw(drawTime);
+            base.Render(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
             if(playerMain != null) {
@@ -225,7 +225,7 @@ namespace TranscendenceRL {
 
             mouse.Update(state, IsMouseOver);
             mouse.nowPos = new Point(mouse.nowPos.X, Height - mouse.nowPos.Y);
-            if(mouse.left == MouseState.Held) {
+            if(mouse.left == ClickState.Held) {
                 camera += new XY(mouse.prevPos - mouse.nowPos);
             }
 

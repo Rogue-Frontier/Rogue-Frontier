@@ -22,7 +22,7 @@ namespace TranscendenceRL {
 
             //Draw one frame now so that we don't cut out for one frame
             next.Update(new TimeSpan());
-            Draw(new TimeSpan());
+            Render(new TimeSpan());
         }
         public override void Update(TimeSpan delta) {
             next.Update(delta);
@@ -42,9 +42,9 @@ namespace TranscendenceRL {
                 }
             }
         }
-        public override void Draw(TimeSpan delta) {
-            next.Draw(delta);
-            base.Draw(delta);
+        public override void Render(TimeSpan delta) {
+            next.Render(delta);
+            base.Render(delta);
             this.Clear();
             var blank = new ColoredGlyph(Color.Black, Color.Black);
             for (int y = 0; y < Height; y++) {
@@ -87,7 +87,7 @@ namespace TranscendenceRL {
 
             //Draw one frame now so that we don't cut out for one frame
             next.Update(new TimeSpan());
-            Draw(new TimeSpan());
+            Render(new TimeSpan());
         }
         public override void Update(TimeSpan delta) {
             next.Update(delta);
@@ -100,9 +100,9 @@ namespace TranscendenceRL {
                 return;
             }
         }
-        public override void Draw(TimeSpan delta) {
-            next.Draw(delta);
-            base.Draw(delta);
+        public override void Render(TimeSpan delta) {
+            next.Render(delta);
+            base.Render(delta);
             this.Clear();
             var blank = new ColoredGlyph(Color.Black, Color.Black);
             for (int y = 0; y < Height; y++) {
@@ -139,7 +139,7 @@ namespace TranscendenceRL {
             this.prev = prev;
             this.next = next;
             //Draw one frame now so that we don't cut out for one frame
-            Draw(new TimeSpan());
+            Render(new TimeSpan());
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
             if(keyboard.IsKeyPressed(Keys.Enter)) {
@@ -160,10 +160,10 @@ namespace TranscendenceRL {
             SadConsole.Game.Instance.Screen = next;
             next.IsFocused = true;
         }
-        public override void Draw(TimeSpan delta) {
-            next.Draw(delta);
-            prev.Draw(delta);
-            base.Draw(delta);
+        public override void Render(TimeSpan delta) {
+            next.Render(delta);
+            prev.Render(delta);
+            base.Render(delta);
             var blank = new ColoredGlyph(Color.Black, Color.Black);
             for (int y = 0; y < Height; y++) {
                 for (int x = 0; x < this.x; x++) {
@@ -193,7 +193,7 @@ namespace TranscendenceRL {
         public FadeIn(Console next) : base(next.Width, next.Height) {
             this.next = next;
             DefaultBackground = Color.Black;
-            Draw(new TimeSpan());
+            Render(new TimeSpan());
         }
         public override void Update(TimeSpan delta) {
             next.Update(delta);
@@ -205,9 +205,9 @@ namespace TranscendenceRL {
                 next.IsFocused = true;
             }
         }
-        public override void Draw(TimeSpan delta) {
-            next.Draw(delta);
-            base.Draw(delta);
+        public override void Render(TimeSpan delta) {
+            next.Render(delta);
+            base.Render(delta);
             this.Clear();
             for (int y = 0; y < Height; y++) {
                 for (int x = 0; x < Width; x++) {
@@ -229,7 +229,7 @@ namespace TranscendenceRL {
             this.next = next;
             DefaultBackground = Color.Black;
             time = 5;
-            Draw(new TimeSpan());
+            Render(new TimeSpan());
         }
         public override void Update(TimeSpan delta) {
             base.Update(delta);
@@ -240,9 +240,9 @@ namespace TranscendenceRL {
                 next.IsFocused = true;
             }
         }
-        public override void Draw(TimeSpan delta) {
-            base.Draw(delta);
-            next.Draw(delta);
+        public override void Render(TimeSpan delta) {
+            base.Render(delta);
+            next.Render(delta);
         }
     }
 }

@@ -157,21 +157,21 @@ namespace TranscendenceRL {
 			//Required to update children
 			base.Update(delta);
 		}
-		public override void Draw(TimeSpan drawTime) {
+		public override void Render(TimeSpan drawTime) {
 			this.Clear();
-			back.Draw(drawTime);
+			back.Render(drawTime);
 			DrawWorld();
-			base.Draw(drawTime);
+			base.Render(drawTime);
 			if (sceneContainer.Children.Count > 0) {
-				vignette.Draw(drawTime);
-				sceneContainer.Draw(drawTime);
+				vignette.Render(drawTime);
+				sceneContainer.Render(drawTime);
 			} else {
 				if (map.IsVisible)
-					map.Draw(drawTime);
-				vignette.Draw(drawTime);
-				ui.Draw(drawTime);
+					map.Render(drawTime);
+				vignette.Render(drawTime);
+				ui.Render(drawTime);
 				if (powerMenu.IsVisible)
-					powerMenu.Draw(drawTime);
+					powerMenu.Render(drawTime);
 			}
 		}
 		public void DrawWorld() {
@@ -335,7 +335,7 @@ namespace TranscendenceRL {
 			screenCenter = new XY(Width / 2f, Height / 2f);
 			this.camera = camera;
 		}
-		public override void Draw(TimeSpan drawTime) {
+		public override void Render(TimeSpan drawTime) {
 			this.Clear();
 			XY camera = this.camera();
 
@@ -348,7 +348,7 @@ namespace TranscendenceRL {
 					this.SetCellAppearance(x, y, backdrop.GetTile(location, camera));
 				}
 			}
-			base.Draw(drawTime);
+			base.Render(drawTime);
 		}
 	}
 	class MegaMap : Console {
@@ -378,7 +378,7 @@ namespace TranscendenceRL {
 			time += delta.TotalSeconds;
 			base.Update(delta);
         }
-        public override void Draw(TimeSpan delta) {
+        public override void Render(TimeSpan delta) {
 			this.Clear();
 			if (viewScale > 1) {
 				XY screenSize = new XY(Width, Height);
@@ -412,7 +412,7 @@ namespace TranscendenceRL {
 					}
 				}
 			}
-			base.Draw(delta);
+			base.Render(delta);
         }
     }
 	class PlayerBorder : Console {
@@ -445,7 +445,7 @@ namespace TranscendenceRL {
 			}
 			base.Update(delta);
         }
-        public override void Draw(TimeSpan delta) {
+        public override void Render(TimeSpan delta) {
 			this.Clear();
 
 			XY screenSize = new XY(Width, Height);
@@ -488,7 +488,7 @@ namespace TranscendenceRL {
 					this.SetCellAppearance(x, y, new ColoredGlyph(front, back, mortalBorder[x, y]));
 				}
 			}
-			base.Draw(delta);
+			base.Render(delta);
         }
     }
 	class PlayerUI : Console {
@@ -521,7 +521,7 @@ namespace TranscendenceRL {
 			*/
 			FocusOnMouseClick = false;
         }
-        public override void Draw(TimeSpan drawTime) {
+        public override void Render(TimeSpan drawTime) {
 			this.Clear();
 			XY screenSize = new XY(Width, Height);
 			XY screenCenter = screenSize / 2;
@@ -846,7 +846,7 @@ namespace TranscendenceRL {
 					}
 				}
 			}
-			base.Draw(drawTime);
+			base.Render(drawTime);
         }
     }
 	public class PowerMenu : Console {
@@ -910,7 +910,7 @@ namespace TranscendenceRL {
             }
             return base.ProcessKeyboard(keyboard);
         }
-		public override void Draw(TimeSpan delta) {
+		public override void Render(TimeSpan delta) {
 			int x = 3;
 			int y = 32;
 			int index = 0;
@@ -942,7 +942,7 @@ namespace TranscendenceRL {
 				index++;
             }
 
-            base.Draw(delta);
+            base.Render(delta);
         }
 
     }

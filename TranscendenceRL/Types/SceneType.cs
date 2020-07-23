@@ -46,7 +46,7 @@ namespace TranscendenceRL {
             time += delta.TotalSeconds;
             base.Update(delta);
         }
-        public override void Draw(TimeSpan delta) {
+        public override void Render(TimeSpan delta) {
             var heroImage = station.StationType.heroImage;
             int width = heroImage.Max(line => line.Length);
             int height = heroImage.Length;
@@ -70,7 +70,7 @@ namespace TranscendenceRL {
                 DrawLine();
             }
 
-            base.Draw(delta);
+            base.Render(delta);
         }
 
     }
@@ -205,7 +205,7 @@ namespace TranscendenceRL {
             }
             return base.ProcessKeyboard(keyboard);
         }
-        public override void Draw(TimeSpan delta) {
+        public override void Render(TimeSpan delta) {
             int x = 16;
             int y = 16;
 
@@ -259,7 +259,7 @@ namespace TranscendenceRL {
                 i++;
                 y++;
             }
-            base.Draw(delta);
+            base.Render(delta);
         }
         
     }

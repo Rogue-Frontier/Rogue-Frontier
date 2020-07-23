@@ -100,7 +100,7 @@ namespace TranscendenceRL {
             SadConsole.Game.Instance.Screen = next;
             next.IsFocused = true;
         }
-        public override void Draw(TimeSpan drawTime) {
+        public override void Render(TimeSpan drawTime) {
             this.Clear();
 
             for (int x = 0; x < Width; x++) {
@@ -114,7 +114,7 @@ namespace TranscendenceRL {
                     }
                 }
             }
-            base.Draw(drawTime);
+            base.Render(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
             if(info.IsKeyPressed(Keys.Enter)) {

@@ -39,7 +39,7 @@ namespace TranscendenceRL {
                 p.pos = (p.pos + half) % two - half;
             }
         }
-        public void Draw() {
+        public void Render() {
             for(int x = 0; x < parent.Width; x++) {
                 for(int y = 0; y < parent.Height; y++) {
                     var foreground = parent.GetForeground(x, y);
