@@ -2,6 +2,12 @@
 ![Cover](https://github.com/INeedAUniqueUsername/TranscendenceRL/blob/master/TranscendenceRL/Preview/TitleScreen.PNG)
 A demo for an ASCII-style real-time roguelike set in an alternate universe of *Transcendence*, a roguelike space-opera game by George Moromisato. Developed for April Fools 2020.
 
+# Build
+- Visual Studio 2019
+- MonoGame
+- SadConsole
+- [ASECII](https://github.com/INeedAUniqueUsername/ASECII)
+
 ## Development
 For now, this game is a demo of the engine. Only one part of the starting system actually exists. A small fraction of the game story and content is present. I completed the majority of work on this engine within the last 10 days of April.
 
