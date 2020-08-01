@@ -212,12 +212,15 @@ namespace TranscendenceRL {
                     t.Foreground = t.Foreground.Blend(tiles[from.xi, from.yi].Foreground.SetAlpha((byte)r.Next(0, 51)));
                 }
             }
-
-            var orbitCirc = lc.radius * 2 * Math.PI;
+            /*
+            var orbitFocus = lc.focus;
+            var orbitRadius = lc.radius;
+            var orbitCirc = orbitRadius * 2 * Math.PI;
             for (int i = 0; i < orbitCirc; i++) {
-                var angle = i / lc.radius;
-                lc.world.backdrop.orbits.tiles[XY.Polar(angle, lc.radius)] = new ColoredGlyph(Color.White, Color.Transparent, '.');
+                var angle = i / orbitRadius;
+                lc.world.backdrop.orbits.tiles[orbitFocus + XY.Polar(angle, orbitRadius)] = new ColoredGlyph(Color.White, Color.Transparent, '.');
             }
+            */
         }
     }
     public class SystemSibling : SystemElement {
@@ -268,7 +271,7 @@ namespace TranscendenceRL {
                 }
             }
             */
-            lc.world.backdrop.layers.Add(new GeneratedLayer(1, new GeneratedGrid<ColoredGlyph>(p => {
+            lc.world.backdrop.layers.Insert(0, new GeneratedLayer(1, new GeneratedGrid<ColoredGlyph>(p => {
                 var xy = new XY(p);
                 return new ColoredGlyph(Color.Black, new Color(255, 255, 204, Math.Min(255, (int) (radius * 255 / ((lc.pos - p).Magnitude + 1)))));
             })));

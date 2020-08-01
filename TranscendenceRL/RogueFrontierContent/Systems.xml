@@ -8,7 +8,7 @@
 			<Orbital radius="400"
 					 angle="random">
 
-				<Planet radius="30"
+				<Planet radius="20"
 						showOrbit="true"
 							/>
 

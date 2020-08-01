@@ -42,9 +42,8 @@ namespace TranscendenceRL {
 
             Blend(orbits.GetTile(point, camera));
 
-            foreach (var layer in layers) {
-                Blend(layer.GetTile(point, camera));
-                
+            for(int i = layers.Count - 1; i > -1; i--) {
+                Blend(layers[i].GetTile(point, camera));
             }
             void Blend(ColoredGlyph tile) {
                 b = b.Premultiply().Blend(tile.Background);
