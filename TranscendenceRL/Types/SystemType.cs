@@ -53,6 +53,10 @@ namespace TranscendenceRL {
                     return new SystemOrbital(e);
                 case "Planet":
                     return new SystemPlanet(e);
+                case "Sibling":
+                    return new SystemSibling(e);
+                case "Star":
+                    return new SystemStar(e);
                 case "Station":
                     return new SystemStation(e);
                 case "Marker":
@@ -63,12 +67,21 @@ namespace TranscendenceRL {
         }
     }
     public class SystemGroup : SystemElement {
+        int radius;
         List<SystemElement> subelements;
         public SystemGroup(XElement e) {
+            radius = e.TryAttributeInt(nameof(radius), 0);
             subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
         }
         public void Generate(LocationContext lc, TypeCollection tc) {
-            subelements.ForEach(g => g.Generate(lc, tc));
+            var sub_lc = new LocationContext() {
+                world = lc.world,
+                focus = lc.focus,
+                angle = lc.angle,
+                radius = radius,
+                pos = lc.focus + XY.Polar(lc.angle * Math.PI / 180, radius)
+            };
+            subelements.ForEach(g => g.Generate(sub_lc, tc));
         }
     }
     public class SystemOrbital : SystemElement {
@@ -101,11 +114,9 @@ namespace TranscendenceRL {
                 case var unknown:
                     throw new Exception($"Invalid angle {unknown}");
             }
-            radius = e.ExpectAttributeInt("radius");
+            radius = e.TryAttributeInt(nameof(radius), 0);
         }
         public void Generate(LocationContext lc, TypeCollection tc) {
-            var result = new List<SpaceObject>();
-
             var angle = this.angle;
             var increment = this.increment;
             int equidistantInterval = 360 / subelements.Count;
@@ -146,19 +157,6 @@ namespace TranscendenceRL {
             }
         }
     }
-    public class SystemStation : SystemElement {
-        string codename;
-        public SystemStation(XElement e) {
-            codename = e.ExpectAttribute("codename");
-        }
-        public void Generate(LocationContext lc, TypeCollection tc) {
-            var stationtype = tc.Lookup<StationType>(codename);
-            var s = new Station(lc.world, stationtype, lc.pos);
-            lc.world.AddEntity(s);
-            s.CreateSegments();
-            s.CreateGuards();
-        }
-    }
     public class SystemMarker : SystemElement {
         string name;
         public SystemMarker(XElement e) {
@@ -170,25 +168,123 @@ namespace TranscendenceRL {
     }
     public class SystemPlanet : SystemElement {
         private int radius;
+        private bool showOrbit;
         public SystemPlanet(XElement e) {
-            this.radius = e.ExpectAttributeInt("radius");
+            radius = e.ExpectAttributeInt(nameof(radius));
+            showOrbit = e.TryAttributeBool(nameof(showOrbit), false);
         }
         public void Generate(LocationContext lc, TypeCollection tc) {
             var diameter = radius * 2;
             var radius2 = radius * radius;
             var center = new XY(radius, radius);
+
+            var r = lc.world.karma;
+            ColoredGlyph[,] tiles = new ColoredGlyph[diameter, diameter];
             for(int x = 0; x < diameter; x++) {
                 var xOffset = Math.Abs(x - radius);
                 var yRange = Math.Sqrt(radius2 - (xOffset * xOffset));
+                var yStart = radius - (int)Math.Round(yRange, MidpointRounding.AwayFromZero);
+                var yEnd = radius + yRange;
+                for(int y = yStart; y < yEnd; y++) {
+                    var pos = lc.pos + (new XY(x, y) - center);
+
+                    var f = Color.LightBlue;
+                    f = f.Blend(Color.DarkBlue.SetAlpha((byte)r.Next(0, 153)));
+                    f = f.Blend(Color.Gray.SetAlpha(102));
+
+                    var tile = new ColoredGlyph(f, Color.Black, '%');
+                    lc.world.backdrop.planets.tiles[pos] = tile;
+                    tiles[x, y] = tile;
+                    //lc.world.AddEffect(new FixedTile(tile, pos));
+                }
+            }
+
+            var circ = radius * 2 * Math.PI;
+            for (int x = 0; x < diameter; x++) {
+                var xOffset = Math.Abs(x - radius);
+                var yRange = Math.Sqrt(radius2 - (xOffset * xOffset));
+                var yStart = radius - (int)Math.Round(yRange, MidpointRounding.AwayFromZero);
+                var yEnd = radius + yRange;
+                for (int y = yStart; y < yEnd; y++) {
+                    var loc = r.NextDouble() * circ * (radius - 2);
+                    var from = center + XY.Polar(loc % 2 * Math.PI, loc / circ);
+                    var t = tiles[x, y];
+                    t.Foreground = t.Foreground.Blend(tiles[from.xi, from.yi].Foreground.SetAlpha((byte)r.Next(0, 51)));
+                }
+            }
+
+            var orbitCirc = lc.radius * 2 * Math.PI;
+            for (int i = 0; i < orbitCirc; i++) {
+                var angle = i / lc.radius;
+                lc.world.backdrop.orbits.tiles[XY.Polar(angle, lc.radius)] = new ColoredGlyph(Color.White, Color.Transparent, '.');
+            }
+        }
+    }
+    public class SystemSibling : SystemElement {
+        public int arcInc;
+        public int angleInc;
+        public int radiusInc;
+
+        public List<SystemElement> subelements;
+        public SystemSibling(XElement e) {
+            arcInc = e.TryAttributeInt(nameof(arcInc), 0);
+            angleInc = e.TryAttributeInt(nameof(angleInc), 0);
+            radiusInc = e.TryAttributeInt(nameof(radiusInc), 0);
+
+            subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
+        }
+        public void Generate(LocationContext lc, TypeCollection tc) {
+            var angle = lc.angle + angleInc + arcInc / lc.radius;
+            var radius = lc.radius + radiusInc;
+            var sub_lc = new LocationContext() {
+                world = lc.world,
+                focus = lc.focus,
+                angle = angle,
+                radius = radius,
+                pos = lc.focus + XY.Polar(angle, radius)
+            };
+            subelements.ForEach(s => s.Generate(sub_lc, tc));
+        }
+    }
+    public class SystemStar : SystemElement {
+        private int radius;
+        public SystemStar(XElement e) {
+            this.radius = e.ExpectAttributeInt("radius");
+        }
+        public void Generate(LocationContext lc, TypeCollection tc) {
+            /*
+            var diameter = radius * 2;
+            var radius2 = radius * radius;
+            var center = new XY(radius, radius);
+            for (int x = 0; x < diameter; x++) {
+                var xOffset = Math.Abs(x - radius);
+                var yRange = Math.Sqrt(radius2 - (xOffset * xOffset));
                 var yStart = Math.Round(yRange, MidpointRounding.AwayFromZero);
-                for(int y = -(int)yStart; y < yRange; y++) {
+                for (int y = -(int)yStart; y < yRange; y++) {
                     var pos = new XY(x, y);
                     var offset = (pos - center);
                     var tile = new ColoredGlyph(Color.Gray, Color.Black, '%');
                     lc.world.AddEffect(new FixedTile(tile, lc.pos + offset));
                 }
             }
-
+            */
+            lc.world.backdrop.layers.Add(new GeneratedLayer(1, new GeneratedGrid<ColoredGlyph>(p => {
+                var xy = new XY(p);
+                return new ColoredGlyph(Color.Black, new Color(255, 255, 204, Math.Min(255, (int) (radius * 255 / ((lc.pos - p).Magnitude + 1)))));
+            })));
+        }
+    }
+    public class SystemStation : SystemElement {
+        string codename;
+        public SystemStation(XElement e) {
+            codename = e.ExpectAttribute("codename");
+        }
+        public void Generate(LocationContext lc, TypeCollection tc) {
+            var stationtype = tc.Lookup<StationType>(codename);
+            var s = new Station(lc.world, stationtype, lc.pos);
+            lc.world.AddEntity(s);
+            s.CreateSegments();
+            s.CreateGuards();
         }
     }
 }

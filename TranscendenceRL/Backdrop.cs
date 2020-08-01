@@ -8,7 +8,9 @@ using SadRogue.Primitives;
 namespace TranscendenceRL {
     //A space background made up of randomly generated layers with different depths
     public class Backdrop {
-        List<GeneratedLayer> layers;
+        public List<GeneratedLayer> layers;
+        public GridLayer planets;
+        public GridLayer orbits;
         public Backdrop() : this(new Random()) {
 
         }
@@ -19,6 +21,8 @@ namespace TranscendenceRL {
                 var layer = new GeneratedLayer(1f / (i * i * 1.5 + i + 1), r);
                 layers.Insert(0, layer);
             }
+            planets = new GridLayer(1);
+            orbits = new GridLayer(1);
         }
         public Color GetBackgroundFixed(XY point) => GetBackground(point, XY.Zero);
         public Color GetBackground(XY point, XY camera) {
@@ -29,16 +33,29 @@ namespace TranscendenceRL {
             return result;
         }
         public ColoredGlyph GetTile(XY point, XY camera) {
-            ColoredGlyph result = new ColoredGlyph(Color.Transparent, Color.Black, ' ');
+            //ColoredGlyph result = new ColoredGlyph(Color.Transparent, Color.Black, ' ');
+            var top = planets.GetTile(point, camera);
+
+            var g = top.GlyphCharacter;
+            var b = top.Background;
+            var f = top.Foreground;
+
+            Blend(orbits.GetTile(point, camera));
+
             foreach (var layer in layers) {
-                var tile = layer.GetTile(point, camera);
-                result.Background = result.Background.Premultiply().Blend(tile.Background);
-                if(tile.GlyphCharacter != ' ') {
-                    result.GlyphCharacter = tile.GlyphCharacter;
-                    result.Foreground = tile.Foreground;
+                Blend(layer.GetTile(point, camera));
+                
+            }
+            void Blend(ColoredGlyph tile) {
+                b = b.Premultiply().Blend(tile.Background);
+                if (g == ' ' || g == 0) {
+                    if (tile.GlyphCharacter != ' ' && tile.GlyphCharacter != 0) {
+                        f = tile.Foreground;
+                        g = tile.GlyphCharacter;
+                    }
                 }
             }
-            return result;
+            return new ColoredGlyph(f, b, g);
         }
         public ColoredGlyph GetTileFixed(XY point) => GetTile(point, XY.Zero);
     }
@@ -49,6 +66,10 @@ namespace TranscendenceRL {
     public class GridLayer : ILayer {
         public double parallaxFactor { get; private set; }
         public Dictionary<(int, int), ColoredGlyph> tiles;
+        public GridLayer(double parallaxFactor) {
+            this.parallaxFactor = parallaxFactor;
+            this.tiles = new Dictionary<(int, int), ColoredGlyph>();
+        }
         public ColoredGlyph GetTile(XY point, XY camera) {
             var apparent = point - camera * (1 - parallaxFactor);
             return tiles.TryGetValue(apparent.RoundDown, out var result) ? result : new ColoredGlyph(Color.Transparent, Color.Transparent, ' ');
@@ -57,6 +78,10 @@ namespace TranscendenceRL {
     public class GeneratedLayer : ILayer {
         public double parallaxFactor { get; private set; }                   //Multiply the camera by this value
         public GeneratedGrid<ColoredGlyph> tiles;  //Dynamically generated grid of tiles
+        public GeneratedLayer(double parallaxFactor, GeneratedGrid<ColoredGlyph> tiles) {
+            this.parallaxFactor = parallaxFactor;
+            this.tiles = tiles;
+        }
         public GeneratedLayer(double parallaxFactor, Random random) {
             //Random r = new Random();
             this.parallaxFactor = parallaxFactor;

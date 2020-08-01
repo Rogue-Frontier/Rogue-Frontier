@@ -37,6 +37,8 @@ namespace TranscendenceRL {
 		double updateWait;
 
 		public PlayerMain(int Width, int Height, World World, PlayerShip playerShip) : base(Width, Height) {
+			DefaultBackground = Color.Transparent;
+			DefaultForeground = Color.Transparent;
 			UseMouse = true;
 			UseKeyboard = true;
 			camera = new XY();
@@ -166,12 +168,14 @@ namespace TranscendenceRL {
 				vignette.Render(drawTime);
 				sceneContainer.Render(drawTime);
 			} else {
-				if (map.IsVisible)
+				if (map.IsVisible) {
 					map.Render(drawTime);
+				}
 				vignette.Render(drawTime);
 				ui.Render(drawTime);
-				if (powerMenu.IsVisible)
+				if (powerMenu.IsVisible) {
 					powerMenu.Render(drawTime);
+				}
 			}
 		}
 		public void DrawWorld() {
