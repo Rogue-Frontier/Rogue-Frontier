@@ -89,12 +89,12 @@ namespace TranscendenceRL {
 		public void PlaceTiles() {
 			tiles.Clear();
 			foreach (var e in World.entities.all) {
-				if (e.Tile != null && !tiles.ContainsKey(e.Position.RoundDown)) {
+				if (e.Tile != null) {
 					tiles[e.Position.RoundDown] = e.Tile;
 				}
 			}
 			foreach (var e in World.effects.all) {
-				if (e.Tile != null && !tiles.ContainsKey(e.Position.RoundDown)) {
+				if (e.Tile != null) {
 					tiles[e.Position.RoundDown] = e.Tile;
 				}
 			}
@@ -501,10 +501,12 @@ namespace TranscendenceRL {
 		*/
 		PlayerShip player;
 		Dictionary<(int, int), ColoredGlyph> tiles;
+		public int borderBound;
 
 		public PlayerUI(PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
 			this.player = player;
 			this.tiles = tiles;
+			borderBound = Math.Max(Width, Height)/2;
 			/*
 			char[] particles = {
 				'%', '&', '?', '~'
@@ -523,7 +525,7 @@ namespace TranscendenceRL {
         }
         public override void Render(TimeSpan drawTime) {
 			this.Clear();
-			XY screenSize = new XY(Width, Height);
+			XY screenSize = new XY(Width - 2, Height - 2);
 			XY screenCenter = screenSize / 2;
 			var messageY = Height * 3 / 5;
 
@@ -793,7 +795,8 @@ namespace TranscendenceRL {
 			var halfWidth = Width / 2;
 			var halfHeight = Height / 2;
 
-			var range = 128;
+			var range = 192;
+
 			var nearby = player.World.entities.GetAll(((int, int) p) => (player.Position - p).MaxCoord < range);
 			foreach (var entity in nearby) {
 				var offset = (entity.Position - player.Position);
@@ -803,25 +806,11 @@ namespace TranscendenceRL {
 
 					Color c = Color.Transparent;
 					if (entity is SpaceObject so) {
-						switch (player.Sovereign.GetDisposition(so)) {
-							case Disposition.Enemy:
-								c = new Color(255, 51, 51);
-								break;
-							case Disposition.Neutral:
-								c = new Color(204, 102, 51);
-								break;
-							case Disposition.Friend:
-								c = new Color(51, 255, 51);
-								break;
-						}
-					} else if (entity is Projectile) {
-						//Draw projectiles as yellow
-						c = new Color(204, 204, 51);
+						c = so.Tile.Foreground;
+					} else if (entity is Projectile p) {
+						c = p.Tile.Foreground;
 					}
-					if (y == 0) {
-						y = 1;
-					}
-					this.Print(x, Height - y, "#", c, Color.Transparent);
+					this.Print(x, Height - y - 1, "#", c, Color.Transparent);
 
 				}
 			}

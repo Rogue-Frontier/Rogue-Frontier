@@ -175,17 +175,17 @@ namespace TranscendenceRL {
         }
         public void Generate(LocationContext lc, TypeCollection tc) {
             var diameter = radius * 2;
+            var radius2 = radius * radius;
             var center = new XY(radius, radius);
             for(int x = 0; x < diameter; x++) {
-                //Change to diameter when we get a square tileset
-                for(int y = 0; y < diameter; y++) {
+                var xOffset = Math.Abs(x - radius);
+                var yRange = Math.Sqrt(radius2 - (xOffset * xOffset));
+                var yStart = Math.Round(yRange, MidpointRounding.AwayFromZero);
+                for(int y = -(int)yStart; y < yRange; y++) {
                     var pos = new XY(x, y);
                     var offset = (pos - center);
-                    //Try to optimize using manhattan
-                    if (/*offset.MaxCoord < radius || */offset.Magnitude < radius) {
-                        var tile = new ColoredGlyph(Color.Gray, Color.Black, '%');
-                        lc.world.AddEffect(new FixedTile(tile, lc.pos + offset));
-                    }
+                    var tile = new ColoredGlyph(Color.Gray, Color.Black, '%');
+                    lc.world.AddEffect(new FixedTile(tile, lc.pos + offset));
                 }
             }
 

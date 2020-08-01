@@ -424,7 +424,7 @@ namespace Common {
 			var halfWidth = dimensions.x / 2;
 			var halfHeight = dimensions.y / 2;
 			var diagonalAngle = dimensions.Angle;
-			if((angle < diagonalAngle && angle > -diagonalAngle)	//Right side
+			if((angle < diagonalAngle || angle > Math.PI * 2 - diagonalAngle)	//Right side
 				|| (angle < Math.PI + diagonalAngle && angle > Math.PI - diagonalAngle) //Left side
 				) {
 				var cos = Math.Cos(angle);
