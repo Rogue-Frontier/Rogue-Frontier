@@ -105,7 +105,7 @@ namespace IslandHopper {
         }
         private int HalfWidth { get => Width / 2; }
 		private int HalfHeight { get => Height / 2; }
-		public override void Draw(TimeSpan delta) {
+		public override void Render(TimeSpan delta) {
             this.DebugInfo($"Draw({delta})");
             this.Clear();
 
@@ -166,7 +166,7 @@ namespace IslandHopper {
                 }
                 previewY += PreviewHeight;
             }
-            base.Draw(delta);
+            base.Render(delta);
 		}
 		public ColoredGlyph GetGlyph(XYZ location) {
 			var c = new ColoredGlyph(Color.Transparent, Color.Transparent, ' ');

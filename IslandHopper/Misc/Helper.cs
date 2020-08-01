@@ -315,7 +315,7 @@ namespace Common {
 				if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
 					return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
 				} else try {
-						return (Color)typeof(Color).GetProperty(s).GetValue(null, null);
+						return (Color)typeof(Color).GetField(s).GetValue(null);
 					} catch {
 						throw new Exception($"Color value expected: {attribute}=\"{s}\"");
 					}

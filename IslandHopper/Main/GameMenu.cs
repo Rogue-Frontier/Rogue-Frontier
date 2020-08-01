@@ -59,7 +59,7 @@ namespace IslandHopper {
         public override void Update(TimeSpan delta) {
             base.Update(delta);
         }
-        public override void Draw(TimeSpan delta) {
+        public override void Render(TimeSpan delta) {
             this.Clear();
             int x = 5;
             int y = 5;
@@ -111,7 +111,7 @@ namespace IslandHopper {
                 this.Print(x, y, "There is nothing here.", Color.Red, Color.Black);
             }
 
-            base.Draw(delta);
+            base.Render(delta);
         }
         private bool CanScrollUp => startIndex > 0;
         private bool CanPageUp => startIndex - 25 > 0;
@@ -188,10 +188,10 @@ namespace IslandHopper {
             }
             ((Console)targetSelector ?? itemSelector).Update(time);
         }
-        public override void Draw(TimeSpan drawTime) {
+        public override void Render(TimeSpan drawTime) {
             this.Clear();
-            base.Draw(drawTime);
-            ((Console)targetSelector ?? itemSelector).Draw(drawTime);
+            base.Render(drawTime);
+            ((Console)targetSelector ?? itemSelector).Render(drawTime);
         }
         public void UpdateItemSelector() {
             itemSelector = new ListMenu<IItem>(Width, Height, "Select item to shoot with. ESC to cancel.", p.Inventory.Where(Item => Item.Gun != null).Select(Item => new ListItem(Item)), item => {
@@ -261,10 +261,10 @@ namespace IslandHopper {
                 itemSelector.Update(time);
             }
         }
-        public override void Draw(TimeSpan drawTime) {
+        public override void Render(TimeSpan drawTime) {
             this.Clear();
-            base.Draw(drawTime);
-            ((Console)targetSelector ?? itemSelector).Draw(drawTime);
+            base.Render(drawTime);
+            ((Console)targetSelector ?? itemSelector).Render(drawTime);
         }
         public void UpdateItemSelector() {
             itemSelector = new ListMenu<IItem>(Width, Height, "Select item to throw. ESC to cancel.", p.Inventory.Select(Item => new ListItem(Item)), item => {
@@ -391,14 +391,14 @@ namespace IslandHopper {
             }
             return true;
         }
-        public override void Draw(TimeSpan delta) {
+        public override void Render(TimeSpan delta) {
             this.Clear();
             if (cursorVisible) {
                 this.DebugInfo($"Draw Cursor @ ({Width / 2}, {Height / 2})");
                 this.Print(Width / 2, Height / 2, cursor);
             }
-            base.Draw(delta);
-            examineMenu?.Draw(delta);
+            base.Render(delta);
+            examineMenu?.Render(delta);
         }
         public override void Update(TimeSpan delta) {
             examineMenu?.Update(delta);
@@ -439,9 +439,9 @@ namespace IslandHopper {
             base.Update(delta);
             ((Console)weaponSelector ?? targetSelector).Update(delta);
         }
-        public override void Draw(TimeSpan delta) {
-            base.Draw(delta);
-            ((Console)weaponSelector ?? targetSelector).Draw(delta);
+        public override void Render(TimeSpan delta) {
+            base.Render(delta);
+            ((Console)weaponSelector ?? targetSelector).Render(delta);
         }
         public void Close() {
 
@@ -467,14 +467,14 @@ namespace IslandHopper {
         public HistoryMenu(int Width, int Height, List<HistoryEntry> history) : base(Width, Height) {
             this.history = history;
         }
-        public override void Draw(TimeSpan delta) {
+        public override void Render(TimeSpan delta) {
             int x = 0;
             int y = Height-1;
             for(int i = history.Count - bottomIndex - 1; i > -1; i--) {
                 this.Print(x, y, history[i].Desc);
                 y--;
             }
-            base.Draw(delta);
+            base.Render(delta);
         }
         public override bool ProcessKeyboard(Keyboard info) {
             if (info.IsKeyPressed(Keys.Escape)) {

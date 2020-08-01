@@ -8,7 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="OptimizedPriorityQueue" Version="4.2.0" />
-    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.0.0-alpha6" />
+    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.0.0-alpha9" />
+    <PackageReference Include="TheSadRogue.Primitives" Version="1.0.0-alpha5-debug" />
+    <PackageReference Include="TheSadRogue.Primitives.MonoGame" Version="1.0.0-alpha3-debug" />
   </ItemGroup>
 
   <ItemGroup>

@@ -65,7 +65,7 @@ namespace IslandHopper {
 			start.Click += (btn, args) => {
 				StartGame();
             };
-			this.ControlHostComponent.Add(start);
+			this.Controls.Add(start);
 
 			var quit = new Button(10, 1) {
 				Position = new Point(5, 6),
@@ -74,7 +74,7 @@ namespace IslandHopper {
 			quit.Click += (btn, args) => {
 				ExitGame();
 			};
-			this.ControlHostComponent.Add(quit);
+			this.Controls.Add(quit);
 
 			titleLines = 0;
 			waterLevel = Height - 10;
@@ -156,14 +156,14 @@ namespace IslandHopper {
 			players.RemoveAll(player => player.y > waterLevel - 5);
 
 		}
-		public override void Draw(TimeSpan delta) {
+		public override void Render(TimeSpan delta) {
 			this.Clear();
 			PrintTitle();
 			PrintWater();
 			PrintPlanes();
 			PrintLand();
 			PrintPlayers();
-			base.Draw(delta);
+			base.Render(delta);
 		}
 		private void PrintTitle() {
 			var title = Properties.Resources.Title;

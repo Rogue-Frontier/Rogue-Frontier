@@ -240,8 +240,8 @@ namespace TranscendenceRL {
 			Glyph = new ColoredGlyph(Color.White, Color.Black, c);
 		}
 		public StaticTile(char c, string foreground, string background) {
-			var fore = (Color)typeof(Color).GetProperty(foreground).GetValue(null, null);
-			var back = (Color)typeof(Color).GetProperty(background).GetValue(null, null);
+			var fore = (Color)typeof(Color).GetField(foreground).GetValue(null);
+			var back = (Color)typeof(Color).GetField(background).GetValue(null);
 			Glyph = new ColoredGlyph(fore, back, c);
 		}
 		public static implicit operator ColoredGlyph(StaticTile t) => t.Glyph;

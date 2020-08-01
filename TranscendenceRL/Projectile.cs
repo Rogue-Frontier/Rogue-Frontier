@@ -25,7 +25,7 @@ namespace TranscendenceRL {
             this.Source = Source;
             this.World = World;
             this.Tile = Tile;
-            this.GetTrail = GetTrail ?? ((p) => new EffectParticle(this.Position, this.Tile, 1));
+            this.GetTrail = GetTrail ?? ((p) => new EffectParticle(this.Position, this.Tile, 3));
             this.Position = Position;
             this.Velocity = Velocity;
             this.damage = damage;
@@ -35,7 +35,15 @@ namespace TranscendenceRL {
         public void Update() {
             if(lifetime > 1) {
                 lifetime--;
+                UpdateMove();
+            } else if(lifetime == 1) {
+                lifetime--;
+                UpdateMove();
+                Fragment();
+            }
 
+
+            void UpdateMove() {
                 var dest = Position + Velocity / TranscendenceRL.TICKS_PER_SECOND;
                 var inc = Velocity.Normal * 0.5;
                 var steps = Velocity.Magnitude * 2 / TranscendenceRL.TICKS_PER_SECOND;
@@ -62,13 +70,7 @@ namespace TranscendenceRL {
                 }
 
                 Position = dest;
-            } else if(lifetime == 1) {
-                Fragment();
-                lifetime--;
             }
-
-
-            
         }
         public void Fragment() {
             foreach (var fragment in fragments) {

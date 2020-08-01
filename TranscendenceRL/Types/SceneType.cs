@@ -209,10 +209,26 @@ namespace TranscendenceRL {
             int x = 16;
             int y = 16;
 
+            this.Clear();
+            foreach (var point in new Rectangle(0, 0, Width, Height).Positions()) {
+
+                var h = point.X % 4 == 0;
+                var v = point.Y % 4 == 0;
+
+                var f = new Color(255, 255, 255, 255 * 4 / 8);
+
+                if(h && v) {
+                    f = new Color(255, 255, 255, 255 * 6 / 8);
+                } else if(h || v) {
+                    f = new Color(255, 255, 255, 255 * 5 / 8);
+                }
+
+
+                this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(f, Color.Transparent, '.'));
+            }
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
-
             this.Print(x, y, player.Name, playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
             int i = 0;
@@ -223,17 +239,23 @@ namespace TranscendenceRL {
                 highlight = playerIndex;
             }
 
+            if(playerItems.Any()) {
+                while (i < playerItems.Count) {
 
-            while (i < playerItems.Count) {
+                    var highlightColor = i == highlight ? Color.Yellow : Color.White;
+                    var name = new ColoredString($"{UI.indexToLetter(i)}. ", playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Transparent)
+                             + new ColoredString(playerItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
+                    this.Print(x, y, name);
 
-                var highlightColor = i == highlight ? Color.Yellow : Color.White;
-                var name = new ColoredString($"{UI.indexToLetter(i)}. ", playerSide ? highlightColor : Color.Gray, Color.Transparent)
-                         + new ColoredString(playerItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
+                    i++;
+                    y++;
+                }
+            } else {
+                var highlightColor = playerSide ? Color.Yellow : Color.White;
+                var name = new ColoredString("<Empty>", highlightColor, Color.Transparent);
                 this.Print(x, y, name);
-
-                i++;
-                y++;
             }
+            
 
             x += 32;
             y = 16;
@@ -249,15 +271,22 @@ namespace TranscendenceRL {
                 i = Math.Max(dockedIndex.Value - 16, 0);
                 highlight = dockedIndex;
             }
-            while (i < dockedItems.Count) {
+            if (dockedItems.Any()) {
 
-                var highlightColor = (i == highlight ? Color.Yellow : Color.White);
-                var name = new ColoredString($"{UI.indexToLetter(i)}. ", !playerSide ? highlightColor : Color.Gray, Color.Transparent)
-                         + new ColoredString(dockedItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
+                while (i < dockedItems.Count) {
+
+                    var highlightColor = (i == highlight ? Color.Yellow : Color.White);
+                    var name = new ColoredString($"{UI.indexToLetter(i)}. ", !playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Transparent)
+                             + new ColoredString(dockedItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
+                    this.Print(x, y, name);
+
+                    i++;
+                    y++;
+                }
+            } else {
+                var highlightColor = !playerSide ? Color.Yellow : Color.White;
+                var name = new ColoredString("<Empty>", highlightColor, Color.Transparent);
                 this.Print(x, y, name);
-
-                i++;
-                y++;
             }
             base.Render(delta);
         }
