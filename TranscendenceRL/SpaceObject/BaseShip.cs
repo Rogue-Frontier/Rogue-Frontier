@@ -249,6 +249,8 @@ namespace TranscendenceRL {
         public List<Power> Powers;
         public Docking Dock { get; set; }
 
+        public bool autopilot;
+
         public List<IPlayerMessage> Messages = new List<IPlayerMessage>();
 
         public HashSet<Entity> Visible = new HashSet<Entity>();

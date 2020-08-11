@@ -25,6 +25,9 @@ namespace TranscendenceRL {
 		GeneratedLayer backVoid;
 		Point mousePos;
 
+		Keyboard keyboard;
+		MouseScreenObjectState mouse;
+
 		BackdropConsole back;
 		MegaMap map;
 		PlayerBorder vignette;
@@ -87,6 +90,20 @@ namespace TranscendenceRL {
 
 			//Bug: Background is not included because it is a separate console
 			SadConsole.Game.Instance.Screen = new DeathTransition(this, new DeathScreen(this, World, playerShip, epitaph)) { IsFocused = true };
+
+
+			ColoredGlyph GetTile(XY xy) {
+				var back = World.backdrop.GetTile(xy, camera);
+				//Round down to ensure we don't get duplicated tiles along the origin
+				if (tiles.TryGetValue(xy.RoundDown, out ColoredGlyph g)) {
+					g = g.Clone();          //Don't modify the source
+					g.Background = back.Background.Premultiply().Blend(g.Background);
+					return g;
+				} else {
+					return back;
+					//return GetBackTile(xy);
+				}
+			}
 		}
 		public void PlaceTiles() {
 			tiles.Clear();
@@ -142,6 +159,14 @@ namespace TranscendenceRL {
 			}
 			if(passTime) {
 				UpdateWorld();
+				if(playerShip.autopilot) {
+					ProcessKeyboard(keyboard);
+					ProcessMouse(mouse);
+					UpdateWorld();
+					ProcessKeyboard(keyboard);
+					ProcessMouse(mouse);
+					UpdateWorld();
+                }
 				PlaceTiles();
 				World.UpdatePresent();
 			}
@@ -160,8 +185,9 @@ namespace TranscendenceRL {
 			base.Update(delta);
 		}
 		public override void Render(TimeSpan drawTime) {
-			this.Clear();
 			back.Render(drawTime);
+
+			this.Clear();
 			DrawWorld();
 			base.Render(drawTime);
 			if (sceneContainer.Children.Count > 0) {
@@ -196,20 +222,9 @@ namespace TranscendenceRL {
 				}
 			}
 		}
-		public ColoredGlyph GetTile(XY xy) {
-			var back = World.backdrop.GetTile(xy, camera);
-			//Round down to ensure we don't get duplicated tiles along the origin
-			if (tiles.TryGetValue(xy.RoundDown, out ColoredGlyph g)) {
-				g = g.Clone();          //Don't modify the source
-				g.Background = back.Background.Premultiply().Blend(g.Background);
-				return g;
-			} else {
-				return back;
-				//return GetBackTile(xy);
-			}
-		}
 		public override bool ProcessKeyboard(Keyboard info) {
 			map.ProcessKeyboard(info);
+			keyboard = info;
 			//Intercept the alphanumeric/Escape keys if the power menu is active
 			if (powerMenu.IsVisible) {
 				powerMenu.ProcessKeyboard(info);
@@ -326,6 +341,7 @@ namespace TranscendenceRL {
 					playerShip.SetThrusting();
 				}
 			}
+			mouse = state;
 			return base.ProcessMouse(state);
 		}
 	}
@@ -804,9 +820,13 @@ namespace TranscendenceRL {
 			var nearby = player.World.entities.GetAll(((int, int) p) => (player.Position - p).MaxCoord < range);
 			foreach (var entity in nearby) {
 				var offset = (entity.Position - player.Position);
-				if (Math.Abs(offset.x) > halfWidth || Math.Abs(offset.y) > halfHeight) {
+				var (x, y) = offset;
+				Func<int, int> abs = Math.Abs;
+				(x, y) = (Math.Abs(x), Math.Abs(y));
 
-					(int x, int y) = Helper.GetBoundaryPoint(screenSize, offset.Angle);
+				if (x > halfWidth || y > halfHeight) {
+
+					(x, y) = Helper.GetBoundaryPoint(screenSize, offset.Angle);
 
 					Color c = Color.Transparent;
 					if (entity is SpaceObject so) {
@@ -815,7 +835,16 @@ namespace TranscendenceRL {
 						c = p.Tile.Foreground;
 					}
 					this.Print(x, Height - y - 1, "#", c, Color.Transparent);
+				} else if(x > halfWidth - 8 || y > halfHeight - 8) {
+					(x, y) = (screenCenter + offset).RoundDown;
 
+					Color c = Color.Transparent;
+					if (entity is SpaceObject so) {
+						c = so.Tile.Foreground;
+					} else if (entity is Projectile p) {
+						c = p.Tile.Foreground;
+					}
+					this.Print(x, Height - y - 1, "#", c, Color.Transparent);
 				}
 			}
 

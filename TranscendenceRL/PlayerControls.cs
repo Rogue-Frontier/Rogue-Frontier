@@ -4,6 +4,22 @@ using SadConsole.Input;
 using System.Linq;
 using static SadConsole.Input.Keys;
 namespace TranscendenceRL {
+	enum ControlKeys {
+		Thrust,
+		TurnRight,
+		TurnLeft,
+		Brake,
+		Autopilot,
+		Dock,
+		TargetFriendly,
+		ClearTarget,
+		ShipMenu,
+		TargetEnemy,
+		Powers,
+		NextWeapon,
+		FirePrimary,
+		AutoAim
+    }
     public class PlayerControls {
 		PlayerShip playerShip;
 		Console console;
@@ -33,6 +49,9 @@ namespace TranscendenceRL {
 			if (info.KeysDown.Select(d => d.Key).Intersect<Keys>(new Keys[] { Keys.LeftControl, Keys.LeftShift, Keys.Enter }).Count() == 3) {
 				playerShip.Destroy(playerShip);
 			}
+			if(info.IsKeyPressed(A)) {
+				playerShip.autopilot = !playerShip.autopilot;
+            }
 			if (info.IsKeyPressed(D)) {
 				if (playerShip.Dock != null) {
 					if (playerShip.Dock.docked) {

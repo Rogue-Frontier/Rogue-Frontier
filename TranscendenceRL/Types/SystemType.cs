@@ -166,6 +166,14 @@ namespace TranscendenceRL {
             lc.world.AddEntity(new Marker(name, lc.pos));
         }
     }
+    public class SystemNebula : SystemElement {
+        public SystemNebula(XElement e) {
+
+        }
+        public void Generate(LocationContext lc, TypeCollection tc) {
+
+        }
+    }
     public class SystemPlanet : SystemElement {
         private int radius;
         private bool showOrbit;
@@ -290,4 +298,5 @@ namespace TranscendenceRL {
             s.CreateGuards();
         }
     }
+
 }

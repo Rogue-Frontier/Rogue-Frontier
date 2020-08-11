@@ -4,9 +4,9 @@
                 thrust="0.5"
                 maxSpeed="25"
 
-                rotationAccel="8"
+                rotationAccel="6"
                 rotationDecel="12"
-                rotationMaxSpeed="10"
+                rotationMaxSpeed="8"
 
                 char="A"
                 foreground="Magenta"
