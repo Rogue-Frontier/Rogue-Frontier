@@ -5,8 +5,9 @@ using System.Text;
 using static SadConsole.Input.Keys;
 using static TranscendenceRL.ControlKeys;
 namespace TranscendenceRL {
-    class Settings {
-		Dictionary<ControlKeys, Keys> controls;
+    public class Settings {
+		//Remember to update whenever we load game
+		public Dictionary<ControlKeys, Keys> controls;
         public Settings() {
             controls = new Dictionary<ControlKeys, Keys>() {
 				{ Thrust, Up },

@@ -3,8 +3,9 @@ using SadConsole;
 using SadConsole.Input;
 using System.Linq;
 using static SadConsole.Input.Keys;
+using static TranscendenceRL.ControlKeys;
 namespace TranscendenceRL {
-	enum ControlKeys {
+	public enum ControlKeys {
 		Thrust,
 		TurnRight,
 		TurnLeft,
@@ -32,27 +33,29 @@ namespace TranscendenceRL {
 			this.sceneContainer = sceneContainer;
         }
         public void ProcessKeyboard(Keyboard info) {
+
+			var controls = playerShip.player.Settings.controls;
 			//Move the player
-			if (info.IsKeyDown(Up)) {
+			if (info.IsKeyDown(controls[Thrust])) {
 				playerShip.SetThrusting();
 			}
-			if (info.IsKeyDown(Left)) {
+			if (info.IsKeyDown(controls[TurnLeft])) {
 				playerShip.SetRotating(Rotating.CCW);
 			}
-			if (info.IsKeyDown(Right)) {
+			if (info.IsKeyDown(controls[TurnRight])) {
 				playerShip.SetRotating(Rotating.CW);
 			}
-			if (info.IsKeyDown(Down)) {
+			if (info.IsKeyDown(controls[Brake])) {
 				playerShip.SetDecelerating();
 			}
 
 			if (info.KeysDown.Select(d => d.Key).Intersect<Keys>(new Keys[] { Keys.LeftControl, Keys.LeftShift, Keys.Enter }).Count() == 3) {
 				playerShip.Destroy(playerShip);
 			}
-			if(info.IsKeyPressed(A)) {
+			if(info.IsKeyPressed(controls[Autopilot])) {
 				playerShip.autopilot = !playerShip.autopilot;
             }
-			if (info.IsKeyPressed(D)) {
+			if (info.IsKeyPressed(controls[Dock])) {
 				if (playerShip.Dock != null) {
 					if (playerShip.Dock.docked) {
 						playerShip.AddMessage(new InfoMessage("Undocked"));
@@ -70,31 +73,31 @@ namespace TranscendenceRL {
 
 				}
 			}
-			if (info.IsKeyPressed(F)) {
+			if (info.IsKeyPressed(controls[TargetFriendly])) {
 				playerShip.NextTargetFriendly();
 			}
-			if (info.IsKeyPressed(R)) {
+			if (info.IsKeyPressed(controls[ClearTarget])) {
 				if (playerShip.targetIndex > -1) {
 					playerShip.ClearTarget();
 				}
 			}
-			if (info.IsKeyPressed(S)) {
+			if (info.IsKeyPressed(controls[ShipMenu])) {
 				sceneContainer?.Children.Add(new SceneScan(new ShipScreen(console, playerShip)) { IsFocused = true });
 			}
-			if (info.IsKeyPressed(T)) {
+			if (info.IsKeyPressed(controls[TargetEnemy])) {
 				playerShip.NextTargetEnemy();
 			}
-			if (info.IsKeyPressed(V)) {
+			if (info.IsKeyPressed(controls[Powers])) {
 				if(powerMenu != null)
 					powerMenu.IsVisible = true;
 			}
-			if (info.IsKeyPressed(W)) {
+			if (info.IsKeyPressed(controls[NextWeapon])) {
 				playerShip.NextWeapon();
 			}
-			if (info.IsKeyDown(X)) {
+			if (info.IsKeyDown(controls[FirePrimary])) {
 				playerShip.SetFiringPrimary();
 			}
-			if (info.IsKeyDown(Z)) {
+			if (info.IsKeyDown(controls[AutoAim])) {
 				if (playerShip.GetTarget(out SpaceObject target) && playerShip.GetPrimary(out Weapon w)) {
 					playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.Position - playerShip.Position, target.Velocity - playerShip.Velocity, w.missileSpeed, out _));
 				}

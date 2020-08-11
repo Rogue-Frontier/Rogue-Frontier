@@ -11,6 +11,7 @@ using static SadConsole.ColoredString;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
 using System.IO;
+using TranscendenceRL.RogueFrontierContent;
 
 namespace TranscendenceRL {
     class CrawlScreen : Console {
@@ -173,6 +174,8 @@ namespace TranscendenceRL {
 
                 var playerMain = new PlayerMain(Width, Height, World, playerShip);
                 playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
+
+                World.AddEvent(new PlayerTutorial(playerMain));
 
                 playerMain.Update(time);
                 playerMain.PlaceTiles();

@@ -57,7 +57,7 @@ namespace TranscendenceRL {
             var str =
 @$"
 {player.name}
-{player.genome.name}
+{player.Genome.name}
 {playerShip.ShipClass.name}
 {epitaph.desc}
 

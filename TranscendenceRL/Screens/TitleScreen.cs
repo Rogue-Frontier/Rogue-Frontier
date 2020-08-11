@@ -13,10 +13,13 @@ using Common;
 using System.IO;
 using Console = SadConsole.Console;
 using TranscendenceRL.Types;
+using Newtonsoft.Json;
+using TranscendenceRL.Screens;
 
 namespace TranscendenceRL {
     class TitleScreen : Console {
         string[] title = File.ReadAllText("RogueFrontierContent/Title.txt").Replace("\r\n", "\n").Split('\n');
+        Settings settings;
         World World = new World();
 
         public AIShip pov;
@@ -62,11 +65,16 @@ namespace TranscendenceRL {
                 Add(exit);
             }
             */
-
+            var f = "Settings.json";
+            if(File.Exists(f)) {
+                settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(f));
+            } else {
+                settings = new Settings();
+            }
             World.types.Load("RogueFrontierContent/Main.xml");
         }
         private void StartGame() {
-            SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, World)) { IsFocused = true };
+            SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, settings, World)) { IsFocused = true };
             //SadConsole.Game.Instance.Screen = new PlayerCreator(Width, Height, World) { IsFocused = true };
 
         }
@@ -100,26 +108,17 @@ namespace TranscendenceRL {
             } else if(!pov.Active) {
                 povTimer--;
             }
-            /*
-            //The buffer is updated every update rather than every draw, so that the camera stays centered on the ship
-            tiles.Clear();
-            for (int x = 0; x < Width; x++) {
-                for (int y = 0; y < Height; y++) {
-                    var offset = new XY(x, y) - new XY(Width / 2, Height / 2);
-                    var location = camera + offset;
-                    var e = World.entities[location].FirstOrDefault() ?? World.effects[location].FirstOrDefault();
-                    if (e != null) {
-                        var tile = e.Tile;
-                        if (tile.Background == Color.Transparent) {
-                            tile.Background = World.backdrop.GetBackground(location, camera);
-                        }
-                        tiles[(x, y)] = tile;
-                    } else {
-                        tiles[(x, y)] = World.backdrop.GetTile(new XY(x, y), camera);
-                    }
+
+            //Smoothly move the camera to where it should be
+            if ((camera - pov.Position).Magnitude < pov.Velocity.Magnitude / 15 + 1) {
+                camera = pov.Position;
+            } else {
+                var step = (pov.Position - camera) / 15;
+                if (step.Magnitude < 1) {
+                    step = step.Normal;
                 }
+                camera += step;
             }
-            */
         }
         public void UpdatePOVDesc() {
             povDesc = new List<InfoMessage> {
@@ -159,17 +158,6 @@ namespace TranscendenceRL {
                     indent = true;
                     descY++;
                 }
-            }
-
-            //Smoothly move the camera to where it should be
-            if((camera - pov.Position).Magnitude < pov.Velocity.Magnitude/15 + 1) {
-                camera = pov.Position;
-            } else {
-                var step = (pov.Position - camera) / 15;
-                if(step.Magnitude < 1) {
-                    step = step.Normal;
-                }
-                camera += step;
             }
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
@@ -212,13 +200,23 @@ namespace TranscendenceRL {
                 Exit();
             }
             if(info.IsKeyDown(LeftShift) && info.IsKeyPressed(A)) {
-                SadConsole.Game.Instance.Screen = new ArenaScreen(this, World) { IsFocused = true };
+                SadConsole.Game.Instance.Screen = new ArenaScreen(this, World) { IsFocused = true, camera = camera, pov = pov };
+            }
+            if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(C)) {
+                SadConsole.Game.Instance.Screen = new ConfigScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov, povTimer = povTimer };
             }
 #if DEBUG
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {
+                var loc = AppDomain.CurrentDomain.BaseDirectory + Path.PathSeparator + "Debug";
+                string file;
+                do { file = $"{loc}-{new Random().Next(9999)}"; }
+                while (File.Exists(file));
+
                 Player player = new Player() {
+                    Settings = settings,
+                    file = file,
                     name = "Player",
-                    genome = World.types.genomeType.Values.First()
+                    Genome = World.types.genomeType.Values.First()
                 };
 
                 World.entities.all.Clear();
@@ -256,8 +254,11 @@ namespace TranscendenceRL {
                 var playerMain = new PlayerMain(Width, Height, World, playerShip);
                 playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
 
-                SadConsole.Game.Instance.Screen = playerMain;
                 playerMain.IsFocused = true;
+
+                File.WriteAllText(file, JsonConvert.SerializeObject(playerMain));
+
+                SadConsole.Game.Instance.Screen = playerMain;
             }
 #endif
             return base.ProcessKeyboard(info);

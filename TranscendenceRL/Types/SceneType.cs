@@ -81,14 +81,82 @@ namespace TranscendenceRL {
         string name;
         Console next;
     }
+    public static class SScene {
+        public static void RenderBackground(this Console c) {
+            foreach (var point in new Rectangle(0, 0, c.Width, c.Height).Positions()) {
+
+                var h = point.X % 4 == 0;
+                var v = point.Y % 4 == 0;
+
+                var f = new Color(255, 255, 255, 255 * 4 / 8);
+
+                if (h && v) {
+                    f = new Color(255, 255, 255, 255 * 6 / 8);
+                } else if (h || v) {
+                    f = new Color(255, 255, 255, 255 * 5 / 8);
+                }
+
+
+                c.SetCellAppearance(point.X, point.Y, new ColoredGlyph(f, Color.Transparent, '.'));
+            }
+        }
+    }
     class TextScene : Console {
         Console prev;
         public string desc;
+        public int index;
+        public int ticks;
         List<SceneOption> navigation;
         public TextScene(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
             this.prev = prev;
             this.desc = desc;
             this.navigation = navigation;
+            index = 0;
+            ticks = 0;
+        }
+        public int MeasureWord(int i) {
+            int length = 0;
+            while(i < desc.Length - 1 && desc[i + 1] != ' ') {
+                i++;
+                length++;
+            }
+            return length;
+        }
+        public override void Update(TimeSpan delta) {
+            ticks++;
+            if(ticks%3 == 0) {
+                if (index < desc.Length) {
+
+                    index++;
+                }
+
+            }
+            base.Update(delta);
+        }
+        public override void Render(TimeSpan delta) {
+            base.Render(delta);
+            this.RenderBackground();
+
+
+            int left = 16;
+            int top = 16;
+            int bottom = 24;
+            int right = 96;
+            this.Fill(new Rectangle(left, top, right - left + 1, bottom - top + 1), new Color(25, 0, 51, 255), Color.Transparent, '=');
+
+            int y = top;
+            int x = left;
+            for (int i = 0; i < index; i++) {
+                int wordLength = MeasureWord(i);
+
+                if(x + wordLength < right - 4) {
+                    x++;
+                } else {
+                    x = left + 4;
+                    y++;
+                }
+                this.SetCellAppearance(x, y, new ColoredGlyph(Color.LightBlue, Color.Black, desc[i]));
+            }
         }
     }
     class WreckScene : Console {
@@ -210,22 +278,7 @@ namespace TranscendenceRL {
             int y = 16;
 
             this.Clear();
-            foreach (var point in new Rectangle(0, 0, Width, Height).Positions()) {
-
-                var h = point.X % 4 == 0;
-                var v = point.Y % 4 == 0;
-
-                var f = new Color(255, 255, 255, 255 * 4 / 8);
-
-                if(h && v) {
-                    f = new Color(255, 255, 255, 255 * 6 / 8);
-                } else if(h || v) {
-                    f = new Color(255, 255, 255, 255 * 5 / 8);
-                }
-
-
-                this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(f, Color.Transparent, '.'));
-            }
+            this.RenderBackground();
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }

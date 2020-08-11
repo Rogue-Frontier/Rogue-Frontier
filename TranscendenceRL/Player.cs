@@ -4,9 +4,12 @@ using System.Text;
 
 namespace TranscendenceRL {
     public class Player {
-        public string name;
-        public GenomeType genome;
+        public string file;
+        public Settings Settings;
 
-        public List<Epitaph> epitaphs = new List<Epitaph>();
+        public string name;
+        public GenomeType Genome;
+
+        public List<Epitaph> Epitaphs = new List<Epitaph>();
     }
 }

@@ -13,7 +13,8 @@ using SadConsole.UI;
 using Console = SadConsole.Console;
 using Helper = Common.Helper;
 using static UI;
-
+using Newtonsoft.Json;
+using System.IO;
 
 namespace TranscendenceRL {
 	public class PlayerMain : Console {
@@ -31,7 +32,7 @@ namespace TranscendenceRL {
 		BackdropConsole back;
 		MegaMap map;
 		PlayerBorder vignette;
-		Console sceneContainer;
+		public Console sceneContainer;
 		PlayerUI ui;
 		PowerMenu powerMenu;
 
@@ -86,7 +87,7 @@ namespace TranscendenceRL {
 				deathFrame = deathFrame,
 				wreck = wreck
 			};
-			playerShip.player.epitaphs.Add(epitaph);
+			playerShip.player.Epitaphs.Add(epitaph);
 
 			//Bug: Background is not included because it is a separate console
 			SadConsole.Game.Instance.Screen = new DeathTransition(this, new DeathScreen(this, World, playerShip, epitaph)) { IsFocused = true };
@@ -225,6 +226,12 @@ namespace TranscendenceRL {
 		public override bool ProcessKeyboard(Keyboard info) {
 			map.ProcessKeyboard(info);
 			keyboard = info;
+
+			if(info.IsKeyPressed(S) && info.IsKeyDown(LeftControl)) {
+				var s = JsonConvert.SerializeObject(this);
+				File.WriteAllText(playerShip.player.file, s);
+            }
+
 			//Intercept the alphanumeric/Escape keys if the power menu is active
 			if (powerMenu.IsVisible) {
 				powerMenu.ProcessKeyboard(info);

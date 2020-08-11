@@ -11,6 +11,11 @@ namespace TranscendenceRL {
         public static World empty = new World();
 
         public TypeCollection types;
+
+        public HashSet<Event> events = new HashSet<Event>();
+        public List<Event> eventsAdded = new List<Event>();
+        public List<Event> eventsRemoved = new List<Event>();
+
         public LocatorDict<Entity, (int, int)> entities = new LocatorDict<Entity, (int, int)>(e => (e.Position.xi, e.Position.yi));
         public List<Entity> entitiesAdded = new List<Entity>();
         public List<Entity> entitiesRemoved = new List<Entity>();
@@ -29,35 +34,36 @@ namespace TranscendenceRL {
             karma = new Random();
             backdrop = new Backdrop();
         }
-        public void AddEffect(Effect e) {
-            effectsAdded.Add(e);
-        }
-        public void AddEntity(Entity e) {
-            entitiesAdded.Add(e);
-        }
-        public void RemoveEffect(Effect e) {
-            effectsRemoved.Add(e);
-        }
-        public void RemoveEntity(Entity e) {
-            entitiesRemoved.Add(e);
-        }
+        public void AddEvent(Event e) => eventsAdded.Add(e);
+        public void AddEffect(Effect e) => effectsAdded.Add(e);
+        public void AddEntity(Entity e) => entitiesAdded.Add(e);
+        public void RemoveEvent(Event e) => eventsRemoved.Add(e);
+        public void RemoveEffect(Effect e) => effectsRemoved.Add(e);
+        public void RemoveEntity(Entity e) => entitiesRemoved.Add(e);
         public void RemoveAll() {
+            events.Clear();
             entities.Clear();
             effects.Clear();
+            eventsAdded.Clear();
             entitiesAdded.Clear();
             effectsAdded.Clear();
+            eventsRemoved.Clear();
             entitiesRemoved.Clear();
             effectsRemoved.Clear();
         }
         public void UpdateAdded() {
+            events.UnionWith(eventsAdded);
             entities.all.UnionWith(entitiesAdded);
             effects.all.UnionWith(effectsAdded);
+            eventsAdded.Clear();
             entitiesAdded.Clear();
             effectsAdded.Clear();
         }
         public void UpdateRemoved() {
+            events.ExceptWith(eventsRemoved);
             entities.all.ExceptWith(entitiesRemoved);
             effects.all.ExceptWith(effectsRemoved);
+            eventsRemoved.Clear();
             entitiesRemoved.Clear();
             effectsRemoved.Clear();
 
@@ -83,6 +89,9 @@ namespace TranscendenceRL {
             foreach (var e in effects.all) {
                 e.Update();
             }
+            foreach(var e in events) {
+                e.Update();
+            }
         }
         public void UpdateActive(Dictionary<(int, int), ColoredGlyph> tiles) {
             UpdateSpace();
@@ -100,6 +109,9 @@ namespace TranscendenceRL {
                 if (e.Tile != null && !tiles.ContainsKey(p)) {
                     tiles[p] = e.Tile;
                 }
+            }
+            foreach (var e in events) {
+                e.Update();
             }
         }
     }

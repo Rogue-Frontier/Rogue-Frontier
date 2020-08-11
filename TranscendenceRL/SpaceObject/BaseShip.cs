@@ -243,6 +243,7 @@ namespace TranscendenceRL {
 
         public int mortalChances = 3;
         public double mortalTime = 0;
+
         public DeviceSystem Devices => Ship.Devices;
         public BaseShip Ship;
         public EnergySystem Energy;

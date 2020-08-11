@@ -20,7 +20,7 @@ namespace TranscendenceRL {
         XY screenCenter;
         MouseWatch mouse;
 
-        SpaceObject pov;
+        public SpaceObject pov;
         SpaceObject nearest;
 
         PlayerMain playerMain;
