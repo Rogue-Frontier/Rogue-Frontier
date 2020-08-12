@@ -14,6 +14,8 @@ using ASECII;
 
 namespace TranscendenceRL {
     class ArenaScreen : Console {
+        TitleScreen prev;
+        Settings settings;
         World World;
         public XY camera;
         public Dictionary<(int, int), ColoredGlyph> tiles;
@@ -25,13 +27,16 @@ namespace TranscendenceRL {
 
         PlayerMain playerMain;
 
-        public ArenaScreen(Console prev, World World) : base(prev.Width, prev.Height) {
-            UseKeyboard = true;
+        public ArenaScreen(TitleScreen prev, Settings settings, World World) : base(prev.Width, prev.Height) {
+            this.prev = prev;
+            this.settings = settings;
             this.World = World;
-            camera = new XY(0.1, 0.1);
-            tiles = new Dictionary<(int, int), ColoredGlyph>();
-            screenCenter = new XY(Width / 2, Height / 2);
-            mouse = new MouseWatch();
+            this.camera = new XY(0.1, 0.1);
+            this.tiles = new Dictionary<(int, int), ColoredGlyph>();
+            this.screenCenter = new XY(Width / 2, Height / 2);
+            this.mouse = new MouseWatch();
+
+            UseKeyboard = true;
             FocusOnMouseClick = true;
 
             InitControls();
@@ -173,11 +178,17 @@ namespace TranscendenceRL {
             if(playerMain != null) {
                 return playerMain.ProcessKeyboard(info);
             }
+            if(info.IsKeyPressed(Escape)) {
+                prev.pov = null;
+                prev.camera = camera;
+                SadConsole.Game.Instance.Screen = prev;
+                prev.IsFocused = true;
+            }
 
             if (info.IsKeyPressed(Keys.A)) {
                 if (nearest is AIShip a) {
                     World.RemoveEntity(a);
-                    var playerShip = new PlayerShip(new Player(), a.Ship);
+                    var playerShip = new PlayerShip(new Player() { Settings = settings }, a.Ship);
 
                     playerMain = new PlayerMain(Width, Height, World, playerShip) { IsFocused = true, camera = camera };
                     playerShip.OnDestroyed += (p, s, w) => {

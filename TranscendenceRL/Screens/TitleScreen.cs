@@ -102,7 +102,7 @@ namespace TranscendenceRL {
                 World.UpdatePresent();
             }
             if(pov == null || povTimer < 1) {
-                pov = World.entities.all.OfType<AIShip>().First();
+                pov = World.entities.all.OfType<AIShip>().OrderBy(s => (s.Position - camera).Magnitude).First();
                 UpdatePOVDesc();
                 povTimer = 150;
             } else if(!pov.Active) {
@@ -200,7 +200,7 @@ namespace TranscendenceRL {
                 Exit();
             }
             if(info.IsKeyDown(LeftShift) && info.IsKeyPressed(A)) {
-                SadConsole.Game.Instance.Screen = new ArenaScreen(this, World) { IsFocused = true, camera = camera, pov = pov };
+                SadConsole.Game.Instance.Screen = new ArenaScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov };
             }
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(C)) {
                 SadConsole.Game.Instance.Screen = new ConfigScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov, povTimer = povTimer };
