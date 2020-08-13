@@ -10,6 +10,7 @@ using static SadConsole.Input.Keys;
 using static UI;
 using Console = SadConsole.Console;
 using Common;
+using ASECII;
 
 namespace TranscendenceRL {
     public class SceneType : DesignType {
@@ -31,20 +32,25 @@ namespace TranscendenceRL {
     }
     public class StationScene : Console {
         Console prev;
-        PlayerShip player;
         Station station;
+        Console scene;
 
         double time;
-        public StationScene(Console prev, PlayerShip player, Station station) : base(prev.Width, prev.Height) {
+        public StationScene(Console prev, Station station, Console scene) : base(prev.Width, prev.Height) {
             this.prev = prev;
-            this.player = player;
             this.station = station;
-
+            this.scene = scene;
+            Children.Add(scene);
 
         }
         public override void Update(TimeSpan delta) {
-            time += delta.TotalSeconds;
-            base.Update(delta);
+            if(Children.Count > 0) {
+                time += delta.TotalSeconds;
+                base.Update(delta);
+            } else {
+                Parent.Children.Remove(this);
+                prev.IsFocused = true;
+            }
         }
         public override void Render(TimeSpan delta) {
             var heroImage = station.StationType.heroImage ?? new string[] { "" };
@@ -75,11 +81,11 @@ namespace TranscendenceRL {
 
     }
     public class SceneOption {
-        bool escape;
-        bool enter;
-        char key;
-        string name;
-        Console next;
+        public bool escape;
+        public bool enter;
+        public char key;
+        public string name;
+        public Console next;
     }
     public static class SScene {
         public static void RenderBackground(this Console c) {
@@ -113,49 +119,59 @@ namespace TranscendenceRL {
             this.navigation = navigation;
             index = 0;
             ticks = 0;
-        }
-        public int MeasureWord(int i) {
-            int length = 0;
-            while(i < desc.Length - 1 && desc[i + 1] != ' ') {
-                i++;
-                length++;
-            }
-            return length;
+
+            UseMouse = true;
+            UseKeyboard = true;
         }
         public override void Update(TimeSpan delta) {
             ticks++;
             if(ticks%3 == 0) {
-                if (index < desc.Length) {
-
+                if (index < desc.Length - 1) {
                     index++;
-                }
+                } else if(index < desc.Length) {
+                    index++;
 
+                    int x = 64;
+                    int y = 16 + desc.Count(c => c == '\n') + 3;
+                    foreach (var option in navigation) {
+                        Children.Add(new LabelButton(option.name, () => Transition(option.next)) { Position = new Point(x, y++) });
+                    }
+                }
             }
             base.Update(delta);
+        }
+        public void Transition(Console next) {
+            var p = Parent;
+            var c = Parent.Children;
+            c.Remove(this);
+            if (next != null) {
+                c.Add(next);
+                next.IsFocused = true;
+            } else {
+                p.IsFocused = true;
+            }
         }
         public override void Render(TimeSpan delta) {
             base.Render(delta);
             this.RenderBackground();
 
 
-            int left = 16;
+            int left = 64;
             int top = 16;
-            int bottom = 24;
-            int right = 96;
-            this.Fill(new Rectangle(left, top, right - left + 1, bottom - top + 1), new Color(25, 0, 51, 255), Color.Transparent, '=');
-
+            
             int y = top;
             int x = left;
             for (int i = 0; i < index; i++) {
-                int wordLength = MeasureWord(i);
-
-                if(x + wordLength < right - 4) {
-                    x++;
-                } else {
-                    x = left + 4;
-                    y++;
+                switch(desc[i]) {
+                    case '\n':
+                        x = left;
+                        y++;
+                        break;
+                    default:
+                        this.SetCellAppearance(x, y, new ColoredGlyph(Color.LightBlue, Color.Black, desc[i]));
+                        x++;
+                        break;
                 }
-                this.SetCellAppearance(x, y, new ColoredGlyph(Color.LightBlue, Color.Black, desc[i]));
             }
         }
     }

@@ -4,20 +4,20 @@ namespace TranscendenceRL {
     public class Docking {
         public SpaceObject target;
         public bool docked;
+        public bool justDocked;
         public Docking(SpaceObject target) {
             this.target = target;
         }
-        public bool Update(IShip owner) {
+        public void Update(IShip owner) {
             if(!docked) {
                 docked = UpdateDocking(owner);
                 if(docked) {
-                    return true;
+                    justDocked = true;
                 }
             } else {
                 owner.Position = target.Position;
                 owner.Velocity = target.Velocity;
             }
-            return false;
         }
         public bool UpdateDocking(IShip ship) {
             double decel = ship.ShipClass.thrust / 2 * TranscendenceRL.TICKS_PER_SECOND;

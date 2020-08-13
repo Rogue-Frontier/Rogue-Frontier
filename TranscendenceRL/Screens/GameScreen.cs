@@ -21,6 +21,7 @@ namespace TranscendenceRL {
 		public XY camera;
 		public World World;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
+		private PlayerStory story = new PlayerStory();
 		public PlayerShip playerShip;
 		public PlayerControls playerControls;
 		GeneratedLayer backVoid;
@@ -126,21 +127,6 @@ namespace TranscendenceRL {
 			if(sceneContainer.Children.Count > 0) {
 				sceneContainer.Update(delta);
             }
-			/*
-			//SM64-style camera: We smoothly point ahead of where the player is going
-			var offset = playerShip.Velocity / 3;
-			var dest = playerShip.Position + offset;
-			if ((camera - dest).Magnitude < playerShip.Velocity.Magnitude / 15 + 1) {
-				camera = dest;
-			} else {
-				var step = (dest - camera) / 15;
-				if (step.Magnitude < 1) {
-					step = step.Normal;
-				}
-				camera += step;
-			
-			}
-			*/
 
 			//If the player is in mortality, then slow down time
 			bool passTime = true;
@@ -173,9 +159,13 @@ namespace TranscendenceRL {
 			}
 
 			camera = playerShip.Position;
-			if (playerShip.Dock?.docked == true && playerShip.Dock.target is Dockable d) {
-				playerShip.Dock = null;
-				sceneContainer.Children.Add(new SceneScan(d.GetScene(this, playerShip)) { IsFocused = true });
+			if (playerShip.Dock?.justDocked == true && playerShip.Dock.target is Dockable d) {
+				
+				Console scene = story.GetScene(this, d, playerShip) ?? new SceneScan(d.GetScene(this, playerShip)) { IsFocused = true };
+				if (scene != null) {
+					playerShip.Dock = null;
+					sceneContainer.Children.Add(scene);
+				}
 			}
 			map.Update(delta);
 			vignette.Update(delta);

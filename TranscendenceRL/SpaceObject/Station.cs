@@ -132,7 +132,7 @@ namespace TranscendenceRL {
             weapons?.ForEach(w => w.Update(this));
         }
 
-        public Console GetScene(Console prev, PlayerShip playerShip) => new StationScene(prev, playerShip, this);
+        public Console GetScene(Console prev, PlayerShip playerShip) => null;
 
         public ColoredGlyph Tile => StationType.tile.Glyph;
 
