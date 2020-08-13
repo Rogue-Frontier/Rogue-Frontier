@@ -15,6 +15,7 @@ using Console = SadConsole.Console;
 using TranscendenceRL.Types;
 using Newtonsoft.Json;
 using TranscendenceRL.Screens;
+using ASECII;
 
 namespace TranscendenceRL {
     class TitleScreen : Console {
@@ -64,7 +65,22 @@ namespace TranscendenceRL {
                 exit.Click += (o, e) => Exit();
                 Add(exit);
             }
+.                         .
+.  [Enter]      Play      .
+.  [Shift + A]  Arena     .
+.  [Shift + C]  Controls  .
+.  [Escape]     Exit      .
+.                         .
+...........................
             */
+
+            int x = 3;
+            int y = 16;
+            Children.Add(new LabelButton("[Enter]     Play", StartGame) { Position = new Point(x, y++) });
+            Children.Add(new LabelButton("[Shift + A] Arena", StartArena) { Position = new Point(x, y++) });
+            Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++) });
+            Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++) });
+
             var f = "Settings.json";
             if(File.Exists(f)) {
                 settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(f));
@@ -76,8 +92,14 @@ namespace TranscendenceRL {
         private void StartGame() {
             SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, settings, World)) { IsFocused = true };
             //SadConsole.Game.Instance.Screen = new PlayerCreator(Width, Height, World) { IsFocused = true };
-
         }
+        private void StartArena() {
+            SadConsole.Game.Instance.Screen = new ArenaScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov };
+        }
+        private void StartConfig() {
+            SadConsole.Game.Instance.Screen = new ConfigScreen(this, settings, World) { IsFocused = true };
+        }
+
         private void Exit() {
             Environment.Exit(0);
         }
@@ -200,10 +222,10 @@ namespace TranscendenceRL {
                 Exit();
             }
             if(info.IsKeyDown(LeftShift) && info.IsKeyPressed(A)) {
-                SadConsole.Game.Instance.Screen = new ArenaScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov };
+                StartArena();
             }
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(C)) {
-                SadConsole.Game.Instance.Screen = new ConfigScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov, povTimer = povTimer };
+                StartConfig();
             }
 #if DEBUG
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {

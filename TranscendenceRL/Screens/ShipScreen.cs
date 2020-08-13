@@ -25,7 +25,7 @@ namespace TranscendenceRL {
             var y = 0;
             this.Print(x, y, name);
 
-            var map = PlayerShip.ShipClass.playerSettings?.map ?? new string[0];
+            var map = PlayerShip.ShipClass.playerSettings?.map ?? new string[] { "" };
             x = Math.Max(0, Width / 4 - map.Select(line => line.Length).Max() / 2);
             y = 2;
             foreach (var line in map) {

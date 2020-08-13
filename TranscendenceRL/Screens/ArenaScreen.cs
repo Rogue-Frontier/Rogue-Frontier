@@ -97,11 +97,14 @@ namespace TranscendenceRL {
         }
         public override void Update(TimeSpan timeSpan) {
             if (playerMain != null) {
+                playerMain.IsFocused = true;
                 playerMain.Update(timeSpan);
+                IsFocused = true;
+                base.Update(timeSpan);
                 return;
             }
 
-            base.Update(timeSpan);
+                        base.Update(timeSpan);
             World.UpdateAdded();
 
             tiles.Clear();
@@ -175,15 +178,29 @@ namespace TranscendenceRL {
             base.Render(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
-            if(playerMain != null) {
+
+            if (info.IsKeyPressed(Escape)) {
+                if (playerMain != null) {
+                    playerMain.playerShip.Detach();
+                    World.RemoveEntity(playerMain.playerShip);
+                    var aiShip = new AIShip(playerMain.playerShip.Ship, new AttackAllOrder());
+                    World.AddEntity(aiShip);
+
+                    camera = playerMain.camera;
+                    pov = aiShip;
+
+                    playerMain = null;
+                    this.IsFocused = true;
+                } else {
+                    prev.pov = null;
+                    prev.camera = camera;
+                    SadConsole.Game.Instance.Screen = prev;
+                    prev.IsFocused = true;
+                }
+            } else if (playerMain != null) {
                 return playerMain.ProcessKeyboard(info);
             }
-            if(info.IsKeyPressed(Escape)) {
-                prev.pov = null;
-                prev.camera = camera;
-                SadConsole.Game.Instance.Screen = prev;
-                prev.IsFocused = true;
-            }
+            
 
             if (info.IsKeyPressed(Keys.A)) {
                 if (nearest is AIShip a) {
@@ -192,7 +209,6 @@ namespace TranscendenceRL {
 
                     playerMain = new PlayerMain(Width, Height, World, playerShip) { IsFocused = true, camera = camera };
                     playerShip.OnDestroyed += (p, s, w) => {
-                        Children.Remove(playerMain);
                         this.camera = playerMain.camera;
                         playerMain = null;
                         this.IsFocused = true;

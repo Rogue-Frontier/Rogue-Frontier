@@ -175,8 +175,6 @@ namespace TranscendenceRL {
                 var playerMain = new PlayerMain(Width, Height, World, playerShip);
                 playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
 
-                World.AddEvent(new PlayerTutorial(playerMain));
-
                 playerMain.Update(time);
                 playerMain.PlaceTiles();
                 playerMain.DrawWorld();

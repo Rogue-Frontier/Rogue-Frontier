@@ -277,7 +277,13 @@ namespace TranscendenceRL {
 
 
             //Hook up our own event to the ship since calling Damage can call base ship's Destroy without calling our own Destroy()
-            ship.OnDestroyed += (s, source, wreck) => OnDestroyed?.Invoke(this, source, wreck);
+            ship.OnDestroyed += BaseOnDestroyed;
+        }
+        public void BaseOnDestroyed(BaseShip s, SpaceObject source, Wreck wreck) {
+            OnDestroyed?.Invoke(this, source, wreck);
+        }
+        public void Detach() {
+            Ship.OnDestroyed -= BaseOnDestroyed;
         }
         public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
         public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);
