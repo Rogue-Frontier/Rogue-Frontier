@@ -1,0 +1,54 @@
+﻿<Module>
+	<Sovereign codename="sovereign_constellation"
+			   alignment="ConstructiveOrder"
+	></Sovereign>
+	<StationType	codename="station_constellation_astra"
+					name=		"Orion Astra"
+					sovereign=	"sovereign_constellation"
+
+					hp=			"250"
+
+					char=		"U"
+					foreground="LightGray"
+		>
+		<Segments>
+			<MultiPoint offsetX="2"
+				   offsetY="-1"
+				   angleInc="90"
+				   char="+"
+				   foreground="White"/>
+			<MultiPoint offsetX="2"
+				   offsetY="0"
+				   angleInc="90"
+				   char="+"
+				   foreground="White"/>
+			<MultiPoint offsetX="2"
+				   offsetY="1"
+				   angleInc="90"
+				   char="+"
+				   foreground="White"/>
+
+
+			<MultiPoint offsetX="2"
+				   offsetY="2"
+				   angleInc="90"
+				   char="#"
+				   foreground="LightGray"/>
+			<MultiPoint offsetX="3"
+				   offsetY="0"
+				   angleInc="90"
+				   char="="
+				   foreground="LightGray"/>
+			<MultiPoint offsetX="4"
+				   offsetY="0"
+				   angleInc="90"
+				   char="="
+				   foreground="White"/>
+			<Ring/>
+		</Segments>
+		<Guards>
+		</Guards>
+		<Weapons>
+		</Weapons>
+	</StationType>
+</Module>

@@ -14,9 +14,9 @@ namespace TranscendenceRL {
         public Point pos;
     }
     enum Stage {
-        Brighten, Darken, FadeIn, StartGame
+        Brighten, Darken
     }
-    public class CrawlTransition : Console {
+    public class FlashTransition : Console {
         Console prev;
         Console next;
         HashSet<GlyphParticle> glyphs = new HashSet<GlyphParticle>();
@@ -24,7 +24,7 @@ namespace TranscendenceRL {
         double delay = 0;
         Stage stage;
         int tick = 0;
-        public CrawlTransition(int Width, int Height, Console prev, Console next) : base(Width, Height) {
+        public FlashTransition(int Width, int Height, Console prev, Console next) : base(Width, Height) {
             this.prev = prev;
             this.next = next;
             background = new Color[Width, Height];
@@ -47,9 +47,9 @@ namespace TranscendenceRL {
             Render(new TimeSpan());
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
-            if(keyboard.IsKeyPressed(Keys.Enter) && stage < Stage.StartGame) {
-                delay = 0;
-                stage = Stage.StartGame;
+            if(keyboard.IsKeyPressed(Keys.Enter)) {
+                SadConsole.Game.Instance.Screen = next;
+                next.IsFocused = true;
             }
             return base.ProcessKeyboard(keyboard);
         }
@@ -94,38 +94,14 @@ namespace TranscendenceRL {
                                 }
                             }
                             if (done) {
-                                stage = Stage.FadeIn;
-                                delay = 2;
-                                tick = 0;
+                                SadConsole.Game.Instance.Screen = next;
+                                next.IsFocused = true;
                             }
-                            break;
-                        }
-                    case Stage.FadeIn: {
-                            var done = true;
-                            for (int x = 0; x < Width; x++) {
-                                for (int y = 0; y < Height; y++) {
-                                    var b = background[x, y];
-                                    background[x, y] = new Color(b.R, b.G, b.B, Math.Max(0, b.A - 1));
-                                    if (background[x, y].A > 0) {
-                                        done = false;
-                                    }
-                                }
-                            }
-                            if (done) {
-                                stage = Stage.StartGame;
-                                delay = 2;
-                            }
-                            break;
-                        }
-                    case Stage.StartGame: {
-                            SadConsole.Game.Instance.Screen = next;
-                            next.IsFocused = true;
                             break;
                         }
                 }
             }
             base.Update(delta);
-
         }
         public override void Render(TimeSpan delta) {
             base.Render(delta);
@@ -138,16 +114,9 @@ namespace TranscendenceRL {
             //To do: Simplify this so we just draw next with some alpha background
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
-                    this.SetBackground(x, y, next.GetBackground(x,y).Blend(background[x, y]));
-                    if(stage == Stage.FadeIn || stage == Stage.StartGame) {
-                        this.SetGlyph(x, y, next.GetGlyph(x, y));
-                        var f = next.GetForeground(x, y);
-                        this.SetForeground(x, y, f.WithValues(alpha:(int)Math.Min(f.A, f.A * Math.Max(0, tick / 128f))));
-                    }
-                    
+                    this.SetBackground(x, y, next.GetBackground(x, y).Blend(background[x, y]));
                 }
             }
-            
         }
     }
 }

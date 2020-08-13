@@ -47,7 +47,7 @@ namespace TranscendenceRL {
             base.Update(delta);
         }
         public override void Render(TimeSpan delta) {
-            var heroImage = station.StationType.heroImage;
+            var heroImage = station.StationType.heroImage ?? new string[] { "" };
             int width = heroImage.Max(line => line.Length);
             int height = heroImage.Length;
             int x = 8;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml.Linq;
 using SadRogue.Primitives;
 using Color = SadRogue.Primitives.Color;
+using System;
 
 namespace TranscendenceRL {
 	public class StationType : DesignType {
@@ -30,9 +31,19 @@ namespace TranscendenceRL {
 			if (e.HasElement("Segments", out var xmlSegments)) {
 				foreach (var xmlSegment in xmlSegments.Elements()) {
 					switch (xmlSegment.Name.LocalName) {
+						case "MultiPoint":
+							var t = new StaticTile(xmlSegment);
+							int angleInc = xmlSegment.TryAttributeInt("angleInc", 0);
+							var x = xmlSegment.ExpectAttributeDouble("offsetX");
+							var y = xmlSegment.ExpectAttributeDouble("offsetY");
+							XY offset = new XY(x, y);
+							for (int angle = 0; angle < 360; angle += angleInc) {
+								segments.Add(new SegmentDesc(offset.Rotate(angle * Math.PI/180), t));
+                            }
+							break;
 						case "Ring":
 							string foreground = xmlSegment.TryAttribute("foreground", "White");
-							string background = xmlSegment.TryAttribute("foreground", "Black");
+							string background = xmlSegment.TryAttribute("background", "Transparent");
 							segments.AddRange(CreateRing(foreground, background));
 							break;
 						case "Point":

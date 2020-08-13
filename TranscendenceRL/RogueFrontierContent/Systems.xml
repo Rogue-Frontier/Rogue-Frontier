@@ -32,7 +32,7 @@
 						<!-- The main stations are all in a group -->
 
 						<Sibling angleInc="180">
-							<Station	codename="station_daughters_outpost"/>
+							<Station	codename="station_constellation_astra"/>
 						</Sibling>
 
 						<!-- The Sisters of Domina is opposite -->

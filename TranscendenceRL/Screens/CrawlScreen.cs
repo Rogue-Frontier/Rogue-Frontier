@@ -11,7 +11,6 @@ using static SadConsole.ColoredString;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
 using System.IO;
-using TranscendenceRL.RogueFrontierContent;
 
 namespace TranscendenceRL {
     class CrawlScreen : Console {
@@ -156,6 +155,8 @@ namespace TranscendenceRL {
                 loading.Update();
                 loadingTicks--;
             } else {
+                loading = null;
+
                 //Name is seed
                 var seed = player.name.GetHashCode();
                 World = new World(World.types, new Random(seed), new Backdrop(new Random(seed)));
@@ -178,7 +179,18 @@ namespace TranscendenceRL {
                 playerMain.Update(time);
                 playerMain.PlaceTiles();
                 playerMain.DrawWorld();
-                SadConsole.Game.Instance.Screen = new CrawlTransition(Width, Height, this, playerMain) { IsFocused = true };
+                SadConsole.Game.Instance.Screen = new FlashTransition(Width, Height, this,
+                    new Pause(1,
+                    new TextScreen(Width, Height, "Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch {
+                        0 => "For once, it will not be your fault.",
+                        1 => "May history remember your last day among the people.",
+                        2 => "Tomorrow will be forever.",
+                        3 => "Life runs short; hurry along now.",
+                        4 => "You may not remember how you got here, but that's not important anymore.",
+                        _ => "Maybe all of it will have been for something.",
+                    }),
+                    new FadeIn(new Pause(1, playerMain)
+                    )))){ IsFocused = true };
             }
         }
         public override void Render(TimeSpan drawTime) {

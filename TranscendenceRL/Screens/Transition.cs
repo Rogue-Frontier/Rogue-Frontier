@@ -28,7 +28,7 @@ namespace TranscendenceRL {
             next.Update(delta);
             base.Update(delta);
             if (fast) {
-                x -= (int)(4 * (x + 16) * delta.TotalSeconds);
+                x -= (int)(Width * delta.TotalSeconds);
             }
             time += delta.TotalSeconds;
             while(time > interval) {
@@ -189,45 +189,44 @@ namespace TranscendenceRL {
     }
     public class FadeIn : Console {
         Console next;
-        double alpha;
+        float alpha;
         public FadeIn(Console next) : base(next.Width, next.Height) {
             this.next = next;
-            DefaultBackground = Color.Black;
+            DefaultBackground = Color.Transparent;
             Render(new TimeSpan());
         }
         public override void Update(TimeSpan delta) {
-            next.Update(delta);
             base.Update(delta);
             if (alpha < 1) {
-                alpha += delta.TotalSeconds * Math.Max((1 - alpha) * 4, 1);
+                alpha += (float)(delta.TotalSeconds / 4);
             } else {
                 SadConsole.Game.Instance.Screen = next;
                 next.IsFocused = true;
             }
         }
         public override void Render(TimeSpan delta) {
-            next.Render(delta);
-            base.Render(delta);
             this.Clear();
+            var g = new ColoredGlyph(Color.Black, new Color(0, 0, 0, 1 - alpha));
             for (int y = 0; y < Height; y++) {
                 for (int x = 0; x < Width; x++) {
-                    var glyph = next.GetGlyph(x, y);
-                    var foreground = next.GetForeground(x, y);
-                    var background = next.GetBackground(x, y);
-                    foreground = foreground.WithValues(alpha: (int)(foreground.A * alpha));
-                    background = background.WithValues(alpha: (int)(background.A * alpha));
-                    this.SetCellAppearance(x, y, new ColoredGlyph(foreground, background, glyph));
+                    this.SetCellAppearance(x, y, g);
                 }
             }
+            next.Render(delta);
+            base.Render(delta);
         }
     }
 
     public class Pause : Console {
         Console next;
         double time;
+        public Pause(double time, Console next) : base(next.Width, next.Height) {
+            this.time = 5;
+            this.next = next;
+            Render(new TimeSpan());
+        }
         public Pause(Console next) : base(next.Width, next.Height) {
             this.next = next;
-            DefaultBackground = Color.Black;
             time = 5;
             Render(new TimeSpan());
         }
@@ -241,7 +240,6 @@ namespace TranscendenceRL {
             }
         }
         public override void Render(TimeSpan delta) {
-            base.Render(delta);
             next.Render(delta);
         }
     }
