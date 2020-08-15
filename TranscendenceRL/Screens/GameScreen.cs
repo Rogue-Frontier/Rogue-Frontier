@@ -160,12 +160,14 @@ namespace TranscendenceRL {
 
 			camera = playerShip.Position;
 			if (playerShip.Dock?.justDocked == true && playerShip.Dock.target is Dockable d) {
-				
-				Console scene = story.GetScene(this, d, playerShip) ?? new SceneScan(d.GetScene(this, playerShip)) { IsFocused = true };
+
+				Console scene = story.GetScene(this, d, playerShip) ?? d.GetScene(this, playerShip);
 				if (scene != null) {
 					playerShip.Dock = null;
-					sceneContainer.Children.Add(scene);
-				}
+					sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
+				} else {
+					playerShip.AddMessage(new InfoMessage($"Stationed on {d.Name}"));
+                }
 			}
 			map.Update(delta);
 			vignette.Update(delta);
@@ -232,7 +234,7 @@ namespace TranscendenceRL {
 		}
 		public override bool ProcessMouse(MouseScreenObjectState state) {
 			if(sceneContainer.Children.Count > 0) {
-				sceneContainer.ProcessMouse(state);
+				sceneContainer.ProcessMouse(new MouseScreenObjectState(sceneContainer, state.Mouse));
             } else if(state.IsOnScreenObject) {
 
 				//Placeholder for mouse wheel-based weapon selection
@@ -248,17 +250,6 @@ namespace TranscendenceRL {
 				var worldPos = centerOffset + camera;
 				SpaceObject t;
 				if (state.Mouse.MiddleClicked) {
-
-					//Idea: Let the crosshair auto-snap to the nearest enemy, so middle-clicking would set target to enemy
-					//No: Maybe we shouldn't get in the way of the player
-					//No: That would be redundant; we already have middle-click to target nearest
-					/*
-					var crosshairPos = worldPos;
-					if (playerShip.GetTarget(out var t) && t == crosshair) {
-						crosshairPos = crosshair.Position;
-					}
-					var targetList = new List<SpaceObject>(world.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - crosshairPos).Magnitude));
-					*/
 					var targetList = new List<SpaceObject>(World.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
 
 					//Set target to object closest to mouse cursor
@@ -275,21 +266,6 @@ namespace TranscendenceRL {
 						playerShip.targetIndex = 0;
 						playerShip.UpdateAutoAim();
 					}
-
-
-
-					/*
-					//Attempt to skip the beginning items of both lists that already match
-					int i = 0;
-					for(i = 0; i < Math.Min(playerShip.targetIndex + 1, Math.Min(playerShip.targetList.Count, targetList.Count)); i++) {
-						if(targetList[i] == playerShip.targetList[i]) {
-							i++;
-						}
-					}
-					if(i < targetList.Count) {
-						playerShip.targetIndex = i;
-					}
-					*/
 				}
 
 
@@ -329,8 +305,6 @@ namespace TranscendenceRL {
 						playerShip.SetRotatingToFace(mouseRads);
 					}
 				}
-
-
 				if (state.Mouse.LeftButtonDown) {
 					playerShip.SetFiringPrimary();
 				}

@@ -182,11 +182,11 @@ namespace TranscendenceRL {
                 SadConsole.Game.Instance.Screen = new FlashTransition(Width, Height, this,
                     new Pause(1,
                     new TextScreen(Width, Height, "Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch {
-                        0 => "For once, it will not be your fault.",
-                        1 => "May history remember your last day among the people.",
+                        0 => "It is not your fault.",
+                        1 => "Maybe history will remember itself.",
                         2 => "Tomorrow will be forever.",
                         3 => "Life runs short; hurry along now.",
-                        4 => "You may not remember how you got here, but that's not important anymore.",
+                        4 => "You may not remember how you got here.",
                         _ => "Maybe all of it will have been for something.",
                     }),
                     new FadeIn(new Pause(1, playerMain)

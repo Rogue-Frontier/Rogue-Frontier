@@ -28,7 +28,7 @@ At least, during your vacations to the virtual reality arcade.
 But this is not a vacation.
 
 You almost begin to question how you got here.".Replace("\r", "");
-                        var scene = new SceneScan(new StationScene(prev, s, new TextScene(prev, t, new List<SceneOption>() {
+                        var sc = new TextScene(prev, t, new List<SceneOption>() {
                             new SceneOption() {
                                 escape = true,
                                 enter = true,
@@ -36,8 +36,9 @@ You almost begin to question how you got here.".Replace("\r", "");
                                 name = "Continue",
                                 next = null
                             }
-                        })));
-                        return scene;
+                        });
+                        sc.Children.Add(new HeroImageScene(prev, s.StationType.heroImage, s.StationType.heroImageTint));
+                        return sc;
                     }
                     break;
             }

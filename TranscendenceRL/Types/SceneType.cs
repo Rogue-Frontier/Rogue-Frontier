@@ -30,36 +30,22 @@ namespace TranscendenceRL {
     public interface ISceneDesc {
         Console Get(Console prev, PlayerShip player);
     }
-    public class StationScene : Console {
-        Console prev;
-        Station station;
-        Console scene;
-
+    public class HeroImageScene : Console {
         double time;
-        public StationScene(Console prev, Station station, Console scene) : base(prev.Width, prev.Height) {
-            this.prev = prev;
-            this.station = station;
-            this.scene = scene;
-            Children.Add(scene);
-
+        string[] heroImage;
+        Color tint;
+        public HeroImageScene(Console prev, string[] heroImage, Color tint) : base(prev.Width, prev.Height) {
+            this.heroImage = heroImage;
+            this.tint = tint;
         }
         public override void Update(TimeSpan delta) {
-            if(Children.Count > 0) {
-                time += delta.TotalSeconds;
-                base.Update(delta);
-            } else {
-                Parent.Children.Remove(this);
-                prev.IsFocused = true;
-            }
+            time += delta.TotalSeconds;
         }
         public override void Render(TimeSpan delta) {
-            var heroImage = station.StationType.heroImage ?? new string[] { "" };
             int width = heroImage.Max(line => line.Length);
             int height = heroImage.Length;
             int x = 8;
             int y = (Height - height * 2)/2;
-
-            var tint = station.StationType.heroImageTint;
             byte GetAlpha(int x, int y) {
                 return (byte)(Math.Sin(time * 1.5 + Math.Sin(x) * 5 + Math.Sin(y) * 5) * 25 + 230);
             }
@@ -75,10 +61,8 @@ namespace TranscendenceRL {
                 DrawLine();
                 DrawLine();
             }
-
             base.Render(delta);
         }
-
     }
     public class SceneOption {
         public bool escape;
@@ -101,8 +85,6 @@ namespace TranscendenceRL {
                 } else if (h || v) {
                     f = new Color(255, 255, 255, 255 * 5 / 8);
                 }
-
-
                 c.SetCellAppearance(point.X, point.Y, new ColoredGlyph(f, Color.Transparent, '.'));
             }
         }
@@ -124,6 +106,8 @@ namespace TranscendenceRL {
             UseKeyboard = true;
         }
         public override void Update(TimeSpan delta) {
+            bool f = IsFocused;
+
             ticks++;
             if(ticks%3 == 0) {
                 if (index < desc.Length - 1) {
@@ -134,7 +118,9 @@ namespace TranscendenceRL {
                     int x = 64;
                     int y = 16 + desc.Count(c => c == '\n') + 3;
                     foreach (var option in navigation) {
-                        Children.Add(new LabelButton(option.name, () => Transition(option.next)) { Position = new Point(x, y++) });
+                        Children.Add(new LabelButton(option.name, () => {
+                            Transition(option.next);
+                        }) { Position = new Point(x, y++) });
                     }
                 }
             }
@@ -173,6 +159,17 @@ namespace TranscendenceRL {
                         break;
                 }
             }
+        }
+        public override bool ProcessKeyboard(Keyboard keyboard) {
+            var a = this;
+            return base.ProcessKeyboard(keyboard);
+        }
+        public override bool ProcessMouse(MouseScreenObjectState state) {
+
+            foreach(var c in Children) {
+                c.ProcessMouse(state);
+            }
+            return base.ProcessMouse(state);
         }
     }
     class WreckScene : Console {
