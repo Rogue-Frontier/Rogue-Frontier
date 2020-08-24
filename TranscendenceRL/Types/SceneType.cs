@@ -42,12 +42,12 @@ namespace TranscendenceRL {
             int width = heroImage.Max(line => line.Length);
             int height = heroImage.Length;
             int x = 8;
-            int y = (Height - height * 2)/2;
+            int y = (Height - height * 2) / 2;
             byte GetAlpha(int x, int y) {
                 return (byte)(Math.Sin(time * 1.5 + Math.Sin(x) * 5 + Math.Sin(y) * 5) * 25 + 230);
             }
             int lineY = 0;
-            foreach(var line in heroImage) {
+            foreach (var line in heroImage) {
                 void DrawLine() {
                     for (int lineX = 0; lineX < line.Length; lineX++) {
                         var color = tint.SetAlpha(GetAlpha(lineX, lineY));
@@ -59,6 +59,12 @@ namespace TranscendenceRL {
                 DrawLine();
             }
             base.Render(delta);
+        }
+        public override bool ProcessMouse(MouseScreenObjectState state) {
+            return base.ProcessMouse(state);
+        }
+        public override bool ProcessKeyboard(Keyboard keyboard) {
+            return base.ProcessKeyboard(keyboard);
         }
     }
     public class SceneOption {
