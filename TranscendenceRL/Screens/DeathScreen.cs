@@ -1,13 +1,10 @@
 ﻿
-using ASECII;
-using Microsoft.Xna.Framework.Graphics;
+using ArchConsole;
 using SadConsole;
 using SadConsole.Input;
 using SadRogue.Primitives;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Console = SadConsole.Console;
 
 namespace TranscendenceRL {

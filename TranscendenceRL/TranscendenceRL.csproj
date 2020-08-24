@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreCLR-NCalc" Version="2.2.80" />
-    <PackageReference Include="OptimizedPriorityQueue" Version="4.2.0" />
+    <PackageReference Include="CoreCLR-NCalc" Version="2.2.88" />
+    <PackageReference Include="OptimizedPriorityQueue" Version="5.0.0" />
     <PackageReference Include="SadConsole.Host.MonoGame" Version="9.0.0-beta1" />
     <PackageReference Include="TheSadRogue.Primitives" Version="1.0.0-alpha5-debug" />
     <PackageReference Include="TheSadRogue.Primitives.MonoGame" Version="1.0.0-alpha3-debug" />
@@ -29,8 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="ASECII">
-      <HintPath>..\..\ASECII\ASECII\bin\Debug\netcoreapp3.1\ASECII.dll</HintPath>
+    <Reference Include="ArchConsole">
+      <HintPath>..\..\ArchConsole\ArchConsole\bin\Debug\netstandard2.1\ArchConsole.dll</HintPath>
     </Reference>
   </ItemGroup>
 

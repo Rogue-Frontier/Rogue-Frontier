@@ -4,18 +4,14 @@ using SadConsole.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static SadConsole.Input.Keys;
-using static Common.Helper;
-using SadConsole.UI;
 using Common;
 using System.IO;
 using Console = SadConsole.Console;
 using TranscendenceRL.Types;
 using Newtonsoft.Json;
 using TranscendenceRL.Screens;
-using ASECII;
+using ArchConsole;
 
 namespace TranscendenceRL {
     class TitleScreen : Console {

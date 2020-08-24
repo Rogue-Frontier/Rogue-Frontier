@@ -1,16 +1,13 @@
 ﻿using SadConsole.Input;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 using SadRogue.Primitives;
 using System;
 using SadConsole;
-using static SadConsole.Input.Keys;
 using static UI;
 using Console = SadConsole.Console;
-using Common;
-using ASECII;
+using ArchConsole;
 
 namespace TranscendenceRL {
     public class SceneType : DesignType {

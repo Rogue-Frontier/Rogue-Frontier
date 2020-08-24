@@ -1,0 +1,3 @@
+﻿Voice makes up an important part of the narrative. The player uses the Orator's voice to both manifest
+physical powers and communicate. During the game, there will be some speech options that require the
+player to roll for Voice. This leads to scenarios ranging from arguments to poor communication.

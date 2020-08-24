@@ -10,7 +10,6 @@ using Console = SadConsole.Console;
 using System.Linq;
 using static SadConsole.Input.Keys;
 using static UI;
-using ASECII;
 
 namespace TranscendenceRL {
     class SplashScreen : Console {

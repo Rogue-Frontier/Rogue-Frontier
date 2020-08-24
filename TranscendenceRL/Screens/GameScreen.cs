@@ -8,13 +8,13 @@ using SadRogue.Primitives;
 using static SadConsole.Input.Keys;
 using SadConsole;
 using SadConsole.Input;
-using ASECII;
 using SadConsole.UI;
 using Console = SadConsole.Console;
 using Helper = Common.Helper;
 using static UI;
 using Newtonsoft.Json;
 using System.IO;
+using ArchConsole;
 
 namespace TranscendenceRL {
 	public class PlayerMain : Console {

@@ -1,16 +1,13 @@
 ﻿using SadConsole.Input;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using SadRogue.Primitives;
-using System.IO;
 using Common;
 using SadConsole;
 using Console = SadConsole.Console;
 using System.Linq;
 using static SadConsole.Input.Keys;
-using static UI;
-using ASECII;
+using ArchConsole;
 
 namespace TranscendenceRL {
     class ArenaScreen : Console {

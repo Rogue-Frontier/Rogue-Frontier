@@ -1,0 +1,13 @@
+﻿TranscendenceRL contains a narrative about people. 
+
+The current champion of the Arena, known as CC. He will surrender if you bring him close enough to death. You have a choice.
+- Kill him, in which you become the champion of the Arena
+- Spare him, which leads to him retiring and asking to become your wingmate.
+
+As it turns out, CC has a very questionable reputation outside of the Arena.
+His primary motivation for being champion is purely the pursuit of power.
+Behind the stage, he taunts opponents a lot. He schemes to take people down.
+At first when the player defeats him, he begs to be spared by the player
+
+
+In the case that you spare him, 

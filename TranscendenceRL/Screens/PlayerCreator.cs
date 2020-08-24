@@ -6,14 +6,11 @@ using System;
 using SadRogue.Primitives;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static SadConsole.Input.Keys;
 using Console = SadConsole.Console;
-using SadConsole.UI.Controls;
-using ASECII;
-using Label = ASECII.Label;
+using Label = ArchConsole.Label;
 using System.IO;
+using ArchConsole;
 
 namespace TranscendenceRL {
 

@@ -1,14 +1,10 @@
-﻿using ASECII;
-using Common;
+﻿using ArchConsole;
 using SadConsole;
 using SadConsole.Input;
-using SadConsole.Renderers;
-using SadConsole.UI.Controls;
 using SadRogue.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Console = SadConsole.Console;
 
 namespace TranscendenceRL.Screens {

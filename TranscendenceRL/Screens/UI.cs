@@ -1,5 +1,4 @@
-﻿using ASECII;
-using SadConsole.Input;
+﻿using SadConsole.Input;
 using System;
 using SadRogue.Primitives;
 using SadConsole;

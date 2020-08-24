@@ -46,6 +46,7 @@ namespace TranscendenceRL {
         public HashSet<Item> Items;
         public DeviceSystem Devices { get; private set; }
         public DamageSystem DamageSystem;
+        public ControlEffect controlEffect;
 
         public Random destiny;
 
@@ -110,61 +111,89 @@ namespace TranscendenceRL {
             //Devices.Update(this);
         }
         public void UpdateControls() {
-            if (thrusting) {
-                var rotationRads = rotationDegrees * Math.PI / 180;
 
-                var exhaust = new EffectParticle(Position + XY.Polar(rotationRads, -1),
-                    Velocity + XY.Polar(rotationRads, -ShipClass.thrust),
-                    new ColoredGlyph(Color.Yellow, Color.Transparent, '.'),
-                    4);
-                World.AddEffect(exhaust);
-
-                Velocity += XY.Polar(rotationRads, ShipClass.thrust);
-                if (Velocity.Magnitude > ShipClass.maxSpeed) {
-                    Velocity = Velocity.Normal * ShipClass.maxSpeed;
+            if(controlEffect != null) {
+                if(controlEffect.disableThrust) {
+                    thrusting = false;
+                }
+                if(controlEffect.disableTurn) {
+                    rotating = Rotating.None;
+                }
+                if(controlEffect.disableBrake) {
+                    decelerating = false;
+                }
+                if (controlEffect.disableFire) {
+                    foreach(var w in Devices.Weapons) {
+                        w.firing = false;
+                    }
                 }
 
-                thrusting = false;
             }
-            if (rotating != Rotating.None) {
-                if (rotating == Rotating.CCW) {
-                    /*
-                    if (rotatingSpeed < 0) {
-                        rotatingSpeed += Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
+            UpdateThrust();
+            UpdateTurn();
+            rotationDegrees += rotatingVel;
+            UpdateBrake();
+
+            void UpdateThrust() {
+                if (thrusting) {
+                    var rotationRads = rotationDegrees * Math.PI / 180;
+
+                    var exhaust = new EffectParticle(Position + XY.Polar(rotationRads, -1),
+                        Velocity + XY.Polar(rotationRads, -ShipClass.thrust),
+                        new ColoredGlyph(Color.Yellow, Color.Transparent, '.'),
+                        4);
+                    World.AddEffect(exhaust);
+
+                    Velocity += XY.Polar(rotationRads, ShipClass.thrust);
+                    if (Velocity.Magnitude > ShipClass.maxSpeed) {
+                        Velocity = Velocity.Normal * ShipClass.maxSpeed;
                     }
-                    */
-                    //Add decel if we're turning the other way
-                    if(rotatingVel < 0) {
-                        Decel();
-                    }
-                    rotatingVel += ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
-                } else if (rotating == Rotating.CW) {
-                    /*
-                    if(rotatingSpeed > 0) {
-                        rotatingSpeed -= Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
-                    }
-                    */
-                    //Add decel if we're turning the other way
-                    if (rotatingVel > 0) {
-                        Decel();
-                    }
-                    rotatingVel -= ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
+
+                    thrusting = false;
                 }
-                rotatingVel = Math.Min(Math.Abs(rotatingVel), ShipClass.rotationMaxSpeed) * Math.Sign(rotatingVel);
-                rotating = Rotating.None;
-            } else {
-                Decel();
+            }
+            void UpdateTurn() {
+
+                if (rotating != Rotating.None) {
+                    if (rotating == Rotating.CCW) {
+                        /*
+                        if (rotatingSpeed < 0) {
+                            rotatingSpeed += Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
+                        }
+                        */
+                        //Add decel if we're turning the other way
+                        if (rotatingVel < 0) {
+                            Decel();
+                        }
+                        rotatingVel += ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
+                    } else if (rotating == Rotating.CW) {
+                        /*
+                        if(rotatingSpeed > 0) {
+                            rotatingSpeed -= Math.Min(Math.Abs(rotatingSpeed), ShipClass.rotationDecel);
+                        }
+                        */
+                        //Add decel if we're turning the other way
+                        if (rotatingVel > 0) {
+                            Decel();
+                        }
+                        rotatingVel -= ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
+                    }
+                    rotatingVel = Math.Min(Math.Abs(rotatingVel), ShipClass.rotationMaxSpeed) * Math.Sign(rotatingVel);
+                    rotating = Rotating.None;
+                } else {
+                    Decel();
+                }
             }
             void Decel() => rotatingVel -= Math.Min(Math.Abs(rotatingVel), ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * Math.Sign(rotatingVel); ;
-            rotationDegrees += rotatingVel;
-
-            if (decelerating) {
-                if (Velocity.Magnitude > 0.05) {
-                    Velocity -= Velocity.Normal * Math.Min(Velocity.Magnitude, ShipClass.thrust / 2);
-                } else {
-                    Velocity = new XY();
+            void UpdateBrake() {
+                if (decelerating) {
+                    if (Velocity.Magnitude > 0.05) {
+                        Velocity -= Velocity.Normal * Math.Min(Velocity.Magnitude, ShipClass.thrust / 2);
+                    } else {
+                        Velocity = new XY();
+                    }
+                    decelerating = false;
                 }
-                decelerating = false;
             }
         }
         public void UpdateMotion() {
