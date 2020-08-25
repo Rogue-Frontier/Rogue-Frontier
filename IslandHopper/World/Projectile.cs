@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Common.Helper;
+using static Common.Main;
 
 namespace IslandHopper {
 	public class ThrownItem : Entity {
@@ -344,7 +344,7 @@ namespace IslandHopper {
 			Func<Entity, bool> ignoreSource = e => e == Source;
 			Func<Entity, bool> filterTarget = e => e != Target;
 
-			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget));
+			Func<Entity, bool> collisionFilter = Main.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget));
 
 			this.UpdateMotionCollision(collisionFilter);
 		}
@@ -441,7 +441,7 @@ namespace IslandHopper {
 				for (int i = 0; i < 6; i++) {
 					rectRadius++;
 					//Add the surrounding shell of tiles to our list.
-					explosionOffsets.AddRange(Helper.GetSurrounding(rectRadius));
+					explosionOffsets.AddRange(Main.GetSurrounding(rectRadius));
 					this.DebugInfo($"Added surrounding tiles for radius: {rectRadius}");
 				}
 			}

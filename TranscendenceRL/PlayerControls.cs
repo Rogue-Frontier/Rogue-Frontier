@@ -4,6 +4,7 @@ using SadConsole.Input;
 using System.Linq;
 using static SadConsole.Input.Keys;
 using static TranscendenceRL.ControlKeys;
+using Helper = Common.Main;
 namespace TranscendenceRL {
 	public enum ControlKeys {
 		Thrust,
@@ -108,6 +109,9 @@ namespace TranscendenceRL {
                 } else {
 					playerShip.Damage(playerShip, playerShip.Ship.DamageSystem.GetHP() - 5);
 				}
+			}
+			if (info.IsKeyPressed(V)) {
+				playerShip.Ship.ControlHijack = new ControlHijack() { ticksLeft = 90, thrustMode = HijackMode.FORCE_ON };
 			}
 		}
     }

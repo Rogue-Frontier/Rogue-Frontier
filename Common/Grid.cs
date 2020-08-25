@@ -75,7 +75,11 @@ namespace Common {
 		public XY Normal {
 			get {
 				double magnitude = Magnitude;
-				return new XY(x / magnitude, y / magnitude);
+				if(magnitude > 0) {
+					return new XY(x / magnitude, y / magnitude);
+				} else {
+					return new XY(0, 0);
+                }
 			}
 		}
 		public double Angle => Math.Atan2(y, x);

@@ -96,7 +96,7 @@ namespace IslandHopper {
 						}),
 						new Timer(playerInterval, () => {
 							planes.ForEach(plane => {
-								if (Helper.InRange(plane.x + PLANE.LineLength(), Width/2, 30) && Random.Next(2) < 1)
+								if (Main.InRange(plane.x + PLANE.LineLength(), Width/2, 30) && Random.Next(2) < 1)
 									players.Add(plane.clone + new XY(8, 1));
 							});
 						}),

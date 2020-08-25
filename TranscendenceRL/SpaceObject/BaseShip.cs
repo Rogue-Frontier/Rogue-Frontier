@@ -4,10 +4,7 @@ using SadConsole;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TranscendenceRL.Types;
-using IslandHopper;
 
 namespace TranscendenceRL {
     public enum Rotating {
@@ -46,7 +43,7 @@ namespace TranscendenceRL {
         public HashSet<Item> Items;
         public DeviceSystem Devices { get; private set; }
         public DamageSystem DamageSystem;
-        public ControlEffect controlEffect;
+        public ControlHijack ControlHijack;
 
         public Random destiny;
 
@@ -112,22 +109,47 @@ namespace TranscendenceRL {
         }
         public void UpdateControls() {
 
-            if(controlEffect != null) {
-                if(controlEffect.disableThrust) {
-                    thrusting = false;
+            if(ControlHijack != null) {
+                switch(ControlHijack.thrustMode) {
+                    case HijackMode.FORCE_ON:
+                        thrusting = true;
+                        break;
+                    case HijackMode.FORCE_OFF:
+                        thrusting = false;
+                        break;
                 }
-                if(controlEffect.disableTurn) {
-                    rotating = Rotating.None;
+                switch (ControlHijack.turnMode) {
+                    case HijackMode.FORCE_ON:
+                        rotating = Rotating.CCW;
+                        break;
+                    case HijackMode.FORCE_OFF:
+                        rotating = Rotating.None;
+                        break;
                 }
-                if(controlEffect.disableBrake) {
-                    decelerating = false;
+                switch(ControlHijack.brakeMode) {
+                    case HijackMode.FORCE_ON:
+                        decelerating = true;
+                        break;
+                    case HijackMode.FORCE_OFF:
+                        decelerating = false;
+                        break;
                 }
-                if (controlEffect.disableFire) {
-                    foreach(var w in Devices.Weapons) {
-                        w.firing = false;
-                    }
+                switch (ControlHijack.fireMode) {
+                    case HijackMode.FORCE_ON:
+                        foreach (var w in Devices.Weapons) {
+                            w.firing = true;
+                        }
+                        break;
+                    case HijackMode.FORCE_OFF:
+                        foreach (var w in Devices.Weapons) {
+                            w.firing = false;
+                        }
+                        break;
                 }
-
+                ControlHijack.Update();
+                if(ControlHijack.active == false) {
+                    ControlHijack = null;
+                }
             }
             UpdateThrust();
             UpdateTurn();

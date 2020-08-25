@@ -9,6 +9,7 @@ namespace TranscendenceRL {
     //A space background made up of randomly generated layers with different depths
     public class Backdrop {
         public List<GeneratedLayer> layers;
+        public CompositeLayer starlight;
         public GridLayer planets;
         public GridLayer orbits;
         public Backdrop() : this(new Random()) {
@@ -23,6 +24,7 @@ namespace TranscendenceRL {
             }
             planets = new GridLayer(1);
             orbits = new GridLayer(1);
+            starlight = new CompositeLayer();
         }
         public Color GetBackgroundFixed(XY point) => GetBackground(point, XY.Zero);
         public Color GetBackground(XY point, XY camera) {
@@ -34,15 +36,9 @@ namespace TranscendenceRL {
         }
         public ColoredGlyph GetTile(XY point, XY camera) {
             //ColoredGlyph result = new ColoredGlyph(Color.Transparent, Color.Black, ' ');
-            var top = planets.GetTile(point, camera);
+            var (f, b, g) = (Color.Transparent, Color.Transparent, 0);
 
-            var g = top.GlyphCharacter;
-            var b = top.Background;
-            var f = top.Foreground;
-
-            Blend(orbits.GetTile(point, camera));
-
-            for(int i = layers.Count - 1; i > -1; i--) {
+            for (int i = layers.Count - 1; i > -1; i--) {
                 Blend(layers[i].GetTile(point, camera));
             }
             void Blend(ColoredGlyph tile) {
@@ -54,12 +50,15 @@ namespace TranscendenceRL {
                     }
                 }
             }
+
+            Blend(starlight.GetTile(point, camera));
+            Blend(orbits.GetTile(point, camera));
+            Blend(planets.GetTile(point, camera));
             return new ColoredGlyph(f, b, g);
         }
         public ColoredGlyph GetTileFixed(XY point) => GetTile(point, XY.Zero);
     }
     public interface ILayer {
-        double parallaxFactor { get; }
         ColoredGlyph GetTile(XY point, XY camera);
     }
     public class GridLayer : ILayer {
@@ -73,6 +72,41 @@ namespace TranscendenceRL {
             var apparent = point - camera * (1 - parallaxFactor);
             return tiles.TryGetValue(apparent.RoundDown, out var result) ? result : new ColoredGlyph(Color.Transparent, Color.Transparent, ' ');
         }
+    }
+    public class CompositeLayer : ILayer {
+        public List<ILayer> layers = new List<ILayer>();
+        public Color GetBackgroundFixed(XY point) => GetBackground(point, XY.Zero);
+        public Color GetBackground(XY point, XY camera) {
+            Color result = Color.Black;
+            foreach (var layer in layers) {
+                result = result.Blend(layer.GetTile(point, camera).Background);
+            }
+            return result;
+        }
+        public ColoredGlyph GetTile(XY point, XY camera) {
+            if(layers.Any()) {
+                var top = layers.Last().GetTile(point, camera);
+                var g = top.GlyphCharacter;
+                var b = top.Background;
+                var f = top.Foreground;
+                for (int i = layers.Count - 2; i > -1; i--) {
+                    Blend(layers[i].GetTile(point, camera));
+                }
+                void Blend(ColoredGlyph tile) {
+                    b = b.Premultiply().Blend(tile.Background);
+                    if (g == ' ' || g == 0) {
+                        if (tile.GlyphCharacter != ' ' && tile.GlyphCharacter != 0) {
+                            f = tile.Foreground;
+                            g = tile.GlyphCharacter;
+                        }
+                    }
+                }
+                return new ColoredGlyph(f, b, g);
+            } else {
+                return new ColoredGlyph(Color.Transparent, Color.Transparent);
+            }
+        }
+        public ColoredGlyph GetTileFixed(XY point) => GetTile(point, XY.Zero);
     }
     public class GeneratedLayer : ILayer {
         public double parallaxFactor { get; private set; }                   //Multiply the camera by this value

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Common.Helper;
+using static Common.Main;
 using static SadConsole.ColoredString;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;

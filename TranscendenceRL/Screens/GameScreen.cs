@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Common;
 using SadRogue.Primitives;
 using static SadConsole.Input.Keys;
 using SadConsole;
 using SadConsole.Input;
-using SadConsole.UI;
 using Console = SadConsole.Console;
-using Helper = Common.Helper;
+using Helper = Common.Main;
 using static UI;
 using Newtonsoft.Json;
 using System.IO;
 using ArchConsole;
 
 namespace TranscendenceRL {
-	public class PlayerMain : Console {
+    public class PlayerMain : Console {
 		public XY camera;
 		public World World;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
@@ -209,7 +206,7 @@ namespace TranscendenceRL {
 
 					if (tiles.TryGetValue(location.RoundDown, out var tile)) {
 						var xScreen = x + HalfViewWidth;
-						var yScreen = ViewHeight - (y + HalfViewHeight);
+						var yScreen = HalfViewHeight - y;
 						this.SetCellAppearance(xScreen, yScreen, tile);
 					}
 				}
@@ -234,7 +231,7 @@ namespace TranscendenceRL {
 		}
 		public override bool ProcessMouse(MouseScreenObjectState state) {
 			if(sceneContainer.Children.Count > 0) {
-				sceneContainer.ProcessMouse(new MouseScreenObjectState(sceneContainer, state.Mouse));
+				sceneContainer.ProcessMouseTree(state.Mouse);
             } else if(state.IsOnScreenObject) {
 
 				//Placeholder for mouse wheel-based weapon selection
@@ -410,6 +407,11 @@ namespace TranscendenceRL {
 		PlayerShip player;
 		public char[,] mortalBorder;
 		public float powerAlpha;
+		public HashSet<EffectParticle> particles;
+
+		public XY screenCenter;
+		public int ticks;
+		public Random r;
 		public PlayerBorder(PlayerShip player, int width, int height) : base(width, height) {
 			this.player = player;
 			FocusOnMouseClick = false;
@@ -422,10 +424,13 @@ namespace TranscendenceRL {
 					mortalBorder[x, y] = letters[x % 2 + (x / 2) % 2 + (x / 4) % 2 + y % 2 + (y / 2) % 2 + (y / 4) % 2];
 				}
             }
-
+			powerAlpha = 0;
+			particles = new HashSet<EffectParticle>();
+			screenCenter = new XY(width / 2, height / 2);
+			r = new Random();
 		}
         public override void Update(TimeSpan delta) {
-			var charging = player.Powers.Where(p => p.invokeCharge > 0);
+			var charging = player.Powers.Where(p => p.charging);
 			if(charging.Any()) {
 				var charge = Math.Min(1, charging.Max(p => (float) p.invokeCharge / p.invokeDelay));
 				if(powerAlpha < charge) {
@@ -434,6 +439,28 @@ namespace TranscendenceRL {
 			} else {
 				powerAlpha -= powerAlpha / 120;
 			}
+			ticks++;
+			if(ticks % 5 == 0 && player.Ship.ControlHijack != null) {
+				int i = 0;
+				var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
+				foreach(var p in screenPerimeter.PerimeterPositions().Select(p => new XY(p))) {
+					if(r.Next(0, 10) == 0) {
+						int speed = 30;
+						int lifetime = 60;
+						var v = new XY( p.xi == 0 ? speed : p.xi == screenPerimeter.Width - 1 ? -speed : 0,
+										p.yi == 0 ? speed : p.yi == screenPerimeter.Height - 1 ? -speed : 0);
+						particles.Add(new EffectParticle(p, new ColoredGlyph(Color.Cyan, Color.Transparent, '#'), lifetime) { Velocity = v });
+					}
+                }
+			}
+
+			foreach(var p in particles) {
+				p.Position += p.Velocity / TranscendenceRL.TICKS_PER_SECOND;
+				p.Lifetime--;
+				p.Velocity -= p.Velocity / 15;
+            }
+			particles.RemoveWhere(p => !p.Active);
+
 			base.Update(delta);
         }
         public override void Render(TimeSpan delta) {
@@ -465,20 +492,35 @@ namespace TranscendenceRL {
 				borderSize += (int)(12 * fraction);
 			}
 			Color borderBack = Color.Black;
+			if (player.Ship.ControlHijack != null) {
+				borderBack = Color.Cyan;
+			} else {
+				var b = player.World.backdrop.starlight.GetBackground(player.Position, XY.Zero);
+				borderBack = b.Premultiply();
+			}
 			int dec = 255 / borderSize;
+
 			for (int i = 0; i < borderSize; i++) {
 				var decrease = i * dec;
 				byte backAlpha = (byte)Math.Max(0, 255 - decrease);
 				byte frontAlpha = (byte)Math.Min(255, 4 * backAlpha / 3);
+
+				var back = borderBack.SetAlpha(backAlpha);
+				var front = borderFront.SetAlpha(frontAlpha);
+
 				var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
 				foreach (var point in screenPerimeter.PerimeterPositions()) {
-					var back = borderBack.SetAlpha(backAlpha);
-					var front = borderFront.SetAlpha(frontAlpha);
 					//var back = this.GetBackground(point.X, point.Y).Premultiply();
 					var (x, y) = point;
 					this.SetCellAppearance(x, y, new ColoredGlyph(front, back, mortalBorder[x, y]));
 				}
 			}
+
+			foreach(var p in particles) {
+				var (x, y) = p.Position;
+				var (fore, glyph) = (p.Tile.Foreground, p.Tile.Glyph);
+				this.SetCellAppearance(x, y, new ColoredGlyph(fore, this.GetBackground(x,y), glyph));
+            }
 			base.Render(delta);
         }
     }

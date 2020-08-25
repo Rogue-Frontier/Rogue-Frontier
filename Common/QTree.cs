@@ -1,7 +1,7 @@
 ﻿using Common;
 using System;
 using System.Collections.Generic;
-namespace TranscendenceRL {
+namespace Common {
     public static class SGrid {
         public static T Get<T>(this GridTree<T> g, XY xy) {
             return g.Get(xy.xi, xy.yi);
@@ -26,7 +26,7 @@ namespace TranscendenceRL {
         ref T At(int x, int y);
         void Set(int x, int y, T t);
     }
-    class QTree<T> : GridTree<T> {
+    public class QTree<T> : GridTree<T> {
         T center;
         Dictionary<(uint, uint), Section> q1, q2, q3, q4;
         Dictionary<uint, Segment> xPositive, xNegative, yPositive, yNegative;
@@ -59,7 +59,7 @@ namespace TranscendenceRL {
         public const int CODE_QUADRANT_4 =  (1  + CODE_OFFSET) | ((-1 + CODE_OFFSET) << CODE_SHIFT);
         public static int SignCode(int x, int y) => (Math.Sign(x) + CODE_OFFSET) | ((Math.Sign(y) + CODE_OFFSET) << CODE_SHIFT);
         
-
+        public ref T this[(int x, int y) p] => ref At(p.x, p.y);
         public T Get(int x, int y) {
             switch(SignCode(x, y)) {
                 case CODE_ORIGIN:
@@ -188,7 +188,7 @@ namespace TranscendenceRL {
                     Initialize(out segment);
                     strip[index] = segment;
                 }
-                segment.Set(ia - index, t);
+                segment.Set(ia - index * size, t);
             }
             void SetSection(Dictionary<(uint, uint), Section> quadrant) {
                 uint xa = (uint)Math.Abs(x);

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TranscendenceRL {
+namespace Common {
     public class GeneratedGrid<T> : GridTree<T> {
         QTree<T> tree;
         Func<(int, int), T> generator;

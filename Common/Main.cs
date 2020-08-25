@@ -5,19 +5,14 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
 using System.Linq;
-using Common;
-using IslandHopper;
 using System.Text.RegularExpressions;
 using static SadConsole.ColoredString;
-using System.Reflection.Metadata.Ecma335;
 using SadConsole.UI;
 using SadConsole.Input;
-using SadConsole.Effects;
 using System.Globalization;
-using SadRogue.Primitives;
 
 namespace Common {
-	public static class Helper {
+    public static class Main {
 		public static T GetRandom<T>(this IEnumerable<T> e, Random r) => e.ElementAt(r.Next(e.Count()));
 		public static T GetRandomOrDefault<T>(this IEnumerable<T> e, Random r) => e.Any() ? e.ElementAt(r.Next(e.Count())) : default(T);
 		public static SetDict<(int, int), T> Downsample<T>(this Dictionary<(int, int), T> from, double scale) {
@@ -625,22 +620,22 @@ namespace Common {
 			return diff < -180 ? diff + 360 : diff;
 		}
 
-		public static Func<Entity, bool> Or(params Func<Entity, bool>[] f) {
-            Func<Entity, bool> result = e => true;
-            foreach(Func<Entity, bool> condition in f) {
+		public static Func<T, bool> Or<T>(params Func<T, bool>[] f) {
+            Func<T, bool> result = e => true;
+            foreach(Func<T, bool> condition in f) {
                 if (condition == null)
                     continue;
-                Func<Entity, bool> previous = result;
+                Func<T, bool> previous = result;
                 result = e => (previous(e) || condition(e));
             }
             return result;
         }
-        public static Func<Entity, bool> And(params Func<Entity, bool>[] f) {
-            Func<Entity, bool> result = e => true;
-            foreach (Func<Entity, bool> condition in f) {
+        public static Func<T, bool> And<T>(params Func<T, bool>[] f) {
+            Func<T, bool> result = e => true;
+            foreach (Func<T, bool> condition in f) {
                 if (condition == null)
                     continue;
-                Func<Entity, bool> previous = result;
+                Func<T, bool> previous = result;
                 result = e => (previous(e) && condition(e));
             }
             return result;

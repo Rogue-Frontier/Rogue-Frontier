@@ -280,7 +280,7 @@ namespace IslandHopper {
             }) { IsFocused = false };
         }
         public void ThrowItem(Entity target, IItem item) {
-            if (Helper.CalcAim2(target.Position - p.Position, 60, out XYZ lower, out XYZ _)) {
+            if (Main.CalcAim2(target.Position - p.Position, 60, out XYZ lower, out XYZ _)) {
                 item.Velocity = lower / Constants.STEPS_PER_SECOND;
                 //Remove the item from the player's inventory and create a thrown item in the world
                 p.Inventory.Remove(item);
@@ -292,7 +292,7 @@ namespace IslandHopper {
             }
         }
         public void ThrowItem(XYZ target, IItem item) {
-            if (Helper.CalcAim2(target - p.Position, 60, out XYZ lower, out XYZ _)) {
+            if (Main.CalcAim2(target - p.Position, 60, out XYZ lower, out XYZ _)) {
                 item.Velocity = lower / Constants.STEPS_PER_SECOND;
                 //Remove the item from the player's inventory and create a thrown item in the world
                 p.Inventory.Remove(item);

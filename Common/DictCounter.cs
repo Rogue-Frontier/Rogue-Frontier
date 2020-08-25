@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TranscendenceRL {
+namespace Common {
     public class DictCounter<T> {
         public Dictionary<T, int> dict;
         public int this[T t] {

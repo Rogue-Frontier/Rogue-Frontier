@@ -42,7 +42,7 @@ namespace IslandHopper {
         public void Detonate() {
             item.Destroy();
             item.World.AddEffect(new ExplosionSource(item.World, item.Position, 6));
-            foreach(var offset in Helper.GetWithin(type.explosionRadius)) {
+            foreach(var offset in Main.GetWithin(type.explosionRadius)) {
                 var pos = item.Position + offset;
                 var displacement = pos - item.Position;
                 var dist2 = displacement.Magnitude2;

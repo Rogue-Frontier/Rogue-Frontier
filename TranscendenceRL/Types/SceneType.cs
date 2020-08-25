@@ -75,6 +75,19 @@ namespace TranscendenceRL {
         public Console next;
     }
     public static class SScene {
+        public static void ProcessMouseTree(this IScreenObject root, Mouse m) {
+            List<IScreenObject> s = new List<IScreenObject>();
+            AddChildren(root);
+            void AddChildren(IScreenObject parent) {
+                s.Add(parent);
+                foreach(var c in parent.Children) {
+                    AddChildren(c);
+                }
+            }
+            foreach(var c in s) {
+                c.ProcessMouse(new MouseScreenObjectState(c, m));
+            }
+        }
         public static void RenderBackground(this Console c) {
             foreach (var point in new Rectangle(0, 0, c.Width, c.Height).Positions()) {
 
@@ -95,14 +108,18 @@ namespace TranscendenceRL {
     class TextScene : Console {
         Console prev;
         public string desc;
-        public int index;
+        public bool charging;
+        public int descIndex;
         public int ticks;
         List<SceneOption> navigation;
+        public int navIndex = 0;
+        int[] charge;
         public TextScene(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
             this.prev = prev;
             this.desc = desc;
             this.navigation = navigation;
-            index = 0;
+            charge = new int[navigation.Count];
+            descIndex = 0;
             ticks = 0;
 
             UseMouse = true;
@@ -113,20 +130,45 @@ namespace TranscendenceRL {
 
             ticks++;
             if(ticks%3 == 0) {
-                if (index < desc.Length - 1) {
-                    index++;
-                } else if(index < desc.Length) {
-                    index++;
+                if (descIndex < desc.Length - 1) {
+                    descIndex++;
+                } else if(descIndex < desc.Length) {
+                    descIndex++;
 
                     int x = 64;
                     int y = 16 + desc.Count(c => c == '\n') + 3;
+
+                    int i = 0;
                     foreach (var option in navigation) {
+                        int index = i;
+
                         Children.Add(new LabelButton(option.name, () => {
-                            Transition(option.next);
+                            navIndex = index;
+                            charging = true;
                         }) { Position = new Point(x, y++) });
+                        
+                        i++;
                     }
                 }
             }
+
+            if (charging) {
+                ref int c = ref charge[navIndex];
+                c++;
+                if (c == 60) {
+                    Transition(navigation[navIndex].next);
+                } else {
+                    c++;
+                }
+                charging = false;
+            }
+            for (int i = 0; i < charge.Length; i++) {
+                ref int c = ref charge[i];
+                if (c > 0) {
+                    c--;
+                }
+            }
+
             base.Update(delta);
         }
         public void Transition(Console next) {
@@ -150,7 +192,8 @@ namespace TranscendenceRL {
             
             int y = top;
             int x = left;
-            for (int i = 0; i < index; i++) {
+
+            for (int i = 0; i < descIndex; i++) {
                 switch(desc[i]) {
                     case '\n':
                         x = left;
@@ -162,13 +205,44 @@ namespace TranscendenceRL {
                         break;
                 }
             }
+
+            x = 64;
+            y = 16 + desc.Count(c => c == '\n') + 3;
+
+
+            if (descIndex == desc.Length) {
+                this.Print(x - 4, y + navIndex, new ColoredString("--->", Color.Yellow, Color.Transparent));
+
+                this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', 60 / 3), Color.Gray, Color.Transparent));
+
+                for (int i = 0; i < charge.Length; i++) {
+                    int c = charge[i];
+
+                    this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', charge[i] / 3), Color.White, Color.Transparent));
+                }
+                this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', charge[navIndex] / 3), Color.Yellow, Color.Transparent));
+            }
+            
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
-            var a = this;
+            if(keyboard.IsKeyPressed(Keys.Enter)) {
+                if(descIndex < desc.Length - 1) {
+                    descIndex = desc.Length - 1;
+                }
+            } else if(keyboard.IsKeyDown(Keys.Enter)) {
+                if (descIndex == desc.Length) {
+                    charging = true;
+                }
+            }
+            if(keyboard.IsKeyDown(Keys.Up)) {
+                navIndex = (navIndex - 1 + navigation.Count) % navigation.Count;
+            }
+            if(keyboard.IsKeyDown(Keys.Down)) {
+                navIndex = (navIndex + 1) % navigation.Count;
+            }
             return base.ProcessKeyboard(keyboard);
         }
         public override bool ProcessMouse(MouseScreenObjectState state) {
-
             foreach(var c in Children) {
                 c.ProcessMouse(state);
             }

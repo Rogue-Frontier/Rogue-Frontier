@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     public class EffectParticle : Effect {
-        private int Lifetime;
+        public int Lifetime;
         public EffectParticle(XY Position, ColoredGlyph Tile, int Lifetime) {
             this.Position = Position;
             this.Velocity = new XY();
@@ -22,8 +22,8 @@ namespace TranscendenceRL {
             this.Tile = Tile;
             this.Lifetime = Lifetime;
         }
-        public XY Position { get; private set; }
-        public XY Velocity { get; private set; }
+        public XY Position { get; set; }
+        public XY Velocity { get; set; }
 
         public bool Active => Lifetime > 0;
 

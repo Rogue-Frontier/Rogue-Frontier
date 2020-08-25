@@ -1,16 +1,13 @@
 ﻿using SadConsole;
 using SadConsole.Input;
-using SadConsole.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Common.Helper;
 using static SadConsole.ColoredString;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
 using System.IO;
+using Common;
 
 namespace TranscendenceRL {
     class CrawlScreen : Console {
