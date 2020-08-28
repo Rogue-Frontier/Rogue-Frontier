@@ -8,4 +8,7 @@ namespace BrainWaves {
     public class Wall : Voxel {
 
     }
+    public class Floor : Voxel {
+
+    }
 }

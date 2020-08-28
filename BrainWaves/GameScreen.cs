@@ -6,6 +6,7 @@ using SadRogue.Primitives;
 using System;
 using Console = SadConsole.Console;
 using SadConsole.Input;
+using System.Linq;
 
 namespace BrainWaves {
     public class GameScreen : Console {
@@ -16,106 +17,14 @@ namespace BrainWaves {
 		MessageScreen MessageScreen;
 		public GameScreen(int Width, int Height) : base(Width, Height) {
 			World = new World();
-			Random rnd = new Random();
-
-
-			HashSet<Rectangle> rooms = new HashSet<Rectangle>();
-			HashSet<(int, int)> built = new HashSet<(int, int)>();
-			var mainRoom = new Rectangle(0, 0, rnd.Next(12, 16), rnd.Next(12, 16));
-			BuildWalls(mainRoom);
-			rooms.Add(mainRoom);
-			BuildRoom(mainRoom);
-
-			void BuildRoom(Rectangle r) {
-				(int x, int y) p;
-				(int x, int y) c1;
-
-				int width = Math.Abs(r.Width);
-				int height = Math.Abs(r.Height);
-				if(rnd.Next(2) == 0) {
-					//Along Up/down
-					p.x = r.MinExtentX + rnd.Next(1, width - 2);
-
-					if (rnd.Next(2) == 0) {
-						p.y = r.MinExtentY;
-						c1 = (p.x, p.y - 1);
-					} else {
-						p.y = r.MinExtentY + height - 1;
-						c1 = (p.x, p.y + 1);
-					}
-                } else {
-					p.y = r.MinExtentY + rnd.Next(1, height - 2);
-					if(rnd.Next(2) == 0) {
-						p.x = r.MinExtentX;
-						c1 = (p.x - 1, p.y);
-					} else {
-						p.x = r.MinExtentX + width - 1;
-						c1 = (p.x + 1, p.y);
-					}
-				}
-				if(built.Add(c1)) {
-					var c2 = c1;
-
-					width = -1;
-					
-					bool b = built.Add((c2.x + 1, c2.y));
-					if(b) {
-						while (b && (width < 5 || rnd.Next(0, 5) > 0)) {
-							width++;
-							c2.x++;
-							b = built.Add((c2.x + 1, c2.y));
-						}
-					} else {
-						b = built.Add((c2.x - 1, c2.y));
-						if (b) {
-							while (b && (width < 5 || rnd.Next(0, 5) > 0)) {
-								width++;
-								c2.x--;
-								b = built.Add((c2.x - 1, c2.y));
-							}
-						}
-					}
-
-					height = -1;
-					b = built.Add((c2.x, c2.y - 1));
-					if (b) {
-						while (b && (height < 5 || rnd.Next(0, 5) > 0)) {
-							height++;
-							c2.y--;
-							b = built.Add((c2.x, c2.y - 1));
-						}
-					} else {
-						b = built.Add((c2.x, c2.y + 1));
-						if (b) {
-							while (b && (height < 5 || rnd.Next(0, 5) > 0)) {
-								height++;
-								c2.y++;
-								b = built.Add((c2.x, c2.y + 1));
-							}
-						}
-					}
-
-					Rectangle next = new Rectangle(c1, c2);
-					next = next.WithPosition(next.Position - new Point(1, 1)).WithSize(next.Size + new Point(2, 2));
-					rooms.Add(next);
-					BuildWalls(next);
-					BuildRoom(next);
-
-					World.voxels.Set(p.x, p.y, null);
-				}
-            }
-
-			void BuildWalls(Rectangle r) {
-				foreach(var p in r.Positions()) {
-					built.Add(p);
-                }
-				foreach(var p in r.PerimeterPositions()) {
-					World.voxels[p] = new Wall();
-                }
-            }
+			new WorldBuilder(World).Build();
 
 			Player = new Player(World) { Position = new XY(0, 0) };
-			WorldScreen = new WorldScreen(Width, Height - 10, World);
+			World.AddEntity(Player);
+			World.UpdatePresent();
+			World.UpdateSpace();
+
+			WorldScreen = new WorldScreen(Width, Height - 10, World, Player);
 			MessageScreen = new MessageScreen(Width, 10, Player) { Position = new Point(0, Height - 10) };
 
 			Children.Add(WorldScreen);
@@ -128,33 +37,48 @@ namespace BrainWaves {
 				switch(k.Key) {
 					case Keys.Up:
 						p += new XY(0, 1);
+						Move(p); 
 						break;
 					case Keys.Down:
 						p += new XY(0, -1);
+						Move(p); 
 						break;
 					case Keys.Right:
 						p += new XY(1, 0);
-						break;
+						Move(p); break;
 					case Keys.Left:
 						p += new XY(-1, 0);
+						Move(p);
 						break;
                 }
+				void Move(XY p) {
+					Player.Move(p);
+					World.UpdateSpace();
+					WorldScreen.camera = Player.Position;
+				}
             }
             return base.ProcessKeyboard(keyboard);
         }
     }
     public class WorldScreen : Console {
-		World World;
-		XY camera;
-		Dictionary<(int, int), ColoredGlyph> tiles;
-		public WorldScreen(int Width, int Height, World World) : base(Width, Height) {
+		public World World;
+		public XY camera;
+		public Player Player;
+		public WorldScreen(int Width, int Height, World World, Player Player) : base(Width, Height) {
 			this.World = World;
+			this.Player = Player;
 			camera = new XY();
-			tiles = new Dictionary<(int, int), ColoredGlyph>();
         }
         public override void Render(TimeSpan delta) {
+			Player.UpdateVisible();
+
+			this.Clear();
 			DrawWorld();
-            base.Render(delta);
+
+			this.Print(0, 0, $"{Player.Position.xi}", Color.Red);
+			this.Print(0, 1, $"{Player.Position.yi}", Color.Red);
+
+			base.Render(delta);
         }
         public void DrawWorld() {
 			int ViewWidth = Width;
@@ -168,16 +92,48 @@ namespace BrainWaves {
 
 					var xScreen = x + HalfViewWidth;
 					var yScreen = HalfViewHeight - y;
-					if (tiles.TryGetValue(location.RoundDown, out var tile)) {
-						this.SetCellAppearance(xScreen, yScreen, tile);
+
+					var b = World.brightness[location];
+					var back = new Color(b, b, b);
+					
+					var fore = Color.Black;
+					if (b < 128) {
+						fore = Color.White;
+					}
+					void Print(int c) => this.SetCellAppearance(xScreen, yScreen, new ColoredGlyph(fore, back, c));
+					void PrintVoxel(Voxel v) {
+						switch (v) {
+							case null:
+								Print('?');
+								break;
+							case Floor f:
+								Print('.');
+								break;
+							case Wall w:
+								Print('#');
+								break;
+						}
+					}
+
+					if (Player.visible.Contains(location)) {
+						var entities = World.entities[location.RoundAway];
+						if (entities.Any()) {
+							this.SetCellAppearance(xScreen, yScreen, new ColoredGlyph(fore, back, entities.First().Tile.Glyph));
+						} else {
+							var v = World.voxels.Get(location.xi, location.yi);
+							PrintVoxel(v);
+						}
+					} else if(Player.seen.Contains(location)) {
+						var v = World.voxels.Get(location.xi, location.yi);
+						PrintVoxel(v);
 					} else {
 						var v = World.voxels.Get(location.xi, location.yi);
 						if(v == null) {
-							this.SetCellAppearance(xScreen, yScreen, new ColoredGlyph(Color.White, Color.Black, '.'));
-						} else {
-							this.SetCellAppearance(xScreen, yScreen, new ColoredGlyph(Color.White, Color.Black, 'x'));
-						}
-
+							back = Color.White;
+							Print(0);
+                        } else {
+							Print(0);
+                        }
 					}
 				}
 			}

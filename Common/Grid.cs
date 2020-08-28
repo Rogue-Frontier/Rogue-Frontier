@@ -57,7 +57,8 @@ namespace Common {
 
 		public XY Truncate => new XY(xi, yi);
 		public XY Round => new XY(Math.Round(x), Math.Round(y));
-		public XY RoundDown => new XY(Math.Round(x - 0.5), Math.Round(y - 0.5));
+		public XY RoundDown => new XY(Math.Round(x, MidpointRounding.ToNegativeInfinity), Math.Round(y, MidpointRounding.ToNegativeInfinity));
+		public XY RoundAway => new XY(Math.Round(x, MidpointRounding.AwayFromZero), Math.Round(y, MidpointRounding.AwayFromZero));
 
 		public static XY Polar(double angle, double magnitude = 1) {
 			return new XY(Math.Cos(angle) * magnitude, Math.Sin(angle) * magnitude);
@@ -89,6 +90,8 @@ namespace Common {
 			var cos = Math.Cos(angle);
 			return new XY(x * cos - y * sin, x * sin + y * cos);
 		}
+		public static implicit operator Point(XY xy) => new Point(xy.xi, xy.yi);
+		public static implicit operator XY(Point p) => new XY(p.X, p.Y);
 	}
     public class XYZGridComparer : IEqualityComparer<XYZ> {
         public bool Equals(XYZ p1, XYZ p2) => (p1.xi == p2.xi && p1.yi == p2.yi && p1.zi == p2.zi);

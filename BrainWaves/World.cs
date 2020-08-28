@@ -58,5 +58,13 @@ namespace BrainWaves {
                 }
             }
         }
+        public void UpdateTiles(Dictionary<(int, int), ColoredGlyph> tiles) {
+            foreach (var e in entities.all) {
+                var p = e.Position.RoundDown;
+                if (e.Tile != null && !tiles.ContainsKey(p)) {
+                    tiles[p] = e.Tile;
+                }
+            }
+        }
     }
 }
