@@ -15,26 +15,29 @@ namespace BrainWaves {
             this.World = World;
         }
         public void Build() {
-            Random rnd = new Random(0);
+            Random rnd = new Random();
             int gridSize = 7;
 
             RoomSource mainRoom = new RoomSource() {
-                Position = new XY(0, 0),
-                Size = new XY(gridSize * 3, gridSize * 3)
+                Center = new XY(0, 0),
+                Dimensions = new XY(gridSize * 3, gridSize * 3)
             };
             BuildRoom(mainRoom);
 
             Queue<HallwaySource> hallways = new Queue<HallwaySource>();
-            {
-                var direction = XY.Polar((rnd.Next(0, 4) * 90) * Math.PI / 180);
+
+            int i;
+            for(i = 0; i < 3; i++) {
+                var direction = XY.Polar((i * 90) * Math.PI / 180);
                 HallwaySource mainHall = new HallwaySource() {
-                    Position = mainRoom.Position + direction * gridSize * 3 / 2,
+                    Center = mainRoom.Center + direction * gridSize * 3 / 2,
                     Direction = direction,
                     Size = gridSize
                 };
                 hallways.Enqueue(mainHall);
             }
-            int i = 0;
+
+            i = 0;
             while(hallways.Count > 0) {
                 var h = hallways.Dequeue();
 
@@ -49,7 +52,7 @@ namespace BrainWaves {
                     if (rnd.Next(0, 4) > 0) {
                         if (rnd.Next(0, 2) == 0) {
                             var direction = h.Direction.Rotate(90 * Math.PI / 180);
-                            var branch = new HallwaySource() { Position = h.Position, Direction = direction, Size = h.Size };
+                            var branch = new HallwaySource() { Center = h.Center, Direction = direction, Size = h.Size };
                             TryBuildBranch(branch);
                         } else if (rnd.Next(0, 2) == 0) {
                             var direction = h.Direction.Rotate(90 * Math.PI / 180);
@@ -58,7 +61,7 @@ namespace BrainWaves {
 
                         if (rnd.Next(0, 2) == 0) {
                             var direction = h.Direction.Rotate(-90 * Math.PI / 180);
-                            var branch = new HallwaySource() { Position = h.Position, Direction = direction, Size = h.Size };
+                            var branch = new HallwaySource() { Center = h.Center, Direction = direction, Size = h.Size };
                             TryBuildBranch(branch);
                         } else if (rnd.Next(0, 2) == 0) {
                             var direction = h.Direction.Rotate(-90 * Math.PI / 180);
@@ -68,30 +71,30 @@ namespace BrainWaves {
                         void BuildSideRoom(XY direction) {
 
                             var s = direction * gridSize - h.Direction * gridSize * (h.StepsFromBranch + 1);
-                            var p = (h.Position + h.Direction * h.Size - new XY(h.Size / 2, h.Size / 2)) + direction * h.Size + s / 2;
+                            var p = (h.Center + h.Direction * h.Size - new XY(h.Size / 2, h.Size / 2)) + direction * h.Size + s / 2;
 
 
                             //Go to the side, and then backtrack
                             var points = Enumerable.Range(0, h.StepsFromBranch)
-                                .Select(i => h.Position + direction * h.Size - h.Direction * i);
+                                .Select(i => h.Center + direction * h.Size - h.Direction * i);
                             if (points.Select(p => (p.xi, p.yi)).All(IsOpen)) {
-                                var branch = new HallwaySource() { Position = h.Position, Direction = direction, Size = h.Size };
+                                var branch = new HallwaySource() { Center = h.Center, Direction = direction, Size = h.Size };
                                 TryBuildDoorway(branch);
 
                                 BuildRoom(new RoomSource() {
-                                    Position = p,
-                                    Size = s.Abs
+                                    Center = p,
+                                    Dimensions = s.Abs
                                 });
                             }
                             
                         }
                     } else if (rnd.Next(0, 2) > 0) {
-                        var p = h.Position + h.Direction * gridSize * 1.5;
+                        var p = h.Center + h.Direction * gridSize * 1.5;
 
                         if(IsOpen(p)) {
                             var r = new RoomSource() {
-                                Position = p,
-                                Size = new XY(gridSize * 3, gridSize * 3)
+                                Center = p,
+                                Dimensions = new XY(gridSize * 3, gridSize * 3)
                             };
                             BuildRoom(r);
                             for (int j = 0; j < 2; j++) {
@@ -101,16 +104,23 @@ namespace BrainWaves {
                     }
                 }
 
-                if (i++ < 70) {
+                if (rnd.Next(0, 15) > 0) {
                     h.Step();
                     h.StepsFromBranch++;
-                    hallways.Enqueue(h);
+                    if (IsOpen(h.Center)) {
+                        hallways.Enqueue(h);
+                    } else {
+                        TerminateHall();
+                    }
                 } else {
-                    var p = h.Position + h.Direction * gridSize * 1.5;
-                    if(IsOpen(p)) {
+                    TerminateHall();
+                }
+                void TerminateHall() {
+                    var p = h.Center + h.Direction * gridSize * 1.5;
+                    if (IsOpen(p)) {
                         var r = new RoomSource() {
-                            Position = p,
-                            Size = new XY(gridSize * 3, gridSize * 3)
+                            Center = p,
+                            Dimensions = new XY(gridSize * 3, gridSize * 3)
                         };
                         BuildRoom(r);
                     } else {
@@ -119,17 +129,17 @@ namespace BrainWaves {
                 }
 
                 void TryBuildDoorway(HallwaySource branch) {
-                    if (IsOpen(branch.Position + branch.Direction * h.Size)) {
-                        branch.Position += branch.Direction * (h.Size / 2);
+                    if (IsOpen(branch.Center + branch.Direction * h.Size)) {
+                        branch.Center += branch.Direction * (h.Size / 2);
                         BuildHall(branch);
                     }
                 }
                 void TryBuildBranch(HallwaySource branch) {
-                    var dest = branch.Position + branch.Direction * h.Size;
+                    var dest = branch.Center + branch.Direction * h.Size;
                     if (IsOpen(dest)) {
-                        branch.Position = branch.Position + branch.Direction * (h.Size / 2);
+                        branch.Center = branch.Center + branch.Direction * (h.Size / 2);
                         BuildHall(branch);
-                        branch.Position = dest;
+                        branch.Center = dest;
                         hallways.Enqueue(branch);
                     }
                 }
@@ -151,21 +161,21 @@ namespace BrainWaves {
                     var left = h.Direction.Rotate(90 * Math.PI / 180);
                     var right = h.Direction.Rotate(-90 * Math.PI / 180);
 
-                    BuildIfOpen(h.Position + forward * indexForward + left * (h.Size / 2), new Wall());
-                    BuildIfOpen(h.Position + forward * indexForward + right * (h.Size / 2), new Wall());
+                    BuildIfOpen(h.Center + forward * indexForward + left * (h.Size / 2), new Wall());
+                    BuildIfOpen(h.Center + forward * indexForward + right * (h.Size / 2), new Wall());
                     for (int indexSide = 0; indexSide < h.Size / 2; indexSide++) {
-                        Build(h.Position + forward * indexForward + left * indexSide, new Floor());
-                        Build(h.Position + forward * indexForward + right * indexSide, new Floor());
+                        Build(h.Center + forward * indexForward + left * indexSide, new Floor());
+                        Build(h.Center + forward * indexForward + right * indexSide, new Floor());
                     }
                 }
-                World.AddEntity(new Light(World, h.Position.Round));
+                World.AddEntity(new Light(World, h.Center.Round));
             }
             void BuildDeadEnd(HallwaySource h) {
                 var forward = h.Direction;
                 var left = h.Direction.Rotate(90 * Math.PI / 180);
                 var right = h.Direction.Rotate(-90 * Math.PI / 180);
                 for (int indexSide = 0; indexSide < h.Size; indexSide++) {
-                    Build(h.Position + forward * (h.Size/2) - left * (h.Size/2) + right * indexSide, new Wall());
+                    Build(h.Center + forward * (h.Size/2) - left * (h.Size/2) + right * indexSide, new Wall());
                 }
             }
             void BuildIfOpen((int x, int y) point, Voxel v) {
@@ -181,16 +191,16 @@ namespace BrainWaves {
 
         }
         class RoomSource {
-            public XY Position;
-            public XY Size;
-            public Rectangle rect => new Rectangle(Position - Size/2, Position + Size/2);
+            public XY Center;
+            public XY Dimensions;
+            public Rectangle rect => new Rectangle(Center - Dimensions/2, Center + Dimensions/2);
         }
         class HallwaySource {
-            public XY Position;
+            public XY Center;
             public XY Direction;
             public int Size;
             public int StepsFromBranch;
-            public void Step() => Position += Direction * Size;
+            public void Step() => Center += Direction * Size;
         }
     }
 }

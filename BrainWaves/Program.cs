@@ -5,11 +5,12 @@ namespace BrainWaves
 {
 
 	class Program {
-		public static int Width = 150, Height = 90;
+		public static int Width = 150 / 2, Height = 90 / 2;
 
 		static void Main(string[] args) {
 			// Setup the engine and create the main window.
 			SadConsole.Game.Create(Width, Height, "BrainWavesContent/IBMCGA.font");
+			SadConsole.Game.Instance.DefaultFontSize = Font.Sizes.Two;
 			// Hook the start event so we can add consoles to the system.
 			SadConsole.Game.Instance.OnStart = Init;
 
