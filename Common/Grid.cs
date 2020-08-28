@@ -54,7 +54,7 @@ namespace Common {
 		}
 		public XY PlusX(double x) => new XY(this.x + x, y);
 		public XY PlusY(double y) => new XY(x, this.y + y);
-
+		public XY Abs => new XY(Math.Abs(xi), Math.Abs(yi));
 		public XY Truncate => new XY(xi, yi);
 		public XY Round => new XY(Math.Round(x), Math.Round(y));
 		public XY RoundDown => new XY(Math.Round(x, MidpointRounding.ToNegativeInfinity), Math.Round(y, MidpointRounding.ToNegativeInfinity));
@@ -73,6 +73,7 @@ namespace Common {
 		public double MaxCoord => Math.Max(Math.Abs(x), Math.Abs(y));
 		public double Manhattan => Math.Abs(x) + Math.Abs(y);
 		public double Magnitude => Math.Sqrt(x * x + y * y);
+		public double Magnitude2 => (x * x + y * y);
 		public XY Normal {
 			get {
 				double magnitude = Magnitude;

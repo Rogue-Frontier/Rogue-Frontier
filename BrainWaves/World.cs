@@ -14,7 +14,7 @@ namespace BrainWaves {
         public QTree<Voxel> voxels = new QTree<Voxel>();
         public QTree<byte> brightness = new QTree<byte>();
         
-        public void AddEntity(Entity e) => entitiesAdded.Add(e);
+        public void AddEntity(Entity e) => entitiesAdded.Add((BrainWaves.Entity)e);
         public void RemoveEntity(Entity e) => entitiesRemoved.Add(e);
         public void RemoveAll() {
             entities.Clear();

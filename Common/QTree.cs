@@ -45,6 +45,15 @@ namespace Common {
             this.level = level;
             this.scale = scale;
         }
+        public void Clear() {
+            center = default(T);
+            foreach(var d in new Dictionary<(uint, uint), Section>[] { q1, q2, q3, q4}) {
+                d.Clear();
+            }
+            foreach(var d in new Dictionary<uint, Segment>[] { xPositive, xNegative, yPositive, yNegative }) {
+                d.Clear();
+            }
+        }
         public const int CODE_OFFSET = 2;
         public const int CODE_SHIFT = 2;
         public const int CODE_ORIGIN =      (0  + CODE_OFFSET) | ((0  + CODE_OFFSET) << CODE_SHIFT);

@@ -19,10 +19,17 @@ namespace BrainWaves {
 			World = new World();
 			new WorldBuilder(World).Build();
 
-			Player = new Player(World) { Position = new XY(0, 0) };
+			World.AddEntity(new Guard(World, new XY(-2, 0)));
+
+			Player = new Player(World, new XY(0, 0));
 			World.AddEntity(Player);
 			World.UpdatePresent();
 			World.UpdateSpace();
+
+			World.brightness.Clear();
+			foreach (var e in World.entities.all.OfType<Light>()) {
+				e.UpdateLight();
+			}
 
 			WorldScreen = new WorldScreen(Width, Height - 10, World, Player);
 			MessageScreen = new MessageScreen(Width, 10, Player) { Position = new Point(0, Height - 10) };
@@ -45,7 +52,8 @@ namespace BrainWaves {
 						break;
 					case Keys.Right:
 						p += new XY(1, 0);
-						Move(p); break;
+						Move(p);
+						break;
 					case Keys.Left:
 						p += new XY(-1, 0);
 						Move(p);
@@ -53,6 +61,8 @@ namespace BrainWaves {
                 }
 				void Move(XY p) {
 					Player.Move(p);
+					World.UpdatePresent();
+					World.UpdateActive();
 					World.UpdateSpace();
 					WorldScreen.camera = Player.Position;
 				}
@@ -69,9 +79,13 @@ namespace BrainWaves {
 			this.Player = Player;
 			camera = new XY();
         }
+        public override void Update(TimeSpan delta) {
+			foreach(var e in World.entities.all) {
+				e.UpdateRealtime();
+            }
+            base.Update(delta);
+        }
         public override void Render(TimeSpan delta) {
-			Player.UpdateVisible();
-
 			this.Clear();
 			DrawWorld();
 
@@ -100,40 +114,38 @@ namespace BrainWaves {
 					if (b < 128) {
 						fore = Color.White;
 					}
-					void Print(int c) => this.SetCellAppearance(xScreen, yScreen, new ColoredGlyph(fore, back, c));
-					void PrintVoxel(Voxel v) {
-						switch (v) {
-							case null:
-								Print('?');
-								break;
-							case Floor f:
-								Print('.');
-								break;
-							case Wall w:
-								Print('#');
-								break;
-						}
-					}
+					ColoredGlyph Glyph(int c) => new ColoredGlyph(fore, back, c);
+					void SetCell(ColoredGlyph cg) => this.SetCellAppearance(xScreen, yScreen, cg);
+					void Print(int c) => this.SetCellAppearance(xScreen, yScreen, Glyph(c));
 
 					if (Player.visible.Contains(location)) {
 						var entities = World.entities[location.RoundAway];
+
+						ColoredGlyph cg;
 						if (entities.Any()) {
-							this.SetCellAppearance(xScreen, yScreen, new ColoredGlyph(fore, back, entities.First().Tile.Glyph));
+							cg = new ColoredGlyph(fore, back, entities.First().Tile.Glyph);
 						} else {
 							var v = World.voxels.Get(location.xi, location.yi);
-							PrintVoxel(v);
+							cg = Glyph(v.Symbol);
 						}
-					} else if(Player.seen.Contains(location)) {
-						var v = World.voxels.Get(location.xi, location.yi);
-						PrintVoxel(v);
+
+						if(Player.apparentEnemyVision.Contains(location)) {
+							cg.Background = cg.Background.Blend(new Color(255, 0, 0, 51));
+							cg.Foreground = cg.Foreground.Blend(new Color(255, 0, 0, 51));
+						}
+						SetCell(cg);
 					} else {
 						var v = World.voxels.Get(location.xi, location.yi);
 						if(v == null) {
 							back = Color.White;
 							Print(0);
-                        } else {
+						} else if (World.entities[location.RoundAway].OfType<Guard>().Any(g => (g.tick % 60) < 10)) {
+							SetCell(new ColoredGlyph(Color.Red, back, 3));
+						} else if (Player.seen.Contains(location)) {
+							Print(v.Symbol);
+						} else {
 							Print(0);
-                        }
+						}
 					}
 				}
 			}
