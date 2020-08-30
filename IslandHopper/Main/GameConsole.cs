@@ -1,5 +1,4 @@
 ﻿using Common;
-using IslandHopper.World;
 using static SadConsole.Input.Keys;
 using SadRogue.Primitives;
 using SadConsole;
@@ -11,6 +10,7 @@ using System.Resources;
 using System.Xml.Linq;
 using static IslandHopper.Constants;
 using SadConsole.Input;
+using System.IO;
 
 namespace IslandHopper {
 	static class Themes {
@@ -31,7 +31,7 @@ namespace IslandHopper {
 			this.DebugInfo($"Width: {Width}", $"Height: {Height}");
 
             //TO DO: Create a multi-tiled plane structure to introduce the player
-            int size = 500;
+            int size = 128;
             int height = 30;
             World = new Island() {
                 karma = new Random(0),
@@ -39,7 +39,8 @@ namespace IslandHopper {
                 effects = new LocatorDict<Effect, (int, int, int)>(e => e.Position),
                 voxels = new ArraySpace<Voxel>(size, size, height, new Air()),
                 camera = new XYZ(0, 0, 0),
-                types = new TypeCollection(XElement.Parse(Properties.Resources.Items))
+                types = null
+                //types = new TypeCollection(XElement.Parse(File.ReadAllText("IslandHopperContent/Items.xml")))
 			};
 			World.player = new Player(World, new XYZ(28.5, 29.5, 1));
 			//World.AddEntity(new Player(World, new Point3(85, 85, 20)));
@@ -49,13 +50,17 @@ namespace IslandHopper {
 					World.voxels[new XYZ(x, y, 0)] = new Grass(World);
 				}
 			}
+            var r = World.karma;
 
-			for(int i = 0; i < 1; i++) {
-
-				World.entities.Place(World.types.Lookup<ItemType>("itHotRod").GetItem(World, new XYZ(28.5, 29.5, 1)));
+            for (int i = 0; i < 50; i++) {
+                //World.entities.Place(World.types.Lookup<ItemType>("itHotRod").GetItem(World, new XYZ(28.5, 29.5, 1)));
+                //World.entities.Place(StandardTypes.itStoppedClock.GetItem(World, new XYZ(28.5, 29.5, 1)));
+                var s = StandardTypes.stdWeapons;
+                World.entities.Place(s[r.Next(s.Length)].GetItem(World, new XYZ(r.Next(World.voxels.Width), r.Next(World.voxels.Height), 1)));
+                World.entities.Place(new Enemy(World, new XYZ(r.Next(World.voxels.Width), r.Next(World.voxels.Height), 1)));
             }
 			World.entities.Place(World.player);
-            World.entities.Place(new Enemy(World, new XYZ(35, 35, 1)));
+//            World.entities.Place(new Enemy(World, new XYZ(35, 35, 1)));
 
             var plane = new Plane(World, new XYZ(60, 20, 1), new XYZ(0, 0, 0));
             World.AddEntity(plane);

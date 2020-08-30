@@ -139,18 +139,16 @@ namespace IslandHopper {
         public GrenadeType grenade;
 
         public Item GetItem(Island World, XYZ Position) {
-            Item i = new Item() {
-                Type = this,
+            Item i = new Item(this) {
                 World = World,
                 Position = Position,
                 Velocity = new XYZ(),
             };
-            i.Gun = gun?.CreateGun();
-            i.Grenade = grenade?.GetGrenade(i);
             return i;
         }
 
-		public void Initialize(TypeCollection collection, XElement e) {
+
+        public void Initialize(TypeCollection collection, XElement e) {
 			name = e.ExpectAttribute("name");
 			desc = e.ExpectAttribute("desc");
 			mass = e.TryAttributeDouble("mass", 0);
@@ -191,6 +189,7 @@ namespace IslandHopper {
 				this.gun = new GunType(collection, gun);
 			}
             
+
             //Initialize our nested types now (they are not accessible to anyone else at bind time)
             foreach (var inner in e.Elements("ItemType")) {
 				collection.ProcessElement(inner);
@@ -209,6 +208,7 @@ namespace IslandHopper {
             public int explosionDamage;
             public int explosionForce;
 
+            public GrenadeType() { }
             public GrenadeType(TypeCollection collection, XElement e) {
                 inherit = e.TryAttribute(nameof(inherit), null);
                 if (inherit != null) {
@@ -232,23 +232,67 @@ namespace IslandHopper {
         }
         public class GunType {
             public static string Tag = "Gun";
-			public Gun CreateGun() => new Gun() {
+			public Gun CreateGun(IItem Item) => new Gun() {
                 gunType = this,
                 AmmoLeft = initialAmmo,
                 ClipLeft = initialClip,
                 FireTimeLeft = 0,
                 ReloadTimeLeft = 0
             };
+
+            public enum WeaponDifficulty {
+                none = 0,
+                easy = 20,
+                medium = 40,
+                hard = 60,
+                expert = 80,
+                master = 100
+            }
+
+            public interface ProjectileDesc {
+                public int range { get; }
+            }
+            public class GrenadeDesc : ProjectileDesc {
+                public int speed = 150;
+                public GrenadeType grenadeType;
+                public int range => speed * grenadeType.fuseTime / 30;
+                public GrenadeDesc() { }
+                public GrenadeDesc(XElement e) {
+                    speed = e.ExpectAttributeInt(nameof(speed));
+                }
+            }
+            public class FlameDesc : ProjectileDesc {
+                public int damage;
+                public int speed = 90;
+                public int lifetime;
+
+                public int range => speed * lifetime / 30;
+                public FlameDesc() { }
+                public FlameDesc(XElement e) {
+                    damage = e.ExpectAttributeInt(nameof(damage));
+                    speed = e.ExpectAttributeInt(nameof(speed));
+                    lifetime = e.ExpectAttributeInt(nameof(lifetime));
+                }
+            }
+            public class BulletDesc : ProjectileDesc {
+                public int damage;
+                public int speed = 90;
+                public int knockback;
+                public int lifetime = 90;
+
+                public int range => speed * lifetime / 30;
+                public BulletDesc() { }
+                public BulletDesc(XElement e) {
+                    damage = e.ExpectAttributeInt(nameof(damage));
+                }
+            }
+
             private string inherit;
-			public enum ProjectileType {
-				beam, bullet, flame
-			}
-            public ProjectileType projectile;
+
+            public ProjectileDesc projectile;
             public int difficulty;
             public int recoil;
             public int noiseRange;
-            public int damage;
-            public int projectileSpeed;
 
             public int projectileCount;
             public int spread;
@@ -264,7 +308,7 @@ namespace IslandHopper {
             public int initialClip;
             public int initialAmmo;
 
-
+            public GunType() { }
 			public GunType(TypeCollection collection, XElement e) {
                 //Don't modify the original source when we inherit
                 e = new XElement(e);
@@ -273,9 +317,7 @@ namespace IslandHopper {
                     var source = collection.sources[inherit].Element(Tag);
                     e.InheritAttributes(source);
                 }
-                if (!Enum.TryParse(e.TryAttribute(nameof(projectile)), out projectile)) {
-					projectile = ProjectileType.bullet;
-				}
+                
                 Dictionary<string, int> difficultyMap = new Dictionary<string, int> {
                     { "none", 0 },
                     { "easy", 20 },
@@ -284,11 +326,13 @@ namespace IslandHopper {
                     { "expert", 80 },
                     { "master", 100 },
                 };
-                difficulty = difficultyMap.TryLookup(e.TryAttribute(nameof(difficulty)), 0);
+                if(Enum.TryParse<WeaponDifficulty>(e.TryAttribute(nameof(difficulty)), out var r)) {
+                    difficulty = (int)r;
+                } else {
+                    throw new Exception("Difficulty expected");
+                }
                 recoil = e.TryAttributeInt(nameof(recoil), 0);
 				noiseRange = e.TryAttributeInt(nameof(noiseRange), 0);
-				damage = e.TryAttributeInt(nameof(damage), 0);
-				projectileSpeed = e.TryAttributeInt(nameof(projectileSpeed), 0);
 
                 projectileCount = e.TryAttributeInt(nameof(projectileCount), 1);
                 knockback = e.TryAttributeInt(nameof(knockback), 0);
@@ -303,6 +347,14 @@ namespace IslandHopper {
 
                 initialClip = e.TryAttributeInt(nameof(initialClip), clipSize);
                 initialAmmo = e.TryAttributeInt(nameof(initialAmmo), maxAmmo);
+
+                if(e.HasElement("Bullet", out var bulletXml)) {
+                    projectile = new BulletDesc(bulletXml);
+                } else if(e.HasElement("Flame", out var flameXml)) {
+                    projectile = new FlameDesc(flameXml);
+                } else if(e.HasElement("Grenade", out var grenadeXml)) {
+                    projectile = new GrenadeDesc(grenadeXml);
+                }
             }
 		}
         class Symbol {

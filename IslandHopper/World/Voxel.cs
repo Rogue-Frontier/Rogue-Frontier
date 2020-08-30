@@ -46,7 +46,7 @@ namespace IslandHopper {
 		public VoxelType Collision => VoxelType.Solid;
 		public Color foreground { get; private set; }
         public Color background { get; private set; }
-        private char s;
+        public char glyph;
 		private char[] symbols = {
 			'"', '\'', 'w', 'v', ',', '.', '`',
 		};
@@ -54,9 +54,19 @@ namespace IslandHopper {
 			foreground = new Color(World.karma.Next(102), 153, World.karma.Next(102));
             int r = World.karma.Next(26);
             background = new Color(r, World.karma.Next(26) + 13, 26 - r);
-			s = symbols[World.karma.Next(symbols.Length)];
+			glyph = symbols[World.karma.Next(symbols.Length)];
 		}
-		public ColoredGlyph CharAbove => new ColoredGlyph(foreground, background, s);
+		public ColoredGlyph CharAbove => new ColoredGlyph(foreground, background, glyph);
+		public ColoredGlyph CharCenter => new ColoredGlyph(Color.Transparent, foreground, ' ');
+	}
+	public class Dirt : Voxel {
+		public VoxelType Collision => VoxelType.Solid;
+		public Color foreground { get; private set; } = Color.Brown;
+		public Color background { get; private set; } = Color.Black;
+		public char glyph = '=';
+		public Dirt() {
+        }
+		public ColoredGlyph CharAbove => new ColoredGlyph(foreground, background, glyph);
 		public ColoredGlyph CharCenter => new ColoredGlyph(Color.Transparent, foreground, ' ');
 	}
 	public class Floor : Voxel {

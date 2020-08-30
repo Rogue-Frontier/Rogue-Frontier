@@ -129,7 +129,7 @@ namespace Common {
 		public XY xy => new XY(x, y);
         public XYZ i => new XYZ(xi, yi, zi);
 		public static XYZ operator +(XYZ p1, XYZ p2) => new XYZ(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
-		public static XYZ operator +(XYZ p1, XY p2) => new XYZ(p1.x + p2.x, p1.y + p2.y);
+		public static XYZ operator +(XYZ p1, XY p2) => new XYZ(p1.x + p2.x, p1.y + p2.y, p1.z);
 		public static XYZ operator -(XYZ p1, XYZ p2) => p1 + (-p2);
 		public static XYZ operator -(XYZ p1) => new XYZ(-p1.x, -p1.y, -p1.z);
 		public static double operator *(XYZ p1, XYZ p2) => (p1.x * p2.x) + (p1.y * p2.y) + (p1.z * p2.z);

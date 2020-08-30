@@ -5,7 +5,7 @@ using SadRogue.Primitives;
 using System.Collections.Generic;
 using System.Text;
 
-namespace IslandHopper.World {
+namespace IslandHopper {
     class Burn : Effect {
         public ICharacter burning;
         public double duration = 150;
@@ -14,6 +14,7 @@ namespace IslandHopper.World {
         public ColoredGlyph SymbolCenter => new ColoredGlyph((((int)ticks % 13) % 5) > 2 ? Color.Red : Color.Orange, Color.Black, 'v');
         private int ticks;
         public Burn(ICharacter burning, int duration) {
+            this.Position = burning.Position;
             this.burning = burning;
             this.duration = duration;
         }

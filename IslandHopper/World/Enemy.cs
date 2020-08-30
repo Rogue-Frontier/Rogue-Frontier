@@ -8,7 +8,7 @@ using SadRogue.Primitives;
 using Priority_Queue;
 using SadConsole;
 
-namespace IslandHopper.World {
+namespace IslandHopper {
     class Enemy : ICharacter {
         public Island World { get; set; }
         public XYZ Position { get; set; }
@@ -104,16 +104,16 @@ namespace IslandHopper.World {
                     var enemies = new HashSet<Entity>();
                     foreach (var point in actor.World.entities.space.Keys) {
                         if (((XYZ)point - actor.Position).Magnitude < 100) {
-                            enemies.UnionWith(actor.World.entities[point].Where(e => !(e is Item)));
+                            enemies.UnionWith(actor.World.entities[point].OfType<ICharacter>());
                         }
                     }
                     enemies.Remove(actor);
-                    if (!enemies.Any()) {
-                        return;
+                    enemies = enemies.Where(e => (e.Position - actor.Position).Magnitude < weapon.Gun.range).ToHashSet();
+                    if (enemies.Any()) {
+                        var target = enemies.First();
+                        attack = new ShootAction(actor, weapon, new TargetEntity(target));
+                        actor.Actions.Add(attack);
                     }
-                    var target = enemies.First();
-                    attack = new ShootAction(actor, weapon, new TargetEntity(target));
-                    actor.Actions.Add(attack);
                 }
             }
             void UpdateMovement() {

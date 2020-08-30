@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IslandHopper.World {
+namespace IslandHopper {
     public class Health {
         public double bodyHP;
         public double bloodHP;
@@ -20,7 +20,7 @@ namespace IslandHopper.World {
         public void UpdateStep() {
             if(bleeding > 0) {
                 bloodHP -= bleeding / 30;
-                bleeding -= 3 / 30f;
+                bleeding -= 1 / (30 * bleeding);
             }
         }
     }

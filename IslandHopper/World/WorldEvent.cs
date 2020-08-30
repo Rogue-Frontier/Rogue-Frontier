@@ -21,5 +21,4 @@ namespace IslandHopper {
             this.Desc = new ColoredString(Desc, foreground ?? Color.White, Color.Black);
 		}
 	}
-
 }

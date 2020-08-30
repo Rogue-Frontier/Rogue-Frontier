@@ -323,13 +323,13 @@ EASTER EGGS
 		desc=			"Truly a very hot firing rod. The hottest. Best not to touch it."
 		>
 		<Gun
-			projectile=		"flame"
 			projectileCount="8"
 			clipSize=		"50"
 			maxAmmo=		"150"
 			reloadTime=		"120"
 			fireTime=		"4"
 			>
+			<Flame damage="3" lifetime="30" speed="20"/>
 		</Gun>
 	</ItemType>
 	<ItemType
@@ -352,11 +352,12 @@ EASTER EGGS
 		name=			"The Sleeping Dragon"
 		desc=			"This flamethrower is hotter than the sun. Too bad you can barely find any ammo for it."
 		>
-		<Flamethrower
+		<Gun
 			maxAmmo=		"100"
 			initialAmmo=	"0"
 			>
-		</Flamethrower>
+			<Flame damage="6" lifetime="30" speed="20"/>
+		</Gun>
 	</ItemType>
 	<ItemType
 		name=			"Laser Dart gun"
@@ -364,18 +365,17 @@ EASTER EGGS
 		mass=			"1"
 		>
 		<Gun
-			projectile=			"bullet"
 			difficulty=			"easy"
-			damage=					"5"
-			clipSize=				"12"
-			maxAmmo=				"108"
+			clipSize=			"12"
+			maxAmmo=			"108"
 			reloadType=			"magazine"
-			fireTime=				"6"
+			fireTime=			"6"
 			reloadTime=			"30"
-			recoil=					"0"
-			bulletSpeed=		"20"
+			recoil=				"0"
 			noiseRange=			"15"
-			/>
+			>
+			<Bullet bulletSpeed="20" damage="5"/>
+		</Gun>
 	</ItemType>
 	<ItemType
 		name=			"The Passive Pipsqueak Pistol"

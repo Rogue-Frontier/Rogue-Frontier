@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Common.Main;
+using static IslandHopper.ItemType;
 
 namespace IslandHopper {
 	public class ThrownItem : Entity {
@@ -61,7 +62,64 @@ namespace IslandHopper {
             }
         }
     }
-	public class Beam : Entity {
+    public class LaunchedGrenade : Entity {
+        public Island World { get; set; }
+        public Entity Source { get; set; }
+        public GrenadeType grenadeType;
+        public int Countdown;
+        public XYZ Position { get; set; }
+        public XYZ Velocity { get; set; }
+        public ColoredString Name => new ColoredString("Grenade", Color.White, Color.Black);
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(Color.Green, Color.Black, 'g');
+        public bool Active { get; set; } = true;
+        public LaunchedGrenade(Island World, Entity Source, GrenadeType grenadeType) {
+            this.World = World;
+            this.Source = Source;
+            this.grenadeType = grenadeType;
+            this.Countdown = grenadeType.fuseTime;
+        }
+        public void Detonate() {
+            Active = false;
+            World.AddEffect(new ExplosionSource(World, Position, 6));
+            foreach (var offset in Main.GetWithin(grenadeType.explosionRadius)) {
+                var pos = Position + offset;
+                var displacement = pos - Position;
+                var dist2 = displacement.Magnitude2;
+                var radius2 = grenadeType.explosionRadius * grenadeType.explosionRadius;
+                if (dist2 > radius2) {
+                    continue;
+                }
+                foreach (var hit in World.entities[pos]) {
+                    if (hit is ICharacter d && hit != this) {
+                        var multiplier = (radius2 - displacement.Magnitude2) / radius2;
+                        ExplosionDamage damage = new ExplosionDamage() {
+                            damage = (int)(grenadeType.explosionDamage * multiplier),
+                            knockback = displacement.Normal * grenadeType.explosionForce * multiplier
+                        };
+                        Source.Witness(new InfoEvent(Name + new ColoredString(" explosion damages ", Color.White, Color.Black) + d.Name));
+                        d.OnDamaged(damage);
+                    }
+                }
+            }
+        }
+        public void UpdateRealtime() { }
+        public void UpdateStep() {
+            this.UpdateGravity();
+            this.UpdateMotionCollision();
+            if (Countdown > 0) {
+                Countdown--;
+            } else {
+                Detonate();
+            }
+        }
+
+        public void OnRemoved() {
+        }
+
+        public void UpdateRealtime(TimeSpan delta) {
+        }
+    }
+    public class Beam : Entity {
 		public Island World { get; }
 		public XYZ Position { get; set; }
 		public XYZ Velocity { get; set; }
@@ -156,7 +214,7 @@ namespace IslandHopper {
             }
             Func<Entity, bool> collisionFilter = e => {
 
-                if(e is Flame) {
+                if(e is Flame || e is Fire) {
                     return true;
                 }
                 Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
@@ -170,6 +228,20 @@ namespace IslandHopper {
             };
             this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
             Velocity -= Velocity * 0.5 / 30;
+
+            var count = trail.Count;
+            if (World.karma.Next(0, 5) == 0) {
+                foreach (var point in trail) {
+                    if (World.voxels[point.PlusZ(-1)] is Grass g) {
+                        if (World.karma.Next(0, count * 5) == 0) {
+                            World.AddEntity(new Fire(World) { Position = point, Velocity = new XYZ() });
+                            break;
+                        }
+                    }
+
+                }
+            }
+
             foreach (var point in trail.Reverse().Take(3)) {
                 World.AddEffect(new FlameTrail(point, 3, SymbolCenter));
             }
@@ -181,25 +253,37 @@ namespace IslandHopper {
         }
     }
     public class Fire : Entity {
-        public Entity burning { get; private set; }
-        public Island World => burning.World;
+        public Island World { get; set; }
         public XYZ Position { get; set; }
         public XYZ Velocity { get; set; }
-        public ColoredGlyph SymbolCenter {
-            get {
-                var symbol = burning.SymbolCenter;
-                return new ColoredGlyph(new Color(), symbol.Background, symbol.Glyph);
-            }
-        }
-        public bool Active => true;
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(Color.Orange, Color.Transparent, 'v');
+        public bool Active { get; set; } = true;
         public ColoredString Name => new ColoredString("Fire", Color.Red, Color.Black);
-        public Fire(Entity burning) {
-            this.burning = burning;
+        public Fire(Island World) {
+            this.World = World;
         }
         public void UpdateRealtime(TimeSpan delta) { }
         public void UpdateStep() {
-            Position = burning.Position;
-            Velocity = burning.Velocity;
+            var below = Position.PlusZ(-1);
+            if(World.voxels.InBounds(below) && World.voxels[below] is Grass g) {
+                if(World.karma.Next(0, 150) == 0) {
+                    World.voxels[below] = new Dirt();
+                    Active = false;
+                }
+                if (World.karma.Next(0, 150) == 0) {
+                    var adjacent = new XY[] { new XY(-1, 0), new XY(1, 0), new XY(0, -1), new XY(0, 1) }
+                                    .Select(p => Position + p)
+                                    .Where(p => World.voxels.InBounds(p))
+                                    .Where(p => World.voxels[p.PlusZ(-1)] is Grass g)
+                                    .Where(p => World.entities[p].OfType<Fire>().Count() == 0);
+                    if(adjacent.Any()) {
+                        var p = adjacent.ElementAt(World.karma.Next(0, adjacent.Count())).PlusZ(-1);
+                        World.AddEntity(new Fire(World) { Position = p });
+                    }
+                }
+            } else {
+                Active = false;
+            }
         }
         public void OnRemoved() {
 
@@ -223,7 +307,7 @@ namespace IslandHopper {
 		public ColoredGlyph SymbolCenter => new ColoredGlyph(tick % 20 < 10 ? Color.White : Color.Gray, Color.Black, GetSymbol());
         public ColoredString Name => new ColoredString("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
 
-        private Entity Source;
+        public Entity Source;
         private IItem Item;
         private HashSet<Entity> ignore;
 		private Entity Target;
@@ -289,6 +373,12 @@ namespace IslandHopper {
                 if(Source != null && e == Source) {
                     return true;
                 }
+
+                //IGNORE if the entity is a bullet from the same item
+                if(e is Bullet b && b.Item == Item) {
+                    return true;
+                }
+
                 //IGNORE if the entity is NOT our target
                 if (Target != null && e != Target) {
                     return true;

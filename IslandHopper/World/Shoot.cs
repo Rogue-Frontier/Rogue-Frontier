@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IslandHopper.World {
+namespace IslandHopper {
     public class ShootAction : EntityAction {
         private ICharacter player;
         public IItem item;
@@ -97,7 +97,7 @@ namespace IslandHopper.World {
                 //TO DO
                 //For now, we should just leave a message saying that the gun is out of ammo
                 targeting.shotsLeft = 0;
-                player.Witness(new InfoEvent(new ColoredString("The ") + item.Name + new ColoredString(" is out of ammo!")));
+                player.Witness(new InfoEvent(item.Name + new ColoredString(" is out of ammo!")));
             } else if (item.Gun.GetState() == Gun.State.NeedsReload) {
                 //For now, we just reload if we need to
                 item.Gun.Reload();
@@ -128,6 +128,8 @@ namespace IslandHopper.World {
 
                 aim += diff.Normal * delta;
                 aimReticle.Position = player.Position + aim;
+            } else if ((targeting.Position - player.Position).Magnitude > item.Gun.range) {
+                player.Witness(new InfoEvent((targeting.Target?.Name ?? new ColoredString("Target")) + new ColoredString(" is out of range!")));
             } else if (item.Gun.GetState() == Gun.State.Ready) {
                 //Close enough to fire
                 item.Gun.Fire(player, item, targeting.Target, targeting.Position);

@@ -49,7 +49,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="IslandHopperContent\Items.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="IslandHopperContent\The Seventh Striker v2.tmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
