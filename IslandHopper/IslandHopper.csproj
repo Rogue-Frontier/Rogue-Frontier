@@ -15,6 +15,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="ArchConsole">
+      <HintPath>..\..\ArchConsole\ArchConsole\bin\Debug\netstandard2.1\ArchConsole.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="IslandHopperContent\Brass Fire (Brass Pipe Device).tmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

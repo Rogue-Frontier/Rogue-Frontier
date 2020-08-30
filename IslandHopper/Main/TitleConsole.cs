@@ -121,7 +121,8 @@ namespace IslandHopper {
 
         }
         public void StartGame() {
-			SadConsole.Game.Instance.Screen = new GameConsole(Width, Height) { IsFocused = true };
+			//SadConsole.Game.Instance.Screen = new GameConsole(Width, Height) { IsFocused = true };
+			SadConsole.Game.Instance.Screen = new ShopConsole(Width, Height) { IsFocused = true };
 		}
 		public override void Update(TimeSpan delta) {
 

@@ -21,5 +21,16 @@ namespace Common {
                 dict[t] = 1;
             }
         }
+
+        public void Increment(T t) => Add(t);
+        public void Decrement(T t) {
+            if (dict.ContainsKey(t)) {
+                if(dict[t] > 1) {
+                    dict[t]--;
+                } else {
+                    dict.Remove(t);
+                }
+            }
+        }
     }
 }
