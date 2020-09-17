@@ -72,9 +72,12 @@ namespace TranscendenceRL {
 
             int x = 3;
             int y = 16;
-            Children.Add(new LabelButton("[Enter]     Play", StartGame) { Position = new Point(x, y++) });
-            Children.Add(new LabelButton("[Shift + A] Arena", StartArena) { Position = new Point(x, y++) });
+            Children.Add(new LabelButton("[Enter]     Play Story Mode", StartGame) { Position = new Point(x, y++) });
+
+            Children.Add(new LabelButton("[Shift + A] Arena Mode", StartArena) { Position = new Point(x, y++) });
             Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++) });
+            Children.Add(new LabelButton("[Shift + S] Survival Mode", StartSurvival) { Position = new Point(x, y++) });
+            
             Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++) });
 
             var f = "Settings.json";
@@ -94,6 +97,9 @@ namespace TranscendenceRL {
         }
         private void StartConfig() {
             SadConsole.Game.Instance.Screen = new ConfigScreen(this, settings, World) { IsFocused = true };
+        }
+        private void StartSurvival() {
+            SadConsole.Game.Instance.Screen = new SurvivalPlayerCreator(this, settings, World) { IsFocused = true };
         }
 
         private void Exit() {
@@ -222,6 +228,9 @@ namespace TranscendenceRL {
             }
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(C)) {
                 StartConfig();
+            }
+            if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(S)) {
+                StartSurvival();
             }
 #if DEBUG
             if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {

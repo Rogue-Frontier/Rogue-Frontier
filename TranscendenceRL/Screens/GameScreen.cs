@@ -21,7 +21,6 @@ namespace TranscendenceRL {
 		private PlayerStory story = new PlayerStory();
 		public PlayerShip playerShip;
 		public PlayerControls playerControls;
-		GeneratedLayer backVoid;
 		Point mousePos;
 
 		Keyboard keyboard;
@@ -47,7 +46,6 @@ namespace TranscendenceRL {
 			this.World = World;
 			this.playerShip = playerShip;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
-			backVoid = new GeneratedLayer(1, new Random());
 
 			back = new BackdropConsole(Width, Height, World.backdrop, () => camera);
 			map = new MegaMap(playerShip, Width, Height);

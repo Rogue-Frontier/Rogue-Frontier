@@ -178,7 +178,7 @@ namespace TranscendenceRL {
                 playerMain.DrawWorld();
                 SadConsole.Game.Instance.Screen = new FlashTransition(Width, Height, this,
                     new Pause(1,
-                    new TextScreen(Width, Height, "Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch {
+                    new SimpleCrawl(Width, Height, "Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch {
                         0 => "It is not your fault.",
                         1 => "Maybe history will remember itself.",
                         2 => "Tomorrow will be forever.",

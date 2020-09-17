@@ -13,7 +13,7 @@ using Console = SadConsole.Console;
 using System.IO;
 
 namespace TranscendenceRL {
-    class TextScreen : Console {
+    class SimpleCrawl : Console {
         private Console next;
         private readonly string text;
         bool speedUp;
@@ -21,7 +21,7 @@ namespace TranscendenceRL {
         int tick;
         double delay;
 
-        public TextScreen(int Width, int Height, string text, Console next) : base(Width, Height) {
+        public SimpleCrawl(int Width, int Height, string text, Console next) : base(Width, Height) {
             this.next = next;
             this.text = text;
             delay = 2;
