@@ -11,9 +11,7 @@ using Common;
 
 namespace TranscendenceRL {
     class CrawlScreen : Console {
-        World World;
-        Player player;
-        ShipClass playerClass;
+        Action next;
 
         private readonly string text;
         private int lines;
@@ -42,10 +40,8 @@ namespace TranscendenceRL {
         List<ParticleCloud> clouds;
 
         Random random = new Random();
-        public CrawlScreen(int width ,int height, World World, Player player, ShipClass playerClass) : base(width, height) {
-            this.World = World;
-            this.player = player;
-            this.playerClass = playerClass;
+        public CrawlScreen(int width ,int height, Action next) : base(width, height) {
+            this.next = next;
 
             text = File.ReadAllText("RogueFrontierContent/Crawl.txt").Replace("\r\n", "\n");
             lines = text.Count(c => c == '\n') + 1;
@@ -153,41 +149,7 @@ namespace TranscendenceRL {
                 loadingTicks--;
             } else {
                 loading = null;
-
-                //Name is seed
-                var seed = player.name.GetHashCode();
-                World = new World(World.types, new Random(seed), new Backdrop(new Random(seed)));
-                World.types.Lookup<SystemType>("system_orion").Generate(World);
-                World.UpdatePresent();
-
-                var start = World.entities.all.OfType<Marker>().First(m => m.Name == "Start");
-                start.Active = false;
-                var playerStart = start.Position;
-                var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
-                var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
-                playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
-
-                World.AddEffect(new Heading(playerShip));
-                World.AddEntity(playerShip);
-
-                var playerMain = new PlayerMain(Width, Height, World, playerShip);
-                playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
-
-                playerMain.Update(time);
-                playerMain.PlaceTiles();
-                playerMain.DrawWorld();
-                SadConsole.Game.Instance.Screen = new FlashTransition(Width, Height, this,
-                    new Pause(1,
-                    new SimpleCrawl(Width, Height, "Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch {
-                        0 => "It is not your fault.",
-                        1 => "Maybe history will remember itself.",
-                        2 => "Tomorrow will be forever.",
-                        3 => "Life runs short; hurry along now.",
-                        4 => "You may not remember how you got here.",
-                        _ => "Maybe all of it will have been for something.",
-                    }),
-                    new FadeIn(new Pause(1, playerMain)
-                    )))){ IsFocused = true };
+                next();
             }
         }
         public override void Render(TimeSpan drawTime) {

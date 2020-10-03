@@ -72,7 +72,7 @@ namespace TranscendenceRL {
         public bool enter;
         public char key;
         public string name;
-        public Console next;
+        public Func<Console> next;
     }
     public static class SScene {
         public static void ProcessMouseTree(this IScreenObject root, Mouse m) {
@@ -114,6 +114,8 @@ namespace TranscendenceRL {
         List<SceneOption> navigation;
         public int navIndex = 0;
         int[] charge;
+
+        bool enter;
         public TextScene(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
             this.prev = prev;
             this.desc = desc;
@@ -155,12 +157,13 @@ namespace TranscendenceRL {
             if (charging) {
                 ref int c = ref charge[navIndex];
                 c++;
-                if (c == 60) {
-                    Transition(navigation[navIndex].next);
-                } else {
-                    c++;
-                }
+                c++;
                 charging = false;
+            } else if(!enter) {
+                ref int c = ref charge[navIndex];
+                if (c >= 60) {
+                    Transition(navigation[navIndex].next?.Invoke());
+                }
             }
             for (int i = 0; i < charge.Length; i++) {
                 ref int c = ref charge[i];
@@ -217,10 +220,19 @@ namespace TranscendenceRL {
 
                 for (int i = 0; i < charge.Length; i++) {
                     int c = charge[i];
-
-                    this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', charge[i] / 3), Color.White, Color.Transparent));
+                    if(c < 60) {
+                        this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', c / 3), Color.White, Color.Transparent));
+                    } else {
+                        this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', 20), Color.White, Color.Transparent));
+                    }
                 }
-                this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', charge[navIndex] / 3), Color.Yellow, Color.Transparent));
+
+                if(charge[navIndex] < 60) {
+                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', charge[navIndex] / 3), Color.Yellow, Color.Transparent));
+                } else {
+                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', 20), Color.Red, Color.Transparent));
+                }
+
             }
             
         }
@@ -229,10 +241,14 @@ namespace TranscendenceRL {
                 if(descIndex < desc.Length - 1) {
                     descIndex = desc.Length - 1;
                 }
+                enter = true;
             } else if(keyboard.IsKeyDown(Keys.Enter)) {
                 if (descIndex == desc.Length) {
                     charging = true;
                 }
+                enter = true;
+            } else {
+                enter = false;
             }
             if(keyboard.IsKeyDown(Keys.Up)) {
                 navIndex = (navIndex - 1 + navigation.Count) % navigation.Count;

@@ -12,7 +12,7 @@ namespace TranscendenceRL {
     }
     public static class SShip {
         public static bool IsEnemy(this IShip owner, SpaceObject target) {
-            return owner.CanTarget(target) && owner.Sovereign.IsEnemy(target) && !(target is Wreck);
+            return owner.CanTarget(target) && (owner.Sovereign.IsEnemy(target) || target.Sovereign.IsEnemy(owner.Sovereign)) && !(target is Wreck);
         }
         public static bool IsFriendly(this IShip owner, SpaceObject target) {
             return owner.CanTarget(target) && owner.Sovereign.IsFriend(target) && !(target is Wreck);

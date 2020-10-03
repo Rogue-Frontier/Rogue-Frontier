@@ -66,8 +66,6 @@ namespace TranscendenceRL {
 			//Get a snapshot of the player
 			var size = 60;
 			var deathFrame = new ColoredGlyph[size, size];
-			var halfWidth = Width / 2;
-			var halfHeight = Height / 2;
 			XY center = new XY(size / 2, size / 2);
 			for (int y = 0; y < size; y++) {
 				for(int x = 0; x < size; x++) {

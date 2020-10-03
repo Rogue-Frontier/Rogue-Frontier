@@ -27,8 +27,8 @@ namespace TranscendenceRL {
     }
     class PlayerCreator : ControlsConsole {
         private Console prev;
-        private Settings settings;
         private ShipSelectorModel context;
+        private Action<ShipSelectorModel> next;
         private ref World World => ref context.World;
         private ref List<ShipClass> playable => ref context.playable;
         private ref int index => ref context.shipIndex;
@@ -37,9 +37,9 @@ namespace TranscendenceRL {
         private ref GenomeType playerGenome => ref context.playerGenome;
 
         double time = 0;
-        public PlayerCreator(Console prev, Settings settings, World World) : base(prev.Width, prev.Height) {
+        public PlayerCreator(Console prev, World World, Action<ShipSelectorModel> next) : base(prev.Width, prev.Height) {
             this.prev = prev;
-            this.settings = settings;
+            this.next = next;
             DefaultBackground = Color.Black;
             DefaultForeground = Color.White;
 
@@ -196,19 +196,7 @@ namespace TranscendenceRL {
                 SadConsole.Game.Instance.Screen = new TitleSlideOut(this, prev) { IsFocused = true };
             }
             if(info.IsKeyPressed(Enter)) {
-                var loc = AppDomain.CurrentDomain.BaseDirectory + Path.PathSeparator + context.playerName;
-                string file;
-                do { file = $"{loc}-{new Random().Next(9999)}"; }
-                while (File.Exists(file));
-
-
-                Player player = new Player() {
-                    Settings = settings,
-                    file = file,
-                    name = context.playerName,
-                    Genome = context.playerGenome
-                };
-                SadConsole.Game.Instance.Screen = new CrawlScreen(Width, Height, World, player, playable[index]) { IsFocused = true };
+                next(context);
             }
             return base.ProcessKeyboard(info);
         }

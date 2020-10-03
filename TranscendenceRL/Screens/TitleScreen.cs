@@ -15,9 +15,10 @@ using ArchConsole;
 
 namespace TranscendenceRL {
     class TitleScreen : Console {
+        World World;
+        
         string[] title = File.ReadAllText("RogueFrontierContent/Title.txt").Replace("\r\n", "\n").Split('\n');
         Settings settings;
-        World World = new World();
 
         public AIShip pov;
         public int povTimer;
@@ -28,7 +29,9 @@ namespace TranscendenceRL {
         public XY camera;
         public Dictionary<(int, int), ColoredGlyph> tiles;
 
-        public TitleScreen(int width, int height) : base(width, height) {
+        public TitleScreen(int width, int height, World World) : base(width, height) {
+            this.World = World;
+
             UseKeyboard = true;
 
             screenCenter = new XY(Width / 2, Height / 2);
@@ -86,12 +89,68 @@ namespace TranscendenceRL {
             } else {
                 settings = new Settings();
             }
-            World.types.Load("RogueFrontierContent/Main.xml");
         }
         private void StartGame() {
-            SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, settings, World)) { IsFocused = true };
-            //SadConsole.Game.Instance.Screen = new PlayerCreator(Width, Height, World) { IsFocused = true };
+            SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, World, StartCrawl)) { IsFocused = true };
+            
+            void StartCrawl(ShipSelectorModel context) {
+                var loc = AppDomain.CurrentDomain.BaseDirectory + Path.PathSeparator + context.playerName;
+                string file;
+                do { file = $"{loc}-{new Random().Next(9999)}"; }
+                while (File.Exists(file));
+
+
+                Player player = new Player() {
+                    Settings = settings,
+                    file = file,
+                    name = context.playerName,
+                    Genome = context.playerGenome
+                };
+
+                var (playable, index) = (context.playable, context.shipIndex);
+                var playerClass = playable[index];
+
+                SadConsole.Game.Instance.Screen = new CrawlScreen(Width, Height, StartWorld) { IsFocused = true };
+
+                void StartWorld() {
+
+                    //Name is seed
+                    var seed = player.name.GetHashCode();
+                    World = new World(World.types, new Random(seed), new Backdrop(new Random(seed)));
+                    World.types.Lookup<SystemType>("system_orion").Generate(World);
+                    World.UpdatePresent();
+
+                    var start = World.entities.all.OfType<Marker>().First(m => m.Name == "Start");
+                    start.Active = false;
+                    var playerStart = start.Position;
+                    var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
+                    var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
+                    playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+
+                    World.AddEffect(new Heading(playerShip));
+                    World.AddEntity(playerShip);
+
+                    var playerMain = new PlayerMain(Width, Height, World, playerShip);
+                    playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
+
+                    playerMain.Update(new TimeSpan());
+                    playerMain.PlaceTiles();
+                    playerMain.DrawWorld();
+                    SadConsole.Game.Instance.Screen = new FlashTransition(Width, Height, this,
+                        new Pause(1,
+                        new SimpleCrawl(Width, Height, "Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch
+                        {
+                            1 => "Maybe history will remember.",
+                            2 => "Tomorrow will be forever.",
+                            3 => "Life runs short; hurry along now.",
+                            _ => "Maybe all of it will have been for something.",
+                        }),
+                        new FadeIn(new Pause(1, playerMain)
+                        )))) { IsFocused = true };
+                }
+            }
         }
+
         private void StartArena() {
             SadConsole.Game.Instance.Screen = new ArenaScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov };
         }
@@ -99,7 +158,82 @@ namespace TranscendenceRL {
             SadConsole.Game.Instance.Screen = new ConfigScreen(this, settings, World) { IsFocused = true };
         }
         private void StartSurvival() {
-            SadConsole.Game.Instance.Screen = new SurvivalPlayerCreator(this, settings, World) { IsFocused = true };
+            SadConsole.Game.Instance.Screen = new PlayerCreator(this, World, CreateGame) { IsFocused = true };
+
+            void CreateGame(ShipSelectorModel context) {
+                var loc = AppDomain.CurrentDomain.BaseDirectory + Path.PathSeparator + context.playerName;
+                string file;
+                do { file = $"{loc}-{new Random().Next(9999)}"; }
+                while (File.Exists(file));
+
+
+                Player player = new Player() {
+                    Settings = settings,
+                    file = file,
+                    name = context.playerName,
+                    Genome = context.playerGenome
+                };
+
+                var (playable, index) = (context.playable, context.shipIndex);
+                var playerClass = playable[index];
+
+                //Name is seed
+                var seed = player.name.GetHashCode();
+
+                var playerStart = new XY(0, 0);
+                var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
+                var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
+                playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+
+                World.RemoveAll();
+
+
+                World.AddEffect(new Heading(playerShip));
+                World.AddEntity(playerShip);
+
+                int waveSize = 1;
+                int shipCount = 1;
+                void EnemyDestroyed() {
+                    shipCount--;
+                    if(shipCount == 0) {
+                        waveSize++;
+
+                        World.AddEntity(new TimedEvent(240, () => {
+                            playerShip.Messages.Add(new InfoMessage("Wave incoming!"));
+                            CreateWave();
+                        }));
+                    }
+                }
+                void CreateWave() {
+                    for (int i = 0; i < waveSize; i++) {
+                        var ship = new AIShip(new BaseShip(World,
+                            World.types.shipClass.Values.GetRandom(World.karma),
+                            Sovereign.Gladiator,
+                            XY.Polar(0, 100)), new AttackOrder(playerShip));
+                        ship.Ship.OnDestroyed += (b, destroyer, wreck) => {
+                            EnemyDestroyed();
+                        };
+                        World.AddEntity(ship);
+                    }                        
+                    shipCount = waveSize;
+                }
+
+                World.AddEntity(new TimedEvent(240, () => {
+                    playerShip.Messages.Add(new InfoMessage("Wave incoming!"));
+                    CreateWave();
+                }));
+
+
+
+                var playerMain = new PlayerMain(Width, Height, World, playerShip);
+                playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
+
+                playerMain.Update(new TimeSpan());
+                playerMain.PlaceTiles();
+                playerMain.DrawWorld();
+                SadConsole.Game.Instance.Screen = playerMain;
+                playerMain.IsFocused = true;
+            }
         }
 
         private void Exit() {
@@ -214,81 +348,88 @@ namespace TranscendenceRL {
                     pov.Destroy(pov);
                 }
             }
+
+
             if(info.IsKeyPressed(Keys.P)) {
 
             }
-            if(info.IsKeyPressed(Enter)) {
+            if (info.IsKeyPressed(Enter)) {
                 StartGame();
             }
-            if(info.IsKeyPressed(Escape)) {
+            if (info.IsKeyPressed(Escape)) {
                 Exit();
             }
-            if(info.IsKeyDown(LeftShift) && info.IsKeyPressed(A)) {
-                StartArena();
-            }
-            if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(C)) {
-                StartConfig();
-            }
-            if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(S)) {
-                StartSurvival();
-            }
+            if (info.IsKeyDown(LeftShift)) {
+                if (info.IsKeyPressed(A)) {
+                    StartArena();
+                }
+                if (info.IsKeyPressed(C)) {
+                    StartConfig();
+                }
+                if (info.IsKeyPressed(S)) {
+                    StartSurvival();
+                }
 #if DEBUG
-            if (info.IsKeyDown(LeftShift) && info.IsKeyPressed(G)) {
-                var loc = AppDomain.CurrentDomain.BaseDirectory + Path.PathSeparator + "Debug";
-                string file;
-                do { file = $"{loc}-{new Random().Next(9999)}"; }
-                while (File.Exists(file));
+                if (info.IsKeyPressed(G)) {
+                    var loc = AppDomain.CurrentDomain.BaseDirectory + Path.PathSeparator + "Debug";
+                    string file;
+                    do { file = $"{loc}-{new Random().Next(9999)}"; }
+                    while (File.Exists(file));
 
-                Player player = new Player() {
-                    Settings = settings,
-                    file = file,
-                    name = "Player",
-                    Genome = World.types.genomeType.Values.First()
-                };
+                    Player player = new Player() {
+                        Settings = settings,
+                        file = file,
+                        name = "Player",
+                        Genome = World.types.genomeType.Values.First()
+                    };
 
-                World.entities.all.Clear();
-                World.effects.all.Clear();
-                World.types.Lookup<SystemType>("system_orion").Generate(World);
-                World.UpdatePresent();
+                    World.entities.all.Clear();
+                    World.effects.all.Clear();
+                    World.types.Lookup<SystemType>("system_orion").Generate(World);
+                    World.UpdatePresent();
 
-                var playerClass = World.types.Lookup<ShipClass>("ship_amethyst");
-                var playerStart = World.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
-                var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
-                var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
-                playerShip.Powers.Add(new Power(World.types.Lookup<PowerType>("power_silence")));
-                playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+                    var playerClass = World.types.Lookup<ShipClass>("ship_amethyst");
+                    var playerStart = World.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
+                    var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
+                    var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
+                    playerShip.Powers.Add(new Power(World.types.Lookup<PowerType>("power_silence")));
+                    playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
-                Func<Item> item = () => new Item(new ItemType() { name = "aa" });
-                playerShip.Items.Add(item());
-                playerShip.Items.Add(item());
-                playerShip.Items.Add(item());
+                    Func<Item> item = () => new Item(new ItemType() { name = "aa" });
+                    playerShip.Items.Add(item());
+                    playerShip.Items.Add(item());
+                    playerShip.Items.Add(item());
 
-                var wreck = new Wreck(playerShip);
-                wreck.Items.Add(item());
-                wreck.Items.Add(item());
-                wreck.Items.Add(item());
-                World.AddEntity(wreck);
+                    var wreck = new Wreck(playerShip);
+                    wreck.Items.Add(item());
+                    wreck.Items.Add(item());
+                    wreck.Items.Add(item());
+                    World.AddEntity(wreck);
 
-                World.AddEffect(new Heading(playerShip));
-                World.AddEntity(playerShip);
+                    World.AddEffect(new Heading(playerShip));
+                    World.AddEntity(playerShip);
 
-                var wingmateClass = World.types.Lookup<ShipClass>("ship_beowulf");
+                    var wingmateClass = World.types.Lookup<ShipClass>("ship_beowulf");
 
-                var wingmate = new AIShip(new BaseShip(World, wingmateClass, playerSovereign, playerStart), new FollowOrder(playerShip, new XY(-5, 0)));
-                World.AddEntity(wingmate);
-                World.AddEffect(new Heading(wingmate));
+                    var wingmate = new AIShip(new BaseShip(World, wingmateClass, playerSovereign, playerStart), new FollowOrder(playerShip, new XY(-5, 0)));
+                    World.AddEntity(wingmate);
+                    World.AddEffect(new Heading(wingmate));
 
-                var playerMain = new PlayerMain(Width, Height, World, playerShip);
-                playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
+                    var playerMain = new PlayerMain(Width, Height, World, playerShip);
+                    playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
 
-                playerMain.IsFocused = true;
+                    playerMain.IsFocused = true;
 
-                File.WriteAllText(file, JsonConvert.SerializeObject(playerMain));
+                    File.WriteAllText(file, JsonConvert.SerializeObject(playerMain));
 
-                SadConsole.Game.Instance.Screen = playerMain;
-            }
+                    SadConsole.Game.Instance.Screen = playerMain;
+                }
 #endif
+            }
             return base.ProcessKeyboard(info);
         }
     }
+
+
+
 }

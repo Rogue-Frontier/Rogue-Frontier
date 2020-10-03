@@ -2,6 +2,10 @@
 using SadConsole;
 using Console = SadConsole.Console;
 using TranscendenceRL;
+using TranscendenceRL.Screens;
+using SadConsole.Renderers;
+using System.IO;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace TranscendenceRL {
 
@@ -36,9 +40,14 @@ namespace TranscendenceRL {
 				GameHost.Instance.Screen = new BackdropConsole(Width, Height, new Backdrop(), () => new Common.XY(0.5, 0.5));
 				return;
 			}
-			
-			var title = new TitleSlideOpening(new TitleScreen(Width, Height)) { IsFocused = true };
+			World w = new World();
+			w.types.Load("RogueFrontierContent/Main.xml");
+
+			var title = new TitleSlideOpening(new TitleScreen(Width, Height, w)) { IsFocused = true };
 			GameHost.Instance.Screen = new SplashScreen(title) { IsFocused = true };
+
+
+			//GameHost.Instance.Screen = new TitleDraw();
 		}
 	}
 }
