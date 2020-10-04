@@ -33,10 +33,8 @@ namespace TranscendenceRL {
 			this.powerMenu = powerMenu;
 			this.sceneContainer = sceneContainer;
         }
-        public void ProcessKeyboard(Keyboard info) {
-
+		public void ProcessArrows(Keyboard info) {
 			var controls = playerShip.player.Settings.controls;
-			//Move the player
 			if (info.IsKeyDown(controls[Thrust])) {
 				playerShip.SetThrusting();
 			}
@@ -49,6 +47,37 @@ namespace TranscendenceRL {
 			if (info.IsKeyDown(controls[Brake])) {
 				playerShip.SetDecelerating();
 			}
+		}
+		public void ProcessTargeting(Keyboard info) {
+			var controls = playerShip.player.Settings.controls;
+			if (info.IsKeyPressed(controls[TargetFriendly])) {
+				playerShip.NextTargetFriendly();
+			}
+			if (info.IsKeyPressed(controls[ClearTarget])) {
+				if (playerShip.targetIndex > -1) {
+					playerShip.ClearTarget();
+				}
+			}
+			if (info.IsKeyPressed(controls[TargetEnemy])) {
+				playerShip.NextTargetEnemy();
+			}
+			if (info.IsKeyPressed(controls[NextWeapon])) {
+				playerShip.NextWeapon();
+			}
+			if (info.IsKeyDown(controls[FirePrimary])) {
+				playerShip.SetFiringPrimary();
+			}
+			if (info.IsKeyDown(controls[AutoAim])) {
+				if (playerShip.GetTarget(out SpaceObject target) && playerShip.GetPrimary(out Weapon w)) {
+					playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.Position - playerShip.Position, target.Velocity - playerShip.Velocity, w.missileSpeed, out _));
+				}
+			}
+		}
+        public void ProcessKeyboard(Keyboard info) {
+			var controls = playerShip.player.Settings.controls;
+			//Move the player
+			ProcessArrows(info);
+			ProcessTargeting(info);
 
 			if (info.KeysDown.Select(d => d.Key).Intersect<Keys>(new Keys[] { Keys.LeftControl, Keys.LeftShift, Keys.Enter }).Count() == 3) {
 				playerShip.Destroy(playerShip);
@@ -74,35 +103,15 @@ namespace TranscendenceRL {
 
 				}
 			}
-			if (info.IsKeyPressed(controls[TargetFriendly])) {
-				playerShip.NextTargetFriendly();
-			}
-			if (info.IsKeyPressed(controls[ClearTarget])) {
-				if (playerShip.targetIndex > -1) {
-					playerShip.ClearTarget();
-				}
-			}
+
 			if (info.IsKeyPressed(controls[ShipMenu])) {
 				sceneContainer?.Children.Add(new SceneScan(new ShipScreen(console, playerShip)) { IsFocused = true });
-			}
-			if (info.IsKeyPressed(controls[TargetEnemy])) {
-				playerShip.NextTargetEnemy();
 			}
 			if (info.IsKeyPressed(controls[Powers])) {
 				if(powerMenu != null)
 					powerMenu.IsVisible = true;
 			}
-			if (info.IsKeyPressed(controls[NextWeapon])) {
-				playerShip.NextWeapon();
-			}
-			if (info.IsKeyDown(controls[FirePrimary])) {
-				playerShip.SetFiringPrimary();
-			}
-			if (info.IsKeyDown(controls[AutoAim])) {
-				if (playerShip.GetTarget(out SpaceObject target) && playerShip.GetPrimary(out Weapon w)) {
-					playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.Position - playerShip.Position, target.Velocity - playerShip.Velocity, w.missileSpeed, out _));
-				}
-			}
+			
 			if (info.IsKeyPressed(C)) {
 				if(info.IsKeyDown(LeftShift)) {
 					playerShip.Destroy(playerShip);

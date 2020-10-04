@@ -219,6 +219,8 @@ namespace TranscendenceRL {
 
 			//Intercept the alphanumeric/Escape keys if the power menu is active
 			if (powerMenu.IsVisible) {
+				playerControls.ProcessArrows(info);
+				playerControls.ProcessTargeting(info);
 				powerMenu.ProcessKeyboard(info);
 			} else {
 				playerControls.ProcessKeyboard(info);
@@ -893,9 +895,15 @@ namespace TranscendenceRL {
 				if(p.charging) {
 					//We don't need to check ready because we already do that before we set charging
 					//Charging up
-					if(p.invokeCharge < p.invokeDelay) {
-						p.invokeCharge++;
-                    } else {
+					p.invokeCharge++;
+
+					if (ticks % 3 == 0) {
+						p.charging = false;
+					}
+				} else if(p.cooldownLeft > 0) {
+					p.cooldownLeft--;
+                } else if(p.invokeCharge > 0) {
+					if (p.invokeCharge >= p.invokeDelay) {
 						//Invoke now!
 						p.cooldownLeft = p.cooldownPeriod;
 						p.type.Effect.Invoke(playerShip);
@@ -903,13 +911,9 @@ namespace TranscendenceRL {
 						//Reset charge
 						p.invokeCharge = 0;
 						p.charging = false;
-                    }
-
-					p.charging = false;
-                } else if(p.cooldownLeft > 0) {
-					p.cooldownLeft--;
-                } else if(p.invokeCharge > 0) {
-					p.invokeCharge--;
+					} else {
+						p.invokeCharge--;
+					}
 				}
             }
             base.Update(delta);
@@ -952,20 +956,26 @@ namespace TranscendenceRL {
 			if(ticks%60 < 30) {
 				foreground = Color.Yellow;
             }
-			this.Print(x, y++, "[Powers]", foreground);
-			this.Print(x, y++, "[Ship control locked]", foreground);
-			this.Print(x, y++, "[Press ESC to cancel]", foreground);
-			this.Print(x, y++, "[Press key to invoke]", foreground);
+			var back = Color.Black;
+			this.Print(x, y++, "[Powers]", foreground, back);
+			this.Print(x, y++, "[Ship control locked]", foreground, back);
+			this.Print(x, y++, "[Press ESC to cancel]", foreground, back);
+			this.Print(x, y++, "[Press key to invoke]", foreground, back);
 			y++;
 			foreach (var p in playerShip.Powers) {
 				char key = indexToKey(index);
 				if(p.cooldownLeft > 0) {
 					this.Print(x, y++, $"[{key}] {p.type.name}{new string('>', 16 - 16 * p.cooldownLeft / p.cooldownPeriod)}", Color.Gray);
                 } else if(p.invokeCharge > 0) {
-					var chargeMeter = 16 * p.invokeCharge / p.invokeDelay;
+					var chargeMeter = Math.Min(16, 16 * p.invokeCharge / p.invokeDelay);
+
+					var c = Color.Yellow;
+					if(p.invokeCharge >= p.invokeDelay && ticks%30 < 15) {
+						c = Color.Orange;
+                    }
 					this.Print(x, y++,
-						new ColoredString($"[{key}] {p.type.name}{new string('>', chargeMeter)}", Color.Yellow, Color.Transparent)
-						+ new ColoredString(new string('>', 16 - chargeMeter), Color.Gray, Color.Transparent)
+						new ColoredString($"[{key}] {p.type.name}{new string('>', chargeMeter)}", c, Color.Black)
+						+ new ColoredString(new string('>', 16 - chargeMeter), Color.Gray, Color.Black)
 						);
 				} else {
 					this.Print(x, y++, new ColoredString($"[{key}] {p.type.name}", Color.White, Color.Transparent) + new ColoredString($"{new string('>', 16)}", Color.Gray, Color.Transparent));
