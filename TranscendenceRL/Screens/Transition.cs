@@ -217,6 +217,40 @@ namespace TranscendenceRL {
         }
     }
 
+    public class FadeOut : Console {
+        Console prev;
+        Action next;
+        float alpha;
+        int time;
+        public FadeOut(Console prev, Action next, int time = 4) : base(prev.Width, prev.Height) {
+            FontSize = prev.FontSize;
+            this.prev = prev;
+            this.next = next;
+            this.time = time;
+            DefaultBackground = Color.Transparent;
+            Render(new TimeSpan());
+        }
+        public override void Update(TimeSpan delta) {
+            base.Update(delta);
+            if (alpha < 1) {
+                alpha += (float)(delta.TotalSeconds / time);
+            } else {
+                next();
+            }
+        }
+        public override void Render(TimeSpan delta) {
+            this.Clear();
+            var g = new ColoredGlyph(Color.Black, new Color(0, 0, 0, alpha));
+            for (int y = 0; y < Height; y++) {
+                for (int x = 0; x < Width; x++) {
+                    this.SetCellAppearance(x, y, g);
+                }
+            }
+            prev.Render(delta);
+            base.Render(delta);
+        }
+    }
+
     public class Pause : Console {
         Console next;
         double time;
@@ -225,9 +259,9 @@ namespace TranscendenceRL {
             this.next = next;
             Render(new TimeSpan());
         }
-        public Pause(Console next) : base(next.Width, next.Height) {
+        public Pause(Console next, int time = 5) : base(next.Width, next.Height) {
             this.next = next;
-            time = 5;
+            this.time = time;
             Render(new TimeSpan());
         }
         public override void Update(TimeSpan delta) {
@@ -241,6 +275,28 @@ namespace TranscendenceRL {
         }
         public override void Render(TimeSpan delta) {
             next.Render(delta);
+        }
+    }
+    public class PauseTransition : Console {
+        Console prev;
+        Action next;
+        double time;
+        public PauseTransition(double time, Console prev, Action next) : base(prev.Width, prev.Height) {
+            this.time = time;
+            this.prev = prev;
+            this.next = next;
+            Render(new TimeSpan());
+        }
+        public override void Update(TimeSpan delta) {
+            base.Update(delta);
+            if (time > 0) {
+                time -= delta.TotalSeconds;
+            } else {
+                next();
+            }
+        }
+        public override void Render(TimeSpan delta) {
+            prev.Render(delta);
         }
     }
 }

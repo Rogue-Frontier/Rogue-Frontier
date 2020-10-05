@@ -61,31 +61,6 @@ namespace TranscendenceRL.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to What was it the Orator give you?
-        ///Visions of a different universe?
-        ///Of a universe drastically changed?
-        ///Or of one reconstructed entirely? +
-        ///
-        ///...In a time far beyond what
-        ///mankind currently knows as time,
-        ///where the reality is familiar but
-        ///altogether remade new entirely,
-        ///a different mankind grows out of
-        ///the metaphorical ashes of our
-        ///own mortal era...
-        ///                                
-        ///...But only those who are willing
-        ///to meet the Orator at their home
-        ///in the Galactic Core are worthy
-        ///of witnessing the [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string Crawl {
-            get {
-                return ResourceManager.GetString("Crawl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;======&gt;  /=====&gt;   /======\  /&gt;    /|  |&gt;=====&gt;  /&gt;=====&gt;  |&gt;=====&gt;  /&gt;    /|  |&gt;===&gt;    |&gt;=====&gt;  /&gt;    |\  /&gt;=====&gt;  |&gt;=====&gt;
         ///   ||     ||    ||  ||    ||  ||\   ||  ||        ||        ||        ||\   ||  ||   =&gt;   ||        ||\   ||  ||        ||      
         ///   ||     |&gt;====&gt;   |&gt;====&lt;|  || \  ||  |&gt;====&lt;|  ||        |&gt;=====&gt;  || \  ||  ||    =&gt;  |&gt;=====&gt;  || \  ||  ||        |&gt;=====&gt;

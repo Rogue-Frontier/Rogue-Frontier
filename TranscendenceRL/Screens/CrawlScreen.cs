@@ -13,7 +13,32 @@ namespace TranscendenceRL {
     class CrawlScreen : Console {
         Action next;
 
-        private readonly string text;
+        private readonly string text =
+@"The Orator's Revelation:            
+Visions of a different universe...            
+Of a timeline drastically changed?            
+Or of one reconstructed entirely?
+                                        
+...In a time far beyond what
+mankind currently knows as time,
+where the reality is familiar yet
+altogether remade new entirely,
+a different mankind grows out of
+the metaphorical ashes of our
+own mortal era...
+                                        
+...But only those who are willing
+to meet the Orator at their home
+in the Galactic Core are worthy
+of witnessing the After World...
+                                        
+Somehow,    
+I know it was more than a dream.";
+
+        //to do: website
+        //to do: portraits
+        //to do: demo
+        //to do: crawl images
         private int lines;
         private int index;
         int tick;
@@ -43,7 +68,6 @@ namespace TranscendenceRL {
         public CrawlScreen(int width ,int height, Action next) : base(width, height) {
             this.next = next;
 
-            text = File.ReadAllText("RogueFrontierContent/Crawl.txt").Replace("\r\n", "\n");
             lines = text.Count(c => c == '\n') + 1;
             index = 0;
             tick = 0;
