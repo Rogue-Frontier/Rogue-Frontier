@@ -110,7 +110,9 @@ namespace TranscendenceRL {
                 var (playable, index) = (context.playable, context.shipIndex);
                 var playerClass = playable[index];
 
-                SadConsole.Game.Instance.Screen = new CrawlScreen(Width, Height, StartWorld) { IsFocused = true };
+                CrawlScreen crawl = null;
+                crawl = new CrawlScreen(Width, Height, StartWorld) { IsFocused = true };
+                SadConsole.Game.Instance.Screen = crawl;
 
                 void StartWorld() {
 
@@ -136,7 +138,7 @@ namespace TranscendenceRL {
                     playerMain.Update(new TimeSpan());
                     playerMain.PlaceTiles();
                     playerMain.DrawWorld();
-                    SadConsole.Game.Instance.Screen = new FlashTransition(Width, Height, this,
+                    GameHost.Instance.Screen = new FlashTransition(Width, Height, crawl,
                         new Pause(1,
                         new SimpleCrawl(Width, Height, "Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch
                         {

@@ -47,11 +47,14 @@ namespace TranscendenceRL {
 				GameHost.Instance.Screen = new BackdropConsole(Width, Height, new Backdrop(), () => new Common.XY(0.5, 0.5));
 				return;
 			}
+
 			World w = new World();
 			w.types.Load("RogueFrontierContent/Main.xml");
 
-            STypeConverter.PrepareConvert();
-            var img = JsonConvert.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/RogueFrontierPoster.cg"), SFileMode.settings);
+#if !DEBUG
+            ShowTitle();
+#else
+            var img = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/RogueFrontierPoster.cg")));
 
             SplashScreen splash = null;
             splash = new SplashScreen(() => {
@@ -66,11 +69,11 @@ namespace TranscendenceRL {
                 }, 1) { IsFocused = true };
                 GameHost.Instance.Screen = fade;
             }
+#endif
             void ShowTitle() {
                 var title = new TitleSlideOpening(new TitleScreen(Width, Height, w)) { IsFocused = true };
                 GameHost.Instance.Screen = title;
             }
-
             //GameHost.Instance.Screen = new TitleDraw();
         }
 
@@ -121,6 +124,8 @@ namespace TranscendenceRL {
                             damageDesc = ShipClass.empty.damageDesc
                         };
                         XY p = null;
+
+
                         switch (r.Next(0, 4)) {
                             case 0:
                                 p = new XY(-Width, r.Next(-Height, Height));
@@ -187,25 +192,14 @@ namespace TranscendenceRL {
 
 
         class DisplayImage : Console {
-            public Rectangle dimensions;
-            public Dictionary<(int x, int y), ColoredGlyph> sprite;
-            public DisplayImage(int width, int height, Dictionary<(int x, int y), TileValue> sprite) : base(width, height) {
-                this.sprite = new Dictionary<(int x, int y), ColoredGlyph>();
-                foreach((var p, var t) in sprite) {
-                    this.sprite[p] = t;
-                }
-
-                int left = sprite.Keys.Min(p => p.x);
-                int top = sprite.Keys.Min(p => p.y);
-                int right = sprite.Keys.Max(p => p.x);
-                int bottom = sprite.Keys.Max(p => p.y);
-
-                dimensions = new Rectangle(left, top, right - left, bottom - top);
+            public ColorImage image;
+            public DisplayImage(int width, int height, ColorImage image) : base(width, height) {
+                this.image = image;
             }
             public override void Render(TimeSpan delta) {
                 //var adj = (new Point(Width, Height) - dimensions.Size) / 2 - dimensions.Position;
-                var adj = new Point() - dimensions.Position - new Point(5, 5);
-                foreach (((int x, int y) p, ColoredGlyph t) in sprite) {
+                var adj = new Point() - new Point(5, 5);
+                foreach (((int x, int y) p, ColoredGlyph t) in image.Sprite) {
                     var pos = (Point)p + adj;
 
                     this.SetCellAppearance(pos.X, pos.Y, t);

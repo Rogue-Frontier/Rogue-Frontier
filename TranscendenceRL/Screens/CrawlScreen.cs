@@ -8,40 +8,52 @@ using SadRogue.Primitives;
 using Console = SadConsole.Console;
 using System.IO;
 using Common;
+using System.Linq;
+using ASECII;
+using ArchConsole;
 
 namespace TranscendenceRL {
     class CrawlScreen : Console {
         Action next;
 
-        private readonly string text =
+        private readonly ColorImage[] images = {
+            new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/NewEra.cg"))),
+            new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/PillarsOfCreation.cg")))
+        };
+        private readonly string[] text = new string[] {
 @"The Orator's Revelation:            
 Visions of a different universe...            
 Of a timeline drastically changed?            
-Or of one reconstructed entirely?
-                                        
-...In a time far beyond what
+Or of one reconstructed entirely?",
+
+@"...In a time far beyond what
 mankind currently knows as time,
 where the reality is familiar yet
 altogether remade new entirely,
 a different mankind grows out of
 the metaphorical ashes of our
-own mortal era...
-                                        
-...But only those who are willing
+own mortal era...",
+
+@"...But only those who are willing
 to meet the Orator at their home
 in the Galactic Core are worthy
-of witnessing the After World...
-                                        
-Somehow,    
-I know it was more than a dream.";
+of witnessing the After World...",
+
+@"Somehow,    
+I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArray();
+
+        int part;
 
         //to do: website
         //to do: portraits
         //to do: demo
         //to do: crawl images
         private int lines;
-        private int index;
+        int sectionNumber;
+        int sectionIndex;
         int tick;
+
+        int backgroundSlideX;
 
         bool speedUp;
         LoadingSymbol loading;
@@ -68,8 +80,10 @@ I know it was more than a dream.";
         public CrawlScreen(int width ,int height, Action next) : base(width, height) {
             this.next = next;
 
-            lines = text.Count(c => c == '\n') + 1;
-            index = 0;
+            backgroundSlideX = Width;
+
+            lines = text.Sum(line => line.Count(c => c == '\n')) + text.Length * 2;
+            sectionIndex = 0;
             tick = 0;
 
             int effectWidth = Width * 3 / 5;
@@ -112,27 +126,50 @@ I know it was more than a dream.";
             }
         }
         public override void Update(TimeSpan time) {
-            if(index < text.Length) {
+            if(backgroundSlideX < Width) {
                 tick++;
-                if(speedUp) {
-                    index++;
-                } else {
-                    if (tick % 4 == 0) {
-                        index++;
-                    }
+                if (tick % 2 == 0) {
+                    backgroundSlideX++;
                 }
-                if(tick%8 == 0) {
+                UpdateClouds();
+            } else if(sectionNumber < text.Length) {
+                if (sectionIndex < text[sectionNumber].Length) {
+                    tick++;
+                    //Scroll text
+                    if (speedUp || tick % 4 == 0) {
+                        sectionIndex++;
+                    }
+                    UpdateClouds();
+                } else {
+                    sectionNumber++;
+                    sectionIndex = 0;
+                    backgroundSlideX = 0;
+                }
+            } else if (loading == null) {
+                loading = new LoadingSymbol(16);
+            } else if(loadingTicks > 0) {
+                loading.Update();
+                loadingTicks--;
+            } else {
+                loading = null;
+                next();
+            }
+
+            void UpdateClouds() {
+                //Update clouds
+                if (tick % 8 == 0) {
                     clouds.ForEach(c => c.Update(random));
                 }
-                if(tick%64 == 0) {
+                //Spawn cloud
+                if (tick % 64 == 0) {
 
                     int effectMinY = Height / 5;
                     int effectMaxY = 4 * Height / 5;
 
                     ParticleCloud cloud = new ParticleCloud();
 
-                    
-                    
+
+
                     var cloudPoint = new Point(0, random.Next(effectMinY, effectMaxY));
                     var cloudParticle = new ColoredGlyph(new Color(204 + random.Next(0, 51), 0, 204 + random.Next(0, 51)), Color.Transparent, GetRandomChar());
 
@@ -140,8 +177,8 @@ I know it was more than a dream.";
                     cloud.particles.Add(cloudParticle);
 
                     double i = 1;
-                    while(random.NextDouble() < 0.9) {
-                        cloudPoint += new Point(-1, (random.Next(0, 5) - 2)/2);
+                    while (random.NextDouble() < 0.9) {
+                        cloudPoint += new Point(-1, (random.Next(0, 5) - 2) / 2);
 
                         cloudParticle = new ColoredGlyph(new Color(204 + random.Next(0, 51), 0, 225 + random.Next(0, 25)), Color.Transparent, GetRandomChar());
 
@@ -166,23 +203,67 @@ I know it was more than a dream.";
                         return vwls[random.Next(vwls.Length)];
                     }
                 }
-            } else if (loading == null) {
-                loading = new LoadingSymbol(16);
-            } else if(loadingTicks > 0) {
-                loading.Update();
-                loadingTicks--;
-            } else {
-                loading = null;
-                next();
             }
         }
         public override void Render(TimeSpan drawTime) {
             this.Clear();
-            //Print background
-            int effectY = Height / 5;
-            foreach (var line in effect) {
-                this.Print(0, effectY, line);
-                effectY++;
+
+            int topEdge = Height / 5;
+            int bottomEdge = 4 * Height / 5;
+            switch (sectionNumber) {
+                case 0: {
+                        //Print background
+                        int effectY = topEdge;
+                        foreach (var line in effect) {
+                            this.Print(0, effectY, line);
+                            effectY++;
+                        }
+                        break;
+                    }
+                case 1: {
+                        foreach ((var p, var t) in images[0].Sprite
+                            .Where(p => p.Key.x < backgroundSlideX && p.Key.y > topEdge && p.Key.y < bottomEdge)) {
+
+                            this.Print(p.x, p.y, t);
+                        }
+
+                        int effectY = topEdge;
+                        foreach (var line in effect
+                            .Where(l => l.Count > backgroundSlideX)
+                            .Select(l => l.SubString(backgroundSlideX))) {
+
+                            this.Print(backgroundSlideX, effectY, line);
+                            effectY++;
+                        }
+
+                        break;
+                    }
+                case 2: {
+                        if (backgroundSlideX < Width) {
+                            foreach ((var p, var t) in images[0].Sprite
+                                .Where(p => p.Key.x >= backgroundSlideX && p.Key.y > topEdge && p.Key.y < bottomEdge)) {
+
+                                this.Print(p.x, p.y, t);
+                            }
+                        }
+
+                        foreach ((var p, var t) in images[1].Sprite
+                            .Where(p => p.Key.x < backgroundSlideX && p.Key.y > topEdge && p.Key.y < bottomEdge)) {
+
+                            this.Print(p.x, p.y, t);
+                        }
+                        break;
+                    }
+                case 3: {
+                        if (backgroundSlideX < Width) {
+                            foreach ((var p, var t) in images[1].Sprite
+                                .Where(p => p.Key.x >= backgroundSlideX && p.Key.y > topEdge && p.Key.y < bottomEdge)) {
+
+                                this.Print(p.x, p.y, t);
+                            }
+                        }
+                        break;
+                    }
             }
 
             foreach(var cloud in clouds) {
@@ -205,21 +286,47 @@ I know it was more than a dream.";
             int topMargin = (ViewHeight / 2) - lines / 2;
             int textX = leftMargin;
             int textY = topMargin;
-            for (int i = 0; i < index; i++) {
-                char c = text[i];
-                if(c == '\n') {
-                    textX = leftMargin;
-                    textY++;
-                } else {
-                    if (c != ' ') {
-                        this.Print(textX, textY, "" + c, Color.White, this.GetBackground(textX, textY));
+
+            for(int i = 0; i < sectionNumber; i++) {
+                PrintSection(text[i]);
+                textX = leftMargin;
+                textY++;
+                textY++;
+            }
+            if (sectionNumber < text.Length) {
+                PrintSubSection(text[sectionNumber], sectionIndex);
+            }
+            void PrintSubSection(string section, int index) {
+                for (int i = 0; i < index; i++) {
+                    char c = section[i];
+                    if (c == '\n') {
+                        textX = leftMargin;
+                        textY++;
+                    } else {
+                        if (c != ' ') {
+                            this.Print(textX, textY, "" + c, Color.White, this.GetBackground(textX, textY));
+                        }
+                        textX++;
                     }
-                    textX++;
+                }
+            }
+            void PrintSection(string section) {
+                for (int i = 0; i < section.Length; i++) {
+                    char c = section[i];
+                    if (c == '\n') {
+                        textX = leftMargin;
+                        textY++;
+                    } else {
+                        if (c != ' ') {
+                            this.Print(textX, textY, "" + c, Color.White, this.GetBackground(textX, textY));
+                        }
+                        textX++;
+                    }
                 }
             }
 
             //Show loading circle
-            if(loading != null) {
+            if (loading != null) {
                 var symbol = loading.Draw();
                 int symbolX = Width - symbol[0].Count;
                 int symbolY = Height - symbol.Length;
@@ -244,7 +351,7 @@ I know it was more than a dream.";
         public override bool ProcessKeyboard(Keyboard info) {
             if(info.IsKeyPressed(SadConsole.Input.Keys.Enter)) {
                 if(speedUp) {
-                    index = text.Length;
+                    sectionIndex = text.Length;
                 } else {
                     speedUp = true;
                 }
