@@ -11,6 +11,7 @@ using Common;
 using System.Linq;
 using ASECII;
 using ArchConsole;
+using CloudJumper;
 
 namespace TranscendenceRL {
     class CrawlScreen : Console {
@@ -61,20 +62,7 @@ I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArr
 
         ColoredString[] effect;
 
-        class ParticleCloud {
-            public List<Point> points = new List<Point>();
-            public List<ColoredGlyph> particles = new List<ColoredGlyph>();
-            public void Update(Random random) {
-                points = new List<Point>(points.Select(p => p + new Point(1, 0)));
-                foreach(var p in particles) {
-                    var f = p.Foreground;
-                    var (r, g, b, a) = (f.R, f.G, f.B, f.A);
-                    Func<int, int> transform = i => Math.Max(0, i - random.Next(0, 2));
-                    p.Foreground = new Color(transform(r), transform(g), transform(b), transform(a));
-                }
-            }
-        }
-        List<ParticleCloud> clouds;
+        List<CloudParticle> clouds;
 
         Random random = new Random();
         public CrawlScreen(int width ,int height, Action next) : base(width, height) {
@@ -98,7 +86,7 @@ I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArr
 
             }
 
-            clouds = new List<ParticleCloud>();
+            clouds = new List<CloudParticle>();
 
             Color Front(int value) {
                 return new Color(255 - value / 2, 255 - value, 255, 255 - value / 4);
@@ -166,42 +154,7 @@ I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArr
                     int effectMinY = Height / 5;
                     int effectMaxY = 4 * Height / 5;
 
-                    ParticleCloud cloud = new ParticleCloud();
-
-
-
-                    var cloudPoint = new Point(0, random.Next(effectMinY, effectMaxY));
-                    var cloudParticle = new ColoredGlyph(new Color(204 + random.Next(0, 51), 0, 204 + random.Next(0, 51)), Color.Transparent, GetRandomChar());
-
-                    cloud.points.Add(cloudPoint);
-                    cloud.particles.Add(cloudParticle);
-
-                    double i = 1;
-                    while (random.NextDouble() < 0.9) {
-                        cloudPoint += new Point(-1, (random.Next(0, 5) - 2) / 2);
-
-                        cloudParticle = new ColoredGlyph(new Color(204 + random.Next(0, 51), 0, 225 + random.Next(0, 25)), Color.Transparent, GetRandomChar());
-
-                        cloud.points.Add(cloudPoint);
-                        cloud.particles.Add(cloudParticle);
-                        for (int y = 1; y < random.Next(2, 5); y++) {
-                            var verticalPoint = cloudPoint + new Point(0, y);
-
-                            cloudParticle = new ColoredGlyph(new Color(225 + random.Next(0, 25), 153 + random.Next(102), 225 + random.Next(0, 25)), Color.Transparent, GetRandomChar());
-
-                            cloud.points.Add(verticalPoint);
-                            cloud.particles.Add(cloudParticle);
-                        }
-
-
-                        i++;
-                    }
-                    clouds.Add(cloud);
-
-                    char GetRandomChar() {
-                        const string vwls = "?&%~=+;";
-                        return vwls[random.Next(vwls.Length)];
-                    }
+                    CloudParticle.CreateClouds(effectMinY, effectMaxY, clouds, random);
                 }
             }
         }
@@ -266,14 +219,11 @@ I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArr
                     }
             }
 
+            var top = Height - 1;
             foreach(var cloud in clouds) {
-                var points = cloud.points;
-                var particles = cloud.particles;
-                for(int i = 0; i < points.Count; i++) {
-                    var (x, y) = points[i];
-                    this.SetForeground(x, y, particles[i].Foreground);
-                    this.SetGlyph(x, y, particles[i].Glyph);
-                }
+                var (x, y) = cloud.pos;
+                this.SetForeground(x, top - y, cloud.symbol.Foreground);
+                this.SetGlyph(x, top - y, cloud.symbol.Glyph);
             }
 
 

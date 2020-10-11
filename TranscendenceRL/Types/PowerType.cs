@@ -33,18 +33,31 @@ namespace TranscendenceRL.Types {
         }
         public void Invoke(PlayerShip invoker) => SWeapon.CreateShot(desc, invoker, invoker.rotationDegrees * Math.PI / 180);
     }
-    public class Power {
+    public interface IPower {
+        public int cooldownPeriod { get; }
+        public int invokeDelay { get; }
+        public bool ready => cooldownLeft == 0;
+        public int cooldownLeft { get; set; }
+        public int invokeCharge { get; set; }
+        public bool charging { get; set; }
+        public PowerEffect Effect { get; }
+    }
+    public class Power : IPower {
         public PowerType type;
 
         public int cooldownPeriod => type.cooldownTime;
         public int invokeDelay => type.invokeDelay;
 
-        public int cooldownLeft;
+        public int cooldownLeft { get; set; }
         public bool ready => cooldownLeft == 0;
-        public int invokeCharge;
-        public bool charging;
+        public int invokeCharge { get; set; }
+        public bool charging { get; set; }
+
+        public PowerEffect Effect => type.Effect;
         public Power(PowerType type) {
             this.type = type;
         }
     }
+
+
 }

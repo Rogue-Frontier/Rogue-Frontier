@@ -183,6 +183,11 @@ namespace TranscendenceRL {
                 if (info.IsKeyPressed(Keys.Enter)) {
                     next();
                 }
+
+                if(info.IsKeyPressed(Keys.J)) {
+                    GameHost.Instance.Screen = new CloudJumper.GameScreen(Width * 2, Height * 2) { IsFocused = true };
+                }
+
                 return base.ProcessKeyboard(info);
             }
             public override bool ProcessMouse(MouseScreenObjectState state) {
