@@ -301,7 +301,7 @@ I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArr
         public override bool ProcessKeyboard(Keyboard info) {
             if(info.IsKeyPressed(SadConsole.Input.Keys.Enter)) {
                 if(speedUp) {
-                    sectionIndex = text.Length;
+                    sectionNumber = text.Length;
                 } else {
                     speedUp = true;
                 }

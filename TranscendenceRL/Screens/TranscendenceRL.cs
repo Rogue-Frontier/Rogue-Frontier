@@ -60,7 +60,7 @@ namespace TranscendenceRL {
             splash = new SplashScreen(() => {
                 var p = new PauseTransition(1, splash, ShowVision) { IsFocused = true };
                 GameHost.Instance.Screen = p;
-            }) { IsFocused = true };
+            }, ShowTitle) { IsFocused = true };
             GameHost.Instance.Screen = splash;
             void ShowVision() {
                 var fade = new FadeOut(splash, () => {
@@ -79,12 +79,14 @@ namespace TranscendenceRL {
 
         class SplashScreen : Console {
             Action next;
+            Action skip;
             World World;
             public Dictionary<(int, int), ColoredGlyph> tiles;
             XY screenCenter;
             double time;
-            public SplashScreen(Action next) : base(TranscendenceRL.Width / 2, TranscendenceRL.Height / 2) {
+            public SplashScreen(Action next, Action skip) : base(TranscendenceRL.Width / 2, TranscendenceRL.Height / 2) {
                 this.next = next;
+                this.skip = skip;
                 FontSize = FontSize * 2;
                 Random r = new Random(3);
                 this.World = new World();
@@ -181,7 +183,7 @@ namespace TranscendenceRL {
             }
             public override bool ProcessKeyboard(Keyboard info) {
                 if (info.IsKeyPressed(Keys.Enter)) {
-                    next();
+                    skip();
                 }
 
                 if(info.IsKeyPressed(Keys.J)) {

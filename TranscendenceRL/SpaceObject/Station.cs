@@ -42,7 +42,7 @@ namespace TranscendenceRL {
             Position += Velocity / TranscendenceRL.TICKS_PER_SECOND;
         }
     }
-    public class Station : SpaceObject, Dockable {
+    public class Station : SpaceObject, Dockable, ITrader {
         public string Name => StationType.name;
         public World World { get; private set; }
         public StationType StationType { get; private set; }

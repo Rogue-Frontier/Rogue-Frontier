@@ -102,12 +102,13 @@ namespace TranscendenceRL {
 		}
 		public void PlaceTiles() {
 			tiles.Clear();
-			foreach (var e in World.entities.all) {
+
+			foreach (var e in World.effects.all) {
 				if (e.Tile != null) {
 					tiles[e.Position.RoundDown] = e.Tile;
 				}
 			}
-			foreach (var e in World.effects.all) {
+			foreach (var e in World.entities.all) {
 				if (e.Tile != null) {
 					tiles[e.Position.RoundDown] = e.Tile;
 				}

@@ -10,7 +10,7 @@
 			missileSpeed=	"300"
 			damageType=		"1"
 			damageHP=		"6"
-			lifetime=		"90"
+			lifetime=		"30"
 			char=			"."
 			foreground=		"Magenta"
 			/>
@@ -22,7 +22,7 @@
 		>
 		<Weapon
 			powerUse=		"20"
-			fireCooldown=	"10"
+			fireCooldown=	"15"
 			missileSpeed=	"100"
 			damageType=		"1"
 			damageHP=		"3"
@@ -40,7 +40,7 @@
 		>
 		<Weapon
 			powerUse=		"20"
-			fireCooldown=	"12"
+			fireCooldown=	"25"
 			missileSpeed=	"40"
 			damageType=		"2"
 			damageHP=		"12"

@@ -3,7 +3,7 @@
 			   alignment="ConstructiveOrder"
 	></Sovereign>
 	<StationType	codename="station_constellation_astra"
-					name=		"Orion Astra"
+					name=		"Constellation Astra"
 					sovereign=	"sovereign_constellation"
 
 					hp=			"250"
@@ -50,5 +50,6 @@
 		</Guards>
 		<Weapons>
 		</Weapons>
+		<Dock type="united_constellation"/>
 	</StationType>
 </Module>

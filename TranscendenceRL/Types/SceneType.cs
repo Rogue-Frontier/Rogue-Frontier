@@ -72,7 +72,7 @@ namespace TranscendenceRL {
         public bool enter;
         public char key;
         public string name;
-        public Func<Console> next;
+        public Func<Console, Console> next;
     }
     public static class SScene {
         public static void ProcessMouseTree(this IScreenObject root, Mouse m) {
@@ -115,6 +115,9 @@ namespace TranscendenceRL {
         public int navIndex = 0;
         int[] charge;
 
+        Dictionary<char, int> keyMap;
+
+        bool prevEnter;
         bool enter;
         public TextScene(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
             this.prev = prev;
@@ -123,6 +126,8 @@ namespace TranscendenceRL {
             charge = new int[navigation.Count];
             descIndex = 0;
             ticks = 0;
+
+            keyMap = new Dictionary<char, int>();
 
             UseMouse = true;
             UseKeyboard = true;
@@ -144,6 +149,7 @@ namespace TranscendenceRL {
                     foreach (var option in navigation) {
                         int index = i;
 
+                        keyMap[char.ToUpper(option.key)] = index;
                         Children.Add(new LabelButton(option.name, () => {
                             navIndex = index;
                             charging = true;
@@ -159,10 +165,12 @@ namespace TranscendenceRL {
                 c++;
                 c++;
                 charging = false;
-            } else if(!enter) {
+            } else if(prevEnter && !enter) {
                 ref int c = ref charge[navIndex];
                 if (c >= 60) {
-                    Transition(navigation[navIndex].next?.Invoke());
+                    //Make sure we aren't sent back to the screen again
+                    prevEnter = false;
+                    Transition(navigation[navIndex].next?.Invoke(this));
                 }
             }
             for (int i = 0; i < charge.Length; i++) {
@@ -208,12 +216,12 @@ namespace TranscendenceRL {
                         break;
                 }
             }
+            if(descIndex < desc.Length) {
+                this.SetCellAppearance(x, y, new ColoredGlyph(Color.LightBlue, Color.Black, '>'));
+            } else {
+                x = 64;
+                y = 16 + desc.Count(c => c == '\n') + 3;
 
-            x = 64;
-            y = 16 + desc.Count(c => c == '\n') + 3;
-
-
-            if (descIndex == desc.Length) {
                 this.Print(x - 4, y + navIndex, new ColoredString("--->", Color.Yellow, Color.Transparent));
 
                 this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', 60 / 3), Color.Gray, Color.Transparent));
@@ -237,6 +245,7 @@ namespace TranscendenceRL {
             
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
+            prevEnter = enter;
             if(keyboard.IsKeyPressed(Keys.Enter)) {
                 if(descIndex < desc.Length - 1) {
                     descIndex = desc.Length - 1;
@@ -250,10 +259,19 @@ namespace TranscendenceRL {
             } else {
                 enter = false;
             }
-            if(keyboard.IsKeyDown(Keys.Up)) {
+
+            foreach(var c in keyboard.KeysDown.Select(k => k.Character).Where(c => char.IsLetterOrDigit(c)).Select(c => char.ToUpper(c))) {
+                if (keyMap.TryGetValue(c, out int index)) {
+                    navIndex = index;
+                    charging = true;
+                    enter = true;
+                }
+            }
+
+            if(keyboard.IsKeyPressed(Keys.Up)) {
                 navIndex = (navIndex - 1 + navigation.Count) % navigation.Count;
             }
-            if(keyboard.IsKeyDown(Keys.Down)) {
+            if(keyboard.IsKeyPressed(Keys.Down)) {
                 navIndex = (navIndex + 1) % navigation.Count;
             }
             return base.ProcessKeyboard(keyboard);
@@ -354,10 +372,12 @@ namespace TranscendenceRL {
                             }
                         }
                         break;
+                        /*
                     case Keys.Escape:
                         Parent.Children.Remove(this);
                         prev.IsFocused = true;
                         break;
+                        */
                     default:
                         var ch = char.ToLower(key.Character);
                         if(ch >= 'a' && ch <= 'z') {

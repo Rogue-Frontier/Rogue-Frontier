@@ -19,8 +19,6 @@ namespace TranscendenceRL {
 		public string[] heroImage;
 		public Color heroImageTint;
 
-		public SceneDesc scene;
-
 		public void Initialize(TypeCollection collection, XElement e) {
 			codename = e.ExpectAttribute("codename");
 			name = e.ExpectAttribute("name");

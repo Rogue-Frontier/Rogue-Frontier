@@ -16,7 +16,7 @@ namespace BrainWaves {
         }
         public void Build() {
             Random rnd = new Random();
-            int gridSize = 7;
+            int gridSize = 9;
 
             RoomSource mainRoom = new RoomSource() {
                 Center = new XY(0, 0),
