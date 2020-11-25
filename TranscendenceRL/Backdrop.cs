@@ -9,7 +9,7 @@ namespace TranscendenceRL {
     //A space background made up of randomly generated layers with different depths
     public class Backdrop {
         public List<GeneratedLayer> layers;
-        public CompositeLayer starlight;
+        public CompositeColorLayer starlight;
         public GridLayer planets;
         public GridLayer orbits;
         public Backdrop() : this(new Random()) {
@@ -24,7 +24,7 @@ namespace TranscendenceRL {
             }
             planets = new GridLayer(1);
             orbits = new GridLayer(1);
-            starlight = new CompositeLayer();
+            starlight = new CompositeColorLayer();
         }
         public Color GetBackgroundFixed(XY point) => GetBackground(point, XY.Zero);
         public Color GetBackground(XY point, XY camera) {
@@ -50,8 +50,11 @@ namespace TranscendenceRL {
                     }
                 }
             }
+            void BlendBack(Color back) {
+                b = b.Premultiply().Blend(back);
+            }
 
-            Blend(starlight.GetTile(point, camera));
+            BlendBack(starlight.GetTile(point));
             Blend(orbits.GetTile(point, camera));
             Blend(planets.GetTile(point, camera));
             return new ColoredGlyph(f, b, g);
@@ -107,6 +110,33 @@ namespace TranscendenceRL {
             }
         }
         public ColoredGlyph GetTileFixed(XY point) => GetTile(point, XY.Zero);
+    }
+
+    public class CompositeColorLayer {
+        public List<GeneratedGrid<Color>> layers = new List<GeneratedGrid<Color>>();
+        public Color GetBackground(XY point, XY camera) {
+            Color result = Color.Black;
+            foreach (var layer in layers) {
+                var apparent = point.RoundDown;
+                result = result.Blend(layer[apparent.xi, apparent.yi]);
+            }
+            return result;
+        }
+        public Color GetTile(XY point) {
+            if (layers.Any()) {
+                var apparent = point.RoundDown;
+                var top = layers.Last()[apparent.xi, apparent.yi];
+                for (int i = layers.Count - 2; i > -1; i--) {
+                    Blend(layers[i][apparent.xi, apparent.yi]);
+                }
+                void Blend(Color tile) {
+                    top = top.Premultiply().Blend(tile);
+                }
+                return top;
+            } else {
+                return Color.Transparent;
+            }
+        }
     }
     public class GeneratedLayer : ILayer {
         public double parallaxFactor { get; private set; }                   //Multiply the camera by this value

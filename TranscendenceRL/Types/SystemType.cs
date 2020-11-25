@@ -279,10 +279,10 @@ namespace TranscendenceRL {
                 }
             }
             */
-            lc.world.backdrop.starlight.layers.Insert(0, new GeneratedLayer(1, new GeneratedGrid<ColoredGlyph>(p => {
+            lc.world.backdrop.starlight.layers.Insert(0, new GeneratedGrid<Color>(p => {
                 var xy = new XY(p);
-                return new ColoredGlyph(Color.Transparent, new Color(255, 255, 204, Math.Min(255, (int) (radius * 255 / ((lc.pos - p).Magnitude + 1)))));
-            })));
+                return new Color(255, 255, 204, Math.Min(255, (int) (radius * 255 / ((lc.pos - p).Magnitude + 1))));
+            }));
         }
     }
     public class SystemStation : SystemElement {
