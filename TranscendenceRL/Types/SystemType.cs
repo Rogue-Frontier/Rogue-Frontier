@@ -252,7 +252,7 @@ namespace TranscendenceRL {
                 focus = lc.focus,
                 angle = angle,
                 radius = radius,
-                pos = lc.focus + XY.Polar(angle, radius)
+                pos = lc.focus + XY.Polar(angle * Math.PI / 180, radius)
             };
             subelements.ForEach(s => s.Generate(sub_lc, tc));
         }
@@ -281,7 +281,7 @@ namespace TranscendenceRL {
             */
             lc.world.backdrop.starlight.layers.Insert(0, new GeneratedLayer(1, new GeneratedGrid<ColoredGlyph>(p => {
                 var xy = new XY(p);
-                return new ColoredGlyph(Color.Black, new Color(255, 255, 204, Math.Min(255, (int) (radius * 255 / ((lc.pos - p).Magnitude + 1)))));
+                return new ColoredGlyph(Color.Transparent, new Color(255, 255, 204, Math.Min(255, (int) (radius * 255 / ((lc.pos - p).Magnitude + 1)))));
             })));
         }
     }

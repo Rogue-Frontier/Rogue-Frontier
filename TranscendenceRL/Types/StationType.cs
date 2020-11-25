@@ -4,6 +4,7 @@ using System.Xml.Linq;
 using SadRogue.Primitives;
 using Color = SadRogue.Primitives.Color;
 using System;
+using SadConsole;
 
 namespace TranscendenceRL {
 	public class StationType : DesignType {
@@ -15,9 +16,8 @@ namespace TranscendenceRL {
 		public WeaponList weapons;
 		public List<SegmentDesc> segments;
 		public ShipList guards;
-		
-		public string[] heroImage;
-		public Color heroImageTint;
+
+		public Dictionary<(int, int), ColoredGlyph> heroImage;
 
 		public void Initialize(TypeCollection collection, XElement e) {
 			codename = e.ExpectAttribute("codename");
@@ -57,8 +57,9 @@ namespace TranscendenceRL {
 				guards = new ShipList(xmlGuards);
 			}
 			if (e.HasElement("HeroImage", out var heroImage)) {
-				this.heroImage = heroImage.Value.Replace("\r\n", "\n").Split('\n');
-				this.heroImageTint = heroImage.TryAttributeColor("tint", Color.White);
+				var heroImageText = heroImage.Value.Replace("\r\n", "\n").Split('\n');
+				var heroImageTint = heroImage.TryAttributeColor("tint", Color.White);
+				this.heroImage = heroImageText.ToImage(heroImageTint);
 			}
 		}
 		public static List<SegmentDesc> CreateRing(string foreground = "White", string background = "Black") {

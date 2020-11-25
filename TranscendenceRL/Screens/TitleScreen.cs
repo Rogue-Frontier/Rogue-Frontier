@@ -125,7 +125,7 @@ namespace TranscendenceRL {
                     var start = World.entities.all.OfType<Marker>().First(m => m.Name == "Start");
                     start.Active = false;
                     var playerStart = start.Position;
-                    var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
+                    var playerSovereign = World.types.Lookup<Sovereign>("sovereign_player");
                     var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
                     playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
@@ -183,7 +183,7 @@ namespace TranscendenceRL {
                 var seed = player.name.GetHashCode();
 
                 var playerStart = new XY(0, 0);
-                var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
+                var playerSovereign = World.types.Lookup<Sovereign>("sovereign_player");
                 var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
                 playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
@@ -392,7 +392,7 @@ namespace TranscendenceRL {
 
                     var playerClass = World.types.Lookup<ShipClass>("ship_amethyst");
                     var playerStart = World.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
-                    var playerSovereign = World.types.Lookup<Sovereign>("svPlayer");
+                    var playerSovereign = World.types.Lookup<Sovereign>("sovereign_player");
                     var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
                     playerShip.Powers.Add(new Power(World.types.Lookup<PowerType>("power_silence")));
                     playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
@@ -413,7 +413,7 @@ namespace TranscendenceRL {
 
                     var wingmateClass = World.types.Lookup<ShipClass>("ship_beowulf");
 
-                    var wingmate = new AIShip(new BaseShip(World, wingmateClass, playerSovereign, playerStart), new FollowOrder(playerShip, new XY(-5, 0)));
+                    var wingmate = new AIShip(new BaseShip(World, wingmateClass, playerSovereign, playerStart), new EscortOrder(playerShip, new XY(-5, 0)));
                     World.AddEntity(wingmate);
                     World.AddEffect(new Heading(wingmate));
 

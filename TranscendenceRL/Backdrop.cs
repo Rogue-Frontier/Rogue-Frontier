@@ -162,5 +162,4 @@ namespace TranscendenceRL {
             return tiles[point.xi, point.yi];
         }
     }
-
 }

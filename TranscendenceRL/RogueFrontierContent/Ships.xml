@@ -47,6 +47,35 @@
             </Map>
         </PlayerSettings>
     </ShipClass>
+	<!--
+	<ShipClass    codename="ship_balthazar"
+                  name="Balthazar-class gunship"
+                  thrust="1"
+                  maxSpeed="30"
+
+                  rotationAccel="8"
+				  rotationDecel="15"
+				  rotationMaxSpeed="10"
+
+				  char="b"
+				  foreground="Gold"
+                  >
+    </ShipClass>
+
+	<ShipClass    codename="ship_brutus"
+				  name="Brutus-class gunship"
+				  thrust="1"
+				  maxSpeed="30"
+
+				  rotationAccel="8"
+				  rotationDecel="15"
+				  rotationMaxSpeed="10"
+
+				  char="b"
+				  foreground="Gold"
+                  >
+	</ShipClass>
+	-->
 
 	<ShipClass    codename="ship_beowulf"
 				  name="Beowulf-class gunship"
@@ -223,4 +252,27 @@
             <Armor  codename="item_knightscale_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
+
+
+
+	<ShipClass codename=            "ship_laser_drone"
+			   name=                "laser drone"
+			   thrust=              "0.15"
+			   maxSpeed=            "10"
+
+			   rotationAccel=       "4"
+			   rotationDecel=       "8"
+			   rotationMaxSpeed=    "4"
+
+			   char=                "l"
+			   foreground=          "White"
+        >
+		<Devices>
+			<Weapon codename="item_laser_pointer"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="item_knightscale_plate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
+
 </Module>

@@ -8,15 +8,31 @@ namespace TranscendenceRL {
         bool Active { get; }
         void Update(AIShip owner);
     }
-    public class EscortOrder : Order {
+
+    public interface ICombatOrder {
+        public bool CanTarget(SpaceObject other) => false;
+    }
+    public class EscortOrder : Order, ICombatOrder {
+        public SpaceObject attacker;
         public IShip target;
         public XY offset;
         public EscortOrder(IShip target, XY offset) {
             this.target = target;
             this.offset = offset;
         }
+
+        public bool CanTarget(SpaceObject other) => other == attacker;
         public void Update(AIShip owner) {
-            new FollowOrder(target, offset).Update(owner);
+
+            attacker = ((attacker?.Active == true) ? attacker : null) ?? owner.World.entities.all
+                .OfType<AIShip>()
+                .FirstOrDefault(s => (s.Position - owner.Position).Magnitude < 100
+                            && s.controller is ICombatOrder o && (o.CanTarget(target) || o.CanTarget(owner)));
+            if (attacker != null) {
+                new AttackOrder(attacker).Update(owner);
+            } else {
+                new FollowOrder(target, offset).Update(owner);
+            }
         }
         public bool Active => target.Active;
     }
@@ -109,12 +125,14 @@ namespace TranscendenceRL {
         }
         public bool Active => true;
     }
-    public class GuardOrder : Order {
+    public class GuardOrder : Order, ICombatOrder {
         public SpaceObject guard;
         public SpaceObject target;
         public GuardOrder(SpaceObject guard) {
             this.guard = guard;
         }
+
+        public bool CanTarget(SpaceObject other) => other == target;
         public void Update(AIShip owner) {
             
 
@@ -141,6 +159,7 @@ namespace TranscendenceRL {
     }
     public class AttackAllOrder : Order {
         public SpaceObject target;
+        public bool CanTarget(SpaceObject other) => other == target;
         public void Update(AIShip owner) {
             if(!(target?.Active ?? false)) {
                 var weapon = owner.Devices.Weapons.FirstOrDefault();
@@ -161,6 +180,7 @@ namespace TranscendenceRL {
         public AttackOrder(SpaceObject target) {
             this.target = target;
         }
+        public bool CanTarget(SpaceObject other) => other == target;
         public void Update(AIShip owner) {
             if (weapon == null) {
                 weapon = owner.Devices.Weapons.FirstOrDefault();
@@ -207,6 +227,32 @@ namespace TranscendenceRL {
                     weapon.SetFiring(true, target);
                 }
 
+            }
+        }
+        public bool Active => target.Active && weapon != null;
+    }
+
+    public class SnipeOrder : Order, ICombatOrder {
+        public SpaceObject target;
+        private Weapon weapon;
+        public SnipeOrder(SpaceObject target) {
+            this.target = target;
+        }
+        public bool CanTarget(SpaceObject other) => other == target;
+        public void Update(AIShip owner) {
+            if (weapon == null) {
+                weapon = owner.Devices.Weapons.FirstOrDefault();
+                if (weapon == null) {
+                    return;
+                }
+            }
+            //Aim at the target
+            var aim = new AimOrder(target, weapon.missileSpeed);
+            aim.Update(owner);
+
+            //Fire if we are close enough
+            if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
+                weapon.SetFiring(true, target);
             }
         }
         public bool Active => target.Active && weapon != null;

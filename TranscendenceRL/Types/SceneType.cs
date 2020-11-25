@@ -75,6 +75,34 @@ namespace TranscendenceRL {
         public Func<Console, Console> next;
     }
     public static class SScene {
+
+        public static Dictionary<(int, int), ColoredGlyph> ToImage(this string[] image, Color tint) {
+            Dictionary<(int, int), ColoredGlyph> result = new Dictionary<(int, int), ColoredGlyph>();
+            for(int y = 0; y < image.Length; y++) {
+                var line = image[y];
+                for(int x = 0; x < line.Length; x++) {
+                    result[(x, y*2)] = new ColoredGlyph(tint, Color.Black, line[x]);
+                    result[(x, y*2 + 1)] = new ColoredGlyph(tint, Color.Black, line[x]);
+                }
+            }
+            return result;
+        }
+        public static Dictionary<(int, int), U> Translate<U>(this Dictionary<(int, int), U> image, Point translate) {
+            Dictionary<(int, int), U> result = new Dictionary<(int, int), U>();
+            foreach(((var x, var y), var u) in image) {
+                result[(x + translate.X, y + translate.Y)] = u;
+            }
+            return result;
+        }
+        public static Dictionary<(int, int), U> CenterVertical<U>(this Dictionary<(int, int), U> image, Console c, int deltaX = 0) {
+            Dictionary<(int x, int y), U> result = new Dictionary<(int, int), U>();
+
+            int deltaY = (c.Height - (image.Max(pair => pair.Key.Item2) - image.Min(pair => pair.Key.Item2))) / 2;
+            foreach (((var x, var y), var u) in image) {
+                result[(x + deltaX, y + deltaY)] = u;
+            }
+            return result;
+        }
         public static void ProcessMouseTree(this IScreenObject root, Mouse m) {
             List<IScreenObject> s = new List<IScreenObject>();
             AddChildren(root);
@@ -115,10 +143,14 @@ namespace TranscendenceRL {
         public int navIndex = 0;
         int[] charge;
 
+        public Dictionary<(int, int), ColoredGlyph> background;
+
         Dictionary<char, int> keyMap;
 
         bool prevEnter;
         bool enter;
+
+        public static int maxCharge = 48;
         public TextScene(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
             this.prev = prev;
             this.desc = desc;
@@ -126,6 +158,8 @@ namespace TranscendenceRL {
             charge = new int[navigation.Count];
             descIndex = 0;
             ticks = 0;
+
+            background = new Dictionary<(int, int), ColoredGlyph>();
 
             keyMap = new Dictionary<char, int>();
 
@@ -167,7 +201,7 @@ namespace TranscendenceRL {
                 charging = false;
             } else if(prevEnter && !enter) {
                 ref int c = ref charge[navIndex];
-                if (c >= 60) {
+                if (c >= maxCharge) {
                     //Make sure we aren't sent back to the screen again
                     prevEnter = false;
                     Transition(navigation[navIndex].next?.Invoke(this));
@@ -197,6 +231,9 @@ namespace TranscendenceRL {
             base.Render(delta);
             this.RenderBackground();
 
+            foreach(((var px, var py), var cg) in background) {
+                this.SetCellAppearance(px, py, cg);
+            }
 
             int left = 64;
             int top = 16;
@@ -224,21 +261,22 @@ namespace TranscendenceRL {
 
                 this.Print(x - 4, y + navIndex, new ColoredString("--->", Color.Yellow, Color.Transparent));
 
-                this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', 60 / 3), Color.Gray, Color.Transparent));
+                var barLength = maxCharge/3;
+                this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Gray, Color.Transparent));
 
                 for (int i = 0; i < charge.Length; i++) {
                     int c = charge[i];
-                    if(c < 60) {
+                    if(c < maxCharge) {
                         this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', c / 3), Color.White, Color.Transparent));
                     } else {
-                        this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', 20), Color.White, Color.Transparent));
+                        this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', barLength), Color.White, Color.Transparent));
                     }
                 }
 
-                if(charge[navIndex] < 60) {
+                if(charge[navIndex] < maxCharge) {
                     this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', charge[navIndex] / 3), Color.Yellow, Color.Transparent));
                 } else {
-                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', 20), Color.Red, Color.Transparent));
+                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Red, Color.Transparent));
                 }
 
             }
@@ -372,12 +410,10 @@ namespace TranscendenceRL {
                             }
                         }
                         break;
-                        /*
                     case Keys.Escape:
                         Parent.Children.Remove(this);
                         prev.IsFocused = true;
                         break;
-                        */
                     default:
                         var ch = char.ToLower(key.Character);
                         if(ch >= 'a' && ch <= 'z') {

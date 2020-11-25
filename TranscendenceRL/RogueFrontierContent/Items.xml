@@ -1,4 +1,21 @@
 ﻿<Module>
+	<ItemType	codename=	"item_laser_pointer"
+				name=		"laser pointer cannon"
+				level=		"1"
+				mass=		"1000"
+		>
+		<Weapon
+			powerUse=		"5"
+			fireCooldown=	"30"
+			missileSpeed=	"100"
+			damageType=		"1"
+			damageHP=		"1"
+			lifetime=		"30"
+			char=			"+"
+			foreground=		"Yellow"
+			/>
+	</ItemType>
+
 	<ItemType	codename=	"item_amethyst_laser"
 				name=		"Amethyst laser cannon"
 				level=		"1"
@@ -7,7 +24,7 @@
 		<Weapon
 			powerUse=		"10"
 			fireCooldown=	"20"
-			missileSpeed=	"300"
+			missileSpeed=	"200"
 			damageType=		"1"
 			damageHP=		"6"
 			lifetime=		"30"

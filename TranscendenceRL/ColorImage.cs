@@ -7,7 +7,7 @@ using System.Linq;
 using SadConsole;
 using SadRogue.Primitives;
 namespace TranscendenceRL {
-    class ColorImage {
+    public class ColorImage {
         public Dictionary<(int x, int y), ColoredGlyph> Sprite;
         public Point Size;
         public ColorImage(Dictionary<(int x, int y), TileValue> sprite) {
