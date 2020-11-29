@@ -404,7 +404,6 @@ namespace TranscendenceRL {
     }
 	class PlayerBorder : Console {
 		PlayerShip player;
-		public char[,] mortalBorder;
 		public float powerAlpha;
 		public HashSet<EffectParticle> particles;
 
@@ -415,14 +414,6 @@ namespace TranscendenceRL {
 			this.player = player;
 			FocusOnMouseClick = false;
 
-			char[] letters = new char[] { 'A', 'E', 'I', 'H', 'B', 'M', 'V' };
-			mortalBorder = new char[width, height];
-
-			for (int x = 0; x < width; x++) {
-				for(int y = 0; y < height; y++) {
-					mortalBorder[x, y] = letters[x % 2 + (x / 2) % 2 + (x / 4) % 2 + y % 2 + (y / 2) % 2 + (y / 4) % 2];
-				}
-            }
 			powerAlpha = 0;
 			particles = new HashSet<EffectParticle>();
 			screenCenter = new XY(width / 2, height / 2);
@@ -469,10 +460,10 @@ namespace TranscendenceRL {
 
 			//Set the color of the vignette
 
-			Color borderFront = Color.Black;
-			int borderSize = 8;
+			Color borderColor = Color.Black;
+			int borderSize = 2;
 			if (powerAlpha > 0) {
-				borderFront = borderFront.Blend(new Color(204, 153, 255, 255) * (float)Math.Min(1, powerAlpha * 1.5)).Premultiply();
+				borderColor = borderColor.Blend(new Color(204, 153, 255, 255) * (float)Math.Min(1, powerAlpha * 1.5)).Premultiply();
 
 				borderSize += (int)(12 * powerAlpha);
 			}
@@ -483,35 +474,31 @@ namespace TranscendenceRL {
 				borderColor = borderColor.SetBlue(Math.Min((byte)255, (byte)((3 - Math.Min(3, mortalOpacity)) * 25)));
 				borderColor = borderColor.SetAlpha(Math.Min((byte)255, (byte)Math.Min(255, 255 * mortalOpacity / 3)));
 				*/
-				borderFront = borderFront.SetRed(Math.Min((byte)255, (byte)(Math.Min(3, player.mortalTime / 1.5) * 255 / 3f)));
-				borderFront = borderFront.Premultiply();
+				borderColor = borderColor.Blend(Color.Red.SetAlpha((byte)(Math.Min(1, player.mortalTime / 4.5) * 255)));
+				
 
 				var fraction = (player.mortalTime - Math.Truncate(player.mortalTime));
 
-				borderSize += (int)(12 * fraction);
+				borderSize += (int)(6 * fraction);
 			}
-			Color borderBack = Color.Black;
 			if (player.Ship.ControlHijack != null) {
-				borderBack = Color.Cyan;
 			} else {
 				var b = player.World.backdrop.starlight.GetBackground(player.Position, XY.Zero);
-				borderBack = b.Premultiply();
+				borderColor = borderColor.Blend(b.SetAlpha((byte)(255 * b.GetBrightness())));
 			}
 			int dec = 255 / borderSize;
 
 			for (int i = 0; i < borderSize; i++) {
 				var decrease = i * dec;
-				byte backAlpha = (byte)Math.Max(0, 255 - decrease);
-				byte frontAlpha = (byte)Math.Min(255, 4 * backAlpha / 3);
-
-				var back = borderBack.SetAlpha(backAlpha);
-				var front = borderFront.SetAlpha(frontAlpha);
+				byte alpha = (byte)Math.Max(0, 255 - decrease);
 
 				var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
+
+				var cg = new ColoredGlyph(Color.Transparent, borderColor.SetAlpha(alpha).Premultiply(), ' ');
 				foreach (var point in screenPerimeter.PerimeterPositions()) {
 					//var back = this.GetBackground(point.X, point.Y).Premultiply();
 					var (x, y) = point;
-					this.SetCellAppearance(x, y, new ColoredGlyph(front, back, mortalBorder[x, y]));
+					this.SetCellAppearance(x, y, cg);
 				}
 			}
 
