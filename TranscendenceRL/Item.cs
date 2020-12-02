@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Helper = Common.Main;
+using SadRogue.Primitives;
 
 namespace TranscendenceRL {
     public class Item {
@@ -22,10 +23,10 @@ namespace TranscendenceRL {
             armor = null;
             shields = null;
         }
-        public Weapon InstallWeapon() => weapon = new Weapon(this, type.weapon);
-        public Armor InstallArmor() => armor = new Armor(this, type.armor);
-        public Shields InstallShields() => shields = new Shields(this, type.shield);
-        public Reactor InstallReactor() => reactor = new Reactor(this, type.reactor);
+        public Weapon InstallWeapon() => weapon = type.weapon.GetWeapon(this);
+        public Armor InstallArmor() => armor = type.armor.GetArmor(this);
+        public Shields InstallShields() => shields = type.shield.GetShields(this);
+        public Reactor InstallReactor() => reactor = type.reactor.GetReactor(this);
 
         public void RemoveWeapon() => weapon = null;
         public void RemoveArmor() => armor = null;
@@ -89,6 +90,24 @@ namespace TranscendenceRL {
             if(desc.capacitor != null) {
                 capacitor = new Capacitor(desc.capacitor);
             }
+        }
+        public ColoredString GetBar() {
+            ColoredString bar;
+            if (fireTime > 0) {
+                bar = new ColoredString(new string('>', 16 - (int)(16f * fireTime / desc.fireCooldown)),
+                                        Color.Gray, Color.Transparent
+                                        );
+            } else {
+                bar = new ColoredString(new string('>', 16),
+                                        Color.White, Color.Transparent);
+            }
+            if (capacitor != null) {
+                var n = 16 * capacitor.charge / capacitor.desc.maxCharge;
+                for (int j = 0; j < n; j++) {
+                    bar[j].Foreground = bar[j].Foreground.Blend(Color.Cyan.SetAlpha(128));
+                }
+            }
+            return bar;
         }
 
         public void Update(Station owner) {

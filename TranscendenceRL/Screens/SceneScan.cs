@@ -49,7 +49,13 @@ namespace TranscendenceRL {
             for (int x = 0; x < Width; x++) {
                 this.SetCellAppearance(x, y, new ColoredGlyph(Color.Transparent, Color.White.SetAlpha(128)));
             }
+            ColoredString empty = new ColoredString(new string(' ', Width), Color.Transparent, Color.Transparent);
+            for(y = last + 1; y < Height; y++) {
+                this.Print(0, y, empty);
+            }
             base.Render(delta);
+
+//            next.Render(delta);
         }
     }
 }

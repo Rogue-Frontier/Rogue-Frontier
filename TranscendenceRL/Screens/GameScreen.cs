@@ -84,7 +84,11 @@ namespace TranscendenceRL {
 			playerShip.player.Epitaphs.Add(epitaph);
 
 			//Bug: Background is not included because it is a separate console
-			SadConsole.Game.Instance.Screen = new DeathTransition(this, new DeathScreen(this, World, playerShip, epitaph)) { IsFocused = true };
+			var ds = new DeathScreen(this, World, playerShip, epitaph);
+			File.WriteAllText(playerShip.player.file, JsonConvert.SerializeObject(ds, SaveGame.settings));
+
+
+			SadConsole.Game.Instance.Screen = new DeathTransition(this, ds) { IsFocused = true };
 
 
 			ColoredGlyph GetTile(XY xy) {
@@ -548,8 +552,13 @@ namespace TranscendenceRL {
 			XY screenCenter = screenSize / 2;
 			var messageY = Height * 3 / 5;
 
+			int targetX = 48, targetY = 1;
 			if (player.GetTarget(out SpaceObject target)) {
-
+				this.Print(targetX, targetY++, "[Target]");
+				this.Print(targetX, targetY++, target.Name);
+				PrintTarget(targetX, targetY, target);
+				targetX += 32;
+				targetY = 1;
 				/*
 				var screenPos = (target.Position - player.Position) + screenSize / 2;
 				screenPos = screenPos.RoundDown;
@@ -596,34 +605,38 @@ namespace TranscendenceRL {
 					s = Line.Double
 				}]));
 				*/
+			}
+			var target2 = player.Devices.Weapons.Select(w => w.target).FirstOrDefault();
+			if(target2 != target) {
+				this.Print(targetX, targetY++, "[Auto]");
+				this.Print(targetX, targetY++, target2.Name);
+				PrintTarget(targetX, targetY, target2);
+			}
 
-				var x = Width / 3;
-				var y = 1;
-
-				this.Print(x, y++, "[Targeting]");
-				this.Print(x, y++, target.Name);
-				if(target is AIShip ai) {
-					if(ai.DamageSystem is HPSystem hp) {
-						this.Print(x, y++, $"HP: {hp.hp}");
-                    } else if(ai.DamageSystem is LayeredArmorSystem las) {
+			void PrintTarget(int x, int y, SpaceObject target) {
+				if (target is AIShip ai) {
+					if (ai.DamageSystem is HPSystem hp) {
+						this.Print(x, y++, $"[HP]");
+						this.Print(x, y++, $"Hull: {hp.hp} hp");
+					} else if (ai.DamageSystem is LayeredArmorSystem las) {
 						this.Print(x, y++, $"[Armor]");
-						foreach(var layer in las.layers) {
+						foreach (var layer in las.layers) {
 							this.Print(x, y++, $"{layer.source.type.name}{new string('>', (16 * layer.hp) / layer.desc.maxHP)}");
-                        }
+						}
 					}
-					if(ai.Devices.Installed.Any()) {
+					if (ai.Devices.Installed.Any()) {
 						this.Print(x, y++, $"[Devices]");
 						foreach (var d in ai.Devices.Installed) {
 							if (d is Weapon w) {
-								this.Print(x, y++, $"{d.source.type.name}{new string('>', (16 * w.fireTime) / w.desc.fireCooldown)}");
+								this.Print(x, y++, $"{d.source.type.name}{w.GetBar()}");
 							} else {
 								this.Print(x, y++, $"{d.source.type.name}");
 							}
 
 						}
 					}
-					
-                }
+
+				}
 			}
 
 			for (int i = 0; i < player.Messages.Count; i++) {
@@ -765,35 +778,19 @@ namespace TranscendenceRL {
 				}
 				if (player.Ship.Devices.Weapons.Any()) {
 					int i = 0;
-					foreach (var weapon in player.Ship.Devices.Weapons) {
-						string tag = $"{(i == player.selectedPrimary ? ">" : "")}{weapon.source.type.name}";
+					foreach (var w in player.Ship.Devices.Weapons) {
+						string tag = $"{(i == player.selectedPrimary ? ">" : "")}{w.source.type.name}";
 						Color foreground = Color.White;
-						if (player.Energy.disabled.Contains(weapon)) {
+						if (player.Energy.disabled.Contains(w)) {
 							foreground = Color.Gray;
-						} else if (weapon.firing || weapon.fireTime > 0) {
+						} else if (w.firing || w.fireTime > 0) {
 							foreground = Color.Yellow;
 						}
 						this.Print(x, y, tag, foreground, Color.Transparent);
 
 						var xBar = x + tag.Length;
 
-						ColoredString bar;
-						if(weapon.fireTime > 0) {
-							bar = new ColoredString(new string('>', 16 - (int)(16f * weapon.fireTime / weapon.desc.fireCooldown)),
-													Color.Gray, Color.Transparent
-													);
-						} else {
-							bar = new ColoredString(new string('>', 16),
-													Color.White, Color.Transparent);
-						}
-						if (weapon.capacitor != null) {
-							var n = 16 * weapon.capacitor.charge / weapon.capacitor.desc.maxCharge;
-							for (int j = 0; j < n; j++) {
-								bar[j].Foreground = bar[j].Foreground.Blend(Color.Cyan.SetAlpha(128));
-							}
-						}
-
-						this.Print(xBar, y, bar);
+						this.Print(xBar, y, w.GetBar());
 						y++;
 						i++;
 					}

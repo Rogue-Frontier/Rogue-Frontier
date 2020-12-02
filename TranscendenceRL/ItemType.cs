@@ -40,6 +40,7 @@ namespace TranscendenceRL {
     }
     public class ArmorDesc {
         public int maxHP;
+        public Armor GetArmor(Item i) => new Armor(i, this);
         public ArmorDesc(XElement e) {
             maxHP = e.ExpectAttributeInt("maxHP");
         }
@@ -58,6 +59,8 @@ namespace TranscendenceRL {
         public int minRange => shot.missileSpeed * shot.lifetime / TranscendenceRL.TICKS_PER_SECOND; //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
         public CapacitorDesc capacitor;
+
+        public Weapon GetWeapon(Item i) => new Weapon(i, this);
         public WeaponDesc(XElement e) {
             powerUse = e.ExpectAttributeInt(nameof(powerUse));
             fireCooldown = e.ExpectAttributeInt(nameof(fireCooldown));
@@ -128,6 +131,7 @@ namespace TranscendenceRL {
         public int maxHP;
         public int depletionDelay;
         public double hpPerSecond;
+        public Shields GetShields(Item i) => new Shields(i, this);
         public ShieldDesc(XElement e) {
             maxHP = e.ExpectAttributeInt(nameof(maxHP));
             depletionDelay = e.ExpectAttributeInt(nameof(depletionDelay));
@@ -140,6 +144,7 @@ namespace TranscendenceRL {
         public double efficiency;
         public bool battery;        //If true, then we recharge using power from other reactors when available
 
+        public Reactor GetReactor(Item i) => new Reactor(i, this);
         public ReactorDesc(XElement e) {
             maxOutput = e.ExpectAttributeInt(nameof(maxOutput));
             capacity = e.ExpectAttributeInt(nameof(capacity));

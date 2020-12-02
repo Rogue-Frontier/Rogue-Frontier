@@ -79,6 +79,7 @@ namespace TranscendenceRL {
 
             Children.Add(new LabelButton("[Shift + A] Arena Mode", StartArena) { Position = new Point(x, y++) });
             Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++) });
+            Children.Add(new LabelButton("[Shift + L] Load Game", StartLoad) { Position = new Point(x, y++) });
             Children.Add(new LabelButton("[Shift + S] Survival Mode", StartSurvival) { Position = new Point(x, y++) });
             
             Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++) });
@@ -96,7 +97,7 @@ namespace TranscendenceRL {
             void StartCrawl(ShipSelectorModel context) {
                 var loc = AppDomain.CurrentDomain.BaseDirectory + Path.PathSeparator + context.playerName;
                 string file;
-                do { file = $"{loc}-{new Random().Next(9999)}"; }
+                do { file = $"{loc}-{new Random().Next(9999)}.trl"; }
                 while (File.Exists(file));
 
 
@@ -138,6 +139,9 @@ namespace TranscendenceRL {
                     playerMain.Update(new TimeSpan());
                     playerMain.PlaceTiles();
                     playerMain.DrawWorld();
+                    
+                    File.WriteAllText(file, JsonConvert.SerializeObject(playerMain, SaveGame.settings));
+
                     GameHost.Instance.Screen = new FlashTransition(Width, Height, crawl,
                         new Pause(1,
                         new SimpleCrawl(Width, Height, "Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch
@@ -159,13 +163,16 @@ namespace TranscendenceRL {
         private void StartConfig() {
             SadConsole.Game.Instance.Screen = new ConfigScreen(this, settings, World) { IsFocused = true };
         }
+        private void StartLoad() {
+            SadConsole.Game.Instance.Screen = new LoadScreen(this, settings, World) { IsFocused = true };
+        }
         private void StartSurvival() {
             SadConsole.Game.Instance.Screen = new PlayerCreator(this, World, CreateGame) { IsFocused = true };
 
             void CreateGame(ShipSelectorModel context) {
                 var loc = AppDomain.CurrentDomain.BaseDirectory + Path.PathSeparator + context.playerName;
                 string file;
-                do { file = $"{loc}-{new Random().Next(9999)}"; }
+                do { file = $"{loc}-{new Random().Next(9999)}.trl"; }
                 while (File.Exists(file));
 
 
@@ -187,6 +194,8 @@ namespace TranscendenceRL {
                 var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
                 playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
+
+                playerShip.Powers.Add(new Power(World.types.powerType["power_silence"]));
                 World.RemoveAll();
 
 
@@ -233,6 +242,9 @@ namespace TranscendenceRL {
                 playerMain.Update(new TimeSpan());
                 playerMain.PlaceTiles();
                 playerMain.DrawWorld();
+
+                File.WriteAllText(file, JsonConvert.SerializeObject(playerMain, SaveGame.settings));
+
                 SadConsole.Game.Instance.Screen = playerMain;
                 playerMain.IsFocused = true;
             }
@@ -368,6 +380,9 @@ namespace TranscendenceRL {
                 if (info.IsKeyPressed(C)) {
                     StartConfig();
                 }
+                if (info.IsKeyPressed(L)) {
+                    StartLoad();
+                }
                 if (info.IsKeyPressed(S)) {
                     StartSurvival();
                 }
@@ -375,7 +390,7 @@ namespace TranscendenceRL {
                 if (info.IsKeyPressed(G)) {
                     var loc = AppDomain.CurrentDomain.BaseDirectory + Path.PathSeparator + "Debug";
                     string file;
-                    do { file = $"{loc}-{new Random().Next(9999)}"; }
+                    do { file = $"{loc}-{new Random().Next(9999)}.trl"; }
                     while (File.Exists(file));
 
                     Player player = new Player() {
@@ -420,10 +435,9 @@ namespace TranscendenceRL {
                     var playerMain = new PlayerMain(Width, Height, World, playerShip);
                     playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
 
+                    File.WriteAllText(file, JsonConvert.SerializeObject(playerMain, SaveGame.settings));
+
                     playerMain.IsFocused = true;
-
-                    File.WriteAllText(file, JsonConvert.SerializeObject(playerMain));
-
                     SadConsole.Game.Instance.Screen = playerMain;
                 }
 #endif

@@ -29,7 +29,7 @@ namespace TranscendenceRL.Screens {
             var controls = settings.controls;
 
             int x = 3;
-            int y = 16;
+            int y = 24;
             foreach (var control in settings.controls.Keys) {
                 var c = control;
                 string label = GetLabel(c);
@@ -37,14 +37,14 @@ namespace TranscendenceRL.Screens {
                 b = new LabelButton(label, () => {
                     ResetLabel();
                     currentSet = c;
-                    b.text = $"{control.ToString(),-16} [Press Key]";
+                    b.text = $"{control.ToString(),-16} {"[Press Key]", -12}";
                 }) { Position = new Point(x, y++) };
                 
                 buttons[control] = b;
                 Children.Add(b);
             }
         }
-        string GetLabel(ControlKeys control) => $"{control.ToString(),-16} {settings.controls[control].ToString()}";
+        string GetLabel(ControlKeys control) => $"{control.ToString(),-16} {settings.controls[control].ToString(), -12}";
         public void ResetLabel() {
             if (currentSet.HasValue) {
                 buttons[currentSet.Value].text = GetLabel(currentSet.Value);
