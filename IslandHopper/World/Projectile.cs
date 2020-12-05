@@ -304,8 +304,8 @@ namespace IslandHopper {
             };
             return chars[(int)angle];
         }
-		public ColoredGlyph SymbolCenter => new ColoredGlyph(tick % 20 < 10 ? Color.White : Color.Gray, Color.Black, GetSymbol());
-        public ColoredString Name => new ColoredString("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Black);
+		public ColoredGlyph SymbolCenter => new ColoredGlyph(tick % 20 < 10 ? Color.White : Color.Gray, Color.Transparent, GetSymbol());
+        public ColoredString Name => new ColoredString("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Transparent);
 
         public Entity Source;
         private IItem Item;

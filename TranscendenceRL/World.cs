@@ -24,6 +24,8 @@ namespace TranscendenceRL {
         public List<Effect> effectsRemoved = new List<Effect>();
         public Random karma;
         public Backdrop backdrop;
+
+        public int tick;
         public World(TypeCollection types, Random karma, Backdrop backdrop) {
             this.types = types;
             this.karma = karma;
@@ -92,6 +94,7 @@ namespace TranscendenceRL {
             foreach(var e in events) {
                 e.Update();
             }
+            tick++;
         }
         public void UpdateActive(Dictionary<(int, int), ColoredGlyph> tiles) {
             UpdateSpace();
@@ -113,6 +116,7 @@ namespace TranscendenceRL {
             foreach (var e in events) {
                 e.Update();
             }
+            tick++;
         }
     }
 }

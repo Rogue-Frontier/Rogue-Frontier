@@ -213,6 +213,7 @@ Destroy them as best as you can.""";
         PlayerStory story;
         Station station;
         public AIShip[] drones;
+        public int startTick;
         public DaughtersTraining(PlayerStory story, Station station, PlayerShip player) {
             this.story = story;
             this.station = station;
@@ -263,6 +264,8 @@ Destroy them as best as you can.""";
                 Console Complete() {
                     var t =
 @$"Benjamin meets you at the docking bay.
+
+""You took {station.World.tick - startTick} seconds to destroy the drones.""
 ".Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                         new SceneOption() { escape = true, enter = true,

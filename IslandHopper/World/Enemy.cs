@@ -131,7 +131,7 @@ namespace IslandHopper {
                             UpdateWander();
                             return;
                         }
-                        var target = weapons.First();
+                        var target = weapons.OrderBy(w => (w.Position - actor.Position).Magnitude2).First();
 
                         Dictionary<(int, int, int), (int, int, int)> prev = new Dictionary<(int, int, int), (int, int, int)>();
                         var points = new SimplePriorityQueue<XYZ, double>();

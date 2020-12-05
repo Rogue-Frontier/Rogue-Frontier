@@ -79,7 +79,7 @@ namespace TranscendenceRL {
 
             Children.Add(new LabelButton("[Shift + A] Arena Mode", StartArena) { Position = new Point(x, y++) });
             Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++) });
-            Children.Add(new LabelButton("[Shift + L] Load Game", StartLoad) { Position = new Point(x, y++) });
+            //Children.Add(new LabelButton("[Shift + L] Load Game", StartLoad) { Position = new Point(x, y++) });
             Children.Add(new LabelButton("[Shift + S] Survival Mode", StartSurvival) { Position = new Point(x, y++) });
             
             Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++) });

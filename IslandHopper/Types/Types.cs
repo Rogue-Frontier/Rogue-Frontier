@@ -132,6 +132,8 @@ namespace IslandHopper {
         public string name, desc;
         public double mass;
 
+        public ColorImage image;
+
 		//Identity identity;
 		public int knownChance;
         public ItemType unknownType;
@@ -152,6 +154,10 @@ namespace IslandHopper {
 			name = e.ExpectAttribute("name");
 			desc = e.ExpectAttribute("desc");
 			mass = e.TryAttributeDouble("mass", 0);
+            var imageSource = e.TryAttribute("image");
+            if (imageSource.Length > 0) {
+                image = ColorImage.FromFile(imageSource);
+            }
 
 			switch (e.Attribute("known")?.Value) {
 				case "true":

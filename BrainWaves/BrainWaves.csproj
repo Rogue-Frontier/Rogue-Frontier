@@ -13,6 +13,12 @@
     <PackageReference Include="TheSadRogue.Primitives" Version="1.0.0-alpha5-debug" />
     <PackageReference Include="TheSadRogue.Primitives.MonoGame" Version="1.0.0-alpha3-debug" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ASECII">
+      <HintPath>..\..\ASECII\ASECII\bin\Debug\netcoreapp3.1\ASECII.dll</HintPath>
+    </Reference>
+  </ItemGroup>
   
   <ItemGroup>
     <None Update="BrainWavesContent\IBMCGA.font">

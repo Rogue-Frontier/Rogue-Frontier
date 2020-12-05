@@ -19,7 +19,7 @@ namespace IslandHopper {
         public XYZ Position { get; set; }
         public Color Color;
         int ticks;
-        public ColoredGlyph SymbolCenter => ticks%20 < 10 ? new ColoredGlyph(Color, Color.Black, '+') : new ColoredGlyph(Color.Black, Color.Black, '+');
+        public ColoredGlyph SymbolCenter => ticks%20 < 10 ? new ColoredGlyph(Color, Color.Transparent, '+') : new ColoredGlyph(Color.Transparent, Color.Transparent, '+');
         private Func<bool> active;
         public Reticle(Func<bool> active, XYZ Position, Color? Color = null) {
             this.active = active;
