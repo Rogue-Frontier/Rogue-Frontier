@@ -114,7 +114,7 @@ EASTER EGGS
 		>
 	</Player>
 	<Source
-		type=			"itRocketLauncherBase"
+		codename=			"itRocketLauncherBase"
 		>
 		<Gun
 			projectile=		"missile"
@@ -132,7 +132,7 @@ EASTER EGGS
 		</Gun>
 	</Source>
 	<Source
-		type=			"itRevolverBase"
+		codename=			"itRevolverBase"
 		>
 		<Gun
 			projectile=		"bullet"
@@ -148,7 +148,7 @@ EASTER EGGS
 			/>
 	</Source>
 	<Source
-		type=			"itGrenadeBase"
+		codename=			"itGrenadeBase"
 		>
 		<Grenade
 			detonateOnDamage=		"true"
@@ -280,7 +280,7 @@ EASTER EGGS
 			/>
 	</ItemType>
 	<ItemType
-		type=			"itCookieJar"
+		codename=			"itCookieJar"
 		name=			"The Cookie Jar"
 		desc=			"An explosive with blue floral patterns painted on its ceramic shell. This little chip of a grenade will really bake your enemies to a chocolate crisp with a jarring explosion. It detonates on impact and cannot be armed without lifting the lid and putting your hand inside."
 		>
@@ -294,7 +294,7 @@ EASTER EGGS
 			/>
 	</ItemType>
 	<ItemType
-		type=			"itTinMan"
+		codename=			"itTinMan"
 		name=			"The Tin Man"
 		desc=			"A heartless tool for a heartless person."
 		>
@@ -304,7 +304,7 @@ EASTER EGGS
 		</Gun>
 	</ItemType>
 	<ItemType
-		type=			"itSevenShooter"
+		codename=			"itSevenShooter"
 		name=			"The Seventh Striker"
 		desc=			"This seven-shooter revolver hits different on the last shot."
 		>
@@ -318,7 +318,7 @@ EASTER EGGS
 		</Gun>
 	</ItemType>
 	<ItemType
-		type=			"itHotRod"
+		codename=			"itHotRod"
 		name=			"The Hot Rod"
 		desc=			"Truly a very hot firing rod. The hottest. Best not to touch it."
 		>
@@ -348,7 +348,7 @@ EASTER EGGS
 			-->
 	</ItemType>
 	<ItemType
-		type=			"itSleepingDragon"
+		codename=			"itSleepingDragon"
 		name=			"The Sleeping Dragon"
 		desc=			"This flamethrower is hotter than the sun. Too bad you can barely find any ammo for it."
 		>
@@ -448,13 +448,13 @@ EASTER EGGS
 		desc=			"This rusty sidearm may be rudimentary and unstylish, but at least it can get the dirty deeds done dirt cheap."
 		>
 	</ItemType>
-	<ItemType	type=	"itTheDust"
+	<ItemType	codename=	"itTheDust"
 		name=			"The Dust"
 		desc=			"Another one bites the bullet."
 		>
 	</ItemType>
 	<!--	Rare weapons that can be identified by using them as Bludgeons	-->
-	<ItemType	type=	"itMetalPipeDevice"
+	<ItemType	codename=	"itMetalPipeDevice"
 		name=			"Metal Pipe Device"
 		desc=			"Whoever made this strange contraption apparently lived in a world where the only available chassis was a metal pipe. If only you could know which kind of metal the pipe was made of..."
 		>

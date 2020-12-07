@@ -68,40 +68,41 @@ namespace IslandHopper {
 			}
 		}
         void AddSource(XElement element) {
-            if (!element.TryAttribute("type", out string type)) {
+            if (!element.TryAttribute("codename", out string codename)) {
                 //throw new Exception("DesignType requires type attribute");
-                type = System.Guid.NewGuid().ToString();
+                codename = System.Guid.NewGuid().ToString();
             }
 
-            if (sources.ContainsKey(type)) {
-                throw new Exception($"DesignType type conflict: {type}");
+            if (sources.ContainsKey(codename)) {
+                throw new Exception($"DesignType {nameof(codename)} conflict: {codename}");
             } else {
-                Debug.Print($"Created <{element.Name}> of type {type}");
-                sources[type] = element;
+                Debug.Print($"Created <{element.Name}> of {nameof(codename)} {codename}");
+                sources[codename] = element;
             }
         }
 		void AddType<T>(XElement element) where T : DesignType, new() {
-			if (!element.TryAttribute("type", out string type)) {
+            string codename;
+			if (!element.TryAttribute(nameof(codename), out codename)) {
 				//throw new Exception("DesignType requires type attribute");
-				type = System.Guid.NewGuid().ToString();
+				codename = System.Guid.NewGuid().ToString();
 			}
 
-			if (sources.ContainsKey(type)) {
-				throw new Exception($"DesignType type conflict: {type}");
+			if (sources.ContainsKey(codename)) {
+				throw new Exception($"DesignType {nameof(codename)} conflict: {codename}");
 			} else {
-				Debug.Print($"Created <{element.Name}> of type {type}");
-				sources[type] = element;
-				all[type] = new T();
-                switch(all[type]) {
+				Debug.Print($"Created <{element.Name}> of {nameof(codename)} {codename}");
+				sources[codename] = element;
+				all[codename] = new T();
+                switch(all[codename]) {
                     case ItemType it:
-                        itemType[type] = it;
+                        itemType[codename] = it;
                         break;
                 }
 
 				//If we're uninitialized, then we will definitely initialize later
 				if(state != InitState.Uninitialized) {
                     //Otherwise, initialize now
-					all[type].Initialize(this, sources[type]);
+					all[codename].Initialize(this, sources[codename]);
 				}
 			}
 		}
