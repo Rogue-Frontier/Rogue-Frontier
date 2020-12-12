@@ -12,9 +12,18 @@ using static UI;
 using Newtonsoft.Json;
 using System.IO;
 using ArchConsole;
+using static TranscendenceRL.PlayerShip;
 
 namespace TranscendenceRL {
-    public class PlayerMain : Console {
+
+	public class EndGame : IContainer<PlayerDestroyed> {
+		public PlayerMain main;
+		public PlayerDestroyed Value => (p, d, w) => main.EndGame(d, w);
+		public EndGame(PlayerMain main) {
+			this.main = main;
+		}
+	}
+	public class PlayerMain : Console {
 		public XY camera;
 		public World World;
 		public Dictionary<(int, int), ColoredGlyph> tiles;

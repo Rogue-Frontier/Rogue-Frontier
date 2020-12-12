@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TranscendenceRL.Types;
+using static TranscendenceRL.BaseShip;
 
 namespace TranscendenceRL {
     public enum Rotating {
@@ -48,7 +49,7 @@ namespace TranscendenceRL {
         public Random destiny;
 
         public delegate void Destroyed(BaseShip ship, SpaceObject destroyer, Wreck wreck);
-        public event Destroyed OnDestroyed;
+        public FuncSet<IContainer<Destroyed>> OnDestroyed = new FuncSet<IContainer<Destroyed>>();
 
         public double rotationDegrees { get; set; }
         public double stoppingRotation { get {
@@ -99,7 +100,9 @@ namespace TranscendenceRL {
             wreck.Items.UnionWith(Items);
             World.AddEntity(wreck);
 
-            OnDestroyed?.Invoke(this, source, wreck);
+            foreach(var on in OnDestroyed.set) {
+                on.Value.Invoke(this, source, wreck);
+            }
             Active = false;
         }
         public void Update() {
@@ -273,6 +276,20 @@ namespace TranscendenceRL {
         public bool Active => Ship.Active;
         public ColoredGlyph Tile => Ship.Tile;
     }
+
+    public struct BaseOnDestroyed : IContainer<Destroyed> {
+        public PlayerShip player;
+        public BaseOnDestroyed(PlayerShip player) {
+            this.player = player;
+        }
+        public Destroyed Value { get {
+                var self = this;
+                return (BaseShip s, SpaceObject source, Wreck wreck) => {
+                    foreach (var f in self.player.OnDestroyed.set) f.Value.Invoke(self.player, source, wreck);
+                };
+        } }
+        public override bool Equals(object obj) => obj is BaseOnDestroyed b && b.player == player;
+    }
     public class PlayerShip : IShip {
         public Player player;
         public string Name => Ship.Name;
@@ -312,10 +329,9 @@ namespace TranscendenceRL {
         public DictCounter<ShipClass> ShipsDestroyed = new DictCounter<ShipClass>();
 
         public delegate void PlayerDestroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);
-
-        public event PlayerDestroyed OnDestroyed;
+        public FuncSet<IContainer<PlayerDestroyed>> OnDestroyed = new FuncSet<IContainer<PlayerDestroyed>>();
         public delegate void PlayerDamaged(PlayerShip playerShip, SpaceObject damager, int hp);
-        public event PlayerDamaged OnDamaged;
+        public FuncSet<IContainer<PlayerDamaged>> OnDamaged = new FuncSet<IContainer<PlayerDamaged>>();
 
         public PlayerShip(Player player, BaseShip ship) {
             this.player = player;
@@ -328,13 +344,10 @@ namespace TranscendenceRL {
 
 
             //Hook up our own event to the ship since calling Damage can call base ship's Destroy without calling our own Destroy()
-            ship.OnDestroyed += BaseOnDestroyed;
-        }
-        public void BaseOnDestroyed(BaseShip s, SpaceObject source, Wreck wreck) {
-            OnDestroyed?.Invoke(this, source, wreck);
+            ship.OnDestroyed += new BaseOnDestroyed(this);
         }
         public void Detach() {
-            Ship.OnDestroyed -= BaseOnDestroyed;
+            Ship.OnDestroyed -= new BaseOnDestroyed(this);
         }
         public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
         public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);
@@ -575,7 +588,7 @@ namespace TranscendenceRL {
                 }
             }
 
-            OnDamaged?.Invoke(this, source, hp);
+            foreach(var f in OnDamaged.set) f.Value.Invoke(this, source, hp);
         }
         public void Destroy(SpaceObject source) {
             Ship.Destroy(source);

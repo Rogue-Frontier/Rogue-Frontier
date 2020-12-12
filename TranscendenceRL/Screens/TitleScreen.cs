@@ -12,6 +12,7 @@ using TranscendenceRL.Types;
 using Newtonsoft.Json;
 using TranscendenceRL.Screens;
 using ArchConsole;
+using static TranscendenceRL.BaseShip;
 
 namespace TranscendenceRL {
     class TitleScreen : Console {
@@ -134,7 +135,7 @@ namespace TranscendenceRL {
                     World.AddEntity(playerShip);
 
                     var playerMain = new PlayerMain(Width, Height, World, playerShip);
-                    playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
+                    playerShip.OnDestroyed += new EndGame(playerMain);
 
                     playerMain.Update(new TimeSpan());
                     playerMain.PlaceTiles();
@@ -221,9 +222,9 @@ namespace TranscendenceRL {
                             World.types.shipClass.Values.GetRandom(World.karma),
                             Sovereign.Gladiator,
                             XY.Polar(0, 100)), new AttackOrder(playerShip));
-                        ship.Ship.OnDestroyed += (b, destroyer, wreck) => {
+                        ship.Ship.OnDestroyed += new Container<Destroyed>((b, destroyer, wreck) => {
                             EnemyDestroyed();
-                        };
+                        });
                         World.AddEntity(ship);
                     }                        
                     shipCount = waveSize;
@@ -237,7 +238,7 @@ namespace TranscendenceRL {
 
 
                 var playerMain = new PlayerMain(Width, Height, World, playerShip);
-                playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
+                playerShip.OnDestroyed += new EndGame(playerMain);
 
                 playerMain.Update(new TimeSpan());
                 playerMain.PlaceTiles();
@@ -433,7 +434,7 @@ namespace TranscendenceRL {
                     World.AddEffect(new Heading(wingmate));
 
                     var playerMain = new PlayerMain(Width, Height, World, playerShip);
-                    playerShip.OnDestroyed += (p, d, wreck) => playerMain.EndGame(d, wreck);
+                    playerShip.OnDestroyed += new EndGame(playerMain);
 
                     File.WriteAllText(file, JsonConvert.SerializeObject(playerMain, SaveGame.settings));
 

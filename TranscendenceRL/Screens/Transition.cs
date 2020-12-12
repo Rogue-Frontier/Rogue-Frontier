@@ -200,8 +200,13 @@ namespace TranscendenceRL {
             if (alpha < 1) {
                 alpha += (float)(delta.TotalSeconds / 4);
             } else {
-                SadConsole.Game.Instance.Screen = next;
-                next.IsFocused = true;
+                if (Parent == null) {
+                    SadConsole.Game.Instance.Screen = next;
+                    next.IsFocused = true;
+                } else {
+                    Parent.Children.Add(next);
+                    Parent.Children.Remove(this);
+                }
             }
         }
         public override void Render(TimeSpan delta) {
@@ -282,6 +287,8 @@ namespace TranscendenceRL {
         Action next;
         double time;
         public PauseTransition(double time, Console prev, Action next) : base(prev.Width, prev.Height) {
+            this.FontSize = prev.FontSize;
+            
             this.time = time;
             this.prev = prev;
             this.next = next;

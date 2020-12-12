@@ -8,8 +8,27 @@ using Console = SadConsole.Console;
 using System.Linq;
 using static SadConsole.Input.Keys;
 using ArchConsole;
+using static TranscendenceRL.PlayerShip;
 
 namespace TranscendenceRL {
+
+    struct ArenaScreenReset : IContainer<PlayerDestroyed> {
+        public ArenaScreen arena;
+        public ArenaScreenReset(ArenaScreen arena) {
+            this.arena = arena;
+        }
+        public PlayerDestroyed Value {
+            get {
+                var t = this;
+                return (p, s, w) => {
+                    t.arena.camera = t.arena.playerMain.camera;
+                    t.arena.playerMain = null;
+                    t.arena.IsFocused = true;
+                };
+            }
+        }
+        public override bool Equals(object obj) => obj is ArenaScreenReset r && r.arena == arena;
+    }
     class ArenaScreen : Console {
         TitleScreen prev;
         Settings settings;
@@ -22,7 +41,7 @@ namespace TranscendenceRL {
         public SpaceObject pov;
         SpaceObject nearest;
 
-        PlayerMain playerMain;
+        public PlayerMain playerMain;
 
         public ArenaScreen(TitleScreen prev, Settings settings, World World) : base(prev.Width, prev.Height) {
             this.prev = prev;
@@ -205,11 +224,7 @@ namespace TranscendenceRL {
                     var playerShip = new PlayerShip(new Player() { Settings = settings }, a.Ship);
 
                     playerMain = new PlayerMain(Width, Height, World, playerShip) { IsFocused = true, camera = camera };
-                    playerShip.OnDestroyed += (p, s, w) => {
-                        this.camera = playerMain.camera;
-                        playerMain = null;
-                        this.IsFocused = true;
-                    };
+                    playerShip.OnDestroyed += new ArenaScreenReset(this);
                     World.AddEntity(playerShip);
 
                     pov = playerShip;
