@@ -1,46 +1,39 @@
 ﻿using Common;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Text;
-using static Common.RandomExtensions;
 
 namespace TranscendenceRL {
-    
-    public class RandomConverter : TypeConverter {
-        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) {
-            return destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
-        }
-        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
-            return JsonConvert.SerializeObject(((Random)value).Save());
-        }
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) {
-            return sourceType == typeof(Random) || base.CanConvertFrom(context, sourceType);
-        }
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) {
-            var state = JsonConvert.DeserializeObject<RandomState>(Convert.ToString(value));
-            return state.Restore();
+
+    //https://stackoverflow.com/a/18548894
+    class WritablePropertiesOnlyResolver : DefaultContractResolver {
+        protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization) {
+            IList<JsonProperty> props = base.CreateProperties(type, memberSerialization);
+            return props.Where(p => p.Writable).ToList();
         }
     }
 
     interface SaveGame {
         public static void PrepareConvert() {
-            TypeDescriptor.AddAttributes(typeof(Random), new TypeConverterAttribute(typeof(RandomConverter)));
         }
         public static string Serialize(object o) {
             PrepareConvert();
             return JsonConvert.SerializeObject(o, settings);
         }
-        public static T Serialize<T>(string s) {
+        public static T Deserialize<T>(string s) {
             PrepareConvert();
             return JsonConvert.DeserializeObject<T>(s, settings);
         }
         public static readonly JsonSerializerSettings settings = new JsonSerializerSettings {
-            PreserveReferencesHandling = PreserveReferencesHandling.All,
+            PreserveReferencesHandling = PreserveReferencesHandling.Objects,
             TypeNameHandling = TypeNameHandling.All,
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            ReferenceLoopHandling = ReferenceLoopHandling.Error,
+            ContractResolver = new WritablePropertiesOnlyResolver()
         };
     }
     class LiveGame {

@@ -358,7 +358,7 @@ namespace TranscendenceRL {
 		double time;
 		public MegaMap(PlayerShip player, int width, int height) : base(width, height) {
 			this.player = player;
-			BackVoid = new GeneratedLayer(1, new Random());
+			BackVoid = new GeneratedLayer(1, new Rand());
 			viewScale = 1;
 			time = 0;
 		}

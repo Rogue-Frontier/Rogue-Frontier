@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     public class EnergySystem {
-        private DeviceSystem devices;
+        public DeviceSystem devices;
         public HashSet<Powered> disabled;
         public int totalMaxOutput;
         public int totalUsedOutput;

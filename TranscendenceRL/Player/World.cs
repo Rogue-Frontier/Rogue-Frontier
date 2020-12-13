@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace TranscendenceRL {
     public class World {
         public static World empty = new World();
-
         public TypeCollection types;
 
         public HashSet<Event> events = new HashSet<Event>();
@@ -22,18 +21,18 @@ namespace TranscendenceRL {
         public LocatorDict<Effect, (int, int)> effects = new LocatorDict<Effect, (int, int)>(e => (e.Position.xi, e.Position.yi));
         public List<Effect> effectsAdded = new List<Effect>();
         public List<Effect> effectsRemoved = new List<Effect>();
-        public Random karma;
+        public Rand karma;
         public Backdrop backdrop;
 
         public int tick;
-        public World(TypeCollection types, Random karma, Backdrop backdrop) {
+        public World(TypeCollection types, Rand karma, Backdrop backdrop) {
             this.types = types;
             this.karma = karma;
             this.backdrop = backdrop;
         }
         public World() {
             types = new TypeCollection();
-            karma = new Random();
+            karma = new Rand();
             backdrop = new Backdrop();
         }
         public void AddEvent(Event e) => eventsAdded.Add(e);

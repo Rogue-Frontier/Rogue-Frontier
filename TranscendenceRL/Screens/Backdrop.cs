@@ -12,10 +12,10 @@ namespace TranscendenceRL {
         public CompositeColorLayer starlight;
         public GridLayer planets;
         public GridLayer orbits;
-        public Backdrop() : this(new Random()) {
+        public Backdrop() : this(new Rand()) {
 
         }
-        public Backdrop(Random r) {
+        public Backdrop(Rand r) {
             int layerCount = 5;
             layers = new List<GeneratedLayer>(layerCount);
             for(int i = 0; i < layerCount; i++) {
@@ -138,22 +138,22 @@ namespace TranscendenceRL {
             }
         }
     }
-    public class GeneratedLayer : ILayer {
-        public double parallaxFactor { get; private set; }                   //Multiply the camera by this value
-        public GeneratedGrid<ColoredGlyph> tiles;  //Dynamically generated grid of tiles
-        public GeneratedLayer(double parallaxFactor, GeneratedGrid<ColoredGlyph> tiles) {
-            this.parallaxFactor = parallaxFactor;
-            this.tiles = tiles;
+    public class SpaceGenerator : IGridGenerator<ColoredGlyph> {
+        public GeneratedLayer layer;
+        public Rand random;
+        public SpaceGenerator(GeneratedLayer layer, Rand random) {
+            this.layer = layer;
+            this.random = random;
         }
-        public GeneratedLayer(double parallaxFactor, Random random) {
-            //Random r = new Random();
-            this.parallaxFactor = parallaxFactor;
-            tiles = new GeneratedGrid<ColoredGlyph>(p => {
-                var (x, y) = p;
-                var value = random.Next(51);
-                var (r, g, b) = (value, value, value + random.Next(25));
+        public ColoredGlyph Generate((int, int) p) {
+            var tiles = layer.tiles;
+            var parallaxFactor = layer.parallaxFactor;
 
-                var init = new XY[] {
+            var (x, y) = p;
+            var value = random.NextInteger(51);
+            var (r, g, b) = (value, value, value + random.NextInteger(25));
+
+            var init = new XY[] {
                     new XY(-1, -1),
                     new XY(-1, 0),
                     new XY(-1, 1),
@@ -163,24 +163,36 @@ namespace TranscendenceRL {
                     new XY(1, 0),
                     new XY(1, 1),}.Select(xy => new XY(xy.xi + x, xy.yi + y)).Where(xy => tiles.IsInit(xy.xi, xy.yi));
 
-                var count = init.Count() + 1;
-                foreach (var xy in init) {
-                    var t = tiles.Get(xy.xi, xy.yi).Background;
-                    (r, g, b) = (r + t.R, g + t.G, b + t.B);
-                }
-                (r, g, b) = (r / count, g / count, b / count);
-                var a = (byte)random.Next(25, 104);
-                var background = new Color(r, g, b, a);
+            var count = init.Count() + 1;
+            foreach (var xy in init) {
+                var t = tiles.Get(xy.xi, xy.yi).Background;
+                (r, g, b) = (r + t.R, g + t.G, b + t.B);
+            }
+            (r, g, b) = (r / count, g / count, b / count);
+            var a = (byte)random.NextInteger(25, 104);
+            var background = new Color(r, g, b, a);
 
-                if (random.NextDouble() * 100 < (1 / (parallaxFactor + 1))) {
-                    const string vwls = "?&%~=+;";
-                    var star = vwls[random.Next(vwls.Length)];
-                    var foreground = new Color(255, 255 - random.Next(25, 51), 255 - random.Next(25, 51), (byte)(225 * Math.Sqrt(parallaxFactor)));
-                    return new ColoredGlyph(foreground, background, star);
-                } else {
-                    return new ColoredGlyph(Color.Transparent, background, ' ');
-                }
-            });
+            if (random.NextDouble() * 100 < (1 / (parallaxFactor + 1))) {
+                const string vwls = "?&%~=+;";
+                var star = vwls[random.NextInteger(vwls.Length)];
+                var foreground = new Color(255, 255 - random.NextInteger(25, 51), 255 - random.NextInteger(25, 51), (byte)(225 * Math.Sqrt(parallaxFactor)));
+                return new ColoredGlyph(foreground, background, star);
+            } else {
+                return new ColoredGlyph(Color.Transparent, background, ' ');
+            }
+        }
+    }
+    public class GeneratedLayer : ILayer {
+        public double parallaxFactor { get; private set; }                   //Multiply the camera by this value
+        public GeneratedGrid<ColoredGlyph> tiles;  //Dynamically generated grid of tiles
+        public GeneratedLayer(double parallaxFactor, GeneratedGrid<ColoredGlyph> tiles) {
+            this.parallaxFactor = parallaxFactor;
+            this.tiles = tiles;
+        }
+        public GeneratedLayer(double parallaxFactor, Rand random) {
+            //Random r = new Random();
+            this.parallaxFactor = parallaxFactor;
+            tiles = new GeneratedGrid<ColoredGlyph>(new SpaceGenerator(this, random));
         }
         public ColoredGlyph GetTile(XY point, XY camera) {
             var apparent = point - camera * (1 - parallaxFactor);

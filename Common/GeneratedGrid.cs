@@ -5,10 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Common {
+    public interface IGridGenerator<T> {
+        public T Generate((int, int) pos);
+    }
     public class GeneratedGrid<T> : GridTree<T> {
-        QTree<T> tree;
-        Func<(int, int), T> generator;
-        public GeneratedGrid(Func<(int, int), T> generator) {
+        public QTree<T> tree;
+        public IGridGenerator<T> generator;
+        public GeneratedGrid(IGridGenerator<T> generator) {
             tree = new QTree<T>();
             this.generator = generator;
         }
@@ -23,7 +26,7 @@ namespace Common {
         public ref T Initialize(int x, int y) {
             ref var t = ref tree.At(x, y);
             if (EqualityComparer<T>.Default.Equals(t, default(T))) {
-                t = generator((x, y));
+                t = generator.Generate((x, y));
             }
             return ref t;
         }

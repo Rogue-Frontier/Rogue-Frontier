@@ -46,7 +46,7 @@ namespace TranscendenceRL {
         public DamageSystem DamageSystem;
         public ControlHijack ControlHijack;
 
-        public Random destiny;
+        public Rand destiny;
 
         public delegate void Destroyed(BaseShip ship, SpaceObject destroyer, Wreck wreck);
         public FuncSet<IContainer<Destroyed>> OnDestroyed = new FuncSet<IContainer<Destroyed>>();
@@ -87,7 +87,7 @@ namespace TranscendenceRL {
             Devices.Add(shipClass.devices.Generate(world.types));
 
             DamageSystem = shipClass.damageDesc.Create(this);
-            this.destiny = new Random(world.karma.Next());
+            this.destiny = new Rand(world.karma.NextInteger());
         }
         public void SetThrusting(bool thrusting = true) => this.thrusting = thrusting;
         public void SetRotating(Rotating rotating = Rotating.None) {
@@ -243,7 +243,7 @@ namespace TranscendenceRL {
         public BaseShip Ship;
         public Order controller;
         public Docking Dock { get; set; }
-        public Random destiny => Ship.destiny;
+        public Rand destiny => Ship.destiny;
         public double stoppingRotation => Ship.stoppingRotation;
 
         public AIShip(BaseShip ship, Order controller) {

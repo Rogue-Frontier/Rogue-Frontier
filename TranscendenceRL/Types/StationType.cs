@@ -5,6 +5,7 @@ using SadRogue.Primitives;
 using Color = SadRogue.Primitives.Color;
 using System;
 using SadConsole;
+using Newtonsoft.Json;
 
 namespace TranscendenceRL {
 	public class StationType : DesignType {
@@ -14,7 +15,9 @@ namespace TranscendenceRL {
 		public Sovereign Sovereign;
 		public StaticTile tile;
 		public WeaponList weapons;
+		
 		public List<SegmentDesc> segments;
+		
 		public ShipList guards;
 
 		public Dictionary<(int, int), ColoredGlyph> heroImage;

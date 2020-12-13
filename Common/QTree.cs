@@ -27,11 +27,11 @@ namespace Common {
         void Set(int x, int y, T t);
     }
     public class QTree<T> : GridTree<T> {
-        T center;
-        Dictionary<(uint, uint), Section> q1, q2, q3, q4;
-        Dictionary<uint, Segment> xPositive, xNegative, yPositive, yNegative;
-        private uint level;
-        private uint scale;
+        public T center;
+        public Dictionary<(uint, uint), Section> q1, q2, q3, q4;
+        public Dictionary<uint, Segment> xPositive, xNegative, yPositive, yNegative;
+        public uint level;
+        public uint scale;
         public uint size => (uint)Math.Pow(scale, level);
         public QTree(uint level = 1, uint scale = 8) {
             q1 = new Dictionary<(uint, uint), Section>();
@@ -227,15 +227,15 @@ namespace Common {
             }
         }
 
-        interface Segment {
+        public interface Segment {
             T Get(uint i);
             ref T At(uint i);
             void Set(uint x, T t);
         }
-        class Strip : Segment {
-            private Dictionary<uint, Segment> segments;
+        public class Strip : Segment {
+            public Dictionary<uint, Segment> segments;
             public uint scale;
-            private uint level;
+            public uint level;
             public uint size => (uint)Math.Pow(scale, level);
             public Strip(uint level, uint scale = 8) {
                 segments = new Dictionary<uint, Segment>();
@@ -276,9 +276,9 @@ namespace Common {
                 }
             }
         }
-        class Slice : Segment {
-            private T[] items;
-            private uint scale;
+        public class Slice : Segment {
+            public T[] items;
+            public uint scale;
             public Slice(uint scale) {
                 this.scale = scale;
                 items = new T[scale];
@@ -294,15 +294,15 @@ namespace Common {
             }
         }
 
-        interface Section {
+        public interface Section {
             T Get(uint x, uint y);
             ref T At(uint x, uint y);
             void Set(uint x, uint y, T t);
         }
-        class Quadrant : Section {
-            private Dictionary<(uint, uint), Section> sections;
-            private uint scale;
-            private uint level;
+        public class Quadrant : Section {
+            public Dictionary<(uint, uint), Section> sections;
+            public uint scale;
+            public uint level;
             public uint size => (uint)Math.Pow(scale, level);
             public Quadrant(uint level, uint scale = 8) {
                 sections = new Dictionary<(uint, uint), Section>();
@@ -348,8 +348,8 @@ namespace Common {
             
         }
         class Leaf : Section {
-            private T[,] items;
-            private uint scale;
+            public T[,] items;
+            public uint scale;
             public Leaf(uint scale) {
                 this.scale = scale;
                 items = new T[scale, scale];

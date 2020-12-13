@@ -11,6 +11,8 @@ using SadRogue.Primitives;
 using System.Linq;
 using Newtonsoft.Json;
 using ASECII;
+using SadConsole.Input;
+using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     partial class TranscendenceRL {
@@ -39,6 +41,8 @@ namespace TranscendenceRL {
 		}
 
 		private static void Init() {
+
+            Directory.CreateDirectory("save");
 #if false
             GameHost.Instance.Screen = new BackdropConsole(Width, Height, new Backdrop(), () => new Common.XY(0.5, 0.5));
 			return;
@@ -46,29 +50,37 @@ namespace TranscendenceRL {
 			World w = new World();
 			w.types.Load("RogueFrontierContent/Main.xml");
 
+            Directory.CreateDirectory("crash");
+
+            return;
+
             var poster = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/RogueFrontierPoster.cg")));
-            
+
+            var title = new TitleSlideOpening(new TitleScreen(Width, Height, w)) { IsFocused = true };
+
             KeyConsole container = new KeyConsole(Width, Height, (k) => {
-                
-            });
+                if (k.IsKeyPressed(Keys.Enter)) {
+                    ShowTitle();
+                }
+            }) { IsFocused = true, UseKeyboard = true };
             GameHost.Instance.Screen = container;
             ShowSplash();
 
             void ShowSplash() {
                 SplashScreen c = null;
-                c = new SplashScreen(() => ShowPause(c)) { IsFocused = true };
+                c = new SplashScreen(() => ShowPause(c));
                 container.Children.Add(c);
             }
             void ShowPause(Console prev) {
                 Console c = null;
-                c = new PauseTransition(1, prev, () => ShowFade(c)) { IsFocused = true };
+                c = new PauseTransition(1, prev, () => ShowFade(c));
 
                 prev.Parent.Children.Add(c);
                 prev.Parent.Children.Remove(prev);
             }
             void ShowFade(Console prev) {
                 Console c = null;
-                c = new FadeOut(prev, () => ShowPoster(c), 1) { IsFocused = true };
+                c = new FadeOut(prev, () => ShowPoster(c), 1);
 
                 prev.Parent.Children.Add(c);
                 prev.Parent.Children.Remove(prev);
@@ -81,7 +93,7 @@ namespace TranscendenceRL {
 
                 //Note that FadeIn automatically replaces the child console
                 Console c = null;
-                c = new FadeIn(pause) { IsFocused = true };
+                c = new FadeIn(pause);
 
                 prev.Parent.Children.Add(c);
                 prev.Parent.Children.Remove(prev);
@@ -94,7 +106,7 @@ namespace TranscendenceRL {
             }
 
             void ShowTitle() {
-                var title = new TitleSlideOpening(new TitleScreen(Width, Height, w)) { IsFocused = true };
+                title.IsFocused = true;
                 GameHost.Instance.Screen = title;
             }
             //GameHost.Instance.Screen = new TitleDraw();

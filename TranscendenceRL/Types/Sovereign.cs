@@ -12,30 +12,44 @@ namespace TranscendenceRL {
         ConstructiveOrder, ConstructiveChaos, Neutral, DestructiveOrder, DestructiveChaos
     }
     public class Sovereign : DesignType {
+        public class AutoEnemySovereignSelf : IContainer<AutoSovereign> {
+            public Sovereign self;
+            public AutoEnemySovereignSelf(Sovereign self) {
+                this.self = self;
+            }
+            public AutoSovereign Value => s => s == self ? Disposition.Friend : Disposition.Enemy;
+        }
+        public class AutoEnemySovereign : IContainer<AutoSovereign> {
+            public AutoSovereign Value => s => Disposition.Enemy;
+        }
+        public class AutoEnemySpaceObject : IContainer<AutoSpaceObject> {
+            public AutoSpaceObject Value => s => Disposition.Enemy;
+        }
+
         public static readonly Sovereign Inanimate = new Sovereign() {
             alignment = Alignment.Neutral
         };
         public static readonly Sovereign Gladiator = new Sovereign() {
             codename = "sovereign_gladiator",
-            AutoSovereignDisposition = s => Disposition.Enemy,
-            AutoSpaceObjectDisposition = s => Disposition.Enemy
+            AutoSovereignDisposition = new AutoEnemySovereign(),
+            AutoSpaceObjectDisposition = new AutoEnemySpaceObject()
         };
         public static Sovereign SelfOnly => new Sovereign() {
             codename = "sovereign_self",
-            AutoSovereignDisposition = s => s == SelfOnly ? Disposition.Friend : Disposition.Enemy,
-            AutoSpaceObjectDisposition = s => Disposition.Enemy
+            AutoSovereignDisposition = new AutoEnemySovereignSelf(SelfOnly),
+            AutoSpaceObjectDisposition = new AutoEnemySpaceObject()
         };
 
 
 
         public string codename;
-        Alignment alignment;
+        public Alignment alignment;
         //private Sovereign parent;
 
-        private Dictionary<Sovereign, Disposition> sovDispositions;
-        private Dictionary<Entity, Disposition> entityDispositions;
-        public AutoSovereign AutoSovereignDisposition;
-        public AutoSpaceObject AutoSpaceObjectDisposition;
+        public Dictionary<Sovereign, Disposition> sovDispositions;
+        public Dictionary<Entity, Disposition> entityDispositions;
+        public IContainer<AutoSovereign> AutoSovereignDisposition;
+        public IContainer<AutoSpaceObject> AutoSpaceObjectDisposition;
 
         public static readonly Dictionary<Alignment, Dictionary<Alignment, Disposition>> dispositionTable = new Dictionary<Alignment, Dictionary<Alignment, Disposition>> {
             { ConstructiveOrder, new Dictionary<Alignment, Disposition>{
@@ -129,7 +143,7 @@ namespace TranscendenceRL {
         public bool IsFriend(SpaceObject other) => GetDisposition(other) == Disposition.Friend;
         public bool IsEnemy(SpaceObject other) => GetDisposition(other) == Disposition.Enemy;
         public Disposition GetAutoDisposition(Sovereign other) {
-            var d = AutoSovereignDisposition?.Invoke(other);
+            var d = AutoSovereignDisposition?.Value?.Invoke(other);
             if(d.HasValue) {
                 return d.Value;
             } else if (other == this) {
@@ -141,7 +155,7 @@ namespace TranscendenceRL {
             }
         }
         public Disposition GetAutoDisposition(SpaceObject other) {
-            return AutoSpaceObjectDisposition?.Invoke(other) ?? Disposition.Neutral;
+            return AutoSpaceObjectDisposition?.Value?.Invoke(other) ?? Disposition.Neutral;
         }
     }
     public enum Disposition {

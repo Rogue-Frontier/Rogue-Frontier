@@ -51,8 +51,8 @@ namespace TranscendenceRL {
         public XY Position { get; private set; }
         public XY Velocity { get; private set; }
         public bool Active { get; private set; }
-        private List<Segment> segments;
-        DamageSystem DamageSystem;
+        public List<Segment> segments;
+        public DamageSystem DamageSystem;
         public HashSet<Item> Items { get; private set; }
         public List<Weapon> weapons;
         public List<AIShip> guards;

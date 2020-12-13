@@ -125,12 +125,12 @@ namespace TranscendenceRL {
                     increment = 0;
                     break;
                 case AngleType.Equidistant:
-                    angle = lc.world.karma.Next(360);
+                    angle = lc.world.karma.NextInteger(360);
                     break;
                 case AngleType.Incrementing:
                     break;
                 case AngleType.Random:
-                    angle = lc.world.karma.Next(360);
+                    angle = lc.world.karma.NextInteger(360);
                     break;
             }
             foreach(var sub in subelements) {
@@ -151,7 +151,7 @@ namespace TranscendenceRL {
                         angle += increment;
                         break;
                     case AngleType.Random:
-                        angle = lc.world.karma.Next(360);
+                        angle = lc.world.karma.NextInteger(360);
                         break;
                 }
             }
@@ -197,7 +197,7 @@ namespace TranscendenceRL {
                     var pos = lc.pos + (new XY(x, y) - center);
 
                     var f = Color.LightBlue;
-                    f = f.Blend(Color.DarkBlue.SetAlpha((byte)r.Next(0, 153)));
+                    f = f.Blend(Color.DarkBlue.SetAlpha((byte)r.NextInteger(0, 153)));
                     f = f.Blend(Color.Gray.SetAlpha(102));
 
                     var tile = new ColoredGlyph(f, Color.Black, '%');
@@ -217,7 +217,7 @@ namespace TranscendenceRL {
                     var loc = r.NextDouble() * circ * (radius - 2);
                     var from = center + XY.Polar(loc % 2 * Math.PI, loc / circ);
                     var t = tiles[x, y];
-                    t.Foreground = t.Foreground.Blend(tiles[from.xi, from.yi].Foreground.SetAlpha((byte)r.Next(0, 51)));
+                    t.Foreground = t.Foreground.Blend(tiles[from.xi, from.yi].Foreground.SetAlpha((byte)r.NextInteger(0, 51)));
                 }
             }
             /*
@@ -257,6 +257,18 @@ namespace TranscendenceRL {
             subelements.ForEach(s => s.Generate(sub_lc, tc));
         }
     }
+    public class LightGenerator : IGridGenerator<Color> {
+        LocationContext lc;
+        int radius;
+        public LightGenerator(LocationContext lc, int radius) {
+            this.lc = lc;
+            this.radius = radius;
+        }
+        public Color Generate((int,int) p) {
+            //var xy = new XY(p);
+            return new Color(255, 255, 204, Math.Min(255, (int)(radius * 255 / ((lc.pos - p).Magnitude + 1))));
+        }
+    }
     public class SystemStar : SystemElement {
         private int radius;
         public SystemStar(XElement e) {
@@ -279,10 +291,7 @@ namespace TranscendenceRL {
                 }
             }
             */
-            lc.world.backdrop.starlight.layers.Insert(0, new GeneratedGrid<Color>(p => {
-                var xy = new XY(p);
-                return new Color(255, 255, 204, Math.Min(255, (int) (radius * 255 / ((lc.pos - p).Magnitude + 1))));
-            }));
+            lc.world.backdrop.starlight.layers.Insert(0, new GeneratedGrid<Color>(new LightGenerator(lc, radius)));
         }
     }
     public class SystemStation : SystemElement {

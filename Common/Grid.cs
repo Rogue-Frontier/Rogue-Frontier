@@ -1,4 +1,5 @@
-﻿using SadRogue.Primitives;
+﻿using Newtonsoft.Json;
+using SadRogue.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,11 @@ namespace Common {
 	public class XY {
 		public double x;
 		public double y;
+		[JsonIgnore]
 		public int xi { get => (int)x; set => x = value; }
+		[JsonIgnore]
 		public int yi { get => (int)y; set => y = value; }
+		[JsonIgnore]
 		public static readonly XY Zero = new XY(0, 0);
 		public XY() {
 			x = 0;
@@ -49,15 +53,21 @@ namespace Common {
 			x = (int)this.x;
 			y = (int)this.y;
 		}
+		[JsonIgnore]
 		public XY clone {
 			get => new XY(x, y);
 		}
 		public XY PlusX(double x) => new XY(this.x + x, y);
 		public XY PlusY(double y) => new XY(x, this.y + y);
+		[JsonIgnore]
 		public XY Abs => new XY(Math.Abs(xi), Math.Abs(yi));
+		[JsonIgnore]
 		public XY Truncate => new XY(xi, yi);
+		[JsonIgnore] 
 		public XY Round => new XY(Math.Round(x), Math.Round(y));
+		[JsonIgnore] 
 		public XY RoundDown => new XY(Math.Round(x, MidpointRounding.ToNegativeInfinity), Math.Round(y, MidpointRounding.ToNegativeInfinity));
+		[JsonIgnore] 
 		public XY RoundAway => new XY(Math.Round(x, MidpointRounding.AwayFromZero), Math.Round(y, MidpointRounding.AwayFromZero));
 
 		public static XY Polar(double angle, double magnitude = 1) {
@@ -68,12 +78,18 @@ namespace Common {
 		public static implicit operator (double, double)(XY p) => (p.x, p.y);
 
 		public double Dot(XY other) => x * other.x + y * other.y;
+		[JsonIgnore]
 		public bool IsZero => Magnitude < 0.1;
 		public XY Scale(XY origin, double scale) => (this - origin) * scale + origin;
+		[JsonIgnore] 
 		public double MaxCoord => Math.Max(Math.Abs(x), Math.Abs(y));
+		[JsonIgnore] 
 		public double Manhattan => Math.Abs(x) + Math.Abs(y);
+		[JsonIgnore] 
 		public double Magnitude => Math.Sqrt(x * x + y * y);
+		[JsonIgnore] 
 		public double Magnitude2 => (x * x + y * y);
+		[JsonIgnore]
 		public XY Normal {
 			get {
 				double magnitude = Magnitude;
@@ -84,6 +100,7 @@ namespace Common {
                 }
 			}
 		}
+		[JsonIgnore]
 		public double Angle => Math.Atan2(y, x);
 
 		public XY Rotate(double angle) {

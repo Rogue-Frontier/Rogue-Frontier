@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 
 namespace TranscendenceRL {
 	public class TypeCollection {
-		public Dictionary<string, XElement> sources;
+		private Dictionary<string, XElement> sources;
         public Dictionary<string, DesignType> all;
 		public Dictionary<string, GenomeType> genomeType;
 		public Dictionary<string, ImageType> imageType;
