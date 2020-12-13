@@ -20,16 +20,16 @@ namespace TranscendenceRL {
             tiles = new Dictionary<(int, int), ColoredGlyph>();
             screenCenter = new XY(Width / 2, Height / 2);
             var lines = new string[] {
-                @"             /^\          ",
-                @"        ___ / | \ ___     ",
-                @"       /___/__|__\___\    ",
-                @"    ___      | |      ___   ",
-                @"   /__ /\    | |    /\ __\  ",
-                @"     //  \   | |   /  \\    ",
-                @"    //  /^\  | |  /^\  \\   ",
-                @"   //    |   | |   |    \\  ",
-                @"  // ^   |   | |   |   ^ \\ ",
-                @" //  |   |   | |   |   |  \\",
+                @"             /^\             ",
+                @"        ___ / | \ ___        ",
+                @"       /___/__|__\___\       ",
+                @"    ___      | |      ___    ",
+                @"   /__ /\    | |    /\ __\   ",
+                @"     //  \   | |   /  \\     ",
+                @"    //  /^\  | |  /^\  \\    ",
+                @"   //    |   | |   |    \\   ",
+                @"  // ^   |   | |   |   ^ \\  ",
+                @" //  |   |   | |   |   |  \\ ",
                 @"||-------------------------||",
                 @"||  Triagony  Productions  ||",
                 @"||-------------------------||"
@@ -78,6 +78,7 @@ namespace TranscendenceRL {
         public override void Update(TimeSpan timeSpan) {
             tiles.Clear();
             World.UpdateAdded();
+            World.UpdateActive();
             World.UpdateActive();
             World.UpdateActive();
             World.UpdateActive();

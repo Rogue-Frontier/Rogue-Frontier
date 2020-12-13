@@ -34,11 +34,14 @@ namespace TranscendenceRL {
             AutoSovereignDisposition = new AutoEnemySovereign(),
             AutoSpaceObjectDisposition = new AutoEnemySpaceObject()
         };
-        public static Sovereign SelfOnly => new Sovereign() {
-            codename = "sovereign_self",
-            AutoSovereignDisposition = new AutoEnemySovereignSelf(SelfOnly),
-            AutoSpaceObjectDisposition = new AutoEnemySpaceObject()
-        };
+        public static Sovereign SelfOnly { get {
+                Sovereign s = new Sovereign() {
+                    codename = "sovereign_self",
+                    AutoSpaceObjectDisposition = new AutoEnemySpaceObject()
+                };
+                s.AutoSovereignDisposition = new AutoEnemySovereignSelf(s);
+                return s;
+        } }
 
 
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -19,8 +20,21 @@ namespace TranscendenceRL {
         }
     }
 
-    interface SaveGame {
+    public static class SaveGame {
         public static void PrepareConvert() {
+        }
+
+        public static bool TryDeserializeFile<T>(string file, out T result) {
+            if (File.Exists(file)) {
+                result = Deserialize<T>(file);
+                return true;
+            } else {
+                result = default(T);
+                return false;
+            }
+        }
+        public static void SerializeFile(this object o, string file) {
+            File.WriteAllText(file, Serialize(o));
         }
         public static string Serialize(object o) {
             PrepareConvert();

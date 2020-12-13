@@ -10,6 +10,7 @@ using static SadConsole.ColoredString;
 using SadConsole.UI;
 using SadConsole.Input;
 using System.Globalization;
+using System.IO;
 
 namespace Common {
     public static class Main {

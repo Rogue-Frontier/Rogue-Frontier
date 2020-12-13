@@ -10,25 +10,30 @@ using System.Linq;
 using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
-    class LoadScreen : Console {
-        TitleScreen prev;
+    class LoadMenu : Console {
         Settings settings;
-
-        public LoadScreen(TitleScreen prev, Settings settings, World World) : base(prev.Width, prev.Height) {
-            this.prev = prev;
+        public LoadMenu(int Width, int Height, Settings settings) : base(Width, Height) {
             this.settings = settings;
 
             UseKeyboard = true;
             FocusOnMouseClick = true;
 
-            int x = 3;
-            int y = 24;
+            Init();
+        }
+        public void Reset() {
+            Children.Clear();
+            Init();
+        }
+        public void Init() {
+            int x = 2;
+            int y = 0;
 
             var files = Directory.GetFiles($"{AppDomain.CurrentDomain.BaseDirectory}save", "*.trl");
             if (files.Any()) {
+                var dir = Path.GetFullPath(".");
                 foreach (var file in files) {
 
-                    var b = new LabelButton(file, () => {
+                    var b = new LabelButton(file.Replace(dir, null), () => {
                         var loaded = SaveGame.Deserialize(File.ReadAllText(file));
 
                         switch (loaded) {
@@ -38,29 +43,18 @@ namespace TranscendenceRL {
                                 GameHost.Instance.Screen = playerMain;
                                 break;
                         }
-                    }) { Position = new Point(x, y++) };
+                    }) { Position = new Point(x, y++), FontSize = FontSize * 2 };
                     Children.Add(b);
                 }
             } else {
-                Children.Add(new Label("No save files found") { Position = new Point(x, y++) });
+                Children.Add(new Label("No save files found") { Position = new Point(x, y++), FontSize = FontSize*2 });
             }
-
         }
         string GetLabel(ControlKeys control) => $"{control.ToString(),-16} {settings.controls[control].ToString(),-12}";
-        public override void Update(TimeSpan timeSpan) {
-            prev.Update(timeSpan);
-            base.Update(timeSpan);
-        }
-        public override void Render(TimeSpan drawTime) {
-            this.Clear();
-            prev.Render(drawTime);
-            base.Render(drawTime);
-        }
 
         public override bool ProcessKeyboard(Keyboard info) {
             if (info.IsKeyPressed(Keys.Escape)) {
-                SadConsole.Game.Instance.Screen = prev;
-                prev.IsFocused = true;
+                Parent.Children.Remove(this);
             }
             return base.ProcessKeyboard(info);
         }

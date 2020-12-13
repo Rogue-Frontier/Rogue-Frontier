@@ -16,6 +16,10 @@ using static TranscendenceRL.BaseShip;
 
 namespace TranscendenceRL {
     class TitleScreen : Console {
+
+        ConfigMenu config;
+        LoadMenu load;
+
         World World;
         
         string[] title = File.ReadAllText("RogueFrontierContent/Title.txt").Replace("\r\n", "\n").Split('\n');
@@ -39,58 +43,24 @@ namespace TranscendenceRL {
 
             camera = new XY(0, 0);
             tiles = new Dictionary<(int, int), ColoredGlyph>();
-            /*
-            {
-                var size = 20;
-                var y = (Height * 3) / 4;
-                var start = new Button(size, 1) {
-                    //Position = new Point((Width / 2) - (size / 2), y),
-                    Position = new Point(8, y),
-                    Text = "NEW GAME",
-                    Theme = BUTTON_THEME,
-                };
-                start.Click += (o, e) => StartGame();
-                Add(start);
-            }
-            {
-                var size = 20;
-                //var y = (Height * 3) / 4;
-                var y = (Height * 3) / 4 + 2;
-                var exit = new Button(size, 1) {
-                    //Position = new Point((Width * 3) / 4 - (size / 2), y),
-                    Position = new Point(8, y),
-                    Text = "EXIT",
-                    Theme = BUTTON_THEME
-                };
-                exit.Click += (o, e) => Exit();
-                Add(exit);
-            }
-.                         .
-.  [Enter]      Play      .
-.  [Shift + A]  Arena     .
-.  [Shift + C]  Controls  .
-.  [Escape]     Exit      .
-.                         .
-...........................
-            */
 
-            int x = 3;
-            int y = 16;
-            Children.Add(new LabelButton("[Enter]     Play Story Mode", StartGame) { Position = new Point(x, y++) });
-
-            Children.Add(new LabelButton("[Shift + A] Arena Mode", StartArena) { Position = new Point(x, y++) });
-            Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++) });
-            //Children.Add(new LabelButton("[Shift + L] Load Game", StartLoad) { Position = new Point(x, y++) });
-            Children.Add(new LabelButton("[Shift + S] Survival Mode", StartSurvival) { Position = new Point(x, y++) });
-            
-            Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++) });
+            int x = 2;
+            int y = 8;
+            Children.Add(new LabelButton("[Enter]     Play Story Mode", StartGame) { Position = new Point(x, y++), FontSize = FontSize * 2 });
+            Children.Add(new LabelButton("[Shift + A] Arena Mode", StartArena) { Position = new Point(x, y++), FontSize = FontSize*2 });
+            Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++), FontSize = FontSize * 2 });
+            Children.Add(new LabelButton("[Shift + L] Load Game", StartLoad) { Position = new Point(x, y++), FontSize = FontSize * 2 });
+            Children.Add(new LabelButton("[Shift + S] Survival Mode", StartSurvival) { Position = new Point(x, y++), FontSize = FontSize * 2 });
+            Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++), FontSize = FontSize * 2 });
 
             var f = "Settings.json";
             if(File.Exists(f)) {
-                settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(f));
+                settings = SaveGame.Deserialize<Settings>(File.ReadAllText(f));
             } else {
                 settings = new Settings();
             }
+            config = new ConfigMenu(48, 64, settings) { Position = new Point(0, 30) };
+            load = new LoadMenu(48, 64, settings) { Position = new Point(0, 30) };
         }
         private void StartGame() {
             SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, World, StartCrawl)) { IsFocused = true };
@@ -149,15 +119,19 @@ namespace TranscendenceRL {
                     
                     GameHost.Instance.Screen = new FlashTransition(Width, Height, crawl,
                         new Pause(1,
-                        new SimpleCrawl(Width, Height, "Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch
+                        new SimpleCrawl("Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch
                         {
                             1 => "Maybe history will remember.",
                             2 => "Tomorrow will be forever.",
                             3 => "Life runs short; hurry along now.",
                             _ => "Maybe all of it will have been for something.",
                         }),
-                        new FadeIn(new Pause(1, playerMain)
-                        )))) { IsFocused = true };
+                        () => {
+                            var c = new FadeIn(new Pause(1, playerMain));
+                            GameHost.Instance.Screen = c;
+                            c.IsFocused = true;
+                        }
+                        ) { Position = new Point(Width / 4, 8) })) { IsFocused = true };
                 }
             }
         }
@@ -166,10 +140,22 @@ namespace TranscendenceRL {
             SadConsole.Game.Instance.Screen = new ArenaScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov };
         }
         private void StartConfig() {
-            SadConsole.Game.Instance.Screen = new ConfigScreen(this, settings, World) { IsFocused = true };
+            Children.Remove(load);
+            if (Children.Contains(config)) {
+                Children.Remove(config);
+            } else {
+                Children.Add(config);
+                config.Reset();
+            }
         }
         private void StartLoad() {
-            SadConsole.Game.Instance.Screen = new LoadScreen(this, settings, World) { IsFocused = true };
+            Children.Remove(config);
+            if (Children.Contains(load)) {
+                Children.Remove(load);
+            } else {
+                Children.Add(load);
+                load.Reset();
+            }
         }
         private void StartSurvival() {
             SadConsole.Game.Instance.Screen = new PlayerCreator(this, World, CreateGame) { IsFocused = true };
@@ -372,7 +358,13 @@ namespace TranscendenceRL {
                 StartGame();
             }
             if (info.IsKeyPressed(Escape)) {
-                Exit();
+                if (Children.Contains(load)) {
+                    Children.Remove(load);
+                } else if (Children.Contains(config)) {
+                    Children.Remove(config);
+                } else {
+                    Exit();
+                }
             }
             if (info.IsKeyDown(LeftShift)) {
                 if (info.IsKeyPressed(A)) {

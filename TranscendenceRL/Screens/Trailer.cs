@@ -59,7 +59,7 @@ namespace TranscendenceRL {
             }
             void ShowPause(Console prev) {
                 Console c = null;
-                c = new PauseTransition(1, prev, () => ShowFade(c));
+                c = new PauseTransition(Width, Height, 1, prev, () => ShowFade(c));
 
                 prev.Parent.Children.Add(c);
                 prev.Parent.Children.Remove(prev);
@@ -75,7 +75,7 @@ namespace TranscendenceRL {
                 var display = new DisplayImage(Width, Height, poster, new Point(-5, -5));
 
                 Console pause = null;
-                pause = new PauseTransition(2, display, () => ShowPosterFade(pause));
+                pause = new PauseTransition(Width, Height, 2, display, () => ShowPosterFade(pause));
 
                 //Note that FadeIn automatically replaces the child console
                 Console c = null;

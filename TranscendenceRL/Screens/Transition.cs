@@ -286,7 +286,7 @@ namespace TranscendenceRL {
         Console prev;
         Action next;
         double time;
-        public PauseTransition(double time, Console prev, Action next) : base(prev.Width, prev.Height) {
+        public PauseTransition(int Width, int Height, double time, Console prev, Action next) : base(Width, Height) {
             this.FontSize = prev.FontSize;
             
             this.time = time;

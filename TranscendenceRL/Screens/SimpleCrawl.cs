@@ -14,14 +14,14 @@ using System.IO;
 
 namespace TranscendenceRL {
     class SimpleCrawl : Console {
-        private Console next;
+        private Action next;
         private readonly string text;
         bool speedUp;
         int index;
         int tick;
         double delay;
 
-        public SimpleCrawl(int Width, int Height, string text, Console next) : base(Width, Height) {
+        public SimpleCrawl(string text, Action next) : base(text.Split('\n').Max(l => l.Length), text.Split('\n').Length) {
             this.next = next;
             this.text = text;
             delay = 2;
@@ -39,22 +39,18 @@ namespace TranscendenceRL {
             } else if (delay > 0) {
                 delay -= time.TotalSeconds;
             } else {
-                SadConsole.Game.Instance.Screen = next;
-                next.IsFocused = true;
+                next();
             }
         }
         public override void Render(TimeSpan drawTime) {
             base.Render(drawTime);
             this.Clear();
 
-            int left = Width / 4,
-                top = 8,
-                x = left,
-                y = top;
-
+            int x = 0;
+            int y = 0;
             for(int i = 0; i < index; i++) {
                 if(text[i] == '\n') {
-                    x = left;
+                    x = 0;
                     y++;
                 } else {
                     this.SetCellAppearance(x, y, new ColoredGlyph(Color.White, Color.Black, text[i]));
