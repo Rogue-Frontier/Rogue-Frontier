@@ -69,7 +69,7 @@ namespace TranscendenceRL {
         public Rotating rotating;
         public double rotatingVel;
         public bool decelerating;
-
+        public BaseShip() { }
         public BaseShip(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.World = world;
             this.ShipClass = shipClass;

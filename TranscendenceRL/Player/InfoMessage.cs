@@ -18,6 +18,7 @@ namespace TranscendenceRL {
     public class Transmission : IPlayerMessage {
         public SpaceObject source;
         InfoMessage info;
+        public Transmission() { }
         public Transmission(SpaceObject source, ColoredString message, int updateInterval = 3) {
             this.source = source;
             this.info = new InfoMessage(message, updateInterval);
@@ -39,7 +40,7 @@ namespace TranscendenceRL {
         public int ticksRemaining;
         public int updateInterval;
         public int flashTicks;
-
+        public InfoMessage() { }
         public InfoMessage(string message) : this(new ColoredString(message, Color.White, Color.Black)) { }
         public InfoMessage(ColoredString message, int updateInterval = 3) {
             this.message = message;

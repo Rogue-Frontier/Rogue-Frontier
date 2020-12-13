@@ -41,6 +41,7 @@ namespace TranscendenceRL {
     public class ArmorDesc {
         public int maxHP;
         public Armor GetArmor(Item i) => new Armor(i, this);
+        public ArmorDesc() { }
         public ArmorDesc(XElement e) {
             maxHP = e.ExpectAttributeInt("maxHP");
         }
@@ -61,6 +62,7 @@ namespace TranscendenceRL {
         public CapacitorDesc capacitor;
 
         public Weapon GetWeapon(Item i) => new Weapon(i, this);
+        public WeaponDesc() { }
         public WeaponDesc(XElement e) {
             powerUse = e.ExpectAttributeInt(nameof(powerUse));
             fireCooldown = e.ExpectAttributeInt(nameof(fireCooldown));
@@ -84,6 +86,9 @@ namespace TranscendenceRL {
         public HashSet<FragmentDesc> fragments;
         public StaticTile effect;
         public TrailDesc trail;
+        public FragmentDesc() {
+
+        }
         public FragmentDesc(XElement e) {
             count = e.TryAttributeInt(nameof(count), 1);
             spreadAngle = e.TryAttributeDouble(nameof(spreadAngle), count == 1 ? 0 : 3) * Math.PI / 180;
@@ -104,6 +109,7 @@ namespace TranscendenceRL {
     public class TrailDesc {
         public int lifetime;
         public Color background;
+        public TrailDesc() { }
         public TrailDesc(XElement e) {
             lifetime = e.ExpectAttributeInt(nameof(lifetime));
             background = e.ExpectAttributeColor("background");
@@ -117,7 +123,7 @@ namespace TranscendenceRL {
         public double bonusSpeedPerCharge;
         public double bonusDamagePerCharge;
         public double bonusLifetimePerCharge;
-
+        public CapacitorDesc() { }
         public CapacitorDesc(XElement e) {
             dischargePerShot = e.ExpectAttributeDouble(nameof(dischargePerShot));
             chargePerTick = e.ExpectAttributeDouble(nameof(chargePerTick));
@@ -132,6 +138,7 @@ namespace TranscendenceRL {
         public int depletionDelay;
         public double hpPerSecond;
         public Shields GetShields(Item i) => new Shields(i, this);
+        public ShieldDesc() { }
         public ShieldDesc(XElement e) {
             maxHP = e.ExpectAttributeInt(nameof(maxHP));
             depletionDelay = e.ExpectAttributeInt(nameof(depletionDelay));
@@ -145,6 +152,7 @@ namespace TranscendenceRL {
         public bool battery;        //If true, then we recharge using power from other reactors when available
 
         public Reactor GetReactor(Item i) => new Reactor(i, this);
+        public ReactorDesc() { }
         public ReactorDesc(XElement e) {
             maxOutput = e.ExpectAttributeInt(nameof(maxOutput));
             capacity = e.ExpectAttributeInt(nameof(capacity));

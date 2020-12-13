@@ -24,16 +24,20 @@ namespace TranscendenceRL {
             int x = 3;
             int y = 24;
 
-            var files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.trl");
+            var files = Directory.GetFiles($"{AppDomain.CurrentDomain.BaseDirectory}save", "*.trl");
             if (files.Any()) {
                 foreach (var file in files) {
 
                     var b = new LabelButton(file, () => {
-                        var loaded = JsonConvert.DeserializeObject<Console>(File.ReadAllText(file));
+                        var loaded = SaveGame.Deserialize(File.ReadAllText(file));
 
-                        var c = loaded as Console;
-                        GameHost.Instance.Screen = c;
-                        c.IsFocused = true;
+                        switch (loaded) {
+                            case LiveGame live:
+                                var playerMain = new PlayerMain(Width, Height, live.world, live.playerShip) { IsFocused = true };
+                                live.playerShip.OnDestroyed += new EndGame(playerMain);
+                                GameHost.Instance.Screen = playerMain;
+                                break;
+                        }
                     }) { Position = new Point(x, y++) };
                     Children.Add(b);
                 }

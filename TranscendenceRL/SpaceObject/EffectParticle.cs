@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace TranscendenceRL {
     public class EffectParticle : Effect {
         public int Lifetime;
+        public EffectParticle() { }
         public EffectParticle(XY Position, ColoredGlyph Tile, int Lifetime) {
             this.Position = Position;
             this.Velocity = new XY();

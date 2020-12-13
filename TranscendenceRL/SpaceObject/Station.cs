@@ -21,6 +21,7 @@ namespace TranscendenceRL {
         public bool Active { get; private set; }
         public HashSet<Item> Items { get; private set; }
         public ColoredGlyph Tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.Tile.GlyphCharacter);
+        public Wreck() { }
         public Wreck(SpaceObject creator) {
             this.creator = creator;
             this.World = creator.World;
@@ -43,19 +44,21 @@ namespace TranscendenceRL {
         }
     }
     public class Station : SpaceObject, Dockable, ITrader {
-        public string Name => StationType.name;
-        public World World { get; private set; }
-        public StationType StationType { get; private set; }
 
-        public Sovereign Sovereign { get; private set; }
-        public XY Position { get; private set; }
-        public XY Velocity { get; private set; }
-        public bool Active { get; private set; }
+        public string Name => StationType.name;
+        public World World { get; set; }
+        public StationType StationType { get; set; }
+
+        public Sovereign Sovereign { get; set; }
+        public XY Position { get; set; }
+        public XY Velocity { get; set; }
+        public bool Active { get; set; }
         public List<Segment> segments;
         public DamageSystem DamageSystem;
-        public HashSet<Item> Items { get; private set; }
+        public HashSet<Item> Items { get; set; }
         public List<Weapon> weapons;
         public List<AIShip> guards;
+        public Station() { }
         public Station(World World, StationType Type, XY Position) {
             this.World = World;
             this.StationType = Type;
@@ -146,6 +149,7 @@ namespace TranscendenceRL {
         public Sovereign Sovereign => Parent.Sovereign;
         public SpaceObject Parent;
         public SegmentDesc desc;
+        public Segment() { }
         public Segment(SpaceObject Parent, SegmentDesc desc) {
             this.Parent = Parent;
             this.desc = desc;

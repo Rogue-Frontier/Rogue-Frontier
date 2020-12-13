@@ -84,6 +84,9 @@ namespace TranscendenceRL {
 		public class SegmentDesc {
 			public XY offset;
 			public StaticTile tile;
+			public SegmentDesc() {
+
+            }
 			public SegmentDesc(XY offset, StaticTile tile) {
 				this.offset = offset;
 				this.tile = tile;

@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using ASECII;
 using SadConsole.Input;
 using System.Threading.Tasks;
+using System;
 
 namespace TranscendenceRL {
     partial class TranscendenceRL {
@@ -50,9 +51,9 @@ namespace TranscendenceRL {
 			World w = new World();
 			w.types.Load("RogueFrontierContent/Main.xml");
 
-            Directory.CreateDirectory("crash");
+            var files = Directory.GetFiles($"{AppDomain.CurrentDomain.BaseDirectory}save", "*.trl");
+            SaveGame.Deserialize(File.ReadAllText(files.First()));
 
-            return;
 
             var poster = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/RogueFrontierPoster.cg")));
 

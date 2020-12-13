@@ -1,4 +1,5 @@
-﻿using Common;
+﻿using ASECII;
+using Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -9,7 +10,7 @@ using System.Linq;
 using System.Text;
 
 namespace TranscendenceRL {
-
+    
     //https://stackoverflow.com/a/18548894
     class WritablePropertiesOnlyResolver : DefaultContractResolver {
         protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization) {
@@ -23,11 +24,18 @@ namespace TranscendenceRL {
         }
         public static string Serialize(object o) {
             PrepareConvert();
+            STypeConverter.PrepareConvert();
             return JsonConvert.SerializeObject(o, settings);
         }
         public static T Deserialize<T>(string s) {
             PrepareConvert();
+            STypeConverter.PrepareConvert();
             return JsonConvert.DeserializeObject<T>(s, settings);
+        }
+        public static object Deserialize(string s) {
+            PrepareConvert();
+            STypeConverter.PrepareConvert();
+            return JsonConvert.DeserializeObject(s, settings);
         }
         public static readonly JsonSerializerSettings settings = new JsonSerializerSettings {
             PreserveReferencesHandling = PreserveReferencesHandling.Objects,

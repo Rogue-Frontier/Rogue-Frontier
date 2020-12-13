@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     class Heading : Effect {
-        IShip parent;
+        public IShip parent;
         public Heading(IShip parent) {
             this.parent = parent;
         }

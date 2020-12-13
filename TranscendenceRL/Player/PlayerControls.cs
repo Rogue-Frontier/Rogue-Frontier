@@ -2,6 +2,7 @@
 using SadConsole;
 using SadConsole.Input;
 using System.Linq;
+using TranscendenceRL.Screens;
 using static SadConsole.Input.Keys;
 using static TranscendenceRL.ControlKeys;
 using Helper = Common.Main;
@@ -24,13 +25,16 @@ namespace TranscendenceRL {
     }
     public class PlayerControls {
 		PlayerShip playerShip;
-		Console console;
-		Console powerMenu;
+		PlayerMain playerMain;
+		PowerMenu powerMenu;
+		PauseMenu pauseMenu;
+
 		Console sceneContainer;
-		public PlayerControls(PlayerShip playerShip, Console console, Console powerMenu, Console sceneContainer) {
+		public PlayerControls(PlayerShip playerShip, PlayerMain console, PowerMenu powerMenu, PauseMenu pauseMenu, Console sceneContainer) {
 			this.playerShip = playerShip;
-			this.console = console;
+			this.playerMain = console;
 			this.powerMenu = powerMenu;
+			this.pauseMenu = pauseMenu;
 			this.sceneContainer = sceneContainer;
         }
 		public void ProcessArrows(Keyboard info) {
@@ -103,9 +107,11 @@ namespace TranscendenceRL {
 
 				}
 			}
-
+			if(info.IsKeyPressed(Escape)) {
+				pauseMenu.IsVisible = true;
+			}
 			if (info.IsKeyPressed(controls[ShipMenu])) {
-				sceneContainer?.Children.Add(new SceneScan(new ShipScreen(console, playerShip)) { IsFocused = true });
+				sceneContainer?.Children.Add(new SceneScan(new ShipScreen(playerMain, playerShip)) { IsFocused = true });
 			}
 			if (info.IsKeyPressed(controls[Powers])) {
 				if(powerMenu != null)

@@ -67,6 +67,7 @@ namespace TranscendenceRL {
 	}
 	public class LayeredArmorDesc : DamageSystemDesc {
 		ArmorList armorList;
+		public LayeredArmorDesc() { }
 		public LayeredArmorDesc(XElement e) {
 			armorList = new ArmorList(e);
 		}
@@ -78,6 +79,7 @@ namespace TranscendenceRL {
 		public bool startingClass;
 		public string description;
 		public string[] map;
+		public PlayerSettings() { }
 		public PlayerSettings(XElement e) {
 			startingClass = e.ExpectAttributeBool("startingClass");
 			description = e.ExpectAttribute("description");

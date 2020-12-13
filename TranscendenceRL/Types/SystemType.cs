@@ -69,6 +69,7 @@ namespace TranscendenceRL {
     public class SystemGroup : SystemElement {
         int radius;
         List<SystemElement> subelements;
+        public SystemGroup() { }
         public SystemGroup(XElement e) {
             radius = e.TryAttributeInt(nameof(radius), 0);
             subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();

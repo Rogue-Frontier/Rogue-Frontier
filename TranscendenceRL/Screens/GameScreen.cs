@@ -35,12 +35,13 @@ namespace TranscendenceRL {
 		Keyboard keyboard;
 		MouseScreenObjectState mouse;
 
-		BackdropConsole back;
+		public BackdropConsole back;
 		MegaMap map;
 		PlayerBorder vignette;
 		public Console sceneContainer;
 		PlayerUI ui;
 		PowerMenu powerMenu;
+		PauseMenu pauseMenu;
 
 		TargetingMarker crosshair;
 
@@ -63,9 +64,10 @@ namespace TranscendenceRL {
 			sceneContainer.Focused += (e, o) => this.IsFocused = true;
 			ui = new PlayerUI(playerShip, tiles, Width, Height);
 			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
+			pauseMenu = new PauseMenu(this) { IsVisible = false };
 			crosshair = new TargetingMarker(playerShip, "Mouse Cursor", new XY());
 
-			this.playerControls = new PlayerControls(playerShip, this, powerMenu, sceneContainer);
+			this.playerControls = new PlayerControls(playerShip, this, powerMenu, pauseMenu, sceneContainer);
 
 			//Don't allow anyone to get focus via mouse click
 			FocusOnMouseClick = false;
@@ -137,7 +139,10 @@ namespace TranscendenceRL {
 
 			//If the player is in mortality, then slow down time
 			bool passTime = true;
-			if(playerShip.mortalTime > 0) {
+
+			if(pauseMenu.IsVisible) {
+				passTime = false;
+            }else if(playerShip.mortalTime > 0) {
 
 				//Note that while the world updates are slowed down, the game window actually updates faster since there's less work per frame
 				var timePassed = delta.TotalSeconds;
@@ -180,6 +185,7 @@ namespace TranscendenceRL {
 			vignette.Update(delta);
 			ui.Update(delta);
 			powerMenu.Update(delta);
+			pauseMenu.Update(delta);
 
 			//Required to update children
 			base.Update(delta);
@@ -190,7 +196,10 @@ namespace TranscendenceRL {
 			this.Clear();
 			DrawWorld();
 			base.Render(drawTime);
-			if (sceneContainer.Children.Count > 0) {
+			if(pauseMenu.IsVisible) {
+				vignette.Render(drawTime);
+				pauseMenu.Render(drawTime);
+			} else if (sceneContainer.Children.Count > 0) {
 				vignette.Render(drawTime);
 				sceneContainer.Render(drawTime);
 			} else {
@@ -232,7 +241,9 @@ namespace TranscendenceRL {
             }
 
 			//Intercept the alphanumeric/Escape keys if the power menu is active
-			if (powerMenu.IsVisible) {
+			if(pauseMenu.IsVisible) {
+				pauseMenu.ProcessKeyboard(info);
+            } else if (powerMenu.IsVisible) {
 				playerControls.ProcessArrows(info);
 				playerControls.ProcessTargeting(info);
 				powerMenu.ProcessKeyboard(info);
@@ -242,7 +253,11 @@ namespace TranscendenceRL {
 			return base.ProcessKeyboard(info);
 		}
 		public override bool ProcessMouse(MouseScreenObjectState state) {
-			if(sceneContainer.Children.Count > 0) {
+			if(pauseMenu.IsVisible) {
+				pauseMenu.ProcessMouseTree(state.Mouse);
+            } else if (powerMenu.IsVisible) {
+				powerMenu.ProcessMouseTree(state.Mouse);
+            } else if(sceneContainer.Children.Count > 0) {
 				sceneContainer.ProcessMouseTree(state.Mouse);
             } else if(state.IsOnScreenObject) {
 
@@ -326,7 +341,7 @@ namespace TranscendenceRL {
 		}
 	}
 
-	class BackdropConsole : Console {
+	public class BackdropConsole : Console {
 		public Func<XY> camera;
 		XY screenCenter;
 		Backdrop backdrop;

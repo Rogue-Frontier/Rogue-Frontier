@@ -13,6 +13,7 @@ namespace TranscendenceRL {
 	}
 	public class ShipList : ShipGenerator {
 		List<ShipGenerator> generators;
+		public ShipList() {}
 		public ShipList(XElement e) {
 			generators = new List<ShipGenerator>();
 			foreach (var element in e.Elements()) {
@@ -33,6 +34,7 @@ namespace TranscendenceRL {
 	}
 	public class ShipEntry : ShipGenerator {
 		public string codename;
+		public ShipEntry() { }
 		public ShipEntry(XElement e) {
 			this.codename = e.ExpectAttribute("codename");
 		}
@@ -56,6 +58,7 @@ namespace TranscendenceRL {
 	}
 	public class ArmorList : ArmorGenerator {
 		List<ArmorGenerator> generators;
+		public ArmorList() { }
 		public ArmorList(XElement e) {
 			generators = new List<ArmorGenerator>();
 			foreach (var element in e.Elements()) {
@@ -76,6 +79,7 @@ namespace TranscendenceRL {
 	}
 	public class ArmorEntry : ArmorGenerator {
 		public string codename;
+		public ArmorEntry() { }
 		public ArmorEntry(XElement e) {
 			this.codename = e.ExpectAttribute("codename");
 		}

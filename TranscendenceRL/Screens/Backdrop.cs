@@ -67,6 +67,7 @@ namespace TranscendenceRL {
     public class GridLayer : ILayer {
         public double parallaxFactor { get; private set; }
         public Dictionary<(int, int), ColoredGlyph> tiles;
+        public GridLayer() { }
         public GridLayer(double parallaxFactor) {
             this.parallaxFactor = parallaxFactor;
             this.tiles = new Dictionary<(int, int), ColoredGlyph>();
@@ -78,6 +79,7 @@ namespace TranscendenceRL {
     }
     public class CompositeLayer : ILayer {
         public List<ILayer> layers = new List<ILayer>();
+        public CompositeLayer() { }
         public Color GetBackgroundFixed(XY point) => GetBackground(point, XY.Zero);
         public Color GetBackground(XY point, XY camera) {
             Color result = Color.Black;
@@ -114,6 +116,7 @@ namespace TranscendenceRL {
 
     public class CompositeColorLayer {
         public List<GeneratedGrid<Color>> layers = new List<GeneratedGrid<Color>>();
+        public CompositeColorLayer() { }
         public Color GetBackground(XY point, XY camera) {
             Color result = Color.Black;
             foreach (var layer in layers) {
@@ -141,6 +144,7 @@ namespace TranscendenceRL {
     public class SpaceGenerator : IGridGenerator<ColoredGlyph> {
         public GeneratedLayer layer;
         public Rand random;
+        public SpaceGenerator() { }
         public SpaceGenerator(GeneratedLayer layer, Rand random) {
             this.layer = layer;
             this.random = random;
@@ -185,6 +189,7 @@ namespace TranscendenceRL {
     public class GeneratedLayer : ILayer {
         public double parallaxFactor { get; private set; }                   //Multiply the camera by this value
         public GeneratedGrid<ColoredGlyph> tiles;  //Dynamically generated grid of tiles
+        public GeneratedLayer() { }
         public GeneratedLayer(double parallaxFactor, GeneratedGrid<ColoredGlyph> tiles) {
             this.parallaxFactor = parallaxFactor;
             this.tiles = tiles;

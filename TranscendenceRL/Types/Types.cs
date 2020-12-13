@@ -228,6 +228,8 @@ namespace TranscendenceRL {
 	}
 	public class StaticTile {
 		public ColoredGlyph Glyph { get; private set; }
+		public StaticTile() {
+        }
 		public StaticTile(XElement e) {
 			char c = e.TryAttributeChar("char", '?');
 			Color foreground = e.TryAttributeColor("foreground", Color.White);
