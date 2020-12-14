@@ -99,7 +99,11 @@ namespace TranscendenceRL {
 
 					playerShip.Dock = null;
 				} else {
-					var dest = playerShip.World.entities.GetAll(p => (playerShip.Position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.Position - playerShip.Position).Magnitude).FirstOrDefault();
+					Dockable dest = null;
+					if(playerShip.GetTarget(out var t) && (playerShip.Position - t.Position).Magnitude < 8 && t is Dockable d) {
+						dest = d;
+                    }
+					dest = dest ?? playerShip.World.entities.GetAll(p => (playerShip.Position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.Position - playerShip.Position).Magnitude).FirstOrDefault();
 					if (dest != null) {
 						playerShip.AddMessage(new InfoMessage("Docking sequence engaged"));
 						playerShip.Dock = new Docking(dest);
