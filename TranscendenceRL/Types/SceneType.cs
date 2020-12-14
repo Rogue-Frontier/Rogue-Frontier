@@ -147,6 +147,7 @@ namespace TranscendenceRL {
 
         Dictionary<char, int> keyMap;
 
+        bool allowEnter;
         bool prevEnter;
         bool enter;
 
@@ -284,18 +285,21 @@ namespace TranscendenceRL {
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
             prevEnter = enter;
-            if(keyboard.IsKeyPressed(Keys.Enter)) {
-                if(descIndex < desc.Length - 1) {
+            enter = keyboard.IsKeyDown(Keys.Enter);
+            if (enter) {
+                if (descIndex < desc.Length - 1) {
                     descIndex = desc.Length - 1;
-                }
-                enter = true;
-            } else if(keyboard.IsKeyDown(Keys.Enter)) {
-                if (descIndex == desc.Length) {
+                    allowEnter = false;
+                } else if (allowEnter) {
                     charging = true;
                 }
-                enter = true;
+            } else if (allowEnter) {
+                if (keyboard.IsKeyDown(Keys.Right)) {
+                    enter = true;
+                    charging = true;
+                }
             } else {
-                enter = false;
+                allowEnter = true;
             }
 
             foreach(var c in keyboard.KeysDown.Select(k => k.Character).Where(c => char.IsLetterOrDigit(c)).Select(c => char.ToUpper(c))) {
