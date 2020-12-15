@@ -43,11 +43,11 @@ namespace TranscendenceRL {
                                 GameHost.Instance.Screen = playerMain;
                                 break;
                         }
-                    }) { Position = new Point(x, y++), FontSize = FontSize * 2 };
+                    }) { Position = new Point(x, y++), FontSize = FontSize };
                     Children.Add(b);
                 }
             } else {
-                Children.Add(new Label("No save files found") { Position = new Point(x, y++), FontSize = FontSize*2 });
+                Children.Add(new Label("No save files found") { Position = new Point(x, y++), FontSize = FontSize });
             }
         }
         string GetLabel(ControlKeys control) => $"{control.ToString(),-16} {settings.controls[control].ToString(),-12}";

@@ -8,12 +8,15 @@ using Console = SadConsole.Console;
 using SadRogue.Primitives;
 using System.IO;
 using ASECII;
+using Common;
 
 namespace TranscendenceRL {
     public class PauseMenu : Console {
-        PlayerMain playerMain;
+        public PlayerMain playerMain;
+        public SparkleFilter sparkle;
         public PauseMenu(PlayerMain playerMain) : base(playerMain.Width, playerMain.Height) {
             this.playerMain = playerMain;
+            this.sparkle = new SparkleFilter(Width, Height);
 
             int x = 2;
             int y = 2;
@@ -27,30 +30,24 @@ namespace TranscendenceRL {
             this.Children.Add(new LabelButton("Save & Continue", SaveContinue) { Position = new Point(x, y++), FontSize = fs });
             y++;
             this.Children.Add(new LabelButton("Save & Quit", SaveQuit) { Position = new Point(x, y++), FontSize = fs });
+            y++;
+            y++;
+            y++;
+            this.Children.Add(new LabelButton("Delete & Quit", Quit) { Position = new Point(x, y++), FontSize = fs });
+        }
+        public override void Update(TimeSpan delta) {
+            sparkle.Update();
+            base.Update(delta);
         }
         public override void Render(TimeSpan delta) {
             this.Clear();
+
+            var c = new ConsoleComposite(playerMain.back, playerMain);
             for (int y = 0; y < Height; y++) {
                 for (int x = 0; x < Width; x++) {
-                    var cg = playerMain.GetCellAppearance(x, y);
-
-
-                    var cgBack = playerMain.back.GetCellAppearance(x, y);
-
-                    var glyph = cgBack.Glyph;
-                    var front = cgBack.Foreground.Blend(Color.Black);
-                    if(cg.Glyph != 0 && cg.Glyph != ' ') {
-                        glyph = cg.Glyph;
-                        front = cg.Foreground.Blend(front);
-                    }
-                    front = front.SetHSL(0, 0, front.GetBrightness());
-
-
-                    var back = cgBack.Background.Blend(Color.Black);
-                    back = cg.Background.Blend(back);
-                    back = back.SetHSL(0, 0, back.GetBrightness());
-
-                    this.SetCellAppearance(x, y, new ColoredGlyph(front, back, glyph));
+                    var cg = c[x, y].Gray();
+                    sparkle.Filter(x, y, ref cg);
+                    this.SetCellAppearance(x, y, cg);
                 }
             }
             base.Render(delta);
@@ -77,6 +74,10 @@ namespace TranscendenceRL {
         }
         public void SaveQuit() {
             Save();
+            Quit();
+        }
+
+        public void Quit() {
             GameHost.Instance.Screen = new TitleScreen(playerMain.Width, playerMain.Height, playerMain.World);
         }
     }

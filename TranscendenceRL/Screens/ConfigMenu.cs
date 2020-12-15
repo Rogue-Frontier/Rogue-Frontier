@@ -44,7 +44,7 @@ namespace TranscendenceRL.Screens {
                     ResetLabel();
                     currentSet = c;
                     b.text = $"{control.ToString(),-16} {"[Press Key]",-12}";
-                }) { Position = new Point(x, y++), FontSize = FontSize * 2 };
+                }) { Position = new Point(x, y++), FontSize = FontSize };
 
                 buttons[control] = b;
                 Children.Add(b);

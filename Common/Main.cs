@@ -115,6 +115,10 @@ namespace Common {
 			return new Color(Math.Min(c.R, max),Math.Min(c.G,max), Math.Min(c.B, max));
 		}
 		public static Color Gray(int value) => new Color(value, value, value, 255);
+		public static Color Gray(this Color c) => Color.FromHSL(0, 0, c.GetBrightness());
+		public static ColoredGlyph Gray(this ColoredGlyph cg) => new ColoredGlyph(cg.Foreground.Gray(), cg.Background.Gray(), cg.Glyph);
+
+
 		public static Color WithValues(this Color c, int? red = null, int? green = null, int? blue = null, int? alpha = null) {
 			return new Color(red ?? c.R, green ?? c.G, blue ?? c.B, alpha ?? c.A);
 		}

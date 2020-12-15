@@ -32,7 +32,11 @@ namespace TranscendenceRL {
                 playerShip.AddMessage(new InfoMessage("A vision of disaster flashes before your eyes"));
                 world.entities.all.Add(playerShip);
                 world.effects.all.Add(new Heading(playerShip));
-                SadConsole.Game.Instance.Screen = new TitleSlideOpening(new Pause(playerMain)) { IsFocused = true };
+                GameHost.Instance.Screen = new TitleSlideOpening(new Pause(playerMain, Resume, 4)) { IsFocused = true };
+                void Resume() {
+                    GameHost.Instance.Screen = playerMain;
+                    playerMain.IsFocused = true;
+                }
             }) { Position = new Point(Width - 16, Height - 4) });
 
             this.Children.Add(new LabelButton("Title Screen", () => {

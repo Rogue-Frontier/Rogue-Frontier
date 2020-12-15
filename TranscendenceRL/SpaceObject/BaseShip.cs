@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TranscendenceRL.Types;
 using static TranscendenceRL.BaseShip;
+using Newtonsoft.Json;
 
 namespace TranscendenceRL {
     public enum Rotating {
@@ -32,8 +33,9 @@ namespace TranscendenceRL {
         Docking Dock { get; set; }
     }
     public class BaseShip : SpaceObject {
+        [JsonIgnore]
         public static BaseShip dead => new BaseShip(World.empty, ShipClass.empty, Sovereign.Gladiator, XY.Zero) { Active = false };
-
+        [JsonIgnore]
         public string Name => ShipClass.name;
         public World World { get; private set; }
         public ShipClass ShipClass { get; private set; }
@@ -52,11 +54,12 @@ namespace TranscendenceRL {
         public FuncSet<IContainer<Destroyed>> OnDestroyed = new FuncSet<IContainer<Destroyed>>();
 
         public double rotationDegrees { get; set; }
+        [JsonIgnore]
         public double stoppingRotation { get {
                 var stoppingTime = TranscendenceRL.TICKS_PER_SECOND * Math.Abs(rotatingVel) / (ShipClass.rotationDecel);
                 return rotationDegrees + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
         }}
-
+        [JsonIgnore]
         public double stoppingRotationWithCounterTurn {
             get {
                 var stoppingRate = ShipClass.rotationDecel + ShipClass.rotationAccel;
@@ -229,21 +232,33 @@ namespace TranscendenceRL {
     public class AIShip : IShip {
         public static int ID = 0;
         public int Id = ID++;
+
+        [JsonIgnore]
         public string Name => Ship.Name;
+        [JsonIgnore]
         public World World => Ship.World;
+        [JsonIgnore] 
         public ShipClass ShipClass => Ship.ShipClass;
+        [JsonIgnore] 
         public Sovereign Sovereign => Ship.Sovereign;
+        [JsonIgnore] 
         public XY Position { get => Ship.Position; set => Ship.Position = value; }
+        [JsonIgnore] 
         public XY Velocity { get => Ship.Velocity; set => Ship.Velocity = value; }
+        [JsonIgnore] 
         public double rotationDegrees => Ship.rotationDegrees;
+        [JsonIgnore] 
         public DeviceSystem Devices => Ship.Devices;
 
+        [JsonIgnore] 
         public DamageSystem DamageSystem => Ship.DamageSystem;
 
         public BaseShip Ship;
         public Order controller;
         public Docking Dock { get; set; }
+        [JsonIgnore] 
         public Rand destiny => Ship.destiny;
+        [JsonIgnore] 
         public double stoppingRotation => Ship.stoppingRotation;
 
         public AIShip(BaseShip ship, Order controller) {
@@ -273,7 +288,9 @@ namespace TranscendenceRL {
             //In case someone other than us needs to know who we are through our devices
             Ship.Devices.Update(this);
         }
+        [JsonIgnore] 
         public bool Active => Ship.Active;
+        [JsonIgnore] 
         public ColoredGlyph Tile => Ship.Tile;
     }
 
@@ -292,14 +309,23 @@ namespace TranscendenceRL {
     }
     public class PlayerShip : IShip {
         public Player player;
+        [JsonIgnore] 
         public string Name => Ship.Name;
+        [JsonIgnore] 
         public World World => Ship.World;
+        [JsonIgnore] 
         public ShipClass ShipClass => Ship.ShipClass;
+        [JsonIgnore] 
         public Sovereign Sovereign => Ship.Sovereign;
+        [JsonIgnore] 
         public XY Position { get => Ship.Position; set => Ship.Position = value; }
+        [JsonIgnore] 
         public XY Velocity { get => Ship.Velocity; set => Ship.Velocity = value; }
+        [JsonIgnore] 
         public double rotationDegrees => Ship.rotationDegrees;
+        [JsonIgnore] 
         public double stoppingRotation => Ship.stoppingRotation;
+        [JsonIgnore] 
         public HashSet<Item> Items => Ship.Items;
 
         public int targetIndex = -1;
@@ -312,6 +338,7 @@ namespace TranscendenceRL {
         public int mortalChances = 3;
         public double mortalTime = 0;
 
+        [JsonIgnore] 
         public DeviceSystem Devices => Ship.Devices;
         public BaseShip Ship;
         public EnergySystem Energy;
@@ -637,7 +664,9 @@ namespace TranscendenceRL {
                 Messages.Add(message);
             }
         }
+        [JsonIgnore]
         public bool Active => Ship.Active;
+        [JsonIgnore]
         public ColoredGlyph Tile => Ship.Tile;
     }
 }
