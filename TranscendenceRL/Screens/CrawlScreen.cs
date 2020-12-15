@@ -15,8 +15,6 @@ using CloudJumper;
 
 namespace TranscendenceRL {
     class CrawlScreen : Console {
-        Action next;
-
         private readonly ColorImage[] images = {
             new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/NewEra.cg"))),
             new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/PillarsOfCreation.cg")))
@@ -41,14 +39,15 @@ in the Galactic Core are worthy
 of witnessing the After World...",
 
 @"Somehow,    
-I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArray();
-
-        int part;
+I know it was much more than a dream." }.Select(line => line.Replace("\r", "")).ToArray();
 
         //to do: website
         //to do: portraits
         //to do: demo
         //to do: crawl images
+
+        public Func<Console> next;
+
         private int lines;
         int sectionNumber;
         int sectionIndex;
@@ -57,15 +56,15 @@ I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArr
         int backgroundSlideX;
 
         bool speedUp;
-        LoadingSymbol loading;
-        int loadingTicks = 150 * 0;
+
+        LoadingSymbol spinner;
 
         ColoredString[] effect;
 
         List<CloudParticle> clouds;
 
         Random random = new Random();
-        public CrawlScreen(int width ,int height, Action next) : base(width, height) {
+        public CrawlScreen(int width, int height, Func<Console> next) : base(width, height) {
             this.next = next;
 
             backgroundSlideX = Width;
@@ -83,9 +82,8 @@ I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArr
                 for(int x = 0; x < effectWidth; x++) {
                     effect[y][x] = GetGlyph(x, y);
                 }
-
             }
-
+            spinner = new LoadingSymbol(16);
             clouds = new List<CloudParticle>();
 
             Color Front(int value) {
@@ -114,13 +112,13 @@ I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArr
             }
         }
         public override void Update(TimeSpan time) {
-            if(backgroundSlideX < Width) {
+            if (backgroundSlideX < Width) {
                 tick++;
                 if (tick % 2 == 0) {
                     backgroundSlideX++;
                 }
                 UpdateClouds();
-            } else if(sectionNumber < text.Length) {
+            } else if (sectionNumber < text.Length) {
                 if (sectionIndex < text[sectionNumber].Length) {
                     tick++;
                     //Scroll text
@@ -133,14 +131,12 @@ I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArr
                     sectionIndex = 0;
                     backgroundSlideX = 0;
                 }
-            } else if (loading == null) {
-                loading = new LoadingSymbol(16);
-            } else if(loadingTicks > 0) {
-                loading.Update();
-                loadingTicks--;
             } else {
-                loading = null;
-                next();
+                var c = next();
+                if(c != null) {
+                    GameHost.Instance.Screen = c;
+                    c.IsFocused = true;
+                }
             }
 
             void UpdateClouds() {
@@ -215,6 +211,12 @@ I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArr
                                 this.Print(p.x, p.y, t);
                             }
                         }
+                        var b = new ColoredGlyph(Color.Black, Color.Black, 0);
+                        foreach ((var p, var t) in images[1].Sprite
+                            .Where(p => p.Key.x < backgroundSlideX && p.Key.y > topEdge && p.Key.y < bottomEdge)) {
+
+                            this.Print(p.x, p.y, b);
+                        }
                         break;
                     }
             }
@@ -275,27 +277,15 @@ I know it was more than a dream." }.Select(line => line.Replace("\r", "")).ToArr
                 }
             }
 
-            //Show loading circle
-            if (loading != null) {
-                var symbol = loading.Draw();
+            {
+                var symbol = spinner.Draw();
                 int symbolX = Width - symbol[0].Count;
                 int symbolY = Height - symbol.Length;
                 foreach (var line in symbol) {
                     this.Print(symbolX, symbolY, line);
                     symbolY++;
                 }
-
-                this.Print(0, Height - 1, "[Creating Game...]");
-            } else {
-                if(speedUp) {
-                    this.Print(0, Height - 1, "[Press Enter again to skip intro]");
-                } else {
-                    this.Print(0, Height - 1, "[Press Enter to speed up intro]");
-                }
-                
             }
-            
-
             base.Render(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {

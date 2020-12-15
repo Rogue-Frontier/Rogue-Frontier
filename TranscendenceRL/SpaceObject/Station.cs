@@ -9,9 +9,11 @@ using System.Threading.Tasks;
 using TranscendenceRL;
 using static TranscendenceRL.StationType;
 using Console = SadConsole.Console;
+using Newtonsoft.Json;
 
 namespace TranscendenceRL {
     public class Wreck : Dockable {
+        [JsonIgnore]
         public string Name => $"Wreck of {creator.Name}";
         public SpaceObject creator;
         public World World { get; private set; }
@@ -20,6 +22,7 @@ namespace TranscendenceRL {
         public XY Velocity { get; private set; }
         public bool Active { get; private set; }
         public HashSet<Item> Items { get; private set; }
+        [JsonIgnore]
         public ColoredGlyph Tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.Tile.GlyphCharacter);
         public Wreck() { }
         public Wreck(SpaceObject creator) {
@@ -44,7 +47,7 @@ namespace TranscendenceRL {
         }
     }
     public class Station : SpaceObject, Dockable, ITrader {
-
+        [JsonIgnore]
         public string Name => StationType.name;
         public World World { get; set; }
         public StationType StationType { get; set; }
@@ -142,10 +145,15 @@ namespace TranscendenceRL {
     }
     public class Segment : SpaceObject {
         //The segment essentially impersonates its parent station but with a different tile
+        [JsonIgnore]
         public string Name => Parent.Name;
+        [JsonIgnore] 
         public World World => Parent.World;
+        [JsonIgnore] 
         public XY Position => Parent.Position + desc.offset;
+        [JsonIgnore] 
         public XY Velocity => Parent.Velocity;
+        [JsonIgnore] 
         public Sovereign Sovereign => Parent.Sovereign;
         public SpaceObject Parent;
         public SegmentDesc desc;
@@ -154,12 +162,14 @@ namespace TranscendenceRL {
             this.Parent = Parent;
             this.desc = desc;
         }
-        
+
+        [JsonIgnore] 
         public bool Active => Parent.Active;
         public void Damage(SpaceObject source, int hp) => Parent.Damage(source, hp);
         public void Destroy(SpaceObject source) => Parent.Destroy(source);
         public void Update() {
         }
+        [JsonIgnore] 
         public ColoredGlyph Tile => desc.tile.Glyph;
     }
 }

@@ -54,8 +54,8 @@ namespace TranscendenceRL {
         public static readonly JsonSerializerSettings settings = new JsonSerializerSettings {
             PreserveReferencesHandling = PreserveReferencesHandling.Objects,
             TypeNameHandling = TypeNameHandling.All,
-            ReferenceLoopHandling = ReferenceLoopHandling.Error,
-            ContractResolver = new WritablePropertiesOnlyResolver()
+            ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+            //ContractResolver = new WritablePropertiesOnlyResolver()
         };
     }
     class LiveGame {

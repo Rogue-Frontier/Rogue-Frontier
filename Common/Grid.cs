@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace Common {
+	[JsonObject(MemberSerialization.OptIn)]
 	public class XY {
+		[JsonProperty]
 		public double x;
+		[JsonProperty]
 		public double y;
 		[JsonIgnore]
 		public int xi { get => (int)x; set => x = value; }

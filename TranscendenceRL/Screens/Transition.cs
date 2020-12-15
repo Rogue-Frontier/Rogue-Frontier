@@ -257,16 +257,13 @@ namespace TranscendenceRL {
     }
 
     public class Pause : Console {
-        Console next;
+        Action next;
+        Console background;
         double time;
-        public Pause(double time, Console next) : base(next.Width, next.Height) {
-            this.time = 5;
-            this.next = next;
-            Render(new TimeSpan());
-        }
-        public Pause(Console next, int time = 5) : base(next.Width, next.Height) {
-            this.next = next;
+        public Pause(Console background, Action next, int time = 5) : base(background.Width, background.Height) {
+            this.background = background;
             this.time = time;
+            this.next = next;
             Render(new TimeSpan());
         }
         public override void Update(TimeSpan delta) {
@@ -274,12 +271,11 @@ namespace TranscendenceRL {
             if (time > 0) {
                 time -= delta.TotalSeconds;
             } else {
-                SadConsole.Game.Instance.Screen = next;
-                next.IsFocused = true;
+                next();
             }
         }
         public override void Render(TimeSpan delta) {
-            next.Render(delta);
+            background.Render(delta);
         }
     }
     public class PauseTransition : Console {

@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using TranscendenceRL.Screens;
 using ArchConsole;
 using static TranscendenceRL.BaseShip;
+using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     class TitleScreen : Console {
@@ -45,13 +46,14 @@ namespace TranscendenceRL {
             tiles = new Dictionary<(int, int), ColoredGlyph>();
 
             int x = 2;
-            int y = 8;
-            Children.Add(new LabelButton("[Enter]     Play Story Mode", StartGame) { Position = new Point(x, y++), FontSize = FontSize * 2 });
-            Children.Add(new LabelButton("[Shift + A] Arena Mode", StartArena) { Position = new Point(x, y++), FontSize = FontSize*2 });
-            Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++), FontSize = FontSize * 2 });
-            Children.Add(new LabelButton("[Shift + L] Load Game", StartLoad) { Position = new Point(x, y++), FontSize = FontSize * 2 });
-            Children.Add(new LabelButton("[Shift + S] Survival Mode", StartSurvival) { Position = new Point(x, y++), FontSize = FontSize * 2 });
-            Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++), FontSize = FontSize * 2 });
+            int y = 16;
+            var fs = FontSize * 1;
+            Children.Add(new LabelButton("[Enter]     Play Story Mode", StartGame) { Position = new Point(x, y++), FontSize = fs });
+            Children.Add(new LabelButton("[Shift + A] Arena Mode", StartArena) { Position = new Point(x, y++), FontSize = fs });
+            Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++), FontSize = fs });
+            Children.Add(new LabelButton("[Shift + L] Load Game", StartLoad) { Position = new Point(x, y++), FontSize = fs });
+            Children.Add(new LabelButton("[Shift + S] Survival Mode", StartSurvival) { Position = new Point(x, y++), FontSize = fs });
+            Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++), FontSize = fs });
 
             var f = "Settings.json";
             if(File.Exists(f)) {
@@ -59,8 +61,8 @@ namespace TranscendenceRL {
             } else {
                 settings = new Settings();
             }
-            config = new ConfigMenu(48, 64, settings) { Position = new Point(0, 30) };
-            load = new LoadMenu(48, 64, settings) { Position = new Point(0, 30) };
+            config = new ConfigMenu(48, 64, settings) { Position = new Point(0, 30), FontSize= fs };
+            load = new LoadMenu(48, 64, settings) { Position = new Point(0, 30), FontSize = fs };
         }
         private void StartGame() {
             SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, World, StartCrawl)) { IsFocused = true };
@@ -83,10 +85,13 @@ namespace TranscendenceRL {
                 var playerClass = playable[index];
 
                 CrawlScreen crawl = null;
-                crawl = new CrawlScreen(Width, Height, StartWorld) { IsFocused = true };
+                crawl = new CrawlScreen(Width, Height, () => null) { IsFocused = true };
                 SadConsole.Game.Instance.Screen = crawl;
 
-                void StartWorld() {
+                Task.Run(CreateWorld);
+
+
+                void CreateWorld() {
 
                     //Name is seed
                     var seed = player.name.GetHashCode();
@@ -104,11 +109,14 @@ namespace TranscendenceRL {
                     World.AddEffect(new Heading(playerShip));
                     World.AddEntity(playerShip);
 
+                    /*
                     File.WriteAllText(file, JsonConvert.SerializeObject(new LiveGame() {
                         player = player,
                         world = World,
                         playerShip = playerShip
                     }, SaveGame.settings));
+                    */
+
 
                     var playerMain = new PlayerMain(Width, Height, World, playerShip);
                     playerShip.OnDestroyed += new EndGame(playerMain);
@@ -116,22 +124,32 @@ namespace TranscendenceRL {
                     playerMain.Update(new TimeSpan());
                     playerMain.PlaceTiles();
                     playerMain.DrawWorld();
-                    
-                    GameHost.Instance.Screen = new FlashTransition(Width, Height, crawl,
-                        new Pause(1,
-                        new SimpleCrawl("Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch
-                        {
-                            1 => "Maybe history will remember.",
-                            2 => "Tomorrow will be forever.",
-                            3 => "Life runs short; hurry along now.",
-                            _ => "Maybe all of it will have been for something.",
-                        }),
-                        () => {
-                            var c = new FadeIn(new Pause(1, playerMain));
-                            GameHost.Instance.Screen = c;
-                            c.IsFocused = true;
+
+
+                    crawl.next=() => (new FlashTransition(Width, Height, crawl, Transition));
+
+                    void Transition() {
+                        GameHost.Instance.Screen = new Pause(GameHost.Instance.Screen,Transition2, 1);
+
+                        void Transition2() {
+                            GameHost.Instance.Screen = new SimpleCrawl("Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch
+                            {
+                                1 => "Maybe history will remember.",
+                                2 => "Tomorrow will be forever.",
+                                3 => "Life runs short; hurry along now.",
+                                _ => "Maybe all of it will have been for something.",
+                            }), Transition3) { Position = new Point(Width / 4, 8), IsFocused=true };
+
+                            void Transition3() {
+                                GameHost.Instance.Screen = new FadeIn(new Pause(playerMain, Transition4, 1)) { IsFocused = true };
+                                void Transition4() {
+                                    GameHost.Instance.Screen = playerMain;
+                                    playerMain.IsFocused = true;
+
+                                }
+                            }
                         }
-                        ) { Position = new Point(Width / 4, 8) })) { IsFocused = true };
+                    }
                 }
             }
         }

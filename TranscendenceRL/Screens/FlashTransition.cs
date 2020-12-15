@@ -17,15 +17,13 @@ namespace TranscendenceRL {
         Brighten, Darken
     }
     public class FlashTransition : Console {
-        Console prev;
-        Console next;
+        Action next;
         HashSet<GlyphParticle> glyphs = new HashSet<GlyphParticle>();
         Color[,] background;
         double delay = 0;
         Stage stage;
         int tick = 0;
-        public FlashTransition(int Width, int Height, Console prev, Console next) : base(Width, Height) {
-            this.prev = prev;
+        public FlashTransition(int Width, int Height, Console prev, Action next) : base(Width, Height) {
             this.next = next;
             background = new Color[Width, Height];
             for(int x = 0; x < Width; x++) {
@@ -48,8 +46,7 @@ namespace TranscendenceRL {
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
             if(keyboard.IsKeyPressed(Keys.Enter)) {
-                SadConsole.Game.Instance.Screen = next;
-                next.IsFocused = true;
+                next();
             }
             return base.ProcessKeyboard(keyboard);
         }
@@ -94,8 +91,7 @@ namespace TranscendenceRL {
                                 }
                             }
                             if (done) {
-                                SadConsole.Game.Instance.Screen = next;
-                                next.IsFocused = true;
+                                next();
                             }
                             break;
                         }
@@ -114,7 +110,9 @@ namespace TranscendenceRL {
             //To do: Simplify this so we just draw next with some alpha background
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
-                    this.SetBackground(x, y, next.GetBackground(x, y).Blend(background[x, y]));
+                    //var b = next.GetBackground(x, y);
+                    var b = background[x, y];
+                    this.SetBackground(x, y, b);
                 }
             }
         }
