@@ -117,7 +117,6 @@ namespace TranscendenceRL {
                     }, SaveGame.settings));
                     */
 
-
                     var playerMain = new PlayerMain(Width, Height, World, playerShip);
                     playerShip.OnDestroyed += new EndGame(playerMain);
 
@@ -446,11 +445,13 @@ namespace TranscendenceRL {
                         World.AddEntity(wingmate);
                         World.AddEffect(new Heading(wingmate));
 
+                        /*
                         File.WriteAllText(file, JsonConvert.SerializeObject(new LiveGame() {
                             player = player,
                             world = World,
                             playerShip = playerShip
                         }, SaveGame.settings));
+                        */
 
                         var playerMain = new PlayerMain(Width, Height, World, playerShip);
                         playerShip.OnDestroyed += new EndGame(playerMain);

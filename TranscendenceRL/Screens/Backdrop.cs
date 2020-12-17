@@ -117,9 +117,10 @@ namespace TranscendenceRL {
     public class CompositeColorLayer {
         public List<GeneratedGrid<Color>> layers = new List<GeneratedGrid<Color>>();
         public CompositeColorLayer() { }
-        public Color GetBackground(XY point, XY camera) {
+        
+        public Color GetBackgroundFixed(XY point) {
             Color result = Color.Black;
-            foreach (var layer in layers) {
+            foreach (var layer in layers.AsEnumerable().Reverse()) {
                 var apparent = point.RoundDown;
                 result = result.Blend(layer[apparent.xi, apparent.yi]);
             }
