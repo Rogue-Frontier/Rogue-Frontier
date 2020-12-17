@@ -19,12 +19,10 @@ namespace TranscendenceRL {
         bool speedUp;
         int index;
         int tick;
-        double delay;
 
         public SimpleCrawl(string text, Action next) : base(text.Split('\n').Max(l => l.Length), text.Split('\n').Length) {
             this.next = next;
             this.text = text;
-            delay = 2;
         }
         public override void Update(TimeSpan time) {
             if (index < text.Length) {
@@ -36,8 +34,6 @@ namespace TranscendenceRL {
                         index++;
                     }
                 }
-            } else if (delay > 0) {
-                delay -= time.TotalSeconds;
             } else {
                 next();
             }

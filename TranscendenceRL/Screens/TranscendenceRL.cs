@@ -89,13 +89,13 @@ namespace TranscendenceRL {
                 Console c = null;
                 c = new SimpleCrawl(
 @"                  
-...A reimagining of
-    
-   --Transcendence--
-by George Moromisato
-
-Because I know it was
-more than just a dream...
+A reimagining of
+                    
+      Transcendence  
+ by George Moromisato
+                    
+Because I know the that vision
+was more than just a dream...
                     ".Replace("\r", null), () => ShowFade2(c)) {
                     Position = new Point(4, 4),
                     FontSize = prev.FontSize * 2
@@ -104,14 +104,29 @@ more than just a dream...
                 prev.Parent.Children.Add(c);
                 prev.Parent.Children.Remove(prev);
             }
-            void ShowFade2(Console prev) {
+            /*
+            void ShowPause2(Console prev) {
                 Console c = null;
-                c = new FadeOut(prev, () => ShowPoster(c), 1);
+                c = new PauseTransition(Width, Height, 1, prev, () => ShowFade2(c));
 
                 prev.Parent.Children.Add(c);
                 prev.Parent.Children.Remove(prev);
             }
+            */
+            void ShowFade2(Console prev) {
+                Console c = null;
+                c = new FadeOut(prev, () => ShowPause2(c), 1);
 
+                prev.Parent.Children.Add(c);
+                prev.Parent.Children.Remove(prev);
+            }
+            void ShowPause2(Console prev) {
+                Console c = null;
+                c = new PauseTransition(Width, Height, 1, prev, () => ShowPoster(c));
+
+                prev.Parent.Children.Add(c);
+                prev.Parent.Children.Remove(prev);
+            }
             void ShowPoster(Console prev) {
                 var display = new DisplayImage(Width, Height, poster, new Point(-5, -5));
 

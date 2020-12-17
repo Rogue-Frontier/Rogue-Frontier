@@ -398,22 +398,27 @@ namespace TranscendenceRL {
 			if (viewScale > 1) {
 				XY screenSize = new XY(Width, Height);
 				XY screenCenter = screenSize / 2;
+				var alpha = (byte)(255 * Math.Min(1, (viewScale - 1)));
 				for (int x = 0; x < Width; x++) {
 					for (int y = 0; y < Height; y++) {
-						var back = BackVoid.GetTileFixed(new XY(x * 2, y * 2));
+						var cg = BackVoid.GetTileFixed(new XY(x, y));
+
+						var pos = new XY(	player.Position.x + (x - screenCenter.x) * viewScale,
+											player.Position.y - (y - screenCenter.y) * viewScale);
+						var starlight = player.World.backdrop.starlight.GetTile(pos).PremultiplySet(255);
+
 						//Make sure to clone this so that we don't apply alpha changes to the original
-						back = back.Clone();
-						var glyph = back.Glyph;
-						var alpha = (byte)(255 * Math.Min(1, (viewScale - 1)));
-						back.Background = back.Background.Premultiply().SetAlpha(alpha);
-						back.Foreground = back.Foreground.Premultiply().SetAlpha(alpha);
-						this.SetCellAppearance(x, y, back);
+						var glyph = cg.Glyph;
+						var background = cg.Background.BlendPremultiply(starlight, alpha);
+						var foreground = cg.Foreground.PremultiplySet(alpha);
+						this.SetCellAppearance(x, y, new ColoredGlyph(foreground, background, glyph));
 					}
 				}
 
-				var visiblePerimeter = new Rectangle((int)(Width / 2 - Width / (2 * viewScale)), (int)(Height / 2 - Height / (2 * viewScale)), (int)(Width / viewScale), (int)(Height / viewScale));
+				var visiblePerimeter = new Rectangle((int)(Width / 2 - Width / (2 * viewScale)) + 1, (int)(Height / 2 - Height / (2 * viewScale)) + 1, (int)(Width / viewScale), (int)(Height / viewScale));
 				foreach (var point in visiblePerimeter.PerimeterPositions()) {
-					this.SetBackground(point.X, point.Y, this.GetBackground(point.X, point.Y).Premultiply().Blend(new Color(255, 255, 255, 128)));
+					var b = this.GetBackground(point.X, point.Y);
+					this.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, 128)));
 				}
 
 				var scaledMap = player.World.entities.space.DownsampleSet(viewScale);
@@ -511,7 +516,7 @@ namespace TranscendenceRL {
 			}
 			if (player.Ship.ControlHijack != null) {
 			} else {
-				var b = player.World.backdrop.starlight.GetBackground(player.Position, XY.Zero);
+				var b = player.World.backdrop.starlight.GetBackgroundFixed(player.Position);
 				borderColor = borderColor.Blend(b.SetAlpha((byte)(255 * b.GetBrightness())));
 			}
 			int dec = 255 / borderSize;
@@ -991,6 +996,8 @@ namespace TranscendenceRL {
 				}
 				index++;
             }
+
+			//this.SetCellAppearance(Width/2, Height/2, new ColoredGlyph(Color.White, Color.White, 'X'));
 
             base.Render(delta);
         }

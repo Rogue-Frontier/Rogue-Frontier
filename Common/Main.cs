@@ -607,8 +607,25 @@ namespace Common {
 		}
 		//Essentially the same as blending this color over Color.Black
 		public static Color Premultiply(this Color c) => new Color((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, c.A);
+		//Premultiply and also set the alpha
+		public static Color PremultiplySet(this Color c, int alpha) => new Color((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, alpha);
+
+		//Premultiplies this color and the blends another color over it
+		public static Color BlendPremultiply(this Color background, Color foreground, byte setAlpha = 0xff) {
+			
+			byte alpha = (byte)(foreground.A);
+			byte inv_alpha = (byte)(255 - foreground.A);
+			return new Color(
+				r: (byte)((alpha * foreground.R + inv_alpha * background.R * background.A / 255) >> 8),
+				g: (byte)((alpha * foreground.G + inv_alpha * background.G * background.A / 255) >> 8),
+				b: (byte)((alpha * foreground.B + inv_alpha * background.B * background.A / 255) >> 8),
+				alpha: setAlpha
+				);
+		}
+
 		//https://stackoverflow.com/a/12016968
-		public static Color Blend(this Color background, Color foreground) {
+		//Blend another color over this color
+		public static Color Blend(this Color background, Color foreground, byte setAlpha = 0xff) {
 			//Background should be premultiplied because we ignore its alpha value
 			byte alpha = (byte) (foreground.A);
 			byte inv_alpha = (byte)(255 - foreground.A);
@@ -616,7 +633,7 @@ namespace Common {
 				r: (byte)((alpha * foreground.R + inv_alpha * background.R) >> 8),
 				g: (byte)((alpha * foreground.G + inv_alpha * background.G) >> 8),
 				b: (byte)((alpha * foreground.B + inv_alpha * background.B) >> 8),
-				alpha: (byte) 0xff
+				alpha: setAlpha
 				);
 		}
 		//https://stackoverflow.com/a/28037434
