@@ -533,7 +533,7 @@ namespace TranscendenceRL {
             if (selectedPrimary < Ship.Devices.Weapons.Count) {
                 var primary = Ship.Devices.Weapons[selectedPrimary];
                 if(primary.target == target) {
-                    primary.target = null;
+                    primary.OverrideTarget(null);
                 }
             }
         }
@@ -542,7 +542,7 @@ namespace TranscendenceRL {
             var target = targetList[targetIndex];
             if (selectedPrimary < Ship.Devices.Weapons.Count) {
                 var primary = Ship.Devices.Weapons[selectedPrimary];
-                primary.target = target;
+                primary.OverrideTarget(target);
             }
         }
         //Stop targeting, but remember our remaining targets
