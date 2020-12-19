@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Helper = Common.Main;
 using SadRogue.Primitives;
+using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
     public class Item {
@@ -81,6 +82,7 @@ namespace TranscendenceRL {
         public SpaceObject target;
         public int fireTime;
         public bool firing;
+        public int repeatsLeft;
 
         public Weapon(Item source, WeaponDesc desc) {
             this.source = source;
@@ -111,52 +113,88 @@ namespace TranscendenceRL {
         }
 
         public void Update(Station owner) {
-            double? targetAngle = null;
-            if (target?.Active != true || (target.Position - owner.Position).Magnitude > desc.minRange) {
-                //minRange is constant and currentRange is variable, so using minRange is more consistent
-                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));
-            } else {
-                var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
-                if (desc.omnidirectional) {
-                    Heading.AimLine(owner, angle, this);
+            capacitor?.Update();
+
+            double? direction = null;
+
+            if (desc.omnidirectional) {
+                if (target?.Active != true) {
+                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));
+                } else {
+                    direction = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
+
+                    Heading.AimLine(owner, direction.Value, this);
                     Heading.Crosshair(owner.World, target.Position);
                 }
-                targetAngle = angle;
             }
-            capacitor?.Update();
+
             if (fireTime > 0) {
                 fireTime--;
-            } else /* if (firing) */ {  //Stations always fire for now
-                if (targetAngle != null) {
-                    Fire(owner, targetAngle.Value);
+            } else {
+                //Stations always fire for now
+                firing = true;
+
+                bool beginRepeat = true;
+                if (repeatsLeft > 0) {
+                    repeatsLeft--;
+                    firing = true;
+                    beginRepeat = false;
                 }
-                fireTime = desc.fireCooldown;
+
+                //bool allowFire = (firing || true) && (capacitor?.AllowFire ?? true);
+                capacitor?.CheckFire(ref firing);
+                if (firing) {
+                    if (direction.HasValue) {
+                        Fire(owner, direction.Value);
+                    }
+
+                    fireTime = desc.fireCooldown;
+
+                    if (beginRepeat) {
+                        repeatsLeft = desc.repeat;
+                    }
+                }
             }
             firing = false;
         }
 
         public void Update(IShip owner) {
-            double? targetAngle = null;
-            if(target?.Active != true) {
-                target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => SShip.IsEnemy(owner, s));
-            } else {
-                var angle = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
-                if(desc.omnidirectional) {
-                    Heading.AimLine(owner, angle, this);
+
+            double direction = owner.rotationDegrees * Math.PI / 180;
+            if (desc.omnidirectional) {
+                if (target?.Active != true) {
+                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => SShip.IsEnemy(owner, s));
+                } else {
+                    direction = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
+
+                    Heading.AimLine(owner, direction, this);
                     Heading.Crosshair(owner.World, target.Position);
                 }
-                targetAngle = angle;
             }
+
             capacitor?.Update();
             if(fireTime > 0) {
                 fireTime--;
-            } else if(firing) {
-                if(desc.omnidirectional && targetAngle != null) {
-                    Fire(owner, targetAngle.Value);
-                } else {
-                    Fire(owner, owner.rotationDegrees * Math.PI / 180);
+            } else {
+
+                bool beginRepeat = true;
+                if (repeatsLeft > 0) {
+                    repeatsLeft--;
+                    firing = true;
+                    beginRepeat = false;
                 }
-                fireTime = desc.fireCooldown;
+
+                //bool allowFire = firing && (capacitor?.AllowFire ?? true);
+                capacitor?.CheckFire(ref firing);
+
+
+                if (firing) {
+                    Fire(owner, direction);
+                    fireTime = desc.fireCooldown;
+                    if (beginRepeat) {
+                        repeatsLeft = desc.repeat;
+                    }
+                }
             }
             firing = false;
         }
@@ -167,17 +205,24 @@ namespace TranscendenceRL {
 
             capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);
             capacitor?.Discharge();
-            var trail = desc.shot.trail;
-            Projectile shot = null;
-            shot = new Projectile(source, source.World,
-                desc.effect.Glyph,
-                trail?.GetTrail(),
-                source.Position + XY.Polar(direction),
-                source.Velocity + XY.Polar(direction, missileSpeed),
-                damageHP,
-                lifetime,
-                desc.shot.fragments);
-            source.World.AddEntity(shot);
+
+            var shotDesc = desc.shot;
+            double angleInterval = shotDesc.spreadAngle / shotDesc.count;
+            for (int i = 0; i < shotDesc.count; i++) {
+                double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
+                var trail = shotDesc.trail;
+                Projectile p = null;
+                p = new Projectile(source, source.World,
+                    shotDesc.effect.Glyph,
+                    trail?.GetTrail(),
+                    source.Position + XY.Polar(angle),
+                    source.Velocity + XY.Polar(angle, missileSpeed),
+                    damageHP,
+                    lifetime,
+                    shotDesc.fragments);
+                source.World.AddEntity(p);
+            }
+
         }
         public void SetFiring(bool firing = true) => this.firing = firing;
 
@@ -187,12 +232,27 @@ namespace TranscendenceRL {
             this.target = target ?? this.target;
         }
 
+        public interface Aiming {
+            void GetFireAngle(ref double direction) {}
+            void SetTarget(SpaceObject target = null) {}
+        }
+        public class Omnidirectional {
+            SpaceObject target;
+            public void Update(IShip owner) {
+
+            }
+            public void SetTarget(SpaceObject target = null) {
+                this.target = target ?? this.target;
+            }
+        }
         public class Capacitor {
             public CapacitorDesc desc;
             public double charge;
             public Capacitor(CapacitorDesc desc) {
                 this.desc = desc;
             }
+            public void CheckFire(ref bool firing) => firing = firing && AllowFire;
+            public bool AllowFire => desc.minChargeToFire < charge;
             public void Update() {
                 charge += desc.chargePerTick;
                 if(charge > desc.maxCharge) {
@@ -277,6 +337,20 @@ namespace TranscendenceRL {
         }
         public void Update(IShip owner) {
             energy = Math.Max(0, Math.Min(energy + (energyDelta < 0 ? energyDelta / desc.efficiency : energyDelta) / 30, desc.capacity));
+        }
+    }
+
+    public interface IUsable {
+
+    }
+    public class ArmorRepair : IUsable {
+        public Item source;
+        public ArmorRepair(Item source) {
+            this.source = source;
+        }
+        public void Use(PlayerShip playerShip, Armor armor) {
+            playerShip.Items.Remove(source);
+
         }
     }
 }

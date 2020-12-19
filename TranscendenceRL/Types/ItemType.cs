@@ -49,6 +49,7 @@ namespace TranscendenceRL {
     public class WeaponDesc {
         public int powerUse;
         public int fireCooldown;
+        public int repeat;
         public bool omnidirectional;
         public FragmentDesc shot;
 
@@ -57,7 +58,7 @@ namespace TranscendenceRL {
         public int damageHP => shot.damageHP;
         public int lifetime => shot.lifetime;
 
-        public int minRange => shot.missileSpeed * shot.lifetime / TranscendenceRL.TICKS_PER_SECOND; //DOES NOT INCLUDE CAPACITOR EFFECTS
+        public int minRange => shot.missileSpeed * shot.lifetime / (TranscendenceRL.TICKS_PER_SECOND * TranscendenceRL.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
         public CapacitorDesc capacitor;
 
@@ -66,6 +67,7 @@ namespace TranscendenceRL {
         public WeaponDesc(XElement e) {
             powerUse = e.ExpectAttributeInt(nameof(powerUse));
             fireCooldown = e.ExpectAttributeInt(nameof(fireCooldown));
+            repeat = e.TryAttributeInt(nameof(repeat), 0);
             omnidirectional = e.TryAttributeBool(nameof(omnidirectional), false);
             shot = new FragmentDesc(e);
 
@@ -117,6 +119,7 @@ namespace TranscendenceRL {
         public GetTrail GetTrail() => (Position) => new FadingTrail(Position, new ColoredGlyph(Color.Transparent, background), lifetime);
     }
     public class CapacitorDesc {
+        public double minChargeToFire;
         public double dischargePerShot;
         public double chargePerTick;
         public double maxCharge;
@@ -125,6 +128,7 @@ namespace TranscendenceRL {
         public double bonusLifetimePerCharge;
         public CapacitorDesc() { }
         public CapacitorDesc(XElement e) {
+            minChargeToFire = e.TryAttributeDouble(nameof(minChargeToFire));
             dischargePerShot = e.ExpectAttributeDouble(nameof(dischargePerShot));
             chargePerTick = e.ExpectAttributeDouble(nameof(chargePerTick));
             maxCharge = e.ExpectAttributeDouble(nameof(maxCharge));
