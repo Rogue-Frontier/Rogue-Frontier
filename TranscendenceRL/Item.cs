@@ -79,7 +79,7 @@ namespace TranscendenceRL {
             }}
         public int currentRange => missileSpeed * desc.shot.lifetime / TranscendenceRL.TICKS_PER_SECOND;
         public Capacitor capacitor;
-        public SpaceObject target;
+        public Aiming aiming;
         public int fireTime;
         public bool firing;
         public int repeatsLeft;
@@ -91,6 +91,9 @@ namespace TranscendenceRL {
             firing = false;
             if(desc.capacitor != null) {
                 capacitor = new Capacitor(desc.capacitor);
+            }
+            if (desc.omnidirectional) {
+                aiming = new Omnidirectional(this);
             }
         }
         public ColoredString GetBar() {
@@ -117,14 +120,10 @@ namespace TranscendenceRL {
 
             double? direction = null;
 
-            if (desc.omnidirectional) {
-                if (target?.Active != true) {
-                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));
-                } else {
-                    direction = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
-
-                    Heading.AimLine(owner, direction.Value, this);
-                    Heading.Crosshair(owner.World, target.Position);
+            if (aiming != null) {
+                aiming.Update(owner);
+                if (aiming.GetFireAngle(out var d)) {
+                    direction = d;
                 }
             }
 
@@ -159,16 +158,12 @@ namespace TranscendenceRL {
         }
 
         public void Update(IShip owner) {
-
             double direction = owner.rotationDegrees * Math.PI / 180;
-            if (desc.omnidirectional) {
-                if (target?.Active != true) {
-                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => SShip.IsEnemy(owner, s));
-                } else {
-                    direction = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
 
-                    Heading.AimLine(owner, direction, this);
-                    Heading.Crosshair(owner.World, target.Position);
+            if (aiming != null) {
+                aiming.Update(owner);
+                if(aiming.GetFireAngle(out var d)) {
+                    direction = d;
                 }
             }
 
@@ -224,24 +219,74 @@ namespace TranscendenceRL {
             }
 
         }
+
+        public SpaceObject target => aiming?.target;
+        public void OverrideTarget(SpaceObject target) {
+
+            if (aiming != null) {
+                aiming.ResetTarget();
+                aiming.UpdateTarget(target);
+            }
+        }
         public void SetFiring(bool firing = true) => this.firing = firing;
 
         //Use this if you want to override auto-aim
         public void SetFiring(bool firing = true, SpaceObject target = null) {
             this.firing = firing;
-            this.target = target ?? this.target;
+            aiming?.UpdateTarget(target);
         }
 
         public interface Aiming {
-            void GetFireAngle(ref double direction) {}
-            void SetTarget(SpaceObject target = null) {}
-        }
-        public class Omnidirectional {
-            SpaceObject target;
-            public void Update(IShip owner) {
-
+            public SpaceObject target => null;
+            void Update(Station owner) { }
+            void Update(IShip owner) { }
+            bool GetFireAngle(out double direction) {
+                direction = 0;
+                return false;
             }
-            public void SetTarget(SpaceObject target = null) {
+            void ResetTarget() { }
+            void UpdateTarget(SpaceObject target = null) {}
+        }
+        public class Omnidirectional : Aiming {
+            public Weapon weapon;
+            public SpaceObject target { get; private set; }
+            double? direction;
+            public Omnidirectional(Weapon weapon) {
+                this.weapon = weapon;
+            }
+            public void Update(Station owner) {
+                if (target?.Active != true) {
+                    direction = null;
+                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));
+                } else {
+                    direction = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _);
+
+                    Heading.AimLine(owner.World, owner.Position, direction.Value);
+                    Heading.Crosshair(owner.World, target.Position);
+                }
+            }
+            public void Update(IShip owner) {
+                if (target?.Active != true) {
+                    direction = null;
+                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => SShip.IsEnemy(owner, s));
+                } else {
+                    direction = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _);
+
+                    Heading.AimLine(owner.World, owner.Position, direction.Value);
+                    Heading.Crosshair(owner.World, target.Position);
+                }
+            }
+            public bool GetFireAngle(out double direction) {
+                if(this.direction != null) {
+                    direction = this.direction.Value;
+                    return true;
+                } else {
+                    direction = 0;
+                    return false;
+                }
+            }
+            public void ResetTarget() => target = null;
+            public void UpdateTarget(SpaceObject target = null) {
                 this.target = target ?? this.target;
             }
         }
