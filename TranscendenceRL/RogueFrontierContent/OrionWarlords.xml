@@ -53,6 +53,36 @@
 			/>
 		</Weapon>
 	</ItemType>
+
+	<ItemType	codename=	"itOrionBallista"
+				name=		"Orion Ballista"
+				mass=		"8000"
+				level=		"4"
+				>
+		<Weapon			powerUse=		"50"
+						fireCooldown=	"60"
+						missileSpeed=	"20"
+						damageType=		"2"
+						damageHP=		"15"
+						lifetime=		"60"
+
+						count=			"3"
+
+						char=			"+"
+						foreground=		"Orange"
+			>
+			<Capacitor	dischargePerShot=		"100"
+						chargePerTick=			"0.1666"
+						maxCharge=				"100"
+
+						bonusSpeedPerCharge=	"0.70"
+						bonusDamagePerCharge=	"0.30"
+						bonusLifetimePerCharge=	"0.90"
+				/>
+			/>
+		</Weapon>
+	</ItemType>
+
 	<ItemType	codename=	"itHunterscalePlate"
 				name=		"Hunterscale plate"
 				mass=		"1000"
@@ -118,6 +148,31 @@
 			description=    "The Orion huntsman adapts to both short-range skirmishes and long-range duels with the Orion Longbow, which hits at high velocity when fully charged."
             />
 	</ShipClass>
+
+	<ShipClass	codename=			"ship_orion_headhunter"
+				name=				"Orion headhunter"
+				thrust=				"0.2"
+				maxSpeed=			"15"
+
+				rotationAccel=		"3"
+				rotationDecel=		"6"
+				rotationMaxSpeed=	"4"
+
+				char=				"R"
+				foreground=			"Cyan"
+		>
+		<Devices>
+			<Weapon	codename="itOrionBallista"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor	codename="itSkullhelmPlate"/>
+		</LayeredArmorSystem>
+		<PlayerSettings
+			startingClass=  "false"
+			description=    "The Orion headhunter presents a major threat to those who cross its path."
+            />
+	</ShipClass>
+
 	<StationType	codename="station_orion_warlords_camp"
 					name=		"Orion Warlords camp"
 					sovereign=	"svOrionWarlords"

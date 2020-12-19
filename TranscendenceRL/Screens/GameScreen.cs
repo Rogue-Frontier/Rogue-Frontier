@@ -73,7 +73,18 @@ namespace TranscendenceRL {
 			FocusOnMouseClick = false;
 		}
 		public void EndGame(SpaceObject destroyer, Wreck wreck) {
+			//Clear mortal time so that we don't slow down after the player dies
+			playerShip.mortalTime = 0;
 
+			//Force exit any scenes
+			sceneContainer.Clear();
+
+			//Force exit power menu
+			powerMenu.IsVisible = false;
+
+			//Pretty sure this can't happen but make sure
+			pauseMenu.IsVisible = false;
+			
 			//Get a snapshot of the player
 			var size = 60;
 			var deathFrame = new ColoredGlyph[size, size];
@@ -234,11 +245,6 @@ namespace TranscendenceRL {
 		public override bool ProcessKeyboard(Keyboard info) {
 			map.ProcessKeyboard(info);
 			keyboard = info;
-
-			if(info.IsKeyPressed(S) && info.IsKeyDown(LeftControl)) {
-				var s = JsonConvert.SerializeObject(this);
-				File.WriteAllText(playerShip.player.file, s);
-            }
 
 			//Intercept the alphanumeric/Escape keys if the power menu is active
 			if(pauseMenu.IsVisible) {
