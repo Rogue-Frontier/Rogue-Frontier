@@ -217,7 +217,6 @@ namespace TranscendenceRL {
                     shotDesc.fragments);
                 source.World.AddEntity(p);
             }
-
         }
 
         public SpaceObject target => aiming?.target;
@@ -259,10 +258,13 @@ namespace TranscendenceRL {
                     direction = null;
                     target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));
                 } else {
-                    direction = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _);
-
-                    Heading.AimLine(owner.World, owner.Position, direction.Value);
-                    Heading.Crosshair(owner.World, target.Position);
+                    direction = (((target.Position - owner.Position).Magnitude < weapon.currentRange)
+                        ? Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _)
+                        : (double?)null);
+                    if (direction.HasValue) {
+                        Heading.AimLine(owner.World, owner.Position, direction.Value);
+                        Heading.Crosshair(owner.World, target.Position);
+                    }
                 }
             }
             public void Update(IShip owner) {
@@ -270,10 +272,13 @@ namespace TranscendenceRL {
                     direction = null;
                     target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => SShip.IsEnemy(owner, s));
                 } else {
-                    direction = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _);
-
-                    Heading.AimLine(owner.World, owner.Position, direction.Value);
-                    Heading.Crosshair(owner.World, target.Position);
+                    direction = (((target.Position - owner.Position).Magnitude < weapon.currentRange)
+                        ? Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _)
+                        : (double?)null);
+                    if (direction.HasValue) {
+                        Heading.AimLine(owner.World, owner.Position, direction.Value);
+                        Heading.Crosshair(owner.World, target.Position);
+                    }
                 }
             }
             public bool GetFireAngle(out double direction) {
