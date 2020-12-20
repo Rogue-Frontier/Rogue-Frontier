@@ -141,6 +141,7 @@ namespace TranscendenceRL {
 			}
 		}
 		public void UpdateWorld() {
+
 			World.UpdateActive();
 		}
 		public override void Update(TimeSpan delta) {
@@ -320,16 +321,7 @@ namespace TranscendenceRL {
 
 					if (playerOffset.xi != 0 && playerOffset.yi != 0) {
 
-						//Draw an effect for the cursor
-						World.AddEffect(new EffectParticle(worldPos, new ColoredGlyph(Color.White, Color.Transparent, '+'), 1));
-
-						//Draw a trail leading back to the player
-						var trailNorm = playerOffset.Normal;
-						var trailLength = Math.Min(3, playerOffset.Magnitude / 4) + 1;
-						for (int i = 1; i < trailLength; i++) {
-							World.AddEffect(new EffectParticle(worldPos - trailNorm * i, new ColoredGlyph(Color.White, Color.Transparent, '.'), 1));
-						}
-
+						EffectParticle.DrawArrow(World, worldPos, playerOffset, Color.White);
 
 						var mouseRads = playerOffset.Angle;
 						playerShip.SetRotatingToFace(mouseRads);
@@ -561,10 +553,15 @@ namespace TranscendenceRL {
 		Dictionary<(int, int), ColoredGlyph> tiles;
 		public int borderBound;
 
+		public int arrowDistance;
+
 		public PlayerUI(PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
 			this.player = player;
 			this.tiles = tiles;
 			borderBound = Math.Max(Width, Height)/2;
+
+			//arrowDistance = Math.Min(Width, Height)/2 - 6;
+			arrowDistance = 32;
 			/*
 			char[] particles = {
 				'%', '&', '?', '~'
@@ -588,64 +585,35 @@ namespace TranscendenceRL {
 			var messageY = Height * 3 / 5;
 
 			int targetX = 48, targetY = 1;
-			if (player.GetTarget(out SpaceObject target)) {
+			if (player.GetTarget(out SpaceObject playerTarget)) {
 				this.Print(targetX, targetY++, "[Target]");
-				this.Print(targetX, targetY++, target.Name);
-				PrintTarget(targetX, targetY, target);
+				this.Print(targetX, targetY++, playerTarget.Name);
+				PrintTarget(targetX, targetY, playerTarget);
+
+
+				var offset = playerTarget.Position - player.Position;
+				if (Math.Abs(offset.x) > Width / 2 || Math.Abs(offset.y) > Height / 2) {
+
+					var offsetNormal = offset.Normal.FlipY;
+					var p = screenCenter + offsetNormal * arrowDistance;
+
+					this.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '+'));
+
+					var trailLength = Math.Min(3, offset.Magnitude / 4) + 1;
+					for (int i = 1; i < trailLength; i++) {
+						p -= offsetNormal;
+						this.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '.'));
+					}
+				}
+
 				targetX += 32;
 				targetY = 1;
-				/*
-				var screenPos = (target.Position - player.Position) + screenSize / 2;
-				screenPos = screenPos.RoundDown;
-				screenPos.y += 1;
-				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
-					e = Line.Single,
-					w = Line.Single,
-					n = Line.Double,
-				}]));
-				for (int i = 0; i < 3; i++) {
-					screenPos.y++;
-					this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
-						n = Line.Double,
-						s = Line.Double,
-					}]));
-				}
-				screenPos.y++;
-				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
-					e = Line.Double,
-					s = Line.Double,
-				}]));
-				screenPos.x++;
-				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
-					w = Line.Double,
-					n = Line.Single,
-					s = Line.Single
-				}]));
-				screenPos.x++;
-
-
-				foreach (var cc in target.Name) {
-					this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, cc));
-					screenPos.xi++;
-				}
-				*/
-				/*
-				Helper.CalcFireAngle(target.Position - player.Position, target.Velocity - player.Velocity, player.GetPrimary().desc.missileSpeed, out double timeToHit);
-
-				var screenPos = (target.Position - player.Position) + new XY(Width/2, Height/2) / 2 + target.Velocity * timeToHit;
-				this.SetCellAppearance(screenPos.xi, Height - screenPos.yi, new ColoredGlyph(Color.White, Color.Transparent, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
-					e = Line.Double,
-					w = Line.Double,
-					n = Line.Double,
-					s = Line.Double
-				}]));
-				*/
 			}
-			var target2 = player.Devices.Weapons.Select(w => w.target).FirstOrDefault();
-			if(target2 != target) {
+			var autoTarget = player.Devices.Weapons.Select(w => w.target).FirstOrDefault();
+			if(autoTarget != null && autoTarget != playerTarget) {
 				this.Print(targetX, targetY++, "[Auto]");
-				this.Print(targetX, targetY++, target2.Name);
-				PrintTarget(targetX, targetY, target2);
+				this.Print(targetX, targetY++, autoTarget.Name);
+				PrintTarget(targetX, targetY, autoTarget);
 			}
 
 			void PrintTarget(int x, int y, SpaceObject target) {

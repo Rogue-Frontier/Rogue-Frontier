@@ -23,6 +23,18 @@ namespace TranscendenceRL {
             this.Tile = Tile;
             this.Lifetime = Lifetime;
         }
+
+        public static void DrawArrow(World world, XY worldPos, XY offset, Color color) {
+            //Draw an effect for the cursor
+            world.AddEffect(new EffectParticle(worldPos, new ColoredGlyph(color, Color.Transparent, '+'), 1));
+
+            //Draw a trail leading back to the player
+            var trailNorm = offset.Normal;
+            var trailLength = Math.Min(3, offset.Magnitude / 4) + 1;
+            for (int i = 1; i < trailLength; i++) {
+                world.AddEffect(new EffectParticle(worldPos - trailNorm * i, new ColoredGlyph(color, Color.Transparent, '.'), 1));
+            }
+        }
         public XY Position { get; set; }
         public XY Velocity { get; set; }
 
