@@ -66,6 +66,10 @@ namespace Common {
 		public XY Abs => new XY(Math.Abs(xi), Math.Abs(yi));
 		[JsonIgnore]
 		public XY Truncate => new XY(xi, yi);
+		[JsonIgnore]
+		public XY FlipX => new XY(-x, y);
+		[JsonIgnore]
+		public XY FlipY => new XY(x, -y);
 		[JsonIgnore] 
 		public XY Round => new XY(Math.Round(x), Math.Round(y));
 		[JsonIgnore] 
