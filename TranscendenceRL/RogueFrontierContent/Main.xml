@@ -10,4 +10,5 @@
 	<Module file="Ships.xml"/>
 	<Module file="Systems.xml"/>
 	<Module file="UnitedConstellation.xml"/>
+	<Module file="ConstellationMilitia.xml"/>
 </Module>

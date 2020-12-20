@@ -127,7 +127,7 @@ namespace TranscendenceRL {
                 }
             }
 
-            if (fireTime > 0) {
+            if (fireTime > 0 && repeatsLeft == 0) {
                 fireTime--;
             } else {
                 //Stations always fire for now
@@ -152,6 +152,8 @@ namespace TranscendenceRL {
                     if (beginRepeat) {
                         repeatsLeft = desc.repeat;
                     }
+                } else {
+                    repeatsLeft = 0;
                 }
             }
             firing = false;
@@ -168,7 +170,7 @@ namespace TranscendenceRL {
             }
 
             capacitor?.Update();
-            if(fireTime > 0) {
+            if(fireTime > 0 && repeatsLeft == 0) {
                 fireTime--;
             } else {
 
@@ -189,6 +191,8 @@ namespace TranscendenceRL {
                     if (beginRepeat) {
                         repeatsLeft = desc.repeat;
                     }
+                } else {
+                    repeatsLeft = 0;
                 }
             }
             firing = false;
@@ -235,6 +239,24 @@ namespace TranscendenceRL {
             aiming?.UpdateTarget(target);
         }
 
+        public class Ammo {
+            private ItemType itemType;
+            private Item item;
+            public Ammo(ItemType itemType) {
+                this.itemType = itemType;
+            }
+            public void Update(SpaceObject source) {
+                if(item == null) {
+
+                }
+            }
+            public void CheckFire(ref bool firing) {
+
+            }
+            public void OnFire() {
+
+            }
+        }
         public interface Aiming {
             public SpaceObject target => null;
             void Update(Station owner) { }
