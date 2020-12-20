@@ -223,7 +223,7 @@ namespace TranscendenceRL {
 
                 var aim = new AimOrder(target, weapon.missileSpeed);
                 //Fire if we are close enough
-                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
+                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 10) {
                     weapon.SetFiring(true, target);
                 }
 
