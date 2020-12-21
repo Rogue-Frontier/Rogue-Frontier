@@ -44,7 +44,7 @@ namespace IslandHopper {
             this.World = World;
             this.Position = Position;
             this.lifetime = lifetime;
-            var ShiftedPosition = Position + new XYZ(World.karma.Next(-2, 3), World.karma.Next(-2, 3));
+            var ShiftedPosition = Position + new XYZ(World.karma.NextInteger(-2, 3), World.karma.NextInteger(-2, 3));
             if(World.voxels.InBounds(ShiftedPosition)) {
                 HashSet<ColoredGlyph> glyphs = new HashSet<ColoredGlyph>();
                 glyphs.UnionWith(World.effects[ShiftedPosition].Where(e => !(e is Mirage)).Select(e => e.SymbolCenter));

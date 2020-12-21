@@ -259,3 +259,7 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/TranscendenceRL/RogueFrontierContent/aaa.asc
+/TranscendenceRL/RogueFrontierContent/aaa.asc.cg
+/TranscendenceRL/RogueFrontierContent/aaa.asc.png
+/TranscendenceRL/RogueFrontierContent/aaa.asc.txt

@@ -200,7 +200,7 @@ namespace IslandHopper {
             tick = 0;
             this.lifetime = lifetime;
 
-            glyph = new char[] { 'v', 'w', 'f', 'j' }[World.karma.Next(4)];
+            glyph = new char[] { 'v', 'w', 'f', 'j' }[World.karma.NextInteger(4)];
         }
         public void UpdateRealtime(TimeSpan delta) {
             tick++;
@@ -229,11 +229,12 @@ namespace IslandHopper {
             this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
             Velocity -= Velocity * 0.5 / 30;
 
+            Func<int, int, int> rnd = World.karma.NextInteger;
             var count = trail.Count;
-            if (World.karma.Next(0, 5) == 0) {
+            if (rnd(0, 5) == 0) {
                 foreach (var point in trail) {
                     if (World.voxels[point.PlusZ(-1)] is Grass g) {
-                        if (World.karma.Next(0, count * 5) == 0) {
+                        if (rnd(0, count * 5) == 0) {
                             World.AddEntity(new Fire(World) { Position = point, Velocity = new XYZ() });
                             break;
                         }
@@ -245,8 +246,8 @@ namespace IslandHopper {
             foreach (var point in trail.Reverse().Take(3)) {
                 World.AddEffect(new FlameTrail(point, 3, SymbolCenter));
             }
-            if(World.karma.Next(2) == 0) {
-                World.AddEffect(new Mirage(World, Position + new XYZ(World.karma.Next(-2, 3), World.karma.Next(-2, 3)), 5));
+            if(World.karma.NextInteger(2) == 0) {
+                World.AddEffect(new Mirage(World, Position + new XYZ(rnd(-2, 3), rnd(-2, 3)), 5));
             }
             
             
@@ -266,18 +267,20 @@ namespace IslandHopper {
         public void UpdateStep() {
             var below = Position.PlusZ(-1);
             if(World.voxels.InBounds(below) && World.voxels[below] is Grass g) {
-                if(World.karma.Next(0, 150) == 0) {
+                Func<int, int, int> rnd = World.karma.NextInteger;
+
+                if(rnd(0, 150) == 0) {
                     World.voxels[below] = new Dirt();
                     Active = false;
                 }
-                if (World.karma.Next(0, 150) == 0) {
+                if (rnd(0, 150) == 0) {
                     var adjacent = new XY[] { new XY(-1, 0), new XY(1, 0), new XY(0, -1), new XY(0, 1) }
                                     .Select(p => Position + p)
                                     .Where(p => World.voxels.InBounds(p))
                                     .Where(p => World.voxels[p.PlusZ(-1)] is Grass g)
                                     .Where(p => World.entities[p].OfType<Fire>().Count() == 0);
                     if(adjacent.Any()) {
-                        var p = adjacent.ElementAt(World.karma.Next(0, adjacent.Count())).PlusZ(-1);
+                        var p = adjacent.ElementAt(rnd(0, adjacent.Count())).PlusZ(-1);
                         World.AddEntity(new Fire(World) { Position = p });
                     }
                 }
@@ -538,7 +541,7 @@ namespace IslandHopper {
 			while (explosionOffsets[tileIndex].Magnitude < currentRadius) {
                 //Expand to this tile
                 World.AddEffect(new ExplosionBlock(World, Position + explosionOffsets[tileIndex]) {
-                    lifetime = (int)(expansionTime * (1 - currentRadius / maxRadius) * 5 + World.karma.Next(0, 20))
+                    lifetime = (int)(expansionTime * (1 - currentRadius / maxRadius) * 5 + World.karma.NextInteger(0, 20))
                 });
 
 				this.DebugInfo($"Expanded to tile index: {tileIndex}");

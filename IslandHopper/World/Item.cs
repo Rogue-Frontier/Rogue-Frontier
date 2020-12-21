@@ -180,7 +180,7 @@ namespace IslandHopper {
                                     direction * (flameSpeed + user.World.karma.NextDouble() * 1) +
                                     direction.RotateZ(user.World.karma.NextDouble() * 2 * Math.PI) * flameSpeed / 8;
                             //+ direction.RotateZ(user.World.karma.NextDouble() * Math.PI - Math.PI / 2) * flameSpeed / 4);
-                            var lifetime = user.World.karma.Next(ft.lifetime, ft.lifetime * 2);
+                            var lifetime = user.World.karma.NextInteger(ft.lifetime, ft.lifetime * 2);
                             var flame = new Flame(user, item, user.Position + direction * 1.5, flameVel, lifetime);
                             user.World.AddEntity(flame);
                         }

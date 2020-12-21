@@ -51,10 +51,12 @@ namespace IslandHopper {
 			'"', '\'', 'w', 'v', ',', '.', '`',
 		};
 		public Grass(Island World) {
-			foreground = new Color(World.karma.Next(102), 153, World.karma.Next(102));
-            int r = World.karma.Next(26);
-            background = new Color(r, World.karma.Next(26) + 13, 26 - r);
-			glyph = symbols[World.karma.Next(symbols.Length)];
+			Func<int, int> next = World.karma.NextInteger;
+
+			foreground = new Color(next(102), 153, next(102));
+            int r = next(26);
+            background = new Color(r, next(26) + 13, 26 - r);
+			glyph = symbols[next(symbols.Length)];
 		}
 		public ColoredGlyph CharAbove => new ColoredGlyph(foreground, background, glyph);
 		public ColoredGlyph CharCenter => new ColoredGlyph(Color.Transparent, foreground, ' ');
