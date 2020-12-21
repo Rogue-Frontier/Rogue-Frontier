@@ -118,6 +118,7 @@ namespace TranscendenceRL {
                     */
 
                     var playerMain = new PlayerMain(Width, Height, World, playerShip);
+                    playerMain.HideUI();
                     playerShip.OnDestroyed += new EndGame(playerMain);
 
                     playerMain.Update(new TimeSpan());
@@ -144,6 +145,7 @@ namespace TranscendenceRL {
                                 void Transition4() {
                                     GameHost.Instance.Screen = playerMain;
                                     playerMain.IsFocused = true;
+                                    playerMain.ShowUI();
 
                                 }
                             }

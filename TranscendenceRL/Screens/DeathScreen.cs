@@ -36,6 +36,7 @@ namespace TranscendenceRL {
                 void Resume() {
                     GameHost.Instance.Screen = playerMain;
                     playerMain.IsFocused = true;
+                    playerMain.ShowUI();
                 }
             }) { Position = new Point(Width - 16, Height - 4) });
 

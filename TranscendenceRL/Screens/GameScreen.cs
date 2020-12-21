@@ -72,6 +72,12 @@ namespace TranscendenceRL {
 			//Don't allow anyone to get focus via mouse click
 			FocusOnMouseClick = false;
 		}
+		public void HideUI() {
+			ui.IsVisible = false;
+        }
+		public void ShowUI() {
+			ui.IsVisible = true;
+        }
 		public void EndGame(SpaceObject destroyer, Wreck wreck) {
 			//Clear mortal time so that we don't slow down after the player dies
 			playerShip.mortalTime = 0;
@@ -84,16 +90,18 @@ namespace TranscendenceRL {
 
 			//Pretty sure this can't happen but make sure
 			pauseMenu.IsVisible = false;
+
+			ui.IsVisible = false;
 			
 			//Get a snapshot of the player
-			var size = 60;
+			var size = 80;
 			var deathFrame = new ColoredGlyph[size, size];
 			XY center = new XY(size / 2, size / 2);
 			for (int y = 0; y < size; y++) {
 				for(int x = 0; x < size; x++) {
 					var tile = GetTile(camera - new XY(x, y) + center);
-					tile.Foreground = Helper.Gray((int)(255 * tile.Foreground.Premultiply().GetBrightness()));
-					tile.Background = Helper.Gray((int)(255 * tile.Background.Premultiply().GetBrightness()));
+					//tile.Foreground = Helper.Gray((int)(255 * tile.Foreground.Premultiply().GetBrightness()));
+					//tile.Background = Helper.Gray((int)(255 * tile.Background.Premultiply().GetBrightness()));
 					deathFrame[x, y] = tile;
 
 				}
@@ -195,9 +203,16 @@ namespace TranscendenceRL {
 			}
 			map.Update(delta);
 			vignette.Update(delta);
-			ui.Update(delta);
+			if (ui.IsVisible) {
+				ui.Update(delta);
+			}
+
+			//Need to update powermenu while it is hidden
 			powerMenu.Update(delta);
-			pauseMenu.Update(delta);
+
+			if (pauseMenu.IsVisible) {
+				pauseMenu.Update(delta);
+			}
 
 			//Required to update children
 			base.Update(delta);
@@ -219,7 +234,9 @@ namespace TranscendenceRL {
 					map.Render(drawTime);
 				}
 				vignette.Render(drawTime);
-				ui.Render(drawTime);
+				if (ui.IsVisible) {
+					ui.Render(drawTime);
+				}
 				if (powerMenu.IsVisible) {
 					powerMenu.Render(drawTime);
 				}
