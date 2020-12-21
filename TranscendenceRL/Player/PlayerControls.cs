@@ -87,8 +87,8 @@ namespace TranscendenceRL {
 				playerShip.Destroy(playerShip);
 			}
 			if(info.IsKeyPressed(controls[Autopilot])) {
+				playerShip.AddMessage(new InfoMessage($"Autopilot {(playerShip.autopilot ? "disengaged" : "engaged")}"));
 				playerShip.autopilot = !playerShip.autopilot;
-				playerShip.AddMessage(new InfoMessage($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
             }
 			if (info.IsKeyPressed(controls[Dock])) {
 				if (playerShip.Dock != null) {
