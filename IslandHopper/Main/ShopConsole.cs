@@ -67,7 +67,7 @@ namespace IslandHopper {
                 int size = 128;
                 int height = 30;
                 var World = new Island() {
-                    karma = new Random(0),
+                    karma = new Rand(0),
                     entities = new LocatorDict<Entity, (int, int, int)>(e => e.Position),
                     effects = new LocatorDict<Effect, (int, int, int)>(e => e.Position),
                     voxels = new ArraySpace<Voxel>(size, size, height, new Air()),
@@ -97,8 +97,11 @@ namespace IslandHopper {
                     //World.entities.Place(World.types.Lookup<ItemType>("itHotRod").GetItem(World, new XYZ(28.5, 29.5, 1)));
                     //World.entities.Place(StandardTypes.itStoppedClock.GetItem(World, new XYZ(28.5, 29.5, 1)));
                     var s = StandardTypes.stdWeapons;
-                    World.entities.Place(s[r.Next(s.Length)].GetItem(World, new XYZ(r.Next(World.voxels.Width), r.Next(World.voxels.Height), 1)));
-                    World.entities.Place(new Enemy(World, new XYZ(r.Next(World.voxels.Width), r.Next(World.voxels.Height), 1)));
+
+                    Func<int, int> next = r.NextInteger;
+
+                    World.entities.Place(s[r.NextInteger(s.Length)].GetItem(World, new XYZ(next(World.voxels.Width), next(World.voxels.Height), 1)));
+                    World.entities.Place(new Enemy(World, new XYZ(next(World.voxels.Width), next(World.voxels.Height), 1)));
                 }
                 World.entities.Place(World.player);
                 //            World.entities.Place(new Enemy(World, new XYZ(35, 35, 1)));
