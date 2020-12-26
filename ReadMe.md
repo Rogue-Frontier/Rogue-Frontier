@@ -1,6 +1,9 @@
 # Transcendence: Rogue Frontier
-![Cover](https://github.com/INeedAUniqueUsername/TranscendenceRL/blob/master/TranscendenceRL/Preview/TitleScreen.PNG)
-A demo for an ASCII-style real-time roguelike set in an alternate universe of *Transcendence*, a roguelike space-opera game by George Moromisato. Developed for April Fools 2020.
+![Cover](https://github.com/INeedAUniqueUsername/TranscendenceRL/blob/master/TranscendenceRL/RogueFrontierContent/RogueFrontierPoster.png)
+
+[Itch.io](https://ineedauniqueusername.itch.io/rogue-frontier)
+
+A demo for an ASCII-style real-time roguelike set in an alternate universe of *Transcendence*, a roguelike space-opera game by George Moromisato. Initially developed for April Fools 2020.
 
 # Build
 - Visual Studio 2019
@@ -17,6 +20,3 @@ The basic XML structures and types for systems, stations, ships, items, and weap
 For a particularly advanced goal, I would like to implement station docking as a turn-based roguelike sub-game where the player can walk around ASCII-style station floors and interact with characters in person.
 
 The second part of *Transcendence* is titled "The Vault of the Galaxy." In kind, I plan to title the second part of *Transcendence: Rogue Frontier* as "The Hall of the GALASCII" (Galactic Alliance Launching Aggressive Strikes Countering Interstellar Inquisition)
-
-# Island Hopper
-An engine prototype for a Battle Royale turn-based roguelike inspired by Team Fortress 2 and Dwarf Fortress
