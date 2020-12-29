@@ -54,7 +54,13 @@ namespace TranscendenceRL {
                     ShowTitle();
                 }
             }) { IsFocused = true, UseKeyboard = true };
+
+            var splashBack = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/SplashBackgroundV2.asc.cg")));
+            var splashBackground = new DisplayImage(Width / 2, Height / 2, splashBack, new Point()) { FontSize = container.FontSize * 2 };
+            container.Children.Add(splashBackground);
+
             GameHost.Instance.Screen = container;
+
             ShowSplash();
 
             void ShowSplash() {
@@ -86,6 +92,8 @@ namespace TranscendenceRL {
             }
 
             void ShowOpening(Console prev) {
+                prev.Parent.Children.Remove(splashBackground);
+
                 Console c = null;
                 c = new SimpleCrawl(
 @"                  

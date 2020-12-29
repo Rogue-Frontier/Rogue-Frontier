@@ -57,7 +57,7 @@ I know it was much more than a dream." }.Select(line => line.Replace("\r", "")).
 
         bool speedUp;
 
-        LoadingSymbol spinner;
+        //LoadingSymbol spinner;
 
         ColoredString[] effect;
 
@@ -83,7 +83,7 @@ I know it was much more than a dream." }.Select(line => line.Replace("\r", "")).
                     effect[y][x] = GetGlyph(x, y);
                 }
             }
-            spinner = new LoadingSymbol(16);
+            //spinner = new LoadingSymbol(16);
             clouds = new List<CloudParticle>();
 
             Color Front(int value) {
@@ -276,7 +276,7 @@ I know it was much more than a dream." }.Select(line => line.Replace("\r", "")).
                     }
                 }
             }
-
+            /*
             {
                 var symbol = spinner.Draw();
                 int symbolX = Width - symbol[0].Count;
@@ -286,6 +286,7 @@ I know it was much more than a dream." }.Select(line => line.Replace("\r", "")).
                     symbolY++;
                 }
             }
+            */
             base.Render(drawTime);
         }
         public override bool ProcessKeyboard(Keyboard info) {
