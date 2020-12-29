@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using ASECII;
 using Common;
 using SadConsole;
+using SadRogue.Primitives;
 using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
@@ -18,7 +21,10 @@ namespace TranscendenceRL {
         }
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
             if (d is Station s && s.StationType.codename == "station_daughters_outpost") {
-                var heroImage = s.StationType.heroImage.CenterVertical(prev, 16);
+                var heroImage = s.StationType.heroImage.Translate(new Point(4, 4));
+                var benedictPortrait = SScene.LoadImage("RogueFrontierContent/BenedictPortrait.asc.cg").Translate(new Point(heroImage.Max(p => p.Key.Item1), 4));
+                var outpostLobby = SScene.LoadImage("RogueFrontierContent/DaughtersOutpostDock.asc.cg").Translate(new Point(benedictPortrait.Max(p => p.Key.Item1), 4));
+
                 Console Intro() {
                     var t =
 @"Docking at the front entrance of the abbey, the great magenta
@@ -36,6 +42,7 @@ You're a complete stranger here.".Replace("\r", null);
                 }
 
                 Console Intro2(Console from) {
+
                     var t =
 @"Stumbling into the main hall, I see a great monolith of
 sparkling crystal and glowing symbols. A low hum echoes
@@ -46,11 +53,15 @@ by the entrance.
 You must be new here... May I help you with anything?""
 
 The man asks.".Replace("\r", null);
+                    var background = SScene.Flatten(heroImage,
+                        benedictPortrait,
+                        outpostLobby
+                        );
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                                     new SceneOption() { escape = true, enter = true,
                                         key = 'I', name = @"""I've been hearing a voice...""",
                                         next = Intro3
-                                }}) { background = heroImage };
+                                }}) { background = background };
                     return sc;
                 }
                 Console Intro3(Console from) {

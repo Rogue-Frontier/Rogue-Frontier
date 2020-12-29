@@ -7,6 +7,8 @@ using System;
 using SadConsole;
 using Console = SadConsole.Console;
 using ArchConsole;
+using ASECII;
+using System.IO;
 
 namespace TranscendenceRL {
     public class SceneType : DesignType {
@@ -74,6 +76,24 @@ namespace TranscendenceRL {
         public Func<Console, Console> next;
     }
     public static class SScene {
+        public static Dictionary<(int, int), U> Normalize<U>(this Dictionary<(int,int), U> d) {
+            int left = int.MaxValue;
+            int top = int.MaxValue;
+            foreach((int x, int y) p in d.Keys) {
+                left = Math.Min(left, p.x);
+                top = Math.Min(top, p.y);
+            }
+            return d.Translate(new Point(-left, -top));
+        }
+        public static Dictionary<(int, int), ColoredGlyph> LoadImage(string file) {
+            var img = ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText(file));
+
+            var result = new Dictionary<(int, int), ColoredGlyph>();
+            foreach((var p, var t) in img) {
+                result[p] = t.cg;
+            }
+            return result;
+        }
 
         public static Dictionary<(int, int), ColoredGlyph> ToImage(this string[] image, Color tint) {
             Dictionary<(int, int), ColoredGlyph> result = new Dictionary<(int, int), ColoredGlyph>();
@@ -99,6 +119,15 @@ namespace TranscendenceRL {
             int deltaY = (c.Height - (image.Max(pair => pair.Key.Item2) - image.Min(pair => pair.Key.Item2))) / 2;
             foreach (((var x, var y), var u) in image) {
                 result[(x + deltaX, y + deltaY)] = u;
+            }
+            return result;
+        }
+        public static Dictionary<(int,int), U> Flatten<U>(params Dictionary<(int, int), U>[] images) {
+            Dictionary<(int x, int y), U> result = new Dictionary<(int x, int y), U>();
+            foreach(var image in images) {
+                foreach(((var x, var y), var u) in image) {
+                    result[(x, y)] = u;
+                }
             }
             return result;
         }
