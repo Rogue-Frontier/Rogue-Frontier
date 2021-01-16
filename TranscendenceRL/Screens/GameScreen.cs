@@ -268,8 +268,7 @@ namespace TranscendenceRL {
 			if(pauseMenu.IsVisible) {
 				pauseMenu.ProcessKeyboard(info);
             } else if (powerMenu.IsVisible) {
-				playerControls.ProcessArrows(info);
-				playerControls.ProcessTargeting(info);
+				playerControls.ProcessPowerMenu(info);
 				powerMenu.ProcessKeyboard(info);
 			} else {
 				playerControls.ProcessKeyboard(info);
