@@ -77,6 +77,23 @@ namespace TranscendenceRL {
 				}
 			}
 		}
+
+		public void ProcessPowerMenu(Keyboard info) {
+			var controls = playerShip.player.Settings.controls;
+
+			ProcessArrows(info);
+			ProcessTargeting(info);
+
+			if (info.IsKeyPressed(controls[Powers])) {
+				if (powerMenu != null)
+					powerMenu.IsVisible = !powerMenu.IsVisible;
+
+			}
+			if (info.IsKeyPressed(controls[Autopilot])) {
+				playerShip.autopilot = !playerShip.autopilot;
+				playerShip.AddMessage(new InfoMessage($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
+			}
+		}
         public void ProcessKeyboard(Keyboard info) {
 			var controls = playerShip.player.Settings.controls;
 			//Move the player
@@ -87,9 +104,9 @@ namespace TranscendenceRL {
 				playerShip.Destroy(playerShip);
 			}
 			if(info.IsKeyPressed(controls[Autopilot])) {
-				playerShip.AddMessage(new InfoMessage($"Autopilot {(playerShip.autopilot ? "disengaged" : "engaged")}"));
 				playerShip.autopilot = !playerShip.autopilot;
-            }
+				playerShip.AddMessage(new InfoMessage($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
+			}
 			if (info.IsKeyPressed(controls[Dock])) {
 				if (playerShip.Dock != null) {
 					if (playerShip.Dock.docked) {
@@ -120,7 +137,7 @@ namespace TranscendenceRL {
 			}
 			if (info.IsKeyPressed(controls[Powers])) {
 				if(powerMenu != null)
-					powerMenu.IsVisible = true;
+					powerMenu.IsVisible = !powerMenu.IsVisible;
 			}
 			
 			if (info.IsKeyPressed(C)) {
