@@ -80,6 +80,7 @@ namespace TranscendenceRL {
         public int currentRange => missileSpeed * desc.shot.lifetime / TranscendenceRL.TICKS_PER_SECOND;
         public Capacitor capacitor;
         public Aiming aiming;
+        public IAmmo ammo;
         public int fireTime;
         public bool firing;
         public int repeatsLeft;
@@ -142,6 +143,8 @@ namespace TranscendenceRL {
 
                 //bool allowFire = (firing || true) && (capacitor?.AllowFire ?? true);
                 capacitor?.CheckFire(ref firing);
+                ammo?.CheckFire(ref firing);
+
                 if (firing) {
                     if (direction.HasValue) {
                         Fire(owner, direction.Value);
@@ -183,7 +186,7 @@ namespace TranscendenceRL {
 
                 //bool allowFire = firing && (capacitor?.AllowFire ?? true);
                 capacitor?.CheckFire(ref firing);
-
+                ammo?.CheckFire(ref firing);
 
                 if (firing) {
                     Fire(owner, direction);
@@ -239,10 +242,27 @@ namespace TranscendenceRL {
             aiming?.UpdateTarget(target);
         }
 
-        public class Ammo {
+        public interface IAmmo {
+            public void Update(SpaceObject source) { }
+            void CheckFire(ref bool firing);
+            void OnFire();
+        }
+        public class ChargeAmmo : IAmmo {
+            public int charges;
+            public bool AllowFire => charges > 0;
+            public void CheckFire(ref bool firing) {
+                firing &= charges > 0;
+            }
+
+            public void OnFire() {
+                charges--;
+            }
+        }
+        public class ItemAmmo : IAmmo {
             private ItemType itemType;
             private Item item;
-            public Ammo(ItemType itemType) {
+            //public bool AllowFire => false;
+            public ItemAmmo(ItemType itemType) {
                 this.itemType = itemType;
             }
             public void Update(SpaceObject source) {
