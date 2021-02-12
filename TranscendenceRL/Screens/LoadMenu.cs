@@ -36,14 +36,21 @@ namespace TranscendenceRL {
                     var b = new LabelButton(file.Replace(dir, null), () => {
                         var loaded = SaveGame.Deserialize(File.ReadAllText(file));
 
+                        var s = GameHost.Instance.Screen;
+                        int Width = s.Width, Height = s.Height;
+
                         switch (loaded) {
-                            case LiveGame live:
-                                var s = GameHost.Instance.Screen;
-                                int Width = s.Width, Height = s.Height;
-                                var playerMain = new PlayerMain(Width, Height, live.world, live.playerShip) { IsFocused = true };
-                                live.playerShip.OnDestroyed += new EndGame(playerMain);
-                                GameHost.Instance.Screen = playerMain;
-                                break;
+                            case LiveGame live: {
+                                    var playerMain = new PlayerMain(Width, Height, live.world, live.playerShip) { IsFocused = true };
+                                    live.playerShip.OnDestroyed += new EndGame(playerMain);
+                                    GameHost.Instance.Screen = playerMain;
+                                    break;
+                                }
+                            case DeadGame dead: {
+                                    var deathScreen = new DeathScreen(new PlayerMain(Width, Height, dead.world, dead.playerShip), dead.epitaph) { IsFocused = true };
+                                    GameHost.Instance.Screen = deathScreen;
+                                    break;
+                                }
                         }
                     }) { Position = new Point(x, y++), FontSize = FontSize };
                     Children.Add(b);

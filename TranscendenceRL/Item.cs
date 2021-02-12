@@ -200,6 +200,18 @@ namespace TranscendenceRL {
             }
             firing = false;
         }
+        public bool RangeCheck(SpaceObject user, SpaceObject target) {
+            return (user.Position - target.Position).Magnitude < currentRange;
+        }
+        public bool CanFire() {
+            if(fireTime > 0) {
+                return false;
+            }
+            bool firing = true;
+            capacitor?.CheckFire(ref firing);
+            ammo?.CheckFire(ref firing);
+            return firing;
+        }
         public void Fire(SpaceObject source, double direction) {
             int damageHP = desc.damageHP;
             int missileSpeed = desc.shot.missileSpeed;

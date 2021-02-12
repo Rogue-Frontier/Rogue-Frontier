@@ -35,10 +35,10 @@ namespace TranscendenceRL {
         public Backdrop backdrop;
 
         public int tick;
-        public World(TypeCollection types, Rand karma, Backdrop backdrop) {
+        public World(TypeCollection types, Rand karma) {
             this.types = types;
             this.karma = karma;
-            this.backdrop = backdrop;
+            this.backdrop = new Backdrop(karma);
         }
         public World() {
             types = new TypeCollection();

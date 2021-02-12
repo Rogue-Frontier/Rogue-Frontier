@@ -10,13 +10,12 @@ using Console = SadConsole.Console;
 namespace TranscendenceRL {
     class DeathScreen : Console {
         World world;
-        Player player;
         PlayerShip playerShip;
         Epitaph epitaph;
-        public DeathScreen(PlayerMain playerMain, World world, PlayerShip playerShip, Epitaph epitaph) : base(playerMain.Width, playerMain.Height) {
-            this.world = world;
-            this.player = playerShip.player;
-            this.playerShip = playerShip;
+        public DeathScreen(PlayerMain playerMain, Epitaph epitaph) : base(playerMain.Width, playerMain.Height) {
+            var world = playerMain.World;
+            this.playerShip = playerMain.playerShip;
+            
             this.epitaph = epitaph;
 
             this.Children.Add(new LabelButton("Resurrect", () => {
@@ -55,7 +54,7 @@ namespace TranscendenceRL {
                     this.SetCellAppearance(Width - x - 2, y + 1, epitaph.deathFrame[x, y]);
                 }
             }
-
+            var player = playerShip.player;
             var str =
 @$"
 {player.name}

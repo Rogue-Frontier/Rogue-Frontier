@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace TranscendenceRL {
     public interface ITrail {
@@ -19,11 +20,16 @@ namespace TranscendenceRL {
         public Effect GetTrail(XY Position) => new EffectParticle(Position, Tile, 3);
     }
     public class Projectile : Entity {
+        [JsonProperty]
         public World World { get; private set; }
-        SpaceObject Source;
+        [JsonProperty] 
+        public SpaceObject Source;
+        [JsonProperty] 
         public XY Position { get; private set; }
+        [JsonProperty] 
         public XY Velocity { get; private set; }
         public bool Active => lifetime > 0;
+        [JsonProperty] 
         public ColoredGlyph Tile { get; private set; }
         public ITrail trail;
 
