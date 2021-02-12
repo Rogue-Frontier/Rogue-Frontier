@@ -67,8 +67,8 @@ namespace TranscendenceRL {
         }
     }
     public class SystemGroup : SystemElement {
-        int radius;
-        List<SystemElement> subelements;
+        public int radius;
+        public List<SystemElement> subelements;
         public SystemGroup() { }
         public SystemGroup(XElement e) {
             radius = e.TryAttributeInt(nameof(radius), 0);
@@ -86,15 +86,16 @@ namespace TranscendenceRL {
         }
     }
     public class SystemOrbital : SystemElement {
-        private List<SystemElement> subelements;
-        private int angle;
-        private AngleType angleType;
-        private enum AngleType {
+        public List<SystemElement> subelements;
+        public int angle;
+        public AngleType angleType;
+        public enum AngleType {
             Constant, Random, Equidistant, Incrementing
         }
         private int increment;
 
         private int radius;
+        public SystemOrbital() { }
         public SystemOrbital(XElement e) {
             subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
             switch (e.ExpectAttribute("angle")) {
@@ -159,7 +160,8 @@ namespace TranscendenceRL {
         }
     }
     public class SystemMarker : SystemElement {
-        string name;
+        public string name;
+        public SystemMarker() { }
         public SystemMarker(XElement e) {
             name = e.ExpectAttribute("name");
         }
@@ -168,6 +170,7 @@ namespace TranscendenceRL {
         }
     }
     public class SystemNebula : SystemElement {
+        public SystemNebula() { }
         public SystemNebula(XElement e) {
 
         }
@@ -176,8 +179,9 @@ namespace TranscendenceRL {
         }
     }
     public class SystemPlanet : SystemElement {
-        private int radius;
-        private bool showOrbit;
+        public int radius;
+        public bool showOrbit;
+        public SystemPlanet() { }
         public SystemPlanet(XElement e) {
             radius = e.ExpectAttributeInt(nameof(radius));
             showOrbit = e.TryAttributeBool(nameof(showOrbit), false);
@@ -238,6 +242,7 @@ namespace TranscendenceRL {
         public int radiusInc;
 
         public List<SystemElement> subelements;
+        public SystemSibling() { }
         public SystemSibling(XElement e) {
             arcInc = e.TryAttributeInt(nameof(arcInc), 0);
             angleInc = e.TryAttributeInt(nameof(angleInc), 0);
@@ -259,8 +264,9 @@ namespace TranscendenceRL {
         }
     }
     public class LightGenerator : IGridGenerator<Color> {
-        LocationContext lc;
-        int radius;
+        public LocationContext lc;
+        public int radius;
+        public LightGenerator() { }
         public LightGenerator(LocationContext lc, int radius) {
             this.lc = lc;
             this.radius = radius;
@@ -271,7 +277,8 @@ namespace TranscendenceRL {
         }
     }
     public class SystemStar : SystemElement {
-        private int radius;
+        public int radius;
+        public SystemStar() { }
         public SystemStar(XElement e) {
             this.radius = e.ExpectAttributeInt("radius");
         }
@@ -296,7 +303,8 @@ namespace TranscendenceRL {
         }
     }
     public class SystemStation : SystemElement {
-        string codename;
+        public string codename;
+        public SystemStation() { }
         public SystemStation(XElement e) {
             codename = e.ExpectAttribute("codename");
         }

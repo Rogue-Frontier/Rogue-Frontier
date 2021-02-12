@@ -38,6 +38,8 @@ namespace TranscendenceRL {
 
                         switch (loaded) {
                             case LiveGame live:
+                                var s = GameHost.Instance.Screen;
+                                int Width = s.Width, Height = s.Height;
                                 var playerMain = new PlayerMain(Width, Height, live.world, live.playerShip) { IsFocused = true };
                                 live.playerShip.OnDestroyed += new EndGame(playerMain);
                                 GameHost.Instance.Screen = playerMain;

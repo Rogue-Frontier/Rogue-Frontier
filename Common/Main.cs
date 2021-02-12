@@ -278,7 +278,7 @@ namespace Common {
 		public static string ExpectAttribute(this XElement e, string attribute) {
 			string result = e.Attribute(attribute)?.Value;
 			if (result == null) {
-				throw new Exception($"<{e.Name}> requires {attribute} attribute");
+				throw new Exception($"<{e.Name}> requires {attribute} attribute ### {e.Name}");
 			} else {
 				return result;
 			}
@@ -286,7 +286,7 @@ namespace Common {
 		public static XElement ExpectElement(this XElement e, string name) {
 			var result = e.Element(name);
 			if (result == null) {
-				throw new Exception($"Element <{e.Name}> requires subelement {name}");
+				throw new Exception($"Element <{e.Name}> requires subelement {name} ### {e.Name}");
 			}
 			return result;
 		}
@@ -303,7 +303,7 @@ namespace Common {
 				} else if (s.StartsWith("\\") && int.TryParse(s.Substring(1), out var result)) {
 					return (char)result;
 				} else {
-					throw new Exception($"Char value expected:{attribute}=\"{s}\"");
+					throw new Exception($"Char value expected:{attribute}=\"{s}\" ### {e.Name}");
 				}
 			} else {
 				return fallback;
@@ -317,7 +317,7 @@ namespace Common {
 				} else try {
 						return (Color)typeof(Color).GetField(s).GetValue(null);
 					} catch {
-						throw new Exception($"Color value expected: {attribute}=\"{s}\"");
+						throw new Exception($"Color value expected: {attribute}=\"{s}\" ### {e.Name}");
 					}
 			} else {
 				return fallback;
@@ -332,7 +332,7 @@ namespace Common {
 			} else if(int.TryParse(a.Value, out int result)) {
 				return result;
 			} else {
-				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\"");
+				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\" ### {a.Parent.Name}");
 			}
 		}
 		public static Color ExpectAttributeColor(this XElement e, string attribute) {
@@ -342,16 +342,16 @@ namespace Common {
 				} else try {
 						return (Color)typeof(Color).GetProperty(s).GetValue(null, null);
 					} catch {
-						throw new Exception($"Color value expected: {attribute}=\"{s}\"");
+						throw new Exception($"Color value expected: {attribute}=\"{s}\" ### {e.Name}");
 					}
 			} else {
-				throw new Exception($"{e.Name} requires color attribute {attribute}");
+				throw new Exception($"{e.Name} requires color attribute {attribute} ### {e.Name}");
 			}
 		}
 		public static int ExpectAttributeInt(this XElement e, string attribute) {
 			var a = e.Attribute(attribute);
 			if (a == null) {
-				throw new Exception($"<{e.Name}> requires int attribute: {attribute}");
+				throw new Exception($"<{e.Name}> requires int attribute: {attribute} ### {e.Name}");
 			} else {
 				return ExpectAttributeInt(a);
 			}
@@ -367,7 +367,7 @@ namespace Common {
 		public static double ExpectAttributeDouble(this XElement e, string attribute) {
 			var a = e.Attribute(attribute);
 			if (a == null) {
-				throw new Exception($"<{e.Name}> requires double attribute: {attribute}");
+				throw new Exception($"<{e.Name}> requires double attribute: {attribute} ### {e.Name}");
 			} else {
 				return ExpectAttributeDouble(a);
 			}
@@ -382,7 +382,7 @@ namespace Common {
 		public static bool ExpectAttributeBool(this XElement e, string attribute) {
 			var a = e.Attribute(attribute);
 			if (a == null) {
-				throw new Exception($"<{e.Name}> requires bool attribute: {attribute}");
+				throw new Exception($"<{e.Name}> requires bool attribute: {attribute} ### {e.Name}");
 			} else {
 				return ExpectAttributeBool(a);
 			}
@@ -402,7 +402,7 @@ namespace Common {
             } else if (double.TryParse(a.Value, out double result)) {
                 return result;
             } else {
-                throw new Exception($"double value expected: {a.Name}=\"{a.Value}\"");
+                throw new Exception($"double value expected: {a.Name}=\"{a.Value}\"  ### {a.Parent.Name}");
             }
         }
         public static void InheritAttributes(this XElement sub, XElement source) {
@@ -553,12 +553,12 @@ namespace Common {
 			return new ColoredGlyph(foreground, background, c);
 		}
 		public static ColoredString WithBackground(this ColoredString c, Color? Background = null) {
-			var result = c.SubString(0, c.Count);
+			var result = c.SubString(0, c.Count());
 			result.SetBackground(Background ?? Color.Black);
 			return result;
 		}
 		public static ColoredString Adjust(this ColoredString c, Color foregroundInc) {
-			ColoredString result = c.SubString(0, c.Count);
+			ColoredString result = c.SubString(0, c.Count());
 			foreach (var g in result) {
 				g.Foreground = Sum(g.Foreground, foregroundInc);
 			}
@@ -590,7 +590,7 @@ namespace Common {
 			return result;
 		}
         public static ColoredString Adjust(this ColoredString c, Color foregroundInc, Color backgroundInc) {
-            ColoredString result = c.SubString(0, c.Count);
+            ColoredString result = c.SubString(0, c.Count());
             foreach (var g in result) {
                 g.Foreground = Sum(g.Foreground, foregroundInc);
                 g.Background = Sum(g.Background, backgroundInc);

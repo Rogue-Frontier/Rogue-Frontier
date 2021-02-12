@@ -57,7 +57,7 @@ namespace TranscendenceRL {
 		List<Armor> Generate(TypeCollection tc);
 	}
 	public class ArmorList : ArmorGenerator {
-		List<ArmorGenerator> generators;
+		public List<ArmorGenerator> generators;
 		public ArmorList() { }
 		public ArmorList(XElement e) {
 			generators = new List<ArmorGenerator>();

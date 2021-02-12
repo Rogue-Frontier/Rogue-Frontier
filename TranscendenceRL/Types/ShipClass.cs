@@ -66,7 +66,7 @@ namespace TranscendenceRL {
 		}
 	}
 	public class LayeredArmorDesc : DamageSystemDesc {
-		ArmorList armorList;
+		public ArmorList armorList;
 		public LayeredArmorDesc() { }
 		public LayeredArmorDesc(XElement e) {
 			armorList = new ArmorList(e);

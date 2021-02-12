@@ -1,4 +1,5 @@
 ﻿using Common;
+using Newtonsoft.Json;
 using SadConsole;
 using SadRogue.Primitives;
 using System;
@@ -17,15 +18,11 @@ namespace TranscendenceRL {
     }
     public class Transmission : IPlayerMessage {
         public SpaceObject source;
-        InfoMessage info;
+        public InfoMessage info;
         public Transmission() { }
-        public Transmission(SpaceObject source, ColoredString message, int updateInterval = 3) {
+        public Transmission(SpaceObject source, string message, int updateInterval = 3) {
             this.source = source;
             this.info = new InfoMessage(message, updateInterval);
-        }
-        public Transmission(SpaceObject source, string message) {
-            this.source = source;
-            this.info = new InfoMessage(message);
         }
         public bool Active => info.Active;
         public ColoredString message => info.message;
@@ -34,16 +31,17 @@ namespace TranscendenceRL {
         public void Update() => info.Update();
     }
     public class InfoMessage: IPlayerMessage {
-        public ColoredString message { get; private set; }
+        [JsonIgnore]
+        public ColoredString message => new ColoredString(text, Color.White, Color.Transparent);
+        public string text;
         public int index;
         public int ticks;
         public int ticksRemaining;
         public int updateInterval;
         public int flashTicks;
         public InfoMessage() { }
-        public InfoMessage(string message) : this(new ColoredString(message, Color.White, Color.Black)) { }
-        public InfoMessage(ColoredString message, int updateInterval = 3) {
-            this.message = message;
+        public InfoMessage(string text, int updateInterval = 3) {
+            this.text = text;
             index = 0;
             ticks = 0;
             ticksRemaining = 60 * 5;
@@ -55,7 +53,7 @@ namespace TranscendenceRL {
             flashTicks = 15;
         }
         public void Update() {
-            if(index < message.Count) {
+            if(index < message.Count()) {
                 if(ticks++%updateInterval == 0)
                     index++;
             } else if(ticksRemaining > 0) {
@@ -65,7 +63,7 @@ namespace TranscendenceRL {
                 flashTicks--;
             }
         }
-        public bool Scrolling => ticks < message.Count;
+        public bool Scrolling => ticks < message.Count();
         public bool Active => ticksRemaining > 0;
         public ColoredString Draw() {
             var result = message.SubString(0, index).WithOpacity((byte)Math.Min(255, ticksRemaining * 255 / TranscendenceRL.TICKS_PER_SECOND));

@@ -51,8 +51,8 @@ namespace TranscendenceRL {
         public bool Active => target.Active;
     }
     public class ApproachOrder : Order {
-        IShip target;
-        XY offset;
+        public IShip target;
+        public XY offset;
         public ApproachOrder(IShip target, XY offset) {
             this.target = target;
             this.offset = offset;
@@ -176,7 +176,7 @@ namespace TranscendenceRL {
     }
     public class AttackOrder : Order {
         public SpaceObject target;
-        private Weapon weapon;
+        public Weapon weapon;
         public AttackOrder(SpaceObject target) {
             this.target = target;
         }
@@ -234,7 +234,7 @@ namespace TranscendenceRL {
 
     public class SnipeOrder : Order, ICombatOrder {
         public SpaceObject target;
-        private Weapon weapon;
+        public Weapon weapon;
         public SnipeOrder(SpaceObject target) {
             this.target = target;
         }
@@ -258,7 +258,7 @@ namespace TranscendenceRL {
         public bool Active => target.Active && weapon != null;
     }
     public class ApproachOrbitOrder : Order {
-        SpaceObject target;
+        public SpaceObject target;
         public ApproachOrbitOrder(SpaceObject target) {
             this.target = target;
         }
@@ -335,7 +335,7 @@ namespace TranscendenceRL {
         }
     }
     public class FaceOrder : Order {
-        double targetRads;
+        public double targetRads;
         public FaceOrder(double targetRads) {
             this.targetRads = targetRads;
         }

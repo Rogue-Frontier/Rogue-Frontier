@@ -59,7 +59,7 @@ namespace TranscendenceRL {
             if(File.Exists(f)) {
                 settings = SaveGame.Deserialize<Settings>(File.ReadAllText(f));
             } else {
-                settings = new Settings();
+                settings = Settings.standard;
             }
             config = new ConfigMenu(48, 64, settings) { Position = new Point(0, 30), FontSize= fs };
             load = new LoadMenu(48, 64, settings) { Position = new Point(0, 30), FontSize = fs };
@@ -129,7 +129,7 @@ namespace TranscendenceRL {
                     crawl.next=() => (new FlashTransition(Width, Height, crawl, Transition));
 
                     void Transition() {
-                        GameHost.Instance.Screen = new Pause(GameHost.Instance.Screen,Transition2, 1);
+                        GameHost.Instance.Screen = new Pause((Console)GameHost.Instance.Screen,Transition2, 1);
 
                         void Transition2() {
                             GameHost.Instance.Screen = new SimpleCrawl("Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch
@@ -303,7 +303,7 @@ namespace TranscendenceRL {
                     new InfoMessage(pov.Name),
                 };
             if (pov.DamageSystem is LayeredArmorSystem las) {
-                povDesc.AddRange(las.GetDesc().Select(m => new InfoMessage(m)));
+                povDesc.AddRange(las.GetDesc().Select(m => new InfoMessage(m.String)));
             } else if (pov.DamageSystem is HPSystem hp) {
                 povDesc.Add(new InfoMessage($"HP: {hp}"));
             }
@@ -415,8 +415,11 @@ namespace TranscendenceRL {
                             Genome = World.types.genomeType.Values.First()
                         };
 
+                        World.UpdatePresent();
                         World.entities.all.Clear();
                         World.effects.all.Clear();
+                        World.karma = new Rand(player.name.GetHashCode());
+                        World.backdrop = new Backdrop(World.karma);
                         World.types.Lookup<SystemType>("system_orion").Generate(World);
                         World.UpdatePresent();
 
@@ -427,33 +430,16 @@ namespace TranscendenceRL {
                         playerShip.Powers.Add(new Power(World.types.Lookup<PowerType>("power_silence")));
                         playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
-                        Func<Item> item = () => new Item(new ItemType() { name = "aa" });
-                        playerShip.Items.Add(item());
-                        playerShip.Items.Add(item());
-                        playerShip.Items.Add(item());
-
-                        var wreck = new Wreck(playerShip);
-                        wreck.Items.Add(item());
-                        wreck.Items.Add(item());
-                        wreck.Items.Add(item());
-                        World.AddEntity(wreck);
-
                         World.AddEffect(new Heading(playerShip));
                         World.AddEntity(playerShip);
+
+                        new LiveGame(World, player, playerShip).Save();
 
                         var wingmateClass = World.types.Lookup<ShipClass>("ship_beowulf");
 
                         var wingmate = new AIShip(new BaseShip(World, wingmateClass, playerSovereign, playerStart), new EscortOrder(playerShip, new XY(-5, 0)));
                         World.AddEntity(wingmate);
                         World.AddEffect(new Heading(wingmate));
-
-                        /*
-                        File.WriteAllText(file, JsonConvert.SerializeObject(new LiveGame() {
-                            player = player,
-                            world = World,
-                            playerShip = playerShip
-                        }, SaveGame.settings));
-                        */
 
                         var playerMain = new PlayerMain(Width, Height, World, playerShip);
                         playerShip.OnDestroyed += new EndGame(playerMain);

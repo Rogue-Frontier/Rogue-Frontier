@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,11 +7,27 @@ namespace Common {
     public interface IContainer<T> {
         T Value { get; }
     }
+    public class Dict<T, U> : IContainer<Dictionary<T, U>> {
+        public Dictionary<T, U> Value { get; private set; }
+        public U this[T key] {
+            get => Value[key];
+            set => Value[key] = value;
+        }
+        public Dict() {
+            Value = new Dictionary<T, U>();
+        }
+        public Dict(Dictionary<T, U> Value) {
+            this.Value = Value;
+        }
+        public bool TryGetValue(T key, out U result) => Value.TryGetValue(key, out result);
+        public static implicit operator Dictionary<T, U>(Dict<T, U> d) => d.Value;
+    }
     public class Container<T> : IContainer<T> {
         public T Value { get; set; }
         public Container(T Value) {
             this.Value = Value;
         }
+        public static implicit operator T(Container<T> c) => c.Value;
     }
     public class FuncSet<T> {
         public HashSet<T> set = new HashSet<T>();

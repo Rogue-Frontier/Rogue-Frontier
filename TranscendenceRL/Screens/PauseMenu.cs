@@ -9,6 +9,7 @@ using SadRogue.Primitives;
 using System.IO;
 using ASECII;
 using Common;
+using System.Linq;
 
 namespace TranscendenceRL {
     public class PauseMenu : Console {
@@ -62,11 +63,12 @@ namespace TranscendenceRL {
             IsVisible = false;
         }
         public void Save() {
-            File.WriteAllText(playerMain.playerShip.player.file, SaveGame.Serialize(new LiveGame() {
-                player = playerMain.playerShip.player,
-                playerShip = playerMain.playerShip,
-                world = playerMain.World
-            }));
+
+            var ps = playerMain.playerShip;
+            var endgame = new HashSet<EndGame>(ps.OnDestroyed.set.OfType<EndGame>());
+            ps.OnDestroyed.set.ExceptWith(endgame);
+            new LiveGame(playerMain.World, ps.player, ps).Save();
+            ps.OnDestroyed.set.UnionWith(endgame);
         }
         public void SaveContinue() {
             Save();

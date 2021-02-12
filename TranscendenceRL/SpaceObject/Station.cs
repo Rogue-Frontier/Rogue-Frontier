@@ -16,11 +16,17 @@ namespace TranscendenceRL {
         [JsonIgnore]
         public string Name => $"Wreck of {creator.Name}";
         public SpaceObject creator;
+        [JsonProperty]
         public World World { get; private set; }
+        [JsonProperty]
         public Sovereign Sovereign { get; private set; }
+        [JsonProperty] 
         public XY Position { get; private set; }
+        [JsonProperty] 
         public XY Velocity { get; private set; }
+        [JsonProperty] 
         public bool Active { get; private set; }
+        [JsonProperty] 
         public HashSet<Item> Items { get; private set; }
         [JsonIgnore]
         public ColoredGlyph Tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.Tile.GlyphCharacter);
@@ -49,15 +55,21 @@ namespace TranscendenceRL {
     public class Station : SpaceObject, Dockable, ITrader {
         [JsonIgnore]
         public string Name => StationType.name;
+        [JsonProperty]
         public World World { get; set; }
+        [JsonProperty]
         public StationType StationType { get; set; }
-
+        [JsonProperty]
         public Sovereign Sovereign { get; set; }
+        [JsonProperty]
         public XY Position { get; set; }
+        [JsonProperty]
         public XY Velocity { get; set; }
+        [JsonProperty]
         public bool Active { get; set; }
         public List<Segment> segments;
         public DamageSystem DamageSystem;
+        [JsonProperty]
         public HashSet<Item> Items { get; set; }
         public List<Weapon> weapons;
         public List<AIShip> guards;

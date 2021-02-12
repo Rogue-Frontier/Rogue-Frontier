@@ -14,6 +14,7 @@ namespace TranscendenceRL {
         public string name;
         public int level;
         public int mass;
+        public int value;
 
         public ArmorDesc armor;
         public WeaponDesc weapon;
@@ -24,6 +25,7 @@ namespace TranscendenceRL {
             name = e.ExpectAttribute("name");
             level = e.ExpectAttributeInt("level");
             mass = e.ExpectAttributeInt("mass");
+            value = e.TryAttributeInt("value", -1);
             if (e.HasElement("Weapon", out var xmlWeapon)) {
                 weapon = new WeaponDesc(xmlWeapon);
             }
@@ -108,7 +110,7 @@ namespace TranscendenceRL {
             effect = new StaticTile(e);
         }
     }
-    public class TrailDesc {
+    public class TrailDesc : ITrail {
         public int lifetime;
         public Color background;
         public TrailDesc() { }
@@ -116,7 +118,7 @@ namespace TranscendenceRL {
             lifetime = e.ExpectAttributeInt(nameof(lifetime));
             background = e.ExpectAttributeColor("background");
         }
-        public GetTrail GetTrail() => (Position) => new FadingTrail(Position, new ColoredGlyph(Color.Transparent, background), lifetime);
+        public Effect GetTrail(XY Position) => new FadingTile(Position, new ColoredGlyph(Color.Transparent, background), lifetime);
     }
     public class CapacitorDesc {
         public double minChargeToFire;

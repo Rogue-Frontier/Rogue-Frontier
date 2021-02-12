@@ -1,4 +1,5 @@
 ﻿using Common;
+using Newtonsoft.Json;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -7,18 +8,27 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TranscendenceRL {
+
+    class EffectLocator : ILocator<Effect, (int, int)> {
+        public (int, int) Locate(Effect e) => (e.Position.xi, e.Position.yi);
+    }
+    class EntityLocator : ILocator<Entity, (int, int)> {
+        public (int, int) Locate(Entity e) => (e.Position.xi, e.Position.yi);
+    }
     public class World {
-        public static World empty = new World();
+        [JsonIgnore]
+        public static readonly World empty = new World();
+
         public TypeCollection types;
 
         public HashSet<Event> events = new HashSet<Event>();
         public List<Event> eventsAdded = new List<Event>();
         public List<Event> eventsRemoved = new List<Event>();
 
-        public LocatorDict<Entity, (int, int)> entities = new LocatorDict<Entity, (int, int)>(e => (e.Position.xi, e.Position.yi));
+        public LocatorDict<Entity, (int, int)> entities = new LocatorDict<Entity, (int, int)>(new EntityLocator());
         public List<Entity> entitiesAdded = new List<Entity>();
         public List<Entity> entitiesRemoved = new List<Entity>();
-        public LocatorDict<Effect, (int, int)> effects = new LocatorDict<Effect, (int, int)>(e => (e.Position.xi, e.Position.yi));
+        public LocatorDict<Effect, (int, int)> effects = new LocatorDict<Effect, (int, int)>(new EffectLocator());
         public List<Effect> effectsAdded = new List<Effect>();
         public List<Effect> effectsRemoved = new List<Effect>();
         public Rand karma;
@@ -33,7 +43,7 @@ namespace TranscendenceRL {
         public World() {
             types = new TypeCollection();
             karma = new Rand();
-            backdrop = new Backdrop();
+            backdrop = new Backdrop(karma);
         }
         public void AddEvent(Event e) => eventsAdded.Add(e);
         public void AddEffect(Effect e) => effectsAdded.Add(e);
