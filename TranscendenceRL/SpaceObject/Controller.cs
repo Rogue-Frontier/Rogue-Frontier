@@ -188,6 +188,8 @@ namespace TranscendenceRL {
                     return;
                 }
             }
+            bool RangeCheck() => (owner.Position - target.Position).Magnitude < weapon.currentRange;
+            void SetFiring() => weapon.SetFiring(true, target);
 
             //Remove dock
             owner.Dock = null;
@@ -213,8 +215,8 @@ namespace TranscendenceRL {
                     owner.SetThrusting(true);
                 }
                 //Fire if we are close enough
-                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
-                    weapon.SetFiring(true, target);
+                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30 && RangeCheck()) {
+                    SetFiring();
                 }
             } else {
                 //Otherwise, get closer
@@ -223,8 +225,8 @@ namespace TranscendenceRL {
 
                 var aim = new AimOrder(target, weapon.missileSpeed);
                 //Fire if we are close enough
-                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 10) {
-                    weapon.SetFiring(true, target);
+                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 10 && RangeCheck()) {
+                    SetFiring();
                 }
 
             }

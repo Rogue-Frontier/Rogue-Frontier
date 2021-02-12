@@ -95,7 +95,7 @@ namespace TranscendenceRL {
 
                     //Name is seed
                     var seed = player.name.GetHashCode();
-                    World = new World(World.types, new Rand(seed), new Backdrop(new Rand(seed)));
+                    World = new World(World.types, new Rand(seed));
                     World.types.Lookup<SystemType>("system_orion").Generate(World);
                     World.UpdatePresent();
 

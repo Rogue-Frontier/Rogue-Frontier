@@ -9,6 +9,7 @@ using System.Linq;
 using static SadConsole.Input.Keys;
 using ArchConsole;
 using static TranscendenceRL.PlayerShip;
+using System.Text.Json.Serialization;
 
 namespace TranscendenceRL {
 
@@ -17,6 +18,7 @@ namespace TranscendenceRL {
         public ArenaScreenReset(ArenaScreen arena) {
             this.arena = arena;
         }
+        [JsonIgnore]
         public PlayerDestroyed Value {
             get {
                 var t = this;

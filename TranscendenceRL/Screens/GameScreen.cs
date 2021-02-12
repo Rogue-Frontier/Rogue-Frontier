@@ -117,7 +117,7 @@ namespace TranscendenceRL {
 			new DeadGame(World, playerShip.player, playerShip, epitaph);
 
 			//Bug: Background is not included because it is a separate console
-			var ds = new DeathScreen(this, World, playerShip, epitaph);
+			var ds = new DeathScreen(this, epitaph);
 			SadConsole.Game.Instance.Screen = new DeathTransition(this, ds) { IsFocused = true };
 
 

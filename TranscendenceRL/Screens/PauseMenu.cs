@@ -65,22 +65,31 @@ namespace TranscendenceRL {
         public void Save() {
 
             var ps = playerMain.playerShip;
-            var endgame = new HashSet<EndGame>(ps.OnDestroyed.set.OfType<EndGame>());
-            ps.OnDestroyed.set.ExceptWith(endgame);
             new LiveGame(playerMain.World, ps.player, ps).Save();
-            ps.OnDestroyed.set.UnionWith(endgame);
         }
         public void SaveContinue() {
+            //Temporarily PlayerMain events before saving
+            var ps = playerMain.playerShip;
+            var endgame = new HashSet<EndGame>(ps.OnDestroyed.set.OfType<EndGame>());
+            ps.OnDestroyed.set.ExceptWith(endgame);
+
             Save();
+
+            ps.OnDestroyed.set.UnionWith(endgame);
+            
             Continue();
         }
         public void SaveQuit() {
+            //Remove PlayerMain events
+            playerMain.playerShip.OnDestroyed.set.RemoveWhere(d => d is EndGame);
+
             Save();
             Quit();
         }
 
         public void Quit() {
-            GameHost.Instance.Screen = new TitleScreen(playerMain.Width, playerMain.Height, playerMain.World);
+            var w = playerMain.World;
+            GameHost.Instance.Screen = new TitleScreen(playerMain.Width, playerMain.Height, new World(w.types, new Rand()));
         }
     }
 }
