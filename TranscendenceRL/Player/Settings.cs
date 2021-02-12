@@ -1,4 +1,5 @@
-﻿using SadConsole.Input;
+﻿using Newtonsoft.Json;
+using SadConsole.Input;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,8 +9,9 @@ namespace TranscendenceRL {
     public class Settings {
 		//Remember to update whenever we load game
 		public Dictionary<ControlKeys, Keys> controls;
-        public Settings() {
-            controls = new Dictionary<ControlKeys, Keys>() {
+		[JsonIgnore]
+		public static Settings standard => new Settings() {
+			controls = new Dictionary<ControlKeys, Keys>() {
 				{ Thrust, Up },
 				{ TurnRight, Right },
 				{ TurnLeft, Left },
@@ -24,7 +26,10 @@ namespace TranscendenceRL {
 				{ NextWeapon, W },
 				{ FirePrimary, X },
 				{ AutoAim, Z }
-			};
+			}
+		};
+        public Settings() {
+            controls = new Dictionary<ControlKeys, Keys>();
         }
 
     }

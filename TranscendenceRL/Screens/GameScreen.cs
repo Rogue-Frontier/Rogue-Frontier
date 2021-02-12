@@ -18,6 +18,7 @@ namespace TranscendenceRL {
 
 	public class EndGame : IContainer<PlayerDestroyed> {
 		public PlayerMain main;
+		[JsonIgnore]
 		public PlayerDestroyed Value => (p, d, w) => main.EndGame(d, w);
 		public EndGame(PlayerMain main) {
 			this.main = main;
@@ -113,11 +114,10 @@ namespace TranscendenceRL {
 			};
 			playerShip.player.Epitaphs.Add(epitaph);
 
+			new DeadGame(World, playerShip.player, playerShip, epitaph);
+
 			//Bug: Background is not included because it is a separate console
 			var ds = new DeathScreen(this, World, playerShip, epitaph);
-			File.WriteAllText(playerShip.player.file, JsonConvert.SerializeObject(ds, SaveGame.settings));
-
-
 			SadConsole.Game.Instance.Screen = new DeathTransition(this, ds) { IsFocused = true };
 
 
@@ -661,7 +661,7 @@ namespace TranscendenceRL {
 			for (int i = 0; i < player.Messages.Count; i++) {
 				var message = player.Messages[i];
 				var line = message.Draw();
-				var x = Width * 3 / 4 - line.Count;
+				var x = Width * 3 / 4 - line.Count();
 				this.Print(x, messageY, line);
 				if (message is Transmission t) {
 					//Draw a line from message to source

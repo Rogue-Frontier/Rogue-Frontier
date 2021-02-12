@@ -383,13 +383,16 @@ namespace Common {
 		}
 		public bool InBounds(XYZ p) => p.xi > -1 && p.xi < Width && p.yi > -1 && p.yi < Height && p.zi > -1 && p.zi < Depth;
 	}
-
+	public interface ILocator<T, U> {
+		U Locate(T t);
+    }
     public class LocatorDict<T, U> {
         public HashSet<T> all;
+
         public Dictionary<U, HashSet<T>> space { get; private set; }
-        private Func<T, U> locator;
+        public ILocator<T, U> locator;
         public HashSet<T> this[U u] => space.TryGetValue(u, out var value) ? value : new HashSet<T>();
-        public LocatorDict(Func<T, U> locator) {
+        public LocatorDict(ILocator<T, U> locator) {
             all = new HashSet<T>();
             space = new Dictionary<U, HashSet<T>>();
             this.locator = locator;
@@ -398,14 +401,14 @@ namespace Common {
         public void UpdateSpace() {
             space.Clear();
             foreach (var t in all) {
-                var u = locator(t);
+                var u = locator.Locate(t);
                 Initialize(u);
                 this[u].Add(t);
             }
         }
         public void Place(T t) {
             if (all.Add(t))
-                Place(locator(t), t);
+                Place(locator.Locate(t), t);
         }
         public void Remove(T t) {
             all.Remove(t);

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SadRogue.Primitives;
+using Newtonsoft.Json;
 
 namespace TranscendenceRL {
     //A space background made up of randomly generated layers with different depths
@@ -12,9 +13,6 @@ namespace TranscendenceRL {
         public CompositeColorLayer starlight;
         public GridLayer planets;
         public GridLayer orbits;
-        public Backdrop() : this(new Rand()) {
-
-        }
         public Backdrop(Rand r) {
             int layerCount = 5;
             layers = new List<GeneratedLayer>(layerCount);
@@ -190,7 +188,8 @@ namespace TranscendenceRL {
     public class GeneratedLayer : ILayer {
         public double parallaxFactor { get; private set; }                   //Multiply the camera by this value
         public GeneratedGrid<ColoredGlyph> tiles;  //Dynamically generated grid of tiles
-        public GeneratedLayer() { }
+        public GeneratedLayer() {
+        }
         public GeneratedLayer(double parallaxFactor, GeneratedGrid<ColoredGlyph> tiles) {
             this.parallaxFactor = parallaxFactor;
             this.tiles = tiles;

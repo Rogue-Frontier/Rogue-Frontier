@@ -178,7 +178,7 @@ I know it was much more than a dream." }.Select(line => line.Replace("\r", "")).
 
                         int effectY = topEdge;
                         foreach (var line in effect
-                            .Where(l => l.Count > backgroundSlideX)
+                            .Where(l => l.Count() > backgroundSlideX)
                             .Select(l => l.SubString(backgroundSlideX))) {
 
                             this.Print(backgroundSlideX, effectY, line);

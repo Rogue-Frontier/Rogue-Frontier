@@ -1,4 +1,5 @@
 ﻿using Common;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,12 +18,15 @@ namespace TranscendenceRL {
             public AutoEnemySovereignSelf(Sovereign self) {
                 this.self = self;
             }
+            [JsonIgnore]
             public AutoSovereign Value => s => s == self ? Disposition.Friend : Disposition.Enemy;
         }
         public class AutoEnemySovereign : IContainer<AutoSovereign> {
+            [JsonIgnore]
             public AutoSovereign Value => s => Disposition.Enemy;
         }
         public class AutoEnemySpaceObject : IContainer<AutoSpaceObject> {
+            [JsonIgnore]
             public AutoSpaceObject Value => s => Disposition.Enemy;
         }
 
@@ -49,8 +53,8 @@ namespace TranscendenceRL {
         public Alignment alignment;
         //private Sovereign parent;
 
-        public Dictionary<Sovereign, Disposition> sovDispositions;
-        public Dictionary<Entity, Disposition> entityDispositions;
+        public Dict<Sovereign, Disposition> sovDispositions;
+        public Dict<Entity, Disposition> entityDispositions;
         public IContainer<AutoSovereign> AutoSovereignDisposition;
         public IContainer<AutoSpaceObject> AutoSpaceObjectDisposition;
 
@@ -92,8 +96,8 @@ namespace TranscendenceRL {
         public delegate Disposition AutoSpaceObject(SpaceObject other);
 
         public Sovereign() {
-            sovDispositions = new Dictionary<Sovereign, Disposition>();
-            entityDispositions = new Dictionary<Entity, Disposition>();
+            sovDispositions = new Dict<Sovereign, Disposition>();
+            entityDispositions = new Dict<Entity, Disposition>();
         }
         public void Initialize(TypeCollection tc, XElement e) {
             codename = e.ExpectAttribute("codename");

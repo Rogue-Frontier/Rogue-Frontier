@@ -37,15 +37,20 @@ namespace TranscendenceRL {
         public static BaseShip dead => new BaseShip(World.empty, ShipClass.empty, Sovereign.Gladiator, XY.Zero) { Active = false };
         [JsonIgnore]
         public string Name => ShipClass.name;
+        [JsonProperty]
         public World World { get; private set; }
+        [JsonProperty]
         public ShipClass ShipClass { get; private set; }
+        [JsonProperty]
         public Sovereign Sovereign { get; private set; }
         public XY Position { get; set; }
         public XY Velocity { get; set; }
         public bool Active { get; set; }
         public HashSet<Item> Items;
+        [JsonProperty]
         public DeviceSystem Devices { get; private set; }
-        public DamageSystem DamageSystem;
+        [JsonProperty]
+        public DamageSystem DamageSystem { get; private set; }
         public ControlHijack ControlHijack;
 
         public Rand destiny;
@@ -299,6 +304,7 @@ namespace TranscendenceRL {
         public BaseOnDestroyed(PlayerShip player) {
             this.player = player;
         }
+        [JsonIgnore]
         public Destroyed Value { get {
                 var self = this;
                 return (BaseShip s, SpaceObject source, Wreck wreck) => {
@@ -607,7 +613,7 @@ namespace TranscendenceRL {
             if(hp > Ship.DamageSystem.GetHP() / 3) {
                 if(mortalTime <= 0) {
                     if(mortalChances > 0) {
-                        AddMessage(new InfoMessage(new ColoredString("Escape while you can!", Color.Red, Color.Black)));
+                        AddMessage(new InfoMessage("Escape while you can!"));
 
                         mortalTime = mortalChances * 3.0 + 1;
                         mortalChances--;

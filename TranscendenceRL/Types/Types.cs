@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using TranscendenceRL.Types;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
 
 namespace TranscendenceRL {
 	public class TypeCollection {
@@ -227,7 +228,8 @@ namespace TranscendenceRL {
 		void Initialize(TypeCollection collection, XElement e);
 	}
 	public class StaticTile {
-		public ColoredGlyph Glyph { get; private set; }
+		[JsonProperty]
+		public ColoredGlyph Glyph { get; set; }
 		public StaticTile() {
         }
 		public StaticTile(XElement e) {

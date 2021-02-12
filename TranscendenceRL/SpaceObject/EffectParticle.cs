@@ -47,15 +47,15 @@ namespace TranscendenceRL {
             Lifetime--;
         }
     }
-    public class FadingTrail : Effect {
+    public class FadingTile : Effect {
         private int Lifetime;
-        public FadingTrail(XY Position, ColoredGlyph Tile, int Lifetime) {
+        public FadingTile(XY Position, ColoredGlyph Tile, int Lifetime) {
             this.Position = Position;
             this.Velocity = new XY();
             this._Tile = Tile;
             this.Lifetime = Lifetime;
         }
-        public FadingTrail(XY Position, XY Velocity, ColoredGlyph Tile, int Lifetime) {
+        public FadingTile(XY Position, XY Velocity, ColoredGlyph Tile, int Lifetime) {
             this.Position = Position;
             this.Velocity = Velocity;
             this._Tile = Tile;

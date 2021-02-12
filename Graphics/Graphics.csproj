@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreCLR-NCalc" Version="2.2.88" />
+    <PackageReference Include="CoreCLR-NCalc" Version="2.2.92" />
     <PackageReference Include="OptimizedPriorityQueue" Version="5.0.0" />
-    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.0.0-beta1" />
-    <PackageReference Include="TheSadRogue.Primitives" Version="1.0.0-alpha5-debug" />
-    <PackageReference Include="TheSadRogue.Primitives.MonoGame" Version="1.0.0-alpha3-debug" />
+    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.0.0-beta4" />
+    <PackageReference Include="TheSadRogue.Primitives" Version="1.0.0-alpha9-debug" />
+    <PackageReference Include="TheSadRogue.Primitives.MonoGame" Version="1.0.0-alpha4-debug" />
   </ItemGroup>
 
   <ItemGroup>

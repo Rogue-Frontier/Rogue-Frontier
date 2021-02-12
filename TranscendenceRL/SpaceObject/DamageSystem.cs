@@ -10,7 +10,7 @@ namespace TranscendenceRL {
     public static class SDamageSystem {
         public static void React(this DamageSystem ds, SpaceObject owner, SpaceObject source) {
             if (source is PlayerShip ps && !owner.Sovereign.IsEnemy(ps)) {
-                ps.AddMessage(new Transmission(owner, new ColoredString($@"""Watch your targets!"" - {owner.Name}", Color.White, Color.Transparent), 1));
+                ps.AddMessage(new Transmission(owner, $@"""Watch your targets!"" - {owner.Name}", 1));
             }
         }
     }

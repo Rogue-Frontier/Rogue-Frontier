@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ namespace Common {
         public T Generate((int, int) pos);
     }
     public class GeneratedGrid<T> : GridTree<T> {
+        [JsonIgnore]
         public QTree<T> tree;
         public IGridGenerator<T> generator;
         public GeneratedGrid(IGridGenerator<T> generator) {

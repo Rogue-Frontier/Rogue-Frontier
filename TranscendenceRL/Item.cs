@@ -58,7 +58,7 @@ namespace TranscendenceRL {
                 Projectile p = null;
                 p = new Projectile(Source, World,
                     fragment.effect.Glyph,
-                    trail?.GetTrail(),
+                    trail,
                     Position + XY.Polar(angle, 0.5),
                     Velocity + XY.Polar(angle, fragment.missileSpeed),
                     fragment.damageHP,
@@ -216,7 +216,7 @@ namespace TranscendenceRL {
                 Projectile p = null;
                 p = new Projectile(source, source.World,
                     shotDesc.effect.Glyph,
-                    trail?.GetTrail(),
+                    trail,
                     source.Position + XY.Polar(angle),
                     source.Velocity + XY.Polar(angle, missileSpeed),
                     damageHP,
