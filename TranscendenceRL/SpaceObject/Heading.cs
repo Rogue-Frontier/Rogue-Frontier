@@ -29,11 +29,12 @@ namespace TranscendenceRL {
 
             //Idea: Highlight a segment of the aimline based on the firetime left on the weapon
             XY point = parent.Position;
-            XY inc = XY.Polar(parent.rotationDegrees * Math.PI / 180, 1);
+            int step = 2;
+            XY inc = XY.Polar(parent.rotationDegrees * Math.PI / 180, 1)  * step;
             int length = 20;
-            for(int i = 0; i < length; i++) {
+            for(int i = 0; i < length; i += step) {
                 point += inc;
-                var value = 153 - Math.Max(1, i / 4) * 153/length;
+                var value = 153 - Math.Max(1, i / 2) * 153/length;
                 ColoredGlyph pointEffect = new ColoredGlyph(new Color(value, value, value), Color.Transparent, '.');
                 parent.World.AddEffect(new EffectParticle(point, pointEffect, 1));
             }

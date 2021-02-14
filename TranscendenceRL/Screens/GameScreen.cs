@@ -17,7 +17,8 @@ using static TranscendenceRL.PlayerShip;
 namespace TranscendenceRL {
 
 	public class EndGame : IContainer<PlayerDestroyed> {
-		public PlayerMain main;
+		[JsonIgnore]
+		private PlayerMain main;
 		[JsonIgnore]
 		public PlayerDestroyed Value => (p, d, w) => main.EndGame(d, w);
 		public EndGame(PlayerMain main) {

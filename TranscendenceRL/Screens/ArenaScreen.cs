@@ -12,12 +12,15 @@ using static TranscendenceRL.PlayerShip;
 using System.Text.Json.Serialization;
 
 namespace TranscendenceRL {
+    public interface IConsoleHook {
 
-    struct ArenaScreenReset : IContainer<PlayerDestroyed> {
-        public ArenaScreen arena;
+    }
+    class ArenaScreenReset : IContainer<PlayerDestroyed>, IConsoleHook {
         public ArenaScreenReset(ArenaScreen arena) {
             this.arena = arena;
         }
+        //[JsonIgnore]
+        private ArenaScreen arena;
         [JsonIgnore]
         public PlayerDestroyed Value {
             get {

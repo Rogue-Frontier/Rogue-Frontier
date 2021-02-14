@@ -215,7 +215,7 @@ namespace TranscendenceRL {
                     owner.SetThrusting(true);
                 }
                 //Fire if we are close enough
-                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30 && RangeCheck()) {
+                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3) {
                     SetFiring();
                 }
             } else {
@@ -224,8 +224,8 @@ namespace TranscendenceRL {
                 new ApproachOrbitOrder(target).Update(owner);
 
                 var aim = new AimOrder(target, weapon.missileSpeed);
-                //Fire if we are close enough
-                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 10 && RangeCheck()) {
+                //Fire if our angle is good enough
+                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3 && RangeCheck()) {
                     SetFiring();
                 }
 
