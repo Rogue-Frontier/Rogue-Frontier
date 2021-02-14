@@ -454,8 +454,6 @@ namespace TranscendenceRL {
             playerMain.IsFocused = true;
             SadConsole.Game.Instance.Screen = playerMain;
         }
-    }
-
 #endif
-
+    }
 }
