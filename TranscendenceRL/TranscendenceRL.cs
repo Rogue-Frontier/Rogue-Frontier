@@ -11,7 +11,12 @@ using System;
 namespace TranscendenceRL {
     partial class TranscendenceRL {
 		public static int TICKS_PER_SECOND = 60;
-		public static int Width = 150, Height = 90;
+
+        static TranscendenceRL() {
+            Height = 75;
+            Width = Height * 5 / 3;
+        }
+        public static int Width, Height;
 		static void Main(string[] args) {
 			// Setup the engine and create the main window.
 			SadConsole.Game.Create(Width, Height, "RogueFrontierContent/IBMCGA.font");
