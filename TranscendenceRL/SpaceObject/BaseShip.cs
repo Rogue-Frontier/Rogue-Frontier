@@ -381,6 +381,7 @@ namespace TranscendenceRL {
         }
         public void Detach() {
             Ship.OnDestroyed -= new BaseOnDestroyed(this);
+            //Ship.OnDestroyed.set.RemoveWhere(s => s is BaseOnDestroyed b && b.player == this);
         }
         public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
         public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);
