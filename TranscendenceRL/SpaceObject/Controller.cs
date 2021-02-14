@@ -128,18 +128,25 @@ namespace TranscendenceRL {
     public class GuardOrder : Order, ICombatOrder {
         public SpaceObject guard;
         public SpaceObject target;
+        public int attackTime;
         public GuardOrder(SpaceObject guard) {
             this.guard = guard;
+            target = null;
+            attackTime = 0;
         }
 
         public bool CanTarget(SpaceObject other) => other == target;
         public void Update(AIShip owner) {
-            
+            if (attackTime > 0) {
+                attackTime--;
+                if (attackTime == 0) {
+                    target = null;
+                }
+            }
 
             //Otherwise find enemy to attack
             if (target?.Active != true) {
                 target = owner.World.entities.GetAll(p => (guard.Position - p).Magnitude < 20).OfType<SpaceObject>().Where(o => !o.IsEqual(owner) && guard.CanTarget(o)).GetRandomOrDefault(owner.destiny);
-
             }
 
             if (target != null) {

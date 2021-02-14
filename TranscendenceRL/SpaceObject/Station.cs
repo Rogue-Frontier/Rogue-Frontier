@@ -123,6 +123,11 @@ namespace TranscendenceRL {
                 foreach(var guard in World.entities.all.OfType<AIShip>()) {
                     if(guard.controller is GuardOrder order && order.guard == this && order.target == null) {
                         order.target = source;
+                        if (Sovereign.GetDisposition(source.Sovereign) == Disposition.Enemy) {
+                            order.attackTime = 0;
+                        } else {
+                            order.attackTime = 300;
+                        }
                     }
                 }
             }
@@ -144,6 +149,15 @@ namespace TranscendenceRL {
                 var offset = segment.desc.offset;
                 var tile = new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, segment.desc.tile.Glyph.GlyphCharacter);
                 World.AddEntity(new Segment(wreck, new SegmentDesc(offset, new StaticTile(tile))));
+            }
+
+            if (source.Sovereign != Sovereign) {
+                foreach (var guard in World.entities.all.OfType<AIShip>()) {
+                    if (guard.controller is GuardOrder order && order.guard == this && order.target == null) {
+                        order.attackTime = 0;
+                        order.target = source;
+                    }
+                }
             }
         }
         public void Update() {

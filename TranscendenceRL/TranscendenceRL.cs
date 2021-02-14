@@ -37,7 +37,8 @@ namespace TranscendenceRL {
 
             var poster = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/RogueFrontierPoster.cg")));
 
-            var title = new TitleSlideOpening(new TitleScreen(Width, Height, w)) { IsFocused = true };
+            var title = new TitleScreen(Width, Height, w);
+            var titleSlide = new TitleSlideOpening(title) { IsFocused = true };
 
             KeyConsole container = new KeyConsole(Width, Height, (k) => {
                 if (k.IsKeyPressed(Keys.Enter)) {
@@ -51,10 +52,11 @@ namespace TranscendenceRL {
 
             GameHost.Instance.Screen = container;
 
-#if false
-            ShowSplash();
-#else
+#if DEBUG
             ShowTitle();
+            title.QuickStart();
+#else
+            ShowSplash();
 #endif
             void ShowSplash() {
                 SplashScreen c = null;
@@ -149,8 +151,8 @@ was more than just a dream...
             }
 
             void ShowTitle() {
-                title.IsFocused = true;
-                GameHost.Instance.Screen = title;
+                titleSlide.IsFocused = true;
+                GameHost.Instance.Screen = titleSlide;
             }
             //GameHost.Instance.Screen = new TitleDraw();
         }

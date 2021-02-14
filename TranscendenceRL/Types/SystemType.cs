@@ -67,11 +67,11 @@ namespace TranscendenceRL {
         }
     }
     public class SystemGroup : SystemElement {
-        public int radius;
+        public int? radius;
         public List<SystemElement> subelements;
         public SystemGroup() { }
         public SystemGroup(XElement e) {
-            radius = e.TryAttributeInt(nameof(radius), 0);
+            radius = e.TryAttributeIntOptional(nameof(radius));
             subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
         }
         public void Generate(LocationContext lc, TypeCollection tc) {
@@ -79,82 +79,87 @@ namespace TranscendenceRL {
                 world = lc.world,
                 focus = lc.focus,
                 angle = lc.angle,
-                radius = radius,
-                pos = lc.focus + XY.Polar(lc.angle * Math.PI / 180, radius)
+                radius = radius ?? lc.radius,
+                pos = lc.focus + XY.Polar(lc.angle * Math.PI / 180, radius ?? lc.radius)
             };
             subelements.ForEach(g => g.Generate(sub_lc, tc));
         }
     }
     public class SystemOrbital : SystemElement {
         public List<SystemElement> subelements;
-        public int angle;
-        public AngleType angleType;
-        public enum AngleType {
-            Constant, Random, Equidistant, Incrementing
-        }
-        private int increment;
 
-        private int radius;
+        public int count;
+
+        public int angle;
+        public bool randomAngle;
+
+        public int increment;
+        public bool randomInc;
+        public bool equidistant;
+
+        public int radius;
         public SystemOrbital() { }
         public SystemOrbital(XElement e) {
             subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
-            switch (e.ExpectAttribute("angle")) {
+            count = e.TryAttributeInt(nameof(count), 1);
+            switch (e.ExpectAttribute(nameof(angle))) {
                 case "random":
-                    angleType = AngleType.Random;
+                    angle = 0;
+                    randomAngle = true;
                     break;
-                case "equidistant":
-                    angleType = AngleType.Equidistant;
-                    break;
-                case "incrementing":
-                    angleType = AngleType.Incrementing;
-                    increment = e.ExpectAttributeInt("increment");
-                    break;
-                case var i when int.TryParse(i, out var angle):
-                    angleType = AngleType.Constant;
-                    this.angle = angle;
+                case var i when int.TryParse(i, out var a):
+                    angle = a;
                     break;
                 case var unknown:
                     throw new Exception($"Invalid angle {unknown}");
             }
-            radius = e.TryAttributeInt(nameof(radius), 0);
+            if (e.TryAttribute(nameof(increment), out string si)) {
+                switch (si) {
+                    case "random":
+                        increment = 0;
+                        randomInc = true;
+                        break;
+                    case "equidistant":
+                        increment = 0;
+                        equidistant = true;
+                        break;
+                    case var i when int.TryParse(i, out var inc):
+                        increment = inc;
+                        break;
+                    case var unknown:
+                        throw new Exception($"Invalid increment {unknown}");
+                }
+            }
+            
+            radius = e.ExpectAttributeInt(nameof(radius));
         }
         public void Generate(LocationContext lc, TypeCollection tc) {
             var angle = this.angle;
             var increment = this.increment;
             int equidistantInterval = 360 / subelements.Count;
-            switch (angleType) {
-                case AngleType.Constant:
-                    increment = 0;
-                    break;
-                case AngleType.Equidistant:
-                    angle = lc.world.karma.NextInteger(360);
-                    break;
-                case AngleType.Incrementing:
-                    break;
-                case AngleType.Random:
-                    angle = lc.world.karma.NextInteger(360);
-                    break;
-            }
-            foreach(var sub in subelements) {
-                var loc = new LocationContext() {
-                    world = lc.world,
-                    focus = lc.pos,
-                    angle = angle,
-                    radius = radius,
-                    pos = lc.pos + XY.Polar(angle * Math.PI / 180, radius)
-                };
-                sub.Generate(loc, tc);
 
-                switch(angleType) {
-                    case AngleType.Equidistant:
-                        angle += equidistantInterval;
-                        break;
-                    case AngleType.Incrementing:
+            if (randomAngle) {
+                angle = lc.world.karma.NextInteger(360);
+            }
+
+            for (int i = 0; i < count; i++) {
+                foreach (var sub in subelements) {
+                    var loc = new LocationContext() {
+                        world = lc.world,
+                        focus = lc.pos,
+                        angle = angle,
+                        radius = radius,
+                        pos = lc.pos + XY.Polar(angle * Math.PI / 180, radius)
+                    };
+                    sub.Generate(loc, tc);
+
+                    if (increment > 0) {
                         angle += increment;
-                        break;
-                    case AngleType.Random:
+                    } else if (randomInc) {
                         angle = lc.world.karma.NextInteger(360);
-                        break;
+                    } else if (equidistant) {
+                        angle += equidistantInterval;
+                    }
                 }
             }
         }
