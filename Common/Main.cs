@@ -325,11 +325,22 @@ namespace Common {
 			
 		}
         public static int TryAttributeInt(this XElement e, string attribute, int fallback = 0) => TryAttributeInt(e.Attribute(attribute), fallback);
+
+		public static int? TryAttributeIntOptional(this XElement e, string attribute) => TryAttributeIntOptional(e.Attribute(attribute));
 		//We expect either no value or a valid value; an invalid value gets an exception
 		public static int TryAttributeInt(this XAttribute a, int fallback = 0) {
 			if(a == null) {
 				return fallback;
 			} else if(int.TryParse(a.Value, out int result)) {
+				return result;
+			} else {
+				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\" ### {a.Parent.Name}");
+			}
+		}
+		public static int? TryAttributeIntOptional(this XAttribute a) {
+			if (a == null) {
+				return null;
+			} else if (int.TryParse(a.Value, out int result)) {
 				return result;
 			} else {
 				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\" ### {a.Parent.Name}");
@@ -351,7 +362,7 @@ namespace Common {
 		public static int ExpectAttributeInt(this XElement e, string attribute) {
 			var a = e.Attribute(attribute);
 			if (a == null) {
-				throw new Exception($"<{e.Name}> requires int attribute: {attribute} ### {e.Name}");
+				throw new Exception($"<{e.Name}> requires int attribute: {attribute} ### {e} ### {e.Parent}");
 			} else {
 				return ExpectAttributeInt(a);
 			}

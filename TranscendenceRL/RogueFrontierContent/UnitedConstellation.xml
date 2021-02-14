@@ -46,7 +46,11 @@
 				   foreground="White"/>
 			<Ring/>
 		</Segments>
+
 		<Guards>
+			<Ship	count="3"	codename="ship_beowulf"/>
+			<Ship	count="2"	codename="ship_amethyst"/>
+			<Ship	count="1"	codename="ship_wagon"/>
 		</Guards>
 		<Weapons>
 		</Weapons>

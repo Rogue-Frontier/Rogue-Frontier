@@ -186,11 +186,7 @@
 			<Ring/>
 		</Segments>
 		<Guards>
-			<Ship	codename="ship_orion_raider"/>
-			<Ship	codename="ship_orion_raider"/>
-			<Ship	codename="ship_orion_raider"/>
-			<Ship	codename="ship_orion_raider"/>
-			<Ship	codename="ship_orion_raider"/>
+			<Ship	count="5"	codename="ship_orion_raider"/>
 		</Guards>
 		<Weapons>
 			<Weapon	codename="itOrionBolter"/>

@@ -33,14 +33,19 @@ namespace TranscendenceRL {
 		}
 	}
 	public class ShipEntry : ShipGenerator {
+		public int count;
 		public string codename;
 		public ShipEntry() { }
 		public ShipEntry(XElement e) {
-			this.codename = e.ExpectAttribute("codename");
+			this.count = e.TryAttributeInt(nameof(count), 1);
+			this.codename = e.ExpectAttribute(nameof(codename));
 		}
 		public List<BaseShip> Generate(TypeCollection tc, SpaceObject owner) {
 			if (tc.Lookup<ShipClass>(codename, out var shipClass)) {
-				return new List<BaseShip> { new BaseShip(owner.World, shipClass, owner.Sovereign, owner.Position) };
+				return new List<BaseShip>(Enumerable.Range(0, count).Select(i => 
+						new BaseShip(owner.World, shipClass, owner.Sovereign, owner.Position)));
+
+
 			} else {
 				throw new Exception($"Invalid ShipClass type {codename}");
 			}

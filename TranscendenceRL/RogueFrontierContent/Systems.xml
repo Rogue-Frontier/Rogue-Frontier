@@ -8,50 +8,47 @@
 			<Orbital radius="400"
 					 angle="random">
 
+				<!--Giant planet-->
 				<Planet radius="20"
 						showOrbit="true"
 							/>
 
-				<Orbital angle="incrementing"
-						 increment="45">
+				<Orbital angle="random"
+						 increment="60"
+						 radius="0">
 
-					<Group radius="22">
+					<!--Tiny Moon-->
+					<Group radius="40">
+					
 						<Planet radius="3"/>
-					</Group>
-
-					<Group radius="45">
-						<Planet radius="10"/>
-
-
-						<Orbital radius="100" angle="random">
-							<Station	codename="station_constellation_astra"/>
-
-							<Sibling angleInc="2">
-								<Station	codename="station_constellation_astra"/>
-							</Sibling>
-							<Sibling angleInc="4">
-								<Station	codename="station_constellation_astra"/>
-							</Sibling>
-							<Sibling angleInc="8">
-								<Station	codename="station_constellation_astra"/>
-							</Sibling>
+						<Orbital angle="random" radius="10">
+							<Station	codename="station_orion_warlords_camp"/>
 						</Orbital>
 					</Group>
 
-					<!-- Uther
-							The main Commonwealth station is here. -->
+					<Group radius="70">
+						<!--Small Moon-->
+						<Planet radius="10"/>
 
+						<!--Ring of stations-->
+						<Orbital radius="30" angle="random" increment="20" count="5">
+							<Station	codename="station_constellation_astra"/>
+						</Orbital>
+					</Group>
 
-					<Group radius="80">
+					<Group radius="100">
+						<!--Far-away small Moon-->
 						<Planet radius="8"/>
 
 						<Orbital angle="random" radius="20">
-							<Station	codename="station_daughters_outpost"/>
-							<Orbital	radius="5"
-										angle="random"
-										>
-								<Marker		name="Start"/>
-							</Orbital>
+							<Group>
+								<Station	codename="station_daughters_outpost"/>
+								<Orbital	radius="5"
+											angle="random"
+											>
+									<Marker		name="Start"/>
+								</Orbital>
+							</Group>
 						</Orbital>
 					</Group>
 				</Orbital>
