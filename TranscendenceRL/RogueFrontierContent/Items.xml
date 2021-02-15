@@ -56,6 +56,9 @@
 				mass=		"4000"
 		>
 		<Weapon
+
+			initialCharges=	"500"
+
 			powerUse=		"20"
 			fireCooldown=	"25"
 			missileSpeed=	"40"

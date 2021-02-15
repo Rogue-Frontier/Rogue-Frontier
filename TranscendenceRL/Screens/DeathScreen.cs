@@ -37,11 +37,11 @@ namespace TranscendenceRL {
                     playerMain.IsFocused = true;
                     playerMain.ShowUI();
                 }
-            }) { Position = new Point(Width - 16, Height - 4) });
+            }) { Position = new Point(1, Height/2 - 4), FontSize = playerMain.FontSize * 2 });
 
             this.Children.Add(new LabelButton("Title Screen", () => {
                 SadConsole.Game.Instance.Screen = new TitleSlideOpening(new TitleScreen(Width, Height, world)) { IsFocused = true };
-            }) { Position = new Point(Width - 16, Height - 2) });
+            }) { Position = new Point(1, Height/2 - 2), FontSize = playerMain.FontSize * 2 });
         }
         public override void Update(TimeSpan delta) {
             base.Update(delta);

@@ -27,7 +27,7 @@ namespace TranscendenceRL {
             mass = e.ExpectAttributeInt("mass");
             value = e.TryAttributeInt("value", -1);
             if (e.HasElement("Weapon", out var xmlWeapon)) {
-                weapon = new WeaponDesc(xmlWeapon);
+                weapon = new WeaponDesc(collection, xmlWeapon);
             }
             if (e.HasElement("Armor", out var xmlArmor)) {
                 armor = new ArmorDesc(xmlArmor);
@@ -55,6 +55,9 @@ namespace TranscendenceRL {
         public bool omnidirectional;
         public FragmentDesc shot;
 
+        public int initialCharges;
+        public ItemType ammoType;
+
         public int missileSpeed => shot.missileSpeed;
         public int damageType => shot.damageType;
         public int damageHP => shot.damageHP;
@@ -66,13 +69,20 @@ namespace TranscendenceRL {
 
         public Weapon GetWeapon(Item i) => new Weapon(i, this);
         public WeaponDesc() { }
-        public WeaponDesc(XElement e) {
+        public WeaponDesc(TypeCollection types, XElement e) {
             powerUse = e.ExpectAttributeInt(nameof(powerUse));
             fireCooldown = e.ExpectAttributeInt(nameof(fireCooldown));
             repeat = e.TryAttributeInt(nameof(repeat), 0);
             omnidirectional = e.TryAttributeBool(nameof(omnidirectional), false);
             shot = new FragmentDesc(e);
 
+
+            initialCharges = e.TryAttributeInt(nameof(initialCharges), -1);
+            if(e.TryAttribute(nameof(ammoType), out string at)) {
+                if(!types.itemType.TryGetValue(at, out ammoType)) {
+                    throw new Exception($"ItemType codename expected: ammoType=\"{at}\" ### {e} ### {e.Parent}");
+                }
+            }
 
             effect = new StaticTile(e);
             if(e.HasElement("Capacitor", out var xmlCapacitor)) {

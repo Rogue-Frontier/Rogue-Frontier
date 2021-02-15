@@ -17,20 +17,22 @@ namespace TranscendenceRL {
     }
     class TradeScene : Console {
         Console prev;
-        PlayerShip player;
+        Player player;
+        PlayerShip playerShip;
         ITrader docked;
-        HashSet<Item> playerItems => player.Items;
+        HashSet<Item> playerItems => playerShip.Items;
         HashSet<Item> dockedItems => docked.Items;
         bool playerSide;
         int? playerIndex;
         int? dockedIndex;
-        public TradeScene(Console prev, PlayerShip player, ITrader docked) : base(prev.Width, prev.Height) {
+        public TradeScene(Console prev, PlayerShip playerShip, ITrader docked) : base(prev.Width, prev.Height) {
             this.prev = prev;
-            this.player = player;
+            this.player = playerShip.player;
+            this.playerShip = playerShip;
             this.docked = docked;
             this.playerSide = false;
 
-            if (player.Items.Any()) {
+            if (playerShip.Items.Any()) {
                 playerIndex = 0;
             }
             if (this.docked.Items.Any()) {
@@ -92,16 +94,24 @@ namespace TranscendenceRL {
                         break;
                     case Keys.Enter:
                         if (index != null) {
+                            if(!playerSide) {
+                                var item = from.ElementAt(index.Value);
 
-                            var item = from.ElementAt(index.Value);
-                            from.Remove(item);
-                            to.Add(item);
+                                if (player.money < item.type.value) {
+                                    break;
+                                }
+                                player.money -= item.type.value;
 
-                            if (from.Any()) {
-                                index = Math.Min(index ?? 0, from.Count - 1);
-                            } else {
-                                index = null;
+                                from.Remove(item);
+                                to.Add(item);
+
+                                if (from.Any()) {
+                                    index = Math.Min(index ?? 0, from.Count - 1);
+                                } else {
+                                    index = null;
+                                }
                             }
+                            
                         }
                         break;
                     case Keys.Escape:
@@ -140,7 +150,7 @@ namespace TranscendenceRL {
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
-            this.Print(x, y, player.Name, playerSide ? Color.Yellow : Color.White, Color.Black);
+            this.Print(x, y, playerShip.Name, playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
             int i = 0;
             int? highlight = null;

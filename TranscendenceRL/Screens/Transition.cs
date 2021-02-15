@@ -166,7 +166,7 @@ namespace TranscendenceRL {
             base.Render(delta);
             var blank = new ColoredGlyph(Color.Black, Color.Black);
             for (int y = 0; y < Height; y++) {
-                for (int x = 0; x < this.x; x++) {
+                for (int x = 0; x < Math.Min(Width, this.x); x++) {
                     //this.SetCellAppearance(x, y, blank);
                     this.SetCellAppearance(x, y, next.GetCellAppearance(x, y));
                 }

@@ -96,6 +96,11 @@ namespace TranscendenceRL {
             if (desc.omnidirectional) {
                 aiming = new Omnidirectional(this);
             }
+            if(desc.initialCharges > -1) {
+                ammo = new ChargeAmmo(desc.initialCharges);
+            } else if(desc.ammoType != null) {
+                ammo = new ItemAmmo(desc.ammoType);
+            }
         }
         public ColoredString GetBar() {
             ColoredString bar;
@@ -189,6 +194,7 @@ namespace TranscendenceRL {
                 ammo?.CheckFire(ref firing);
 
                 if (firing) {
+                    ammo?.OnFire();
                     Fire(owner, direction);
                     fireTime = desc.fireCooldown;
                     if (beginRepeat) {
@@ -262,6 +268,9 @@ namespace TranscendenceRL {
         public class ChargeAmmo : IAmmo {
             public int charges;
             public bool AllowFire => charges > 0;
+            public ChargeAmmo(int charges) {
+                this.charges = charges;
+            }
             public void CheckFire(ref bool firing) {
                 firing &= charges > 0;
             }
