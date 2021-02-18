@@ -68,15 +68,25 @@ namespace TranscendenceRL {
                     Position += inc;
 
 
-                    var hit = World.entities[Position].OfType<SpaceObject>().FirstOrDefault(o => !SSpaceObject.IsEqual(o, Source));
-                    if (hit != null) {
-                        lifetime = 0;
-                        hit.Damage(Source, damage);
-                        Fragment();
-                        var angle = (hit.Position - Position).Angle;
-                        World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
-                        return;
+                    
+                    foreach(var other in World.entities[Position]) {
+                        switch(other) {
+                            case SpaceObject hit when !SSpaceObject.Equals(hit, Source):
+                                if (hit != null) {
+                                    lifetime = 0;
+                                    hit.Damage(Source, damage);
+                                    Fragment();
+                                    var angle = (hit.Position - Position).Angle;
+                                    World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
+                                    return;
+                                }
+                                goto CollisionDone;
+                            case ProjectileBarrier barrier:
+                                barrier.Interact(this);
+                                break;
+                        }
                     }
+                    CollisionDone:
 
                     //if (i >= trailPoint) {
                     World.AddEffect(trail.GetTrail(Position));

@@ -121,13 +121,8 @@ namespace TranscendenceRL {
             DamageSystem.Damage(this, source, hp);
             if(source.Sovereign != Sovereign) {
                 foreach(var guard in World.entities.all.OfType<AIShip>()) {
-                    if(guard.controller is GuardOrder order && order.guard == this && order.target == null) {
-                        order.target = source;
-                        if (Sovereign.GetDisposition(source.Sovereign) == Disposition.Enemy) {
-                            order.attackTime = 0;
-                        } else {
-                            order.attackTime = 300;
-                        }
+                    if(guard.controller is GuardOrder order && order.guard == this) {
+                        guard.controller = new AttackOrder(order.target ?? source);
                     }
                 }
             }
@@ -154,7 +149,7 @@ namespace TranscendenceRL {
             if (source.Sovereign != Sovereign) {
                 foreach (var guard in World.entities.all.OfType<AIShip>()) {
                     if (guard.controller is GuardOrder order && order.guard == this && order.target == null) {
-                        order.attackTime = 0;
+                        order.attackTime = -1;
                         order.target = source;
                     }
                 }
