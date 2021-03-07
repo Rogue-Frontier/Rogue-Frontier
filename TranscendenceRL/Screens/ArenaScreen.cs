@@ -26,7 +26,7 @@ namespace TranscendenceRL {
             get {
                 var t = this;
                 return (p, s, w) => {
-                    t.arena.camera = t.arena.playerMain.cameraPosition;
+                    t.arena.camera = t.arena.playerMain.camera.position;
                     t.arena.playerMain = null;
                     t.arena.IsFocused = true;
                 };
@@ -207,7 +207,7 @@ namespace TranscendenceRL {
                     var aiShip = new AIShip(playerMain.playerShip.Ship, new AttackAllOrder());
                     World.AddEntity(aiShip);
 
-                    camera = playerMain.cameraPosition;
+                    camera = playerMain.camera.position;
                     pov = aiShip;
 
                     playerMain = null;
@@ -228,7 +228,7 @@ namespace TranscendenceRL {
                     World.RemoveEntity(a);
                     var playerShip = new PlayerShip(new Player() { Settings = settings }, a.Ship);
 
-                    playerMain = new PlayerMain(Width, Height, World, playerShip) { IsFocused = true, cameraPosition = camera };
+                    playerMain = new PlayerMain(Width, Height, World, playerShip) { IsFocused = true, camera = new Camera(camera) };
                     playerShip.OnDestroyed += new ArenaScreenReset(this);
                     World.AddEntity(playerShip);
 

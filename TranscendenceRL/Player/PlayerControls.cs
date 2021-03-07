@@ -99,10 +99,6 @@ namespace TranscendenceRL {
 			//Move the player
 			ProcessArrows(info);
 			ProcessTargeting(info);
-
-			if (info.KeysDown.Select(d => d.Key).Intersect<Keys>(new Keys[] { Keys.LeftControl, Keys.LeftShift, Keys.Enter }).Count() == 3) {
-				playerShip.Destroy(playerShip);
-			}
 			if(info.IsKeyPressed(controls[Autopilot])) {
 				playerShip.autopilot = !playerShip.autopilot;
 				playerShip.AddMessage(new InfoMessage($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
@@ -139,7 +135,11 @@ namespace TranscendenceRL {
 				if(powerMenu != null)
 					powerMenu.IsVisible = !powerMenu.IsVisible;
 			}
-			
+
+
+			if (info.KeysDown.Select(d => d.Key).Intersect<Keys>(new Keys[] { Keys.LeftControl, Keys.LeftShift, Keys.Enter }).Count() == 3) {
+				playerShip.Destroy(playerShip);
+			}
 			if (info.IsKeyPressed(C)) {
 				if(info.IsKeyDown(LeftShift)) {
 					playerShip.Destroy(playerShip);
