@@ -6,7 +6,7 @@
     <style>
         h1 {
             font-family: "IBM Plex Mono";
-            font-size: 3em;
+            font-size: 2.5em;
             font-variant: small-caps;
             color: rgb(225, 225, 255);
             text-align: center;
@@ -17,7 +17,7 @@
 
         h2 {
             font-family: "IBM Plex Mono";
-            font-size: 2.5em;
+            font-size: 2em;
             color: rgba(225, 255, 225, 1);
             word-break: break-word;
 
@@ -27,7 +27,7 @@
         }
         h3 {
             font-family: "IBM Plex Mono";
-            font-size: 2em;
+            font-size: 1.5em;
             color: rgba(225, 255, 225, 1);
             word-break: break-word;
             margin-left: 32px;
@@ -90,16 +90,58 @@
         <a class="gamelink" href="https://github.com/INeedAUniqueUsername/TranscendenceRL">GitHub</a>
     </div>
     <hr />
-    <h1 style="text-align:center">The Manual</h1>
+    <h1 style="text-align:center">Readme</h1>
     <hr />
     <div class="content" style="margin-left:256px; margin-right:256px;">
-        <h2>Display</h2>
+
+        <h2>Introduction</h2>
+        <p>Welcome to TranscendenceRL!</p>
+
+        <h2>User Interface</h2>
+        <h3>The Display</h3>
         <p>
+            The display shows your current conditions and nearby surroundings.
+            <br />
             - A line of white blips shows where each ship is currently facing.
             <br />- A line of yellow blips indicates where an omnidirectional weapon is aiming.
-
+            <br />
+            When you approach a station for the first time, a message pops up showing its name.
         </p>
-        <h2>Keyboard Controls</h2>
+        <h3>The Minimap</h3>
+        <p>
+            The minimap displays stations, ships, and missiles within 192 units of your location in a 24 x 24 view.
+        </p>
+        <h3>The Megamap</h3>
+        <p>
+            The megamap provides an adjustable scaled-down view of your surroundings - including stars, stations, and ships. Press PLUS to zoom in and MINUS to zoom out. A grey rectangle shows the scale of the map relative to your visible screen area.
+        </p>
+        <h3>The Border</h3>
+        <p>
+            The border adds a vignette to the edge of the display. It may glow depending on your current situation.
+            <br />
+            - The border glows white when you are near a star.
+            <br />
+            - The border glows red when you are in "mortal" state.
+            <br />
+            - The border glows violet when you are charging up a Power
+            <br />
+            - The border glows cyan when your ship is experiencing EMP
+            <br />
+            Objects that are visible on the edge of the screen show up as <code>#</code> on the border.
+        </p>
+        <h3>The Power Menu</h3>
+        <p>
+            Press P to show the Power menu. If you have access to certain special Powers, then you may use them here. Hold down the key next to a Power to charge up. When the Power is fully charged, release the key to invoke.
+        </p>
+        <h3>The Ship Screen</h3>
+        <p>
+            Press S to show the Ship Screen. This displays your ship and its inventory.
+        </p>
+
+
+
+        <h2>Movement and Combat</h2>
+        <h3>Keyboard Controls</h3>
         <table id="controlsTable">
             <tr>
                 <th>Key</th>
@@ -171,10 +213,9 @@
             - Setting the target lock allows your installed omnidirectional weapons to aim themselves automatically.
             <br />
             - If you are having trouble with aiming a unidirectional weapon, you can use Auto Aim to automatically point your ship towards your target.
-            
+
         </p>
-        <h2>Mouse Controls</h2>
-        <h3>Turn and Aim</h3>
+        <h3>Mouse Turn and Aim</h3>
         <p>
             While the mouse is visible on the screen, your ship automatically turns to point at the cursor.
             <br />- Left click to fire the primary weapon
@@ -183,17 +224,15 @@
             <br />- Middle click to set target lock on the object nearest to the cursor.
             <br />- Middle click on the player ship to use Aim Only mode
         </p>
-        <h3>Aim Only</h3>
+        <h3>Mouse Aim Only</h3>
         <p>
             While the mouse is visible on the screen, your ship's omnidirectional weapons aim at the cursor. A yellow crosshair marks where you are aiming.
             <br />- Left click to fire the primary weapon
             <br />- Right click to thrust forward
             <br />- Middle click to use Turn and Aim mode
         </p>
-        <h2>The Power Menu</h2>
-        <p>
-            If you have access to certain special Powers, then you may use them here. Hold down the key next to a Power to charge up. When the Power is fully charged, release the key to invoke.
-        </p>
+
+        <h2>Dock Scenes</h2>
     </div>
 </body>
 </html>
