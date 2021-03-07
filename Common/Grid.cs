@@ -111,6 +111,9 @@ namespace Common {
 		public double Angle => Math.Atan2(y, x);
 
 		public XY Rotate(double angle) {
+			if(angle == 0) {
+				return new XY(x, y);
+            }
 			var sin = Math.Sin(angle);
 			var cos = Math.Cos(angle);
 			return new XY(x * cos - y * sin, x * sin + y * cos);
