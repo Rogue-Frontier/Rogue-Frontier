@@ -28,9 +28,14 @@ namespace TranscendenceRL {
 	public class Camera {
 		public XY position;
 		//For now we don't allow shearing
-		public double rotation => Math.Atan2(right.y, right.x);
+		public double rotation { get => Math.Atan2(right.y, right.x); set => right = XY.Polar(value, 1); }
 		public XY up => right.Rotate(Math.PI/2);
 		public XY right;
+		public Camera(XY position) {
+
+			this.position = position;
+			right = new XY(1, 0);
+		}
 		public Camera() {
 			position = new XY();
 			right = new XY(1, 0);
@@ -40,8 +45,7 @@ namespace TranscendenceRL {
         }
     }
 	public class PlayerMain : Console {
-		public XY cameraPosition;
-		public double cameraRotation;
+		public Camera camera;
 		public World World;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		private PlayerStory story = new PlayerStory();
@@ -69,17 +73,17 @@ namespace TranscendenceRL {
 			DefaultForeground = Color.Transparent;
 			UseMouse = true;
 			UseKeyboard = true;
-			cameraPosition = new XY();
+			camera = new Camera();
 			this.World = World;
 			this.playerShip = playerShip;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
 
-			back = new BackdropConsole(Width, Height, World.backdrop);
-			map = new MegaMap(playerShip, Width, Height);
+			back = new BackdropConsole(Width, Height, World.backdrop, camera);
+			map = new MegaMap(camera, playerShip, Width, Height);
 			vignette = new PlayerBorder(playerShip, Width, Height);
 			sceneContainer = new Console(Width, Height);
 			sceneContainer.Focused += (e, o) => this.IsFocused = true;
-			ui = new PlayerUI(playerShip, tiles, Width, Height);
+			ui = new PlayerUI(camera, playerShip, tiles, Width, Height);
 			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
 			pauseMenu = new PauseMenu(this) { IsVisible = false };
 			crosshair = new TargetingMarker(playerShip, "Mouse Cursor", new XY());
@@ -116,12 +120,12 @@ namespace TranscendenceRL {
 			XY center = new XY(size / 2, size / 2);
 			for (int y = 0; y < size; y++) {
 				for(int x = 0; x < size; x++) {
-					var tile = GetTile(cameraPosition - new XY(x, y) + center);
+					var tile = GetTile(camera.position - new XY(x, y) + center);
 					deathFrame[x, y] = tile;
 				}
             }
 			ColoredGlyph GetTile(XY xy) {
-				var back = World.backdrop.GetTile(xy, cameraPosition);
+				var back = World.backdrop.GetTile(xy, camera.position);
 				//Round down to ensure we don't get duplicated tiles along the origin
 				if (tiles.TryGetValue(xy.RoundDown, out ColoredGlyph g)) {
 					g = g.Clone();          //Don't modify the source
@@ -201,7 +205,7 @@ namespace TranscendenceRL {
 				World.UpdatePresent();
 			}
 
-			cameraPosition = playerShip.Position;
+			camera.position = playerShip.Position;
 			if (playerShip.Dock?.justDocked == true && playerShip.Dock.target is Dockable d) {
 
 				Console scene = story.GetScene(this, d, playerShip) ?? d.GetScene(this, playerShip);
@@ -229,7 +233,6 @@ namespace TranscendenceRL {
 			base.Update(delta);
 		}
 		public override void Render(TimeSpan drawTime) {
-			back.UpdateCamera(cameraPosition, cameraRotation);
 			back.Render(drawTime);
 
 			this.Clear();
@@ -260,11 +263,9 @@ namespace TranscendenceRL {
 			int HalfViewWidth = ViewWidth / 2;
 			int HalfViewHeight = ViewHeight / 2;
 
-			cameraRotation += 0.02;
-
 			for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
 				for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
-					XY location = cameraPosition + new XY(x, y).Rotate(cameraRotation);
+					XY location = camera.position + new XY(x, y).Rotate(camera.rotation);
 
 					if (tiles.TryGetValue(location.RoundDown, out var tile)) {
 						var xScreen = x + HalfViewWidth;
@@ -286,6 +287,13 @@ namespace TranscendenceRL {
 				powerMenu.ProcessKeyboard(info);
 			} else {
 				playerControls.ProcessKeyboard(info);
+
+				if(info.IsKeyDown(OemOpenBrackets)) {
+					camera.rotation += 0.01;
+				}
+				if(info.IsKeyDown(OemCloseBrackets)) {
+					camera.rotation -= 0.01;
+				}
             }
 			return base.ProcessKeyboard(info);
 		}
@@ -308,7 +316,7 @@ namespace TranscendenceRL {
 				mousePos = state.SurfaceCellPosition;
 				var centerOffset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
 
-				var worldPos = centerOffset + cameraPosition;
+				var worldPos = centerOffset.Rotate(camera.rotation) + camera.position;
 				SpaceObject t;
 				if (state.Mouse.MiddleClicked) {
 					var targetList = new List<SpaceObject>(World.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
@@ -370,23 +378,17 @@ namespace TranscendenceRL {
 	}
 
 	public class BackdropConsole : Console {
-		public XY cameraPosition;
-		public double cameraRotation;
+		private Camera camera;
 
-		public readonly XY screenCenter;
-		Backdrop backdrop;
-		public BackdropConsole(int width, int height, Backdrop backdrop) : base(width, height) {
-			cameraPosition = new XY();
-			cameraRotation = 0;
+		private readonly XY screenCenter;
+		private Backdrop backdrop;
+		public BackdropConsole(int width, int height, Backdrop backdrop, Camera camera) : base(width, height) {
+			this.camera = camera;
 
 
 			this.backdrop = backdrop;
 			screenCenter = new XY(Width / 2f, Height / 2f);
 		}
-		public void UpdateCamera(XY cameraPosition, double cameraRotation) {
-			this.cameraPosition = cameraPosition;
-			this.cameraRotation = cameraRotation;
-        }
 		public override void Render(TimeSpan drawTime) {
 			this.Clear();
 			for (int x = 0; x < Width; x++) {
@@ -394,19 +396,21 @@ namespace TranscendenceRL {
 					var g = this.GetGlyph(x, y);
 
 					var offset = new XY(x, Height - y) - screenCenter;
-					var location = cameraPosition + offset.Rotate(cameraRotation);
-					this.SetCellAppearance(x, y, backdrop.GetTile(location, cameraPosition));
+					var location = camera.position + offset.Rotate(camera.rotation);
+					this.SetCellAppearance(x, y, backdrop.GetTile(location, camera.position));
 				}
 			}
 			base.Render(drawTime);
 		}
 	}
 	class MegaMap : Console {
+		Camera camera;
 		PlayerShip player;
 		GeneratedLayer BackVoid;
 		public double viewScale;
 		double time;
-		public MegaMap(PlayerShip player, int width, int height) : base(width, height) {
+		public MegaMap(Camera camera, PlayerShip player, int width, int height) : base(width, height) {
+			this.camera = camera;
 			this.player = player;
 			BackVoid = new GeneratedLayer(1, new Rand());
 			viewScale = 1;
@@ -438,8 +442,9 @@ namespace TranscendenceRL {
 					for (int y = 0; y < Height; y++) {
 						var cg = BackVoid.GetTileFixed(new XY(x, y));
 
-						var pos = new XY(	player.Position.x + (x - screenCenter.x) * viewScale,
-											player.Position.y - (y - screenCenter.y) * viewScale);
+						var offset = new XY((x - screenCenter.x) * viewScale, (y - screenCenter.y) * viewScale).Rotate(-camera.rotation);
+
+						var pos = player.Position + offset;
 						var starlight = player.World.backdrop.starlight.GetTile(pos).PremultiplySet(255);
 
 						//Make sure to clone this so that we don't apply alpha changes to the original
@@ -461,8 +466,8 @@ namespace TranscendenceRL {
 					var visible = set.Where(t => t.Tile != null).Where(t => !(t is Segment));
 					if (visible.Any()) {
 						var e = visible.ElementAt((int)time % visible.Count());
-						var (x, y) = (e.Position - player.Position) / viewScale + screenCenter;
-
+						var offset = (e.Position - player.Position) / viewScale;
+						var (x, y) = screenCenter + offset.Rotate(-camera.rotation);
 						this.SetCellAppearance(x, Height - y, e.Tile);
 					}
 				}
@@ -586,13 +591,15 @@ namespace TranscendenceRL {
         }
 		Snow[,] snow;
 		*/
+		Camera camera;
 		PlayerShip player;
 		Dictionary<(int, int), ColoredGlyph> tiles;
 		public int borderBound;
 
 		public int arrowDistance;
 
-		public PlayerUI(PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
+		public PlayerUI(Camera camera, PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
+			this.camera = camera;
 			this.player = player;
 			this.tiles = tiles;
 			borderBound = Math.Max(Width, Height)/2;
@@ -688,10 +695,11 @@ namespace TranscendenceRL {
 					//Draw a line from message to source
 
 					var screenCenterOffset = new XY(Width * 3 / 4, Height - messageY) - screenCenter;
-					var messagePos = player.Position + screenCenterOffset;
+					var messagePos = (player.Position + screenCenterOffset).RoundDown;
 
 					var sourcePos = t.source.Position.RoundDown;
-					if (messagePos.RoundDown.yi == sourcePos.RoundDown.yi) {
+					sourcePos = player.Position + (sourcePos - player.Position).Rotate(-camera.rotation);
+					if (messagePos.yi == sourcePos.yi) {
 						continue;
 					}
 
@@ -855,7 +863,7 @@ namespace TranscendenceRL {
 
 			var nearby = player.World.entities.GetAll(((int, int) p) => (player.Position - p).MaxCoord < range);
 			foreach (var entity in nearby) {
-				var offset = (entity.Position - player.Position);
+				var offset = (entity.Position - player.Position).Rotate(-camera.rotation);
 				var (x, y) = offset;
 				Func<int, int> abs = Math.Abs;
 				(x, y) = (Math.Abs(x), Math.Abs(y));
