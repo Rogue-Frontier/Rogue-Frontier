@@ -13,7 +13,7 @@ namespace TranscendenceRL {
 		public static int TICKS_PER_SECOND = 60;
 
         static TranscendenceRL() {
-            Height = 90;
+            Height = 60;
             Width = Height * 5 / 3;
         }
         public static int Width, Height;
@@ -22,7 +22,6 @@ namespace TranscendenceRL {
 			SadConsole.Game.Create(Width, Height, "RogueFrontierContent/IBMCGA.font");
             // Hook the start event so we can add consoles to the system.
             SadConsole.Game.Instance.OnStart = Init;
-
 			// Start the game.
 			SadConsole.Game.Instance.Run();
 			SadConsole.Game.Instance.Dispose();
