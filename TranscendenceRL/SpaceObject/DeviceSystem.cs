@@ -14,12 +14,16 @@ namespace TranscendenceRL {
             Weapons = new List<Weapon>();
             Reactors = new List<Reactor>();
         }
-        public void Add(List<Device> Devices) {
+        public void Install(IEnumerable<Device> Devices) {
             Installed.AddRange(Devices);
             UpdateDevices();
         }
-        public void Add(Device Device) {
+        public void Install(Device Device) {
             Installed.Add(Device);
+            UpdateDevices();
+        }
+        public void Remove(Device device) {
+            Installed.Remove(device);
             UpdateDevices();
         }
         public void UpdateDevices() {

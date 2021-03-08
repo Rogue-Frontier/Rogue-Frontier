@@ -6,6 +6,8 @@
 				name=		"Orion bolter"
 				mass=		"3000"
 				level=		"2"
+				
+				invoke=		"installWeapon"
 				>
 		<Weapon	powerUse=		"20"
 				fireCooldown=	"30"

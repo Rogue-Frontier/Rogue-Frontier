@@ -10,6 +10,10 @@ using System.Xml.Linq;
 using SadRogue.Primitives;
 
 namespace TranscendenceRL {
+
+    public enum InvokeAction {
+        none, installWeapon
+    }
     public class ItemType : DesignType {
         public string name;
         public int level;
@@ -21,11 +25,17 @@ namespace TranscendenceRL {
         public ShieldDesc shield;
         public ReactorDesc reactor;
 
+        public InvokeAction invoke;
+
+
         public void Initialize(TypeCollection collection, XElement e) {
             name = e.ExpectAttribute("name");
             level = e.ExpectAttributeInt("level");
             mass = e.ExpectAttributeInt("mass");
             value = e.TryAttributeInt("value", -1);
+
+            invoke = Enum.Parse<InvokeAction>(e.TryAttribute("invoke", "none"));
+
             if (e.HasElement("Weapon", out var xmlWeapon)) {
                 weapon = new WeaponDesc(collection, xmlWeapon);
             }

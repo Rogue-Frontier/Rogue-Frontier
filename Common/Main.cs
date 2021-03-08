@@ -11,6 +11,7 @@ using SadConsole.UI;
 using SadConsole.Input;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 
 namespace Common {
     public static class Main {
@@ -315,7 +316,13 @@ namespace Common {
 				if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
 					return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
 				} else try {
-						return (Color)typeof(Color).GetField(s).GetValue(null);
+						FieldInfo f = typeof(Color).GetField(s);
+						if(f != null) {
+							return (Color)f.GetValue(null);
+						} else {
+
+							throw new Exception($"Color value expected: {attribute}=\"{s}\" ### {e.Name}");
+						}
 					} catch {
 						throw new Exception($"Color value expected: {attribute}=\"{s}\" ### {e.Name}");
 					}

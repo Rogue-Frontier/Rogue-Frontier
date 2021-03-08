@@ -5,7 +5,13 @@
 		<System>
 			<Star	 radius="50"/>
 
-			<Orbital radius="400"
+			<Orbital count="5"
+					 radius="300"
+					 angle="random">
+
+				<Station	codename="station_iron_pirates_hideout"/>
+			</Orbital>
+			<Orbital radius="500"
 					 angle="random">
 
 				<!--Giant planet-->

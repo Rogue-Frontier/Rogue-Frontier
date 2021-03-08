@@ -92,7 +92,7 @@ namespace TranscendenceRL {
             Items = new HashSet<Item>();
 
             Devices = new DeviceSystem();
-            Devices.Add(shipClass.devices.Generate(world.types));
+            Devices.Install(shipClass.devices.Generate(world.types));
 
             DamageSystem = shipClass.damageDesc.Create(this);
             this.destiny = new Rand(world.karma.NextInteger());
@@ -106,6 +106,16 @@ namespace TranscendenceRL {
         public void Destroy(SpaceObject source) {
             var wreck = new Wreck(this);
             wreck.Items.UnionWith(Items);
+            wreck.Items.UnionWith(
+                Devices.Installed.Select(
+                    d => d.source).Where(
+                    i => i != null).Select(
+                    i => {
+                        i.RemoveArmor();
+                        return i;
+                    }
+                )
+            );
             World.AddEntity(wreck);
 
             foreach(var on in OnDestroyed.set) {

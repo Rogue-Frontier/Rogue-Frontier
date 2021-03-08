@@ -106,6 +106,8 @@ namespace TranscendenceRL {
                 case "random":
                     angle = 0;
                     randomAngle = true;
+                    //Default to random increment
+                    randomInc = true;
                     break;
                 case var i when int.TryParse(i, out var a):
                     angle = a;

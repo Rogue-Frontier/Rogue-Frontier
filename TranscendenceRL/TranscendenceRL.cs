@@ -13,7 +13,7 @@ namespace TranscendenceRL {
 		public static int TICKS_PER_SECOND = 60;
 
         static TranscendenceRL() {
-            Height = 75;
+            Height = 90;
             Width = Height * 5 / 3;
         }
         public static int Width, Height;
@@ -97,13 +97,13 @@ namespace TranscendenceRL {
                 Console c = null;
                 c = new SimpleCrawl(
 @"                  
-A reimagining of
+A reimagining of...
                     
       Transcendence  
  by George Moromisato
                     
-Because I know the that vision
-was more than just a dream...
+And the vision that was
+more than just a dream...
                     ".Replace("\r", null), () => ShowFade2(c)) {
                     Position = new Point(4, 4),
                     FontSize = prev.FontSize * 2
@@ -136,7 +136,7 @@ was more than just a dream...
                 prev.Parent.Children.Remove(prev);
             }
             void ShowPoster(Console prev) {
-                var display = new DisplayImage(Width, Height, poster, new Point(-5, -5));
+                var display = new DisplayImage(Width, Height, poster, new Point(Width/2 - poster.Size.X/2, -5));
 
                 Console pause = null;
                 pause = new PauseTransition(Width, Height, 2, display, () => ShowPosterFade(pause));
