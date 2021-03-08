@@ -28,7 +28,12 @@ namespace TranscendenceRL {
         public Armor InstallArmor() => armor = type.armor.GetArmor(this);
         public Shields InstallShields() => shields = type.shield.GetShields(this);
         public Reactor InstallReactor() => reactor = type.reactor.GetReactor(this);
-
+        public void RemoveAll() {
+            weapon = null;
+            armor = null;
+            shields = null;
+            reactor = null;
+        }
         public void RemoveWeapon() => weapon = null;
         public void RemoveArmor() => armor = null;
         public void RemoveShields() => shields = null;

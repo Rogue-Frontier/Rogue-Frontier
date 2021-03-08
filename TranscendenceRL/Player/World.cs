@@ -15,11 +15,23 @@ namespace TranscendenceRL {
     class EntityLocator : ILocator<Entity, (int, int)> {
         public (int, int) Locate(Entity e) => (e.Position.xi, e.Position.yi);
     }
+    public class Universe {
+        public Rand karma;
+        public TypeCollection types;
+        public Universe(TypeCollection types, Rand karma) {
+            this.types = types; 
+            this.karma = karma;
+        }
+        public Universe() {
+            karma = new Rand();
+            types = new TypeCollection();
+        }
+    }
+
     public class World {
         [JsonIgnore]
-        public static readonly World empty = new World();
+        public static readonly World empty = new World(new Universe());
 
-        public TypeCollection types;
 
         public HashSet<Event> events = new HashSet<Event>();
         public List<Event> eventsAdded = new List<Event>();
@@ -31,19 +43,22 @@ namespace TranscendenceRL {
         public LocatorDict<Effect, (int, int)> effects = new LocatorDict<Effect, (int, int)>(new EffectLocator());
         public List<Effect> effectsAdded = new List<Effect>();
         public List<Effect> effectsRemoved = new List<Effect>();
-        public Rand karma;
+
+        public Universe universe;
+        [JsonIgnore]
+        public TypeCollection types => universe.types;
+        [JsonIgnore]
+        public Rand karma => universe.karma;
         public Backdrop backdrop;
 
         public int tick;
-        public World(TypeCollection types, Rand karma) {
-            this.types = types;
-            this.karma = karma;
-            this.backdrop = new Backdrop(karma);
-        }
         public World() {
-            types = new TypeCollection();
-            karma = new Rand();
-            backdrop = new Backdrop(karma);
+            this.universe = new Universe();
+            backdrop = new Backdrop();
+        }
+        public World(Universe universe) {
+            this.universe = universe;
+            backdrop = new Backdrop();
         }
         public void AddEvent(Event e) => eventsAdded.Add(e);
         public void AddEffect(Effect e) => effectsAdded.Add(e);

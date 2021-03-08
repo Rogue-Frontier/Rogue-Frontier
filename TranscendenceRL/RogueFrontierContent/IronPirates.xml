@@ -1,0 +1,213 @@
+﻿<Module>
+	<Sovereign	codename=	"sovereign_iron_pirates"
+				alignment=	"DestructiveOrder"
+	/>
+	<ItemType	codename=	"item_iron_laser"
+				name=		"Iron laser"
+				mass=		"3000"
+				level=		"2"
+				>
+		<Weapon	powerUse=		"20"
+				fireCooldown=	"30"
+				missileSpeed=	"60"
+				damageType="2"
+				damageHP="5"
+				lifetime="60"
+				char=	"."
+				foreground="PaleVioletRed"
+
+				initialCharges=	"300"
+			>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_iron_cannon"
+				name=		"Iron cannon"
+				mass=		"8000"
+				level=		"4"
+				>
+		<Weapon			powerUse=		"50"
+						fireCooldown=	"40"
+						missileSpeed=	"30"
+						damageType=		"2"
+						damageHP=		"15"
+						lifetime=		"120"
+
+						char=			"+"
+						foreground=		"White"
+	
+						initialCharges=	"300"
+			>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_ironclad_plate"
+				name=		"Ironclad plate"
+				mass=		"1000"
+				level=		"1"
+		>
+		<Armor	maxHP=		"40"
+			>
+		</Armor>
+	</ItemType>
+	<ItemType	codename=	"item_blockade_plate"
+				name=		"Blockade plate"
+				mass=		"5000"
+				level=		"2"
+		>
+		<Armor	maxHP=		"80"
+			>
+		</Armor>
+	</ItemType>
+	<ShipClass	codename=			"ship_iron_gunboat"
+				name=				"Iron gunboat"
+				thrust=				"0.1"
+				maxSpeed=			"10"
+
+				rotationAccel=		"3"
+				rotationDecel=		"6"
+				rotationMaxSpeed=	"4"
+
+				char=				"i"
+				foreground=			"Yellow"
+		>
+		<Devices>
+			<Weapon	codename="item_iron_laser"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor	codename="item_ironclad_plate"/>
+		</LayeredArmorSystem>
+		<PlayerSettings
+			startingClass=  "false"
+			description=    ""
+            />
+	</ShipClass>
+	<ShipClass	codename=			"ship_iron_embargo"
+				name=				"Embargo-class missileship"
+				thrust=				"0.3"
+				maxSpeed=			"15"
+
+				rotationAccel=		"3"
+				rotationDecel=		"6"
+				rotationMaxSpeed=	"4"
+
+				
+				char=				"I"
+				foreground=			"Yellow"
+		>
+		<Devices>
+			<Weapon	codename="item_iron_cannon"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor	codename="item_blockade_plate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
+
+	<ShipClass	codename=			"ship_iron_privateer"
+				name=				"Privateer-class gunship"
+				thrust=				"0.2"
+				maxSpeed=			"15"
+
+				rotationAccel=		"3"
+				rotationDecel=		"6"
+				rotationMaxSpeed=	"4"
+
+				char=				"I"
+				foreground=			"Gray"
+		>
+		<Devices>
+			<Weapon	codename="item_iron_cannon"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor	codename="item_blockade_plate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
+
+	<StationType	codename="station_iron_pirates_hideout"
+					name=		"Iron Pirates hideout"
+					sovereign=	"sovereign_iron_pirates"
+
+					hp=			"250"
+
+					char=		"O"
+					foreground="White"
+		>
+		<Segments>
+
+			<Point offsetX="-1" offsetY="1"
+				   char="/" foreground="Yellow"/>
+			<Point offsetX="0" offsetY="1"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="1" offsetY="1"
+				   char="\" foreground="Yellow"/>
+
+			<Point offsetX="-1" offsetY="-1"
+				   char="\" foreground="Yellow"/>
+			<Point offsetX="0" offsetY="-1"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="1" offsetY="-1"
+				   char="/" foreground="Yellow"/>
+
+
+			<Point offsetX="-1" offsetY="0"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="-2" offsetY="0"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="-3" offsetY="0"
+				   char="+" foreground="Yellow"/>
+
+			<Point offsetX="1" offsetY="0"
+					char="-" foreground="Yellow"/>
+			<Point offsetX="2" offsetY="0"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="3" offsetY="0"
+				   char="+" foreground="Yellow"/>
+
+		</Segments>
+		<Guards>
+			<Ship	count="5"	codename="ship_iron_gunboat"/>
+		</Guards>
+		<Weapons>
+			<Weapon	codename="item_iron_laser"/>
+		</Weapons>
+	</StationType>
+
+	<StationType	codename="station_iron_pirates_nest"
+				name=		"Iron Pirates nest"
+				sovereign=	"sovereign_iron_pirates"
+
+				hp=			"250"
+
+				char=		"O"
+				foreground="White"
+		>
+		<Segments>
+
+			<Point offsetX="-1" offsetY="0"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="-2" offsetY="0"
+				   char="+" foreground="White"/>
+			<Point offsetX="-3" offsetY="0"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="-4" offsetY="0"
+				   char="+" foreground="White"/>
+
+			<Point offsetX="1" offsetY="0"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="2" offsetY="0"
+				   char="+" foreground="White"/>
+			<Point offsetX="3" offsetY="0"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="4" offsetY="0"
+				   char="+" foreground="White"/>
+
+		</Segments>
+		<Guards>
+			<Ship	count="3"	codename="ship_iron_gunboat"/>
+			<Ship	count="2"	codename="ship_iron_embargo"/>
+		</Guards>
+		<Weapons>
+			<Weapon	codename="item_iron_cannon"/>
+		</Weapons>
+	</StationType>
+</Module>

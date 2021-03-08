@@ -13,7 +13,8 @@ namespace TranscendenceRL {
         public CompositeColorLayer starlight;
         public GridLayer planets;
         public GridLayer orbits;
-        public Backdrop(Rand r) {
+        public Backdrop() {
+            Rand r = new Rand();
             int layerCount = 5;
             layers = new List<GeneratedLayer>(layerCount);
             for(int i = 0; i < layerCount; i++) {

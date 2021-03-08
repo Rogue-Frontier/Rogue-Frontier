@@ -95,19 +95,20 @@ namespace TranscendenceRL {
 
                     //Name is seed
                     var seed = player.name.GetHashCode();
-                    World = new World(World.types, new Rand(seed));
-                    World.types.Lookup<SystemType>("system_orion").Generate(World);
-                    World.UpdatePresent();
+                    Universe u = new Universe(World.types, new Rand(seed));
+                    World w = new World(u);
+                    w.types.Lookup<SystemType>("system_orion").Generate(w);
+                    w.UpdatePresent();
 
-                    var start = World.entities.all.OfType<Marker>().First(m => m.Name == "Start");
+                    var start = w.entities.all.OfType<Marker>().First(m => m.Name == "Start");
                     start.Active = false;
                     var playerStart = start.Position;
-                    var playerSovereign = World.types.Lookup<Sovereign>("sovereign_player");
-                    var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
+                    var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
+                    var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerSovereign, playerStart));
                     playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
-                    World.AddEffect(new Heading(playerShip));
-                    World.AddEntity(playerShip);
+                    w.AddEffect(new Heading(playerShip));
+                    w.AddEntity(playerShip);
 
                     /*
                     File.WriteAllText(file, JsonConvert.SerializeObject(new LiveGame() {
@@ -117,7 +118,7 @@ namespace TranscendenceRL {
                     }, SaveGame.settings));
                     */
 
-                    var playerMain = new PlayerMain(Width, Height, World, playerShip);
+                    var playerMain = new PlayerMain(Width, Height, w, playerShip);
                     playerMain.HideUI();
                     playerShip.OnDestroyed += new EndGame(playerMain);
 
@@ -382,7 +383,7 @@ namespace TranscendenceRL {
                 } else if (Children.Contains(config)) {
                     Children.Remove(config);
                 } else {
-                    Exit();
+                    Environment.Exit(0);
                 }
             }
             if (info.IsKeyDown(LeftShift)) {
@@ -421,33 +422,36 @@ namespace TranscendenceRL {
                 Genome = World.types.genomeType.Values.First()
             };
 
-            World.UpdatePresent();
-            World.entities.all.Clear();
-            World.effects.all.Clear();
-            World.karma = new Rand(player.name.GetHashCode());
-            World.backdrop = new Backdrop(World.karma);
-            World.types.Lookup<SystemType>("system_orion").Generate(World);
-            World.UpdatePresent();
+            //Name is seed
+            var seed = player.name.GetHashCode();
+            Universe u = new Universe(World.types, new Rand(seed));
 
-            var playerClass = World.types.Lookup<ShipClass>("ship_amethyst");
-            var playerStart = World.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
-            var playerSovereign = World.types.Lookup<Sovereign>("sovereign_player");
-            var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
-            playerShip.Powers.Add(new Power(World.types.Lookup<PowerType>("power_silence")));
+            World w = new World(u);
+            w.types.Lookup<SystemType>("system_orion").Generate(w);
+            w.UpdatePresent();
+
+            var playerClass = w.types.Lookup<ShipClass>("ship_amethyst");
+            var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
+            var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
+            var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerSovereign, playerStart));
+            playerShip.Powers.Add(new Power(w.types.Lookup<PowerType>("power_silence")));
             playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
-            World.AddEffect(new Heading(playerShip));
-            World.AddEntity(playerShip);
+            w.AddEffect(new Heading(playerShip));
+            w.AddEntity(playerShip);
 
-            new LiveGame(World, player, playerShip).Save();
+            playerShip.Items.Add(new Item(World.types.itemType["itOrionBolter"]));
 
-            var wingmateClass = World.types.Lookup<ShipClass>("ship_beowulf");
 
-            var wingmate = new AIShip(new BaseShip(World, wingmateClass, playerSovereign, playerStart), new EscortOrder(playerShip, new XY(-5, 0)));
-            World.AddEntity(wingmate);
-            World.AddEffect(new Heading(wingmate));
+            new LiveGame(w, player, playerShip).Save();
 
-            var playerMain = new PlayerMain(Width, Height, World, playerShip);
+            var wingmateClass = w.types.Lookup<ShipClass>("ship_beowulf");
+
+            var wingmate = new AIShip(new BaseShip(w, wingmateClass, playerSovereign, playerStart), new EscortOrder(playerShip, new XY(-5, 0)));
+            w.AddEntity(wingmate);
+            w.AddEffect(new Heading(wingmate));
+
+            var playerMain = new PlayerMain(Width, Height, w, playerShip);
             playerShip.OnDestroyed += new EndGame(playerMain);
 
 
