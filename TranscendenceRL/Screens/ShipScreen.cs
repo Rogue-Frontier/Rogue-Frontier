@@ -14,15 +14,24 @@ using static UI;
 namespace TranscendenceRL {
     class ShipScreen : Console {
         public Console prev;
+        public Console back;
         public PlayerShip PlayerShip;
         //Idea: Show an ASCII-art map of the ship where the player can walk around
         public ShipScreen(Console prev, PlayerShip PlayerShip) : base(prev.Width, prev.Height) {
             this.prev = prev;
+            this.back = new Console(prev.Width, prev.Height);
+            back.RenderBackground();
+
+
             this.PlayerShip = PlayerShip;
         }
         public override void Render(TimeSpan delta) {
+
+            //back.Render(delta);
+
             this.Clear();
             this.RenderBackground();
+
             var name = PlayerShip.ShipClass.name;
             var x = Width / 4 - name.Length / 2;
             var y = 4;
@@ -30,7 +39,7 @@ namespace TranscendenceRL {
             void Print(int x, int y, string s) =>
                 this.Print(x, y, s, Color.White, Color.Transparent);
             void Print2(int x, int y, string s) =>
-                this.Print(x, y, s, Color.White, Color.Black);
+                this.Print(x, y, s, Color.White, Color.Black.SetAlpha(102));
 
             Print(x, y, name);
 
@@ -47,11 +56,11 @@ namespace TranscendenceRL {
             }
             y++;
 
-            Print(x, y, $"{$"Thrust: {PlayerShip.ShipClass.thrust}", -16}{$"Rotation acceleration: {PlayerShip.ShipClass.rotationAccel, 4} degrees/s^2"}");
+            Print(x, y, $"{$"Thrust:    {PlayerShip.ShipClass.thrust}", -16}{$"Rotation acceleration: {PlayerShip.ShipClass.rotationAccel, 4} deg/s^2"}");
             y++;
-            Print(x, y, $"{$"Max Speed: {PlayerShip.ShipClass.maxSpeed}",-16}{$"Rotation deceleration: {PlayerShip.ShipClass.rotationDecel, 4} degrees/s^2"}");
+            Print(x, y, $"{$"Max Speed: {PlayerShip.ShipClass.maxSpeed}",-16}{$"Rotation deceleration: {PlayerShip.ShipClass.rotationDecel, 4} deg/s^2"}");
             y++; 
-            Print(x, y, $"{"",-16}{$"Rotation max speed:    {PlayerShip.ShipClass.rotationMaxSpeed*30, 4} degrees/s^2"}");
+            Print(x, y, $"{"",-16}{$"Rotation max speed:    {PlayerShip.ShipClass.rotationMaxSpeed*30, 4} deg/s^2"}");
 
             x = Width / 2;
             y = 2;
@@ -79,6 +88,14 @@ namespace TranscendenceRL {
                     y++;
                 }
             }
+
+
+            x = 1;
+            y = Height - 10;
+            this.Print(x, y++, "[C] Cargo", Color.White, Color.Black);
+            this.Print(x, y++, "[D] Devices", Color.White, Color.Black);
+            
+
             /*
             foreach(var item in PlayerShip.ship.Items) {
 
