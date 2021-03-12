@@ -62,8 +62,6 @@ namespace TranscendenceRL {
                 var dest = Position + Velocity / TranscendenceRL.TICKS_PER_SECOND;
                 var inc = Velocity.Normal * 0.5;
                 var steps = Velocity.Magnitude * 2 / TranscendenceRL.TICKS_PER_SECOND;
-                var maxTrailLength = Velocity.Magnitude;
-                var trailPoint = steps - maxTrailLength * 2;
                 for (int i = 0; i < steps; i++) {
                     Position += inc;
 

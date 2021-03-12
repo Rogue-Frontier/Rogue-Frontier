@@ -871,6 +871,7 @@ namespace TranscendenceRL {
 					case LayeredArmorSystem las:
 						foreach (var armor in las.layers) {
 							this.Print(x, y, "[", Color.White, Color.Transparent);
+							this.Print(x + 1, y, new string('>', 16 ), Color.Gray, Color.Transparent);
 							this.Print(x + 1, y, new string('>', 16 * armor.hp / armor.desc.maxHP), Color.White, Color.Transparent);
 							this.Print(x + 1 + 16, y, $"-[{armor.source.type.name}", Color.White, Color.Transparent);
 							y++;
