@@ -45,7 +45,11 @@ namespace TranscendenceRL {
         }
     }
 	public class PlayerMain : Console {
-		public Camera camera;
+		private Camera _camera;
+		public Camera camera { get => _camera; set {
+				_camera = value;
+				back.camera = value;
+			} }
 		public World World;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		private PlayerStory story = new PlayerStory();
@@ -73,7 +77,7 @@ namespace TranscendenceRL {
 			DefaultForeground = Color.Transparent;
 			UseMouse = true;
 			UseKeyboard = true;
-			camera = new Camera();
+			_camera = new Camera();
 			this.World = World;
 			this.playerShip = playerShip;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
@@ -115,7 +119,7 @@ namespace TranscendenceRL {
 			ui.IsVisible = false;
 			
 			//Get a snapshot of the player
-			var size = 80;
+			var size = Height;
 			var deathFrame = new ColoredGlyph[size, size];
 			XY center = new XY(size / 2, size / 2);
 			for (int y = 0; y < size; y++) {
@@ -378,7 +382,7 @@ namespace TranscendenceRL {
 	}
 
 	public class BackdropConsole : Console {
-		private Camera camera;
+		public Camera camera;
 
 		private readonly XY screenCenter;
 		private Backdrop backdrop;
@@ -878,9 +882,9 @@ namespace TranscendenceRL {
 					} else if (entity is Projectile p) {
 						c = p.Tile.Foreground;
 					}
-					this.Print(x, Height - y - 1, "#", c, Color.Transparent);
-				} else if(x > halfWidth - 8 || y > halfHeight - 8) {
-					(x, y) = (screenCenter + offset).RoundDown;
+					this.Print(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
+				} else if(x > halfWidth - 4 || y > halfHeight - 4) {
+					(x, y) = ((screenCenter + offset) + new XY(1, 1));
 
 					Color c = Color.Transparent;
 					if (entity is SpaceObject so) {
@@ -888,12 +892,12 @@ namespace TranscendenceRL {
 					} else if (entity is Projectile p) {
 						c = p.Tile.Foreground;
 					}
-					this.Print(x, Height - y - 1, "#", c, Color.Transparent);
+					this.Print(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
 				}
 			}
 
-			var mapWidth = 24;
-			var mapHeight = 24;
+			var mapWidth = 16;
+			var mapHeight = 16;
 			var mapScale = (range / (mapWidth / 2));
 
 			var mapX = Width - mapWidth;
@@ -906,9 +910,10 @@ namespace TranscendenceRL {
 				for (int y = -mapHeight / 2; y < mapHeight / 2; y++) {
 					var tiles = mapSample[((x + player.Position.xi / mapScale), (y + player.Position.yi / mapScale))];
 					if (tiles.Any()) {
-						this.Print(mapCenterX + x, mapCenterY - y, tiles.First());
+						var t = tiles.First();
+						this.Print(mapCenterX + x, mapCenterY - y, t.GlyphCharacter.ToString(), t.Foreground, Color.Black);
 					} else {
-						this.Print(mapCenterX + x, mapCenterY - y, "#", new Color(255, 255, 255, 102), Color.Black);
+						this.Print(mapCenterX + x, mapCenterY - y, "#", new Color(255, 255, 255, 51 + ((x + y) % 2 == 0 ? 0 : 12)), Color.Black);
 					}
 				}
 			}
