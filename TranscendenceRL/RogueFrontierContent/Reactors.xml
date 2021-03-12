@@ -6,7 +6,7 @@
 		>
 		<Reactor
 			maxOutput=		"40"
-			capacity=		"8000"
+			capacity=		"4000"
 			efficiency=		"1.0"
 			battery=		"false"
 			/>
