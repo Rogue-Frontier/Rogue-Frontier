@@ -806,13 +806,23 @@ namespace TranscendenceRL {
 				int x = 3;
 				int y = 3;
 				if (player.Energy.totalMaxOutput > 0) {
-					this.Print(x, y, $"[{new string('=', 16)}]", Color.White, Color.Transparent);
+					this.Print(x, y, $"[{new string(' ', 16)}]", Color.White, Color.Transparent);
+					this.Print(x + 1, y, $"{new string('=', 16)}", Color.Gray, Color.Transparent);
 					if (player.Energy.totalUsedOutput > 0) {
-						this.Print(x, y, $"[{new string('=', 16 * player.Energy.totalUsedOutput / player.Energy.totalMaxOutput)}", Color.Yellow, Color.Transparent);
+						this.Print(x + 1, y,
+							new ColoredString(new string('=', 16 * player.Energy.totalUsedOutput / player.Energy.totalMaxOutput),
+								Color.Yellow, Color.Transparent));
 					}
+					this.Print(x + 1 + 16 + 2, y,
+							new ColoredString("Total Output", Color.White, Color.Transparent));
+
 					y++;
 					foreach (var reactor in player.Ship.Devices.Reactors) {
-						this.Print(x, y, new ColoredString("[", Color.White, Color.Transparent) + new ColoredString(new string(' ', 16)) + new ColoredString("]", Color.White, Color.Transparent));
+						this.Print(x, y,
+							new ColoredString("[", Color.White, Color.Transparent)
+							+ new ColoredString(new string(' ', 16), Color.Transparent, Color.Transparent)
+							+ new ColoredString("]", Color.White, Color.Transparent));
+
 						if (reactor.energy > 0) {
 							Color bar = Color.White;
 							char end = '=';
@@ -823,34 +833,46 @@ namespace TranscendenceRL {
 								end = '>';
 								bar = Color.Cyan;
 							}
-							this.Print(x, y, $"[{new string('=', (int)(15 * reactor.energy / reactor.desc.capacity))}{end}", bar, Color.Transparent);
+
+							int length = (int)(15 * reactor.energy / reactor.desc.capacity);
+							this.Print(x + 1, y,
+								new ColoredString($"{new string('=', length)}{end}", bar, Color.Transparent)
+								+ new ColoredString(new string('=', 15 - length), Color.Gray, Color.Transparent)
+								);
+						} else {
+							this.Print(x + 1, y, $"[{new string('=', 16)}]", Color.Gray, Color.Transparent);
 						}
+						this.Print(x + 1 + 16 + 2, y,
+									new ColoredString(reactor.source.type.name, Color.White, Color.Transparent));
 						y++;
 					}
 				}
+				y++;
 				if (player.Ship.Devices.Weapons.Any()) {
 					int i = 0;
 					foreach (var w in player.Ship.Devices.Weapons) {
-						string tag = $"{(i == player.selectedPrimary ? ">" : "")}{w.source.type.name}";
+						string tag = $"{(i == player.selectedPrimary ? "->" : "  ")}{w.source.type.name}";
 						Color foreground = Color.White;
 						if (player.Energy.disabled.Contains(w)) {
 							foreground = Color.Gray;
 						} else if (w.firing || w.fireTime > 0) {
 							foreground = Color.Yellow;
 						}
-						this.Print(x, y, tag, foreground, Color.Transparent);
 
-						var xBar = x + tag.Length;
-
-						this.Print(xBar, y, w.GetBar());
+						this.Print(x, y, "[", Color.White, Color.Transparent);
+						this.Print(x + 1, y, w.GetBar());
+						this.Print(x + 1 + 16, y, tag, foreground, Color.Transparent);
 						y++;
 						i++;
 					}
 				}
+				y++;
 				switch (player.Ship.DamageSystem) {
 					case LayeredArmorSystem las:
 						foreach (var armor in las.layers) {
-							this.Print(x, y, $"{armor.source.type.name}{new string('>', 16 * armor.hp / armor.desc.maxHP)}", Color.White, Color.Transparent);
+							this.Print(x, y, "[", Color.White, Color.Transparent);
+							this.Print(x + 1, y, new string('>', 16 * armor.hp / armor.desc.maxHP), Color.White, Color.Transparent);
+							this.Print(x + 1 + 16, y, $"-[{armor.source.type.name}", Color.White, Color.Transparent);
 							y++;
 						}
 						break;
