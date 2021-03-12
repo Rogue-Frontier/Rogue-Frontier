@@ -48,7 +48,8 @@ namespace TranscendenceRL {
                 if (k.IsKeyPressed(Keys.Enter)) {
                     ShowTitle();
                 }
-            }) { IsFocused = true, UseKeyboard = true };
+            }) { IsFocused = true, UseKeyboard = true,
+            };
 
             var splashBack = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/SplashBackgroundV2.asc.cg")));
             var splashBackground = new DisplayImage(Width / 2, Height / 2, splashBack, new Point()) { FontSize = container.FontSize * 2 };
@@ -72,7 +73,7 @@ namespace TranscendenceRL {
                 string s = "Presents...";
                 c = new SimpleCrawl(s, () => {
                     ShowPause(prev);
-                }) { Position = new Point(prev.Width/4 - s.Length / 2, 18), FontSize = prev.FontSize * 2 };
+                }) { Position = new Point(prev.Width/4 - s.Length / 2, 13), FontSize = prev.FontSize * 2 };
                 prev.Children.Add(c);
             }
             void ShowPause(Console prev) {
@@ -105,7 +106,7 @@ And the vision that was
 more than just a dream...
                     ".Replace("\r", null), () => ShowFade2(c)) {
                     Position = new Point(4, 4),
-                    FontSize = prev.FontSize * 2
+                    FontSize = prev.FontSize
                 };
 
                 prev.Parent.Children.Add(c);
@@ -135,7 +136,7 @@ more than just a dream...
                 prev.Parent.Children.Remove(prev);
             }
             void ShowPoster(Console prev) {
-                var display = new DisplayImage(Width, Height, poster, new Point(Width/2 - poster.Size.X/2, -5));
+                var display = new DisplayImage(Width, Height, poster, new Point(Width/2 - poster.Size.X/2 - 16, -5));
 
                 Console pause = null;
                 pause = new PauseTransition(Width, Height, 2, display, () => ShowPosterFade(pause));
