@@ -15,6 +15,7 @@
 		    <Weapon codename="item_amethyst_laser"/>
 			<Weapon codename="item_dynamite_cannon"/>
 			<Reactor codename="item_foundry_reactor"/>
+			<Reactor codename="item_foundry_battery"/>
         </Devices>
         <LayeredArmorSystem>
 			<Armor  codename="item_crystalsteel_plate"/>

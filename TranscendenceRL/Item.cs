@@ -110,9 +110,10 @@ namespace TranscendenceRL {
         public ColoredString GetBar() {
             ColoredString bar;
             if (fireTime > 0) {
-                bar = new ColoredString(new string('>', 16 - (int)(16f * fireTime / desc.fireCooldown)),
-                                        Color.Gray, Color.Transparent
-                                        );
+                int fireBar = (int)(16f * fireTime / desc.fireCooldown);
+                bar = new ColoredString(new string('>', 16 - fireBar),
+                                        Color.White, Color.Transparent)
+                    + new ColoredString(new string('>', fireBar), Color.Gray, Color.Transparent);
             } else {
                 bar = new ColoredString(new string('>', 16),
                                         Color.White, Color.Transparent);
@@ -236,8 +237,7 @@ namespace TranscendenceRL {
             for (int i = 0; i < shotDesc.count; i++) {
                 double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
                 var trail = shotDesc.trail;
-                Projectile p = null;
-                p = new Projectile(source, source.World,
+                Projectile p = new Projectile(source, source.World,
                     shotDesc.effect.Glyph,
                     trail,
                     source.Position + XY.Polar(angle),

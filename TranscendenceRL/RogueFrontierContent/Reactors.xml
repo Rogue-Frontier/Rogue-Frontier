@@ -13,7 +13,7 @@
 	</ItemType>
 
 	<ItemType	codename=	"item_foundry_battery"
-			name=		"Foundry-class megacell"
+			name=		"Foundry-class battery"
 			level=		"1"
 			mass=		"1000"
 		>
