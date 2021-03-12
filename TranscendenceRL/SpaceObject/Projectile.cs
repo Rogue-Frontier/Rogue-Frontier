@@ -28,24 +28,20 @@ namespace TranscendenceRL {
         public XY Position { get; private set; }
         [JsonProperty] 
         public XY Velocity { get; private set; }
+        public int lifetime { get; set; }
         public bool Active => lifetime > 0;
         [JsonProperty] 
         public ColoredGlyph Tile { get; private set; }
-        public ITrail trail;
 
-        public int damage;
-        public int lifetime;
-        public HashSet<FragmentDesc> fragments;
-        public Projectile(SpaceObject Source, World World, ColoredGlyph Tile, ITrail GetTrail, XY Position, XY Velocity, int damage, int lifetime, HashSet<FragmentDesc> fragments) {
+        public FragmentDesc desc;
+
+        public Projectile(SpaceObject Source, FragmentDesc desc, XY Position, XY Velocity) {
             this.Source = Source;
-            this.World = World;
-            this.Tile = Tile;
-            this.trail = GetTrail ?? new SimpleTrail(Tile);
+            this.World = Source.World;
+            this.Tile = desc.effect.Glyph;
             this.Position = Position;
             this.Velocity = Velocity;
-            this.damage = damage;
-            this.lifetime = lifetime;
-            this.fragments = fragments;
+            this.lifetime = desc.lifetime;
         }
         public void Update() {
             if(lifetime > 1) {
@@ -72,7 +68,7 @@ namespace TranscendenceRL {
                             case SpaceObject hit when !SSpaceObject.Equals(hit, Source):
                                 if (hit != null) {
                                     lifetime = 0;
-                                    hit.Damage(Source, damage);
+                                    hit.Damage(Source, desc.damageHP);
                                     Fragment();
                                     var angle = (hit.Position - Position).Angle;
                                     World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
@@ -85,24 +81,18 @@ namespace TranscendenceRL {
                         }
                     }
                     CollisionDone:
-
-                    //if (i >= trailPoint) {
-                    World.AddEffect(trail.GetTrail(Position));
-                    //}
-
+                    World.AddEffect(desc.trail.GetTrail(Position));
                 }
 
                 Position = dest;
             }
         }
         public void Fragment() {
-            foreach (var fragment in fragments) {
+            foreach (var fragment in desc.fragments) {
                 double angleInterval = fragment.spreadAngle / fragment.count;
                 for (int i = 0; i < fragment.count; i++) {
                     double angle = Velocity.Angle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-                    var trail = fragment.trail;
-                    Projectile p = null;
-                    p = new Projectile(Source, World, fragment.effect.Glyph, trail, Position + XY.Polar(angle, 0.5), Velocity + XY.Polar(angle, fragment.missileSpeed), fragment.damageHP, fragment.lifetime, fragment.fragments);
+                    Projectile p = new Projectile(Source, fragment, Position + XY.Polar(angle, 0.5), Velocity + XY.Polar(angle, fragment.missileSpeed));
                     World.AddEntity(p);
                 }
             }
