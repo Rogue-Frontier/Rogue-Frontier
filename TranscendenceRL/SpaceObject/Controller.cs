@@ -126,43 +126,43 @@ namespace TranscendenceRL {
         public bool Active => true;
     }
     public class GuardOrder : Order, ICombatOrder {
-        public SpaceObject guard;
-        public SpaceObject target;
+        public SpaceObject guardTarget;
+        public SpaceObject attackTarget;
         public int attackTime;
         public GuardOrder(SpaceObject guard) {
-            this.guard = guard;
-            target = null;
+            this.guardTarget = guard;
+            attackTarget = null;
             attackTime = 0;
         }
 
-        public bool CanTarget(SpaceObject other) => other == target;
+        public bool CanTarget(SpaceObject other) => other == attackTarget;
         public void Update(AIShip owner) {
             if (attackTime > 0) {
                 attackTime--;
                 if (attackTime == 0) {
-                    target = null;
+                    attackTarget = null;
                 }
             }
 
             //Otherwise find enemy to attack
-            if (target?.Active != true) {
-                target = owner.World.entities.GetAll(p => (guard.Position - p).Magnitude < 20).OfType<SpaceObject>().Where(o => !o.IsEqual(owner) && guard.CanTarget(o)).GetRandomOrDefault(owner.destiny);
+            if (attackTarget?.Active != true) {
+                attackTarget = owner.World.entities.GetAll(p => (guardTarget.Position - p).Magnitude < 20).OfType<SpaceObject>().Where(o => !o.IsEqual(owner) && guardTarget.CanTarget(o)).GetRandomOrDefault(owner.destiny);
             }
 
-            if (target != null) {
+            if (attackTarget != null) {
                 //Attack now
-                new AttackOrder(target).Update(owner);
+                new AttackOrder(attackTarget).Update(owner);
             } else {
-                if((owner.Position - guard.Position).Magnitude < 6) {
+                if((owner.Position - guardTarget.Position).Magnitude < 6) {
                     //If no enemy in range of station, dock at station
 
-                    owner.Dock = new Docking(guard);
+                    owner.Dock = new Docking(guardTarget);
                 } else {
-                    new ApproachOrbitOrder(guard).Update(owner);
+                    new ApproachOrbitOrder(guardTarget).Update(owner);
                 }
             }
         }
-        public bool Active => guard.Active;
+        public bool Active => guardTarget.Active;
     }
     public class AttackAllOrder : Order {
         public SpaceObject target;
