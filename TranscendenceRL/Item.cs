@@ -59,16 +59,10 @@ namespace TranscendenceRL {
 
             for (int i = 0; i < fragment.count; i++) {
                 double angle = Velocity.Angle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-                var trail = fragment.trail;
-                Projectile p = null;
-                p = new Projectile(Source, World,
-                    fragment.effect.Glyph,
-                    trail,
+                var p = new Projectile(Source,
+                    fragment,
                     Position + XY.Polar(angle, 0.5),
-                    Velocity + XY.Polar(angle, fragment.missileSpeed),
-                    fragment.damageHP,
-                    fragment.lifetime,
-                    fragment.fragments);
+                    Velocity + XY.Polar(angle, fragment.missileSpeed));
                 World.AddEntity(p);
             }
         }
@@ -236,15 +230,10 @@ namespace TranscendenceRL {
             double angleInterval = shotDesc.spreadAngle / shotDesc.count;
             for (int i = 0; i < shotDesc.count; i++) {
                 double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-                var trail = shotDesc.trail;
-                Projectile p = new Projectile(source, source.World,
-                    shotDesc.effect.Glyph,
-                    trail,
+                Projectile p = new Projectile(source,
+                    shotDesc,
                     source.Position + XY.Polar(angle),
-                    source.Velocity + XY.Polar(angle, missileSpeed),
-                    damageHP,
-                    lifetime,
-                    shotDesc.fragments);
+                    source.Velocity + XY.Polar(angle, missileSpeed));
                 source.World.AddEntity(p);
             }
         }
