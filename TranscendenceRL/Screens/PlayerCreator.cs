@@ -74,7 +74,7 @@ namespace TranscendenceRL {
                     fastClickCount = 0;
                 } else {
                     fastClickCount++;
-                    if(fastClickCount > 3) {
+                    if(fastClickCount == 2) {
                         this.Children.Remove(identityLabel);
                         this.Children.Remove(identityButton);
 

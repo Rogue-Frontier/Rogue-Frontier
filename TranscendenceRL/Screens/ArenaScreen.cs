@@ -221,8 +221,6 @@ namespace TranscendenceRL {
             } else if (playerMain != null) {
                 return playerMain.ProcessKeyboard(info);
             }
-            
-
             if (info.IsKeyPressed(Keys.A)) {
                 if (nearest is AIShip a) {
                     World.RemoveEntity(a);
