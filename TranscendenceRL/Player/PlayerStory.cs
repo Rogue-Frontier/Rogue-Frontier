@@ -21,18 +21,21 @@ namespace TranscendenceRL {
         }
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
             if (d is Station s && s.StationType.codename == "station_daughters_outpost") {
-                var heroImage = s.StationType.heroImage.Translate(new Point(4, 4));
+                var heroImage = s.StationType.heroImage.Translate(new Point(0, 0));
+                /*
                 var benedictPortrait = SScene.LoadImage("RogueFrontierContent/BenedictPortrait.asc.cg").Translate(new Point(heroImage.Max(p => p.Key.Item1), 4));
                 var outpostLobby = SScene.LoadImage("RogueFrontierContent/DaughtersOutpostDock.asc.cg").Translate(new Point(benedictPortrait.Max(p => p.Key.Item1), 4));
-
+                */
                 Console Intro() {
                     var t =
-@"Docking at the front entrance of the abbey, the great magenta
-tower seems to reach into the oblivion above my head.
-It looks much more massive from the view of the station platform.
-The rows of stained glass windows glow warmly with orange light.
+@"Docking at the front entrance of the abbey, the great
+magenta tower seems to reach into the oblivion above
+your head. It looks much more massive from the view of
+the platform that juts out the side of the docking ring
+The rows of stained glass windows glow warmly with
+orange light. Nevertheless, you can't help but think...
 
-You're a complete stranger here.".Replace("\r", null);
+You are a complete stranger here.".Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                                     new SceneOption() { escape = true, enter = true,
                                         key = 'C', name = "Continue",
@@ -44,32 +47,40 @@ You're a complete stranger here.".Replace("\r", null);
                 Console Intro2(Console from) {
 
                     var t =
-@"Stumbling into the main hall, I see a great monolith of
-sparkling crystal and glowing symbols. A low hum echoes
-throughout the room. A stout man stands at a podium
-by the entrance.
+@"Walking into the main hall, You see a great monolith of
+sparkling crystals and glowing symbols. A low hum echoes
+throughout the room. If you stand still, you can hear
+some indistinct whispering from somewhere behind.
 
-""Ah, hello. A Communication is in session right now.
+A stout man stands for reception duty near a wide door.
+
+""Ah, hello. A meeting is in session right now.
 You must be new here... May I help you with anything?""
-
-The man asks.".Replace("\r", null);
+".Replace("\r", null);
+                    /*
                     var background = SScene.Flatten(heroImage,
                         benedictPortrait,
                         outpostLobby
                         );
+                    */
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                                     new SceneOption() { escape = true, enter = true,
                                         key = 'I', name = @"""I've been hearing a voice...""",
                                         next = Intro3
-                                }}) { background = background };
+                                }}) { background = heroImage };
                     return sc;
                 }
                 Console Intro3(Console from) {
                     var t =
-@"""I've been hearing a voice. It calls itself The Orator.
-I thought you might know something about it.""
+@"""I've been hearing a voice. It calls itself...""
 
-""Hmm, I understand. What did this voice tell you?"" The man asked.".Replace("\r", null);
+""The Orator.""
+
+""And I thought you might know something about it.""
+
+""Hmmm, yes, we are quite experienced with The Orator.
+Though you are the first guest we've had in a while.
+What did you hear?"" The man asked.".Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                                     new SceneOption() { escape = true, enter = true,
                                         key = 'T', name = @"""The voice told me...""",
@@ -80,22 +91,29 @@ I thought you might know something about it.""
                 Console Intro4(Console from) {
                     string t =
 @"""The voice told me...
-that there is something terribly wrong happening to us. I had a vision...""
+that there is something terribly wrong
+happening to us. With humanity. I had a vision...""
 
-""...I felt a sort of stillness as I watched centuries of human history pass
+""...I felt a sort of stillness as I watched
+centuries of human history pass
 beyond the Earth...""
 
 ""...It was dreadful, watching every civilization cycle
 between war and peace in the most repetitive manner...""
 
-""I saw history crumble, not under earthquake or gravity or any other force of nature,
-but under itself...""
+""I saw history crumble, not under earthquake or gravity
+or any other force of nature, but under itself...""
 
 ""And the Orator told me, that They had an answer. And that
-if I went to Them, and I listened to Their words,
+if I went to Them, and I found Them at the Galactic Core,
+and I listened to Their words, and I wielded Their powers,
 then They would bring forth an ultimate peace...""
 
-""...and I heard all of this in a dream that I had last night.""
+""...And...""
+
+Wait, how are you saying all of this? Your mind blanks out.
+
+""...And I... I witnessed all of this in a dream I had!""
 ".Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                                     new SceneOption() { escape = true, enter = true,
@@ -106,11 +124,20 @@ then They would bring forth an ultimate peace...""
                 }
                 Console Intro5(Console from) {
                     string t =
-@"The man replies, ""...I understand. That reminds me of my own first encounter
-with The Orator. The people here built this place to provide a shelter for those
-who seek a kind of answer.""
+@"The man replies, ""...I understand. That reminds me of
+my own first encounter with The Orator.""
 
-""Unless, your answer rests..."" he points to a distant star shining through the window, ""...far out there.""";
+""Experience has taught well-connected Followers that there
+are other answers besides leaving for the Galactic Core.""
+
+""The old survivors built this place to provide a shelter
+for those who seek a certain kind of answer.""
+
+""Unless, your answer rests..."" he points to a distant star
+shining through the window, ""...far out there.""
+
+""Does it?""
+";
                     t = t.Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                                     new SceneOption() { escape = true, enter = true,
@@ -129,27 +156,31 @@ After a long pause, you respond.
 
 The man thinks for a minute.
 
-""I figured. You have your own starship, fit for leaving this system
-and exploring the stars beyond. We don't really see modern builds like
-yours around here. Not since the last war.""
+""I figured. You have your own starship, fit for
+leaving this system and exploring the stars beyond.
+We don't really see modern builds like yours
+around here... Not since the last war.""
 
 ""You really intend to see what's out there.""";
                     t = t.Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                                     new SceneOption() { escape = true, enter = true,
-                                        key = 'T', name = @"""That's correct.""",
+                                        key = 'T', name = @"""That is correct.""",
                                         next = Intro7
                                 }}) { background = heroImage };
                     return sc;
                 }
                 Console Intro7(Console from) {
                     string t =
-@"""That's correct.""
+@"""That is correct.""
 
-""And you understand that this is not the first time that The Orator has spoken,
-and told someone to just pack up, leave, and look for Them somewhere out there.""
+The man sighs.
 
-The man sighs.";
+""And you understand that this is not the first time that
+The Orator has spoken, and told someone to just pack up,
+leave, and look for Them somewhere out there?""
+
+";
                     t = t.Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                                     new SceneOption() {
@@ -166,14 +197,19 @@ The man sighs.";
 
 The man paces around for a while.
 
-""The Orator calls people on the regular. We see this happen about twice a year.
-We see a new person come in first time, and ask us about The Orator.
-It's only a matter of time until they leave this place for the last time
-and we never see that person again. Until they show up in a news headline
-about how they were a tourist that got blown up in the middle of a war zone...""
+""The Orator calls people on the regular. We know that this
+happens occasionally but predictably. We see a new person
+come in first time, and ask us about The Orator. It's only
+a matter of time until they leave this place for the last
+time and we never see that person again...""
 
-""...Anyway, I see you've already made your decision. I'll provide you with
-some combat training to start your journey. That is all. Let's hope you make it.""
+""...Until they show up in a news headline and
+someone identifies them as an unwitting traveler
+who got blown up in the middle of a war zone...""
+
+""...Anyway, I see you've already made your decision.
+I'll provide you with some combat training to start
+your journey. That is all. Let's hope you make it.""
 
 ""My name is Benjamin, by the way.""";
                     t = t.Replace("\r", null);

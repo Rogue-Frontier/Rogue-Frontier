@@ -323,7 +323,13 @@ namespace TranscendenceRL {
 				var worldPos = centerOffset.Rotate(camera.rotation) + camera.position;
 				SpaceObject t;
 				if (state.Mouse.MiddleClicked) {
-					var targetList = new List<SpaceObject>(World.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude));
+					var targetList = new List<SpaceObject>(
+						World.entities.all
+						.OfType<SpaceObject>()
+						.OrderBy(e => (e.Position - worldPos).Magnitude)
+						.Select(s => s is Segment seg ? seg.Parent : s)
+						.Distinct()
+						);
 
 					//Set target to object closest to mouse cursor
 					//If there is no target closer to the cursor than the playership, then we toggle aiming by crosshair

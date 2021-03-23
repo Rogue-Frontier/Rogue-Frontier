@@ -60,9 +60,13 @@ namespace TranscendenceRL {
 				guards = new ShipList(xmlGuards);
 			}
 			if (e.HasElement("HeroImage", out var heroImage)) {
-				var heroImageText = heroImage.Value.Replace("\r\n", "\n").Split('\n');
-				var heroImageTint = heroImage.TryAttributeColor("tint", Color.White);
-				this.heroImage = heroImageText.ToImage(heroImageTint);
+				if(heroImage.TryAttribute("path", out string path)) {
+					this.heroImage = ColorImage.FromFile(path).Sprite;
+                } else {
+					var heroImageText = heroImage.Value.Trim('\n').Replace("\r\n", "\n").Split('\n');
+					var heroImageTint = heroImage.TryAttributeColor("tint", Color.White);
+					this.heroImage = heroImageText.ToImage(heroImageTint);
+				}
 			}
 		}
 		public static List<SegmentDesc> CreateRing(string foreground = "White", string background = "Black") {

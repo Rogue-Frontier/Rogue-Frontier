@@ -501,7 +501,14 @@ namespace TranscendenceRL {
             }
 
             void Refresh() {
-                targetList = World.entities.all.OfType<SpaceObject>().Where(e => this.IsEnemy(e)).OrderBy(e => (e.Position - Position).Magnitude).ToList();
+                targetList = 
+                    World.entities.all
+                    .OfType<SpaceObject>()
+                    .Where(e => this.IsEnemy(e))
+                    .OrderBy(e => (e.Position - Position).Magnitude)
+                    .Select(s => s is Segment seg ? seg.Parent : s)
+                    .Distinct()
+                    .ToList();
                 canRefresh = false;
             }
         }
@@ -540,7 +547,13 @@ namespace TranscendenceRL {
             }
 
             void Refresh() {
-                targetList = World.entities.all.OfType<SpaceObject>().Where(e => this.IsFriendly(e)).OrderBy(e => (e.Position - Position).Magnitude).ToList();
+                targetList = World.entities.all
+                    .OfType<SpaceObject>()
+                    .Where(e => this.IsFriendly(e))
+                    .OrderBy(e => (e.Position - Position).Magnitude)
+                    .Select(s => s is Segment seg ? seg.Parent : s)
+                    .Distinct()
+                    .ToList();
                 canRefresh = false;
             }
         }

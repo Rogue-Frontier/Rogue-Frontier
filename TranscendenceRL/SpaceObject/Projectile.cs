@@ -32,7 +32,7 @@ namespace TranscendenceRL {
         public bool Active => lifetime > 0;
         [JsonProperty] 
         public ColoredGlyph Tile { get; private set; }
-
+        public ITrail trail;
         public FragmentDesc desc;
 
         public Projectile(SpaceObject Source, FragmentDesc desc, XY Position, XY Velocity) {
@@ -42,6 +42,8 @@ namespace TranscendenceRL {
             this.Position = Position;
             this.Velocity = Velocity;
             this.lifetime = desc.lifetime;
+            this.desc = desc;
+            this.trail = (ITrail)desc.trail ?? new SimpleTrail(desc.effect.Glyph);
         }
         public void Update() {
             if(lifetime > 1) {
@@ -81,7 +83,7 @@ namespace TranscendenceRL {
                         }
                     }
                     CollisionDone:
-                    World.AddEffect(desc.trail.GetTrail(Position));
+                    World.AddEffect(trail.GetTrail(Position));
                 }
 
                 Position = dest;
