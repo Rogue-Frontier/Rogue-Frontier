@@ -27,7 +27,7 @@ namespace Graphics
 
 			var s = new WorldDraw(2000, 2000, w);
 			s.Render(new TimeSpan());
-			var t = ((ScreenSurfaceRenderer)s.Renderer).BackingTexture;
+			var t = ((ScreenSurfaceRenderer)s.Renderer)._backingTexture;
 			t.Save("GraphicsContent/Background.png");
 
 		}

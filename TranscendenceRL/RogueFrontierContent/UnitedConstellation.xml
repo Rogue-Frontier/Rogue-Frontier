@@ -55,5 +55,8 @@
 		<Weapons>
 		</Weapons>
 		<Dock type="united_constellation"/>
+		<!--
+		<HeroImage path="RogueFrontierContent/ConstellationAstra.asc"/>
+		-->
 	</StationType>
 </Module>

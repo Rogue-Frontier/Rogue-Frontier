@@ -179,6 +179,9 @@ namespace TranscendenceRL {
         bool prevEnter;
         bool enter;
 
+        int descX => Width / 2 - 12;
+        int descY => 8;
+
         public static int maxCharge = 48;
         public TextScene(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
             this.prev = prev;
@@ -199,24 +202,28 @@ namespace TranscendenceRL {
             bool f = IsFocused;
 
             ticks++;
-            if(ticks%3 == 0) {
+            if(ticks%2 == 0) {
                 if (descIndex < desc.Length - 1) {
                     descIndex++;
                 } else if(descIndex < desc.Length) {
                     descIndex++;
 
-                    int x = 64;
-                    int y = 16 + desc.Count(c => c == '\n') + 3;
+                    int x = descX;
+                    int y = descY + desc.Count(c => c == '\n') + 3;
 
                     int i = 0;
                     foreach (var option in navigation) {
                         int index = i;
 
                         keyMap[char.ToUpper(option.key)] = index;
-                        Children.Add(new LabelButton(option.name, () => {
-                            navIndex = index;
-                            charging = true;
-                        }) { Position = new Point(x, y++) });
+                        Children.Add(new LabelButton(option.name) {
+                            Position = new Point(x, y++),
+                            leftHold = () => {
+                                navIndex = index;
+                                charging = true;
+                                enter = true;
+                            }
+                        });
                         
                         i++;
                     }
@@ -260,12 +267,15 @@ namespace TranscendenceRL {
             base.Render(delta);
             this.RenderBackground();
 
-            foreach(((var px, var py), var cg) in background) {
-                this.SetCellAppearance(px, py, cg);
+            if (background.Any()) {
+                this.Fill(Color.Black, Color.Black, 0);
+                foreach (((var px, var py), var cg) in background) {
+                    this.SetCellAppearance(px, py, cg);
+                }
             }
 
-            int left = 64;
-            int top = 16;
+            int left = descX;
+            int top = descY;
             
             int y = top;
             int x = left;
@@ -285,27 +295,27 @@ namespace TranscendenceRL {
             if(descIndex < desc.Length) {
                 this.SetCellAppearance(x, y, new ColoredGlyph(Color.LightBlue, Color.Black, '>'));
             } else {
-                x = 64;
-                y = 16 + desc.Count(c => c == '\n') + 3;
+                x = descX;
+                y = descY + desc.Count(c => c == '\n') + 3;
 
-                this.Print(x - 4, y + navIndex, new ColoredString("--->", Color.Yellow, Color.Transparent));
+                this.Print(x - 4, y + navIndex, new ColoredString("--->", Color.Yellow, Color.Black));
 
                 var barLength = maxCharge/3;
-                this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Gray, Color.Transparent));
+                this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Gray, Color.Black));
 
                 for (int i = 0; i < charge.Length; i++) {
                     int c = charge[i];
                     if(c < maxCharge) {
-                        this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', c / 3), Color.White, Color.Transparent));
+                        this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', c / 3), Color.White, Color.Black));
                     } else {
-                        this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', barLength), Color.White, Color.Transparent));
+                        this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', barLength), Color.White, Color.Black));
                     }
                 }
 
                 if(charge[navIndex] < maxCharge) {
-                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', charge[navIndex] / 3), Color.Yellow, Color.Transparent));
+                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', charge[navIndex] / 3), Color.Yellow, Color.Black));
                 } else {
-                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Red, Color.Transparent));
+                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Red, Color.Black));
                 }
 
             }
