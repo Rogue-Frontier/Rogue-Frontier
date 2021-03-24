@@ -26,6 +26,7 @@ namespace TranscendenceRL {
     public interface IShip : SpaceObject {
         XY Position { get; set; }
         XY Velocity { get; set; }
+        HashSet<Item> Items { get; }
         DeviceSystem Devices { get; }
         ShipClass ShipClass { get; }
         double rotationDegrees { get; }
@@ -46,7 +47,8 @@ namespace TranscendenceRL {
         public XY Position { get; set; }
         public XY Velocity { get; set; }
         public bool Active { get; set; }
-        public HashSet<Item> Items;
+        [JsonProperty]
+        public HashSet<Item> Items { get; private set; }
         [JsonProperty]
         public DeviceSystem Devices { get; private set; }
         [JsonProperty]
@@ -90,6 +92,7 @@ namespace TranscendenceRL {
             this.Active = true;
 
             Items = new HashSet<Item>();
+            Items.UnionWith(shipClass.items.Generate(world.types));
 
             Devices = new DeviceSystem();
             Devices.Install(shipClass.devices.Generate(world.types));
@@ -262,6 +265,8 @@ namespace TranscendenceRL {
         public XY Velocity { get => Ship.Velocity; set => Ship.Velocity = value; }
         [JsonIgnore] 
         public double rotationDegrees => Ship.rotationDegrees;
+        [JsonIgnore]
+        public HashSet<Item> Items => Ship.Items;
         [JsonIgnore] 
         public DeviceSystem Devices => Ship.Devices;
 
@@ -681,7 +686,7 @@ namespace TranscendenceRL {
 
             //We update the ship's devices as ourselves because they need to know who the exact owner is
             //In case someone other than us needs to know who we are through our devices
-            foreach (var enabled in Ship.Devices.Installed.Where(i => !Energy.disabled.Contains(i))) {
+            foreach (var enabled in Ship.Devices.Installed.Except(Energy.disabled)) {
                 enabled.Update(this);
             }
             Energy.Update();

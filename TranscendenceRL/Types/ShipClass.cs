@@ -15,12 +15,13 @@ namespace TranscendenceRL {
 		public double rotationAccel;
 		public StaticTile tile;
 		public DamageSystemDesc damageDesc;
+		public ItemList items;
 		public DeviceList devices;
 		public PlayerSettings playerSettings;
 		
 		public void Validate() {
 			if(rotationDecel == 0) {
-				throw new Exception();
+				throw new Exception("Ship must be able to decelerate rotation");
             }
         }
 		public void Initialize(TypeCollection collection, XElement e) {
@@ -31,9 +32,7 @@ namespace TranscendenceRL {
 			rotationMaxSpeed = e.ExpectAttributeDouble("rotationMaxSpeed");
 			rotationDecel = e.ExpectAttributeDouble("rotationDecel");
 			rotationAccel = e.ExpectAttributeDouble("rotationAccel");
-
 			tile = new StaticTile(e);
-
 			if(e.HasElement("HPSystem", out XElement xmlHPSystem)) {
 				damageDesc = new HPSystemDesc(xmlHPSystem);
 			} else if(e.HasElement("LayeredArmorSystem", out XElement xmlLayeredArmor)) {
@@ -41,12 +40,16 @@ namespace TranscendenceRL {
 			} else {
 				throw new Exception("<ShipClass> requires either <HPSystem> or <LayeredArmorSystem> subelement");
 			}
-
 			if(e.HasElement("Devices", out XElement xmlDevices)) {
 				devices = new DeviceList(xmlDevices);
 			} else {
 				devices = new DeviceList();
 			}
+			if(e.HasElement("Items", out XElement xmlItems)) {
+				items = new ItemList(xmlItems);
+            } else {
+				items = new ItemList();
+            }
 			if(e.HasElement("PlayerSettings", out XElement xmlPlayerSettings)) {
 				playerSettings = new PlayerSettings(xmlPlayerSettings);
 			}

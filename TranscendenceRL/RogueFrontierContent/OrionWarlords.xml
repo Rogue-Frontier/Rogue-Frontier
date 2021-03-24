@@ -3,9 +3,11 @@
 				alignment=	"DestructiveOrder"
 	/>
 	<ItemType	codename=	"itOrionBolter"
-				name=		"Orion bolter"
+				name=		"Orion bow"
 				mass=		"3000"
 				level=		"2"
+
+				desc=		"This primitive kinetic cannon slowly charges up when idle. The shells from this weapon can move scary fast when fully charged."
 				
 				invoke=		"installWeapon"
 				>
@@ -17,6 +19,8 @@
 				lifetime="60"
 				char=	"+"
 				foreground="Orange"
+
+				initialCharges=	"200"
 			>
 			<Capacitor
 				dischargePerShot=		"50"
@@ -33,6 +37,11 @@
 				name=		"Orion Longbow"
 				mass=		"5000"
 				level=		"3"
+
+				desc=		"A fully charged shot from this weapon can be lethal to small gunships. As most of the destructive power comes from charging, It has a relatively simple design compared to other kinetic weapons."
+
+				
+				invoke=		"installWeapon"
 				>
 		<Weapon			powerUse=		"20"
 						fireCooldown=	"30"
@@ -40,6 +49,8 @@
 						damageType=		"2"
 						damageHP=		"15"
 						lifetime=		"60"
+						
+						initialCharges=	"200"
 
 						char=			"+"
 						foreground=		"Orange"
@@ -57,9 +68,13 @@
 	</ItemType>
 
 	<ItemType	codename=	"itOrionBallista"
-				name=		"Orion Ballista"
+				name=		"Orion crossbow"
 				mass=		"8000"
 				level=		"4"
+
+				desc=		"This kinetic weapon fires three shells per shot. It is the smallest kinetic weapon of its kind."
+				
+				invoke=		"installWeapon"
 				>
 		<Weapon			powerUse=		"50"
 						fireCooldown=	"60"
@@ -67,6 +82,8 @@
 						damageType=		"2"
 						damageHP=		"15"
 						lifetime=		"60"
+
+						initialCharges=	"200"
 
 						count=			"3"
 

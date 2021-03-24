@@ -16,6 +16,7 @@ namespace TranscendenceRL {
     }
     public class ItemType : DesignType {
         public string name;
+        public string desc;
         public int level;
         public int mass;
         public int value;
@@ -29,12 +30,13 @@ namespace TranscendenceRL {
 
 
         public void Initialize(TypeCollection collection, XElement e) {
-            name = e.ExpectAttribute("name");
-            level = e.ExpectAttributeInt("level");
-            mass = e.ExpectAttributeInt("mass");
-            value = e.TryAttributeInt("value", -1);
+            name = e.ExpectAttribute(nameof(name));
+            desc = e.TryAttribute(nameof(desc), "");
+            level = e.ExpectAttributeInt(nameof(level));
+            mass = e.ExpectAttributeInt(nameof(mass));
+            value = e.TryAttributeInt(nameof(value), -1);
 
-            invoke = Enum.Parse<InvokeAction>(e.TryAttribute("invoke", "none"));
+            invoke = Enum.Parse<InvokeAction>(e.TryAttribute(nameof(invoke), "none"));
 
             if (e.HasElement("Weapon", out var xmlWeapon)) {
                 weapon = new WeaponDesc(collection, xmlWeapon);

@@ -54,6 +54,8 @@
 				name=		"Musket turret"
 				level=		"2"
 				mass=		"4000"
+
+				desc=		"This basic kinetic gun is mounted on an omnidirectional turret for automatic aiming. Like any other disposable weapon, it has limited ammo and easy installation."
 		>
 		<Weapon
 
@@ -116,6 +118,9 @@
 				name=		"Crystalsteel plate"
 				mass=		"4000"
 				level=		"1"
+
+				
+				desc=		"This semicrystalline armor maintains its aesthetic beauty at all damage levels, but it can be quite brittle. The fact that crystalsteel glows bright violet when exposed to light is one reason why it is not recommended for stealth fighters."
 		>
 		<Armor	maxHP=		"100"
 			/>
@@ -147,14 +152,25 @@
 		</Armor>
 	</ItemType>
 
+
+	<ItemType	codename=	"item_dynamite_charge"
+			name=		"Dynamite charge"
+			level=		"1"
+			mass=		"2000"
+
+			desc=		"This cheap explosive is capable of blowing apart a civilian starship."
+		/>
+
 	<ItemType	codename=	"item_dynamite_cannon"
 			name=		"Dynamite cannon"
 			level=		"1"
 			mass=		"2000"
+
+			desc=		"This civilian-grade bomb launcher packs a small but powerful explosion. It requires Dynamite charges. Time and technology have not made it any less unwieldy as a weapon."
 		>
 		<Weapon
 			powerUse=		"10"
-			fireCooldown=	"20"
+			fireCooldown=	"30"
 			missileSpeed=	"20"
 			damageType=		"1"
 			damageHP=		"5"
@@ -162,6 +178,8 @@
 
 			char=			"i"
 			foreground=		"Red"
+
+			ammoType="item_dynamite_charge"
 			>
 			<Fragment
 			

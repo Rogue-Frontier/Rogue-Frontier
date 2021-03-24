@@ -48,9 +48,6 @@ namespace TranscendenceRL {
     }
     public static class SWeapon {
         public static void CreateShot(this FragmentDesc fragment, SpaceObject Source, double direction) {
-            int damageHP = fragment.damageHP;
-            int missileSpeed = fragment.missileSpeed;
-            int lifetime = fragment.lifetime;
 
             var World = Source.World;
             var Position = Source.Position;
@@ -58,7 +55,7 @@ namespace TranscendenceRL {
             var angleInterval = fragment.spreadAngle / fragment.count;
 
             for (int i = 0; i < fragment.count; i++) {
-                double angle = Velocity.Angle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
+                double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
                 var p = new Projectile(Source,
                     fragment,
                     Position + XY.Polar(angle, 0.5),
@@ -108,9 +105,14 @@ namespace TranscendenceRL {
                 bar = new ColoredString(new string('>', 16 - fireBar),
                                         Color.White, Color.Transparent)
                     + new ColoredString(new string('>', fireBar), Color.Gray, Color.Transparent);
-            } else {
+            } else if (CanFire()) {
+
                 bar = new ColoredString(new string('>', 16),
                                         Color.White, Color.Transparent);
+            } else {
+
+                bar = new ColoredString(new string('>', 16),
+                                        Color.Gray, Color.Transparent);
             }
             if (capacitor != null) {
                 var n = 16 * capacitor.charge / capacitor.desc.maxCharge;
@@ -123,6 +125,9 @@ namespace TranscendenceRL {
 
         public void Update(Station owner) {
             capacitor?.Update();
+            if (ammo != null) {
+                ammo.Update(owner);
+            }
 
             double? direction = null;
 
@@ -178,6 +183,9 @@ namespace TranscendenceRL {
             }
 
             capacitor?.Update();
+            if (ammo != null) {
+                ammo.Update(owner);
+            }
             if(fireTime > 0 && repeatsLeft == 0) {
                 fireTime--;
             } else {
@@ -215,7 +223,10 @@ namespace TranscendenceRL {
             }
             bool firing = true;
             capacitor?.CheckFire(ref firing);
-            ammo?.CheckFire(ref firing);
+            if(ammo != null ) {
+
+                ammo.CheckFire(ref firing);
+            }
             return firing;
         }
         public void Fire(SpaceObject source, double direction) {
@@ -255,7 +266,8 @@ namespace TranscendenceRL {
         }
 
         public interface IAmmo {
-            public void Update(SpaceObject source) { }
+            public void Update(IShip source) { }
+            public void Update(Station source) { }
             void CheckFire(ref bool firing);
             void OnFire();
         }
@@ -275,21 +287,29 @@ namespace TranscendenceRL {
         }
         public class ItemAmmo : IAmmo {
             private ItemType itemType;
+            private HashSet<Item> itemSource;
             private Item item;
             //public bool AllowFire => false;
             public ItemAmmo(ItemType itemType) {
                 this.itemType = itemType;
             }
-            public void Update(SpaceObject source) {
-                if(item == null) {
-
+            public void Update(IShip source) {
+                Update(source.Items);
+            }
+            public void Update(Station source) {
+                Update(source.Items);
+            }
+            public void Update(HashSet<Item> items) {
+                if (item == null || !items.Contains(item)) {
+                    itemSource = items;
+                    item = items.FirstOrDefault(i => i.type == itemType);
                 }
             }
             public void CheckFire(ref bool firing) {
-
+                firing &= item != null;
             }
             public void OnFire() {
-
+                itemSource.Remove(item);
             }
         }
         public interface Aiming {

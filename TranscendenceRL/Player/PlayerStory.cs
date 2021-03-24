@@ -37,10 +37,16 @@ orange light. Nevertheless, you can't help but think...
 
 You are a complete stranger here.".Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
-                                    new SceneOption() { escape = true, enter = true,
-                                        key = 'C', name = "Continue",
-                                        next = Intro2
-                                }}) { background = heroImage };
+                        new SceneOption() { escape = false,
+                            key = 'C', name = "Continue",
+                            next = Intro2
+                        }, new SceneOption() {
+                            escape = true,
+                            key = 'L', name = "Leave",
+                            next = Intro2b
+                        }
+                    
+                    }) { background = heroImage };
                     return sc;
                 }
 
@@ -57,19 +63,29 @@ A stout man stands for reception duty near a wide door.
 ""Ah, hello. A meeting is in session right now.
 You must be new here... May I help you with anything?""
 ".Replace("\r", null);
-                    /*
-                    var background = SScene.Flatten(heroImage,
-                        benedictPortrait,
-                        outpostLobby
-                        );
-                    */
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
-                                    new SceneOption() { escape = true, enter = true,
+                                    new SceneOption() { escape = true,
                                         key = 'I', name = @"""I've been hearing a voice...""",
                                         next = Intro3
                                 }}) { background = heroImage };
                     return sc;
                 }
+
+
+                Console Intro2b(Console from) {
+
+                    var t =
+@"You decide to step away from the station,
+much to the possible chagrin of some mysterious
+entity and several possibly preferred timelines.".Replace("\r", null);
+                    var sc = new TextScene(prev, t, new List<SceneOption>() {
+                                    new SceneOption() { escape = true,
+                                        key = 'U', name = @"Undock",
+                                        next = null
+                                }}) { background = heroImage };
+                    return sc;
+                }
+
                 Console Intro3(Console from) {
                     var t =
 @"""I've been hearing a voice. It calls itself...""
@@ -82,7 +98,7 @@ You must be new here... May I help you with anything?""
 Though you are the first guest we've had in a while.
 What did you hear?"" The man asked.".Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
-                                    new SceneOption() { escape = true, enter = true,
+                                    new SceneOption() { escape = true,
                                         key = 'T', name = @"""The voice told me...""",
                                         next = Intro4
                                 }}) { background = heroImage };
@@ -107,16 +123,16 @@ or any other force of nature, but under itself...""
 ""And the Orator told me, that They had an answer. And that
 if I went to Them, and I found Them at the Galactic Core,
 and I listened to Their words, and I wielded Their powers,
-then They would bring forth an ultimate peace...""
+then They would bring forth an ultimate peace.""
 
-""...And...""
+""And...""
 
-Wait, how are you saying all of this? Your mind blanks out.
+Wait, how are you saying all of this- Your mind blanks out.
 
-""...And I... I witnessed all of this in a dream I had!""
+""...And I... I witnessed all of this in a dream I had?""
 ".Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
-                                    new SceneOption() { escape = true, enter = true,
+                                    new SceneOption() { escape = true,
                                         key = 'C', name = @"Continue",
                                         next = Intro5
                                 }}) { background = heroImage };
@@ -140,7 +156,7 @@ shining through the window, ""...far out there.""
 ";
                     t = t.Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
-                                    new SceneOption() { escape = true, enter = true,
+                                    new SceneOption() { escape = true,
                                         key = 'I', name = @"""It does.""",
                                         next = Intro6
                                 }}) { background = heroImage };
@@ -164,7 +180,7 @@ around here... Not since the last war.""
 ""You really intend to see what's out there.""";
                     t = t.Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
-                                    new SceneOption() { escape = true, enter = true,
+                                    new SceneOption() { escape = true,
                                         key = 'T', name = @"""That is correct.""",
                                         next = Intro7
                                 }}) { background = heroImage };
@@ -176,79 +192,228 @@ around here... Not since the last war.""
 
 The man sighs.
 
-""And you understand that this is not the first time that
+""So you understand that this is not the first time that
 The Orator has spoken, and told someone to just pack up,
 leave, and look for Them somewhere out there?""
 
+""Are you prepared to die?""
 ";
                     t = t.Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                                     new SceneOption() {
-                                        escape = true, enter = true,
-                                        key = 'O', name = @"""Of course""",
+                                        escape = true,
+                                        key = 'H', name = @"""Huh?!?!?!""",
                                         next = Intro8
                                 }}) { background = heroImage };
                     return sc;
                 }
                 Console Intro8(Console from) {
                     string t =
-@"
-""Of course,"" you reply.
-
-The man paces around for a while.
+@"The man paces around for a while.
 
 ""The Orator calls people on the regular. We know that this
 happens occasionally but predictably. We see a new person
 come in first time, and ask us about The Orator. It's only
 a matter of time until they leave this place for the last
-time and we never see that person again...""
+time and we never see that person again-""
 
-""...Until they show up in a news headline and
+""-until they show up in a news headline and
 someone identifies them as an unwitting traveler
 who got blown up in the middle of a war zone...""
 
-""...Anyway, I see you've already made your decision.
-I'll provide you with some combat training to start
-your journey. That is all. Let's hope you make it.""
-
-""My name is Benjamin, by the way.""";
-                    t = t.Replace("\r", null);
-                    var sc = new TextScene(prev, t, new List<SceneOption>() {
-                                        new SceneOption() {
-                                            escape = true,
-                                            enter = true,
-                                            key = 'I',
-                                            name = @"""It's good to meet you, Benjamin.""",
-                                            next = Intro9
-                                    }}) { background = heroImage };
-                    return sc;
-                }
-
-                Console Intro9(Console from) {
-                    story.missions.Remove(this);
-                    string t =
-@"""Let's start with some target practice.
-I sent some weak drones out there.
-Destroy them as best as you can.""";
+""...So tell me, what do you intend to do?""";
                     t = t.Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                         new SceneOption() {
                             escape = true,
-                            enter = true,
-                            key = 'S',
-                            name = @"Start",
-                            next = StartTraining
+                            key = 'I',
+                            name = @"""I intend to reach the Galactic Core.""",
+                            next = Intro9a
+                    }, new SceneOption() {
+                            key = '\0',
+                            name = @"...",
+                            next = Intro9b
                     }}) { background = heroImage };
+                    return sc;
+                }
+
+                Console Intro9a(Console from) {
+                    story.missions.Remove(this);
+                    string t =
+@"""Okay, I see you've already made your mind then.
+I'll provide you with some combat training to start
+your journey. That is all. Let's hope you make it.""";
+                    t = t.Replace("\r", null);
+                    var sc = new TextScene(prev, t, new List<SceneOption>() {
+                        new SceneOption() {
+                            escape = true,
+                            key = 'C', name = @"Continue",
+                            next = Intro10
+                    }}) { background = heroImage };
+                    return sc;
+                }
+
+
+                Console Intro9b(Console from) {
+                    story.missions.Remove(this);
+                    string t =
+@"You pause for a moment.";
+                    t = t.Replace("\r", null);
+                    var sc = new TextScene(prev, t, new List<SceneOption>() {
+                        new SceneOption() {
+                            key = 'I', name = @"""I intend to reach the Galactic Core.""",
+                            next = Intro10a
+                        },new SceneOption() {
+                            key = 'U', name = @"""I intend to destroy the United Constellation.""",
+                            next = Destroy1
+                        },new SceneOption() {
+                            key = 'D', name = @"""I don't know anymore.""",
+                            next = Intro10c
+                        }
+                    }) { background = heroImage };
+                    return sc;
+                }
+
+                Console Intro10a(Console prev) {
+                    story.missions.Remove(this);
+                    string t =
+@"""You sound uncertain there.
+Do you truly intend to do that?""";
+                    t = t.Replace("\r", null);
+                    var sc = new TextScene(prev, t, new List<SceneOption>() {
+                        new SceneOption() {
+                            escape = false,
+                            key = 'I', name = @"I intend to reach the Galactic Core.",
+                            next = Intro9a
+                        }, new SceneOption() {
+                            escape = true,
+                            key = '\0', name = @"...",
+                            next = Intro9b
+                        }
+
+                    }) { background = heroImage };
+                    return sc;
+                }
+
+
+                Console Destroy1(Console prev) {
+                    string t =
+@"""I intend to destroy the United Constellation,"" you say.
+
+""What?!?!"" the man says out loud.";
+                    t = t.Replace("\r", null);
+                    var sc = new TextScene(prev, t, new List<SceneOption>() {
+                        new SceneOption() {
+                            escape = false,
+                            key = 'I', name = @"It's simple. I hate them a lot.",
+                            next = Destroy2
+                        }, new SceneOption() {
+                            escape = true,
+                            key = 'G', name = @"It's for their own good.",
+                            next = Destroy2
+                        }
+                    }) { background = heroImage };
+                    return sc;
+                }
+
+                Console Destroy2(Console prev) {
+                    string t =
+@"You feel an energy welling up within you
+as you speak.
+
+""The United Constellation is a failed state!
+They are built on monumental idiocy and inaction.
+They cannot even protect their own people!""
+
+""If the United Constellation cannot decide
+their own wars, then maybe... I will.""
+
+""Only then, can we begin reconstruction towards
+a new era.""
+
+You state your intentions firmly.";
+                    t = t.Replace("\r", null);
+                    var sc = new TextScene(prev, t, new List<SceneOption>() {
+                        new SceneOption() {
+                            escape = false,
+                            key = 'C', name = @"Continue",
+                            next = Destroy3
+                        }
+                    }) { background = heroImage };
+                    return sc;
+                }
+                //Placeholder dialogue
+                //Should add more complicated stuff later
+                Console Destroy3(Console prev) {
+                    string t =
+@"""You know what, that sounds like a good idea.
+Allow me to join you on your mission.""
+
+""My name is Benjamin, by the way""";
+                    t = t.Replace("\r", null);
+                    var sc = new TextScene(prev, t, new List<SceneOption>() {
+                        new SceneOption() {
+                            escape = false,
+                            key = 'C', name = @"Continue",
+                            next = BenjaminJoin
+                        }
+                    }) { background = heroImage };
+                    return sc;
+                }
+
+                Console BenjaminJoin(Console prev) {
+                    story.missions.Remove(this);
+
+                    var w = playerShip.World;
+                    var wingmateClass = w.types.Lookup<ShipClass>("ship_beowulf");
+                    var wingmate = new AIShip(new BaseShip(w, wingmateClass, playerShip.Sovereign, s.Position), new EscortOrder(playerShip, new XY(-5, 0)));
+                    w.AddEntity(wingmate);
+                    w.AddEffect(new Heading(wingmate));
+
+                    return null;
+                }
+
+
+                Console Intro10c(Console prev) {
+                    story.missions.Remove(this);
+                    string t =
+@"""I don't know anymore,"" you say.
+
+";
+                    t = t.Replace("\r", null);
+                    var sc = new TextScene(prev, t, new List<SceneOption>() {
+                        new SceneOption() {
+                            escape = false,
+                            key = 'C', name = @"Continue",
+                            next = null
+                        }
+                    }) { background = heroImage };
+                    return sc;
+                }
+
+
+
+                Console Intro10(Console from) {
+                    story.missions.Remove(this);
+                    string t =
+@"""Let's start with some target practice.
+I've sent some drones outside the station.
+Destroy them as fast as you can""";
+                    t = t.Replace("\r", null);
+                    var sc = new TextScene(prev, t, new List<SceneOption>() {
+                        new SceneOption() {
+                            key = 'S', name = @"Start",
+                            next = StartTraining
+                        }
+                    }) { background = heroImage };
                     return sc;
                 }
                 Console StartTraining(Console from) {
                     var m = new DaughtersTraining(story, s, playerShip);
                     story.missions.Add(m);
                     m.AddDrones();
-
                     return null;
                 }
-
                 var sc = Intro();
                 return sc;
             } else {
@@ -301,7 +466,7 @@ Destroy them as best as you can.""";
 ""There's still {count} drones left.""
 ".Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
-                        new SceneOption() { escape = true, enter = true,
+                        new SceneOption() { escape = true,
                             key = 'C', name = "Continue",
                             next = null
                     }}) { background = heroImage };
@@ -312,10 +477,10 @@ Destroy them as best as you can.""";
                     var t =
 @$"Benjamin meets you at the docking bay.
 
-""You took {station.World.tick - startTick} seconds to destroy the drones.""
+""You took {(station.World.tick - startTick)/60} seconds to destroy the drones.""
 ".Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
-                        new SceneOption() { escape = true, enter = true,
+                        new SceneOption() { escape = true,
                             key = 'C', name = "Continue",
                             next = null
                     }}) { background = heroImage };
@@ -348,20 +513,19 @@ of the United Constellation.
 The station is a stack of housing units,
 utility-facilities, entertainment districts,
 business sectors, and trading rooms. The governing
-tower protrudes out of the top of the station.
+tower protrudes out the roofplate of the station.
 The rotator tower rests on the underside.
-From a distance, the place looks like
+From a distance, the place looks almost like
 a spinning pinwheel.
 
 There is a modest degree of artificial gravity here.
 ".Replace("\r", null), new List<SceneOption>() {
                             new SceneOption() {
-                                enter = true, escape = false,
+                                escape = false,
                                 key = 'T', name = "Trade",
                                 next = Trade
                             },
-                            new SceneOption() {
-                                enter = false, escape = true,
+                            new SceneOption() {escape = true,
                                 key = 'U', name = "Undock",
                                 next = null
                             }

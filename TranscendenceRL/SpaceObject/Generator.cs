@@ -58,6 +58,52 @@ namespace TranscendenceRL {
 		}
 	}
 
+
+	public interface ItemGenerator {
+		List<Item> Generate(TypeCollection tc);
+	}
+	public class ItemList : ItemGenerator {
+		public List<ItemGenerator> generators;
+		public ItemList() { }
+		public ItemList(XElement e) {
+			generators = new List<ItemGenerator>();
+			foreach (var element in e.Elements()) {
+				switch (element.Name.LocalName) {
+					case "Item":
+						generators.Add(new ItemEntry(element));
+						break;
+					default:
+						throw new Exception($"Unknown <Items> subelement {element.Name}");
+				}
+			}
+		}
+		public List<Item> Generate(TypeCollection tc) {
+			var result = new List<Item>();
+			if (generators != null) {
+				generators.ForEach(g => result.AddRange(g.Generate(tc)));
+			}
+			return result;
+		}
+	}
+	public class ItemEntry : ItemGenerator {
+		public string codename;
+		public ItemEntry() { }
+		public ItemEntry(XElement e) {
+			this.codename = e.ExpectAttribute("codename");
+		}
+		public List<Item> Generate(TypeCollection tc) {
+			var type = tc.Lookup<ItemType>(codename);
+			var item = new Item(type);
+			return new List<Item> { item };
+		}
+		//In case we want to make sure immediately that the type is valid
+		public void ValidateEager(TypeCollection tc) {
+			tc.Lookup<ItemType>(codename);
+		}
+	}
+
+
+
 	public interface ArmorGenerator {
 		List<Armor> Generate(TypeCollection tc);
 	}
@@ -72,7 +118,7 @@ namespace TranscendenceRL {
 						generators.Add(new ArmorEntry(element));
 						break;
 					default:
-						throw new Exception($"Unknown <Devices> subelement {element.Name}");
+						throw new Exception($"Unknown <Armor> subelement {element.Name}");
 				}
 			}
 		}

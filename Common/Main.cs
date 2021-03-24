@@ -423,6 +423,49 @@ namespace Common {
                 throw new Exception($"double value expected: {a.Name}=\"{a.Value}\"  ### {a.Parent.Name}");
             }
         }
+		public static List<string> SplitLine(this string s, int width) {
+			List<string> result = new List<string>();
+			int column = 0;
+			StringBuilder line = new StringBuilder();
+			StringBuilder word = new StringBuilder();
+
+			void AddWord() {
+				line.Append(word.ToString());
+				word.Clear();
+			}
+			void AddLine() {
+				result.Add(line.ToString());
+				line.Clear();
+				column = 0;
+			}
+			foreach(var c in s) {
+				if(column < width) {
+					if (c == ' ') {
+						AddWord();
+						line.Append(c);
+						column++;
+					} else if (c == '\n') {
+						AddWord();
+						column = 0;
+					} else if (c == '-') {
+						word.Append(c);
+						AddWord();
+					} else {
+						word.Append(c);
+						column++;
+                    }
+                } else {
+					word.Append(c);
+					AddLine();
+				}
+            }
+			line.Append(word.ToString());
+			if(line.Length > 0) {
+				AddLine();
+            }
+
+			return result;
+        }
         public static void InheritAttributes(this XElement sub, XElement source) {
             foreach (var attribute in source.Attributes()) {
                 if (sub.Attribute(attribute.Name) == null) {
