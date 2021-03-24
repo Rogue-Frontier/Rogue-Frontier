@@ -858,11 +858,13 @@ namespace TranscendenceRL {
 					int i = 0;
 					foreach (var w in player.Ship.Devices.Weapons) {
 						string tag = $"{(i == player.selectedPrimary ? "->" : "  ")}{w.source.type.name}";
-						Color foreground = Color.White;
+						Color foreground;
 						if (player.Energy.disabled.Contains(w)) {
 							foreground = Color.Gray;
 						} else if (w.firing || w.fireTime > 0) {
 							foreground = Color.Yellow;
+						} else {
+							foreground = Color.White;
 						}
 
 						this.Print(x, y, "[", Color.White, Color.Transparent);

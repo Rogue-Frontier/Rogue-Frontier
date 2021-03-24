@@ -70,7 +70,6 @@ namespace TranscendenceRL {
     }
     public class SceneOption {
         public bool escape;
-        public bool enter;
         public char key;
         public string name;
         public Func<Console, Console> next;
@@ -162,7 +161,6 @@ namespace TranscendenceRL {
         }
     }
     class TextScene : Console {
-        Console prev;
         public string desc;
         public bool charging;
         public int descIndex;
@@ -179,17 +177,20 @@ namespace TranscendenceRL {
         bool prevEnter;
         bool enter;
 
+        int escapeIndex;
+
         int descX => Width / 2 - 12;
         int descY => 8;
 
         public static int maxCharge = 48;
         public TextScene(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
-            this.prev = prev;
             this.desc = desc;
             this.navigation = navigation;
             charge = new int[navigation.Count];
             descIndex = 0;
             ticks = 0;
+
+            escapeIndex = navigation.FindIndex(o => o.escape);
 
             background = new Dictionary<(int, int), ColoredGlyph>();
 
@@ -323,36 +324,47 @@ namespace TranscendenceRL {
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
             prevEnter = enter;
-            enter = keyboard.IsKeyDown(Keys.Enter);
-            if (enter) {
-                if (descIndex < desc.Length - 1) {
-                    descIndex = desc.Length - 1;
-                    allowEnter = false;
-                } else if (allowEnter) {
-                    charging = true;
-                }
-            } else if (allowEnter) {
-                if (keyboard.IsKeyDown(Keys.Right)) {
-                    enter = true;
-                    charging = true;
-                }
+
+
+            if (keyboard.IsKeyDown(Keys.Escape)) {
+                navIndex = escapeIndex;
+                charging = true;
+                enter = true;
+
             } else {
-                allowEnter = true;
-            }
 
-            foreach(var c in keyboard.KeysDown.Select(k => k.Character).Where(c => char.IsLetterOrDigit(c)).Select(c => char.ToUpper(c))) {
-                if (keyMap.TryGetValue(c, out int index)) {
-                    navIndex = index;
-                    charging = true;
-                    enter = true;
+
+                enter = keyboard.IsKeyDown(Keys.Enter);
+                if (enter) {
+                    if (descIndex < desc.Length - 1) {
+                        descIndex = desc.Length - 1;
+                        allowEnter = false;
+                    } else if (allowEnter) {
+                        charging = true;
+                    }
+                } else if (allowEnter) {
+                    if (keyboard.IsKeyDown(Keys.Right)) {
+                        enter = true;
+                        charging = true;
+                    }
+                } else {
+                    allowEnter = true;
                 }
-            }
 
-            if(keyboard.IsKeyPressed(Keys.Up)) {
-                navIndex = (navIndex - 1 + navigation.Count) % navigation.Count;
-            }
-            if(keyboard.IsKeyPressed(Keys.Down)) {
-                navIndex = (navIndex + 1) % navigation.Count;
+                foreach (var c in keyboard.KeysDown.Select(k => k.Character).Where(c => char.IsLetterOrDigit(c)).Select(c => char.ToUpper(c))) {
+                    if (keyMap.TryGetValue(c, out int index)) {
+                        navIndex = index;
+                        charging = true;
+                        enter = true;
+                    }
+                }
+
+                if (keyboard.IsKeyPressed(Keys.Up)) {
+                    navIndex = (navIndex - 1 + navigation.Count) % navigation.Count;
+                }
+                if (keyboard.IsKeyPressed(Keys.Down)) {
+                    navIndex = (navIndex + 1) % navigation.Count;
+                }
             }
             return base.ProcessKeyboard(keyboard);
         }

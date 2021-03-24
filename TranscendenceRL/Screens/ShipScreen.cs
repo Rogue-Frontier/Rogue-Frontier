@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Console = SadConsole.Console;
 
 using static UI;
+using Common;
 
 namespace TranscendenceRL {
     class ShipScreen : Console {
@@ -241,11 +242,25 @@ namespace TranscendenceRL {
                 this.Print(x, y, name);
             }
 
+            y = Height - 16;
+            foreach (var m in player.Messages) {
+                this.Print(x, y++, m.Draw());
+            }
+
             x += 32;
             y = 16;
             if (playerIndex != null) {
                 var item = playerDevices.ElementAt(playerIndex.Value).source;
                 var invoke = item.type.invoke;
+
+                var desc = item.type.desc.SplitLine(32);
+                if (desc.Any()) {
+                    foreach (var line in desc) {
+                        this.Print(x, y++, line, Color.White, Color.Transparent);
+                    }
+                    y++;
+                }
+
                 if (invoke == InvokeAction.installWeapon) {
                     this.Print(x, y, "[Enter] Remove this weapon", Color.Yellow, Color.Transparent);
                 }
@@ -370,10 +385,25 @@ namespace TranscendenceRL {
                 this.Print(x, y, name);
             }
 
+            y = Height - 16;
+            foreach(var m in player.Messages) {
+                this.Print(x, y++, m.Draw());
+            }
+
+
             x += 32;
             y = 16;
             if (playerIndex != null) {
                 var item = playerItems.ElementAt(playerIndex.Value);
+
+                var desc = item.type.desc.SplitLine(32);
+                if(desc.Any()) {
+                    foreach (var line in desc) {
+                        this.Print(x, y++, line, Color.White, Color.Transparent);
+                    }
+                    y++;
+                }
+
                 var invoke = item.type.invoke;
                 if (invoke == InvokeAction.installWeapon) {
                     this.Print(x, y, "[Enter] Install this weapon", Color.Yellow, Color.Transparent);
