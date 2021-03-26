@@ -12,6 +12,15 @@ namespace TranscendenceRL {
     public enum Rotating {
         None, CCW, CW
     }
+
+    public static class SStation {
+        public static bool IsEnemy(this Station owner, SpaceObject target) {
+            return (owner != target
+                && (owner.Sovereign.IsEnemy(target)
+                || target.Sovereign.IsEnemy(owner.Sovereign)))
+                && !(target is Wreck);
+        }
+    }
     public static class SShip {
         public static bool IsEnemy(this IShip owner, SpaceObject target) {
             return owner.CanTarget(target) && (owner.Sovereign.IsEnemy(target) || target.Sovereign.IsEnemy(owner.Sovereign)) && !(target is Wreck);
@@ -83,21 +92,21 @@ namespace TranscendenceRL {
         public BaseShip(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.World = world;
             this.ShipClass = shipClass;
-
+            
             this.Sovereign = Sovereign;
-
+            
             this.Position = Position;
-            Velocity = new XY();
-
+            this.Velocity = new XY();
+            
             this.Active = true;
+            
+            this.Items = new HashSet<Item>();
+            this.Items.UnionWith(shipClass.items.Generate(world.types));
 
-            Items = new HashSet<Item>();
-            Items.UnionWith(shipClass.items.Generate(world.types));
+            this.Devices = new DeviceSystem();
+            this.Devices.Install(shipClass.devices.Generate(world.types));
 
-            Devices = new DeviceSystem();
-            Devices.Install(shipClass.devices.Generate(world.types));
-
-            DamageSystem = shipClass.damageDesc.Create(this);
+            this.DamageSystem = shipClass.damageDesc.Create(this);
             this.destiny = new Rand(world.karma.NextInteger());
         }
         public void SetThrusting(bool thrusting = true) => this.thrusting = thrusting;
@@ -132,7 +141,6 @@ namespace TranscendenceRL {
             //Devices.Update(this);
         }
         public void UpdateControls() {
-
             if(ControlHijack != null) {
                 switch(ControlHijack.thrustMode) {
                     case HijackMode.FORCE_ON:
@@ -179,7 +187,6 @@ namespace TranscendenceRL {
             UpdateTurn();
             rotationDegrees += rotatingVel;
             UpdateBrake();
-
             void UpdateThrust() {
                 if (thrusting) {
                     var rotationRads = rotationDegrees * Math.PI / 180;
@@ -199,7 +206,6 @@ namespace TranscendenceRL {
                 }
             }
             void UpdateTurn() {
-
                 if (rotating != Rotating.None) {
                     if (rotating == Rotating.CCW) {
                         /*
@@ -281,6 +287,11 @@ namespace TranscendenceRL {
         [JsonIgnore] 
         public double stoppingRotation => Ship.stoppingRotation;
 
+        [JsonIgnore]
+        public HashSet<SpaceObject> avoidHit => new HashSet<SpaceObject> {
+            Dock?.target, (controller as GuardOrder)?.guardTarget
+        };
+
         public AIShip(BaseShip ship, Order controller) {
             this.Ship = ship;
             this.controller = controller;
@@ -288,10 +299,10 @@ namespace TranscendenceRL {
         public void SetThrusting(bool thrusting = true) => Ship.SetThrusting(thrusting);
         public void SetRotating(Rotating rotating = Rotating.None) => Ship.SetRotating(rotating);
         public void SetDecelerating(bool decelerating = true) => Ship.SetDecelerating(decelerating);
-        public void Damage(SpaceObject source, int hp) => Ship.Damage(source, hp);
+        public void Damage(SpaceObject source, int hp) => Ship.DamageSystem.Damage(this, source, hp);
         public void Destroy(SpaceObject source) {
             if (source is PlayerShip ps) {
-                ps.ShipsDestroyed.Add(ShipClass);
+                ps.ShipsDestroyed.Add(this);
             }
             Ship.Destroy(source);
         }
@@ -374,7 +385,7 @@ namespace TranscendenceRL {
         public HashSet<Station> Known = new HashSet<Station>();
         int ticks = 0;
 
-        public DictCounter<ShipClass> ShipsDestroyed = new DictCounter<ShipClass>();
+        public HashSet<IShip> ShipsDestroyed = new HashSet<IShip>();
 
         public delegate void PlayerDestroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);
         public FuncSet<IContainer<PlayerDestroyed>> OnDestroyed = new FuncSet<IContainer<PlayerDestroyed>>();

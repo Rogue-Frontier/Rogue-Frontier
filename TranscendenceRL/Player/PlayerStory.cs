@@ -11,10 +11,10 @@ using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
 
-    interface IPlayerMission {
+    interface IPlayerInteraction {
         Console GetScene(Console prev, Dockable d, PlayerShip playerShip);
     }
-    class DaughtersIntro : IPlayerMission {
+    class DaughtersIntro : IPlayerInteraction {
         PlayerStory story;
         public DaughtersIntro(PlayerStory story) {
             this.story = story;
@@ -238,7 +238,7 @@ who got blown up in the middle of a war zone...""
                 }
 
                 Console Intro9a(Console from) {
-                    story.missions.Remove(this);
+                    story.interactions.Remove(this);
                     string t =
 @"""Okay, I see you've already made your mind then.
 I'll provide you with some combat training to start
@@ -255,7 +255,7 @@ your journey. That is all. Let's hope you make it.""";
 
 
                 Console Intro9b(Console from) {
-                    story.missions.Remove(this);
+                    story.interactions.Remove(this);
                     string t =
 @"You pause for a moment.";
                     t = t.Replace("\r", null);
@@ -275,7 +275,7 @@ your journey. That is all. Let's hope you make it.""";
                 }
 
                 Console Intro10a(Console prev) {
-                    story.missions.Remove(this);
+                    story.interactions.Remove(this);
                     string t =
 @"""You sound uncertain there.
 Do you truly intend to do that?""";
@@ -315,7 +315,6 @@ Do you truly intend to do that?""";
                     }) { background = heroImage };
                     return sc;
                 }
-
                 Console Destroy2(Console prev) {
                     string t =
 @"You feel an energy welling up within you
@@ -360,9 +359,8 @@ Allow me to join you on your mission.""
                     }) { background = heroImage };
                     return sc;
                 }
-
                 Console BenjaminJoin(Console prev) {
-                    story.missions.Remove(this);
+                    story.interactions.Remove(this);
 
                     var w = playerShip.World;
                     var wingmateClass = w.types.Lookup<ShipClass>("ship_beowulf");
@@ -372,10 +370,8 @@ Allow me to join you on your mission.""
 
                     return null;
                 }
-
-
                 Console Intro10c(Console prev) {
-                    story.missions.Remove(this);
+                    story.interactions.Remove(this);
                     string t =
 @"""I don't know anymore,"" you say.
 
@@ -390,11 +386,8 @@ Allow me to join you on your mission.""
                     }) { background = heroImage };
                     return sc;
                 }
-
-
-
                 Console Intro10(Console from) {
-                    story.missions.Remove(this);
+                    story.interactions.Remove(this);
                     string t =
 @"""Let's start with some target practice.
 I've sent some drones outside the station.
@@ -410,7 +403,7 @@ Destroy them as fast as you can""";
                 }
                 Console StartTraining(Console from) {
                     var m = new DaughtersTraining(story, s, playerShip);
-                    story.missions.Add(m);
+                    story.interactions.Add(m);
                     m.AddDrones();
                     return null;
                 }
@@ -421,7 +414,7 @@ Destroy them as fast as you can""";
             }
         }
     }
-    class DaughtersTraining : IPlayerMission {
+    class DaughtersTraining : IPlayerInteraction {
         PlayerStory story;
         Station station;
         public AIShip[] drones;
@@ -429,11 +422,10 @@ Destroy them as fast as you can""";
         public DaughtersTraining(PlayerStory story, Station station, PlayerShip player) {
             this.story = story;
             this.station = station;
-
             var w = station.World;
             var shipClass = w.types.shipClass["ship_laser_drone"];
             var sovereign = Sovereign.SelfOnly;
-            drones = new AIShip[3];
+            this.drones = new AIShip[3];
             var k = station.World.karma;
             for (int i = 0; i < 3; i++) {
                 var d = new AIShip(new BaseShip(w, shipClass, sovereign, station.Position + XY.Polar(k.NextDouble() * 2 * Math.PI, k.NextDouble() * 25 + 25)), new SnipeOrder(player));
@@ -445,20 +437,17 @@ Destroy them as fast as you can""";
                 station.World.AddEntity(d);
             }
         }
-
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
             if (d == station) {
                 var s = station;
                 var heroImage = s.StationType.heroImage.CenterVertical(prev, 16);
-
                 var count = drones.Count(d => d.Active);
                 if (count > 0) {
                     return InProgress();
                 } else {
-                    story.missions.Remove(this);
+                    story.interactions.Remove(this);
                     return Complete();
                 }
-
                 Console InProgress() {
                     var t =
 @$"Benjamin meets you at the docking bay.
@@ -472,7 +461,6 @@ Destroy them as fast as you can""";
                     }}) { background = heroImage };
                     return sc;
                 }
-
                 Console Complete() {
                     var t =
 @$"Benjamin meets you at the docking bay.
@@ -492,14 +480,14 @@ Destroy them as fast as you can""";
     }
 
     class PlayerStory {
-        public HashSet<IPlayerMission> missions;
+        public HashSet<IPlayerInteraction> interactions;
         public PlayerStory() {
-            missions = new HashSet<IPlayerMission>();
-            missions.Add(new DaughtersIntro(this));
+            interactions = new HashSet<IPlayerInteraction>();
+            interactions.Add(new DaughtersIntro(this));
         }
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
             Console sc;
-            sc = missions.Select(m => m.GetScene(prev, d, playerShip)).FirstOrDefault(s => s != null);
+            sc = interactions.Select(m => m.GetScene(prev, d, playerShip)).FirstOrDefault(s => s != null);
             if(sc != null) {
                 return sc;
             } else {
@@ -520,6 +508,11 @@ a spinning pinwheel.
 
 There is a modest degree of artificial gravity here.
 ".Replace("\r", null), new List<SceneOption>() {
+                            new SceneOption() {
+                                escape = false,
+                                key = 'T', name = "Trade",
+                                next = Trade
+                            },
                             new SceneOption() {
                                 escape = false,
                                 key = 'T', name = "Trade",

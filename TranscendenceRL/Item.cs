@@ -124,19 +124,19 @@ namespace TranscendenceRL {
         }
 
         public void Update(Station owner) {
-            capacitor?.Update();
-            if (ammo != null) {
-                ammo.Update(owner);
-            }
-
             double? direction = null;
-
             if (aiming != null) {
                 aiming.Update(owner);
                 if (aiming.GetFireAngle(out var d)) {
                     direction = d;
                 }
             }
+
+            capacitor?.Update();
+            if (ammo != null) {
+                ammo.Update(owner);
+            }
+
 
             if (fireTime > 0 && repeatsLeft == 0) {
                 fireTime--;
@@ -155,16 +155,14 @@ namespace TranscendenceRL {
                 capacitor?.CheckFire(ref firing);
                 ammo?.CheckFire(ref firing);
 
-                if (firing) {
-                    if (direction.HasValue) {
-                        Fire(owner, direction.Value);
-                    }
-
+                if (firing && direction.HasValue) {
+                    ammo?.OnFire();
+                    Fire(owner, direction.Value);
                     fireTime = desc.fireCooldown;
-
                     if (beginRepeat) {
                         repeatsLeft = desc.repeat;
                     }
+
                 } else {
                     repeatsLeft = 0;
                 }
@@ -330,11 +328,19 @@ namespace TranscendenceRL {
             public Omnidirectional(Weapon weapon) {
                 this.weapon = weapon;
             }
-            public void Update(Station owner) {
-                if (target?.Active != true) {
-                    direction = null;
-                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => owner.CanTarget(s));
+            public void Update(SpaceObject owner, Func<SpaceObject, bool> filter) {
+                if (target?.Active == true) {
+                    UpdateDirection();
                 } else {
+                    direction = null;
+                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.currentRange).OfType<SpaceObject>().FirstOrDefault(filter);
+
+                    if (target?.Active == true) {
+                        UpdateDirection();
+                    }
+                }
+
+                void UpdateDirection () {
                     direction = (((target.Position - owner.Position).Magnitude < weapon.currentRange)
                         ? Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _)
                         : (double?)null);
@@ -344,19 +350,11 @@ namespace TranscendenceRL {
                     }
                 }
             }
+            public void Update(Station owner) {
+                Update(owner, s => SStation.IsEnemy(owner, s));
+            }
             public void Update(IShip owner) {
-                if (target?.Active != true) {
-                    direction = null;
-                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.desc.minRange).OfType<SpaceObject>().FirstOrDefault(s => SShip.IsEnemy(owner, s));
-                } else {
-                    direction = (((target.Position - owner.Position).Magnitude < weapon.currentRange)
-                        ? Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _)
-                        : (double?)null);
-                    if (direction.HasValue) {
-                        Heading.AimLine(owner.World, owner.Position, direction.Value);
-                        Heading.Crosshair(owner.World, target.Position);
-                    }
-                }
+                Update(owner, s => SShip.IsEnemy(owner, s));
             }
             public bool GetFireAngle(out double direction) {
                 if(this.direction != null) {
