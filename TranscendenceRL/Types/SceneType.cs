@@ -184,7 +184,7 @@ namespace TranscendenceRL {
 
         public static int maxCharge = 48;
         public TextScene(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
-            this.desc = desc;
+            this.desc = desc.Replace("\r", null);
             this.navigation = navigation;
             charge = new int[navigation.Count];
             descIndex = 0;

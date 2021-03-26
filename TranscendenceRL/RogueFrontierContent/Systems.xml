@@ -38,7 +38,12 @@
 
 						<!--Ring of stations-->
 						<Orbital radius="30" angle="random" increment="20" count="5">
-							<Station	codename="station_constellation_astra"/>
+							<Group>
+								<Station	codename="station_constellation_astra"/>
+								<Sibling	radiusInc="20">
+									<Station codename="station_constellation_habitat"/>
+								</Sibling>
+							</Group>
 						</Orbital>
 					</Group>
 

@@ -59,4 +59,34 @@
 		<HeroImage path="RogueFrontierContent/ConstellationAstra.asc"/>
 		-->
 	</StationType>
+
+	<StationType	codename="station_constellation_habitat"
+					name=		"Constellation Habitat"
+					sovereign=	"sovereign_constellation"
+
+					hp=			"100"
+
+					char=		"H"
+					foreground="BB6633"
+		>
+		<Segments>
+			<Point offsetX="0"
+				   offsetY="-1"
+				   char="#"
+				   foreground="White"/>
+			<Point offsetX="0"
+				   offsetY="1"
+				   char="#"
+				   foreground="White"/>
+		</Segments>
+
+		<Guards>
+			<Ship	count="2"	codename="ship_wagon"/>
+		</Guards>
+		<Weapons>
+		</Weapons>
+		<!--
+		<HeroImage path="RogueFrontierContent/ConstellationAstra.asc"/>
+		-->
+	</StationType>
 </Module>

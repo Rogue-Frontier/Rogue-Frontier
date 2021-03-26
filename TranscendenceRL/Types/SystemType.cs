@@ -146,14 +146,7 @@ namespace TranscendenceRL {
 
             for (int i = 0; i < count; i++) {
                 foreach (var sub in subelements) {
-                    var loc = new LocationContext() {
-                        world = lc.world,
-                        focus = lc.pos,
-                        angle = angle,
-                        radius = radius,
-                        pos = lc.pos + XY.Polar(angle * Math.PI / 180, radius)
-                    };
-                    sub.Generate(loc, tc);
+                    Generate(sub);
 
                     if (increment > 0) {
                         angle += increment;
@@ -163,6 +156,17 @@ namespace TranscendenceRL {
                         angle += equidistantInterval;
                     }
                 }
+            }
+
+            void Generate(SystemElement sub) {
+                var loc = new LocationContext() {
+                    world = lc.world,
+                    focus = lc.pos,
+                    angle = angle,
+                    radius = radius,
+                    pos = lc.pos + XY.Polar(angle * Math.PI / 180, radius)
+                };
+                sub.Generate(loc, tc);
             }
         }
     }
