@@ -57,26 +57,34 @@ namespace TranscendenceRL {
 
 
             void UpdateMove() {
+                HashSet<SpaceObject> exclude = new HashSet<SpaceObject> { null, Source };
+                if(Source is PlayerShip ps) {
+                    exclude.Add(ps.Dock?.target);
+                }
+                if(Source is AIShip s) {
+                    exclude.UnionWith(s.avoidHit);
+                }
+
+
                 var dest = Position + Velocity / TranscendenceRL.TICKS_PER_SECOND;
                 var inc = Velocity.Normal * 0.5;
                 var steps = Velocity.Magnitude * 2 / TranscendenceRL.TICKS_PER_SECOND;
                 for (int i = 0; i < steps; i++) {
                     Position += inc;
 
-
                     
-                    foreach(var other in World.entities[Position]) {
+                    
+                    foreach(var other in World.entities[Position].Except(exclude)) {
                         switch(other) {
-                            case SpaceObject hit when !SSpaceObject.Equals(hit, Source):
-                                if (hit != null) {
-                                    lifetime = 0;
-                                    hit.Damage(Source, desc.damageHP);
-                                    Fragment();
-                                    var angle = (hit.Position - Position).Angle;
-                                    World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
-                                    return;
-                                }
-                                goto CollisionDone;
+                            case Segment seg when exclude.Contains(seg.Parent):
+                                continue;
+                            case SpaceObject hit:
+                                lifetime = 0;
+                                hit.Damage(Source, desc.damageHP);
+                                Fragment();
+                                var angle = (hit.Position - Position).Angle;
+                                World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
+                                return;
                             case ProjectileBarrier barrier:
                                 barrier.Interact(this);
                                 break;

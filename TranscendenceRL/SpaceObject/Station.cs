@@ -10,6 +10,7 @@ using TranscendenceRL;
 using static TranscendenceRL.StationType;
 using Console = SadConsole.Console;
 using Newtonsoft.Json;
+using static TranscendenceRL.Weapon;
 
 namespace TranscendenceRL {
     public class Wreck : Dockable {
@@ -84,6 +85,7 @@ namespace TranscendenceRL {
             DamageSystem = new HPSystem(Type.hp);
             Items = new HashSet<Item>();
             weapons = StationType.weapons?.Generate(World.types);
+            weapons?.ForEach(w => w.aiming = new Omnidirectional(w));
         }
         public void CreateSegments() {
             segments = new List<Segment>();

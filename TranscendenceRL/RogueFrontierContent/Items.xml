@@ -166,6 +166,9 @@
 			level=		"1"
 			mass=		"2000"
 
+			
+			invoke=		"installWeapon"
+
 			desc=		"This civilian-grade bomb launcher packs a small but powerful explosion. It requires Dynamite charges. Time and technology have not made it any less unwieldy as a weapon."
 		>
 		<Weapon

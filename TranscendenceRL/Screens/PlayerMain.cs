@@ -672,18 +672,33 @@ namespace TranscendenceRL {
 
 			void PrintTarget(int x, int y, SpaceObject target) {
 				if (target is AIShip ai) {
-					if (ai.DamageSystem is HPSystem hp) {
-						this.Print(x, y++, $"[HP]");
+					PrintDamageSystem(ai.DamageSystem);
+					PrintDeviceSystem(ai.Devices);
+				} else if(target is Station s) {
+					PrintDamageSystem(s.DamageSystem);
+
+					if (s.weapons?.Any() == true) {
+						foreach (var w in s.weapons) {
+							this.Print(x, y++, $"{w.source.type.name}{w.GetBar()}");
+						}
+					}
+				}
+
+				void PrintDamageSystem(DamageSystem s) {
+					if (s is HPSystem hp) {
 						this.Print(x, y++, $"Hull: {hp.hp} hp");
-					} else if (ai.DamageSystem is LayeredArmorSystem las) {
+					} else if (s is LayeredArmorSystem las) {
 						this.Print(x, y++, $"[Armor]");
 						foreach (var layer in las.layers) {
 							this.Print(x, y++, $"{layer.source.type.name}{new string('>', (16 * layer.hp) / layer.desc.maxHP)}");
 						}
 					}
-					if (ai.Devices.Installed.Any()) {
+				}
+
+				void PrintDeviceSystem(DeviceSystem ds) {
+					if (ds.Installed.Any()) {
 						this.Print(x, y++, $"[Devices]");
-						foreach (var d in ai.Devices.Installed) {
+						foreach (var d in ds.Installed) {
 							if (d is Weapon w) {
 								this.Print(x, y++, $"{d.source.type.name}{w.GetBar()}");
 							} else {
@@ -692,7 +707,6 @@ namespace TranscendenceRL {
 
 						}
 					}
-
 				}
 			}
 
