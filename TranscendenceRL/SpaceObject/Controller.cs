@@ -129,6 +129,7 @@ namespace TranscendenceRL {
         public SpaceObject guardTarget;
         public SpaceObject attackTarget;
         public int attackTime;
+        public int lazyTicks;
         public GuardOrder(SpaceObject guard) {
             this.guardTarget = guard;
             attackTarget = null;
@@ -144,6 +145,13 @@ namespace TranscendenceRL {
                 }
             }
 
+            //If we're docked, then don't check for enemies every tick
+            if(owner.Dock?.docked == true) {
+                lazyTicks++;
+                if(lazyTicks%120 > 0) {
+                    return;
+                }
+            }
             //Otherwise find enemy to attack
             if (attackTarget?.Active != true) {
                 attackTarget = owner.World.entities.GetAll(p => (guardTarget.Position - p).Magnitude < 20).OfType<SpaceObject>().Where(o => !o.IsEqual(owner) && guardTarget.CanTarget(o)).GetRandomOrDefault(owner.destiny);
@@ -165,9 +173,14 @@ namespace TranscendenceRL {
         public bool Active => guardTarget.Active;
     }
     public class AttackAllOrder : Order {
+        public int sleepTicks;
         public SpaceObject target;
         public bool CanTarget(SpaceObject other) => other == target;
         public void Update(AIShip owner) {
+            if(sleepTicks > 0) {
+                sleepTicks--;
+                return;
+            }
             if(!(target?.Active ?? false)) {
                 var weapon = owner.Devices.Weapons.FirstOrDefault();
                 if(weapon == null) {
@@ -175,6 +188,11 @@ namespace TranscendenceRL {
                 }
                 //currentRange is variable and minRange is constant, so weapon dynamics may affect attack range
                 target = owner.World.entities.all.OfType<SpaceObject>().Where(so => owner.IsEnemy(so)).GetRandomOrDefault(owner.destiny);
+
+                //If we can't find a target, then give up for a while
+                if (target == null) {
+                    sleepTicks = 150;
+                }
             } else {
                 new AttackOrder(target).Update(owner);
             }

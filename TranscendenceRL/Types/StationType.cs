@@ -34,13 +34,15 @@ namespace TranscendenceRL {
 					switch (xmlSegment.Name.LocalName) {
 						case "MultiPoint":
 							var t = new StaticTile(xmlSegment);
-							int angleInc = xmlSegment.TryAttributeInt("angleInc", 0);
+							int angleInc = xmlSegment.ExpectAttributeInt("angleInc");
 							var x = xmlSegment.ExpectAttributeDouble("offsetX");
 							var y = xmlSegment.ExpectAttributeDouble("offsetY");
 							XY offset = new XY(x, y);
+
+
 							for (int angle = 0; angle < 360; angle += angleInc) {
-								segments.Add(new SegmentDesc(offset.Rotate(angle * Math.PI/180), t));
-                            }
+								segments.Add(new SegmentDesc(offset.Rotate(angle * Math.PI / 180), t));
+							}
 							break;
 						case "Ring":
 							string foreground = xmlSegment.TryAttribute("foreground", "White");

@@ -238,7 +238,7 @@ who got blown up in the middle of a war zone...""
                 }
 
                 Console Intro9a(Console from) {
-                    story.interactions.Remove(this);
+                    story.mainInteractions.Remove(this);
                     string t =
 @"""Okay, I see you've already made your mind then.
 I'll provide you with some combat training to start
@@ -255,7 +255,7 @@ your journey. That is all. Let's hope you make it.""";
 
 
                 Console Intro9b(Console from) {
-                    story.interactions.Remove(this);
+                    story.mainInteractions.Remove(this);
                     string t =
 @"You pause for a moment.";
                     t = t.Replace("\r", null);
@@ -275,7 +275,7 @@ your journey. That is all. Let's hope you make it.""";
                 }
 
                 Console Intro10a(Console prev) {
-                    story.interactions.Remove(this);
+                    story.mainInteractions.Remove(this);
                     string t =
 @"""You sound uncertain there.
 Do you truly intend to do that?""";
@@ -360,7 +360,7 @@ Allow me to join you on your mission.""
                     return sc;
                 }
                 Console BenjaminJoin(Console prev) {
-                    story.interactions.Remove(this);
+                    story.mainInteractions.Remove(this);
 
                     var w = playerShip.World;
                     var wingmateClass = w.types.Lookup<ShipClass>("ship_beowulf");
@@ -371,7 +371,7 @@ Allow me to join you on your mission.""
                     return null;
                 }
                 Console Intro10c(Console prev) {
-                    story.interactions.Remove(this);
+                    story.mainInteractions.Remove(this);
                     string t =
 @"""I don't know anymore,"" you say.
 
@@ -387,7 +387,7 @@ Allow me to join you on your mission.""
                     return sc;
                 }
                 Console Intro10(Console from) {
-                    story.interactions.Remove(this);
+                    story.mainInteractions.Remove(this);
                     string t =
 @"""Let's start with some target practice.
 I've sent some drones outside the station.
@@ -403,7 +403,7 @@ Destroy them as fast as you can""";
                 }
                 Console StartTraining(Console from) {
                     var m = new DaughtersTraining(story, s, playerShip);
-                    story.interactions.Add(m);
+                    story.mainInteractions.Add(m);
                     m.AddDrones();
                     return null;
                 }
@@ -445,7 +445,6 @@ Destroy them as fast as you can""";
                 if (count > 0) {
                     return InProgress();
                 } else {
-                    story.interactions.Remove(this);
                     return Complete();
                 }
                 Console InProgress() {
@@ -462,38 +461,283 @@ Destroy them as fast as you can""";
                     return sc;
                 }
                 Console Complete() {
+                    var sec = (station.World.tick - startTick) / 60;
                     var t =
 @$"Benjamin meets you at the docking bay.
 
-""You took {(station.World.tick - startTick)/60} seconds to destroy the drones.""
+""You destroyed the drones in {sec} seconds.""
+
+{(sec < 60 ? @"""I figured you were ready for that.""" : @"""So now you should know how to aim.""")}
 ".Replace("\r", null);
                     var sc = new TextScene(prev, t, new List<SceneOption>() {
                         new SceneOption() { escape = true,
                             key = 'C', name = "Continue",
-                            next = null
+                            next = Explore
                     }}) { background = heroImage };
                     return sc;
+                }
+
+                Console Explore(Console prev) {
+
+                    var t =
+@$"""There are lots of people - friendly or unfriendly - out there.
+In a place like this, you'll find plenty of  stations offering trade
+and services for money. Some might have jobs that you can take.""
+
+""Others will attack you on sight. Be careful around them.""
+
+""Only time will tell who is who.""
+
+""Take a look around this system and find out who can help you.""
+".Replace("\r", null);
+                    var sc = new TextScene(prev, t, new List<SceneOption>() {
+                        new SceneOption() { escape = true,
+                            key = 'U', name = "Undock",
+                            next = Undock
+                    }}) { background = heroImage };
+                    return sc;
+                }
+                Console Undock (Console prev) {
+                    story.mainInteractions.Remove(this);
+                    story.mainInteractions.Add(new BenjaminExploration(story, station, playerShip));
+                    return null;
                 }
             }
             return null;
         }
     }
 
+    class BenjaminExploration : IPlayerInteraction {
+        PlayerStory story;
+        Station station;
+        HashSet<Station> targets;
+        public BenjaminExploration(PlayerStory story, Station station, PlayerShip playerShip) {
+            this.story = story;
+            this.station = station;
+            var w = station.World;
+            targets = new HashSet<Station>(w.entities.all.OfType<Station>().Where(
+                s => s.Sovereign.IsFriend(playerShip)));
+        }
+        public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
+            if (d == station) {
+                var s = station;
+                var heroImage = s.StationType.heroImage;
+                
+                if(targets.IsSubsetOf(playerShip.Known)) {
+                    
+                    var sc = new TextScene(prev,
+@$"""You've found all the friendly stations in the system. Now that
+you know what services each provide you can return to them when
+needed.""",
+                    new List<SceneOption>() {
+                        new SceneOption() { escape = true,
+                            key = 'C', name = "Continue",
+                            next = Undock
+                    }}) { background = heroImage };
+                    Console Undock(Console prev) {
+                        story.mainInteractions.Remove(this);
+                        return null;
+                    }
+                    return sc;
+                } else {
+                    int count = targets.Count - targets.Intersect(playerShip.Known).Count();
+
+                    if(count > 1) {
+                        return new TextScene(prev,
+@$"""You've found all but {count} friendly stations in this system.
+Use your starship's megamap to look for them.""",
+                    new List<SceneOption>() {
+                        new SceneOption() { escape = true,
+                            key = 'U', name = "Undock",
+                            next = null
+                    }}) { background = heroImage };
+                    } else {
+
+                        return new TextScene(prev,
+@$"""You've found all but one friendly station in this system.
+Use your starship's megamap to look for it.""",
+                    new List<SceneOption>() {
+                        new SceneOption() { escape = true,
+                            key = 'U', name = "Undock",
+                            next = null
+                    }}) { background = heroImage };
+                    }
+                }
+            } else {
+                
+
+            }
+            return null;
+        }
+    }
+
     class PlayerStory {
-        public HashSet<IPlayerInteraction> interactions;
+        public HashSet<IPlayerInteraction> mainInteractions;
+        public HashSet<IPlayerInteraction> secondaryInteractions;
+
         public PlayerStory() {
-            interactions = new HashSet<IPlayerInteraction>();
-            interactions.Add(new DaughtersIntro(this));
+            mainInteractions = new HashSet<IPlayerInteraction>();
+            mainInteractions.Add(new DaughtersIntro(this));
+            secondaryInteractions = new HashSet<IPlayerInteraction>();
         }
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
             Console sc;
-            sc = interactions.Select(m => m.GetScene(prev, d, playerShip)).FirstOrDefault(s => s != null);
+            sc = mainInteractions.Select(m => m.GetScene(prev, d, playerShip)).FirstOrDefault(s => s != null);
             if(sc != null) {
                 return sc;
             } else {
-                if (d is Station s && s.StationType.codename == "station_constellation_astra") {
-                    Console Intro() {
-                        sc = new TextScene(prev,
+                if (d is Station source) {
+                    string codename = source.StationType.codename;
+                    if (codename == "station_constellation_astra") {
+                        return ConstellationAstra(prev, source, playerShip);
+                    } else if(codename == "station_constellation_habitat") {
+                        return ConstellationHabitat(prev, source, playerShip);
+                    }
+                }
+            }
+            return null;
+        }
+        public Console ConstellationHabitat(Console prev, Station source, PlayerShip playerShip) {
+            Console Intro(Console prev) {
+                return new TextScene(prev,
+@"You are docked at a Constellation Habitat,
+a residential station of the United Constellation.",
+                    new List<SceneOption>() {
+                        new SceneOption() {
+                            escape = false,
+                            key = 'M', name = "Meeting Hall",
+                            next = MeetingHall
+                        },
+                        new SceneOption() {escape = true,
+                            key = 'U', name = "Undock",
+                            next = null
+                        }
+                    });
+            }
+            Console MeetingHall(Console prev) {
+                var mission = mainInteractions.OfType<DestroyStation>().FirstOrDefault(i => i.source == source);
+                if (mission != null) {
+                    return mission.GetScene(prev, source, playerShip);
+                }
+                
+                var target = source.World.entities.all.OfType<Station>().Where(s => s.StationType.codename == "station_orion_warlords_camp").FirstOrDefault(other => (other.Position - source.Position).Magnitude < 256);
+
+                if (target == null) {
+                    return new TextScene(prev,
+@"The meeting hall is empty.",
+                    new List<SceneOption>() {
+                        new SceneOption() {escape = true,
+                            key = 'L', name = "Leave",
+                            next = (s) => prev
+                        }
+                    });
+                } else {
+                    mission = mainInteractions.OfType<DestroyStation>().FirstOrDefault(i => i.target == target);
+
+                    if(mission != null) {
+
+                        return new TextScene(prev,
+    @"You aimlessly stand in the center of the empty Meeting Hall.
+After 2 minutes, the station master approaches you.
+
+""Hi, uh, we're currently dealing with a particularly annoying
+Orion Warlords camp but I've been told that you're going to
+destroy it for us. So, uh, thank you and good luck!""
+",
+                        new List<SceneOption>() {
+                        new SceneOption() {escape = true,
+                            key = 'C', name = "Continue",
+                            next = Intro
+                        }
+                        });
+                    }
+
+
+                    return new TextScene(prev,
+@"You aimlessly stand in the center of the empty Meeting Hall.
+After 10 minutes, the station master approaches you.
+
+""Hi, uh, you seem to have a nice gunship. I'm currently dealing
+with a nearby Orion Warlords outpost. They keep sending us a lot
+of threats. We're not really worried about being attacked so much
+as we just want them to shut the hell up. Even the health inspector
+is less asinine than these idiots.""
+
+""I'll pay you a few hundred to shut them up indefinitely.
+What do you say?""
+",
+                    new List<SceneOption>() {
+                        new SceneOption() {escape = false,
+                            key = 'A', name = "Accept",
+                            next = Accept
+                        }, new SceneOption() {escape = true,
+                            key = 'R', name = "Reject",
+                            next = Reject
+                        },
+                    });
+
+                    Console Accept(Console prev) {
+                        return new TextScene(prev,
+@"""Okay, thank you! Go destroy them and then I'll see you back here.""",
+                            new List<SceneOption>() {
+                                new SceneOption() {escape = false,
+                                    key = 'U', name = "Undock",
+                                    next = Accepted
+                                }
+                        });
+                    }
+                    Console Accepted(Console prev) {
+                        DestroyStation mission = null;
+                        mission = new DestroyStation(source, target) { inProgress = InProgress, debrief = Debrief };
+
+                        mainInteractions.Add(mission);
+                        return null;
+                        Console InProgress(Console prev) {
+                            var s = source;
+                            var t = target;
+                            return new TextScene(prev,
+@"""Hey, you're going to destroy that station, right?""",
+                                new List<SceneOption>() {
+                                    new SceneOption() {escape = true,
+                                        key = 'U', name = "Undock",
+                                        next = null
+                                    }
+                            });
+                        }
+                        Console Debrief(Console prev) {
+                            return new TextScene(prev,
+@"""Thank you very much for destroying those warlords for us!
+As promised, here's your money.""",
+                                new List<SceneOption>() {
+                                    new SceneOption() {escape = false,
+                                        key = 'U', name = "Undock",
+                                        next = Debriefed
+                                    }
+                                });
+                        }
+                        Console Debriefed(Console prev) {
+                            mainInteractions.Remove(mission);
+                            return null;
+                        }
+                    }
+                    Console Reject(Console prev) {
+                        return new TextScene(prev,
+@"""Oh man, what the hell is it with you people?
+Okay, fine, I'll just find SOMEONE ELSE to do it then.""",
+                            new List<SceneOption>() {
+                                new SceneOption() {escape = false,
+                                    key = 'U', name = "Undock",
+                                    next = null
+                                }
+                            });
+                    }
+                }
+            }
+            return Intro(prev);
+        }
+        public Console ConstellationAstra(Console prev, Station source, PlayerShip playerShip) {
+            Console Intro() {
+                return new TextScene(prev,
 @"You are docked at a Constellation Astra,
 a major residential and commercial station
 of the United Constellation.
@@ -506,30 +750,40 @@ The rotator tower rests on the underside.
 From a distance, the place looks almost like
 a spinning pinwheel.
 
-There is a modest degree of artificial gravity here.
-".Replace("\r", null), new List<SceneOption>() {
-                            new SceneOption() {
-                                escape = false,
-                                key = 'T', name = "Trade",
-                                next = Trade
-                            },
-                            new SceneOption() {
-                                escape = false,
-                                key = 'T', name = "Trade",
-                                next = Trade
-                            },
-                            new SceneOption() {escape = true,
-                                key = 'U', name = "Undock",
-                                next = null
-                            }
-                        });
-                        return sc;
+There is a modest degree of artificial gravity here.",
+                new List<SceneOption>() {
+                    new SceneOption() {
+                        escape = false,
+                        key = 'T', name = "Trade",
+                        next = Trade
+                    },
+                    new SceneOption() {escape = true,
+                        key = 'U', name = "Undock",
+                        next = null
                     }
-                    Console Trade(Console from) => new TradeScene(from, playerShip, s);
-                    return Intro();
-                }
+                });
             }
-            return null;
+            Console Trade(Console from) => new TradeScene(from, playerShip, source);
+            return Intro();
+        }
+    }
+    class DestroyStation : IPlayerInteraction {
+        public Station source;
+        public Station target;
+        public Func<Console, Console> inProgress, debrief;
+        public DestroyStation(Station source, Station target) {
+            this.source = source;
+            this.target = target;
+        }
+        public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
+            if(d == source) {
+                return null;
+            }
+            if(target.Active) {
+                return inProgress(prev);
+            } else {
+                return debrief(prev);
+            }
         }
     }
 }
