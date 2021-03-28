@@ -218,7 +218,11 @@ namespace TranscendenceRL {
 				vignette.Update(delta);
 
 				uiMain.Update(delta);
+
+				uiEdge.viewScale = uiMegamap.viewScale;
 				uiEdge.Update(delta);
+
+				uiMinimap.alpha = (byte)(255 - uiMegamap.alpha);
 				uiMinimap.Update(delta);
 			} else {
 
@@ -928,10 +932,13 @@ namespace TranscendenceRL {
 		Camera camera;
 		PlayerShip player;
 
+		public double viewScale;
+
 		public Edgemap(Camera camera, PlayerShip player, int width, int height) : base(width, height) {
 			this.camera = camera;
 			this.player = player;
 			FocusOnMouseClick = false;
+			viewScale = 1;
 		}
 		public override void Update(TimeSpan delta) {
 			base.Update(delta);
@@ -949,11 +956,15 @@ namespace TranscendenceRL {
 			var nearby = player.World.entities.GetAll(((int, int) p) => (player.Position - p).MaxCoord < range);
 			foreach (var entity in nearby) {
 				var offset = (entity.Position - player.Position).Rotate(-camera.rotation);
-				var (x, y) = offset;
-				Func<int, int> abs = Math.Abs;
+				var (x, y) = offset / viewScale;
 				(x, y) = (Math.Abs(x), Math.Abs(y));
 
 				if (x > halfWidth || y > halfHeight) {
+
+					if (entity is Segment) {
+						continue;
+					}
+
 
 					(x, y) = Helper.GetBoundaryPoint(screenSize, offset.Angle);
 
@@ -984,11 +995,13 @@ namespace TranscendenceRL {
 		PlayerShip playerShip;
 		public int size;
 		public double time;
-
+		public byte alpha;
 		public Minimap(Console parent, PlayerShip playerShip, int size) : base(size, size) {
-			this.Position = new Point(parent.Width - size, parent.Height - size);
+			this.Position = new Point(parent.Width - size, 0);
 			this.playerShip = playerShip;
 			this.size = size;
+
+			alpha = 255;
 		}
         public override void Update(TimeSpan delta) {
             base.Update(delta);
@@ -1007,18 +1020,24 @@ namespace TranscendenceRL {
 					var entities = mapSample[(
 						(x - halfSize + playerShip.Position.xi / mapScale),
 						(halfSize - y + playerShip.Position.yi / mapScale))]
+						.Where(e => !(e is Segment))
 						.Where(e => e.Tile != null);
 
 					if (entities.Any()) {
-						var e = entities.ElementAt((int)time % entities.Count());
+						var t = entities.ElementAt((int)time % entities.Count()).Tile;
 
-						this.SetCellAppearance(
-							x,
-							y,
-							new ColoredGlyph(e.Tile.Foreground, Color.Black, e.Tile.GlyphCharacter)
+						this.SetCellAppearance(x, y,
+							new ColoredGlyph(t.Foreground, Color.Black, t.Glyph)
+								.PremultiplySet(alpha)
 							);
 					} else {
-						this.Print(x, y, "#", new Color(255, 255, 255, 51 + ((x + y) % 2 == 0 ? 0 : 12)), Color.Black);
+						var foreground = new Color(
+									255, 255, 255,
+									51 + ((x + y) % 2 == 0 ? 0 : 12));
+						this.SetCellAppearance(x, y,
+							new ColoredGlyph(foreground, Color.Black, '#')
+								.PremultiplySet(alpha)
+							);
 					}
 				}
 			}
