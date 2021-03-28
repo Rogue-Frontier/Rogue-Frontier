@@ -26,9 +26,7 @@ namespace TranscendenceRL {
             get {
                 var t = this;
                 return (p, s, w) => {
-                    t.arena.camera = t.arena.playerMain.camera.position;
-                    t.arena.playerMain = null;
-                    t.arena.IsFocused = true;
+                    t.arena.Reset(t.arena.playerMain.camera.position);
                 };
             }
         }
@@ -64,21 +62,23 @@ namespace TranscendenceRL {
             void InitControls() {
                 var sovereign = Sovereign.Gladiator;
 
-                {
+                AddSovereignField();
+                AddShipField();
+                void AddSovereignField() {
 
                     var x = 8;
                     var y = 7;
                     var label = new Label("Sovereign") { Position = new Point(x, y++) };
-                    var field = new TextField(24) { Position = new Point(x, y++) };
+                    var sovereignField = new TextField(24) { Position = new Point(x, y++) };
                     ButtonList buttons = new ButtonList(this, new Point(x, y++));
-                    field.TextChanged += _ => UpdateSovereignListing();
+                    sovereignField.TextChanged += _ => UpdateSovereignListing();
 
                     Children.Add(label);
-                    Children.Add(field);
+                    Children.Add(sovereignField);
                     UpdateSovereignLabel();
                     UpdateSovereignListing();
                     void UpdateSovereignListing() {
-                        var text = field.text;
+                        var text = sovereignField.text;
                         buttons.Clear();
                         var sovereignDict = World.types.sovereign;
                         foreach (var type in sovereignDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
@@ -92,17 +92,17 @@ namespace TranscendenceRL {
                         label.text = new ColoredString($"Sovereign: {sovereign.codename}");
                     }
                 }
-                {
+                void AddShipField() {
                     var x = 36;
                     var y = 8;
-                    var field = new TextField(24) { Position = new Point(x, y++) };
+                    var shipField = new TextField(24) { Position = new Point(x, y++) };
                     ButtonList buttons = new ButtonList(this, new Point(x, y++));
-                    field.TextChanged += _ => UpdateShipListing();
-                    Children.Add(field);
+                    shipField.TextChanged += _ => UpdateShipListing();
+                    Children.Add(shipField);
                     UpdateShipListing();
 
                     void UpdateShipListing() {
-                        var text = field.text;
+                        var text = shipField.text;
                         buttons.Clear();
                         var shipClassDict = World.types.shipClass;
                         foreach (var type in shipClassDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
@@ -116,6 +116,21 @@ namespace TranscendenceRL {
                 }
             }
         }
+
+        public void HideArena() {
+            foreach(var c in Children) {
+                c.IsVisible = false;
+            }
+        }
+        public void Reset(XY camera) {
+
+            this.camera= camera;
+            playerMain = null;
+            IsFocused = true;
+            foreach (var c in Children) {
+                c.IsVisible = true;
+            }
+        }
         public override void Update(TimeSpan timeSpan) {
             if (playerMain != null) {
                 playerMain.IsFocused = true;
@@ -125,12 +140,14 @@ namespace TranscendenceRL {
                 return;
             }
 
-                        base.Update(timeSpan);
+            base.Update(timeSpan);
             World.UpdateAdded();
 
-            tiles.Clear();
-            World.UpdateActive(tiles);
+            World.UpdateActive();
             World.UpdateRemoved();
+
+            tiles.Clear();
+            World.PlaceTiles(tiles);
 
             if(pov?.Active == false) {
                 pov = null;
@@ -206,12 +223,11 @@ namespace TranscendenceRL {
                     World.RemoveEntity(playerMain.playerShip);
                     var aiShip = new AIShip(playerMain.playerShip.Ship, new AttackAllOrder());
                     World.AddEntity(aiShip);
-
-                    camera = playerMain.camera.position;
+                    
                     pov = aiShip;
+                    Reset(playerMain.camera.position);
 
-                    playerMain = null;
-                    this.IsFocused = true;
+
                 } else {
                     prev.pov = null;
                     prev.camera = camera;
@@ -231,6 +247,8 @@ namespace TranscendenceRL {
                     World.AddEntity(playerShip);
 
                     pov = playerShip;
+
+                    HideArena();
                 }
             }
             if (info.IsKeyPressed(Keys.F)) {

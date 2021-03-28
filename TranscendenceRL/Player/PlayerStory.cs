@@ -21,7 +21,7 @@ namespace TranscendenceRL {
         }
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
             if (d is Station s && s.StationType.codename == "station_daughters_outpost") {
-                var heroImage = s.StationType.heroImage.Translate(new Point(0, 0));
+                var heroImage = s.StationType.heroImage;
                 /*
                 var benedictPortrait = SScene.LoadImage("RogueFrontierContent/BenedictPortrait.asc.cg").Translate(new Point(heroImage.Max(p => p.Key.Item1), 4));
                 var outpostLobby = SScene.LoadImage("RogueFrontierContent/DaughtersOutpostDock.asc.cg").Translate(new Point(benedictPortrait.Max(p => p.Key.Item1), 4));
@@ -440,7 +440,7 @@ Destroy them as fast as you can""";
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
             if (d == station) {
                 var s = station;
-                var heroImage = s.StationType.heroImage.CenterVertical(prev, 16);
+                var heroImage = s.StationType.heroImage;
                 var count = drones.Count(d => d.Active);
                 if (count > 0) {
                     return InProgress();
@@ -723,7 +723,7 @@ As promised, here's your money.""",
                     Console Reject(Console prev) {
                         return new TextScene(prev,
 @"""Oh man, what the hell is it with you people?
-Okay, fine, I'll just find SOMEONE ELSE to do it then.""",
+Okay, fine, I'll just find someone else to do it then.""",
                             new List<SceneOption>() {
                                 new SceneOption() {escape = false,
                                     key = 'U', name = "Undock",

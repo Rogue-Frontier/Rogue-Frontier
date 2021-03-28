@@ -259,6 +259,7 @@ namespace TranscendenceRL {
             c.Remove(this);
             if (next != null) {
                 c.Add(next);
+                next.Render(new TimeSpan());
                 next.IsFocused = true;
             } else {
                 p.IsFocused = true;

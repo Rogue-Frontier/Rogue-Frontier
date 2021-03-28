@@ -76,14 +76,17 @@ namespace TranscendenceRL {
             }
         }
         public override void Update(TimeSpan timeSpan) {
-            tiles.Clear();
             World.UpdateAdded();
             World.UpdateActive();
             World.UpdateActive();
             World.UpdateActive();
             World.UpdateActive();
-            World.UpdateActive(tiles);
+            World.UpdateActive();
             World.UpdateRemoved();
+
+            tiles.Clear();
+            World.PlaceTiles(tiles);
+
             base.Update(timeSpan);
 
 

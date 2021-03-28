@@ -1,0 +1,146 @@
+﻿<Module>
+	<Sovereign	codename=	"sovereign_errorist"
+				alignment=	"DestructiveOrder"
+	/>
+
+	<ItemType	codename=	"item_natural_killer_plate"
+				name=		"Natural killer plate"
+				mass=		"1000"
+				level=		"1"
+		>
+		<Armor	maxHP=		"40"
+			>
+		</Armor>
+	</ItemType>
+	<ItemType	codename=	"item_heartland_cannon"
+			name=		"Heartland soil cannon"
+			mass=		"5000"
+			level=		"3"
+
+			desc=		"This unusual weapon sprays irradiated sand imported from the surface of Mars. Above all combat science and practical strategy, the Errorist zeal reigns supreme. And despite what Errorist zeal might make one believe, this weapon is extremely poor in combat potential."
+				>
+		<Weapon			powerUse=		"50"
+						fireCooldown=	"60"
+						missileSpeed=	"30"
+						damageType=		"2"
+						damageHP=		"4"
+						lifetime=		"90"
+						initialCharges=	"100"
+						count=			"6"
+						char=			"."
+						foreground=		"Green"
+			>
+		</Weapon>
+	</ItemType>
+	<ItemType	codename=	"item_septic_cannon"
+			name=		"Septic blood cannon"
+			mass=		"5000"
+			level=		"3"
+
+			desc=		"Driven by hatred, the Errorist channels pure resentment through their veins into the barrel of this acid-launching cannon."
+				>
+		<Weapon			powerUse=		"50"
+						fireCooldown=	"80"
+						missileSpeed=	"30"
+						damageType=		"2"
+						damageHP=		"6"
+						lifetime=		"90"
+						
+						initialCharges=	"100"
+
+						
+						count=			"6"
+
+						char=			"."
+						foreground=		"Green"
+			>
+		</Weapon>
+	</ItemType>
+
+	<ShipClass	codename=			"ship_chemotoxin"
+				name=				"Chemotoxin-class raider"
+				thrust=				"0.2"
+				maxSpeed=			"15"
+
+				rotationAccel=		"3"
+				rotationDecel=		"6"
+				rotationMaxSpeed=	"4"
+
+				char=				"c"
+				foreground=			"LightGreen"
+		>
+		<Devices>
+			<Weapon	codename="item_heartland_cannon"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor	codename="item_natural_killer_plate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
+
+	<ShipClass	codename=			"ship_malignus"
+				name=				"Malignus-class missileship"
+				thrust=				"0.2"
+				maxSpeed=			"15"
+
+				rotationAccel=		"3"
+				rotationDecel=		"6"
+				rotationMaxSpeed=	"4"
+
+				char=				"m"
+				foreground=			"LightGreen"
+		>
+		<Devices>
+			<Weapon	codename="item_heartland_cannon"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor	codename="item_natural_killer_plate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
+
+	<StationType	codename="station_errorist_compound"
+					name=		"Errorist compound"
+					sovereign=	"sovereign_errorist"
+
+					hp=			"250"
+
+					char=		"E"
+					foreground="LightGreen"
+		>
+		<Segments>
+
+			<Point offsetX="-1" offsetY="1"
+				   char="/" foreground="Yellow"/>
+			<Point offsetX="0" offsetY="1"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="1" offsetY="1"
+				   char="\" foreground="Yellow"/>
+
+			<Point offsetX="-1" offsetY="-1"
+				   char="\" foreground="Yellow"/>
+			<Point offsetX="0" offsetY="-1"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="1" offsetY="-1"
+				   char="/" foreground="Yellow"/>
+
+
+			<Point offsetX="-1" offsetY="0"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="-2" offsetY="0"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="-3" offsetY="0"
+				   char="+" foreground="Yellow"/>
+
+			<Point offsetX="1" offsetY="0"
+					char="-" foreground="Yellow"/>
+			<Point offsetX="2" offsetY="0"
+				   char="-" foreground="Yellow"/>
+			<Point offsetX="3" offsetY="0"
+				   char="+" foreground="Yellow"/>
+
+		</Segments>
+		<Guards>
+			<Ship	count="5"	codename="ship_chemotoxin"/>
+		</Guards>
+	</StationType>
+
+</Module>
