@@ -61,10 +61,13 @@ namespace TranscendenceRL {
 		MouseScreenObjectState mouse;
 
 		public BackdropConsole back;
-		MegaMap map;
-		PlayerBorder vignette;
+		Megamap uiMegamap;
+		Vignette vignette;
 		public Console sceneContainer;
-		PlayerUI ui;
+		Readout uiMain;	//If this is visible, then all other ui Consoles are visible
+		Edgemap uiEdge;
+		Minimap uiMinimap;
+
 		PowerMenu powerMenu;
 		PauseMenu pauseMenu;
 
@@ -83,11 +86,13 @@ namespace TranscendenceRL {
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
 
 			back = new BackdropConsole(Width, Height, World.backdrop, camera);
-			map = new MegaMap(camera, playerShip, Width, Height);
-			vignette = new PlayerBorder(playerShip, Width, Height);
+			uiMegamap = new Megamap(camera, playerShip, Width, Height);
+			vignette = new Vignette(playerShip, Width, Height);
 			sceneContainer = new Console(Width, Height);
 			sceneContainer.Focused += (e, o) => this.IsFocused = true;
-			ui = new PlayerUI(camera, playerShip, tiles, Width, Height);
+			uiMain = new Readout(camera, playerShip, tiles, Width, Height);
+			uiEdge = new Edgemap(camera, playerShip, Width, Height);
+			uiMinimap = new Minimap(this, playerShip, 16);
 			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
 			pauseMenu = new PauseMenu(this) { IsVisible = false };
 			crosshair = new TargetingMarker(playerShip, "Mouse Cursor", new XY());
@@ -98,10 +103,10 @@ namespace TranscendenceRL {
 			FocusOnMouseClick = false;
 		}
 		public void HideUI() {
-			ui.IsVisible = false;
+			uiMain.IsVisible = false;
         }
 		public void ShowUI() {
-			ui.IsVisible = true;
+			uiMain.IsVisible = true;
         }
 		public void EndGame(SpaceObject destroyer, Wreck wreck) {
 			//Clear mortal time so that we don't slow down after the player dies
@@ -116,7 +121,7 @@ namespace TranscendenceRL {
 			//Pretty sure this can't happen but make sure
 			pauseMenu.IsVisible = false;
 
-			ui.IsVisible = false;
+			uiMain.IsVisible = false;
 			
 			//Get a snapshot of the player
 			var size = Height;
@@ -207,10 +212,17 @@ namespace TranscendenceRL {
 					playerShip.AddMessage(new InfoMessage($"Stationed on {d.Name}"));
                 }
 			}
-			map.Update(delta);
-			vignette.Update(delta);
-			if (ui.IsVisible) {
-				ui.Update(delta);
+			if (uiMain.IsVisible) {
+				uiMegamap.Update(delta);
+
+				vignette.Update(delta);
+
+				uiMain.Update(delta);
+				uiEdge.Update(delta);
+				uiMinimap.Update(delta);
+			} else {
+
+				vignette.Update(delta);
 			}
 
 			//Need to update powermenu while it is hidden
@@ -236,12 +248,17 @@ namespace TranscendenceRL {
 				vignette.Render(drawTime);
 				sceneContainer.Render(drawTime);
 			} else {
-				if (map.IsVisible) {
-					map.Render(drawTime);
-				}
-				vignette.Render(drawTime);
-				if (ui.IsVisible) {
-					ui.Render(drawTime);
+				if (uiMain.IsVisible) {
+					uiMegamap.Render(drawTime);
+
+					vignette.Render(drawTime);
+
+					uiMain.Render(drawTime);
+					uiEdge.Render(drawTime);
+					uiMinimap.Render(drawTime);
+				} else {
+
+					vignette.Render(drawTime);
 				}
 				if (powerMenu.IsVisible) {
 					powerMenu.Render(drawTime);
@@ -267,7 +284,7 @@ namespace TranscendenceRL {
 			}
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
-			map.ProcessKeyboard(info);
+			uiMegamap.ProcessKeyboard(info);
 			keyboard = info;
 
 			//Intercept the alphanumeric/Escape keys if the power menu is active
@@ -382,7 +399,6 @@ namespace TranscendenceRL {
 		public BackdropConsole(int width, int height, Backdrop backdrop, Camera camera) : base(width, height) {
 			this.camera = camera;
 
-
 			this.backdrop = backdrop;
 			screenCenter = new XY(Width / 2f, Height / 2f);
 		}
@@ -400,13 +416,15 @@ namespace TranscendenceRL {
 			base.Render(drawTime);
 		}
 	}
-	class MegaMap : Console {
+	class Megamap : Console {
 		Camera camera;
 		PlayerShip player;
 		GeneratedLayer BackVoid;
 		public double viewScale;
 		double time;
-		public MegaMap(Camera camera, PlayerShip player, int width, int height) : base(width, height) {
+
+		public byte alpha;
+		public Megamap(Camera camera, PlayerShip player, int width, int height) : base(width, height) {
 			this.camera = camera;
 			this.player = player;
 			BackVoid = new GeneratedLayer(1, new Rand());
@@ -426,6 +444,7 @@ namespace TranscendenceRL {
 			return base.ProcessKeyboard(info);
 		}
         public override void Update(TimeSpan delta) {
+			alpha = (byte)(255 * Math.Min(1, (viewScale - 1)));
 			time += delta.TotalSeconds;
 			base.Update(delta);
         }
@@ -434,7 +453,6 @@ namespace TranscendenceRL {
 			if (viewScale > 1) {
 				XY screenSize = new XY(Width, Height);
 				XY screenCenter = screenSize / 2;
-				var alpha = (byte)(255 * Math.Min(1, (viewScale - 1)));
 				for (int x = 0; x < Width; x++) {
 					for (int y = 0; y < Height; y++) {
 						var cg = BackVoid.GetTileFixed(new XY(x, y));
@@ -478,7 +496,7 @@ namespace TranscendenceRL {
 			base.Render(delta);
         }
     }
-	class PlayerBorder : Console {
+	class Vignette : Console {
 		PlayerShip player;
 		public float powerAlpha;
 		public HashSet<EffectParticle> particles;
@@ -486,7 +504,7 @@ namespace TranscendenceRL {
 		public XY screenCenter;
 		public int ticks;
 		public Random r;
-		public PlayerBorder(PlayerShip player, int width, int height) : base(width, height) {
+		public Vignette(PlayerShip player, int width, int height) : base(width, height) {
 			this.player = player;
 			FocusOnMouseClick = false;
 
@@ -586,7 +604,7 @@ namespace TranscendenceRL {
 			base.Render(delta);
         }
     }
-	class PlayerUI : Console {
+	class Readout : Console {
 		/*
 		struct Snow {
 			public char c;
@@ -601,7 +619,9 @@ namespace TranscendenceRL {
 
 		public int arrowDistance;
 
-		public PlayerUI(Camera camera, PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
+		public double time;
+
+		public Readout(Camera camera, PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
 			this.camera = camera;
 			this.player = player;
 			this.tiles = tiles;
@@ -624,6 +644,10 @@ namespace TranscendenceRL {
             }
 			*/
 			FocusOnMouseClick = false;
+        }
+        public override void Update(TimeSpan delta) {
+            base.Update(delta);
+			time += delta.TotalSeconds;
         }
         public override void Render(TimeSpan drawTime) {
 			this.Clear();
@@ -897,6 +921,25 @@ namespace TranscendenceRL {
 						break;
 				}
 			}
+			base.Render(drawTime);
+        }
+    }
+	public class Edgemap : Console {
+		Camera camera;
+		PlayerShip player;
+
+		public Edgemap(Camera camera, PlayerShip player, int width, int height) : base(width, height) {
+			this.camera = camera;
+			this.player = player;
+			FocusOnMouseClick = false;
+		}
+		public override void Update(TimeSpan delta) {
+			base.Update(delta);
+		}
+		public override void Render(TimeSpan drawTime) {
+			this.Clear();
+			var screenSize = new XY(Width - 2, Height - 2);
+			var screenCenter = screenSize / 2;
 
 			var halfWidth = Width / 2;
 			var halfHeight = Height / 2;
@@ -921,7 +964,7 @@ namespace TranscendenceRL {
 						c = p.Tile.Foreground;
 					}
 					this.Print(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
-				} else if(x > halfWidth - 4 || y > halfHeight - 4) {
+				} else if (x > halfWidth - 4 || y > halfHeight - 4) {
 					(x, y) = ((screenCenter + offset) + new XY(1, 1));
 
 					Color c = Color.Transparent;
@@ -934,30 +977,57 @@ namespace TranscendenceRL {
 				}
 			}
 
-			var mapWidth = 16;
-			var mapHeight = 16;
-			var mapScale = (range / (mapWidth / 2));
+			base.Render(drawTime);
+		}
+	}
+	public class Minimap : Console {
+		PlayerShip playerShip;
+		public int size;
+		public double time;
 
-			var mapX = Width - mapWidth;
-			var mapY = 0;
-			var mapCenterX = mapX + mapWidth / 2;
-			var mapCenterY = mapY + mapHeight / 2;
+		public Minimap(Console parent, PlayerShip playerShip, int size) : base(size, size) {
+			this.Position = new Point(parent.Width - size, parent.Height - size);
+			this.playerShip = playerShip;
+			this.size = size;
+		}
+        public override void Update(TimeSpan delta) {
+            base.Update(delta);
+			time += delta.TotalSeconds;
+        }
 
-			var mapSample = tiles.Downsample(mapScale);
-			for (int x = -mapWidth / 2; x < mapWidth / 2; x++) {
-				for (int y = -mapHeight / 2; y < mapHeight / 2; y++) {
-					var tiles = mapSample[((x + player.Position.xi / mapScale), (y + player.Position.yi / mapScale))];
-					if (tiles.Any()) {
-						var t = tiles.First();
-						this.Print(mapCenterX + x, mapCenterY - y, t.GlyphCharacter.ToString(), t.Foreground, Color.Black);
+        public override void Render(TimeSpan delta) {
+			var halfSize = size / 2;
+
+			var range = 192;
+			var mapScale = (range / halfSize);
+
+			var mapSample = playerShip.World.entities.space.DownsampleSet(mapScale);
+			for (int x = 0; x < Width; x++) {
+				for (int y = 0; y < Height; y++) {
+					var entities = mapSample[(
+						(x - halfSize + playerShip.Position.xi / mapScale),
+						(halfSize - y + playerShip.Position.yi / mapScale))]
+						.Where(e => e.Tile != null);
+
+					if (entities.Any()) {
+						var e = entities.ElementAt((int)time % entities.Count());
+
+						this.SetCellAppearance(
+							x,
+							y,
+							new ColoredGlyph(e.Tile.Foreground, Color.Black, e.Tile.GlyphCharacter)
+							);
 					} else {
-						this.Print(mapCenterX + x, mapCenterY - y, "#", new Color(255, 255, 255, 51 + ((x + y) % 2 == 0 ? 0 : 12)), Color.Black);
+						this.Print(x, y, "#", new Color(255, 255, 255, 51 + ((x + y) % 2 == 0 ? 0 : 12)), Color.Black);
 					}
 				}
 			}
-			base.Render(drawTime);
+			base.Render(delta);
         }
     }
+
+
+
 	public class PowerMenu : Console {
 		PlayerShip playerShip;
 		int ticks;
