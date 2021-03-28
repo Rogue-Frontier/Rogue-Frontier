@@ -146,30 +146,17 @@ namespace TranscendenceRL {
 				wreck = wreck
 			};
 			playerShip.player.Epitaphs.Add(epitaph);
-
 			new DeadGame(World, playerShip.player, playerShip, epitaph);
-
 			//Bug: Background is not included because it is a separate console
 			var ds = new DeathScreen(this, epitaph);
 			SadConsole.Game.Instance.Screen = new DeathTransition(this, ds) { IsFocused = true };
 		}
+		public void UpdateWorld() {
+			World.UpdateActive();
+		}
 		public void PlaceTiles() {
 			tiles.Clear();
-
-			foreach (var e in World.effects.all) {
-				if (e.Tile != null) {
-					tiles[e.Position.RoundDown] = e.Tile;
-				}
-			}
-			foreach (var e in World.entities.all) {
-				if (e.Tile != null) {
-					tiles[e.Position.RoundDown] = e.Tile;
-				}
-			}
-		}
-		public void UpdateWorld() {
-
-			World.UpdateActive();
+			World.PlaceTiles(tiles);
 		}
 		public override void Update(TimeSpan delta) {
 			if(sceneContainer.Children.Count > 0) {
@@ -473,12 +460,18 @@ namespace TranscendenceRL {
 
 				var scaledMap = player.World.entities.space.DownsampleSet(viewScale);
 				foreach ((var p, HashSet<Entity> set) in scaledMap.space) {
-					var visible = set.Where(t => t.Tile != null).Where(t => !(t is Segment));
+					var visible = set.Where(t => !(t is Segment)).Where(t => t.Tile != null);
 					if (visible.Any()) {
 						var e = visible.ElementAt((int)time % visible.Count());
 						var offset = (e.Position - player.Position) / viewScale;
 						var (x, y) = screenCenter + offset.Rotate(-camera.rotation);
-						this.SetCellAppearance(x, Height - y, e.Tile);
+
+						y = Height - y;
+						if(x > -1 && x < Width && y > -1 && y < Height) {
+
+							var t = new ColoredGlyph(e.Tile.Foreground, this.GetBackground(x, y), e.Tile.Glyph);
+							this.SetCellAppearance(x, y, t);
+						}
 					}
 				}
 			}

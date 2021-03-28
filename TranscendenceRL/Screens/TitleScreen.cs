@@ -261,13 +261,15 @@ namespace TranscendenceRL {
             Environment.Exit(0);
         }
         public override void Update(TimeSpan timeSpan) {
-            tiles.Clear();
-
+            
             World.UpdateAdded();
-            World.UpdateActive(tiles);
+            World.UpdateActive();
             World.UpdateRemoved();
 
-            if(World.entities.all.OfType<IShip>().Count() < 5) {
+            tiles.Clear();
+            World.PlaceTiles(tiles);
+
+            if (World.entities.all.OfType<IShip>().Count() < 5) {
                 var shipClasses = World.types.shipClass.Values;
                 var shipClass = shipClasses.ElementAt(World.karma.NextInteger(shipClasses.Count));
                 var angle = World.karma.NextDouble() * Math.PI * 2;

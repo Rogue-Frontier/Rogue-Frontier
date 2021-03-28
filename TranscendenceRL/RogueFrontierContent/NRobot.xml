@@ -1,0 +1,33 @@
+﻿<Module>
+	<Sovereign	codename=	"sovereign_nrobot"
+				alignment=	"DestructiveOrder"
+	/>
+
+	<ShipClass	codename=			"ship_supreme_ego"
+				name=				"Supreme-ego-class fighter"
+				thrust=				"0.2"
+				maxSpeed=			"15"
+
+				rotationAccel=		"3"
+				rotationDecel=		"6"
+				rotationMaxSpeed=	"4"
+
+				char=				"c"
+				foreground=			"LightGreen"
+		>
+	</ShipClass>
+	<StationType	codename="station_nrobot_castle"
+					name=		"NRobot castle"
+					sovereign=	"sovereign_nrobot"
+
+					hp=			"250"
+
+					char=		"N"
+					foreground="RedOrange"
+		>
+		<Segments>
+
+		</Segments>
+	</StationType>
+
+</Module>

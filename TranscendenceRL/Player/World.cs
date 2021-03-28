@@ -120,27 +120,21 @@ namespace TranscendenceRL {
             }
             tick++;
         }
-        public void UpdateActive(Dictionary<(int, int), ColoredGlyph> tiles) {
-            UpdateSpace();
-            foreach (var e in entities.all) {
-                e.Update();
 
+        public void PlaceTiles(Dictionary<(int, int), ColoredGlyph> tiles) {
+            Dictionary<(int, int), Entity> entity = new Dictionary<(int, int), Entity>();
+            foreach (var e in entities.all) {
                 var p = e.Position.RoundDown;
-                if (e.Tile != null && !tiles.ContainsKey(p)) {
+                if (e.Tile != null && (!entity.TryGetValue(p, out var en) || en is Segment)) {
                     tiles[p] = e.Tile;
                 }
             }
             foreach (var e in effects.all) {
-                e.Update();
                 var p = e.Position.RoundDown;
                 if (e.Tile != null && !tiles.ContainsKey(p)) {
                     tiles[p] = e.Tile;
                 }
             }
-            foreach (var e in events) {
-                e.Update();
-            }
-            tick++;
         }
     }
 }

@@ -21,11 +21,14 @@ namespace Graphics {
             this.tiles = new Dictionary<(int, int), ColoredGlyph>();
         }
         public override void Update(TimeSpan timeSpan) {
-            tiles.Clear();
+            
 
             World.UpdateAdded();
-            World.UpdateActive(tiles);
+            World.UpdateActive();
             World.UpdateRemoved();
+
+            tiles.Clear();
+            World.PlaceTiles(tiles);
         }
         public override void Render(TimeSpan drawTime) {
             this.Clear();

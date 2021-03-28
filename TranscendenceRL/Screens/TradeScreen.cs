@@ -93,26 +93,7 @@ namespace TranscendenceRL {
                         }
                         break;
                     case Keys.Enter:
-                        if (index != null) {
-                            if(!playerSide) {
-                                var item = from.ElementAt(index.Value);
-
-                                if (player.money < item.type.value) {
-                                    break;
-                                }
-                                player.money -= item.type.value;
-
-                                from.Remove(item);
-                                to.Add(item);
-
-                                if (from.Any()) {
-                                    index = Math.Min(index ?? 0, from.Count - 1);
-                                } else {
-                                    index = null;
-                                }
-                            }
-                            
-                        }
+                        Transact();
                         break;
                     case Keys.Escape:
                         var p = Parent;
@@ -125,20 +106,37 @@ namespace TranscendenceRL {
                         if (ch >= 'a' && ch <= 'z') {
                             var letterIndex = letterToIndex(ch);
                             if (letterIndex < from.Count) {
-                                var item = from.ElementAt(letterIndex);
-                                from.Remove(item);
-                                to.Add(item);
-
-                                if (from.Any()) {
-                                    index = Math.Min(index.Value, from.Count - 1);
-                                } else {
-                                    index = null;
-                                }
+                                index = letterIndex;
+                                Transact();
                             }
                         }
                         break;
                 }
             }
+            void Transact() {
+
+                ref int? index = ref (playerSide ? ref playerIndex : ref dockedIndex);
+                if (index != null) {
+                    if (!playerSide) {
+                        var item = from.ElementAt(index.Value);
+
+                        if (player.money < item.type.value) {
+                            return;
+                        }
+                        player.money -= item.type.value;
+
+                        from.Remove(item);
+                        to.Add(item);
+
+                        if (from.Any()) {
+                            index = Math.Min(index ?? 0, from.Count - 1);
+                        } else {
+                            index = null;
+                        }
+                    }
+                }
+            }
+
             return base.ProcessKeyboard(keyboard);
         }
         public override void Render(TimeSpan delta) {
