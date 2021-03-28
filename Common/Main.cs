@@ -697,6 +697,14 @@ namespace Common {
 				alpha: setAlpha
 				);
 		}
+
+		public static ColoredGlyph PremultiplySet(this ColoredGlyph cg, int alpha) {
+			if(alpha == 255) {
+				return cg;
+            }
+			return new ColoredGlyph(cg.Foreground.PremultiplySet(alpha), cg.Background.PremultiplySet(alpha), cg.Glyph);
+        }
+
 		//https://stackoverflow.com/a/28037434
 		public static double AngleDiff(double angle1, double angle2) {
 			double diff = (angle2 - angle1 + 180) % 360 - 180;
