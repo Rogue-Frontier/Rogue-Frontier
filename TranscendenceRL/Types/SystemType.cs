@@ -53,6 +53,10 @@ namespace TranscendenceRL {
                     return new SystemOrbital(e);
                 case "Planet":
                     return new SystemPlanet(e);
+                case "Asteroids":
+                    return new SystemAsteroids(e);
+                case "Nebula":
+                    return new SystemNebula(e);
                 case "Sibling":
                     return new SystemSibling(e);
                 case "Star":
@@ -72,7 +76,9 @@ namespace TranscendenceRL {
         public SystemGroup() { }
         public SystemGroup(XElement e) {
             radius = e.TryAttributeIntOptional(nameof(radius));
-            subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
+            subelements = e.Elements()
+                .Select(sub => SSystemElement.Create(sub))
+                .ToList();
         }
         public void Generate(LocationContext lc, TypeCollection tc) {
             var sub_lc = new LocationContext() {
@@ -180,22 +186,13 @@ namespace TranscendenceRL {
             lc.world.AddEntity(new Marker(name, lc.pos));
         }
     }
-    public class SystemNebula : SystemElement {
-        public SystemNebula() { }
-        public SystemNebula(XElement e) {
-
-        }
-        public void Generate(LocationContext lc, TypeCollection tc) {
-
-        }
-    }
     public class SystemPlanet : SystemElement {
         public int radius;
         public bool showOrbit;
         public SystemPlanet() { }
         public SystemPlanet(XElement e) {
             radius = e.ExpectAttributeInt(nameof(radius));
-            showOrbit = e.TryAttributeBool(nameof(showOrbit), false);
+            showOrbit = e.TryAttributeBool(nameof(showOrbit), true);
         }
         public void Generate(LocationContext lc, TypeCollection tc) {
             var diameter = radius * 2;
@@ -247,6 +244,63 @@ namespace TranscendenceRL {
             */
         }
     }
+
+
+    public class SystemAsteroids : SystemElement {
+        public double angle;
+        public int size;
+        public SystemAsteroids() { }
+        public SystemAsteroids(XElement e) {
+            angle = e.ExpectAttributeDouble(nameof(angle)) * Math.PI / 180;
+            size = e.ExpectAttributeInt(nameof(size));
+        }
+        public void Generate(LocationContext lc, TypeCollection tc) {
+            double arc = lc.radius * angle;
+            double halfArc = arc / 2;
+            for (double i = -halfArc; i < halfArc; i++) {
+
+                int localSize = (int)(size * Math.Abs(Math.Abs(i) - halfArc) / halfArc);
+
+                for(int j = -localSize / 2; j < localSize / 2; j++) {
+                    if(lc.world.karma.NextDouble() > 0.3) {
+                        continue;
+                    }
+
+                    var p = XY.Polar(lc.angle + i / lc.radius, lc.radius + j);
+
+                    var tile = new ColoredGlyph(Color.Gray, Color.Black, '%');
+                    lc.world.backdrop.planets.tiles[p] = tile;
+                }
+            }
+        }
+    }
+    public class SystemNebula : SystemElement {
+        public double angle;
+        public int size;
+        public SystemNebula() { }
+        public SystemNebula(XElement e) {
+            angle = e.ExpectAttributeDouble(nameof(angle)) * Math.PI / 180;
+            size = e.ExpectAttributeInt(nameof(size));
+        }
+        public void Generate(LocationContext lc, TypeCollection tc) {
+            double arc = lc.radius * angle;
+            double halfArc = arc / 2;
+            for (double i = -halfArc; i < halfArc; i += 0.1) {
+
+                int localSize = (int)(lc.world.karma.NextDouble() * 2 * size * Math.Abs(Math.Abs(i) - halfArc) / halfArc);
+
+                for (int j = -localSize / 2; j < localSize / 2; j++) {
+                    
+
+                    var p = XY.Polar(lc.angle + i / lc.radius, lc.radius + j);
+
+                    var tile = new ColoredGlyph(Color.Violet.SetAlpha((byte)(64 + 128 * lc.world.karma.NextDouble())), Color.Transparent, '%');
+                    lc.world.backdrop.nebulae.tiles[p] = tile;
+                }
+            }
+        }
+    }
+
     public class SystemSibling : SystemElement {
         public int arcInc;
         public int angleInc;

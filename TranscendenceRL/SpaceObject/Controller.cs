@@ -1,5 +1,6 @@
 ﻿using Common;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Helper = Common.Main;
@@ -280,12 +281,15 @@ namespace TranscendenceRL {
                 return;
             }
 
+            List<SpaceObject> except = new List<SpaceObject> {
+                owner, patrolTarget
+            };
             var target = owner.World.entities.all
                 .OfType<SpaceObject>()
                 .Where(p => (patrolTarget.Position - p.Position).Magnitude < attackRadius)
                 .Where(p => (owner.Position - p.Position).Magnitude < 50)
-                .Where(o => !o.IsEqual(owner))
-                .Where(o => patrolTarget.CanTarget(o))
+                .Where(o => owner.IsEnemy(o))
+                .Where(o => !SSpaceObject.IsEqual(o, owner) && !SSpaceObject.IsEqual(o, patrolTarget))
                 .GetRandomOrDefault(owner.destiny);
 
             if (target != null) {

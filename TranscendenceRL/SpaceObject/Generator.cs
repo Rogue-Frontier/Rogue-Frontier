@@ -37,6 +37,7 @@ namespace TranscendenceRL {
 		public int count;
 		public string codename;
 		public IOrderDesc orderDesc;
+		public string sovereign;
 		public ShipEntry() { }
 		public ShipEntry(XElement e) {
 			this.count = e.TryAttributeInt(nameof(count), 1);
@@ -48,18 +49,24 @@ namespace TranscendenceRL {
 				case "patrol":
 					orderDesc = new PatrolDesc(e);
 					break;
-            }
+			}
+			this.sovereign = e.TryAttribute(nameof(sovereign), "");
 		}
 		public List<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
 			if (tc.Lookup<ShipClass>(codename, out var shipClass)) {
 				var pd = orderDesc as PatrolDesc;
+
+				Sovereign sov = owner.Sovereign;
+				if (sovereign.Any()) {
+					tc.Lookup(sovereign, out sov);
+				}
 
 				return new List<AIShip>(
 					Enumerable.Range(0, count)
 					.Select(i => new AIShip(new BaseShip(
 							owner.World,
 							shipClass,
-							owner.Sovereign,
+							sov,
 							pd != null ?
 								owner.Position + XY.Polar(
 									Math.PI * 2 * i / count,
@@ -79,6 +86,10 @@ namespace TranscendenceRL {
 		public void ValidateEager(TypeCollection tc) {
 			if(!tc.Lookup<ShipClass>(codename, out var shipClass)) {
 				throw new Exception($"Invalid ShipClass type {codename}");
+			}
+			if(sovereign.Any() && !tc.Lookup<Sovereign>(sovereign, out var sov)) {
+
+				throw new Exception($"Invalid Sovereign type {sovereign}");
 			}
 		}
 
