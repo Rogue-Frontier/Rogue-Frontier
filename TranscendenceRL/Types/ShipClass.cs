@@ -24,6 +24,11 @@ namespace TranscendenceRL {
 				throw new Exception("Ship must be able to decelerate rotation");
             }
         }
+		public ShipClass() {
+
+			items = new ItemList();
+			devices = new DeviceList();
+		}
 		public void Initialize(TypeCollection collection, XElement e) {
 			codename = e.ExpectAttribute("codename");
 			name = e.ExpectAttribute("name");
@@ -42,13 +47,9 @@ namespace TranscendenceRL {
 			}
 			if(e.HasElement("Devices", out XElement xmlDevices)) {
 				devices = new DeviceList(xmlDevices);
-			} else {
-				devices = new DeviceList();
 			}
 			if(e.HasElement("Items", out XElement xmlItems)) {
 				items = new ItemList(xmlItems);
-            } else {
-				items = new ItemList();
             }
 			if(e.HasElement("PlayerSettings", out XElement xmlPlayerSettings)) {
 				playerSettings = new PlayerSettings(xmlPlayerSettings);

@@ -101,10 +101,10 @@ namespace TranscendenceRL {
             this.Active = true;
             
             this.Items = new HashSet<Item>();
-            this.Items.UnionWith(shipClass.items.Generate(world.types));
+            this.Items.UnionWith(shipClass.items?.Generate(world.types));
 
             this.Devices = new DeviceSystem();
-            this.Devices.Install(shipClass.devices.Generate(world.types));
+            this.Devices.Install(shipClass.devices?.Generate(world.types));
 
             this.DamageSystem = shipClass.damageDesc.Create(this);
             this.destiny = new Rand(world.karma.NextInteger());
