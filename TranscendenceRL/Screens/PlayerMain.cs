@@ -113,7 +113,7 @@ namespace TranscendenceRL {
 			playerShip.mortalTime = 0;
 
 			//Force exit any scenes
-			sceneContainer.Clear();
+			sceneContainer.Children.Clear();
 
 			//Force exit power menu
 			powerMenu.IsVisible = false;
@@ -205,6 +205,7 @@ namespace TranscendenceRL {
 			if (playerShip.Dock?.justDocked == true && playerShip.Dock.target is Dockable d) {
 
 				Console scene = story.GetScene(this, d, playerShip) ?? d.GetScene(this, playerShip);
+				
 				if (scene != null) {
 					playerShip.Dock = null;
 					sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });

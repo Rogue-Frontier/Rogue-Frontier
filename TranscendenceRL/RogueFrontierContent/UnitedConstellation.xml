@@ -1,7 +1,7 @@
 ﻿<Module>
 	<Sovereign codename="sovereign_constellation"
 			   alignment="ConstructiveOrder"
-	></Sovereign>
+		/>
 	<StationType	codename="station_constellation_astra"
 					name=		"Constellation Astra"
 					sovereign=	"sovereign_constellation"

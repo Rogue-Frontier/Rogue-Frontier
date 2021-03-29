@@ -588,15 +588,24 @@ Use your starship's megamap to look for it.""",
             } else {
                 if (d is Station source) {
                     string codename = source.StationType.codename;
-                    if (codename == "station_constellation_astra") {
-                        return ConstellationAstra(prev, source, playerShip);
-                    } else if(codename == "station_constellation_habitat") {
-                        return ConstellationHabitat(prev, source, playerShip);
+
+
+                    Dictionary<string, GetDockScreen> funcMap = new Dictionary<string, GetDockScreen> {
+                        {"station_constellation_astra", ConstellationAstra},
+                        {"station_constellation_habitat", ConstellationHabitat },
+
+                        {"station_orion_warlords_camp", OrionWarlordsCamp }
+
+                    };
+                    if(funcMap.TryGetValue(codename, out var f)) {
+                        return f(prev, source, playerShip);
                     }
                 }
             }
             return null;
         }
+
+        delegate Console GetDockScreen(Console prev, Station source, PlayerShip playerShip);
         public Console ConstellationHabitat(Console prev, Station source, PlayerShip playerShip) {
             Console Intro(Console prev) {
                 return new TextScene(prev,
@@ -764,6 +773,19 @@ There is a modest degree of artificial gravity here.",
                 });
             }
             Console Trade(Console from) => new TradeScene(from, playerShip, source);
+            return Intro();
+        }
+        public Console OrionWarlordsCamp(Console prev, Station source, PlayerShip playerShip) {
+            Console Intro() {
+                return new TextScene(prev,
+@"You are docked at an Orion Warlords Camp.",
+                    new List<SceneOption>() {
+                        new SceneOption() {escape = true,
+                            key = 'U', name = "Undock",
+                            next = null
+                        }
+                });
+            }
             return Intro();
         }
     }

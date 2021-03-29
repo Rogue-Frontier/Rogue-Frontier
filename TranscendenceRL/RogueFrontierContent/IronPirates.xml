@@ -69,7 +69,7 @@
 				rotationMaxSpeed=	"4"
 
 				char=				"i"
-				foreground=			"Yellow"
+				foreground=			"Gray"
 		>
 		<Devices>
 			<Weapon	codename="item_iron_laser"/>
@@ -77,10 +77,26 @@
 		<LayeredArmorSystem>
 			<Armor	codename="item_ironclad_plate"/>
 		</LayeredArmorSystem>
-		<PlayerSettings
-			startingClass=  "false"
-			description=    ""
-            />
+	</ShipClass>
+
+	<ShipClass	codename=			"ship_iron_privateer"
+				name=				"Privateer-class gunboat"
+				thrust=				"0.2"
+				maxSpeed=			"15"
+
+				rotationAccel=		"3"
+				rotationDecel=		"6"
+				rotationMaxSpeed=	"4"
+
+				char=				"I"
+				foreground=			"Yellow"
+		>
+		<Devices>
+			<Weapon	codename="item_iron_cannon"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor	codename="item_blockade_plate"/>
+		</LayeredArmorSystem>
 	</ShipClass>
 	<ShipClass	codename=			"ship_iron_embargo"
 				name=				"Embargo-class missileship"
@@ -97,26 +113,9 @@
 		>
 		<Devices>
 			<Weapon	codename="item_iron_cannon"/>
-		</Devices>
-		<LayeredArmorSystem>
-			<Armor	codename="item_blockade_plate"/>
-		</LayeredArmorSystem>
-	</ShipClass>
 
-	<ShipClass	codename=			"ship_iron_privateer"
-				name=				"Privateer-class gunship"
-				thrust=				"0.2"
-				maxSpeed=			"15"
 
-				rotationAccel=		"3"
-				rotationDecel=		"6"
-				rotationMaxSpeed=	"4"
-
-				char=				"I"
-				foreground=			"Gray"
-		>
-		<Devices>
-			<Weapon	codename="item_iron_cannon"/>
+			<Weapon	codename="item_iron_laser" omnidirectional="true"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="item_blockade_plate"/>
@@ -166,6 +165,7 @@
 		</Segments>
 		<Guards>
 			<Ship	count="5"	codename="ship_iron_gunboat"/>
+			<Ship	count="2"	codename="ship_iron_embargo" order="patrol" patrolRadius="25"/>
 		</Guards>
 		<Weapons>
 			<Weapon	codename="item_iron_laser"/>

@@ -4,7 +4,7 @@ using System.Linq;
 
 using Helper = Common.Main;
 namespace TranscendenceRL {
-    public interface Order {
+    public interface IOrder {
         bool Active { get; }
         void Update(AIShip owner);
     }
@@ -12,7 +12,7 @@ namespace TranscendenceRL {
     public interface ICombatOrder {
         public bool CanTarget(SpaceObject other) => false;
     }
-    public class EscortOrder : Order, ICombatOrder {
+    public class EscortOrder : IOrder, ICombatOrder {
         public SpaceObject attacker;
         public IShip target;
         public XY offset;
@@ -36,7 +36,7 @@ namespace TranscendenceRL {
         }
         public bool Active => target.Active;
     }
-    public class FollowOrder : Order {
+    public class FollowOrder : IOrder {
         public IShip target;
         public XY offset;
         public FollowOrder(IShip target, XY offset) {
@@ -50,7 +50,7 @@ namespace TranscendenceRL {
         }
         public bool Active => target.Active;
     }
-    public class ApproachOrder : Order {
+    public class ApproachOrder : IOrder {
         public IShip target;
         public XY offset;
         public ApproachOrder(IShip target, XY offset) {
@@ -125,23 +125,23 @@ namespace TranscendenceRL {
         }
         public bool Active => true;
     }
-    public class GuardOrder : Order, ICombatOrder {
+    public class GuardOrder : IOrder, ICombatOrder {
         public SpaceObject guardTarget;
-        public SpaceObject attackTarget;
+        public AttackOrder attackOrder;
         public int attackTime;
         public int lazyTicks;
         public GuardOrder(SpaceObject guard) {
             this.guardTarget = guard;
-            attackTarget = null;
+            attackOrder = null;
             attackTime = 0;
         }
 
-        public bool CanTarget(SpaceObject other) => other == attackTarget;
+        public bool CanTarget(SpaceObject other) => other == attackOrder?.target;
         public void Update(AIShip owner) {
             if (attackTime > 0) {
                 attackTime--;
                 if (attackTime == 0) {
-                    attackTarget = null;
+                    attackOrder = null;
                 }
             }
 
@@ -152,27 +152,31 @@ namespace TranscendenceRL {
                     return;
                 }
             }
-            //Otherwise find enemy to attack
-            if (attackTarget?.Active != true) {
-                attackTarget = owner.World.entities.GetAll(p => (guardTarget.Position - p).Magnitude < 20).OfType<SpaceObject>().Where(o => !o.IsEqual(owner) && guardTarget.CanTarget(o)).GetRandomOrDefault(owner.destiny);
+
+
+            if (attackOrder?.target?.Active == true) {
+                attackOrder.Update(owner);
+                return;
             }
 
-            if (attackTarget != null) {
-                //Attack now
-                new AttackOrder(attackTarget).Update(owner);
-            } else {
-                if((owner.Position - guardTarget.Position).Magnitude < 6) {
-                    //If no enemy in range of station, dock at station
+            var target = owner.World.entities.GetAll(p => (guardTarget.Position - p).Magnitude < 20).OfType<SpaceObject>().Where(o => !o.IsEqual(owner) && guardTarget.CanTarget(o)).GetRandomOrDefault(owner.destiny);
 
-                    owner.Dock = new Docking(guardTarget);
-                } else {
-                    new ApproachOrbitOrder(guardTarget).Update(owner);
-                }
+            if (target != null) {
+                attackOrder = new AttackOrder(target);
+                attackOrder.Update(owner);
+                return;
+            }
+            
+            if ((owner.Position - guardTarget.Position).Magnitude < 6) {
+                //If no enemy in range of station, dock at station
+                owner.Dock = new Docking(guardTarget);
+            } else {
+                new ApproachOrbitOrder(guardTarget).Update(owner);
             }
         }
         public bool Active => guardTarget.Active;
     }
-    public class AttackAllOrder : Order {
+    public class AttackAllOrder : IOrder, ICombatOrder {
         public int sleepTicks;
         public SpaceObject target;
         public bool CanTarget(SpaceObject other) => other == target;
@@ -199,7 +203,7 @@ namespace TranscendenceRL {
         }
         public bool Active => true;
     }
-    public class AttackOrder : Order {
+    public class AttackOrder : IOrder, ICombatOrder {
         public SpaceObject target;
         public Weapon weapon;
         public AttackOrder(SpaceObject target) {
@@ -259,7 +263,60 @@ namespace TranscendenceRL {
         public bool Active => target.Active && weapon != null;
     }
 
-    public class SnipeOrder : Order, ICombatOrder {
+    public class PatrolOrder : IOrder {
+        public SpaceObject patrolTarget;
+        public double patrolRadius;
+        public double attackRadius;
+        public AttackOrder attackOrder;
+        
+        public PatrolOrder(SpaceObject patrolTarget, double patrolRadius) {
+            this.patrolTarget = patrolTarget;
+            this.patrolRadius = patrolRadius;
+            this.attackRadius = 2 * patrolRadius;
+        }
+        public void Update(AIShip owner) {
+            if(attackOrder?.target?.Active == true) {
+                attackOrder.Update(owner);
+                return;
+            }
+
+            var target = owner.World.entities.all
+                .OfType<SpaceObject>()
+                .Where(p => (patrolTarget.Position - p.Position).Magnitude < attackRadius)
+                .Where(p => (owner.Position - p.Position).Magnitude < 50)
+                .Where(o => !o.IsEqual(owner))
+                .Where(o => patrolTarget.CanTarget(o))
+                .GetRandomOrDefault(owner.destiny);
+
+            if (target != null) {
+                attackOrder = new AttackOrder(target);
+                attackOrder.Update(owner);
+                return;
+            }
+
+            var offsetFromTarget = (owner.Position - patrolTarget.Position);
+            var dist = offsetFromTarget.Magnitude;
+
+            var deltaDist = patrolRadius - dist;
+
+            var nextDist = Math.Abs(deltaDist) > 10 ?
+                dist + Math.Sign(deltaDist) * 10 :
+                patrolRadius;
+
+            var nextOffset = offsetFromTarget
+                .Rotate(2 * Math.PI / 16)
+                .WithMagnitude(nextDist);
+
+            var deltaOffset = nextOffset - offsetFromTarget;
+
+            var Face = new FaceOrder(deltaOffset.Angle);
+            Face.Update(owner);
+            owner.SetThrusting(true);
+        }
+        public bool Active => patrolTarget.Active;
+    }
+
+    public class SnipeOrder : IOrder, ICombatOrder {
         public SpaceObject target;
         public Weapon weapon;
         public SnipeOrder(SpaceObject target) {
@@ -284,7 +341,7 @@ namespace TranscendenceRL {
         }
         public bool Active => target.Active && weapon != null;
     }
-    public class ApproachOrbitOrder : Order {
+    public class ApproachOrbitOrder : IOrder {
         public SpaceObject target;
         public ApproachOrbitOrder(SpaceObject target) {
             this.target = target;
@@ -325,7 +382,7 @@ namespace TranscendenceRL {
         public bool Active => true;
     }
 
-    public class AimOnceOrder : Order {
+    public class AimOnceOrder : IOrder {
         public AimOrder order;
         public AimOnceOrder(BaseShip owner, BaseShip target, double missileSpeed) {
             this.order = new AimOrder(target, missileSpeed);
@@ -338,7 +395,7 @@ namespace TranscendenceRL {
 
         public bool Active { get; private set; }
     }
-    public class AimOrder : Order {
+    public class AimOrder : IOrder {
         public SpaceObject target;
         public double missileSpeed;
         public double GetTargetRads(AIShip owner) => Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, missileSpeed, out var _);
@@ -361,7 +418,7 @@ namespace TranscendenceRL {
             }
         }
     }
-    public class FaceOrder : Order {
+    public class FaceOrder : IOrder {
         public double targetRads;
         public FaceOrder(double targetRads) {
             this.targetRads = targetRads;
