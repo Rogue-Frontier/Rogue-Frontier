@@ -455,18 +455,42 @@ namespace TranscendenceRL {
         }
         public override void Render(TimeSpan delta) {
 			this.Clear();
+
 			if (viewScale > 1) {
 				XY screenSize = new XY(Width, Height);
 				XY screenCenter = screenSize / 2;
 				for (int x = 0; x < Width; x++) {
 					for (int y = 0; y < Height; y++) {
-						var cg = BackVoid.GetTileFixed(new XY(x, y));
-
 						var offset = new XY((x - screenCenter.x) * viewScale, (y - screenCenter.y) * viewScale).Rotate(-camera.rotation);
 
 						var pos = player.Position + offset;
+
+						bool IsVisible(ColoredGlyph cg) {
+							return cg.GlyphCharacter != ' ' || cg.Background != Color.Transparent;
+
+						}
+						void Render(ColoredGlyph cg) {
+							var glyph = cg.Glyph;
+							var background = cg.Background.PremultiplySet(alpha);
+							var foreground = cg.Foreground.PremultiplySet(alpha);
+							this.SetCellAppearance(x, Height - y, new ColoredGlyph(foreground, background, glyph));
+						}
+
+						var environment = player.World.backdrop.planets.GetTile(pos.Snap(viewScale), XY.Zero);
+						if (IsVisible(environment)) {
+							Render(environment);
+							continue;
+						}
+
+						environment = player.World.backdrop.nebulae.GetTile(pos.Snap(viewScale), XY.Zero);
+						if (IsVisible(environment)) {
+							Render(environment);
+							continue;
+						}
+
 						var starlight = player.World.backdrop.starlight.GetTile(pos).PremultiplySet(255);
 
+						var cg = BackVoid.GetTileFixed(new XY(x, y));
 						//Make sure to clone this so that we don't apply alpha changes to the original
 						var glyph = cg.Glyph;
 						var background = cg.Background.BlendPremultiply(starlight, alpha);

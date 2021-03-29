@@ -89,4 +89,34 @@
 		<HeroImage path="RogueFrontierContent/ConstellationAstra.asc"/>
 		-->
 	</StationType>
+
+	<StationType	codename="station_raisu"
+				name=		"Constellation habitat Raisu"
+				sovereign=	"sovereign_constellation"
+
+				hp=			"200"
+
+				char=		"H"
+				foreground="BB6633"
+		>
+		<Segments>
+			<Point offsetX="0"
+				   offsetY="-1"
+				   char="#"
+				   foreground="White"/>
+			<Point offsetX="0"
+				   offsetY="1"
+				   char="#"
+				   foreground="White"/>
+		</Segments>
+
+		<Guards>
+			<Ship	count="6"	codename="ship_orion_raider" sovereign="svOrionWarlords" order="patrol" patrolRadius="20"/>
+		</Guards>
+		<Weapons>
+		</Weapons>
+		<!--
+		<HeroImage path="RogueFrontierContent/ConstellationAstra.asc"/>
+		-->
+	</StationType>
 </Module>

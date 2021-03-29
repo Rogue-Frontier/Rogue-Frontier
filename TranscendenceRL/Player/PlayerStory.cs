@@ -575,6 +575,7 @@ Use your starship's megamap to look for it.""",
         public HashSet<IPlayerInteraction> mainInteractions;
         public HashSet<IPlayerInteraction> secondaryInteractions;
 
+
         public PlayerStory() {
             mainInteractions = new HashSet<IPlayerInteraction>();
             mainInteractions.Add(new DaughtersIntro(this));
@@ -593,7 +594,7 @@ Use your starship's megamap to look for it.""",
                     Dictionary<string, GetDockScreen> funcMap = new Dictionary<string, GetDockScreen> {
                         {"station_constellation_astra", ConstellationAstra},
                         {"station_constellation_habitat", ConstellationHabitat },
-
+                        {"station_raisu", Raisu },
                         {"station_orion_warlords_camp", OrionWarlordsCamp }
 
                     };
@@ -773,6 +774,45 @@ There is a modest degree of artificial gravity here.",
                 });
             }
             Console Trade(Console from) => new TradeScene(from, playerShip, source);
+            return Intro();
+        }
+        public Console Raisu(Console prev, Station source, PlayerShip playerShip) {
+            Console Intro() {
+                var nearby = source.World.entities.all
+                    .OfType<AIShip>()
+                    .Where(s => s.controller is PatrolOrder p 
+                             && p.patrolTarget == source);
+                if (nearby.Any()) {
+                    return new TextScene(prev,
+@"You are docked at Raisu station, though
+nobody attends to the docking bay right now.",
+                       new List<SceneOption>() {
+                           new SceneOption() {escape = true,
+                               key = 'U', name = "Undock",
+                               next = null
+                           }
+                   });
+                } else {
+
+                    return new TextScene(prev,
+    @"You are docked at Raisu station.",
+                        new List<SceneOption>() {
+                            new SceneOption() {escape = true,
+                                key = 'M', name = "Meeting Hall",
+                                next = MeetingHall
+                            },
+                            new SceneOption() {escape = true,
+                                key = 'U', name = "Undock",
+                                next = null
+                            }
+                    });
+
+                    Console MeetingHall(Console prev) {
+                        return null;
+                    }
+                }
+
+            }
             return Intro();
         }
         public Console OrionWarlordsCamp(Console prev, Station source, PlayerShip playerShip) {

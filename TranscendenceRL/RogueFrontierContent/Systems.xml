@@ -11,6 +11,15 @@
 
 				<Station	codename="station_iron_pirates_hideout"/>
 			</Orbital>
+
+			<Orbital radius="600"
+					 angle="random">
+				<Group>
+					<Asteroids angle="60" size="20"/>
+					<Station codename="station_raisu"/>
+				</Group>
+			</Orbital>
+
 			<Orbital radius="500"
 					 angle="random">
 

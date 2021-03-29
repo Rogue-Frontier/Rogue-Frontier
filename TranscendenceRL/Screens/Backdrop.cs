@@ -13,6 +13,7 @@ namespace TranscendenceRL {
         public CompositeColorLayer starlight;
         public GridLayer planets;
         public GridLayer orbits;
+        public GridLayer nebulae;
         public Backdrop() {
             Rand r = new Rand();
             int layerCount = 5;
@@ -23,6 +24,7 @@ namespace TranscendenceRL {
             }
             planets = new GridLayer(1);
             orbits = new GridLayer(1);
+            nebulae = new GridLayer(1);
             starlight = new CompositeColorLayer();
         }
         public Color GetBackgroundFixed(XY point) => GetBackground(point, XY.Zero);
@@ -50,12 +52,15 @@ namespace TranscendenceRL {
                 }
             }
             void BlendBack(Color back) {
-                b = b.Premultiply().Blend(back);
+                if (back.A > 0) {
+                    b = b.Premultiply().Blend(back);
+                }
             }
 
             BlendBack(starlight.GetTile(point));
             Blend(orbits.GetTile(point, camera));
             Blend(planets.GetTile(point, camera));
+            Blend(nebulae.GetTile(point, camera));
             return new ColoredGlyph(f, b, g);
         }
         public ColoredGlyph GetTileFixed(XY point) => GetTile(point, XY.Zero);

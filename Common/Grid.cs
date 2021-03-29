@@ -80,6 +80,9 @@ namespace Common {
 		public static XY Polar(double angle, double magnitude = 1) {
 			return new XY(Math.Cos(angle) * magnitude, Math.Sin(angle) * magnitude);
 		}
+		public XY Snap(int gridSize) => (this / gridSize).RoundDown * gridSize;
+
+		public XY Snap(double gridSize) => (this / gridSize).RoundDown * gridSize;
 
 		public static implicit operator (int, int)(XY p) => (p.xi, p.yi);
 		public static implicit operator (double, double)(XY p) => (p.x, p.y);
