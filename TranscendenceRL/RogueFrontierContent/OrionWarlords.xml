@@ -3,7 +3,7 @@
 				alignment=	"DestructiveOrder"
 	/>
 	<ItemType	codename=	"itOrionBolter"
-				name=		"Orion bow"
+				name=		"Orion bolter"
 				mass=		"3000"
 				level=		"2"
 

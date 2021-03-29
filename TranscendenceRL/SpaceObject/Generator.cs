@@ -6,10 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using static TranscendenceRL.Weapon;
 
 namespace TranscendenceRL {
 	public interface ShipGenerator {
-		List<BaseShip> Generate(TypeCollection tc, SpaceObject owner);
+		List<AIShip> Generate(TypeCollection tc, SpaceObject owner);
 	}
 	public class ShipList : ShipGenerator {
 		List<ShipGenerator> generators;
@@ -26,8 +27,8 @@ namespace TranscendenceRL {
 				}
 			}
 		}
-		public List<BaseShip> Generate(TypeCollection tc, SpaceObject owner) {
-			var result = new List<BaseShip>();
+		public List<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
+			var result = new List<AIShip>();
 			generators.ForEach(g => result.AddRange(g.Generate(tc, owner)));
 			return result;
 		}
@@ -35,15 +36,39 @@ namespace TranscendenceRL {
 	public class ShipEntry : ShipGenerator {
 		public int count;
 		public string codename;
+		public IOrderDesc orderDesc;
 		public ShipEntry() { }
 		public ShipEntry(XElement e) {
 			this.count = e.TryAttributeInt(nameof(count), 1);
 			this.codename = e.ExpectAttribute(nameof(codename));
+			switch(e.TryAttribute("order", "guard")) {
+				case "guard":
+					orderDesc = new GuardDesc();
+					break;
+				case "patrol":
+					orderDesc = new PatrolDesc(e);
+					break;
+            }
 		}
-		public List<BaseShip> Generate(TypeCollection tc, SpaceObject owner) {
+		public List<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
 			if (tc.Lookup<ShipClass>(codename, out var shipClass)) {
-				return new List<BaseShip>(Enumerable.Range(0, count).Select(i => 
-						new BaseShip(owner.World, shipClass, owner.Sovereign, owner.Position)));
+				var pd = orderDesc as PatrolDesc;
+
+				return new List<AIShip>(
+					Enumerable.Range(0, count)
+					.Select(i => new AIShip(new BaseShip(
+							owner.World,
+							shipClass,
+							owner.Sovereign,
+							pd != null ?
+								owner.Position + XY.Polar(
+									Math.PI * 2 * i / count,
+									pd.patrolRadius) :
+								owner.Position
+						),
+						orderDesc.CreateOrder(owner)
+						))
+					);
 
 
 			} else {
@@ -55,6 +80,20 @@ namespace TranscendenceRL {
 			if(!tc.Lookup<ShipClass>(codename, out var shipClass)) {
 				throw new Exception($"Invalid ShipClass type {codename}");
 			}
+		}
+
+		public interface IOrderDesc {
+			IOrder CreateOrder(SpaceObject owner);
+        }
+		public class GuardDesc : IOrderDesc {
+			public IOrder CreateOrder(SpaceObject owner) => new GuardOrder(owner);
+        }
+		public class PatrolDesc : IOrderDesc {
+			public int patrolRadius;
+			public PatrolDesc(XElement e) {
+				patrolRadius = e.ExpectAttributeInt("patrolRadius");
+            }
+			public IOrder CreateOrder(SpaceObject owner) => new PatrolOrder(owner, patrolRadius);
 		}
 	}
 
@@ -278,13 +317,18 @@ namespace TranscendenceRL {
 	}
 	class WeaponEntry : DeviceGenerator, WeaponGenerator {
 		public string codename;
+		public bool omnidirectional;
 		public WeaponEntry(XElement e) {
 			this.codename = e.ExpectAttribute("codename");
+			this.omnidirectional = e.TryAttributeBool(nameof(omnidirectional));
 		}
 		List<Weapon> WeaponGenerator.Generate(TypeCollection tc) {
 			var type = tc.Lookup<ItemType>(codename);
 			var item = new Item(type);
 			if (item.InstallWeapon() != null) {
+				if(omnidirectional) {
+					item.weapon.aiming = new Omnidirectional(item.weapon);
+                }
 				return new List<Weapon> { item.weapon };
 			} else {
 				throw new Exception($"Expected <ItemType> type with <Weapon> desc: {codename}");

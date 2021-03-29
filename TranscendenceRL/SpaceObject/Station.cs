@@ -101,12 +101,9 @@ namespace TranscendenceRL {
                 //Suppose we should pass in the owner object
                 var generated = StationType.guards.Generate(World.types, this);
                 foreach(var guard in generated) {
-                    //Add the order
-                    var ship = new AIShip(guard, new GuardOrder(this));
-
-                    guards.Add(ship);
-                    World.AddEntity(ship);
-                    World.AddEffect(new Heading(ship));
+                    guards.Add(guard);
+                    World.AddEntity(guard);
+                    World.AddEffect(new Heading(guard));
                 }
             }
         }
@@ -128,7 +125,7 @@ namespace TranscendenceRL {
                              select (GuardOrder)guard.controller;
                 foreach(var order in guards) {
                     order.attackTime = 300;
-                    order.attackTarget = source;
+                    order.attackOrder = new AttackOrder(source);
                 }
             }
         }
@@ -157,7 +154,7 @@ namespace TranscendenceRL {
                              select (GuardOrder)guard.controller;
                 foreach (var order in guards) {
                     order.attackTime = -1;
-                    order.attackTarget = source;
+                    order.attackOrder = new AttackOrder(source);
                 }
             }
         }

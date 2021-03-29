@@ -88,6 +88,12 @@ namespace Common {
 		[JsonIgnore]
 		public bool IsZero => Magnitude < 0.1;
 		public XY Scale(XY origin, double scale) => (this - origin) * scale + origin;
+
+		public XY WithMagnitude(double magnitude) {
+			var a = Angle;
+			return new XY(Math.Cos(a) * magnitude, Math.Sin(a) * magnitude);
+		}
+
 		[JsonIgnore] 
 		public double MaxCoord => Math.Max(Math.Abs(x), Math.Abs(y));
 		[JsonIgnore] 

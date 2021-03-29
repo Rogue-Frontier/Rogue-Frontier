@@ -280,7 +280,7 @@ namespace TranscendenceRL {
         public DamageSystem DamageSystem => Ship.DamageSystem;
 
         public BaseShip Ship;
-        public Order controller;
+        public IOrder controller;
         public Docking Dock { get; set; }
         [JsonIgnore] 
         public Rand destiny => Ship.destiny;
@@ -292,7 +292,7 @@ namespace TranscendenceRL {
             Dock?.target, (controller as GuardOrder)?.guardTarget
         };
 
-        public AIShip(BaseShip ship, Order controller) {
+        public AIShip(BaseShip ship, IOrder controller) {
             this.Ship = ship;
             this.controller = controller;
         }
