@@ -14,7 +14,7 @@
 				damageHP="5"
 				lifetime="60"
 				char=	"."
-				foreground="PaleVioletRed"
+				foreground="OrangeRed"
 
 				initialCharges=	"300"
 			>
@@ -37,6 +37,9 @@
 						foreground=		"White"
 	
 						initialCharges=	"300"
+
+
+						maneuver="2"
 			>
 		</Weapon>
 	</ItemType>

@@ -27,15 +27,21 @@ namespace TranscendenceRL {
         [JsonProperty] 
         public XY Position { get; private set; }
         [JsonProperty] 
-        public XY Velocity { get; private set; }
+        public XY Velocity { get; set; }
+        [JsonProperty]
         public int lifetime { get; set; }
-        public bool Active => lifetime > 0;
         [JsonProperty] 
         public ColoredGlyph Tile { get; private set; }
+        [JsonProperty]
         public ITrail trail;
+        [JsonProperty]
         public FragmentDesc desc;
+        [JsonProperty]
+        public Maneuver maneuver;
 
-        public Projectile(SpaceObject Source, FragmentDesc desc, XY Position, XY Velocity) {
+        public bool Active => lifetime > 0;
+
+        public Projectile(SpaceObject Source, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
             this.Source = Source;
             this.World = Source.World;
             this.Tile = desc.effect.Glyph;
@@ -44,6 +50,7 @@ namespace TranscendenceRL {
             this.lifetime = desc.lifetime;
             this.desc = desc;
             this.trail = (ITrail)desc.trail ?? new SimpleTrail(desc.effect.Glyph);
+            this.maneuver = maneuver;
         }
         public void Update() {
             if(lifetime > 1) {
@@ -65,6 +72,7 @@ namespace TranscendenceRL {
                     exclude.UnionWith(s.avoidHit);
                 }
 
+                maneuver?.Update(this);
 
                 var dest = Position + Velocity / TranscendenceRL.TICKS_PER_SECOND;
                 var inc = Velocity.Normal * 0.5;
@@ -107,6 +115,29 @@ namespace TranscendenceRL {
                 }
             }
         }
+    }
+
+    public class Maneuver {
+        SpaceObject target;
+        double maneuver;
+        public Maneuver(SpaceObject target, double maneuver) {
+            this.target = target;
+            this.maneuver = maneuver;
+        }
+        public void Update(Projectile p) {
+            var vel = p.Velocity;
+            var offset = target.Position - p.Position;
+            var velLeft = vel.Rotate(maneuver);
+            var velRight = vel.Rotate(-maneuver);
+            var distLeft = (offset - velLeft).Magnitude;
+            var distRight = (offset - velRight).Magnitude;
+            if (distLeft < distRight) {
+                p.Velocity = velLeft;
+            } else if(distRight < distLeft) {
+                p.Velocity = velRight;
+            }
+        }
+
     }
 
 }

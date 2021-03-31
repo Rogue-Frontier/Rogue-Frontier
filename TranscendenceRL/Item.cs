@@ -91,6 +91,8 @@ namespace TranscendenceRL {
             }
             if (desc.omnidirectional) {
                 aiming = new Omnidirectional(this);
+            } else if(desc.maneuver > 0) {
+                aiming = new Targeting(this);
             }
             if(desc.initialCharges > -1) {
                 ammo = new ChargeAmmo(desc.initialCharges);
@@ -235,6 +237,8 @@ namespace TranscendenceRL {
             capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);
             capacitor?.Discharge();
 
+            Maneuver maneuver = desc.GetManeuver(aiming?.target);
+
             var shotDesc = desc.shot;
             double angleInterval = shotDesc.spreadAngle / shotDesc.count;
             for (int i = 0; i < shotDesc.count; i++) {
@@ -242,7 +246,8 @@ namespace TranscendenceRL {
                 Projectile p = new Projectile(source,
                     shotDesc,
                     source.Position + XY.Polar(angle),
-                    source.Velocity + XY.Polar(angle, missileSpeed));
+                    source.Velocity + XY.Polar(angle, missileSpeed),
+                    maneuver);
                 source.World.AddEntity(p);
             }
         }
@@ -320,6 +325,30 @@ namespace TranscendenceRL {
             }
             void ResetTarget() { }
             void UpdateTarget(SpaceObject target = null) {}
+        }
+        public class Targeting : Aiming {
+            public SpaceObject target { get; private set; }
+            public Weapon weapon;
+            public Targeting(Weapon weapon) {
+                this.weapon = weapon;
+            }
+            public void Update(SpaceObject owner, Func<SpaceObject, bool> filter) {
+                if (target?.Active != true
+                    || (owner.Position - target.Position).Magnitude > weapon.currentRange
+                    ) {
+                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.currentRange).OfType<SpaceObject>().FirstOrDefault(filter);
+                }
+            }
+            public void Update(Station owner) {
+                Update(owner, s => SStation.IsEnemy(owner, s));
+            }
+            public void Update(IShip owner) {
+                Update(owner, s => SShip.IsEnemy(owner, s));
+            }
+            public void ResetTarget() => target = null;
+            public void UpdateTarget(SpaceObject target = null) {
+                this.target = target ?? this.target;
+            }
         }
         public class Omnidirectional : Aiming {
             public Weapon weapon;

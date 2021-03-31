@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using static TranscendenceRL.Weapon;
 using Helper = Common.Main;
 namespace TranscendenceRL {
     public interface IOrder {
@@ -207,26 +207,46 @@ namespace TranscendenceRL {
     public class AttackOrder : IOrder, ICombatOrder {
         public SpaceObject target;
         public Weapon weapon;
+        public List<Weapon> omni;
         public AttackOrder(SpaceObject target) {
             this.target = target;
         }
         public bool CanTarget(SpaceObject other) => other == target;
+        void Set(Weapon w) => w.SetFiring(true, target);
         public void Update(AIShip owner) {
             if (weapon == null) {
-                weapon = owner.Devices.Weapons.FirstOrDefault();
-                if(weapon == null) {
+                var w = owner.Devices.Weapons;
+                weapon = w.FirstOrDefault(w => w.aiming == null) ?? w.FirstOrDefault();
+                if (weapon == null) {
+                    omni = null;
                     return;
                 }
+                omni = owner.Devices.Weapons
+                   .Where(w => w.aiming != null)
+                   .Where(w => w != weapon)
+                   .ToList();
             }
             bool RangeCheck() => (owner.Position - target.Position).Magnitude < weapon.currentRange;
-            void SetFiring() => weapon.SetFiring(true, target);
+            void SetFiring() {
+                Set(weapon);
+            }
 
             //Remove dock
             owner.Dock = null;
 
             var offset = (target.Position - owner.Position);
             var dist = offset.Magnitude;
-            if(dist < 10) {
+
+            if (owner.ShipClass.name == "Embargo-class missileship") {
+                int i = 0;
+            }
+            omni.ForEach(w => {
+                if (dist < w.currentRange) {
+                    Set(w);
+                }
+            });
+
+            if (dist < 10) {
                 //If we are too close, then move away
 
                 //Face away from the target
@@ -241,11 +261,13 @@ namespace TranscendenceRL {
                 var aim = new AimOrder(target, weapon.missileSpeed);
                 aim.Update(owner);
 
-                if(Math.Abs(aim.GetAngleDiff(owner)) < 10 && (owner.Velocity - target.Velocity).Magnitude < 5) {
+                if (Math.Abs(aim.GetAngleDiff(owner)) < 10
+                    && (owner.Velocity - target.Velocity).Magnitude < 5) {
                     owner.SetThrusting(true);
                 }
                 //Fire if we are close enough
-                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3) {
+                if (weapon.aiming != null
+                    || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3) {
                     SetFiring();
                 }
             } else {
@@ -255,7 +277,8 @@ namespace TranscendenceRL {
 
                 var aim = new AimOrder(target, weapon.missileSpeed);
                 //Fire if our angle is good enough
-                if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3 && RangeCheck()) {
+                if (weapon.desc.omnidirectional
+                    || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3 && RangeCheck()) {
                     SetFiring();
                 }
 

@@ -70,6 +70,8 @@ namespace TranscendenceRL {
         public int initialCharges;
         public ItemType ammoType;
 
+        public double maneuver;
+
         public int missileSpeed => shot.missileSpeed;
         public int damageType => shot.damageType;
         public int damageHP => shot.damageHP;
@@ -78,7 +80,7 @@ namespace TranscendenceRL {
         public int minRange => shot.missileSpeed * shot.lifetime / (TranscendenceRL.TICKS_PER_SECOND * TranscendenceRL.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
         public CapacitorDesc capacitor;
-
+        public Maneuver GetManeuver(SpaceObject target) => maneuver > 0 && target != null ? new Maneuver(target, maneuver) : null;
         public Weapon GetWeapon(Item i) => new Weapon(i, this);
         public WeaponDesc() { }
         public WeaponDesc(TypeCollection types, XElement e) {
@@ -88,6 +90,7 @@ namespace TranscendenceRL {
             omnidirectional = e.TryAttributeBool(nameof(omnidirectional), false);
             shot = new FragmentDesc(e);
 
+            maneuver = e.TryAttributeDouble(nameof(maneuver), 0) * Math.PI / (180);
 
             initialCharges = e.TryAttributeInt(nameof(initialCharges), -1);
             if(e.TryAttribute(nameof(ammoType), out string at)) {

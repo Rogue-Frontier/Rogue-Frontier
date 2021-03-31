@@ -25,7 +25,6 @@ namespace TranscendenceRL {
             }
         }
 		public ShipClass() {
-
 			items = new ItemList();
 			devices = new DeviceList();
 		}

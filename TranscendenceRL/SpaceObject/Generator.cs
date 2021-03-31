@@ -247,7 +247,13 @@ namespace TranscendenceRL {
 		}
 		public List<Device> Generate(TypeCollection tc) {
 			var result = new List<Device>();
-			generators.ForEach(g => result.AddRange(g.Generate(tc)));
+			if (generators.Count == 2) {
+				int i = 0;
+			}
+			foreach (var g in generators) {
+				result.AddRange(g.Generate(tc));
+			}
+			
 			return result;
 		}
 	}
@@ -258,10 +264,13 @@ namespace TranscendenceRL {
 			this.codename = e.ExpectAttribute("codename");
 		}
 		List<Device> DeviceGenerator.Generate(TypeCollection tc) {
+			return new List<Device> { Generate(tc) };
+		}
+		Reactor Generate(TypeCollection tc) {
 			var type = tc.Lookup<ItemType>(codename);
 			var item = new Item(type);
 			if (item.InstallReactor() != null) {
-				return new List<Device> { item.reactor };
+				return item.reactor;
 			} else {
 				throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
 			}
@@ -282,10 +291,14 @@ namespace TranscendenceRL {
 			this.codename = e.ExpectAttribute("codename");
 		}
 		List<Device> DeviceGenerator.Generate(TypeCollection tc) {
+			return new List<Device> { Generate(tc) };
+		}
+
+		Shields Generate(TypeCollection tc) {
 			var type = tc.Lookup<ItemType>(codename);
 			var item = new Item(type);
 			if (item.InstallShields() != null) {
-				return new List<Device> { item.shields };
+				return item.shields;
 			} else {
 				throw new Exception($"Expected <ItemType> type with <Shields> desc: {codename}");
 			}
@@ -294,7 +307,7 @@ namespace TranscendenceRL {
 		public void ValidateEager(TypeCollection tc) {
 			var type = tc.Lookup<ItemType>(codename);
 			var item = new Item(type);
-			if (item.InstallReactor() == null) {
+			if (item.InstallShields() == null) {
 				throw new Exception($"Expected <ItemType> type with <Shields> desc: {codename}");
 			}
 		}
@@ -330,26 +343,28 @@ namespace TranscendenceRL {
 		public string codename;
 		public bool omnidirectional;
 		public WeaponEntry(XElement e) {
-			this.codename = e.ExpectAttribute("codename");
-			this.omnidirectional = e.TryAttributeBool(nameof(omnidirectional));
+			codename = e.ExpectAttribute("codename");
+			omnidirectional = e.TryAttributeBool("omnidirectional", false);
 		}
+
 		List<Weapon> WeaponGenerator.Generate(TypeCollection tc) {
-			var type = tc.Lookup<ItemType>(codename);
-			var item = new Item(type);
-			if (item.InstallWeapon() != null) {
-				if(omnidirectional) {
-					item.weapon.aiming = new Omnidirectional(item.weapon);
-                }
-				return new List<Weapon> { item.weapon };
-			} else {
-				throw new Exception($"Expected <ItemType> type with <Weapon> desc: {codename}");
-			}
-		}
+			return new List<Weapon> { Generate(tc) };
+        }
 		List<Device> DeviceGenerator.Generate(TypeCollection tc) {
+			return new List<Device> { Generate(tc) };
+		}
+
+		Weapon Generate(TypeCollection tc) {
 			var type = tc.Lookup<ItemType>(codename);
 			var item = new Item(type);
 			if (item.InstallWeapon() != null) {
-				return new List<Device> { item.weapon };
+				if (item.type.name == "Iron laser") {
+					int i = 0;
+				}
+				if (omnidirectional) {
+					item.weapon.aiming = new Omnidirectional(item.weapon);
+				}
+				return item.weapon;
 			} else {
 				throw new Exception($"Expected <ItemType> type with <Weapon> desc: {codename}");
 			}

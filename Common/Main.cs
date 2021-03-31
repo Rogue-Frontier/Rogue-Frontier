@@ -548,7 +548,9 @@ namespace Common {
 			return Math.Min(max, Math.Max(min, n));
 		}
 		public static bool ParseBool(this string s, bool fallback = false) {
-			return s == "true" ? true : s == "false" ? false : fallback;
+			return s == "true" ?
+				true : (s == "false" ?
+				false : fallback);
 		}
 		//We expect either no value or a valid value; an invalid value gets an exception
 		public static bool TryAttributeBool(XAttribute a, bool fallback = false) {
