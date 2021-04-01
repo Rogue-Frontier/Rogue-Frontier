@@ -164,7 +164,7 @@ namespace TranscendenceRL {
 			World.PlaceTiles(tiles);
 		}
 		public override void Update(TimeSpan delta) {
-			if(sceneContainer.Children.Count > 0) {
+			if(sceneContainer.Children.Any()) {
 				sceneContainer.Update(delta);
             }
 
@@ -289,6 +289,15 @@ namespace TranscendenceRL {
 			}
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
+			if (sceneContainer.Children.Any()) {
+				var children = new List<IScreenObject>(sceneContainer.Children);
+				foreach (var c in children) {
+					c.ProcessKeyboard(info);
+                }
+				return base.ProcessKeyboard(info);
+			}
+
+
 			uiMegamap.ProcessKeyboard(info);
 			keyboard = info;
 
@@ -315,7 +324,7 @@ namespace TranscendenceRL {
 				pauseMenu.ProcessMouseTree(state.Mouse);
             } else if (powerMenu.IsVisible) {
 				powerMenu.ProcessMouseTree(state.Mouse);
-            } else if(sceneContainer.Children.Count > 0) {
+            } else if(sceneContainer.Children.Any()) {
 				sceneContainer.ProcessMouseTree(state.Mouse);
             } else if(state.IsOnScreenObject) {
 

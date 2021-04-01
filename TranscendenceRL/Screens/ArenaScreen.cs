@@ -122,6 +122,11 @@ namespace TranscendenceRL {
                 c.IsVisible = false;
             }
         }
+        public void ToggleArena() {
+            foreach (var c in Children) {
+                c.IsVisible = !c.IsVisible;
+            }
+        }
         public void Reset(XY camera) {
 
             this.camera= camera;
@@ -219,6 +224,11 @@ namespace TranscendenceRL {
 
             if (info.IsKeyPressed(Escape)) {
                 if (playerMain != null) {
+
+                    if(playerMain.sceneContainer.Children.Any()) {
+                        return playerMain.ProcessKeyboard(info);
+                    }
+
                     playerMain.playerShip.Detach();
                     World.RemoveEntity(playerMain.playerShip);
                     var aiShip = new AIShip(playerMain.playerShip.Ship, new AttackAllOrder());
@@ -236,6 +246,10 @@ namespace TranscendenceRL {
                 }
             } else if (playerMain != null) {
                 return playerMain.ProcessKeyboard(info);
+            }
+
+            if(info.IsKeyPressed(Tab)) {
+                ToggleArena();
             }
             if (info.IsKeyPressed(Keys.A)) {
                 if (nearest is AIShip a) {

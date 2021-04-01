@@ -208,6 +208,7 @@ namespace TranscendenceRL {
         public SpaceObject target;
         public Weapon weapon;
         public List<Weapon> omni;
+        public AimOrder aim;
         public AttackOrder(SpaceObject target) {
             this.target = target;
         }
@@ -221,6 +222,7 @@ namespace TranscendenceRL {
                     omni = null;
                     return;
                 }
+                aim = new AimOrder(target, weapon.missileSpeed);
                 omni = owner.Devices.Weapons
                    .Where(w => w.aiming != null)
                    .Where(w => w != weapon)
@@ -254,34 +256,35 @@ namespace TranscendenceRL {
 
                 //Get moving!
                 owner.SetThrusting(true);
-            } else if (dist < weapon.currentRange/2) {
-                //If we are in range, then aim and fire
-
-                //Aim at the target
-                var aim = new AimOrder(target, weapon.missileSpeed);
-                aim.Update(owner);
-
-                if (Math.Abs(aim.GetAngleDiff(owner)) < 10
-                    && (owner.Velocity - target.Velocity).Magnitude < 5) {
-                    owner.SetThrusting(true);
-                }
-                //Fire if we are close enough
-                if (weapon.aiming != null
-                    || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3) {
-                    SetFiring();
-                }
             } else {
-                //Otherwise, get closer
+                bool freeAim = weapon.aiming != null && dist < weapon.currentRange;
 
-                new ApproachOrbitOrder(target).Update(owner);
+                if (dist < weapon.currentRange / 2) {
+                    //If we are in range, then aim and fire
 
-                var aim = new AimOrder(target, weapon.missileSpeed);
-                //Fire if our angle is good enough
-                if (weapon.desc.omnidirectional
-                    || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3 && RangeCheck()) {
-                    SetFiring();
+                    //Aim at the target
+                    aim.Update(owner);
+
+                    if (Math.Abs(aim.GetAngleDiff(owner)) < 10
+                        && (owner.Velocity - target.Velocity).Magnitude < 5) {
+                        owner.SetThrusting(true);
+                    }
+                    //Fire if we are close enough
+                    if (freeAim
+                        || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3) {
+                        SetFiring();
+                    }
+                } else {
+                    //Otherwise, get closer
+
+                    new ApproachOrbitOrder(target).Update(owner);
+                    //Fire if our angle is good enough
+                    if (freeAim
+                        || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3 && RangeCheck()) {
+                        SetFiring();
+                    }
+
                 }
-
             }
         }
         public bool Active => target.Active && weapon != null;

@@ -129,34 +129,30 @@ namespace TranscendenceRL {
             double? direction = null;
             if (aiming != null) {
                 aiming.Update(owner);
-                if (aiming.GetFireAngle(out var d)) {
-                    direction = d;
+                if(aiming.GetFireAngle(ref direction)) {
+                    
+                } else if(target != null) {
+                    Aiming.CalcFireAngle(owner, aiming.target, this, out direction);
                 }
             }
-
             capacitor?.Update();
             if (ammo != null) {
                 ammo.Update(owner);
             }
-
-
             if (fireTime > 0 && repeatsLeft == 0) {
                 fireTime--;
             } else {
                 //Stations always fire for now
                 firing = true;
-
                 bool beginRepeat = true;
                 if (repeatsLeft > 0) {
                     repeatsLeft--;
                     firing = true;
                     beginRepeat = false;
                 }
-
                 //bool allowFire = (firing || true) && (capacitor?.AllowFire ?? true);
                 capacitor?.CheckFire(ref firing);
                 ammo?.CheckFire(ref firing);
-
                 if (firing && direction.HasValue) {
                     ammo?.OnFire();
                     Fire(owner, direction.Value);
@@ -164,22 +160,18 @@ namespace TranscendenceRL {
                     if (beginRepeat) {
                         repeatsLeft = desc.repeat;
                     }
-
                 } else {
                     repeatsLeft = 0;
                 }
             }
             firing = false;
         }
-
         public void Update(IShip owner) {
-            double direction = owner.rotationDegrees * Math.PI / 180;
+            double? direction = owner.rotationDegrees * Math.PI / 180;
 
             if (aiming != null) {
                 aiming.Update(owner);
-                if(aiming.GetFireAngle(out var d)) {
-                    direction = d;
-                }
+                aiming.GetFireAngle(ref direction);
             }
 
             capacitor?.Update();
@@ -203,7 +195,7 @@ namespace TranscendenceRL {
 
                 if (firing) {
                     ammo?.OnFire();
-                    Fire(owner, direction);
+                    Fire(owner, direction.Value);
                     fireTime = desc.fireCooldown;
                     if (beginRepeat) {
                         repeatsLeft = desc.repeat;
@@ -319,12 +311,21 @@ namespace TranscendenceRL {
             public SpaceObject target => null;
             void Update(Station owner) { }
             void Update(IShip owner) { }
-            bool GetFireAngle(out double direction) {
-                direction = 0;
+            bool GetFireAngle(ref double? direction) {
                 return false;
             }
             void ResetTarget() { }
             void UpdateTarget(SpaceObject target = null) {}
+
+            static bool CalcFireAngle(SpaceObject owner, SpaceObject target, Weapon weapon, out double? result) {
+                if(((target.Position - owner.Position).Magnitude < weapon.currentRange)) {
+                    result = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _);
+                    return true;
+                } else {
+                    result = null;
+                    return false;
+                }
+            }
         }
         public class Targeting : Aiming {
             public SpaceObject target { get; private set; }
@@ -370,10 +371,7 @@ namespace TranscendenceRL {
                 }
 
                 void UpdateDirection () {
-                    direction = (((target.Position - owner.Position).Magnitude < weapon.currentRange)
-                        ? Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _)
-                        : (double?)null);
-                    if (direction.HasValue) {
+                    if(Aiming.CalcFireAngle(owner ,target, weapon, out direction)) {
                         Heading.AimLine(owner.World, owner.Position, direction.Value);
                         Heading.Crosshair(owner.World, target.Position);
                     }
