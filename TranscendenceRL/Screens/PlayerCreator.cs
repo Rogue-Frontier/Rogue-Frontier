@@ -26,9 +26,6 @@ namespace TranscendenceRL {
         public GenomeType playerGenome;
     }
     class PlayerCreator : ControlsConsole {
-        private Console prev;
-        private ShipSelectorModel context;
-        private Action<ShipSelectorModel> next;
         private ref World World => ref context.World;
         private ref List<ShipClass> playable => ref context.playable;
         private ref int index => ref context.shipIndex;
@@ -36,6 +33,11 @@ namespace TranscendenceRL {
         private ref int genomeIndex => ref context.genomeIndex;
         private ref GenomeType playerGenome => ref context.playerGenome;
 
+
+        private Console prev;
+        private ShipSelectorModel context;
+        private Action<ShipSelectorModel> next;
+        private LabelButton leftArrow, rightArrow;
         double time = 0;
         public PlayerCreator(Console prev, World World, Action<ShipSelectorModel> next) : base(prev.Width, prev.Height) {
             this.prev = prev;
@@ -99,10 +101,19 @@ namespace TranscendenceRL {
                     }
                 }
                 lastClick = time;
-
-
             }) { Position = new Point(16, y) };
-            this.Children.Add(identityButton);
+            Children.Add(identityButton);
+
+            string back = "[Escape] Back";
+            Children.Add(new LabelButton(back, Back) {
+                Position = new Point(Width - back.Length, 1)
+            });
+
+            string start = "[Enter] Start";
+            Children.Add(new LabelButton(start, Start) {
+                Position = new Point(Width - start.Length, Height - 1)
+            });
+            PlaceArrows();
         }
         public override void Update(TimeSpan delta) {
             time += delta.TotalSeconds;
@@ -114,12 +125,6 @@ namespace TranscendenceRL {
             var current = playable[index];
 
             int shipDescY = 12;
-
-
-            string leftArrow = "<===  [Left Arrow]";
-            this.Print(Width / 4 - leftArrow.Length - 1, shipDescY, leftArrow, index > 0 ? Color.White : Color.Gray);
-            string rightArrow = "[Right Arrow] ===>";
-            this.Print(Width * 3 / 4 + 1, shipDescY, rightArrow, index < playable.Count - 1 ? Color.White : Color.Gray);
 
             shipDescY++;
             shipDescY++;
@@ -166,9 +171,6 @@ namespace TranscendenceRL {
                 y++;
             }
 
-            string start = "[Enter] Start";
-            this.Print(Width - start.Length, Height - 1, start);
-
             for(y = 0; y < Height; y++) {
                 for(int x = 0; x < Width; x++) {
 
@@ -184,21 +186,68 @@ namespace TranscendenceRL {
 
             base.Render(drawTime);
         }
+
+        public bool showRight => index < playable.Count - 1;
+        public bool showLeft => index > 0;
         public override bool ProcessKeyboard(Keyboard info) {
-            if(info.IsKeyPressed(Right) && index < playable.Count - 1) {
-                index = (index+1)%playable.Count;
+            if(info.IsKeyPressed(Right) && showRight) {
+                SelectRight();
             }
-            if(info.IsKeyPressed(Left) && index > 0) {
-                index = (playable.Count + index - 1) % playable.Count;
+            if(info.IsKeyPressed(Left) && showLeft) {
+                SelectLeft();
             }
             if(info.IsKeyPressed(Escape)) {
-                IsFocused = false;
-                SadConsole.Game.Instance.Screen = new TitleSlideOut(this, prev) { IsFocused = true };
+                Back();
             }
             if(info.IsKeyPressed(Enter)) {
-                next(context);
+                Start();
             }
             return base.ProcessKeyboard(info);
+        }
+        public void UpdateArrows() {
+            if (leftArrow != null) {
+                Children.Remove(leftArrow);
+            }
+            if (rightArrow != null) {
+                Children.Remove(rightArrow);
+            }
+            PlaceArrows();
+        }
+        public void PlaceArrows () {
+            int shipDescY = 12;
+
+            string left = "<===  [Left Arrow]";
+            if (showLeft) {
+                int x = Width / 4 - left.Length - 1;
+                Children.Add(leftArrow = new LabelButton(left, SelectLeft) {
+                    Position = new Point(x, shipDescY)
+                });
+            }
+
+            string right = "[Right Arrow] ===>";
+            if(showRight) {
+                var x = Width * 3 / 4 + 1;
+                Children.Add(rightArrow = new LabelButton(right, SelectRight) {
+                    Position = new Point(x, shipDescY)
+                });
+            }
+        }
+
+        public void SelectLeft() {
+            index = (playable.Count + index - 1) % playable.Count;
+            UpdateArrows();
+        }
+        public void SelectRight() {
+            index = (index + 1) % playable.Count;
+            UpdateArrows();
+        }
+        
+        public void Back() {
+            IsFocused = false;
+            SadConsole.Game.Instance.Screen = new TitleSlideOut(this, prev) { IsFocused = true };
+        }
+        public void Start() {
+            next(context);
         }
     }
 }
