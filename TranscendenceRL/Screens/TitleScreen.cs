@@ -110,6 +110,8 @@ namespace TranscendenceRL {
                     w.AddEffect(new Heading(playerShip));
                     w.AddEntity(playerShip);
 
+                    AddStarterKit(playerShip);
+
                     /*
                     File.WriteAllText(file, JsonConvert.SerializeObject(new LiveGame() {
                         player = player,
@@ -156,7 +158,7 @@ namespace TranscendenceRL {
             }
         }
 
-        private void StartArena() {
+        public void StartArena() {
             SadConsole.Game.Instance.Screen = new ArenaScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov };
         }
         private void StartConfig() {
@@ -205,13 +207,13 @@ namespace TranscendenceRL {
                 var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
                 playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
-
-                playerShip.Powers.Add(new Power(World.types.powerType["power_silence"]));
                 World.RemoveAll();
 
 
                 World.AddEffect(new Heading(playerShip));
                 World.AddEntity(playerShip);
+
+                AddStarterKit(playerShip);
 
                 int waveSize = 1;
                 int shipCount = 1;
@@ -442,16 +444,19 @@ namespace TranscendenceRL {
             w.AddEffect(new Heading(playerShip));
             w.AddEntity(playerShip);
 
-            playerShip.Items.Add(new Item(World.types.itemType["itOrionBolter"]));
+            AddStarterKit(playerShip);
 
 
-            new LiveGame(w, player, playerShip).Save();
+            //new LiveGame(w, player, playerShip).Save();
 
+            /*
             var wingmateClass = w.types.Lookup<ShipClass>("ship_beowulf");
 
             var wingmate = new AIShip(new BaseShip(w, wingmateClass, playerSovereign, playerStart), new EscortOrder(playerShip, new XY(-5, 0)));
             w.AddEntity(wingmate);
             w.AddEffect(new Heading(wingmate));
+            */
+
 
             var playerMain = new PlayerMain(Width, Height, w, playerShip);
             playerShip.OnDestroyed += new EndGame(playerMain);
@@ -461,5 +466,20 @@ namespace TranscendenceRL {
             SadConsole.Game.Instance.Screen = playerMain;
         }
 #endif
+
+
+        void AddStarterKit(PlayerShip playerShip) {
+            var World = playerShip.World;
+            playerShip.Powers.Add(new Power(World.types.powerType["power_silence"]));
+            playerShip.Cargo.Add(new Item(World.types.itemType["item_silence_charm"]));
+
+            playerShip.Cargo.Add(new Item(World.types.itemType["item_armor_repair_patch"]));
+
+
+            playerShip.Cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
+            playerShip.Cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
+            playerShip.Cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
+            playerShip.Cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
+        }
     }
 }

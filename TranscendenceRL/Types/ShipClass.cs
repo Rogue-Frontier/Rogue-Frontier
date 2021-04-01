@@ -14,7 +14,7 @@ namespace TranscendenceRL {
 		public double rotationDecel;
 		public double rotationAccel;
 		public StaticTile tile;
-		public DamageSystemDesc damageDesc;
+		public HullSystemDesc damageDesc;
 		public ItemList items;
 		public DeviceList devices;
 		public PlayerSettings playerSettings;
@@ -55,26 +55,26 @@ namespace TranscendenceRL {
 			}
 		}
 	}
-	public interface DamageSystemDesc {
-		DamageSystem Create(SpaceObject owner);
+	public interface HullSystemDesc {
+		HullSystem Create(SpaceObject owner);
 	}
-	public class HPSystemDesc : DamageSystemDesc {
+	public class HPSystemDesc : HullSystemDesc {
 		public int maxHP;
 		public HPSystemDesc() { }
 		public HPSystemDesc(XElement e) {
 			maxHP = e.ExpectAttributeInt("maxHP");
 		}
-		public DamageSystem Create(SpaceObject owner) {
+		public HullSystem Create(SpaceObject owner) {
 			return new HPSystem(maxHP);
 		}
 	}
-	public class LayeredArmorDesc : DamageSystemDesc {
+	public class LayeredArmorDesc : HullSystemDesc {
 		public ArmorList armorList;
 		public LayeredArmorDesc() { }
 		public LayeredArmorDesc(XElement e) {
 			armorList = new ArmorList(e);
 		}
-		public DamageSystem Create(SpaceObject owner) {
+		public HullSystem Create(SpaceObject owner) {
 			return new LayeredArmorSystem(armorList.Generate(owner.World.types));
 		}
 	}

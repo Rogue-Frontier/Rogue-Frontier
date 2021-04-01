@@ -171,6 +171,44 @@ namespace TranscendenceRL {
                 y++;
             }
 
+            y += 2;
+            foreach(var line in new string[] {
+                "[Controls]",
+                "",
+                "[Escape]  Pause",
+                "",
+                "[Up]      Thrust",
+                "[Left]    Turn left",
+                "[Right]   Turn right",
+                "[Down]    Brake",
+                "",
+                "[P]       Power menu",
+                "",
+                "[A]       Autopilot",
+                "[S]       Ship Screen",
+                "[D]       Dock",
+                "",
+                "[Minus]   Megamap zoom out",
+                "[Plus]    Megamap zoom in",
+                "",
+                "[R]       Clear target",
+                "[T]       Target next enemy",
+                "[F]       Target next friendly",
+                "",
+                "[W]       Next primary weapon",
+                "[Z]       Turn to aim target",
+                "[X]       Fire primary weapon",
+                "",
+                "[Left Click]      Fire primary weapon",
+                "[Right Click]     Thrust",
+                "[Middle Click]    Target nearest",
+                "[Mouse Wheel]     Select primary weapon",
+
+
+            }) {
+                this.Print(descX, y++, line);
+            }
+
             for(y = 0; y < Height; y++) {
                 for(int x = 0; x < Width; x++) {
 

@@ -26,6 +26,10 @@ namespace TranscendenceRL {
             Installed.Remove(device);
             UpdateDevices();
         }
+        public void Clear() {
+            Installed.Clear();
+            UpdateDevices();
+        }
         public void UpdateDevices() {
             Powered = Installed.OfType<Powered>().ToList();
             Reactors = Installed.OfType<Reactor>().ToList();

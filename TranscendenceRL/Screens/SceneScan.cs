@@ -18,8 +18,9 @@ namespace TranscendenceRL {
             next.Render(new TimeSpan());
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
-            if(keyboard.IsKeyPressed(Keys.Enter)) {
-                y = next.Height;
+            if(keyboard.KeysPressed.Count > 0) {
+                Transition();
+                //next.ProcessKeyboard(keyboard);
             }
             return base.ProcessKeyboard(keyboard);
         }
@@ -27,12 +28,16 @@ namespace TranscendenceRL {
             if(y < next.Height) {
                 y += 1;
             } else {
-                var p = Parent;
-                p.Children.Remove(this);
-                p.Children.Add(next);
-                next.IsFocused = true;
+                Transition();
             }
             base.Update(delta);
+        }
+        public void Transition() {
+
+            var p = Parent;
+            p.Children.Remove(this);
+            p.Children.Add(next);
+            next.IsFocused = true;
         }
         public override void Render(TimeSpan delta) {
             this.Clear();

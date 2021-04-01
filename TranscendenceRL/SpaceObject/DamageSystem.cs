@@ -8,19 +8,19 @@ using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     public static class SDamageSystem {
-        public static void React(this DamageSystem ds, SpaceObject owner, SpaceObject source) {
+        public static void React(this HullSystem ds, SpaceObject owner, SpaceObject source) {
             if (source is PlayerShip ps && !owner.Sovereign.IsEnemy(ps)) {
                 ps.AddMessage(new Transmission(owner, $@"""Watch your targets!"" - {owner.Name}", 1));
             }
         }
     }
-    public interface DamageSystem {
+    public interface HullSystem {
         void Restore();
         int GetHP();
         int GetMaxHP();
         void Damage(SpaceObject owner, SpaceObject source, int hp);
     }
-    public class HPSystem : DamageSystem {
+    public class HPSystem : HullSystem {
         public int maxHP;
         public int hp;
         public HPSystem(int maxHP) {
@@ -39,7 +39,7 @@ namespace TranscendenceRL {
         public void Restore() => hp = maxHP;
     }
     //WMD would allow the attacker to hit multiple layers at a time, multiplying the damage
-    public class LayeredArmorSystem : DamageSystem {
+    public class LayeredArmorSystem : HullSystem {
         public List<Armor> layers;
         public LayeredArmorSystem(List<Armor> layers) {
             this.layers = layers;

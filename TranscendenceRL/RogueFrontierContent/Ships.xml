@@ -104,10 +104,28 @@
 				  char="b"
 				  foreground="White"
         >
+		<Items>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+			<Item codename="item_klaw_missile"/>
+		</Items>
 		<Devices>
 			<Weapon codename="item_beowulf_dual_cannon"/>
+			<Weapon codename="item_klaw_missile_launcher"/>
 			<Reactor codename="item_foundry_reactor"/>
 		</Devices>
+		
 		<LayeredArmorSystem>
 			<Armor  codename="item_knightscale_plate"/>
         </LayeredArmorSystem>
@@ -152,7 +170,11 @@
                char=                "w"
                foreground=          "Orange"
         >
+		<Items>
+			<Item codename="item_armor_repair_patch"/>
+		</Items>
         <Devices>
+			<Weapon codename="item_sharpshooter_defender"/>
 			<Weapon codename="item_musket_cannon"/>
 			<Reactor codename="item_foundry_reactor"/>
 			<Reactor codename="item_foundry_battery"/>

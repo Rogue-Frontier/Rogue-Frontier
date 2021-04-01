@@ -57,16 +57,28 @@ namespace TranscendenceRL {
 
             UseKeyboard = true;
             FocusOnMouseClick = true;
-
+            {
+                int x = 1, y = 1;
+                Children.Add(new Label("[A] Assume control of nearest ship") { Position = new Point(x, y++) });
+                Children.Add(new Label("[F] Lock camera onto nearest ship") { Position = new Point(x, y++) });
+                Children.Add(new Label("[K] Kill nearest ship") { Position = new Point(x, y++) });
+                Children.Add(new Label("[Tab] Show/Hide Menus") { Position = new Point(x, y++) });
+                Children.Add(new Label("[Hold left] Move camera") { Position = new Point(x, y++) });
+            }
             InitControls();
             void InitControls() {
                 var sovereign = Sovereign.Gladiator;
+                List<Item> cargo = new List<Item>();
+                List<Device> devices = new List<Device>();
 
                 AddSovereignField();
                 AddShipField();
+                AddCargoField();
+                AddDeviceField();
+
                 void AddSovereignField() {
 
-                    var x = 8;
+                    var x = 1;
                     var y = 7;
                     var label = new Label("Sovereign") { Position = new Point(x, y++) };
                     var sovereignField = new TextField(24) { Position = new Point(x, y++) };
@@ -81,11 +93,17 @@ namespace TranscendenceRL {
                         var text = sovereignField.text;
                         buttons.Clear();
                         var sovereignDict = World.types.sovereign;
+
+                        int i = 0;
                         foreach (var type in sovereignDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
                             buttons.Add(type, (Action)(() => {
                                 sovereign = sovereignDict[type];
                                 UpdateSovereignLabel();
                             }));
+
+                            if (++i > 16) {
+                                break;
+                            }
                         }
                     }
                     void UpdateSovereignLabel() {
@@ -93,8 +111,10 @@ namespace TranscendenceRL {
                     }
                 }
                 void AddShipField() {
-                    var x = 36;
-                    var y = 8;
+                    var x = 1 + 32;
+                    var y = 7;
+
+                    Children.Add(new Label("Spawn Ship") { Position = new Point(x, y++) });
                     var shipField = new TextField(24) { Position = new Point(x, y++) };
                     ButtonList buttons = new ButtonList(this, new Point(x, y++));
                     shipField.TextChanged += _ => UpdateShipListing();
@@ -105,11 +125,136 @@ namespace TranscendenceRL {
                         var text = shipField.text;
                         buttons.Clear();
                         var shipClassDict = World.types.shipClass;
+
+                        int i = 0;
                         foreach (var type in shipClassDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
                             buttons.Add(type, () => {
                                 var ship = new AIShip(new BaseShip(World, shipClassDict[type], sovereign, camera), new AttackAllOrder());
+
+                                if(cargo.Any()) {
+                                    ship.Cargo.Clear();
+                                    ship.Cargo.UnionWith(cargo);
+                                }
+                                if(devices.Any()) {
+                                    ship.Devices.Clear();
+                                    ship.Devices.Install(devices);
+                                }
+
                                 World.AddEntity(ship);
                                 World.AddEffect(new Heading(ship));
+                            });
+
+                            if(++i > 16) {
+                                break;
+                            }
+                        }
+                    }
+                }
+                void AddCargoField() {
+                    var x = 1 + 32 + 32;
+                    var y = 7;
+
+                    Children.Add(new Label("Cargo") { Position = new Point(x, y++) });
+                    var cargoField = new TextField(24) { Position = new Point(x, y++) };
+                    ButtonList addButtons = new ButtonList(this, new Point(x, y++));
+                    ButtonList removeButtons = new ButtonList(this, new Point(x, y + 18));
+
+                    cargoField.TextChanged += _ => UpdateAddListing();
+                    Children.Add(cargoField);
+                    UpdateAddListing();
+
+
+
+                    UpdateRemoveListing();
+
+                    void UpdateAddListing() {
+                        var text = cargoField.text;
+                        addButtons.Clear();
+                        var itemDict = World.types.itemType;
+
+                        int i = 0;
+                        foreach (var type in itemDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
+                            addButtons.Add(type, () => {
+                                cargo.Add(new Item(itemDict[type]));
+                                UpdateRemoveListing();
+                            });
+
+
+                            if (++i > 16) {
+                                break;
+                            }
+                        }
+                    }
+
+
+
+                    void UpdateRemoveListing() {
+                        removeButtons.Clear();
+                        foreach (var i in cargo) {
+                            removeButtons.Add(i.type.codename, () => {
+                                cargo.Remove(i);
+                                UpdateRemoveListing();
+                            });
+                        }
+                    }
+                }
+
+
+
+
+
+                void AddDeviceField() {
+                    var x = 1;
+                    var y = 7 + 18;
+
+                    Children.Add(new Label("Devices") { Position = new Point(x, y++) });
+                    var deviceField = new TextField(24) { Position = new Point(x, y++) };
+                    ButtonList addButtons = new ButtonList(this, new Point(x, y++));
+                    ButtonList removeButtons = new ButtonList(this, new Point(x, y + 18));
+
+                    deviceField.TextChanged += _ => UpdateAddListing();
+                    Children.Add(deviceField);
+                    UpdateAddListing();
+
+
+
+                    UpdateRemoveListing();
+
+                    void UpdateAddListing() {
+                        var text = deviceField.text;
+                        addButtons.Clear();
+                        var itemDict = World.types.itemType;
+                        var keys = itemDict.Keys
+                            .OrderBy(k => k)
+                            .Where(k => k.Contains(text));
+
+                        int i = 0;
+                        foreach (var type in keys) {
+                            var item = new Item(itemDict[type]);
+                            var device = (Device)item.InstallReactor() ?? (Device)item.InstallShields() ?? (Device)item.InstallWeapon();
+
+                            if(device == null) {
+                                continue;
+                            }
+                            addButtons.Add(type, () => {
+                                devices.Add(device);
+                                UpdateRemoveListing();
+                            });
+
+                            if (++i > 16) {
+                                break;
+                            }
+                        }
+                    }
+
+
+
+                    void UpdateRemoveListing() {
+                        removeButtons.Clear();
+                        foreach (var i in devices) {
+                            removeButtons.Add(i.source.type.codename, () => {
+                                devices.Remove(i);
+                                UpdateRemoveListing();
                             });
                         }
                     }
@@ -272,6 +417,15 @@ namespace TranscendenceRL {
                     pov = nearest;
                 }
             }
+            if(info.IsKeyPressed(K)) {
+                nearest.Destroy();
+                if(info.IsKeyDown(LeftShift)) {
+                    foreach(var s in World.entities.all.OfType<SpaceObject>()) {
+                        s.Destroy();
+                    }
+                }
+            }
+
             foreach (var pressed in info.KeysDown) {
                 var delta = 1 / 3f;
                 switch (pressed.Key) {

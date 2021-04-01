@@ -6,6 +6,10 @@
 				name=		"Iron laser"
 				mass=		"3000"
 				level=		"2"
+
+				invoke=		"installWeapon"
+
+				desc=		"The Iron Pirates use a low-powered laser to ward off civilian threats."
 				>
 		<Weapon	powerUse=		"20"
 				fireCooldown=	"30"
@@ -25,9 +29,11 @@
 				name=		"Iron cannon"
 				mass=		"8000"
 				level=		"4"
+
+				desc=		"The Iron cannon fires a crude seeking missile."
 				>
 		<Weapon			powerUse=		"50"
-						fireCooldown=	"40"
+						fireCooldown=	"60"
 						missileSpeed=	"30"
 						damageType=		"2"
 						damageHP=		"15"
@@ -48,8 +54,11 @@
 				name=		"Ironclad plate"
 				mass=		"1000"
 				level=		"1"
+
+				
+				desc=		"This armor is made of pure iron, a material which has been obsoleted by various kinds of steel."
 		>
-		<Armor	maxHP=		"40"
+		<Armor	maxHP=		"60"
 			>
 		</Armor>
 	</ItemType>
@@ -57,8 +66,10 @@
 				name=		"Blockade plate"
 				mass=		"5000"
 				level=		"2"
+
+				desc=		"If you're standing in the middle of a battlefield, then this armor is guaranteed to last you at least 15 seconds."
 		>
-		<Armor	maxHP=		"80"
+		<Armor	maxHP=		"90"
 			>
 		</Armor>
 	</ItemType>

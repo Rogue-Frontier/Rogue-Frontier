@@ -5,7 +5,7 @@
 		cooldownTime=	"3600"
 		>
 		<Weapon
-			count=			"60"
+			count=			"90"
 			spreadAngle=	"360"
 			missileSpeed=	"40"
 			damageType=		"1"

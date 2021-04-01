@@ -69,7 +69,7 @@ namespace TranscendenceRL {
         [JsonProperty]
         public bool Active { get; set; }
         public List<Segment> segments;
-        public DamageSystem DamageSystem;
+        public HullSystem DamageSystem;
         [JsonProperty]
         public HashSet<Item> Items { get; set; }
         public List<Weapon> weapons;

@@ -20,7 +20,7 @@ namespace TranscendenceRL {
         Player player;
         PlayerShip playerShip;
         ITrader docked;
-        HashSet<Item> playerItems => playerShip.Items;
+        HashSet<Item> playerItems => playerShip.Cargo;
         HashSet<Item> dockedItems => docked.Items;
         bool playerSide;
         int? playerIndex;
@@ -32,7 +32,7 @@ namespace TranscendenceRL {
             this.docked = docked;
             this.playerSide = false;
 
-            if (playerShip.Items.Any()) {
+            if (playerShip.Cargo.Any()) {
                 playerIndex = 0;
             }
             if (this.docked.Items.Any()) {

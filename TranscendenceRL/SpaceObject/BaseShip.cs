@@ -35,7 +35,7 @@ namespace TranscendenceRL {
     public interface IShip : SpaceObject {
         XY Position { get; set; }
         XY Velocity { get; set; }
-        HashSet<Item> Items { get; }
+        HashSet<Item> Cargo { get; }
         DeviceSystem Devices { get; }
         ShipClass ShipClass { get; }
         double rotationDegrees { get; }
@@ -61,7 +61,7 @@ namespace TranscendenceRL {
         [JsonProperty]
         public DeviceSystem Devices { get; private set; }
         [JsonProperty]
-        public DamageSystem DamageSystem { get; private set; }
+        public HullSystem DamageSystem { get; private set; }
         public ControlHijack ControlHijack;
 
         public Rand destiny;
@@ -272,12 +272,12 @@ namespace TranscendenceRL {
         [JsonIgnore] 
         public double rotationDegrees => Ship.rotationDegrees;
         [JsonIgnore]
-        public HashSet<Item> Items => Ship.Items;
+        public HashSet<Item> Cargo => Ship.Items;
         [JsonIgnore] 
         public DeviceSystem Devices => Ship.Devices;
 
         [JsonIgnore] 
-        public DamageSystem DamageSystem => Ship.DamageSystem;
+        public HullSystem DamageSystem => Ship.DamageSystem;
 
         public BaseShip Ship;
         public IOrder controller;
@@ -358,7 +358,7 @@ namespace TranscendenceRL {
         [JsonIgnore] 
         public double stoppingRotation => Ship.stoppingRotation;
         [JsonIgnore] 
-        public HashSet<Item> Items => Ship.Items;
+        public HashSet<Item> Cargo => Ship.Items;
 
         public int targetIndex = -1;
         public bool targetFriends = false;
@@ -372,6 +372,7 @@ namespace TranscendenceRL {
 
         [JsonIgnore] 
         public DeviceSystem Devices => Ship.Devices;
+        public HullSystem Hull => Ship.DamageSystem;
         public BaseShip Ship;
         public EnergySystem Energy;
         public List<Power> Powers;

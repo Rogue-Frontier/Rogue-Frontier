@@ -739,7 +739,7 @@ namespace TranscendenceRL {
 					}
 				}
 
-				void PrintDamageSystem(DamageSystem s) {
+				void PrintDamageSystem(HullSystem s) {
 					if (s is HPSystem hp) {
 						this.Print(x, y++, $"Hull: {hp.hp} hp");
 					} else if (s is LayeredArmorSystem las) {

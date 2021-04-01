@@ -8,13 +8,103 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using SadRogue.Primitives;
+using Console = SadConsole.Console;
+using TranscendenceRL.Types;
 
 namespace TranscendenceRL {
 
-    public enum InvokeAction {
-        none, installWeapon
+    public interface InvokeAction {
+        string GetDesc(PlayerShip player, Item item);
+        void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) { }
     }
+    
+    public class InstallWeapon : InvokeAction {
+        public string GetDesc(PlayerShip player, Item item) {
+            if (player.Cargo.Contains(item)) {
+                return "Install this weapon";
+            } else {
+                return "Remove this weapon";
+            }
+        }
+        public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+            if(player.Cargo.Contains(item)) {
+                player.AddMessage(new InfoMessage($"Installed weapon {item.type.name}"));
+
+                player.Cargo.Remove(item);
+                item.InstallWeapon();
+                player.Devices.Install(item.weapon);
+            } else {
+                player.AddMessage(new InfoMessage($"Removed weapon {item.type.name}"));
+
+                player.Devices.Remove(item.weapon);
+                item.RemoveWeapon();
+                player.Cargo.Add(item);
+            }
+            callback?.Invoke();
+        }
+    }
+    public class RepairArmor : InvokeAction {
+        public int repairHP;
+        public string GetDesc(PlayerShip player, Item item) {
+            return "Use this patch to repair armor";
+        }
+        public RepairArmor(XElement e) {
+            this.repairHP = e.ExpectAttributeInt(nameof(repairHP));
+        }
+        public void Invoke(Console prev, PlayerShip player, Item item, Action callback) {
+            var p = prev.Parent;
+            p.Children.Remove(prev);
+            p.Children.Add(SListScreen.RepairArmorScreen(prev, player, item, this, callback));
+        }
+    }
+    public class InvokePower : InvokeAction {
+        PowerType powerType;
+        int charges;
+        public InvokePower(TypeCollection tc, XElement e) {
+            powerType = tc.Lookup<PowerType>(e.ExpectAttribute("powerType"));
+            charges = e.ExpectAttributeInt("charges");
+        }
+        public string GetDesc(PlayerShip player, Item item) {
+            return "Invoke this charm";
+        }
+        public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+            player.AddMessage(new InfoMessage($"Invoked the power of {item.type.name}"));
+
+            charges--;
+            if (charges == 0) {
+                player.Cargo.Remove(item);
+            }
+            new Power(powerType).Effect.Invoke(player);
+
+            callback?.Invoke();
+        }
+    }
+    public class Refuel : InvokeAction {
+        int energy;
+        public Refuel(TypeCollection tc, XElement e) {
+            energy = e.ExpectAttributeInt("energy");
+        }
+        public string GetDesc(PlayerShip player, Item item) {
+            return "Refuel reactor";
+        }
+        public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+            var reactor = player.Devices.Reactors.FirstOrDefault(r => !r.desc.battery);
+
+            if(reactor == null) {
+                return;
+            }
+
+            reactor.energy += energy;
+            player.AddMessage(new InfoMessage($"Refueled reactor with {item.type.name}"));
+
+            player.Cargo.Remove(item);
+
+            callback?.Invoke();
+        }
+    }
+
     public class ItemType : DesignType {
+        public string codename;
         public string name;
         public string desc;
         public int level;
@@ -29,17 +119,34 @@ namespace TranscendenceRL {
         public InvokeAction invoke;
 
 
-        public void Initialize(TypeCollection collection, XElement e) {
+        public void Initialize(TypeCollection tc, XElement e) {
+            codename = e.ExpectAttribute(nameof(codename));
             name = e.ExpectAttribute(nameof(name));
             desc = e.TryAttribute(nameof(desc), "");
             level = e.ExpectAttributeInt(nameof(level));
             mass = e.ExpectAttributeInt(nameof(mass));
             value = e.TryAttributeInt(nameof(value), -1);
 
-            invoke = Enum.Parse<InvokeAction>(e.TryAttribute(nameof(invoke), "none"));
+            switch(e.TryAttribute(nameof(invoke), "none")) {
+                case "none":
+                    invoke = null;
+                    break;
+                case "installWeapon":
+                    invoke = new InstallWeapon();
+                    break;
+                case "repairArmor":
+                    invoke = new RepairArmor(e);
+                    break;
+                case "invokePower":
+                    invoke = new InvokePower(tc, e);
+                    break;
+                case "refuel":
+                    invoke = new Refuel(tc, e);
+                    break;
+            }
 
             if (e.HasElement("Weapon", out var xmlWeapon)) {
-                weapon = new WeaponDesc(collection, xmlWeapon);
+                weapon = new WeaponDesc(tc, xmlWeapon);
             }
             if (e.HasElement("Armor", out var xmlArmor)) {
                 armor = new ArmorDesc(xmlArmor);
@@ -71,6 +178,8 @@ namespace TranscendenceRL {
         public ItemType ammoType;
 
         public double maneuver;
+        public bool hitProjectile;
+        public bool autoFire;
 
         public int missileSpeed => shot.missileSpeed;
         public int damageType => shot.damageType;
@@ -91,6 +200,11 @@ namespace TranscendenceRL {
             shot = new FragmentDesc(e);
 
             maneuver = e.TryAttributeDouble(nameof(maneuver), 0) * Math.PI / (180);
+
+            if(e.TryAttributeBool("pointDefense", false)) {
+                hitProjectile = true;
+                autoFire = true;
+            }
 
             initialCharges = e.TryAttributeInt(nameof(initialCharges), -1);
             if(e.TryAttribute(nameof(ammoType), out string at)) {

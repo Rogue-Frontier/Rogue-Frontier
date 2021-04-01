@@ -66,7 +66,7 @@ Final Devices
 {string.Join('\n', playerShip.Devices.Installed.Select(device => $"    {device.source.type.name}"))}
 
 Final Cargo
-{string.Join('\n', playerShip.Items.Select(item => $"    {item.type.name}"))}
+{string.Join('\n', playerShip.Cargo.Select(item => $"    {item.type.name}"))}
 
 Ships Destroyed
 {string.Join('\n', playerShip.ShipsDestroyed.GroupBy(sc => sc.ShipClass).Select(pair => $"    {pair.Key.name, -16}{pair.Count(), 4}"))}

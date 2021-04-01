@@ -39,6 +39,9 @@ namespace TranscendenceRL {
         [JsonProperty]
         public Maneuver maneuver;
 
+        [JsonProperty]
+        public bool hitProjectile;
+
         public bool Active => lifetime > 0;
 
         public Projectile(SpaceObject Source, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
@@ -64,7 +67,7 @@ namespace TranscendenceRL {
 
 
             void UpdateMove() {
-                HashSet<SpaceObject> exclude = new HashSet<SpaceObject> { null, Source };
+                HashSet<Entity> exclude = new HashSet<Entity> { null, Source, this };
                 if(Source is PlayerShip ps) {
                     exclude.Add(ps.Dock?.target);
                 }
@@ -95,6 +98,10 @@ namespace TranscendenceRL {
                                 return;
                             case ProjectileBarrier barrier:
                                 barrier.Interact(this);
+                                break;
+                            case Projectile p when hitProjectile:
+                                p.lifetime = 0;
+                                lifetime = 0;
                                 break;
                         }
                     }

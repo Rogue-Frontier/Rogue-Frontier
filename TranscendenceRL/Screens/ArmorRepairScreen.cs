@@ -22,7 +22,7 @@ namespace TranscendenceRL {
             this.armor = armor;
             this.item = item;
 
-            if (playerShip.Items.Any()) {
+            if (playerShip.Cargo.Any()) {
                 index = 0;
             }
         }

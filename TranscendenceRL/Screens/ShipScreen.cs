@@ -95,7 +95,8 @@ namespace TranscendenceRL {
             y = Height - 10;
             this.Print(x, y++, "[C] Cargo", Color.White, Color.Black);
             this.Print(x, y++, "[D] Devices", Color.White, Color.Black);
-            
+            this.Print(x, y++, "[U] Usables", Color.White, Color.Black);
+
 
             /*
             foreach(var item in PlayerShip.ship.Items) {
@@ -110,43 +111,235 @@ namespace TranscendenceRL {
                 Parent.Children.Remove(this);
                 prev.IsFocused = true;
             }
+            if(info.IsKeyPressed(Keys.U)) {
+                var s = SListScreen.UsableScreen(prev, PlayerShip);
+                s.IsFocused = true;
+                Parent.Children.Add(s);
+                Parent.Children.Remove(this);
+            }
             if(info.IsKeyPressed(Keys.C)) {
-                Parent.Children.Add(new CargoScreen(prev, PlayerShip) {
-                    IsFocused = true
-                });
+                var s = SListScreen.CargoScreen(prev, PlayerShip);
+                s.IsFocused = true;
+                Parent.Children.Add(s);
                 Parent.Children.Remove(this);
             }
             if (info.IsKeyPressed(Keys.D)) {
-                Parent.Children.Add(new LoadoutScreen(prev, PlayerShip) {
-                    IsFocused = true
-                });
+                var s = SListScreen.LoadoutScreen(prev, PlayerShip);
+                s.IsFocused = true;
+                Parent.Children.Add(s);
                 Parent.Children.Remove(this);
             }
             return base.ProcessKeyboard(info);
         }
     }
+    public class SListScreen {
+        public static ListScreen<Item> UsableScreen(Console prev, PlayerShip player) {
+            ListScreen<Item> screen = null;
+            IEnumerable<Item> cargoUsable;
+            IEnumerable<Item> installedUsable;
+            List<Item> usable;
+            void UpdateList() {
+                cargoUsable = player.Cargo.Where(i => i.type.invoke != null);
+                installedUsable = player.Devices.Installed.Select(d => d.source).Where(i => i.type.invoke != null);
+                usable = new List<Item>(installedUsable.Concat(cargoUsable));
+            }
+            UpdateList();
 
+            return screen = new ListScreen<Item>(prev,
+                player,
+                usable,
+                GetName,
+                GetDesc,
+                InvokeItem
+                );
 
-    public class LoadoutScreen : Console {
-        Console prev;
-        PlayerShip player;
-        List<Device> playerDevices => player.Devices.Installed;
-        int? playerIndex;
-        public LoadoutScreen(Console prev, PlayerShip player) : base(prev.Width, prev.Height) {
-            this.prev = prev;
-            this.player = player;
+            string GetName(Item i) => $"{(installedUsable.Contains(i) ? "[Installed] " : "[Cargo]     ")}{i.type.name}";
+            List<ColoredString> GetDesc(Item item) {
+                var invoke = item.type.invoke;
 
-            if (player.Items.Any()) {
-                playerIndex = 0;
+                List<ColoredString> result = new List<ColoredString>();
+
+                var itemDesc = item.type.desc.SplitLine(32);
+                if (itemDesc.Any()) {
+                    foreach (var line in itemDesc) {
+                        result.Add(new ColoredString(line,
+                            Color.White, Color.Transparent));
+                    }
+                    result.Add(new ColoredString(""));
+                }
+
+                if (invoke != null) {
+                    string action = $"[Enter] {invoke.GetDesc(player, item)}";
+                    result.Add(new ColoredString(action, Color.Yellow, Color.Transparent));
+                }
+                return result;
+            }
+            void InvokeItem(Item item) {
+                item.type.invoke?.Invoke(screen, player, item, Update);
+                screen.UpdateIndex();
+            }
+            void Update() {
+                UpdateList();
+                screen.items = usable;
+                screen.UpdateIndex();
             }
         }
+        public static ListScreen<Device> LoadoutScreen(Console prev, PlayerShip player) {
+            ListScreen<Device> screen = null;
+            var devices = player.Devices.Installed;
+            return screen = new ListScreen<Device>(prev,
+                player,
+                devices,
+                GetName,
+                GetDesc,
+                InvokeDevice
+                );
+
+            string GetName(Device d) => d.source.type.name;
+            List<ColoredString> GetDesc(Device d) {
+                var item = d.source;
+                var invoke = item.type.invoke;
+
+                List<ColoredString> result = new List<ColoredString>();
+
+                var itemDesc = item.type.desc.SplitLine(32);
+                if (itemDesc.Any()) {
+                    foreach (var line in itemDesc) {
+                        result.Add(new ColoredString(line,
+                            Color.White, Color.Transparent));
+                    }
+                    result.Add(new ColoredString(""));
+                }
+
+                if (invoke != null) {
+                    result.Add(new ColoredString($"[Enter] {invoke.GetDesc(player, item)}", Color.Yellow, Color.Transparent));
+                }
+                return result;
+            }
+            void InvokeDevice(Device device) {
+                var item = device.source;
+                var invoke = item.type.invoke;
+
+                invoke?.Invoke(screen, player, item);
+                screen.UpdateIndex();
+            }
+        }
+        public static ListScreen<Item> CargoScreen(Console prev, PlayerShip player) {
+            ListScreen<Item> screen = null;
+            var items = player.Cargo;
+            return screen = new ListScreen<Item>(prev,
+                player,
+                items,
+                GetName,
+                GetDesc,
+                InvokeItem
+                );
+
+            string GetName(Item i) => i.type.name;
+            List<ColoredString> GetDesc(Item item) {
+                var invoke = item.type.invoke;
+
+                List<ColoredString> result = new List<ColoredString>();
+
+                var itemDesc = item.type.desc.SplitLine(32);
+                if (itemDesc.Any()) {
+                    foreach (var line in itemDesc) {
+                        result.Add(new ColoredString(line,
+                            Color.White, Color.Transparent));
+                    }
+                    result.Add(new ColoredString(""));
+                }
+
+                if (invoke != null) {
+                    result.Add(new ColoredString($"[Enter] {invoke.GetDesc(player, item)}", Color.Yellow, Color.Transparent));
+                }
+                return result;
+            }
+            void InvokeItem(Item item) {
+                var invoke = item.type.invoke;
+
+                invoke?.Invoke(screen, player, item);
+                screen.UpdateIndex();
+            }
+        }
+        public static ListScreen<Armor> RepairArmorScreen(Console prev, PlayerShip player, Item source, RepairArmor repair, Action callback) {
+            ListScreen<Armor> screen = null;
+            var devices = (player.Hull as LayeredArmorSystem).layers;
+            return screen = new ListScreen<Armor>(prev,
+                player,
+                devices,
+                GetName,
+                GetDesc,
+                Repair
+                ) { IsFocused = true };
+
+            string GetName(Armor d) => $"[{d.hp} / {d.desc.maxHP}]{d.source.type.name}";
+            List<ColoredString> GetDesc(Armor d) {
+                var item = d.source;
+                var invoke = item.type.invoke;
+
+                List<ColoredString> result = new List<ColoredString>();
+
+                var itemDesc = item.type.desc.SplitLine(32);
+                if (itemDesc.Any()) {
+                    foreach (var line in itemDesc) {
+                        result.Add(new ColoredString(line,
+                            Color.White, Color.Transparent));
+                    }
+                    result.Add(new ColoredString(""));
+                }
+
+                result.Add(new ColoredString("[Enter] Repair this armor", Color.Yellow, Color.Transparent));
+                return result;
+            }
+            void Repair(Armor segment) {
+                segment.hp += repair.repairHP;
+                player.Cargo.Remove(source);
+                player.AddMessage(new InfoMessage($"Used {source.type.name} to restore {repair.repairHP} hp on {segment.source.type.name}"));
+
+                callback?.Invoke();
+
+                var p = screen.Parent;
+                p.Children.Remove(screen);
+                p.Children.Add(prev);
+                p.IsFocused = true;
+            }
+        }
+    }
+    public class ListScreen<T> : Console {
+        Console prev;
+        PlayerShip player;
+        public IEnumerable<T> items;
+        int? playerIndex;
+        GetName getName;
+        GetDesc getDesc;
+        Invoke invoke;
+        public delegate string GetName(T t);
+        public delegate List<ColoredString> GetDesc(T t);
+        public delegate void Invoke(T t);
+        public ListScreen(Console prev, PlayerShip player, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke) : base(prev.Width, prev.Height) {
+            this.prev = prev;
+            this.player = player;
+            this.items = items;
+            this.getName = getName;
+            this.getDesc = getDesc;
+            this.invoke = invoke;
+        }
+        public void UpdateIndex() {
+            if (items.Any()) {
+                playerIndex = Math.Min(playerIndex ?? 0, items.Count() - 1);
+            } else {
+                playerIndex = null;
+            }
+        }
+
         public override bool ProcessKeyboard(Keyboard keyboard) {
             foreach (var key in keyboard.KeysPressed) {
                 switch (key.Key) {
                     case Keys.Up:
-                        if (playerDevices.Any()) {
+                        if (items.Any()) {
                             if (playerIndex == null) {
-                                playerIndex = playerDevices.Count - 1;
+                                playerIndex = items.Count() - 1;
                             } else {
                                 playerIndex = Math.Max(playerIndex.Value - 1, 0);
                             }
@@ -155,11 +348,11 @@ namespace TranscendenceRL {
                         }
                         break;
                     case Keys.Down:
-                        if (playerDevices.Any()) {
+                        if (items.Any()) {
                             if (playerIndex == null) {
                                 playerIndex = 0;
                             } else {
-                                playerIndex = Math.Min(playerIndex.Value + 1, playerDevices.Count - 1);
+                                playerIndex = Math.Min(playerIndex.Value + 1, items.Count() - 1);
                             }
                         } else {
                             playerIndex = null;
@@ -167,24 +360,8 @@ namespace TranscendenceRL {
                         break;
                     case Keys.Enter:
                         if (playerIndex != null) {
-
-                            var item = playerDevices.ElementAt(playerIndex.Value).source;
-
-                            var invoke = item.type.invoke;
-                            if (invoke == InvokeAction.installWeapon) {
-                                player.AddMessage(new InfoMessage($"Removed weapon {item.type.name}"));
-                                
-                                player.Devices.Remove(item.weapon);
-                                item.RemoveWeapon();
-                                player.Items.Add(item);
-
-                                if (playerDevices.Any()) {
-                                    playerIndex = Math.Min(playerIndex ?? 0, playerDevices.Count - 1);
-                                } else {
-                                    playerIndex = null;
-                                }
-                            }
-
+                            var item = items.ElementAt(playerIndex.Value);
+                            invoke(item);
                         }
                         break;
                     case Keys.Escape:
@@ -196,8 +373,8 @@ namespace TranscendenceRL {
                         var ch = char.ToLower(key.Character);
                         if (ch >= 'a' && ch <= 'z') {
                             var letterIndex = letterToIndex(ch);
-                            if (letterIndex < playerDevices.Count) {
-                                var item = playerDevices.ElementAt(letterIndex);
+                            if (letterIndex < items.Count()) {
+                                //var item = items.ElementAt(letterIndex);
                                 playerIndex = letterIndex;
                             }
                         }
@@ -225,12 +402,12 @@ namespace TranscendenceRL {
                 highlight = playerIndex;
             }
 
-            if (playerDevices.Any()) {
-                while (i < playerDevices.Count) {
+            if (items.Any()) {
+                while (i < items.Count()) {
 
                     var highlightColor = i == highlight ? Color.Yellow : Color.White;
                     var name = new ColoredString($"{UI.indexToLetter(i)}. ", highlightColor, Color.Transparent)
-                             + new ColoredString(playerDevices[i].source.type.name, highlightColor, Color.Transparent);
+                             + new ColoredString(getName(items.ElementAt(i)), highlightColor, Color.Transparent);
                     this.Print(x, y, name);
 
                     i++;
@@ -250,163 +427,14 @@ namespace TranscendenceRL {
             x += 32;
             y = 16;
             if (playerIndex != null) {
-                var item = playerDevices.ElementAt(playerIndex.Value).source;
-                var invoke = item.type.invoke;
-
-                var desc = item.type.desc.SplitLine(32);
+                var item = items.ElementAt(playerIndex.Value);
+                
+                var desc = getDesc(item);
                 if (desc.Any()) {
                     foreach (var line in desc) {
-                        this.Print(x, y++, line, Color.White, Color.Transparent);
+                        this.Print(x, y++, line);
                     }
                     y++;
-                }
-
-                if (invoke == InvokeAction.installWeapon) {
-                    this.Print(x, y, "[Enter] Remove this weapon", Color.Yellow, Color.Transparent);
-                }
-            }
-
-            base.Render(delta);
-        }
-
-    }
-    public class CargoScreen : Console {
-        Console prev;
-        PlayerShip player;
-        HashSet<Item> playerItems => player.Items;
-        int? playerIndex;
-        public CargoScreen(Console prev, PlayerShip player) : base(prev.Width, prev.Height) {
-            this.prev = prev;
-            this.player = player;
-
-            if (player.Items.Any()) {
-                playerIndex = 0;
-            }
-        }
-        public override bool ProcessKeyboard(Keyboard keyboard) {
-            foreach (var key in keyboard.KeysPressed) {
-                switch (key.Key) {
-                    case Keys.Up:
-                        if (playerItems.Any()) {
-                            if (playerIndex == null) {
-                                playerIndex = playerItems.Count - 1;
-                            } else {
-                                playerIndex = Math.Max(playerIndex.Value - 1, 0);
-                            }
-                        } else {
-                            playerIndex = null;
-                        }
-                        break;
-                    case Keys.Down:
-                        if (playerItems.Any()) {
-                            if (playerIndex == null) {
-                                playerIndex = 0;
-                            } else {
-                                playerIndex = Math.Min(playerIndex.Value + 1, playerItems.Count - 1);
-                            }
-                        } else {
-                            playerIndex = null;
-                        }
-                        break;
-                    case Keys.Enter:
-                        if (playerIndex != null) {
-
-                            var item = playerItems.ElementAt(playerIndex.Value);
-
-                            var invoke = item.type.invoke;
-                            if (invoke == InvokeAction.installWeapon) {
-                                player.Devices.Install(item.InstallWeapon());
-                                player.AddMessage(new InfoMessage($"Installed weapon {item.type.name}"));
-
-
-
-                                playerItems.Remove(item);
-                                if (playerItems.Any()) {
-                                    playerIndex = Math.Min(playerIndex ?? 0, playerItems.Count - 1);
-                                } else {
-                                    playerIndex = null;
-                                }
-                            }
-                            
-                        }
-                        break;
-                    case Keys.Escape:
-                        var parent = Parent;
-                        parent.Children.Remove(this);
-                        prev.IsFocused = true;
-                        break;
-                    default:
-                        var ch = char.ToLower(key.Character);
-                        if (ch >= 'a' && ch <= 'z') {
-                            var letterIndex = letterToIndex(ch);
-                            if (letterIndex < playerItems.Count) {
-                                var item = playerItems.ElementAt(letterIndex);
-                                playerIndex = letterIndex;
-                            }
-                        }
-                        break;
-                }
-            }
-            return base.ProcessKeyboard(keyboard);
-        }
-        public override void Render(TimeSpan delta) {
-            int x = 16;
-            int y = 16;
-
-            this.Clear();
-            this.RenderBackground();
-            foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
-                this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
-            }
-            this.Print(x, y, player.Name, Color.Yellow, Color.Transparent);
-            y++;
-            int i = 0;
-            int? highlight = null;
-
-            if (playerIndex != null) {
-                i = Math.Max(playerIndex.Value - 16, 0);
-                highlight = playerIndex;
-            }
-
-            if (playerItems.Any()) {
-                while (i < playerItems.Count) {
-
-                    var highlightColor = i == highlight ? Color.Yellow : Color.White;
-                    var name = new ColoredString($"{UI.indexToLetter(i)}. ", highlightColor, Color.Transparent)
-                             + new ColoredString(playerItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
-                    this.Print(x, y, name);
-
-                    i++;
-                    y++;
-                }
-            } else {
-                var highlightColor = Color.Yellow;
-                var name = new ColoredString("<Empty>", highlightColor, Color.Transparent);
-                this.Print(x, y, name);
-            }
-
-            y = Height - 16;
-            foreach(var m in player.Messages) {
-                this.Print(x, y++, m.Draw());
-            }
-
-
-            x += 32;
-            y = 16;
-            if (playerIndex != null) {
-                var item = playerItems.ElementAt(playerIndex.Value);
-
-                var desc = item.type.desc.SplitLine(32);
-                if(desc.Any()) {
-                    foreach (var line in desc) {
-                        this.Print(x, y++, line, Color.White, Color.Transparent);
-                    }
-                    y++;
-                }
-
-                var invoke = item.type.invoke;
-                if (invoke == InvokeAction.installWeapon) {
-                    this.Print(x, y, "[Enter] Install this weapon", Color.Yellow, Color.Transparent);
                 }
             }
 

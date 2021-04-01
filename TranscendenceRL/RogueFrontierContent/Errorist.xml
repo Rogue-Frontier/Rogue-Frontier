@@ -7,8 +7,10 @@
 				name=		"Natural killer plate"
 				mass=		"1000"
 				level=		"1"
+
+				desc=		"This armor resembles a mess of organic flesh slathered onto a metal substrate."
 		>
-		<Armor	maxHP=		"40"
+		<Armor	maxHP=		"70"
 			>
 		</Armor>
 	</ItemType>
@@ -26,7 +28,10 @@
 						damageHP=		"4"
 						lifetime=		"90"
 						initialCharges=	"100"
-						count=			"6"
+
+						spreadAngle=	"15"
+						count=			"9"
+
 						char=			"."
 						foreground=		"Green"
 			>
@@ -48,8 +53,8 @@
 						
 						initialCharges=	"100"
 
-						
-						count=			"6"
+						spreadAngle=	"15"
+						count=			"12"
 
 						char=			"."
 						foreground=		"Green"

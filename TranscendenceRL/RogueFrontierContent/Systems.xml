@@ -29,11 +29,11 @@
 							/>
 
 				<Orbital angle="random"
-						 increment="60"
+						 increment="80"
 						 radius="0">
 
 					<!--Tiny Moon-->
-					<Group radius="40">
+					<Group radius="60">
 					
 						<Planet radius="3"/>
 						<Orbital angle="random" radius="10">
@@ -41,7 +41,8 @@
 						</Orbital>
 					</Group>
 
-					<Group radius="70">
+
+					<Group radius="80">
 						<!--Small Moon-->
 						<Planet radius="10"/>
 
@@ -71,6 +72,7 @@
 							</Group>
 						</Orbital>
 					</Group>
+
 				</Orbital>
 			</Orbital>
 		</System>

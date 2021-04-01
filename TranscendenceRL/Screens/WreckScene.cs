@@ -13,7 +13,7 @@ namespace TranscendenceRL {
         Console prev;
         PlayerShip player;
         Wreck docked;
-        HashSet<Item> playerItems => player.Items;
+        HashSet<Item> playerItems => player.Cargo;
         HashSet<Item> dockedItems => docked.Items;
         bool playerSide;
         int? playerIndex;
@@ -24,7 +24,7 @@ namespace TranscendenceRL {
             this.docked = docked;
             this.playerSide = false;
 
-            if(player.Items.Any()) {
+            if(player.Cargo.Any()) {
                 playerIndex = 0;
             }
             if(this.docked.Items.Any()) {

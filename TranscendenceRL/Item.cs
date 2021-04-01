@@ -23,11 +23,12 @@ namespace TranscendenceRL {
             weapon = null;
             armor = null;
             shields = null;
+            reactor = null;
         }
-        public Weapon InstallWeapon() => weapon = type.weapon.GetWeapon(this);
-        public Armor InstallArmor() => armor = type.armor.GetArmor(this);
-        public Shields InstallShields() => shields = type.shield.GetShields(this);
-        public Reactor InstallReactor() => reactor = type.reactor.GetReactor(this);
+        public Weapon InstallWeapon() => weapon = type.weapon?.GetWeapon(this);
+        public Armor InstallArmor() => armor = type.armor?.GetArmor(this);
+        public Shields InstallShields() => shields = type.shield?.GetShields(this);
+        public Reactor InstallReactor() => reactor = type.reactor?.GetReactor(this);
         public void RemoveAll() {
             weapon = null;
             armor = null;
@@ -74,6 +75,7 @@ namespace TranscendenceRL {
                 return result;
             }}
         public int currentRange => missileSpeed * desc.shot.lifetime / TranscendenceRL.TICKS_PER_SECOND;
+        public int currentRange2 => currentRange * currentRange;
         public Capacitor capacitor;
         public Aiming aiming;
         public IAmmo ammo;
@@ -149,6 +151,17 @@ namespace TranscendenceRL {
                     repeatsLeft--;
                     firing = true;
                     beginRepeat = false;
+                } else if (desc.autoFire) {
+                    if (desc.hitProjectile) {
+                        var target = Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s));
+                        if (target != null
+                            && Aiming.CalcFireAngle(owner, target, this, out var d)) {
+                            direction = d;
+                            firing = true;
+                        }
+                    } else if (aiming?.target != null) {
+                        firing = true;
+                    }
                 }
                 //bool allowFire = (firing || true) && (capacitor?.AllowFire ?? true);
                 capacitor?.CheckFire(ref firing);
@@ -187,6 +200,17 @@ namespace TranscendenceRL {
                     repeatsLeft--;
                     firing = true;
                     beginRepeat = false;
+                } else if(desc.autoFire) {
+                    if(desc.hitProjectile) {
+                        var target = Aiming.AcquireMissile(owner, this, s => SShip.IsEnemy(owner, s));
+                        if(target != null
+                            && Aiming.CalcFireAngle(owner, target, this, out var d)) {
+                            direction = d;
+                            firing = true;
+                        }
+                    } else if(aiming?.target != null) {
+                        firing = true;
+                    }
                 }
 
                 //bool allowFire = firing && (capacitor?.AllowFire ?? true);
@@ -239,7 +263,7 @@ namespace TranscendenceRL {
                     shotDesc,
                     source.Position + XY.Polar(angle),
                     source.Velocity + XY.Polar(angle, missileSpeed),
-                    maneuver);
+                    maneuver) { hitProjectile = desc.hitProjectile };
                 source.World.AddEntity(p);
             }
         }
@@ -289,7 +313,7 @@ namespace TranscendenceRL {
                 this.itemType = itemType;
             }
             public void Update(IShip source) {
-                Update(source.Items);
+                Update(source.Cargo);
             }
             public void Update(Station source) {
                 Update(source.Items);
@@ -326,6 +350,27 @@ namespace TranscendenceRL {
                     return false;
                 }
             }
+            static bool CalcFireAngle(SpaceObject owner, Projectile target, Weapon weapon, out double? result) {
+                if (((target.Position - owner.Position).Magnitude < weapon.currentRange)) {
+                    result = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _);
+                    return true;
+                } else {
+                    result = null;
+                    return false;
+                }
+            }
+            static SpaceObject AcquireTarget(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
+                return owner.World.entities.GetAll(p => (owner.Position - p).Magnitude2 < weapon.currentRange2).OfType<SpaceObject>().FirstOrDefault(filter);
+            }
+            static Projectile AcquireMissile(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
+                return owner.World.entities
+                    .GetAll(p => (owner.Position - p).Magnitude2 < weapon.currentRange2)
+                    .OfType<Projectile>()
+                    .Where(p => filter(p.Source))
+                    .OrderBy(p => (owner.Position - p.Position).Dot(p.Velocity))
+                    //.OrderBy(p => (owner.Position - p.Position).Magnitude2)
+                    .FirstOrDefault();
+            }
         }
         public class Targeting : Aiming {
             public SpaceObject target { get; private set; }
@@ -337,7 +382,7 @@ namespace TranscendenceRL {
                 if (target?.Active != true
                     || (owner.Position - target.Position).Magnitude > weapon.currentRange
                     ) {
-                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.currentRange).OfType<SpaceObject>().FirstOrDefault(filter);
+                    target = Aiming.AcquireTarget(owner, weapon, filter);
                 }
             }
             public void Update(Station owner) {
@@ -363,7 +408,7 @@ namespace TranscendenceRL {
                     UpdateDirection();
                 } else {
                     direction = null;
-                    target = owner.World.entities.GetAll(p => (owner.Position - p).Magnitude < weapon.currentRange).OfType<SpaceObject>().FirstOrDefault(filter);
+                    target = Aiming.AcquireTarget(owner, weapon, filter);
 
                     if (target?.Active == true) {
                         UpdateDirection();
@@ -501,7 +546,7 @@ namespace TranscendenceRL {
             this.source = source;
         }
         public void Use(PlayerShip playerShip, Armor armor) {
-            playerShip.Items.Remove(source);
+            playerShip.Cargo.Remove(source);
 
         }
     }
