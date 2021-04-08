@@ -15,7 +15,13 @@ namespace IslandHopper {
         bool Active { get; }
     }
     */
-    public interface Entity : Effect {
+	class EntityPosition : ILocator<Entity, (int, int, int)> {
+		public (int, int, int) Locate(Entity e) => e.Position;
+    }
+	class EffectPosition : ILocator<Effect, (int, int, int)> {
+		public (int, int, int) Locate(Effect e) => e.Position;
+	}
+	public interface Entity : Effect {
         Island World { get; }
 		//XYZ Position { get; set; }			//Position in meters
 		XYZ Velocity { get; set; }			//Velocity in meters per step
