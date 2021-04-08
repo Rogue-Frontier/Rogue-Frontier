@@ -10,6 +10,7 @@ TranscendenceRL is an ASCII-style space adventure RPG set in an alternate univer
 - MonoGame
 - SadConsole
 - [ArchConsole](https://github.com/INeedAUniqueUsername/ArchConsole)
+- [ASECII](https://github.com/INeedAUniqueUsername/ASECII)
 
 # Development
 This game is currently a well-developed engine demo. Most of the main UI features are polished and complete. The XML content and type system is complete. Basic movement, combat, and AI are implemented. The current bottleneck is content writing and level design.
