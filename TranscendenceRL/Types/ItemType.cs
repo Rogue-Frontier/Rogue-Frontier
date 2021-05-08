@@ -188,6 +188,7 @@ namespace TranscendenceRL {
 
         public int minRange => shot.missileSpeed * shot.lifetime / (TranscendenceRL.TICKS_PER_SECOND * TranscendenceRL.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
+        public DisruptorDesc disruptor;
         public CapacitorDesc capacitor;
         public Maneuver GetManeuver(SpaceObject target) => maneuver > 0 && target != null ? new Maneuver(target, maneuver) : null;
         public Weapon GetWeapon(Item i) => new Weapon(i, this);
@@ -214,6 +215,9 @@ namespace TranscendenceRL {
             }
 
             effect = new StaticTile(e);
+            if(e.HasElement("Disruptor", out var xmlDisruptor)) {
+                disruptor = new DisruptorDesc(xmlDisruptor);
+            }
             if(e.HasElement("Capacitor", out var xmlCapacitor)) {
                 capacitor = new CapacitorDesc(xmlCapacitor);
             }
@@ -258,6 +262,38 @@ namespace TranscendenceRL {
             background = e.ExpectAttributeColor("background");
         }
         public Effect GetTrail(XY Position) => new FadingTile(Position, new ColoredGlyph(Color.Transparent, background), lifetime);
+    }
+    public class DisruptorDesc {
+        HijackMode thrustMode, turnMode, brakeMode, fireMode;
+        public int lifetime;
+        public DisruptorDesc(XElement e) {
+            thrustMode = GetMode(e.TryAttribute(nameof(thrustMode), null));
+            turnMode = GetMode(e.TryAttribute(nameof(turnMode), null));
+            brakeMode = GetMode(e.TryAttribute(nameof(brakeMode), null));
+            fireMode = GetMode(e.TryAttribute(nameof(fireMode), null));
+            lifetime = e.TryAttributeInt(nameof(lifetime), 60);
+        }
+        public ControlHijack GetHijack() => new ControlHijack() {
+            thrustMode = thrustMode,
+            turnMode = turnMode,
+            brakeMode = brakeMode,
+            fireMode = fireMode,
+            ticksLeft = lifetime
+        };
+        public HijackMode GetMode(string str) {
+            switch(str) {
+                case "on":
+                    return HijackMode.FORCE_ON;
+                case "off":
+                    return HijackMode.FORCE_OFF;
+                case "none":
+                case null:
+                    return HijackMode.NONE;
+                default:
+                    throw new Exception($"Invalid value {str}");
+
+            }
+        }
     }
     public class CapacitorDesc {
         public double minChargeToFire;

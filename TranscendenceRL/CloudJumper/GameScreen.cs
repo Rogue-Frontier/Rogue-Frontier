@@ -7,6 +7,7 @@ using Console = SadConsole.Console;
 using SadConsole.Input;
 using Common;
 using System.Linq;
+using TranscendenceRL;
 
 namespace CloudJumper {
 

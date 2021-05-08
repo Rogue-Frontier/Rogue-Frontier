@@ -283,53 +283,32 @@ namespace TranscendenceRL {
             this.firing = firing;
             aiming?.UpdateTarget(target);
         }
-
-        public interface IAmmo {
-            public void Update(IShip source) { }
-            public void Update(Station source) { }
-            void CheckFire(ref bool firing);
-            void OnFire();
-        }
-        public class ChargeAmmo : IAmmo {
-            public int charges;
-            public bool AllowFire => charges > 0;
-            public ChargeAmmo(int charges) {
-                this.charges = charges;
+        public class Capacitor {
+            public CapacitorDesc desc;
+            public double charge;
+            public Capacitor(CapacitorDesc desc) {
+                this.desc = desc;
             }
-            public void CheckFire(ref bool firing) {
-                firing &= charges > 0;
-            }
-
-            public void OnFire() {
-                charges--;
-            }
-        }
-        public class ItemAmmo : IAmmo {
-            private ItemType itemType;
-            private HashSet<Item> itemSource;
-            private Item item;
-            //public bool AllowFire => false;
-            public ItemAmmo(ItemType itemType) {
-                this.itemType = itemType;
-            }
-            public void Update(IShip source) {
-                Update(source.Cargo);
-            }
-            public void Update(Station source) {
-                Update(source.Items);
-            }
-            public void Update(HashSet<Item> items) {
-                if (item == null || !items.Contains(item)) {
-                    itemSource = items;
-                    item = items.FirstOrDefault(i => i.type == itemType);
+            public void CheckFire(ref bool firing) => firing = firing && AllowFire;
+            public bool AllowFire => desc.minChargeToFire < charge;
+            public void Update() {
+                charge += desc.chargePerTick;
+                if(charge > desc.maxCharge) {
+                    charge = desc.maxCharge;
                 }
             }
-            public void CheckFire(ref bool firing) {
-                firing &= item != null;
+            public void ModifyMissileSpeed(ref int missileSpeed) {
+                missileSpeed += (int)(desc.bonusSpeedPerCharge * charge);
             }
-            public void OnFire() {
-                itemSource.Remove(item);
+            public void Modify(ref int damage, ref int missileSpeed, ref int lifetime) {
+                damage += (int) (desc.bonusDamagePerCharge * charge);
+                missileSpeed += (int)(desc.bonusSpeedPerCharge * charge);
+                lifetime += (int)(desc.bonusLifetimePerCharge * charge);
             }
+            public void Discharge() {
+                charge = Math.Max(0, charge - desc.dischargePerShot);
+            }
+
         }
         public interface Aiming {
             public SpaceObject target => null;
@@ -428,47 +407,66 @@ namespace TranscendenceRL {
             public void Update(IShip owner) {
                 Update(owner, s => SShip.IsEnemy(owner, s));
             }
-            public bool GetFireAngle(out double direction) {
+            public bool GetFireAngle(ref double? direction) {
                 if(this.direction != null) {
                     direction = this.direction.Value;
                     return true;
-                } else {
-                    direction = 0;
-                    return false;
                 }
+                return false;
             }
             public void ResetTarget() => target = null;
             public void UpdateTarget(SpaceObject target = null) {
                 this.target = target ?? this.target;
             }
         }
-        public class Capacitor {
-            public CapacitorDesc desc;
-            public double charge;
-            public Capacitor(CapacitorDesc desc) {
-                this.desc = desc;
+        public interface IAmmo {
+            public void Update(IShip source) { }
+            public void Update(Station source) { }
+            void CheckFire(ref bool firing);
+            void OnFire();
+        }
+        public class ChargeAmmo : IAmmo {
+            public int charges;
+            public bool AllowFire => charges > 0;
+            public ChargeAmmo(int charges) {
+                this.charges = charges;
             }
-            public void CheckFire(ref bool firing) => firing = firing && AllowFire;
-            public bool AllowFire => desc.minChargeToFire < charge;
-            public void Update() {
-                charge += desc.chargePerTick;
-                if(charge > desc.maxCharge) {
-                    charge = desc.maxCharge;
-                }
-            }
-            public void ModifyMissileSpeed(ref int missileSpeed) {
-                missileSpeed += (int)(desc.bonusSpeedPerCharge * charge);
-            }
-            public void Modify(ref int damage, ref int missileSpeed, ref int lifetime) {
-                damage += (int) (desc.bonusDamagePerCharge * charge);
-                missileSpeed += (int)(desc.bonusSpeedPerCharge * charge);
-                lifetime += (int)(desc.bonusLifetimePerCharge * charge);
-            }
-            public void Discharge() {
-                charge = Math.Max(0, charge - desc.dischargePerShot);
+            public void CheckFire(ref bool firing) {
+                firing &= charges > 0;
             }
 
+            public void OnFire() {
+                charges--;
+            }
         }
+        public class ItemAmmo : IAmmo {
+            private ItemType itemType;
+            private HashSet<Item> itemSource;
+            private Item item;
+            //public bool AllowFire => false;
+            public ItemAmmo(ItemType itemType) {
+                this.itemType = itemType;
+            }
+            public void Update(IShip source) {
+                Update(source.Cargo);
+            }
+            public void Update(Station source) {
+                Update(source.Items);
+            }
+            public void Update(HashSet<Item> items) {
+                if (item == null || !items.Contains(item)) {
+                    itemSource = items;
+                    item = items.FirstOrDefault(i => i.type == itemType);
+                }
+            }
+            public void CheckFire(ref bool firing) {
+                firing &= item != null;
+            }
+            public void OnFire() {
+                itemSource.Remove(item);
+            }
+        }
+
     }
     public class Armor {
         public Item source { get; private set; }

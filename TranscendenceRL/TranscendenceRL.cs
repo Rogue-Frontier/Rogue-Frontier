@@ -60,7 +60,7 @@ namespace TranscendenceRL {
 #if DEBUG
             ShowTitle();
             //title.QuickStart();
-            title.StartArena();
+            title.QuickStart();
 #else
             ShowSplash();
 #endif

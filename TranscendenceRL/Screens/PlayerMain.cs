@@ -562,12 +562,12 @@ namespace TranscendenceRL {
 				powerAlpha -= powerAlpha / 120;
 			}
 			ticks++;
-			if(ticks % 5 == 0 && player.Ship.ControlHijack != null) {
+			if(ticks % 5 == 0 && player.Ship.ControlHijack?.ticksLeft > 30) {
 				int i = 0;
 				var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
 				foreach(var p in screenPerimeter.PerimeterPositions().Select(p => new XY(p))) {
 					if(r.Next(0, 10) == 0) {
-						int speed = 30;
+						int speed = 15;
 						int lifetime = 60;
 						var v = new XY( p.xi == 0 ? speed : p.xi == screenPerimeter.Width - 1 ? -speed : 0,
 										p.yi == 0 ? speed : p.yi == screenPerimeter.Height - 1 ? -speed : 0);
@@ -580,6 +580,10 @@ namespace TranscendenceRL {
 				p.Position += p.Velocity / TranscendenceRL.TICKS_PER_SECOND;
 				p.Lifetime--;
 				p.Velocity -= p.Velocity / 15;
+
+				p.Tile.Foreground = p.Tile.Foreground.SetAlpha(
+					(byte)(255 * Math.Min(p.Lifetime / 30f, 1))
+					);
             }
 			particles.RemoveWhere(p => !p.Active);
 
@@ -600,12 +604,6 @@ namespace TranscendenceRL {
 				borderSize += (int)(12 * powerAlpha);
 			}
 			if (player.mortalTime > 0) {
-				//Vignette is red when the player is mortal
-				/*
-				borderColor = borderColor.SetRed(Math.Min((byte)255, (byte)(Math.Min(2, mortalOpacity) * 128)));
-				borderColor = borderColor.SetBlue(Math.Min((byte)255, (byte)((3 - Math.Min(3, mortalOpacity)) * 25)));
-				borderColor = borderColor.SetAlpha(Math.Min((byte)255, (byte)Math.Min(255, 255 * mortalOpacity / 3)));
-				*/
 				borderColor = borderColor.Blend(Color.Red.SetAlpha((byte)(Math.Min(1, player.mortalTime / 4.5) * 255)));
 				
 
@@ -613,7 +611,15 @@ namespace TranscendenceRL {
 
 				borderSize += (int)(6 * fraction);
 			}
-			if (player.Ship.ControlHijack != null) {
+			if (player.Ship.ControlHijack?.ticksLeft > 0) {
+				var ticks = player.Ship.ControlHijack.ticksLeft;
+				var strength = Math.Min(ticks / 60f, 1);
+				borderSize += (int)(5 * strength);
+				borderColor = borderColor.Blend(Color.Cyan.SetAlpha(
+					(byte)(128 * strength)
+					));
+				
+
 			} else {
 				var b = player.World.backdrop.starlight.GetBackgroundFixed(player.Position);
 				borderColor = borderColor.Blend(b.SetAlpha((byte)(255 * b.GetBrightness())));
