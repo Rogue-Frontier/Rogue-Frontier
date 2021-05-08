@@ -36,7 +36,7 @@ namespace TranscendenceRL {
                     var b = new LabelButton(file.Replace(dir, null), () => {
                         var loaded = SaveGame.Deserialize(File.ReadAllText(file));
 
-                        var s = GameHost.Instance.Screen;
+                        var s = (Console)GameHost.Instance.Screen;
                         int Width = s.Width, Height = s.Height;
 
                         switch (loaded) {
