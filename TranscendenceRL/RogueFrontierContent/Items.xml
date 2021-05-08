@@ -44,7 +44,7 @@
 		>
 		<Weapon
 			powerUse=		"30"
-			fireCooldown=	"150"
+			fireCooldown=	"90"
 			missileSpeed=	"60"
 			damageType=		"1"
 			damageHP=		"1"
@@ -52,6 +52,15 @@
 			char=			"*"
 			foreground=		"Cyan"
 			>
+			<Capacitor
+				minChargeToFire=		"40"
+				dischargePerShot=		"40"
+				chargePerTick=			"0.08388885"
+				maxCharge=				"100"
+				bonusSpeedPerCharge=	"0.30"
+				bonusDamagePerCharge=	"0.30"
+				bonusLifetimePerCharge=	"0.30"
+				/>
 			<Disruptor
 				thrustMode="off"
 				turnMode="on"

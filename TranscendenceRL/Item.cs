@@ -103,25 +103,33 @@ namespace TranscendenceRL {
             }
         }
         public ColoredString GetBar() {
-            ColoredString bar;
-            if (fireTime > 0) {
-                int fireBar = (int)(16f * fireTime / desc.fireCooldown);
-                bar = new ColoredString(new string('>', 16 - fireBar),
-                                        Color.White, Color.Transparent)
-                    + new ColoredString(new string('>', fireBar), Color.Gray, Color.Transparent);
-            } else if (CanFire()) {
+            
 
-                bar = new ColoredString(new string('>', 16),
-                                        Color.White, Color.Transparent);
-            } else {
-
-                bar = new ColoredString(new string('>', 16),
-                                        Color.Gray, Color.Transparent);
+            if(ammo?.AllowFire == false) {
+                return new ColoredString(new string(' ', 16), Color.Transparent, Color.Transparent);
             }
+
+            ColoredString bar;
+
+
+
+            int fireBar = (int)(16f * (desc.fireCooldown - fireTime) / desc.fireCooldown);
+
+            if (capacitor != null && capacitor.desc.minChargeToFire > 0) {
+                var chargeBar = (int)(16 * Math.Min(1, capacitor.charge / capacitor.desc.minChargeToFire));
+                bar = new ColoredString(new string('>', chargeBar), Color.Gray, Color.Transparent)
+                    + new ColoredString(new string(' ', 16 - chargeBar), Color.Transparent, Color.Transparent);
+            } else {
+                bar = new ColoredString(new string('>', 16), Color.Gray, Color.Transparent);
+            }
+            foreach (var cg in bar.Take(fireBar)) {
+                cg.Foreground = Color.White;
+            }
+
             if (capacitor != null) {
                 var n = 16 * capacitor.charge / capacitor.desc.maxCharge;
-                for (int j = 0; j < n; j++) {
-                    bar[j].Foreground = bar[j].Foreground.Blend(Color.Cyan.SetAlpha(128));
+                foreach(var cg in bar.Take((int)n + 1)) {
+                    cg.Foreground = cg.Foreground.Blend(Color.Cyan.SetAlpha(128));
                 }
             }
             return bar;
@@ -290,7 +298,7 @@ namespace TranscendenceRL {
                 this.desc = desc;
             }
             public void CheckFire(ref bool firing) => firing = firing && AllowFire;
-            public bool AllowFire => desc.minChargeToFire < charge;
+            public bool AllowFire => desc.minChargeToFire <= charge;
             public void Update() {
                 charge += desc.chargePerTick;
                 if(charge > desc.maxCharge) {
@@ -414,6 +422,7 @@ namespace TranscendenceRL {
             }
         }
         public interface IAmmo {
+            bool AllowFire { get; }
             public void Update(IShip source) { }
             public void Update(Station source) { }
             void CheckFire(ref bool firing);
@@ -426,7 +435,7 @@ namespace TranscendenceRL {
                 this.charges = charges;
             }
             public void CheckFire(ref bool firing) {
-                firing &= charges > 0;
+                firing &= AllowFire;
             }
 
             public void OnFire() {
@@ -437,7 +446,7 @@ namespace TranscendenceRL {
             public ItemType itemType;
             public HashSet<Item> itemSource;
             public Item item;
-            //public bool AllowFire => false;
+            public bool AllowFire => item != null;
             public ItemAmmo(ItemType itemType) {
                 this.itemType = itemType;
             }
@@ -454,7 +463,7 @@ namespace TranscendenceRL {
                 }
             }
             public void CheckFire(ref bool firing) {
-                firing &= item != null;
+                firing &= AllowFire;
             }
             public void OnFire() {
                 itemSource.Remove(item);
