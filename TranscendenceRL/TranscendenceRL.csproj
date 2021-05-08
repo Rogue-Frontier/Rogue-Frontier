@@ -2,9 +2,10 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>TranscendenceRL</RootNamespace>
 	<ApplicationManifest>app.manifest</ApplicationManifest>
+	<StartupObject>TranscendenceRL.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
