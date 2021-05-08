@@ -362,7 +362,7 @@ namespace TranscendenceRL {
 					int i = 0;
 				}
 				if (omnidirectional) {
-					item.weapon.aiming = new Omnidirectional(item.weapon);
+					item.weapon.aiming = new Omnidirectional();
 				}
 				return item.weapon;
 			} else {

@@ -48,6 +48,7 @@ namespace TranscendenceRL {
         public string GetDesc(PlayerShip player, Item item) {
             return "Use this patch to repair armor";
         }
+        public RepairArmor() {}
         public RepairArmor(XElement e) {
             this.repairHP = e.ExpectAttributeInt(nameof(repairHP));
         }
@@ -60,6 +61,7 @@ namespace TranscendenceRL {
     public class InvokePower : InvokeAction {
         PowerType powerType;
         int charges;
+        public InvokePower() { }
         public InvokePower(TypeCollection tc, XElement e) {
             powerType = tc.Lookup<PowerType>(e.ExpectAttribute("powerType"));
             charges = e.ExpectAttributeInt("charges");
@@ -81,6 +83,7 @@ namespace TranscendenceRL {
     }
     public class Refuel : InvokeAction {
         int energy;
+        public Refuel() { }
         public Refuel(TypeCollection tc, XElement e) {
             energy = e.ExpectAttributeInt("energy");
         }
@@ -230,9 +233,7 @@ namespace TranscendenceRL {
         public HashSet<FragmentDesc> fragments;
         public StaticTile effect;
         public TrailDesc trail;
-        public FragmentDesc() {
-
-        }
+        public FragmentDesc() {}
         public FragmentDesc(XElement e) {
             count = e.TryAttributeInt(nameof(count), 1);
             spreadAngle = e.TryAttributeDouble(nameof(spreadAngle), count == 1 ? 0 : 3) * Math.PI / 180;
@@ -268,6 +269,7 @@ namespace TranscendenceRL {
     public class DisruptorDesc {
         HijackMode thrustMode, turnMode, brakeMode, fireMode;
         public int lifetime;
+        public DisruptorDesc() { }
         public DisruptorDesc(XElement e) {
             thrustMode = GetMode(e.TryAttribute(nameof(thrustMode), null));
             turnMode = GetMode(e.TryAttribute(nameof(turnMode), null));

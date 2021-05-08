@@ -85,7 +85,7 @@ namespace TranscendenceRL {
             DamageSystem = new HPSystem(Type.hp);
             Items = new HashSet<Item>();
             weapons = StationType.weapons?.Generate(World.types);
-            weapons?.ForEach(w => w.aiming = new Omnidirectional(w));
+            weapons?.ForEach(w => w.aiming = new Omnidirectional());
         }
         public void CreateSegments() {
             segments = new List<Segment>();

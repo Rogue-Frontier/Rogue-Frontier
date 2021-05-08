@@ -92,9 +92,9 @@ namespace TranscendenceRL {
                 capacitor = new Capacitor(desc.capacitor);
             }
             if (desc.omnidirectional) {
-                aiming = new Omnidirectional(this);
+                aiming = new Omnidirectional();
             } else if(desc.maneuver > 0) {
-                aiming = new Targeting(this);
+                aiming = new Targeting();
             }
             if(desc.initialCharges > -1) {
                 ammo = new ChargeAmmo(desc.initialCharges);
@@ -130,7 +130,7 @@ namespace TranscendenceRL {
         public void Update(Station owner) {
             double? direction = null;
             if (aiming != null) {
-                aiming.Update(owner);
+                aiming.Update(owner, this);
                 if(aiming.GetFireAngle(ref direction)) {
                     
                 } else if(target != null) {
@@ -183,7 +183,7 @@ namespace TranscendenceRL {
             double? direction = owner.rotationDegrees * Math.PI / 180;
 
             if (aiming != null) {
-                aiming.Update(owner);
+                aiming.Update(owner, this);
                 aiming.GetFireAngle(ref direction);
             }
 
@@ -312,8 +312,8 @@ namespace TranscendenceRL {
         }
         public interface Aiming {
             public SpaceObject target => null;
-            void Update(Station owner) { }
-            void Update(IShip owner) { }
+            void Update(Station owner, Weapon weapon);
+            void Update(IShip owner, Weapon weapon);
             bool GetFireAngle(ref double? direction) {
                 return false;
             }
@@ -352,23 +352,20 @@ namespace TranscendenceRL {
             }
         }
         public class Targeting : Aiming {
-            public SpaceObject target { get; private set; }
-            public Weapon weapon;
-            public Targeting(Weapon weapon) {
-                this.weapon = weapon;
-            }
-            public void Update(SpaceObject owner, Func<SpaceObject, bool> filter) {
+            public SpaceObject target;
+            public Targeting() { }
+            public void Update(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
                 if (target?.Active != true
                     || (owner.Position - target.Position).Magnitude > weapon.currentRange
                     ) {
                     target = Aiming.AcquireTarget(owner, weapon, filter);
                 }
             }
-            public void Update(Station owner) {
-                Update(owner, s => SStation.IsEnemy(owner, s));
+            public void Update(Station owner, Weapon weapon) {
+                Update(owner, weapon, s => SStation.IsEnemy(owner, s));
             }
-            public void Update(IShip owner) {
-                Update(owner, s => SShip.IsEnemy(owner, s));
+            public void Update(IShip owner, Weapon weapon) {
+                Update(owner, weapon, s => SShip.IsEnemy(owner, s));
             }
             public void ResetTarget() => target = null;
             public void UpdateTarget(SpaceObject target = null) {
@@ -376,13 +373,10 @@ namespace TranscendenceRL {
             }
         }
         public class Omnidirectional : Aiming {
-            public Weapon weapon;
-            public SpaceObject target { get; private set; }
+            public SpaceObject target;
             double? direction;
-            public Omnidirectional(Weapon weapon) {
-                this.weapon = weapon;
-            }
-            public void Update(SpaceObject owner, Func<SpaceObject, bool> filter) {
+            public Omnidirectional() { }
+            public void Update(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
                 if (target?.Active == true) {
                     UpdateDirection();
                 } else {
@@ -401,11 +395,11 @@ namespace TranscendenceRL {
                     }
                 }
             }
-            public void Update(Station owner) {
-                Update(owner, s => SStation.IsEnemy(owner, s));
+            public void Update(Station owner, Weapon weapon) {
+                Update(owner, weapon, s => SStation.IsEnemy(owner, s));
             }
-            public void Update(IShip owner) {
-                Update(owner, s => SShip.IsEnemy(owner, s));
+            public void Update(IShip owner, Weapon weapon) {
+                Update(owner, weapon, s => SShip.IsEnemy(owner, s));
             }
             public bool GetFireAngle(ref double? direction) {
                 if(this.direction != null) {
@@ -440,9 +434,9 @@ namespace TranscendenceRL {
             }
         }
         public class ItemAmmo : IAmmo {
-            private ItemType itemType;
-            private HashSet<Item> itemSource;
-            private Item item;
+            public ItemType itemType;
+            public HashSet<Item> itemSource;
+            public Item item;
             //public bool AllowFire => false;
             public ItemAmmo(ItemType itemType) {
                 this.itemType = itemType;
