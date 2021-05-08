@@ -92,6 +92,15 @@ namespace TranscendenceRL {
                             case SpaceObject hit:
                                 lifetime = 0;
                                 hit.Damage(Source, desc.damageHP);
+
+                                if(desc.disruptor != null) {
+                                    if (hit is PlayerShip sh) {
+                                        sh.Ship.ControlHijack = desc.disruptor.GetHijack();
+                                    } else if(hit is AIShip ai) {
+                                        ai.Ship.ControlHijack = desc.disruptor.GetHijack();
+                                    }
+                                }
+
                                 Fragment();
                                 var angle = (hit.Position - Position).Angle;
                                 World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));

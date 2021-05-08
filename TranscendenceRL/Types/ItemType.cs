@@ -188,7 +188,6 @@ namespace TranscendenceRL {
 
         public int minRange => shot.missileSpeed * shot.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
-        public DisruptorDesc disruptor;
         public CapacitorDesc capacitor;
         public Maneuver GetManeuver(SpaceObject target) => maneuver > 0 && target != null ? new Maneuver(target, maneuver) : null;
         public Weapon GetWeapon(Item i) => new Weapon(i, this);
@@ -215,9 +214,6 @@ namespace TranscendenceRL {
             }
 
             effect = new StaticTile(e);
-            if(e.HasElement("Disruptor", out var xmlDisruptor)) {
-                disruptor = new DisruptorDesc(xmlDisruptor);
-            }
             if(e.HasElement("Capacitor", out var xmlCapacitor)) {
                 capacitor = new CapacitorDesc(xmlCapacitor);
             }
@@ -230,6 +226,7 @@ namespace TranscendenceRL {
         public int damageType;
         public int damageHP;
         public int lifetime;
+        public DisruptorDesc disruptor;
         public HashSet<FragmentDesc> fragments;
         public StaticTile effect;
         public TrailDesc trail;
@@ -244,6 +241,11 @@ namespace TranscendenceRL {
             damageHP = e.ExpectAttributeInt(nameof(damageHP));
             lifetime = e.ExpectAttributeInt(nameof(lifetime));
             fragments = new HashSet<FragmentDesc>();
+
+            if (e.HasElement("Disruptor", out var xmlDisruptor)) {
+                disruptor = new DisruptorDesc(xmlDisruptor);
+            }
+
             if (e.HasElements("Fragment", out var fragmentsList)) {
                 fragments.UnionWith(fragmentsList.Select(f => new FragmentDesc(f)));
             }

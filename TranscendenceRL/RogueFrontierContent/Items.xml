@@ -35,6 +35,32 @@
 		>
 	</ItemType>
 
+	<ItemType	codename=	"item_emp_cannon"
+			name=		"EMP cannon"
+			level=		"3"
+			mass=		"4000"
+
+			desc=		"."
+		>
+		<Weapon
+			powerUse=		"30"
+			fireCooldown=	"150"
+			missileSpeed=	"60"
+			damageType=		"1"
+			damageHP=		"1"
+			lifetime=		"60"
+			char=			"*"
+			foreground=		"Cyan"
+			>
+			<Disruptor
+				thrustMode="off"
+				turnMode="on"
+				brakeMode="on"
+				fireMode="off"
+				lifetime="120"
+				/>
+		</Weapon>
+	</ItemType>
 
 	<ItemType	codename=	"item_laser_pointer"
 				name=		"basic laser cannon"

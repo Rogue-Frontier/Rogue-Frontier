@@ -331,8 +331,9 @@ namespace TranscendenceRL {
             }
 
 
-
-            Heading.Crosshair(World, nearest.Position);
+            if (nearest != null) {
+                Heading.Crosshair(World, nearest.Position);
+            }
         }
         public override void Render(TimeSpan drawTime) {
             if (playerMain != null) {
@@ -417,7 +418,7 @@ namespace TranscendenceRL {
                     pov = nearest;
                 }
             }
-            if(info.IsKeyPressed(K)) {
+            if(info.IsKeyPressed(K) && nearest != null) {
                 nearest.Destroy();
                 if(info.IsKeyDown(LeftShift)) {
                     foreach(var s in World.entities.all.OfType<SpaceObject>()) {
