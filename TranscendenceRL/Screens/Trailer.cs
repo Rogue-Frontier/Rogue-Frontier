@@ -13,7 +13,7 @@ using SadRogue.Primitives;
 using System.Linq;
 using Newtonsoft.Json;
 using ASECII;
-using static TranscendenceRL.TranscendenceRL;
+using static TranscendenceRL.Program;
 namespace TranscendenceRL {
     public class Trailer {
         

@@ -50,7 +50,7 @@ namespace TranscendenceRL {
         }
 
         public void Update() {
-            Position += Velocity / TranscendenceRL.TICKS_PER_SECOND;
+            Position += Velocity / Program.TICKS_PER_SECOND;
         }
     }
     public class Station : SpaceObject, Dockable, ITrader {

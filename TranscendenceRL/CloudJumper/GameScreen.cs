@@ -54,7 +54,7 @@ namespace CloudJumper {
             UpdatePosition();
 
             void UpdatePosition() {
-                playership.Position += playership.Velocity / TranscendenceRL.TranscendenceRL.TICKS_PER_SECOND;
+                playership.Position += playership.Velocity / TranscendenceRL.Program.TICKS_PER_SECOND;
             }
             void UpdateGravity() {
                 playership.Velocity -= new XY(0, 6 / 30f);

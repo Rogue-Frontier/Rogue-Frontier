@@ -64,7 +64,7 @@ namespace TranscendenceRL {
             owner.Dock = null;
 
             var velDiff = owner.Velocity - target.Velocity;
-            double decel = owner.ShipClass.thrust * TranscendenceRL.TICKS_PER_SECOND / 2;
+            double decel = owner.ShipClass.thrust * Program.TICKS_PER_SECOND / 2;
             double stoppingTime = velDiff.Magnitude / decel;
             double stoppingDistance = owner.Velocity.Magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
             var stoppingPoint = owner.Position;

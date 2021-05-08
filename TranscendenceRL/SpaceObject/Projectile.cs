@@ -77,9 +77,9 @@ namespace TranscendenceRL {
 
                 maneuver?.Update(this);
 
-                var dest = Position + Velocity / TranscendenceRL.TICKS_PER_SECOND;
+                var dest = Position + Velocity / Program.TICKS_PER_SECOND;
                 var inc = Velocity.Normal * 0.5;
-                var steps = Velocity.Magnitude * 2 / TranscendenceRL.TICKS_PER_SECOND;
+                var steps = Velocity.Magnitude * 2 / Program.TICKS_PER_SECOND;
                 for (int i = 0; i < steps; i++) {
                     Position += inc;
 

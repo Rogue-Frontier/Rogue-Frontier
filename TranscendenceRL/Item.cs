@@ -74,7 +74,7 @@ namespace TranscendenceRL {
                 capacitor?.ModifyMissileSpeed(ref result);
                 return result;
             }}
-        public int currentRange => missileSpeed * desc.shot.lifetime / TranscendenceRL.TICKS_PER_SECOND;
+        public int currentRange => missileSpeed * desc.shot.lifetime / Program.TICKS_PER_SECOND;
         public int currentRange2 => currentRange * currentRange;
         public Capacitor capacitor;
         public Aiming aiming;

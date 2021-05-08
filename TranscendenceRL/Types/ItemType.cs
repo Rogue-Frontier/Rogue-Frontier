@@ -186,7 +186,7 @@ namespace TranscendenceRL {
         public int damageHP => shot.damageHP;
         public int lifetime => shot.lifetime;
 
-        public int minRange => shot.missileSpeed * shot.lifetime / (TranscendenceRL.TICKS_PER_SECOND * TranscendenceRL.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
+        public int minRange => shot.missileSpeed * shot.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
         public DisruptorDesc disruptor;
         public CapacitorDesc capacitor;

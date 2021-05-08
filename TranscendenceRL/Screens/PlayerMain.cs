@@ -577,7 +577,7 @@ namespace TranscendenceRL {
 			}
 
 			foreach(var p in particles) {
-				p.Position += p.Velocity / TranscendenceRL.TICKS_PER_SECOND;
+				p.Position += p.Velocity / Program.TICKS_PER_SECOND;
 				p.Lifetime--;
 				p.Velocity -= p.Velocity / 15;
 

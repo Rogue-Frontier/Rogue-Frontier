@@ -9,10 +9,10 @@ using ASECII;
 using SadConsole.Input;
 using System;
 namespace TranscendenceRL {
-    partial class TranscendenceRL {
+    partial class Program {
 		public static int TICKS_PER_SECOND = 60;
 
-        static TranscendenceRL() {
+        static Program() {
             Height = 60;
             Width = Height * 5 / 3;
         }

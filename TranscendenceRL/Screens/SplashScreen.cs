@@ -12,7 +12,7 @@ namespace TranscendenceRL {
         public Dictionary<(int, int), ColoredGlyph> tiles;
         XY screenCenter;
         double time;
-        public SplashScreen(Action next) : base(TranscendenceRL.Width / 2, TranscendenceRL.Height / 2) {
+        public SplashScreen(Action next) : base(Program.Width / 2, Program.Height / 2) {
             this.next = next;
             FontSize = FontSize * 2;
             Random r = new Random(3);

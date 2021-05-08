@@ -72,15 +72,15 @@ namespace TranscendenceRL {
         public double rotationDegrees { get; set; }
         [JsonIgnore]
         public double stoppingRotation { get {
-                var stoppingTime = TranscendenceRL.TICKS_PER_SECOND * Math.Abs(rotatingVel) / (ShipClass.rotationDecel);
-                return rotationDegrees + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
+                var stoppingTime = Program.TICKS_PER_SECOND * Math.Abs(rotatingVel) / (ShipClass.rotationDecel);
+                return rotationDegrees + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((ShipClass.rotationDecel / Program.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
         }}
         [JsonIgnore]
         public double stoppingRotationWithCounterTurn {
             get {
                 var stoppingRate = ShipClass.rotationDecel + ShipClass.rotationAccel;
-                var stoppingTime = Math.Abs(TranscendenceRL.TICKS_PER_SECOND * rotatingVel / stoppingRate);
-                return rotationDegrees + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((stoppingRate / TranscendenceRL.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
+                var stoppingTime = Math.Abs(Program.TICKS_PER_SECOND * rotatingVel / stoppingRate);
+                return rotationDegrees + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((stoppingRate / Program.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
             }
         }
 
@@ -217,7 +217,7 @@ namespace TranscendenceRL {
                         if (rotatingVel < 0) {
                             Decel();
                         }
-                        rotatingVel += ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
+                        rotatingVel += ShipClass.rotationAccel / Program.TICKS_PER_SECOND;
                     } else if (rotating == Rotating.CW) {
                         /*
                         if(rotatingSpeed > 0) {
@@ -228,7 +228,7 @@ namespace TranscendenceRL {
                         if (rotatingVel > 0) {
                             Decel();
                         }
-                        rotatingVel -= ShipClass.rotationAccel / TranscendenceRL.TICKS_PER_SECOND;
+                        rotatingVel -= ShipClass.rotationAccel / Program.TICKS_PER_SECOND;
                     }
                     rotatingVel = Math.Min(Math.Abs(rotatingVel), ShipClass.rotationMaxSpeed) * Math.Sign(rotatingVel);
                     rotating = Rotating.None;
@@ -236,7 +236,7 @@ namespace TranscendenceRL {
                     Decel();
                 }
             }
-            void Decel() => rotatingVel -= Math.Min(Math.Abs(rotatingVel), ShipClass.rotationDecel / TranscendenceRL.TICKS_PER_SECOND) * Math.Sign(rotatingVel); ;
+            void Decel() => rotatingVel -= Math.Min(Math.Abs(rotatingVel), ShipClass.rotationDecel / Program.TICKS_PER_SECOND) * Math.Sign(rotatingVel); ;
             void UpdateBrake() {
                 if (decelerating) {
                     if (Velocity.Magnitude > 0.05) {
@@ -249,7 +249,7 @@ namespace TranscendenceRL {
             }
         }
         public void UpdateMotion() {
-            Position += Velocity / TranscendenceRL.TICKS_PER_SECOND;
+            Position += Velocity / Program.TICKS_PER_SECOND;
         }
         public ColoredGlyph Tile => ShipClass.tile.Glyph;
     }
