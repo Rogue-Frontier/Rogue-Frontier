@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Graphics {
     class TitleDraw : Console {
-        public static string[] title = File.ReadAllText("RogueFrontierContent/Title.txt").Replace("\r\n", "\n").Split('\n');
+        public static string[] title = File.ReadAllText("RogueFrontierContent/sprites/Title.txt").Replace("\r\n", "\n").Split('\n');
         public static int Width = title.Max(line => line.Length);
         public static int Height = title.Length;
         public TitleDraw() : base(Width, Height) {

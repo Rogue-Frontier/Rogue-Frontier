@@ -19,7 +19,7 @@ namespace TranscendenceRL {
         
         public static void Main2(string[] args) {
             // Setup the engine and create the main window.
-            SadConsole.Game.Create(Width, Height, "RogueFrontierContent/IBMCGA.font");
+            SadConsole.Game.Create(Width, Height, "RogueFrontierContent/sprites/IBMCGA.font");
             // Hook the start event so we can add consoles to the system.
             SadConsole.Game.Instance.OnStart = Init;
 #if DEBUG
@@ -44,9 +44,9 @@ namespace TranscendenceRL {
 			return;
 #endif
             World w = new World();
-            w.types.Load("RogueFrontierContent/Main.xml");
+            w.types.LoadFile("RogueFrontierContent/scripts/Main.xml");
 
-            var poster = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/RogueFrontierPoster.cg")));
+            var poster = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/sprites/RogueFrontierPoster.cg")));
 
             Console container = new Console(Width, Height);
             GameHost.Instance.Screen = container;

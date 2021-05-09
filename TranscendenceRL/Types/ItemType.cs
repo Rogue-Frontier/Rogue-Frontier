@@ -128,7 +128,7 @@ namespace TranscendenceRL {
             desc = e.TryAttribute(nameof(desc), "");
             level = e.ExpectAttributeInt(nameof(level));
             mass = e.ExpectAttributeInt(nameof(mass));
-            value = e.TryAttributeInt(nameof(value), -1);
+            value = e.TryAttributeInt(nameof(value), 0);
 
             switch(e.TryAttribute(nameof(invoke), "none")) {
                 case "none":
@@ -192,7 +192,11 @@ namespace TranscendenceRL {
         public int minRange => shot.missileSpeed * shot.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
         public CapacitorDesc capacitor;
-        public Maneuver GetManeuver(SpaceObject target) => maneuver > 0 && target != null ? new Maneuver(target, maneuver) : null;
+        public Maneuver GetManeuver(SpaceObject target) =>
+            maneuver > 0 &&
+            target != null ?
+            new Maneuver(target, maneuver) :
+            null;
         public Weapon GetWeapon(Item i) => new Weapon(i, this);
         public WeaponDesc() { }
         public WeaponDesc(TypeCollection types, XElement e) {

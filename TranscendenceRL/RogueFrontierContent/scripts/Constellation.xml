@@ -52,6 +52,14 @@
 			<Ship	count="2"	codename="ship_amethyst"/>
 			<Ship	count="1"	codename="ship_wagon"/>
 		</Guards>
+		<Cargo>
+			<Item count="60"	codename="item_simple_fuel_rod"/>
+			<Item count="25"	codename="item_armor_repair_patch"/>
+			<Item count="10"	codename="item_klaw_missile_launcher"/>
+			<Item count="150"	codename="item_klaw_missile"/>
+			<Item count="10"	codename="item_dynamite_cannon"/>
+			<Item count="60"	codename="item_dynamite_charge"/>
+		</Cargo>
 		<Weapons>
 		</Weapons>
 		<Dock type="united_constellation"/>

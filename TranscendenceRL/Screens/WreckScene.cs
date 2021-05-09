@@ -11,16 +11,16 @@ using Console = SadConsole.Console;
 namespace TranscendenceRL {
     public class WreckScene : Console {
         Console prev;
-        PlayerShip player;
+        PlayerShip playerShip;
         Wreck docked;
-        HashSet<Item> playerItems => player.cargo;
+        HashSet<Item> playerItems => playerShip.cargo;
         HashSet<Item> dockedItems => docked.cargo;
         bool playerSide;
         int? playerIndex;
         int? dockedIndex;
         public WreckScene(Console prev, PlayerShip player, Wreck docked) : base(prev.Width, prev.Height) {
             this.prev = prev;
-            this.player = player;
+            this.playerShip = player;
             this.docked = docked;
             this.playerSide = false;
 
@@ -105,7 +105,9 @@ namespace TranscendenceRL {
                     default:
                         var ch = char.ToLower(key.Character);
                         if(ch >= 'a' && ch <= 'z') {
-                            var letterIndex = letterToIndex(ch);
+
+                            int start = Math.Max(index.Value - 13, 0);
+                            var letterIndex = start + letterToIndex(ch);
                             if(letterIndex < from.Count) {
                                 var item = from.ElementAt(letterIndex);
                                 from.Remove(item);
@@ -132,67 +134,70 @@ namespace TranscendenceRL {
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
-            this.Print(x, y, player.name, playerSide ? Color.Yellow : Color.White, Color.Black);
+            this.Print(x, y, playerShip.name, playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
-            int i = 0;
+            int start = 0;
             int? highlight = null;
 
-            if (playerSide && playerIndex != null) {
-                i = Math.Max(playerIndex.Value - 16, 0);
-                highlight = playerIndex;
+            if (playerIndex != null) {
+                start = Math.Max(playerIndex.Value - 13, 0);
+                if (playerSide) {
+                    highlight = playerIndex;
+                }
             }
+            int end = Math.Min(playerItems.Count, start + 26);
 
-            if(playerItems.Any()) {
-                while (i < playerItems.Count) {
-
+            if (playerItems.Any()) {
+                int i = start;
+                while (i < end) {
                     var highlightColor = i == highlight ? Color.Yellow : Color.White;
-                    var name = new ColoredString($"{UI.indexToLetter(i)}. ", playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Transparent)
-                             + new ColoredString(playerItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
+                    var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
+                             + new ColoredString(playerItems.ElementAt(i).type.name, highlightColor, Color.Black);
                     this.Print(x, y, name);
-
                     i++;
                     y++;
                 }
             } else {
                 var highlightColor = playerSide ? Color.Yellow : Color.White;
-                var name = new ColoredString("<Empty>", highlightColor, Color.Transparent);
+                var name = new ColoredString("<Empty>", highlightColor, Color.Black);
                 this.Print(x, y, name);
             }
-            
-
             x += 32;
             y = 16;
-            foreach(var point in new Rectangle(x, y, 32, 26).Positions()) {
+            foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
 
             this.Print(x, y, docked.name, !playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
-            i = 0;
+            start = 0;
             highlight = null;
-            if (!playerSide && dockedIndex != null) {
-                i = Math.Max(dockedIndex.Value - 16, 0);
-                highlight = dockedIndex;
+            if (dockedIndex != null) {
+                start = Math.Max(dockedIndex.Value - 13, 0);
+
+                if (!playerSide) {
+                    highlight = dockedIndex;
+                }
+
             }
+
+            end = Math.Min(dockedItems.Count, start + 26);
             if (dockedItems.Any()) {
-
-                while (i < dockedItems.Count) {
-
+                int i = start;
+                while (i < end) {
                     var highlightColor = (i == highlight ? Color.Yellow : Color.White);
-                    var name = new ColoredString($"{UI.indexToLetter(i)}. ", !playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Transparent)
-                             + new ColoredString(dockedItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
+                    var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", !playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
+                             + new ColoredString(dockedItems.ElementAt(i).type.name, highlightColor, Color.Black);
                     this.Print(x, y, name);
-
                     i++;
                     y++;
                 }
             } else {
                 var highlightColor = !playerSide ? Color.Yellow : Color.White;
-                var name = new ColoredString("<Empty>", highlightColor, Color.Transparent);
+                var name = new ColoredString("<Empty>", highlightColor, Color.Black);
                 this.Print(x, y, name);
             }
             base.Render(delta);
         }
-        
     }
 }

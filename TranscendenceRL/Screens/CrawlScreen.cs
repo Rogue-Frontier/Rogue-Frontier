@@ -16,8 +16,8 @@ using CloudJumper;
 namespace TranscendenceRL {
     class CrawlScreen : Console {
         private readonly ColorImage[] images = {
-            new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/NewEra.cg"))),
-            new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/PillarsOfCreation.cg")))
+            new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/sprites/NewEra.cg"))),
+            new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/sprites/PillarsOfCreation.cg")))
         };
         private readonly string[] text = new string[] {
 @"The Orator's Revelation:            

@@ -137,23 +137,22 @@ namespace TranscendenceRL {
 	}
 	public class ItemEntry : ItemGenerator {
 		public string codename;
+		public int count;
 		public ItemEntry() { }
 		public ItemEntry(XElement e) {
 			this.codename = e.ExpectAttribute("codename");
+			this.count = e.TryAttributeInt("count", 1);
 		}
 		public List<Item> Generate(TypeCollection tc) {
 			var type = tc.Lookup<ItemType>(codename);
-			var item = new Item(type);
-			return new List<Item> { item };
+			var result = new List<Item>(Enumerable.Range(0, count).Select(_ => new Item(type)));
+			return result;
 		}
 		//In case we want to make sure immediately that the type is valid
 		public void ValidateEager(TypeCollection tc) {
 			tc.Lookup<ItemType>(codename);
 		}
 	}
-
-
-
 	public interface ArmorGenerator {
 		List<Armor> Generate(TypeCollection tc);
 	}

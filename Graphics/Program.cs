@@ -12,7 +12,7 @@ namespace Graphics
 
 		static void Main(string[] args) {
 			// Setup the engine and create the main window.
-			SadConsole.Game.Create(Width, Height, "RogueFrontierContent/IBMCGA.font");
+			SadConsole.Game.Create(Width, Height, "RogueFrontierContent/sprites/IBMCGA.font");
 			SadConsole.Game.Instance.DefaultFontSize = Font.Sizes.One;
 			SadConsole.Game.Instance.OnStart = Init;
 			SadConsole.Game.Instance.Run();
@@ -21,13 +21,13 @@ namespace Graphics
 
 		private static void Init() {
 			World w = new World();
-			w.types.Load("RogueFrontierContent/Main.xml");
+			w.types.LoadFile("RogueFrontierContent/scripts/Main.xml");
 
 			Directory.CreateDirectory("GraphicsContent");
 
 			var s = new WorldDraw(2000, 2000, w);
 			s.Render(new TimeSpan());
-			var t = ((ScreenSurfaceRenderer)s.Renderer)._backingTexture;
+			var t = ((ScreenSurfaceRenderer)s.Renderer).BackingTexture;
 			t.Save("GraphicsContent/Background.png");
 
 		}

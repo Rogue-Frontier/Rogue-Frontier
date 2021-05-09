@@ -11,6 +11,6 @@
 	<Module file="Reactors.xml"/>
 	<Module file="Ships.xml"/>
 	<Module file="Systems.xml"/>
-	<Module file="UnitedConstellation.xml"/>
+	<Module file="Constellation.xml"/>
 	<Module file="ConstellationMilitia.xml"/>
 </Module>

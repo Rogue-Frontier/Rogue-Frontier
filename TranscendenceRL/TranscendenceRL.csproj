@@ -27,13 +27,13 @@
     <None Update="app.manifest">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\ConstellationAstra.asc">
+    <None Update="RogueFrontierContent\sprites\ConstellationAstra.asc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Errorist.xml">
+    <None Update="RogueFrontierContent\scripts\Errorist.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\IronPirates.xml">
+    <None Update="RogueFrontierContent\scripts\IronPirates.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\manual\background.png">
@@ -42,40 +42,40 @@
     <None Update="readme.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\sprites\BenedictPortrait.asc">
+    <None Update="RogueFrontierContent\unused\BenedictPortrait.asc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\sprites\BenedictPortrait.asc.cg">
+    <None Update="RogueFrontierContent\unused\BenedictPortrait.asc.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\sprites\BenedictPortrait.asc.png">
+    <None Update="RogueFrontierContent\unused\BenedictPortrait.asc.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\sprites\BenedictPortrait.asc.txt">
+    <None Update="RogueFrontierContent\unused\BenedictPortrait.asc.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\ConstellationMilitia.xml">
+    <None Update="RogueFrontierContent\scripts\ConstellationMilitia.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\DaughtersOutpostDock.asc">
+    <None Update="RogueFrontierContent\unused\DaughtersOutpostDock.asc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\DaughtersOutpostDock.asc.cg">
+    <None Update="RogueFrontierContent\unused\DaughtersOutpostDock.asc.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\DaughtersOutpostDock.asc.png">
+    <None Update="RogueFrontierContent\unused\DaughtersOutpostDock.asc.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\DaughtersOutpostDock.asc.txt">
+    <None Update="RogueFrontierContent\unused\DaughtersOutpostDock.asc.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Genomes.xml">
+    <None Update="RogueFrontierContent\scripts\Genomes.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\IBMCGA.font">
+    <None Update="RogueFrontierContent\sprites\IBMCGA.font">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\IBMCGA.png">
+    <None Update="RogueFrontierContent\sprites\IBMCGA.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\Icon.pdn">
@@ -87,79 +87,79 @@
     <None Update="RogueFrontierContent\Ideas.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Items.xml">
+    <None Update="RogueFrontierContent\scripts\Items.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Main.xml">
+    <None Update="RogueFrontierContent\scripts\Main.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Missions.xml">
+    <None Update="RogueFrontierContent\scripts\Missions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\NewEra.cg">
+    <None Update="RogueFrontierContent\sprites\NewEra.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\NRobot.xml">
+    <None Update="RogueFrontierContent\scripts\NRobot.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\OrionWarlords.xml">
+    <None Update="RogueFrontierContent\scripts\OrionWarlords.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\PillarsOfCreation.cg">
+    <None Update="RogueFrontierContent\sprites\PillarsOfCreation.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Player.xml">
+    <None Update="RogueFrontierContent\scripts\Player.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Powers.xml">
+    <None Update="RogueFrontierContent\scripts\Powers.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Reactors.xml">
+    <None Update="RogueFrontierContent\scripts\Reactors.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\RogueFrontierPoster.cg">
+    <None Update="RogueFrontierContent\sprites\RogueFrontierPoster.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Ships.xml">
+    <None Update="RogueFrontierContent\scripts\Ships.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\SplashBackground.asc.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\SplashBackgroundV2.asc">
+    <None Update="RogueFrontierContent\sprites\SplashBackgroundV2.asc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\SplashBackgroundV2.asc.cg">
+    <None Update="RogueFrontierContent\sprites\SplashBackgroundV2.asc.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\SplashBackgroundV2.asc.png">
+    <None Update="RogueFrontierContent\sprites\SplashBackgroundV2.asc.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\SplashBackgroundV2.asc.txt">
+    <None Update="RogueFrontierContent\sprites\SplashBackgroundV2.asc.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Square.font">
+    <None Update="RogueFrontierContent\sprites\Square.font">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Square.png">
+    <None Update="RogueFrontierContent\sprites\Square.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\square.ttf">
+    <None Update="RogueFrontierContent\sprites\square.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Square.zip">
+    <None Update="RogueFrontierContent\sprites\Square.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Daughters.xml">
+    <None Update="RogueFrontierContent\scripts\Daughters.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Systems.xml">
+    <None Update="RogueFrontierContent\scripts\Systems.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\Title.txt">
+    <None Update="RogueFrontierContent\sprites\Title.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\UnitedConstellation.xml">
+    <None Update="RogueFrontierContent\scripts\Constellation.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

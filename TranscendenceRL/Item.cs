@@ -200,7 +200,6 @@ namespace TranscendenceRL {
             if(fireTime > 0 && repeatsLeft == 0) {
                 fireTime--;
             } else {
-
                 bool beginRepeat = true;
                 if (repeatsLeft > 0) {
                     repeatsLeft--;
@@ -259,7 +258,10 @@ namespace TranscendenceRL {
             capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);
             capacitor?.Discharge();
 
-            Maneuver maneuver = desc.GetManeuver(aiming?.target);
+            Maneuver maneuver = null;
+            if (desc.maneuver > 0 && aiming != null && aiming.target != null) {
+                maneuver = new Maneuver(aiming.target, desc.maneuver);
+            }
 
             var shotDesc = desc.shot;
             double angleInterval = shotDesc.spreadAngle / shotDesc.count;
@@ -317,7 +319,7 @@ namespace TranscendenceRL {
 
         }
         public interface Aiming {
-            public SpaceObject target => null;
+            public SpaceObject target { get; }
             void Update(Station owner, Weapon weapon);
             void Update(IShip owner, Weapon weapon);
             bool GetFireAngle(ref double? direction) {
@@ -358,7 +360,7 @@ namespace TranscendenceRL {
             }
         }
         public class Targeting : Aiming {
-            public SpaceObject target;
+            public SpaceObject target { get; set; }
             public Targeting() { }
             public void Update(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
                 if (target?.active != true
@@ -379,7 +381,7 @@ namespace TranscendenceRL {
             }
         }
         public class Omnidirectional : Aiming {
-            public SpaceObject target;
+            public SpaceObject target { get; set; }
             double? direction;
             public Omnidirectional() { }
             public void Update(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {

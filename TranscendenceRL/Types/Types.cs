@@ -53,7 +53,7 @@ namespace TranscendenceRL {
 
 		}
 		public TypeCollection(params string[] modules) : this() {
-			Load(modules);
+			LoadFile(modules);
 		}
 		public TypeCollection(params XElement[] modules) : this() {
 			
@@ -76,7 +76,7 @@ namespace TranscendenceRL {
 			}
 			state = InitState.Initialized;
 		}
-		public void Load(params string[] modules) {
+		public void LoadFile(params string[] modules) {
 			foreach (var m in modules) {
 				ProcessRoot(m, XElement.Parse(File.ReadAllText(m)));
 			}
@@ -88,6 +88,7 @@ namespace TranscendenceRL {
 				Initialize();
 			}
 		}
+
 		void ProcessRoot(string file, XElement root) {
 			foreach (var element in root.Elements()) {
 				ProcessElement(file, element);
@@ -213,6 +214,10 @@ namespace TranscendenceRL {
             }
         }
 		public T Lookup<T>(string codename) where T:DesignType {
+			if(codename == null || codename.Trim().Length == 0) {
+				throw new Exception($"Must specify a codename");
+            }
+
 			if(all.TryGetValue(codename, out var result)) {
 				if(result is T t) {
 					return t;

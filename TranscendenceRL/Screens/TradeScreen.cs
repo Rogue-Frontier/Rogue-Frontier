@@ -104,7 +104,8 @@ namespace TranscendenceRL {
                     default:
                         var ch = char.ToLower(key.Character);
                         if (ch >= 'a' && ch <= 'z') {
-                            var letterIndex = letterToIndex(ch);
+                            int start = Math.Max(index.Value - 13, 0);
+                            var letterIndex = start + letterToIndex(ch);
                             if (letterIndex < from.Count) {
                                 index = letterIndex;
                                 Transact();
@@ -118,6 +119,8 @@ namespace TranscendenceRL {
                 ref int? index = ref (playerSide ? ref playerIndex : ref dockedIndex);
                 if (index != null) {
                     if (!playerSide) {
+
+
                         var item = from.ElementAt(index.Value);
 
                         if (player.money < item.type.value) {
@@ -149,32 +152,47 @@ namespace TranscendenceRL {
             }
             this.Print(x, y, playerShip.name, playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
-            int i = 0;
+            int start = 0;
             int? highlight = null;
 
-            if (playerSide && playerIndex != null) {
-                i = Math.Max(playerIndex.Value - 16, 0);
-                highlight = playerIndex;
+            if (playerIndex != null) {
+                start = Math.Max(playerIndex.Value - 13, 0);
+                if (playerSide) {
+                    highlight = playerIndex;
+                }
             }
+            int end = Math.Min(playerItems.Count, start + 26);
 
             if (playerItems.Any()) {
-                while (i < playerItems.Count) {
-
+                int i = start;
+                while (i < end) {
                     var highlightColor = i == highlight ? Color.Yellow : Color.White;
-                    var name = new ColoredString($"{UI.indexToLetter(i)}. ", playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Transparent)
-                             + new ColoredString(playerItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
+                    var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
+                             + new ColoredString(playerItems.ElementAt(i).type.name, highlightColor, Color.Black);
                     this.Print(x, y, name);
-
                     i++;
                     y++;
                 }
             } else {
                 var highlightColor = playerSide ? Color.Yellow : Color.White;
-                var name = new ColoredString("<Empty>", highlightColor, Color.Transparent);
+                var name = new ColoredString("<Empty>", highlightColor, Color.Black);
                 this.Print(x, y, name);
             }
-
-
+            y = 16 + 26 + 2;
+            var f = Color.White;
+            var b = Color.Black;
+            this.Print(x, y++, $"Money: {$"{player.money}".PadLeft(8)}", f, b);
+            ref int? index = ref (playerSide ? ref playerIndex : ref dockedIndex);
+            if (index != null) {
+                f = Color.Yellow;
+                if (playerSide) {
+                    var item = playerItems.ElementAt(index.Value);
+                    this.Print(x, y++, $"      +{$"{item.type.value}".PadLeft(8)}", f, b);
+                } else {
+                    var item = dockedItems.ElementAt(index.Value);
+                    this.Print(x, y++, $"      -{$"{item.type.value}".PadLeft(8)}", f, b);
+                }
+            }
             x += 32;
             y = 16;
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
@@ -183,31 +201,34 @@ namespace TranscendenceRL {
 
             this.Print(x, y, docked.name, !playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
-            i = 0;
+            start = 0;
             highlight = null;
-            if (!playerSide && dockedIndex != null) {
-                i = Math.Max(dockedIndex.Value - 16, 0);
-                highlight = dockedIndex;
+            if (dockedIndex != null) {
+                start = Math.Max(dockedIndex.Value - 13, 0);
+                
+                if(!playerSide) {
+                    highlight = dockedIndex;
+                }
+                
             }
+
+            end = Math.Min(dockedItems.Count, start + 26);
             if (dockedItems.Any()) {
-
-                while (i < dockedItems.Count) {
-
+                int i = start;
+                while (i < end) {
                     var highlightColor = (i == highlight ? Color.Yellow : Color.White);
-                    var name = new ColoredString($"{UI.indexToLetter(i)}. ", !playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Transparent)
-                             + new ColoredString(dockedItems.ElementAt(i).type.name, highlightColor, Color.Transparent);
+                    var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", !playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
+                             + new ColoredString(dockedItems.ElementAt(i).type.name, highlightColor, Color.Black);
                     this.Print(x, y, name);
-
                     i++;
                     y++;
                 }
             } else {
                 var highlightColor = !playerSide ? Color.Yellow : Color.White;
-                var name = new ColoredString("<Empty>", highlightColor, Color.Transparent);
+                var name = new ColoredString("<Empty>", highlightColor, Color.Black);
                 this.Print(x, y, name);
             }
             base.Render(delta);
         }
-
     }
 }

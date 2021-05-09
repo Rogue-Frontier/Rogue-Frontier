@@ -23,7 +23,7 @@ namespace TranscendenceRL {
 
         World World;
         
-        string[] title = File.ReadAllText("RogueFrontierContent/Title.txt").Replace("\r\n", "\n").Split('\n');
+        public static string[] title = File.ReadAllText("RogueFrontierContent/sprites/Title.txt").Replace("\r\n", "\n").Split('\n');
         Settings settings;
 
         public AIShip pov;
@@ -435,11 +435,11 @@ namespace TranscendenceRL {
             w.UpdatePresent();
 
             var playerClass = w.types.Lookup<ShipClass>("ship_wagon");
-            var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").Position;
+            var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").position;
             var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
             var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerSovereign, playerStart));
-            playerShip.Powers.Add(new Power(w.types.Lookup<PowerType>("power_silence")));
-            playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+            playerShip.powers.Add(new Power(w.types.Lookup<PowerType>("power_silence")));
+            playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
             w.AddEffect(new Heading(playerShip));
             w.AddEntity(playerShip);
@@ -459,7 +459,7 @@ namespace TranscendenceRL {
 
 
             var playerMain = new PlayerMain(Width, Height, w, playerShip);
-            playerShip.OnDestroyed += new EndGame(playerMain);
+            playerShip.onDestroyed += new EndGame(playerMain);
 
 
             playerMain.IsFocused = true;

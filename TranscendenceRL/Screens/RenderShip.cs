@@ -14,7 +14,7 @@ namespace TranscendenceRL.Screens {
 
         static void Main2(string[] args) {
             // Setup the engine and create the main window.
-            SadConsole.Game.Create(Width, Height, "RogueFrontierContent/IBMCGA.font");
+            SadConsole.Game.Create(Width, Height, "RogueFrontierContent/sprites/IBMCGA.font");
             SadConsole.Game.Instance.DefaultFontSize = Font.Sizes.Two;
             SadConsole.Game.Instance.OnStart = Init;
             SadConsole.Game.Instance.Run();
@@ -22,7 +22,7 @@ namespace TranscendenceRL.Screens {
         }
         private static void Init() {
 
-            TypeCollection tc = new TypeCollection("RogueFrontierContent/Main.xml");
+            TypeCollection tc = new TypeCollection("RogueFrontierContent/scripts/Main.xml");
 
             Directory.CreateDirectory("RogueFrontierRenders");
             foreach((var codename, var sc) in tc.shipClass) {

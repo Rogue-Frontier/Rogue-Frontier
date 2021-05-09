@@ -372,7 +372,8 @@ namespace TranscendenceRL {
                     default:
                         var ch = char.ToLower(key.Character);
                         if (ch >= 'a' && ch <= 'z') {
-                            var letterIndex = letterToIndex(ch);
+                            int start = Math.Max(playerIndex.Value - 13, 0);
+                            var letterIndex = start + letterToIndex(ch);
                             if (letterIndex < items.Count()) {
                                 //var item = items.ElementAt(letterIndex);
                                 playerIndex = letterIndex;
@@ -394,19 +395,18 @@ namespace TranscendenceRL {
             }
             this.Print(x, y, player.name, Color.Yellow, Color.Transparent);
             y++;
-            int i = 0;
+            int start = 0;
             int? highlight = null;
-
             if (playerIndex != null) {
-                i = Math.Max(playerIndex.Value - 16, 0);
+                start = Math.Max(playerIndex.Value - 16, 0);
                 highlight = playerIndex;
             }
-
+            int end = Math.Min(items.Count(), start + 26);
             if (items.Any()) {
-                while (i < items.Count()) {
-
+                int i = start;
+                while (i < end) {
                     var highlightColor = i == highlight ? Color.Yellow : Color.White;
-                    var name = new ColoredString($"{UI.indexToLetter(i)}. ", highlightColor, Color.Transparent)
+                    var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", highlightColor, Color.Transparent)
                              + new ColoredString(getName(items.ElementAt(i)), highlightColor, Color.Transparent);
                     this.Print(x, y, name);
 

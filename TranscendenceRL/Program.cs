@@ -8,6 +8,7 @@ using System.Linq;
 using ASECII;
 using SadConsole.Input;
 using System;
+using static Common.Main;
 namespace TranscendenceRL {
     partial class Program {
 		public static int TICKS_PER_SECOND = 60;
@@ -17,9 +18,13 @@ namespace TranscendenceRL {
             Width = Height * 5 / 3;
         }
         public static int Width, Height;
+        public static string font = CheckFile("RogueFrontierContent/sprites/IBMCGA.font");
+        public static string main = CheckFile("RogueFrontierContent/scripts/Main.xml");
+        public static string cover = CheckFile("RogueFrontierContent/sprites/RogueFrontierPoster.cg");
+        public static string splash = CheckFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
 		static void Main(string[] args) {
 			// Setup the engine and create the main window.
-			SadConsole.Game.Create(Width, Height, "RogueFrontierContent/IBMCGA.font");
+			SadConsole.Game.Create(Width, Height, font);
             // Hook the start event so we can add consoles to the system.
             SadConsole.Game.Instance.OnStart = Init;
 			// Start the game.
@@ -34,12 +39,12 @@ namespace TranscendenceRL {
 			return;
 #endif
 			World w = new World();
-			w.types.Load("RogueFrontierContent/Main.xml");
+			w.types.LoadFile(main);
 
             //var files = Directory.GetFiles($"{AppDomain.CurrentDomain.BaseDirectory}save", "*.trl");
             //SaveGame.Deserialize(File.ReadAllText(files.First()));
 
-            var poster = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/RogueFrontierPoster.cg")));
+            var poster = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText(cover)));
 
             var title = new TitleScreen(Width, Height, w);
             var titleSlide = new TitleSlideOpening(title) { IsFocused = true };
@@ -51,7 +56,7 @@ namespace TranscendenceRL {
             }) { IsFocused = true, UseKeyboard = true,
             };
 
-            var splashBack = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/SplashBackgroundV2.asc.cg")));
+            var splashBack = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText(splash)));
             var splashBackground = new DisplayImage(Width / 2, Height / 2, splashBack, new Point()) { FontSize = container.FontSize * 2 };
             container.Children.Add(splashBackground);
 
