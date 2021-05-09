@@ -7,9 +7,9 @@ using System.Text;
 namespace TranscendenceRL {
     class TimedEvent : Entity {
         public string Name => "Spawner";
-        public XY Position => new XY(double.NaN, double.NaN);
-        public bool Active => delay > 0;
-        public ColoredGlyph Tile => null;
+        public XY position => new XY(double.NaN, double.NaN);
+        public bool active => delay > 0;
+        public ColoredGlyph tile => null;
         public XY Velocity => new XY();
 
         public int delay;

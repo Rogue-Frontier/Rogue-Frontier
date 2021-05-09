@@ -20,8 +20,8 @@ namespace TranscendenceRL {
             this.story = story;
         }
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
-            if (d is Station s && s.StationType.codename == "station_daughters_outpost") {
-                var heroImage = s.StationType.heroImage;
+            if (d is Station s && s.type.codename == "station_daughters_outpost") {
+                var heroImage = s.type.heroImage;
                 /*
                 var benedictPortrait = SScene.LoadImage("RogueFrontierContent/BenedictPortrait.asc.cg").Translate(new Point(heroImage.Max(p => p.Key.Item1), 4));
                 var outpostLobby = SScene.LoadImage("RogueFrontierContent/DaughtersOutpostDock.asc.cg").Translate(new Point(benedictPortrait.Max(p => p.Key.Item1), 4));
@@ -362,9 +362,9 @@ Allow me to join you on your mission.""
                 Console BenjaminJoin(Console prev) {
                     story.mainInteractions.Remove(this);
 
-                    var w = playerShip.World;
+                    var w = playerShip.world;
                     var wingmateClass = w.types.Lookup<ShipClass>("ship_beowulf");
-                    var wingmate = new AIShip(new BaseShip(w, wingmateClass, playerShip.Sovereign, s.Position), new EscortOrder(playerShip, new XY(-5, 0)));
+                    var wingmate = new AIShip(new BaseShip(w, wingmateClass, playerShip.sovereign, s.position), new EscortOrder(playerShip, new XY(-5, 0)));
                     w.AddEntity(wingmate);
                     w.AddEffect(new Heading(wingmate));
 
@@ -422,26 +422,26 @@ Destroy them as fast as you can""";
         public DaughtersTraining(PlayerStory story, Station station, PlayerShip player) {
             this.story = story;
             this.station = station;
-            var w = station.World;
+            var w = station.world;
             var shipClass = w.types.shipClass["ship_laser_drone"];
             var sovereign = Sovereign.SelfOnly;
             this.drones = new AIShip[3];
-            var k = station.World.karma;
+            var k = station.world.karma;
             for (int i = 0; i < 3; i++) {
-                var d = new AIShip(new BaseShip(w, shipClass, sovereign, station.Position + XY.Polar(k.NextDouble() * 2 * Math.PI, k.NextDouble() * 25 + 25)), new SnipeOrder(player));
+                var d = new AIShip(new BaseShip(w, shipClass, sovereign, station.position + XY.Polar(k.NextDouble() * 2 * Math.PI, k.NextDouble() * 25 + 25)), new SnipeOrder(player));
                 drones[i] = d;
             }
         }
         public void AddDrones() {
             foreach(var d in drones) {
-                station.World.AddEntity(d);
+                station.world.AddEntity(d);
             }
         }
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
             if (d == station) {
                 var s = station;
-                var heroImage = s.StationType.heroImage;
-                var count = drones.Count(d => d.Active);
+                var heroImage = s.type.heroImage;
+                var count = drones.Count(d => d.active);
                 if (count > 0) {
                     return InProgress();
                 } else {
@@ -461,7 +461,7 @@ Destroy them as fast as you can""";
                     return sc;
                 }
                 Console Complete() {
-                    var sec = (station.World.tick - startTick) / 60;
+                    var sec = (station.world.tick - startTick) / 60;
                     var t =
 @$"Benjamin meets you at the docking bay.
 
@@ -514,16 +514,16 @@ and services for money. Some might have jobs that you can take.""
         public BenjaminExploration(PlayerStory story, Station station, PlayerShip playerShip) {
             this.story = story;
             this.station = station;
-            var w = station.World;
+            var w = station.world;
             targets = new HashSet<Station>(w.entities.all.OfType<Station>().Where(
-                s => s.Sovereign.IsFriend(playerShip)));
+                s => s.sovereign.IsFriend(playerShip)));
         }
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
             if (d == station) {
                 var s = station;
-                var heroImage = s.StationType.heroImage;
+                var heroImage = s.type.heroImage;
                 
-                if(targets.IsSubsetOf(playerShip.Known)) {
+                if(targets.IsSubsetOf(playerShip.known)) {
                     
                     var sc = new TextScene(prev,
 @$"""You've found all the friendly stations in the system. Now that
@@ -540,7 +540,7 @@ needed.""",
                     }
                     return sc;
                 } else {
-                    int count = targets.Count - targets.Intersect(playerShip.Known).Count();
+                    int count = targets.Count - targets.Intersect(playerShip.known).Count();
 
                     if(count > 1) {
                         return new TextScene(prev,
@@ -588,7 +588,7 @@ Use your starship's megamap to look for it.""",
                 return sc;
             } else {
                 if (d is Station source) {
-                    string codename = source.StationType.codename;
+                    string codename = source.type.codename;
 
 
                     Dictionary<string, GetDockScreen> funcMap = new Dictionary<string, GetDockScreen> {
@@ -630,7 +630,7 @@ a residential station of the United Constellation.",
                     return mission.GetScene(prev, source, playerShip);
                 }
                 
-                var target = source.World.entities.all.OfType<Station>().Where(s => s.StationType.codename == "station_orion_warlords_camp").FirstOrDefault(other => (other.Position - source.Position).Magnitude < 256);
+                var target = source.world.entities.all.OfType<Station>().Where(s => s.type.codename == "station_orion_warlords_camp").FirstOrDefault(other => (other.position - source.position).Magnitude < 256);
 
                 if (target == null) {
                     return new TextScene(prev,
@@ -778,7 +778,7 @@ There is a modest degree of artificial gravity here.",
         }
         public Console Raisu(Console prev, Station source, PlayerShip playerShip) {
             Console Intro() {
-                var nearby = source.World.entities.all
+                var nearby = source.world.entities.all
                     .OfType<AIShip>()
                     .Where(s => s.controller is PatrolOrder p 
                              && p.patrolTarget == source);
@@ -841,7 +841,7 @@ nobody attends to the docking bay right now.",
             if(d == source) {
                 return null;
             }
-            if(target.Active) {
+            if(target.active) {
                 return inProgress(prev);
             } else {
                 return debrief(prev);

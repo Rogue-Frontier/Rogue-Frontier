@@ -22,7 +22,7 @@ namespace TranscendenceRL {
             this.armor = armor;
             this.item = item;
 
-            if (playerShip.Cargo.Any()) {
+            if (playerShip.cargo.Any()) {
                 index = 0;
             }
         }
@@ -87,7 +87,7 @@ namespace TranscendenceRL {
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
-            this.Print(x, y, playerShip.Name, Color.White, Color.Black);
+            this.Print(x, y, playerShip.name, Color.White, Color.Black);
             y++;
             int i = 0;
             int? highlight = null;

@@ -14,6 +14,7 @@ namespace TranscendenceRL {
 		public int hp;
 		public Sovereign Sovereign;
 		public StaticTile tile;
+		public ItemList cargo;
 		public WeaponList weapons;
 		
 		public List<SegmentDesc> segments;
@@ -55,7 +56,10 @@ namespace TranscendenceRL {
 					}
 				}
 			}
-			if(e.HasElement("Weapons", out var xmlWeapons)) {
+			if (e.HasElement("Cargo", out XElement xmlCargo) || e.HasElement("Items", out xmlCargo)) {
+				cargo = new ItemList(xmlCargo);
+			}
+			if (e.HasElement("Weapons", out var xmlWeapons)) {
 				weapons = new WeaponList(xmlWeapons);
 			}
 			if(e.HasElement("Guards", out var xmlGuards)) {

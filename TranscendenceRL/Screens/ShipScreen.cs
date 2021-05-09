@@ -33,7 +33,7 @@ namespace TranscendenceRL {
             this.Clear();
             this.RenderBackground();
 
-            var name = PlayerShip.ShipClass.name;
+            var name = PlayerShip.shipClass.name;
             var x = Width / 4 - name.Length / 2;
             var y = 4;
 
@@ -45,7 +45,7 @@ namespace TranscendenceRL {
             Print(x, y, name);
 
 
-            var map = PlayerShip.ShipClass.playerSettings?.map ?? new string[] { "" };
+            var map = PlayerShip.shipClass.playerSettings?.map ?? new string[] { "" };
             x = Math.Max(0, Width / 4 - map.Select(line => line.Length).Max() / 2);
             y = 2;
 
@@ -57,16 +57,16 @@ namespace TranscendenceRL {
             }
             y++;
 
-            Print(x, y, $"{$"Thrust:    {PlayerShip.ShipClass.thrust}", -16}{$"Rotation acceleration: {PlayerShip.ShipClass.rotationAccel, 4} deg/s^2"}");
+            Print(x, y, $"{$"Thrust:    {PlayerShip.shipClass.thrust}", -16}{$"Rotation acceleration: {PlayerShip.shipClass.rotationAccel, 4} deg/s^2"}");
             y++;
-            Print(x, y, $"{$"Max Speed: {PlayerShip.ShipClass.maxSpeed}",-16}{$"Rotation deceleration: {PlayerShip.ShipClass.rotationDecel, 4} deg/s^2"}");
+            Print(x, y, $"{$"Max Speed: {PlayerShip.shipClass.maxSpeed}",-16}{$"Rotation deceleration: {PlayerShip.shipClass.rotationDecel, 4} deg/s^2"}");
             y++; 
-            Print(x, y, $"{"",-16}{$"Rotation max speed:    {PlayerShip.ShipClass.rotationMaxSpeed*30, 4} deg/s^2"}");
+            Print(x, y, $"{"",-16}{$"Rotation max speed:    {PlayerShip.shipClass.rotationMaxSpeed*30, 4} deg/s^2"}");
 
             x = Width / 2;
             y = 2;
 
-            var ds = PlayerShip.Ship.DamageSystem;
+            var ds = PlayerShip.ship.damageSystem;
             if(ds is HPSystem hp) {
                 Print(x, y++, "[Health]");
                 Print(x, y++, $"HP: {hp.hp}");
@@ -77,7 +77,7 @@ namespace TranscendenceRL {
                 }
             }
 
-            var weapons = PlayerShip.Ship.Devices.Weapons;
+            var weapons = PlayerShip.ship.devices.Weapons;
             if (weapons.Any()) {
                 Print(x, y++, "[Weapons]");
                 foreach (var w in weapons) {
@@ -139,8 +139,8 @@ namespace TranscendenceRL {
             IEnumerable<Item> installedUsable;
             List<Item> usable;
             void UpdateList() {
-                cargoUsable = player.Cargo.Where(i => i.type.invoke != null);
-                installedUsable = player.Devices.Installed.Select(d => d.source).Where(i => i.type.invoke != null);
+                cargoUsable = player.cargo.Where(i => i.type.invoke != null);
+                installedUsable = player.devices.Installed.Select(d => d.source).Where(i => i.type.invoke != null);
                 usable = new List<Item>(installedUsable.Concat(cargoUsable));
             }
             UpdateList();
@@ -186,7 +186,7 @@ namespace TranscendenceRL {
         }
         public static ListScreen<Device> LoadoutScreen(Console prev, PlayerShip player) {
             ListScreen<Device> screen = null;
-            var devices = player.Devices.Installed;
+            var devices = player.devices.Installed;
             return screen = new ListScreen<Device>(prev,
                 player,
                 devices,
@@ -226,7 +226,7 @@ namespace TranscendenceRL {
         }
         public static ListScreen<Item> CargoScreen(Console prev, PlayerShip player) {
             ListScreen<Item> screen = null;
-            var items = player.Cargo;
+            var items = player.cargo;
             return screen = new ListScreen<Item>(prev,
                 player,
                 items,
@@ -264,7 +264,7 @@ namespace TranscendenceRL {
         }
         public static ListScreen<Armor> RepairArmorScreen(Console prev, PlayerShip player, Item source, RepairArmor repair, Action callback) {
             ListScreen<Armor> screen = null;
-            var devices = (player.Hull as LayeredArmorSystem).layers;
+            var devices = (player.hull as LayeredArmorSystem).layers;
             return screen = new ListScreen<Armor>(prev,
                 player,
                 devices,
@@ -294,7 +294,7 @@ namespace TranscendenceRL {
             }
             void Repair(Armor segment) {
                 segment.hp += repair.repairHP;
-                player.Cargo.Remove(source);
+                player.cargo.Remove(source);
                 player.AddMessage(new InfoMessage($"Used {source.type.name} to restore {repair.repairHP} hp on {segment.source.type.name}"));
 
                 callback?.Invoke();
@@ -392,7 +392,7 @@ namespace TranscendenceRL {
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
-            this.Print(x, y, player.Name, Color.Yellow, Color.Transparent);
+            this.Print(x, y, player.name, Color.Yellow, Color.Transparent);
             y++;
             int i = 0;
             int? highlight = null;
@@ -420,7 +420,7 @@ namespace TranscendenceRL {
             }
 
             y = Height - 16;
-            foreach (var m in player.Messages) {
+            foreach (var m in player.messages) {
                 this.Print(x, y++, m.Draw());
             }
 

@@ -20,25 +20,25 @@ namespace TranscendenceRL {
     
     public class InstallWeapon : InvokeAction {
         public string GetDesc(PlayerShip player, Item item) {
-            if (player.Cargo.Contains(item)) {
+            if (player.cargo.Contains(item)) {
                 return "Install this weapon";
             } else {
                 return "Remove this weapon";
             }
         }
         public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
-            if(player.Cargo.Contains(item)) {
+            if(player.cargo.Contains(item)) {
                 player.AddMessage(new InfoMessage($"Installed weapon {item.type.name}"));
 
-                player.Cargo.Remove(item);
+                player.cargo.Remove(item);
                 item.InstallWeapon();
-                player.Devices.Install(item.weapon);
+                player.devices.Install(item.weapon);
             } else {
                 player.AddMessage(new InfoMessage($"Removed weapon {item.type.name}"));
 
-                player.Devices.Remove(item.weapon);
+                player.devices.Remove(item.weapon);
                 item.RemoveWeapon();
-                player.Cargo.Add(item);
+                player.cargo.Add(item);
             }
             callback?.Invoke();
         }
@@ -74,7 +74,7 @@ namespace TranscendenceRL {
 
             charges--;
             if (charges == 0) {
-                player.Cargo.Remove(item);
+                player.cargo.Remove(item);
             }
             new Power(powerType).Effect.Invoke(player);
 
@@ -91,7 +91,7 @@ namespace TranscendenceRL {
             return "Refuel reactor";
         }
         public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
-            var reactor = player.Devices.Reactors.FirstOrDefault(r => !r.desc.battery);
+            var reactor = player.devices.Reactors.FirstOrDefault(r => !r.desc.battery);
 
             if(reactor == null) {
                 return;
@@ -100,7 +100,7 @@ namespace TranscendenceRL {
             reactor.energy += energy;
             player.AddMessage(new InfoMessage($"Refueled reactor with {item.type.name}"));
 
-            player.Cargo.Remove(item);
+            player.cargo.Remove(item);
 
             callback?.Invoke();
         }

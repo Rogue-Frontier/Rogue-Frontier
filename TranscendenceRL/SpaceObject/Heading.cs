@@ -14,21 +14,21 @@ namespace TranscendenceRL {
             this.parent = parent;
         }
 
-        public XY Position => parent.Position;
+        public XY position => parent.position;
 
-        public bool Active => parent.Active;
+        public bool active => parent.active;
 
-        public ColoredGlyph Tile => null;
+        public ColoredGlyph tile => null;
 
         public void Update() {
-            if(parent.Dock?.docked == true) {
+            if(parent.dock?.docked == true) {
                 return;
             }
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 153), Color.Transparent);
 
             //Idea: Highlight a segment of the aimline based on the firetime left on the weapon
-            XY point = parent.Position;
+            XY point = parent.position;
             int step = 2;
             XY inc = XY.Polar(parent.rotationDegrees * Math.PI / 180, 1)  * step;
             int length = 20;
@@ -36,7 +36,7 @@ namespace TranscendenceRL {
                 point += inc;
                 var value = 153 - Math.Max(1, i / 2) * 153/length;
                 ColoredGlyph pointEffect = new ColoredGlyph(new Color(value, value, value), Color.Transparent, '.');
-                parent.World.AddEffect(new EffectParticle(point, pointEffect, 1));
+                parent.world.AddEffect(new EffectParticle(point, pointEffect, 1));
             }
         }
         public static void AimLine(World World, XY start, double angle) {
@@ -54,8 +54,8 @@ namespace TranscendenceRL {
         public static void AimLine(SpaceObject owner, double angle, Weapon w) {
             //Idea: Highlight a segment of the aimline based on the firetime left on the weapon
 
-            var start = owner.Position;
-            var World = owner.World;
+            var start = owner.position;
+            var World = owner.world;
 
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
             //ColoredGlyph dark = new ColoredGlyph(new Color(255, 255, 0, 102), Color.Transparent, '.');

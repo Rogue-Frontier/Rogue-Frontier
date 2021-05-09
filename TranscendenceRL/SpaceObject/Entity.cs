@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     public interface Effect {
-        XY Position { get; }
-        bool Active { get; }
-        ColoredGlyph Tile { get; }
+        XY position { get; }
+        bool active { get; }
+        ColoredGlyph tile { get; }
         void Update();
     }
     public interface Entity : Effect {

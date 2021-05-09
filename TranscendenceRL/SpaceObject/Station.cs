@@ -15,95 +15,95 @@ using static TranscendenceRL.Weapon;
 namespace TranscendenceRL {
     public class Wreck : Dockable {
         [JsonIgnore]
-        public string Name => $"Wreck of {creator.Name}";
+        public string name => $"Wreck of {creator.name}";
         public SpaceObject creator;
         [JsonProperty]
-        public World World { get; private set; }
+        public World world { get; private set; }
         [JsonProperty]
-        public Sovereign Sovereign { get; private set; }
+        public Sovereign sovereign { get; private set; }
         [JsonProperty] 
-        public XY Position { get; private set; }
+        public XY position { get; private set; }
         [JsonProperty] 
-        public XY Velocity { get; private set; }
+        public XY velocity { get; private set; }
         [JsonProperty] 
-        public bool Active { get; private set; }
+        public bool active { get; private set; }
         [JsonProperty] 
-        public HashSet<Item> Items { get; private set; }
+        public HashSet<Item> cargo { get; private set; }
         [JsonIgnore]
-        public ColoredGlyph Tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.Tile.GlyphCharacter);
+        public ColoredGlyph tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.tile.GlyphCharacter);
         public Wreck() { }
         public Wreck(SpaceObject creator) {
             this.creator = creator;
-            this.World = creator.World;
-            this.Sovereign = Sovereign.Inanimate;
-            this.Position = creator.Position;
-            this.Velocity = creator.Velocity;
-            this.Active = true;
-            Items = new HashSet<Item>();
+            this.world = creator.world;
+            this.sovereign = Sovereign.Inanimate;
+            this.position = creator.position;
+            this.velocity = creator.velocity;
+            this.active = true;
+            cargo = new HashSet<Item>();
         }
         public Console GetScene(Console prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
         public void Damage(SpaceObject source, int hp) {
         }
 
         public void Destroy(SpaceObject source) {
-            Active = false;
+            active = false;
         }
 
         public void Update() {
-            Position += Velocity / Program.TICKS_PER_SECOND;
+            position += velocity / Program.TICKS_PER_SECOND;
         }
     }
     public class Station : SpaceObject, Dockable, ITrader {
         [JsonIgnore]
-        public string Name => StationType.name;
+        public string name => type.name;
         [JsonProperty]
-        public World World { get; set; }
+        public World world { get; set; }
         [JsonProperty]
-        public StationType StationType { get; set; }
+        public StationType type { get; set; }
         [JsonProperty]
-        public Sovereign Sovereign { get; set; }
+        public Sovereign sovereign { get; set; }
         [JsonProperty]
-        public XY Position { get; set; }
+        public XY position { get; set; }
         [JsonProperty]
-        public XY Velocity { get; set; }
+        public XY velocity { get; set; }
         [JsonProperty]
-        public bool Active { get; set; }
+        public bool active { get; set; }
         public List<Segment> segments;
-        public HullSystem DamageSystem;
+        public HullSystem damageSystem;
         [JsonProperty]
-        public HashSet<Item> Items { get; set; }
+        public HashSet<Item> cargo { get; set; }
         public List<Weapon> weapons;
         public List<AIShip> guards;
         public Station() { }
         public Station(World World, StationType Type, XY Position) {
-            this.World = World;
-            this.StationType = Type;
-            this.Position = Position;
-            this.Velocity = new XY();
-            this.Active = true;
-            this.Sovereign = Type.Sovereign;
-            DamageSystem = new HPSystem(Type.hp);
-            Items = new HashSet<Item>();
-            weapons = StationType.weapons?.Generate(World.types);
+            this.world = World;
+            this.type = Type;
+            this.position = Position;
+            this.velocity = new XY();
+            this.active = true;
+            this.sovereign = Type.Sovereign;
+            damageSystem = new HPSystem(Type.hp);
+            cargo = new HashSet<Item>(Type.cargo?.Generate(World.types) ?? new List<Item>());
+            weapons = type.weapons?.Generate(World.types);
             weapons?.ForEach(w => w.aiming = new Omnidirectional());
         }
         public void CreateSegments() {
             segments = new List<Segment>();
-            foreach(var segmentDesc in StationType.segments) {
+            foreach(var segmentDesc in type.segments) {
                 var s = new Segment(this, segmentDesc);
                 segments.Add(s);
-                World.AddEntity(s);
+                world.AddEntity(s);
             }
         }
         public void CreateGuards() {
             guards = new List<AIShip>();
-            if(StationType.guards != null) {
+            if(type.guards != null) {
                 //Suppose we should pass in the owner object
-                var generated = StationType.guards.Generate(World.types, this);
+                var generated = type.guards.Generate(world.types, this);
                 foreach(var guard in generated) {
                     guards.Add(guard);
-                    World.AddEntity(guard);
-                    World.AddEffect(new Heading(guard));
+                    world.AddEntity(guard);
+                    world.AddEffect(new Heading(guard));
                 }
             }
         }
@@ -117,11 +117,11 @@ namespace TranscendenceRL {
         }
         */
         public void Damage(SpaceObject source, int hp) {
-            DamageSystem.Damage(this, source, hp);
-            if(source.Sovereign != Sovereign) {
+            damageSystem.Damage(this, source, hp);
+            if(source.sovereign != sovereign) {
 
-                var guards = from guard in World.entities.all.OfType<AIShip>()
-                             where guard.controller is GuardOrder order && order.guardTarget == this
+                var guards = from guard in world.entities.all.OfType<AIShip>()
+                             where guard.controller is GuardOrder order && order.GuardTarget == this
                              select (GuardOrder)guard.controller;
                 foreach(var order in guards) {
                     order.attackTime = 300;
@@ -130,27 +130,27 @@ namespace TranscendenceRL {
             }
         }
         public void Destroy(SpaceObject source) {
-            Active = false;
+            active = false;
             var wreck = new Wreck(this);
 
             var drop = weapons?.Select(w => w.source);
             if(drop != null) {
                 foreach (var item in drop) {
                     item.RemoveWeapon();
-                    wreck.Items.Add(item);
+                    wreck.cargo.Add(item);
                 }
             }
             
-            World.AddEntity(wreck);
+            world.AddEntity(wreck);
             foreach(var segment in segments) {
                 var offset = segment.desc.offset;
                 var tile = new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, segment.desc.tile.Glyph.GlyphCharacter);
-                World.AddEntity(new Segment(wreck, new SegmentDesc(offset, new StaticTile(tile))));
+                world.AddEntity(new Segment(wreck, new SegmentDesc(offset, new StaticTile(tile))));
             }
 
-            if (source.Sovereign != Sovereign) {
-                var guards = from guard in World.entities.all.OfType<AIShip>()
-                             where guard.controller is GuardOrder order && order.guardTarget == this
+            if (source.sovereign != sovereign) {
+                var guards = from guard in world.entities.all.OfType<AIShip>()
+                             where guard.controller is GuardOrder order && order.GuardTarget == this
                              select (GuardOrder)guard.controller;
                 foreach (var order in guards) {
                     order.attackTime = -1;
@@ -164,36 +164,36 @@ namespace TranscendenceRL {
 
         public Console GetScene(Console prev, PlayerShip playerShip) => null;
 
-        public ColoredGlyph Tile => StationType.tile.Glyph;
+        public ColoredGlyph tile => type.tile.Glyph;
 
     }
     public class Segment : SpaceObject {
         //The segment essentially impersonates its parent station but with a different tile
         [JsonIgnore]
-        public string Name => Parent.Name;
+        public string name => parent.name;
         [JsonIgnore] 
-        public World World => Parent.World;
+        public World world => parent.world;
         [JsonIgnore] 
-        public XY Position => Parent.Position + desc.offset;
+        public XY position => parent.position + desc.offset;
         [JsonIgnore] 
-        public XY Velocity => Parent.Velocity;
+        public XY velocity => parent.velocity;
         [JsonIgnore] 
-        public Sovereign Sovereign => Parent.Sovereign;
-        public SpaceObject Parent;
+        public Sovereign sovereign => parent.sovereign;
+        public SpaceObject parent;
         public SegmentDesc desc;
         public Segment() { }
-        public Segment(SpaceObject Parent, SegmentDesc desc) {
-            this.Parent = Parent;
+        public Segment(SpaceObject parent, SegmentDesc desc) {
+            this.parent = parent;
             this.desc = desc;
         }
 
         [JsonIgnore] 
-        public bool Active => Parent.Active;
-        public void Damage(SpaceObject source, int hp) => Parent.Damage(source, hp);
-        public void Destroy(SpaceObject source) => Parent.Destroy(source);
+        public bool active => parent.active;
+        public void Damage(SpaceObject source, int hp) => parent.Damage(source, hp);
+        public void Destroy(SpaceObject source) => parent.Destroy(source);
         public void Update() {
         }
         [JsonIgnore] 
-        public ColoredGlyph Tile => desc.tile.Glyph;
+        public ColoredGlyph tile => desc.tile.Glyph;
     }
 }

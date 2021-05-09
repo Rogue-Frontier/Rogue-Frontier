@@ -25,13 +25,13 @@ namespace TranscendenceRL {
         [JsonProperty] 
         public SpaceObject Source;
         [JsonProperty] 
-        public XY Position { get; private set; }
+        public XY position { get; private set; }
         [JsonProperty] 
         public XY Velocity { get; set; }
         [JsonProperty]
         public int lifetime { get; set; }
         [JsonProperty] 
-        public ColoredGlyph Tile { get; private set; }
+        public ColoredGlyph tile { get; private set; }
         [JsonProperty]
         public ITrail trail;
         [JsonProperty]
@@ -42,13 +42,13 @@ namespace TranscendenceRL {
         [JsonProperty]
         public bool hitProjectile;
 
-        public bool Active => lifetime > 0;
+        public bool active => lifetime > 0;
 
         public Projectile(SpaceObject Source, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
             this.Source = Source;
-            this.World = Source.World;
-            this.Tile = desc.effect.Glyph;
-            this.Position = Position;
+            this.World = Source.world;
+            this.tile = desc.effect.Glyph;
+            this.position = Position;
             this.Velocity = Velocity;
             this.lifetime = desc.lifetime;
             this.desc = desc;
@@ -69,7 +69,7 @@ namespace TranscendenceRL {
             void UpdateMove() {
                 HashSet<Entity> exclude = new HashSet<Entity> { null, Source, this };
                 if(Source is PlayerShip ps) {
-                    exclude.Add(ps.Dock?.target);
+                    exclude.Add(ps.dock?.Target);
                 }
                 if(Source is AIShip s) {
                     exclude.UnionWith(s.avoidHit);
@@ -77,17 +77,17 @@ namespace TranscendenceRL {
 
                 maneuver?.Update(this);
 
-                var dest = Position + Velocity / Program.TICKS_PER_SECOND;
+                var dest = position + Velocity / Program.TICKS_PER_SECOND;
                 var inc = Velocity.Normal * 0.5;
                 var steps = Velocity.Magnitude * 2 / Program.TICKS_PER_SECOND;
                 for (int i = 0; i < steps; i++) {
-                    Position += inc;
+                    position += inc;
 
                     
                     
-                    foreach(var other in World.entities[Position].Except(exclude)) {
+                    foreach(var other in World.entities[position].Except(exclude)) {
                         switch(other) {
-                            case Segment seg when exclude.Contains(seg.Parent):
+                            case Segment seg when exclude.Contains(seg.parent):
                                 continue;
                             case SpaceObject hit:
                                 lifetime = 0;
@@ -95,15 +95,15 @@ namespace TranscendenceRL {
 
                                 if(desc.disruptor != null) {
                                     if (hit is PlayerShip sh) {
-                                        sh.Ship.ControlHijack = desc.disruptor.GetHijack();
+                                        sh.ship.controlHijack = desc.disruptor.GetHijack();
                                     } else if(hit is AIShip ai) {
-                                        ai.Ship.ControlHijack = desc.disruptor.GetHijack();
+                                        ai.ship.controlHijack = desc.disruptor.GetHijack();
                                     }
                                 }
 
                                 Fragment();
-                                var angle = (hit.Position - Position).Angle;
-                                World.AddEffect(new EffectParticle(hit.Position + XY.Polar(angle, -1), hit.Velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
+                                var angle = (hit.position - position).Angle;
+                                World.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
                                 return;
                             case ProjectileBarrier barrier:
                                 barrier.Interact(this);
@@ -115,10 +115,10 @@ namespace TranscendenceRL {
                         }
                     }
                     CollisionDone:
-                    World.AddEffect(trail.GetTrail(Position));
+                    World.AddEffect(trail.GetTrail(position));
                 }
 
-                Position = dest;
+                position = dest;
             }
         }
         public void Fragment() {
@@ -126,7 +126,7 @@ namespace TranscendenceRL {
                 double angleInterval = fragment.spreadAngle / fragment.count;
                 for (int i = 0; i < fragment.count; i++) {
                     double angle = Velocity.Angle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-                    Projectile p = new Projectile(Source, fragment, Position + XY.Polar(angle, 0.5), Velocity + XY.Polar(angle, fragment.missileSpeed));
+                    Projectile p = new Projectile(Source, fragment, position + XY.Polar(angle, 0.5), Velocity + XY.Polar(angle, fragment.missileSpeed));
                     World.AddEntity(p);
                 }
             }
@@ -142,7 +142,7 @@ namespace TranscendenceRL {
         }
         public void Update(Projectile p) {
             var vel = p.Velocity;
-            var offset = target.Position - p.Position;
+            var offset = target.position - p.position;
             var velLeft = vel.Rotate(maneuver);
             var velRight = vel.Rotate(-maneuver);
             var distLeft = (offset - velLeft).Magnitude;

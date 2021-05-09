@@ -73,7 +73,7 @@ namespace TranscendenceRL {
 			}
 			if (info.IsKeyDown(controls[AutoAim])) {
 				if (playerShip.GetTarget(out SpaceObject target) && playerShip.GetPrimary(out Weapon w)) {
-					playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.Position - playerShip.Position, target.Velocity - playerShip.Velocity, w.missileSpeed, out _));
+					playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.position - playerShip.position, target.velocity - playerShip.velocity, w.missileSpeed, out _));
 				}
 			}
 		}
@@ -104,23 +104,23 @@ namespace TranscendenceRL {
 				playerShip.AddMessage(new InfoMessage($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
 			}
 			if (info.IsKeyPressed(controls[Dock])) {
-				if (playerShip.Dock != null) {
-					if (playerShip.Dock.docked) {
+				if (playerShip.dock != null) {
+					if (playerShip.dock.docked) {
 						playerShip.AddMessage(new InfoMessage("Undocked"));
 					} else {
 						playerShip.AddMessage(new InfoMessage("Docking sequence canceled"));
 					}
 
-					playerShip.Dock = null;
+					playerShip.dock = null;
 				} else {
 					Dockable dest = null;
-					if(playerShip.GetTarget(out var t) && (playerShip.Position - t.Position).Magnitude < 8 && t is Dockable d) {
+					if(playerShip.GetTarget(out var t) && (playerShip.position - t.position).Magnitude < 8 && t is Dockable d) {
 						dest = d;
                     }
-					dest = dest ?? playerShip.World.entities.GetAll(p => (playerShip.Position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.Position - playerShip.Position).Magnitude).FirstOrDefault();
+					dest = dest ?? playerShip.world.entities.GetAll(p => (playerShip.position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.position - playerShip.position).Magnitude).FirstOrDefault();
 					if (dest != null) {
 						playerShip.AddMessage(new InfoMessage("Docking sequence engaged"));
-						playerShip.Dock = new Docking(dest);
+						playerShip.dock = new Docking(dest);
 					}
 
 				}
@@ -144,11 +144,11 @@ namespace TranscendenceRL {
 				if(info.IsKeyDown(LeftShift)) {
 					playerShip.Destroy(playerShip);
                 } else {
-					playerShip.Damage(playerShip, playerShip.Ship.DamageSystem.GetHP() - 5);
+					playerShip.Damage(playerShip, playerShip.ship.damageSystem.GetHP() - 5);
 				}
 			}
 			if (info.IsKeyPressed(V)) {
-				playerShip.Ship.ControlHijack = new ControlHijack() { ticksLeft = 90, thrustMode = HijackMode.FORCE_ON };
+				playerShip.ship.controlHijack = new ControlHijack() { ticksLeft = 90, thrustMode = HijackMode.FORCE_ON };
 			}
 		}
     }

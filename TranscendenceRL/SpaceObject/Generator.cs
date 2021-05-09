@@ -56,7 +56,7 @@ namespace TranscendenceRL {
 			if (tc.Lookup<ShipClass>(codename, out var shipClass)) {
 				var pd = orderDesc as PatrolDesc;
 
-				Sovereign sov = owner.Sovereign;
+				Sovereign sov = owner.sovereign;
 				if (sovereign.Any()) {
 					tc.Lookup(sovereign, out sov);
 				}
@@ -64,14 +64,14 @@ namespace TranscendenceRL {
 				return new List<AIShip>(
 					Enumerable.Range(0, count)
 					.Select(i => new AIShip(new BaseShip(
-							owner.World,
+							owner.world,
 							shipClass,
 							sov,
 							pd != null ?
-								owner.Position + XY.Polar(
+								owner.position + XY.Polar(
 									Math.PI * 2 * i / count,
 									pd.patrolRadius) :
-								owner.Position
+								owner.position
 						),
 						orderDesc.CreateOrder(owner)
 						))

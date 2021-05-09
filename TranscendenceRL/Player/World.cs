@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 namespace TranscendenceRL {
 
     class EffectLocator : ILocator<Effect, (int, int)> {
-        public (int, int) Locate(Effect e) => (e.Position.xi, e.Position.yi);
+        public (int, int) Locate(Effect e) => (e.position.xi, e.position.yi);
     }
     class EntityLocator : ILocator<Entity, (int, int)> {
-        public (int, int) Locate(Entity e) => (e.Position.xi, e.Position.yi);
+        public (int, int) Locate(Entity e) => (e.position.xi, e.position.yi);
     }
     public class Universe {
         public Rand karma;
@@ -93,8 +93,8 @@ namespace TranscendenceRL {
             entitiesRemoved.Clear();
             effectsRemoved.Clear();
 
-            entities.all.RemoveWhere(e => !e.Active);
-            effects.all.RemoveWhere(e => !e.Active);
+            entities.all.RemoveWhere(e => !e.active);
+            effects.all.RemoveWhere(e => !e.active);
         }
         public void UpdatePresent() {
             UpdateAdded();
@@ -124,15 +124,15 @@ namespace TranscendenceRL {
         public void PlaceTiles(Dictionary<(int, int), ColoredGlyph> tiles) {
             Dictionary<(int, int), Entity> entity = new Dictionary<(int, int), Entity>();
             foreach (var e in entities.all) {
-                var p = e.Position.RoundDown;
-                if (e.Tile != null && (!entity.TryGetValue(p, out var en) || en is Segment)) {
-                    tiles[p] = e.Tile;
+                var p = e.position.RoundDown;
+                if (e.tile != null && (!entity.TryGetValue(p, out var en) || en is Segment)) {
+                    tiles[p] = e.tile;
                 }
             }
             foreach (var e in effects.all) {
-                var p = e.Position.RoundDown;
-                if (e.Tile != null && !tiles.ContainsKey(p)) {
-                    tiles[p] = e.Tile;
+                var p = e.position.RoundDown;
+                if (e.tile != null && !tiles.ContainsKey(p)) {
+                    tiles[p] = e.tile;
                 }
             }
         }

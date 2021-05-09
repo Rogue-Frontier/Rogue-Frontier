@@ -42,16 +42,16 @@
     <None Update="readme.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\BenedictPortrait.asc">
+    <None Update="RogueFrontierContent\sprites\BenedictPortrait.asc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\BenedictPortrait.asc.cg">
+    <None Update="RogueFrontierContent\sprites\BenedictPortrait.asc.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\BenedictPortrait.asc.png">
+    <None Update="RogueFrontierContent\sprites\BenedictPortrait.asc.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\BenedictPortrait.asc.txt">
+    <None Update="RogueFrontierContent\sprites\BenedictPortrait.asc.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\ConstellationMilitia.xml">

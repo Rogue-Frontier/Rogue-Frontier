@@ -50,9 +50,9 @@ namespace TranscendenceRL {
     public static class SWeapon {
         public static void CreateShot(this FragmentDesc fragment, SpaceObject Source, double direction) {
 
-            var World = Source.World;
-            var Position = Source.Position;
-            var Velocity = Source.Velocity;
+            var World = Source.world;
+            var Position = Source.position;
+            var Velocity = Source.velocity;
             var angleInterval = fragment.spreadAngle / fragment.count;
 
             for (int i = 0; i < fragment.count; i++) {
@@ -110,8 +110,6 @@ namespace TranscendenceRL {
             }
 
             ColoredString bar;
-
-
 
             int fireBar = (int)(16f * (desc.fireCooldown - fireTime) / desc.fireCooldown);
 
@@ -239,7 +237,7 @@ namespace TranscendenceRL {
             firing = false;
         }
         public bool RangeCheck(SpaceObject user, SpaceObject target) {
-            return (user.Position - target.Position).Magnitude < currentRange;
+            return (user.position - target.position).Magnitude < currentRange;
         }
         public bool CanFire() {
             if(fireTime > 0) {
@@ -269,10 +267,10 @@ namespace TranscendenceRL {
                 double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
                 Projectile p = new Projectile(source,
                     shotDesc,
-                    source.Position + XY.Polar(angle),
-                    source.Velocity + XY.Polar(angle, missileSpeed),
+                    source.position + XY.Polar(angle),
+                    source.velocity + XY.Polar(angle, missileSpeed),
                     maneuver) { hitProjectile = desc.hitProjectile };
-                source.World.AddEntity(p);
+                source.world.AddEntity(p);
             }
         }
 
@@ -329,8 +327,8 @@ namespace TranscendenceRL {
             void UpdateTarget(SpaceObject target = null) {}
 
             static bool CalcFireAngle(SpaceObject owner, SpaceObject target, Weapon weapon, out double? result) {
-                if(((target.Position - owner.Position).Magnitude < weapon.currentRange)) {
-                    result = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _);
+                if(((target.position - owner.position).Magnitude < weapon.currentRange)) {
+                    result = Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, weapon.missileSpeed, out var _);
                     return true;
                 } else {
                     result = null;
@@ -338,8 +336,8 @@ namespace TranscendenceRL {
                 }
             }
             static bool CalcFireAngle(SpaceObject owner, Projectile target, Weapon weapon, out double? result) {
-                if (((target.Position - owner.Position).Magnitude < weapon.currentRange)) {
-                    result = Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, weapon.missileSpeed, out var _);
+                if (((target.position - owner.position).Magnitude < weapon.currentRange)) {
+                    result = Helper.CalcFireAngle(target.position - owner.position, target.Velocity - owner.velocity, weapon.missileSpeed, out var _);
                     return true;
                 } else {
                     result = null;
@@ -347,14 +345,14 @@ namespace TranscendenceRL {
                 }
             }
             static SpaceObject AcquireTarget(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
-                return owner.World.entities.GetAll(p => (owner.Position - p).Magnitude2 < weapon.currentRange2).OfType<SpaceObject>().FirstOrDefault(filter);
+                return owner.world.entities.GetAll(p => (owner.position - p).Magnitude2 < weapon.currentRange2).OfType<SpaceObject>().FirstOrDefault(filter);
             }
             static Projectile AcquireMissile(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
-                return owner.World.entities
-                    .GetAll(p => (owner.Position - p).Magnitude2 < weapon.currentRange2)
+                return owner.world.entities
+                    .GetAll(p => (owner.position - p).Magnitude2 < weapon.currentRange2)
                     .OfType<Projectile>()
                     .Where(p => filter(p.Source))
-                    .OrderBy(p => (owner.Position - p.Position).Dot(p.Velocity))
+                    .OrderBy(p => (owner.position - p.position).Dot(p.Velocity))
                     //.OrderBy(p => (owner.Position - p.Position).Magnitude2)
                     .FirstOrDefault();
             }
@@ -363,8 +361,8 @@ namespace TranscendenceRL {
             public SpaceObject target;
             public Targeting() { }
             public void Update(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
-                if (target?.Active != true
-                    || (owner.Position - target.Position).Magnitude > weapon.currentRange
+                if (target?.active != true
+                    || (owner.position - target.position).Magnitude > weapon.currentRange
                     ) {
                     target = Aiming.AcquireTarget(owner, weapon, filter);
                 }
@@ -385,21 +383,21 @@ namespace TranscendenceRL {
             double? direction;
             public Omnidirectional() { }
             public void Update(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
-                if (target?.Active == true) {
+                if (target?.active == true) {
                     UpdateDirection();
                 } else {
                     direction = null;
                     target = Aiming.AcquireTarget(owner, weapon, filter);
 
-                    if (target?.Active == true) {
+                    if (target?.active == true) {
                         UpdateDirection();
                     }
                 }
 
                 void UpdateDirection () {
                     if(Aiming.CalcFireAngle(owner ,target, weapon, out direction)) {
-                        Heading.AimLine(owner.World, owner.Position, direction.Value);
-                        Heading.Crosshair(owner.World, target.Position);
+                        Heading.AimLine(owner.world, owner.position, direction.Value);
+                        Heading.Crosshair(owner.world, target.position);
                     }
                 }
             }
@@ -451,10 +449,10 @@ namespace TranscendenceRL {
                 this.itemType = itemType;
             }
             public void Update(IShip source) {
-                Update(source.Cargo);
+                Update(source.cargo);
             }
             public void Update(Station source) {
-                Update(source.Items);
+                Update(source.cargo);
             }
             public void Update(HashSet<Item> items) {
                 if (item == null || !items.Contains(item)) {
@@ -547,7 +545,7 @@ namespace TranscendenceRL {
             this.source = source;
         }
         public void Use(PlayerShip playerShip, Armor armor) {
-            playerShip.Cargo.Remove(source);
+            playerShip.cargo.Remove(source);
 
         }
     }

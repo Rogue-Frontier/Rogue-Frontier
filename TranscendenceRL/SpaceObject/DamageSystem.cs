@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 namespace TranscendenceRL {
     public static class SDamageSystem {
         public static void React(this HullSystem ds, SpaceObject owner, SpaceObject source) {
-            if (source is PlayerShip ps && !owner.Sovereign.IsEnemy(ps)) {
-                ps.AddMessage(new Transmission(owner, $@"""Watch your targets!"" - {owner.Name}", 1));
+            if (source is PlayerShip ps && !owner.sovereign.IsEnemy(ps)) {
+                ps.AddMessage(new Transmission(owner, $@"""Watch your targets!"" - {owner.name}", 1));
             }
         }
     }

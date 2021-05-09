@@ -23,11 +23,11 @@ namespace TranscendenceRL {
                 playerShip.mortalChances = 3;
 
                 //To do: Restore player HP
-                playerShip.Ship.DamageSystem.Restore();
+                playerShip.ship.damageSystem.Restore();
 
                 //Resurrect the player; remove wreck and restore ship + heading
                 world.entities.all.Remove(epitaph.wreck);
-                playerShip.Ship.Active = true;
+                playerShip.ship.active = true;
                 playerShip.AddMessage(new InfoMessage("A vision of disaster flashes before your eyes"));
                 world.entities.all.Add(playerShip);
                 world.effects.all.Add(new Heading(playerShip));
@@ -59,17 +59,17 @@ namespace TranscendenceRL {
 @$"
 {player.name}
 {player.Genome.name}
-{playerShip.ShipClass.name}
+{playerShip.shipClass.name}
 {epitaph.desc}
 
 Final Devices
-{string.Join('\n', playerShip.Devices.Installed.Select(device => $"    {device.source.type.name}"))}
+{string.Join('\n', playerShip.devices.Installed.Select(device => $"    {device.source.type.name}"))}
 
 Final Cargo
-{string.Join('\n', playerShip.Cargo.Select(item => $"    {item.type.name}"))}
+{string.Join('\n', playerShip.cargo.Select(item => $"    {item.type.name}"))}
 
 Ships Destroyed
-{string.Join('\n', playerShip.ShipsDestroyed.GroupBy(sc => sc.ShipClass).Select(pair => $"    {pair.Key.name, -16}{pair.Count(), 4}"))}
+{string.Join('\n', playerShip.shipsDestroyed.GroupBy(sc => sc.shipClass).Select(pair => $"    {pair.Key.name, -16}{pair.Count(), 4}"))}
 ".Replace("\r", "");
             y = 2;
             foreach(var line in str.Split('\n')) {

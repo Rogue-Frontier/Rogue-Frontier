@@ -146,7 +146,7 @@ namespace TranscendenceRL {
 				}
 			}
 			var epitaph = new Epitaph() {
-				desc = $"Destroyed by {destroyer.Name}",
+				desc = $"Destroyed by {destroyer.name}",
 				deathFrame = deathFrame,
 				wreck = wreck
 			};
@@ -201,16 +201,16 @@ namespace TranscendenceRL {
 				World.UpdatePresent();
 			}
 
-			camera.position = playerShip.Position;
-			if (playerShip.Dock?.justDocked == true && playerShip.Dock.target is Dockable d) {
+			camera.position = playerShip.position;
+			if (playerShip.dock?.justDocked == true && playerShip.dock.Target is Dockable d) {
 
 				Console scene = story.GetScene(this, d, playerShip) ?? d.GetScene(this, playerShip);
 				
 				if (scene != null) {
-					playerShip.Dock = null;
+					playerShip.dock = null;
 					sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
 				} else {
-					playerShip.AddMessage(new InfoMessage($"Stationed on {d.Name}"));
+					playerShip.AddMessage(new InfoMessage($"Stationed on {d.name}"));
                 }
 			}
 			if (uiMain.IsVisible) {
@@ -344,8 +344,8 @@ namespace TranscendenceRL {
 					var targetList = new List<SpaceObject>(
 						World.entities.all
 						.OfType<SpaceObject>()
-						.OrderBy(e => (e.Position - worldPos).Magnitude)
-						.Select(s => s is Segment seg ? seg.Parent : s)
+						.OrderBy(e => (e.position - worldPos).Magnitude)
+						.Select(s => s is Segment seg ? seg.parent : s)
 						.Distinct()
 						);
 
@@ -359,7 +359,7 @@ namespace TranscendenceRL {
 							playerShip.SetTargetList(new List<SpaceObject>() { crosshair });
 						}
 					} else {
-						playerShip.targetList = targetList;
+						playerShip.TargetList = targetList;
 						playerShip.targetIndex = 0;
 						playerShip.UpdateAutoAim();
 					}
@@ -369,21 +369,21 @@ namespace TranscendenceRL {
 				bool enableMouseTurn = true;
 				//Update the crosshair if we're aiming with it
 				if (playerShip.GetTarget(out t) && t == crosshair) {
-					crosshair.Position = worldPos;
-					crosshair.Velocity = playerShip.Velocity;
+					crosshair.position = worldPos;
+					crosshair.velocity = playerShip.velocity;
 					//If we set velocity to match player's velocity, then the weapon will aim directly at the crosshair
 					//If we set the velocity to zero, then the weapon will aim to the lead angle of the crosshair
 
 					crosshair.Update();
 
-					Heading.Crosshair(World, crosshair.Position);
+					Heading.Crosshair(World, crosshair.position);
 
 					//Idea: Aiming with crosshair disables mouse turning
 					enableMouseTurn = false;
 				}
 
 				if(enableMouseTurn) {
-					var playerOffset = worldPos - playerShip.Position;
+					var playerOffset = worldPos - playerShip.position;
 
 					if (playerOffset.xi != 0 && playerOffset.yi != 0) {
 
@@ -472,7 +472,7 @@ namespace TranscendenceRL {
 					for (int y = 0; y < Height; y++) {
 						var offset = new XY((x - screenCenter.x) * viewScale, (y - screenCenter.y) * viewScale).Rotate(-camera.rotation);
 
-						var pos = player.Position + offset;
+						var pos = player.position + offset;
 
 						bool IsVisible(ColoredGlyph cg) {
 							return cg.GlyphCharacter != ' ' || cg.Background != Color.Transparent;
@@ -485,19 +485,19 @@ namespace TranscendenceRL {
 							this.SetCellAppearance(x, Height - y, new ColoredGlyph(foreground, background, glyph));
 						}
 
-						var environment = player.World.backdrop.planets.GetTile(pos.Snap(viewScale), XY.Zero);
+						var environment = player.world.backdrop.planets.GetTile(pos.Snap(viewScale), XY.Zero);
 						if (IsVisible(environment)) {
 							Render(environment);
 							continue;
 						}
 
-						environment = player.World.backdrop.nebulae.GetTile(pos.Snap(viewScale), XY.Zero);
+						environment = player.world.backdrop.nebulae.GetTile(pos.Snap(viewScale), XY.Zero);
 						if (IsVisible(environment)) {
 							Render(environment);
 							continue;
 						}
 
-						var starlight = player.World.backdrop.starlight.GetTile(pos).PremultiplySet(255);
+						var starlight = player.world.backdrop.starlight.GetTile(pos).PremultiplySet(255);
 
 						var cg = BackVoid.GetTileFixed(new XY(x, y));
 						//Make sure to clone this so that we don't apply alpha changes to the original
@@ -514,18 +514,18 @@ namespace TranscendenceRL {
 					this.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, 128)));
 				}
 
-				var scaledMap = player.World.entities.space.DownsampleSet(viewScale);
+				var scaledMap = player.world.entities.space.DownsampleSet(viewScale);
 				foreach ((var p, HashSet<Entity> set) in scaledMap.space) {
-					var visible = set.Where(t => !(t is Segment)).Where(t => t.Tile != null);
+					var visible = set.Where(t => !(t is Segment)).Where(t => t.tile != null);
 					if (visible.Any()) {
 						var e = visible.ElementAt((int)time % visible.Count());
-						var offset = (e.Position - player.Position) / viewScale;
+						var offset = (e.position - player.position) / viewScale;
 						var (x, y) = screenCenter + offset.Rotate(-camera.rotation);
 
 						y = Height - y;
 						if(x > -1 && x < Width && y > -1 && y < Height) {
 
-							var t = new ColoredGlyph(e.Tile.Foreground, this.GetBackground(x, y), e.Tile.Glyph);
+							var t = new ColoredGlyph(e.tile.Foreground, this.GetBackground(x, y), e.tile.Glyph);
 							this.SetCellAppearance(x, y, t);
 						}
 					}
@@ -552,7 +552,7 @@ namespace TranscendenceRL {
 			r = new Random();
 		}
         public override void Update(TimeSpan delta) {
-			var charging = player.Powers.Where(p => p.charging);
+			var charging = player.powers.Where(p => p.charging);
 			if(charging.Any()) {
 				var charge = Math.Min(1, charging.Max(p => (float) p.invokeCharge / p.invokeDelay));
 				if(powerAlpha < charge) {
@@ -562,7 +562,7 @@ namespace TranscendenceRL {
 				powerAlpha -= powerAlpha / 120;
 			}
 			ticks++;
-			if(ticks % 5 == 0 && player.Ship.ControlHijack?.ticksLeft > 30) {
+			if(ticks % 5 == 0 && player.ship.controlHijack?.ticksLeft > 30) {
 				int i = 0;
 				var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
 				foreach(var p in screenPerimeter.PerimeterPositions().Select(p => new XY(p))) {
@@ -577,15 +577,15 @@ namespace TranscendenceRL {
 			}
 
 			foreach(var p in particles) {
-				p.Position += p.Velocity / Program.TICKS_PER_SECOND;
+				p.position += p.Velocity / Program.TICKS_PER_SECOND;
 				p.Lifetime--;
 				p.Velocity -= p.Velocity / 15;
 
-				p.Tile.Foreground = p.Tile.Foreground.SetAlpha(
+				p.tile.Foreground = p.tile.Foreground.SetAlpha(
 					(byte)(255 * Math.Min(p.Lifetime / 30f, 1))
 					);
             }
-			particles.RemoveWhere(p => !p.Active);
+			particles.RemoveWhere(p => !p.active);
 
 			base.Update(delta);
         }
@@ -611,8 +611,8 @@ namespace TranscendenceRL {
 
 				borderSize += (int)(6 * fraction);
 			}
-			if (player.Ship.ControlHijack?.ticksLeft > 0) {
-				var ticks = player.Ship.ControlHijack.ticksLeft;
+			if (player.ship.controlHijack?.ticksLeft > 0) {
+				var ticks = player.ship.controlHijack.ticksLeft;
 				var strength = Math.Min(ticks / 60f, 1);
 				borderSize += (int)(5 * strength);
 				borderColor = borderColor.Blend(Color.Cyan.SetAlpha(
@@ -621,7 +621,7 @@ namespace TranscendenceRL {
 				
 
 			} else {
-				var b = player.World.backdrop.starlight.GetBackgroundFixed(player.Position);
+				var b = player.world.backdrop.starlight.GetBackgroundFixed(player.position);
 				borderColor = borderColor.Blend(b.SetAlpha((byte)(255 * b.GetBrightness())));
 			}
 			int dec = 255 / borderSize;
@@ -641,8 +641,8 @@ namespace TranscendenceRL {
 			}
 
 			foreach(var p in particles) {
-				var (x, y) = p.Position;
-				var (fore, glyph) = (p.Tile.Foreground, p.Tile.Glyph);
+				var (x, y) = p.position;
+				var (fore, glyph) = (p.tile.Foreground, p.tile.Glyph);
 				this.SetCellAppearance(x, y, new ColoredGlyph(fore, this.GetBackground(x,y), glyph));
             }
 			base.Render(delta);
@@ -702,11 +702,11 @@ namespace TranscendenceRL {
 			int targetX = 48, targetY = 1;
 			if (player.GetTarget(out SpaceObject playerTarget)) {
 				this.Print(targetX, targetY++, "[Target]");
-				this.Print(targetX, targetY++, playerTarget.Name);
+				this.Print(targetX, targetY++, playerTarget.name);
 				PrintTarget(targetX, targetY, playerTarget);
 
 
-				var offset = playerTarget.Position - player.Position;
+				var offset = playerTarget.position - player.position;
 				if (Math.Abs(offset.x) > Width / 2 || Math.Abs(offset.y) > Height / 2) {
 
 					var offsetNormal = offset.Normal.FlipY;
@@ -724,19 +724,19 @@ namespace TranscendenceRL {
 				targetX += 32;
 				targetY = 1;
 			}
-			var autoTarget = player.Devices.Weapons.Select(w => w.target).FirstOrDefault();
+			var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
 			if(autoTarget != null && autoTarget != playerTarget) {
 				this.Print(targetX, targetY++, "[Auto]");
-				this.Print(targetX, targetY++, autoTarget.Name);
+				this.Print(targetX, targetY++, autoTarget.name);
 				PrintTarget(targetX, targetY, autoTarget);
 			}
 
 			void PrintTarget(int x, int y, SpaceObject target) {
 				if (target is AIShip ai) {
-					PrintDamageSystem(ai.DamageSystem);
-					PrintDeviceSystem(ai.Devices);
+					PrintDamageSystem(ai.damageSystem);
+					PrintDeviceSystem(ai.devices);
 				} else if(target is Station s) {
-					PrintDamageSystem(s.DamageSystem);
+					PrintDamageSystem(s.damageSystem);
 
 					if (s.weapons?.Any() == true) {
 						foreach (var w in s.weapons) {
@@ -771,8 +771,8 @@ namespace TranscendenceRL {
 				}
 			}
 
-			for (int i = 0; i < player.Messages.Count; i++) {
-				var message = player.Messages[i];
+			for (int i = 0; i < player.messages.Count; i++) {
+				var message = player.messages[i];
 				var line = message.Draw();
 				var x = Width * 3 / 4 - line.Count();
 				this.Print(x, messageY, line);
@@ -780,10 +780,10 @@ namespace TranscendenceRL {
 					//Draw a line from message to source
 
 					var screenCenterOffset = new XY(Width * 3 / 4, Height - messageY) - screenCenter;
-					var messagePos = (player.Position + screenCenterOffset).RoundDown;
+					var messagePos = (player.position + screenCenterOffset).RoundDown;
 
-					var sourcePos = t.source.Position.RoundDown;
-					sourcePos = player.Position + (sourcePos - player.Position).Rotate(-camera.rotation);
+					var sourcePos = t.source.position.RoundDown;
+					sourcePos = player.position + (sourcePos - player.position).Rotate(-camera.rotation);
 					if (messagePos.yi == sourcePos.yi) {
 						continue;
 					}
@@ -818,19 +818,19 @@ namespace TranscendenceRL {
 					int screenLineX = Math.Max(-(screenX - 2), Math.Min(Width - screenX - 2, offset.xi));
 					*/
 
-					var offset = sourcePos - player.Position;
+					var offset = sourcePos - player.position;
 
 					var offsetLeft = new XY(0, 0);
 					bool truncateX = Math.Abs(offset.x) > Width / 2 - 3;
 					bool truncateY = Math.Abs(offset.y) > Height / 2 - 3;
 					if (truncateX || truncateY) {
-						var sourcePosEdge = Helper.GetBoundaryPoint(screenSize, offset.Angle) - screenSize / 2 + player.Position;
-						offset = sourcePosEdge - player.Position;
+						var sourcePosEdge = Helper.GetBoundaryPoint(screenSize, offset.Angle) - screenSize / 2 + player.position;
+						offset = sourcePosEdge - player.position;
 						if (truncateX) { offset.x -= Math.Sign(offset.x) * (i + 2); }
 						if (truncateY) { offset.y -= Math.Sign(offset.y) * (i + 2); }
 						offsetLeft = sourcePos - sourcePosEdge;
 					}
-					offset += player.Position - messagePos;
+					offset += player.position - messagePos;
 
 					int screenLineY = offset.yi + (offset.yi < 0 ? 0 : 1);
 					int screenLineX = offset.xi;
@@ -886,19 +886,19 @@ namespace TranscendenceRL {
 			{
 				int x = 3;
 				int y = 3;
-				if (player.Energy.totalMaxOutput > 0) {
+				if (player.energy.totalMaxOutput > 0) {
 					this.Print(x, y, $"[{new string(' ', 16)}]", Color.White, Color.Transparent);
 					this.Print(x + 1, y, $"{new string('=', 16)}", Color.Gray, Color.Transparent);
-					if (player.Energy.totalUsedOutput > 0) {
+					if (player.energy.totalUsedOutput > 0) {
 						this.Print(x + 1, y,
-							new ColoredString(new string('=', 16 * player.Energy.totalUsedOutput / player.Energy.totalMaxOutput),
+							new ColoredString(new string('=', 16 * player.energy.totalUsedOutput / player.energy.totalMaxOutput),
 								Color.Yellow, Color.Transparent));
 					}
 					this.Print(x + 1 + 16 + 2, y,
 							new ColoredString("Total Output", Color.White, Color.Transparent));
 
 					y++;
-					foreach (var reactor in player.Ship.Devices.Reactors) {
+					foreach (var reactor in player.ship.devices.Reactors) {
 						this.Print(x, y,
 							new ColoredString("[", Color.White, Color.Transparent)
 							+ new ColoredString(new string(' ', 16), Color.Transparent, Color.Transparent)
@@ -929,12 +929,12 @@ namespace TranscendenceRL {
 					}
 				}
 				y++;
-				if (player.Ship.Devices.Weapons.Any()) {
+				if (player.ship.devices.Weapons.Any()) {
 					int i = 0;
-					foreach (var w in player.Ship.Devices.Weapons) {
+					foreach (var w in player.ship.devices.Weapons) {
 						string tag = $"{(i == player.selectedPrimary ? "->" : "  ")}{w.source.type.name}";
 						Color foreground;
-						if (player.Energy.disabled.Contains(w)) {
+						if (player.energy.disabled.Contains(w)) {
 							foreground = Color.Gray;
 						} else if (w.firing || w.fireTime > 0) {
 							foreground = Color.Yellow;
@@ -950,7 +950,7 @@ namespace TranscendenceRL {
 					}
 				}
 				y++;
-				switch (player.Ship.DamageSystem) {
+				switch (player.ship.damageSystem) {
 					case LayeredArmorSystem las:
 						foreach (var armor in las.layers) {
 							this.Print(x, y, "[", Color.White, Color.Transparent);
@@ -993,9 +993,9 @@ namespace TranscendenceRL {
 
 			var range = 192;
 
-			var nearby = player.World.entities.GetAll(((int, int) p) => (player.Position - p).MaxCoord < range);
+			var nearby = player.world.entities.GetAll(((int, int) p) => (player.position - p).MaxCoord < range);
 			foreach (var entity in nearby) {
-				var offset = (entity.Position - player.Position).Rotate(-camera.rotation);
+				var offset = (entity.position - player.position).Rotate(-camera.rotation);
 				var (x, y) = offset / viewScale;
 				(x, y) = (Math.Abs(x), Math.Abs(y));
 
@@ -1010,9 +1010,9 @@ namespace TranscendenceRL {
 
 					Color c = Color.Transparent;
 					if (entity is SpaceObject so) {
-						c = so.Tile.Foreground;
+						c = so.tile.Foreground;
 					} else if (entity is Projectile p) {
-						c = p.Tile.Foreground;
+						c = p.tile.Foreground;
 					}
 					this.Print(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
 				} else if (x > halfWidth - 4 || y > halfHeight - 4) {
@@ -1020,9 +1020,9 @@ namespace TranscendenceRL {
 
 					Color c = Color.Transparent;
 					if (entity is SpaceObject so) {
-						c = so.Tile.Foreground;
+						c = so.tile.Foreground;
 					} else if (entity is Projectile p) {
-						c = p.Tile.Foreground;
+						c = p.tile.Foreground;
 					}
 					this.Print(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
 				}
@@ -1054,17 +1054,17 @@ namespace TranscendenceRL {
 			var range = 192;
 			var mapScale = (range / halfSize);
 
-			var mapSample = playerShip.World.entities.space.DownsampleSet(mapScale);
+			var mapSample = playerShip.world.entities.space.DownsampleSet(mapScale);
 			for (int x = 0; x < Width; x++) {
 				for (int y = 0; y < Height; y++) {
 					var entities = mapSample[(
-						(x - halfSize + playerShip.Position.xi / mapScale),
-						(halfSize - y + playerShip.Position.yi / mapScale))]
+						(x - halfSize + playerShip.position.xi / mapScale),
+						(halfSize - y + playerShip.position.yi / mapScale))]
 						.Where(e => !(e is Segment))
-						.Where(e => e.Tile != null);
+						.Where(e => e.tile != null);
 
 					if (entities.Any()) {
-						var t = entities.ElementAt((int)time % entities.Count()).Tile;
+						var t = entities.ElementAt((int)time % entities.Count()).tile;
 
 						this.SetCellAppearance(x, y,
 							new ColoredGlyph(t.Foreground, Color.Black, t.Glyph)
@@ -1096,7 +1096,7 @@ namespace TranscendenceRL {
         }
         public override void Update(TimeSpan delta) {
 			ticks++;
-			foreach(var p in playerShip.Powers) {
+			foreach(var p in playerShip.powers) {
 				if(p.charging) {
 					//We don't need to check ready because we already do that before we set charging
 					//Charging up
@@ -1129,8 +1129,8 @@ namespace TranscendenceRL {
 				//If we're pressing a digit/letter, then we're charging up a power
 				int powerIndex = keyToIndex(ch);
 				//Find the power
-				if(powerIndex > -1 && powerIndex < playerShip.Powers.Count) {
-					var power = playerShip.Powers[powerIndex];
+				if(powerIndex > -1 && powerIndex < playerShip.powers.Count) {
+					var power = playerShip.powers[powerIndex];
 					//Make sure this power is available
 					if(power.ready) {
 						//Enable charging
@@ -1140,7 +1140,7 @@ namespace TranscendenceRL {
             }
 			if(keyboard.IsKeyPressed(Keys.Escape)) {
 				//Set charge for all powers back to 0
-				foreach(var p in playerShip.Powers) {
+				foreach(var p in playerShip.powers) {
 					p.invokeCharge = 0;
 					p.charging = false;
                 }
@@ -1167,7 +1167,7 @@ namespace TranscendenceRL {
 			this.Print(x, y++, "[Press ESC to cancel]", foreground, back);
 			this.Print(x, y++, "[Press key to invoke]", foreground, back);
 			y++;
-			foreach (var p in playerShip.Powers) {
+			foreach (var p in playerShip.powers) {
 				char key = indexToKey(index);
 				if(p.cooldownLeft > 0) {
 					this.Print(x, y++, $"[{key}] {p.type.name}{new string('>', 16 - 16 * p.cooldownLeft / p.cooldownPeriod)}", Color.Gray);

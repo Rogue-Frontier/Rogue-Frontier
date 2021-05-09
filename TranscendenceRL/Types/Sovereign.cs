@@ -141,8 +141,8 @@ namespace TranscendenceRL {
                 ) {
                 return d;
             }
-            if (other.Sovereign != null) {
-                return GetDisposition(other.Sovereign);
+            if (other.sovereign != null) {
+                return GetDisposition(other.sovereign);
             }
             entityDispositions[other] = GetAutoDisposition(other);
             return entityDispositions[other];

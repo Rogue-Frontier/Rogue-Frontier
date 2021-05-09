@@ -12,16 +12,16 @@ namespace TranscendenceRL {
 
 
     interface ITrader {
-        string Name { get; }
-        HashSet<Item> Items { get; }
+        string name { get; }
+        HashSet<Item> cargo { get; }
     }
     class TradeScene : Console {
         Console prev;
         Player player;
         PlayerShip playerShip;
         ITrader docked;
-        HashSet<Item> playerItems => playerShip.Cargo;
-        HashSet<Item> dockedItems => docked.Items;
+        HashSet<Item> playerItems => playerShip.cargo;
+        HashSet<Item> dockedItems => docked.cargo;
         bool playerSide;
         int? playerIndex;
         int? dockedIndex;
@@ -32,10 +32,10 @@ namespace TranscendenceRL {
             this.docked = docked;
             this.playerSide = false;
 
-            if (playerShip.Cargo.Any()) {
+            if (playerShip.cargo.Any()) {
                 playerIndex = 0;
             }
-            if (this.docked.Items.Any()) {
+            if (this.docked.cargo.Any()) {
                 dockedIndex = 0;
             }
         }
@@ -136,7 +136,6 @@ namespace TranscendenceRL {
                     }
                 }
             }
-
             return base.ProcessKeyboard(keyboard);
         }
         public override void Render(TimeSpan delta) {
@@ -148,7 +147,7 @@ namespace TranscendenceRL {
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
-            this.Print(x, y, playerShip.Name, playerSide ? Color.Yellow : Color.White, Color.Black);
+            this.Print(x, y, playerShip.name, playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
             int i = 0;
             int? highlight = null;
@@ -182,7 +181,7 @@ namespace TranscendenceRL {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
 
-            this.Print(x, y, docked.Name, !playerSide ? Color.Yellow : Color.White, Color.Black);
+            this.Print(x, y, docked.name, !playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
             i = 0;
             highlight = null;

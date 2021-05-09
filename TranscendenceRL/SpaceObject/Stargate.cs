@@ -11,27 +11,27 @@ using System.Linq;
 namespace TranscendenceRL {
     public class Stargate : SpaceObject {
         [JsonIgnore]
-        public string Name => $"Stargate";
+        public string name => $"Stargate";
         [JsonProperty]
-        public World World { get; private set; }
+        public World world { get; private set; }
         [JsonProperty]
-        public Sovereign Sovereign { get; private set; }
+        public Sovereign sovereign { get; private set; }
         [JsonProperty]
-        public XY Position { get; private set; }
+        public XY position { get; private set; }
         [JsonProperty]
-        public XY Velocity { get; private set; }
+        public XY velocity { get; private set; }
         [JsonProperty]
-        public bool Active => true;
+        public bool active => true;
         [JsonProperty]
         public HashSet<Segment> Segments { get; private set; }
         [JsonIgnore]
-        public ColoredGlyph Tile => null;
+        public ColoredGlyph tile => null;
         public Stargate() { }
         public Stargate(World World, XY Position) {
-            this.World = World;
-            this.Sovereign = Sovereign.Inanimate;
-            this.Position = Position;
-            this.Velocity = new XY();
+            this.world = World;
+            this.sovereign = Sovereign.Inanimate;
+            this.position = Position;
+            this.velocity = new XY();
         }
         public void CreateSegments() {
             Segments = new HashSet<Segment>();
@@ -84,7 +84,7 @@ namespace TranscendenceRL {
             }
 
             foreach (var s in Segments) {
-                World.AddEntity(s);
+                world.AddEntity(s);
             }
         }
         public void Damage(SpaceObject source, int hp) {

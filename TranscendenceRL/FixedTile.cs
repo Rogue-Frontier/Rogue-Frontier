@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     class FixedTile : Effect {
-        public ColoredGlyph Tile { get; private set; }
-        public XY Position { get; private set; }
+        public ColoredGlyph tile { get; private set; }
+        public XY position { get; private set; }
 
-        public bool Active { get; private set; }
+        public bool active { get; private set; }
         public FixedTile(ColoredGlyph Tile, XY Position) {
-            this.Tile = Tile;
-            this.Position = Position;
-            this.Active = true;
+            this.tile = Tile;
+            this.position = Position;
+            this.active = true;
         }
         public void Update() {
         }

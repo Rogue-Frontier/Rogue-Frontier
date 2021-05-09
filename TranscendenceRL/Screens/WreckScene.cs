@@ -13,8 +13,8 @@ namespace TranscendenceRL {
         Console prev;
         PlayerShip player;
         Wreck docked;
-        HashSet<Item> playerItems => player.Cargo;
-        HashSet<Item> dockedItems => docked.Items;
+        HashSet<Item> playerItems => player.cargo;
+        HashSet<Item> dockedItems => docked.cargo;
         bool playerSide;
         int? playerIndex;
         int? dockedIndex;
@@ -24,10 +24,10 @@ namespace TranscendenceRL {
             this.docked = docked;
             this.playerSide = false;
 
-            if(player.Cargo.Any()) {
+            if(player.cargo.Any()) {
                 playerIndex = 0;
             }
-            if(this.docked.Items.Any()) {
+            if(this.docked.cargo.Any()) {
                 dockedIndex = 0;
             }
         }
@@ -132,7 +132,7 @@ namespace TranscendenceRL {
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
-            this.Print(x, y, player.Name, playerSide ? Color.Yellow : Color.White, Color.Black);
+            this.Print(x, y, player.name, playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
             int i = 0;
             int? highlight = null;
@@ -166,7 +166,7 @@ namespace TranscendenceRL {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
             }
 
-            this.Print(x, y, docked.Name, !playerSide ? Color.Yellow : Color.White, Color.Black);
+            this.Print(x, y, docked.name, !playerSide ? Color.Yellow : Color.White, Color.Black);
             y++;
             i = 0;
             highlight = null;

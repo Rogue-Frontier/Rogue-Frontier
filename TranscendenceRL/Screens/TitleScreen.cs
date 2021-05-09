@@ -101,11 +101,11 @@ namespace TranscendenceRL {
                     w.UpdatePresent();
 
                     var start = w.entities.all.OfType<Marker>().First(m => m.Name == "Start");
-                    start.Active = false;
-                    var playerStart = start.Position;
+                    start.active = false;
+                    var playerStart = start.position;
                     var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
                     var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerSovereign, playerStart));
-                    playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+                    playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
                     w.AddEffect(new Heading(playerShip));
                     w.AddEntity(playerShip);
@@ -122,7 +122,7 @@ namespace TranscendenceRL {
 
                     var playerMain = new PlayerMain(Width, Height, w, playerShip);
                     playerMain.HideUI();
-                    playerShip.OnDestroyed += new EndGame(playerMain);
+                    playerShip.onDestroyed += new EndGame(playerMain);
 
                     playerMain.Update(new TimeSpan());
                     playerMain.PlaceTiles();
@@ -205,7 +205,7 @@ namespace TranscendenceRL {
                 var playerStart = new XY(0, 0);
                 var playerSovereign = World.types.Lookup<Sovereign>("sovereign_player");
                 var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
-                playerShip.Messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+                playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
                 World.RemoveAll();
 
@@ -223,7 +223,7 @@ namespace TranscendenceRL {
                         waveSize++;
 
                         World.AddEntity(new TimedEvent(240, () => {
-                            playerShip.Messages.Add(new InfoMessage("Wave incoming!"));
+                            playerShip.messages.Add(new InfoMessage("Wave incoming!"));
                             CreateWave();
                         }));
                     }
@@ -234,7 +234,7 @@ namespace TranscendenceRL {
                             World.types.shipClass.Values.GetRandom(World.karma),
                             Sovereign.Gladiator,
                             XY.Polar(0, 100)), new AttackOrder(playerShip));
-                        ship.Ship.OnDestroyed += new Container<Destroyed>((b, destroyer, wreck) => {
+                        ship.ship.onDestroyed += new Container<Destroyed>((b, destroyer, wreck) => {
                             EnemyDestroyed();
                         });
                         World.AddEntity(ship);
@@ -243,12 +243,12 @@ namespace TranscendenceRL {
                 }
 
                 World.AddEntity(new TimedEvent(240, () => {
-                    playerShip.Messages.Add(new InfoMessage("Wave incoming!"));
+                    playerShip.messages.Add(new InfoMessage("Wave incoming!"));
                     CreateWave();
                 }));
 
                 var playerMain = new PlayerMain(Width, Height, World, playerShip);
-                playerShip.OnDestroyed += new EndGame(playerMain);
+                playerShip.onDestroyed += new EndGame(playerMain);
 
                 playerMain.Update(new TimeSpan());
                 playerMain.PlaceTiles();
@@ -276,7 +276,7 @@ namespace TranscendenceRL {
                 var shipClass = shipClasses.ElementAt(World.karma.NextInteger(shipClasses.Count));
                 var angle = World.karma.NextDouble() * Math.PI * 2;
                 var distance = World.karma.NextInteger(10, 20);
-                var center = World.entities.all.FirstOrDefault()?.Position ?? new XY(0, 0);
+                var center = World.entities.all.FirstOrDefault()?.position ?? new XY(0, 0);
                 var ship = new BaseShip(World, shipClass, Sovereign.Gladiator, center + XY.Polar(angle, distance));
                 var enemy = new AIShip(ship, new AttackAllOrder());
                 World.AddEntity(enemy);
@@ -285,18 +285,18 @@ namespace TranscendenceRL {
                 World.UpdatePresent();
             }
             if(pov == null || povTimer < 1) {
-                pov = World.entities.all.OfType<AIShip>().OrderBy(s => (s.Position - camera).Magnitude).First();
+                pov = World.entities.all.OfType<AIShip>().OrderBy(s => (s.position - camera).Magnitude).First();
                 UpdatePOVDesc();
                 povTimer = 150;
-            } else if(!pov.Active) {
+            } else if(!pov.active) {
                 povTimer--;
             }
 
             //Smoothly move the camera to where it should be
-            if ((camera - pov.Position).Magnitude < pov.Velocity.Magnitude / 15 + 1) {
-                camera = pov.Position;
+            if ((camera - pov.position).Magnitude < pov.velocity.Magnitude / 15 + 1) {
+                camera = pov.position;
             } else {
-                var step = (pov.Position - camera) / 15;
+                var step = (pov.position - camera) / 15;
                 if (step.Magnitude < 1) {
                     step = step.Normal;
                 }
@@ -305,14 +305,14 @@ namespace TranscendenceRL {
         }
         public void UpdatePOVDesc() {
             povDesc = new List<InfoMessage> {
-                    new InfoMessage(pov.Name),
+                    new InfoMessage(pov.name),
                 };
-            if (pov.DamageSystem is LayeredArmorSystem las) {
+            if (pov.damageSystem is LayeredArmorSystem las) {
                 povDesc.AddRange(las.GetDesc().Select(m => new InfoMessage(m.String)));
-            } else if (pov.DamageSystem is HPSystem hp) {
+            } else if (pov.damageSystem is HPSystem hp) {
                 povDesc.Add(new InfoMessage($"HP: {hp}"));
             }
-            foreach (var device in pov.Ship.Devices.Installed) {
+            foreach (var device in pov.ship.devices.Installed) {
                 povDesc.Add(new InfoMessage(device.source.type.name));
             }
         }
@@ -369,7 +369,7 @@ namespace TranscendenceRL {
         }
         public override bool ProcessKeyboard(Keyboard info) {
             if(info.IsKeyPressed(Keys.K)) {
-                if (pov.Active) {
+                if (pov.active) {
                     pov.Destroy(pov);
                 }
             }
@@ -469,17 +469,17 @@ namespace TranscendenceRL {
 
 
         void AddStarterKit(PlayerShip playerShip) {
-            var World = playerShip.World;
-            playerShip.Powers.Add(new Power(World.types.powerType["power_silence"]));
-            playerShip.Cargo.Add(new Item(World.types.itemType["item_silence_charm"]));
+            var World = playerShip.world;
+            playerShip.powers.Add(new Power(World.types.powerType["power_silence"]));
+            playerShip.cargo.Add(new Item(World.types.itemType["item_silence_charm"]));
 
-            playerShip.Cargo.Add(new Item(World.types.itemType["item_armor_repair_patch"]));
+            playerShip.cargo.Add(new Item(World.types.itemType["item_armor_repair_patch"]));
 
 
-            playerShip.Cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
-            playerShip.Cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
-            playerShip.Cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
-            playerShip.Cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
+            playerShip.cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
+            playerShip.cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
+            playerShip.cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
+            playerShip.cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
         }
     }
 }

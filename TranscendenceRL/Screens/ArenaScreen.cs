@@ -132,12 +132,12 @@ namespace TranscendenceRL {
                                 var ship = new AIShip(new BaseShip(World, shipClassDict[type], sovereign, camera), new AttackAllOrder());
 
                                 if(cargo.Any()) {
-                                    ship.Cargo.Clear();
-                                    ship.Cargo.UnionWith(cargo);
+                                    ship.cargo.Clear();
+                                    ship.cargo.UnionWith(cargo);
                                 }
                                 if(devices.Any()) {
-                                    ship.Devices.Clear();
-                                    ship.Devices.Install(devices);
+                                    ship.devices.Clear();
+                                    ship.devices.Install(devices);
                                 }
 
                                 World.AddEntity(ship);
@@ -299,19 +299,19 @@ namespace TranscendenceRL {
             tiles.Clear();
             World.PlaceTiles(tiles);
 
-            if(pov?.Active == false) {
+            if(pov?.active == false) {
                 pov = null;
             }
 
             if(pov != null) {
-                if(pov.Active) {
+                if(pov.active) {
                     UpdateNearest();
 
                     //Smoothly move the camera to where it should be
-                    if ((camera - pov.Position).Magnitude < pov.Velocity.Magnitude / 15 + 1) {
-                        camera = pov.Position;
+                    if ((camera - pov.position).Magnitude < pov.velocity.Magnitude / 15 + 1) {
+                        camera = pov.position;
                     } else {
-                        var step = (pov.Position - camera) / 15;
+                        var step = (pov.position - camera) / 15;
                         if (step.Magnitude < 1) {
                             step = step.Normal;
                         }
@@ -327,12 +327,12 @@ namespace TranscendenceRL {
             
             void UpdateNearest() {
                 XY worldPos = new XY(mouse.nowPos) - screenCenter + camera;
-                nearest = World.entities.all.OfType<SpaceObject>().OrderBy(e => (e.Position - worldPos).Magnitude).FirstOrDefault();
+                nearest = World.entities.all.OfType<SpaceObject>().OrderBy(e => (e.position - worldPos).Magnitude).FirstOrDefault();
             }
 
 
             if (nearest != null) {
-                Heading.Crosshair(World, nearest.Position);
+                Heading.Crosshair(World, nearest.position);
             }
         }
         public override void Render(TimeSpan drawTime) {
@@ -377,7 +377,7 @@ namespace TranscendenceRL {
 
                     playerMain.playerShip.Detach();
                     World.RemoveEntity(playerMain.playerShip);
-                    var aiShip = new AIShip(playerMain.playerShip.Ship, new AttackAllOrder());
+                    var aiShip = new AIShip(playerMain.playerShip.ship, new AttackAllOrder());
                     World.AddEntity(aiShip);
                     
                     pov = aiShip;
@@ -400,10 +400,10 @@ namespace TranscendenceRL {
             if (info.IsKeyPressed(Keys.A)) {
                 if (nearest is AIShip a) {
                     World.RemoveEntity(a);
-                    var playerShip = new PlayerShip(new Player() { Settings = settings }, a.Ship);
+                    var playerShip = new PlayerShip(new Player() { Settings = settings }, a.ship);
 
                     playerMain = new PlayerMain(Width, Height, World, playerShip) { IsFocused = true, camera = new Camera(camera) };
-                    playerShip.OnDestroyed += new ArenaScreenReset(this);
+                    playerShip.onDestroyed += new ArenaScreenReset(this);
                     World.AddEntity(playerShip);
 
                     pov = playerShip;

@@ -15,7 +15,7 @@ namespace TranscendenceRL {
 		public double rotationAccel;
 		public StaticTile tile;
 		public HullSystemDesc damageDesc;
-		public ItemList items;
+		public ItemList cargo;
 		public DeviceList devices;
 		public PlayerSettings playerSettings;
 		
@@ -25,7 +25,7 @@ namespace TranscendenceRL {
             }
         }
 		public ShipClass() {
-			items = new ItemList();
+			cargo = new ItemList();
 			devices = new DeviceList();
 		}
 		public void Initialize(TypeCollection collection, XElement e) {
@@ -47,8 +47,8 @@ namespace TranscendenceRL {
 			if(e.HasElement("Devices", out XElement xmlDevices)) {
 				devices = new DeviceList(xmlDevices);
 			}
-			if(e.HasElement("Items", out XElement xmlItems)) {
-				items = new ItemList(xmlItems);
+			if(e.HasElement("Cargo", out XElement xmlCargo) || e.HasElement("Items", out xmlCargo)) {
+				cargo = new ItemList(xmlCargo);
             }
 			if(e.HasElement("PlayerSettings", out XElement xmlPlayerSettings)) {
 				playerSettings = new PlayerSettings(xmlPlayerSettings);
@@ -75,7 +75,7 @@ namespace TranscendenceRL {
 			armorList = new ArmorList(e);
 		}
 		public HullSystem Create(SpaceObject owner) {
-			return new LayeredArmorSystem(armorList.Generate(owner.World.types));
+			return new LayeredArmorSystem(armorList.Generate(owner.world.types));
 		}
 	}
 	public class PlayerSettings {
