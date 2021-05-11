@@ -34,7 +34,7 @@
 			>
 			<Fragment
 				count=				"1"
-				requiresLockStatus=	"true"
+				targetLocked=		"true"
 				omnidirectional=	"true"
 				fragmentInterval=	"20"
 				missileSpeed=		"60"
@@ -47,7 +47,7 @@
 				/>
 			<Fragment
 				count=				"9"
-				requiresLockStatus=	"true"
+				targetLocked=		"true"
 				omnidirectional=	"true"
 				spreadAngle=		"20"
 				missileSpeed=		"60"

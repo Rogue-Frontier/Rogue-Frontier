@@ -133,8 +133,8 @@ namespace TranscendenceRL {
             }
         }
         public void Fragment(FragmentDesc fragment) {
-            if(fragment.requiresLockStatus != null
-                && fragment.requiresLockStatus != (maneuver.target != null)) {
+            if(fragment.targetLocked != null
+                && fragment.targetLocked != (maneuver.target != null)) {
                 return;
             }
             

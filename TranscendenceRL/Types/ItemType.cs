@@ -220,7 +220,7 @@ namespace TranscendenceRL {
     public class FragmentDesc {
         public int count;
         public bool omnidirectional;
-        public bool? requiresLockStatus;
+        public bool? targetLocked;
         public double spreadAngle;
         public int missileSpeed;
         public int damageType;
@@ -242,7 +242,7 @@ namespace TranscendenceRL {
                 spreadAngle = e.TryAttributeDouble(nameof(spreadAngle), count == 1 ? 0 : 3) * Math.PI / 180;
             }
             omnidirectional = e.TryAttributeBool(nameof(omnidirectional));
-            requiresLockStatus = e.TryAttributeBoolOptional(nameof(requiresLockStatus));
+            targetLocked = e.TryAttributeBoolOptional(nameof(targetLocked));
             missileSpeed = e.ExpectAttributeInt(nameof(missileSpeed));
             damageType = e.ExpectAttributeInt(nameof(damageType));
             damageHP = e.ExpectAttributeInt(nameof(damageHP));
