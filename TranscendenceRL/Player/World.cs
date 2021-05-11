@@ -124,13 +124,13 @@ namespace TranscendenceRL {
         public void PlaceTiles(Dictionary<(int, int), ColoredGlyph> tiles) {
             Dictionary<(int, int), Entity> entity = new Dictionary<(int, int), Entity>();
             foreach (var e in entities.all) {
-                var p = e.position.RoundDown;
+                var p = e.position.roundDown;
                 if (e.tile != null && (!entity.TryGetValue(p, out var en) || en is Segment)) {
                     tiles[p] = e.tile;
                 }
             }
             foreach (var e in effects.all) {
-                var p = e.position.RoundDown;
+                var p = e.position.roundDown;
                 if (e.tile != null && !tiles.ContainsKey(p)) {
                     tiles[p] = e.tile;
                 }

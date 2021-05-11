@@ -267,13 +267,20 @@ namespace TranscendenceRL {
     }
     public class TrailDesc : ITrail {
         public int lifetime;
+
+
+        public char glyph;
+        public Color foreground;
         public Color background;
         public TrailDesc() { }
         public TrailDesc(XElement e) {
             lifetime = e.ExpectAttributeInt(nameof(lifetime));
+            
+            foreground = e.ExpectAttributeColor("foreground");
             background = e.ExpectAttributeColor("background");
+            glyph = e.ExpectAttribute("char")[0];
         }
-        public Effect GetTrail(XY Position) => new FadingTile(Position, new ColoredGlyph(Color.Transparent, background), lifetime);
+        public Effect GetTrail(XY Position) => new FadingTile(Position, new ColoredGlyph(foreground, background, glyph), lifetime);
     }
     public class DisruptorDesc {
         HijackMode thrustMode, turnMode, brakeMode, fireMode;

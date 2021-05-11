@@ -83,7 +83,7 @@ namespace BrainWaves {
 
                                 BuildRoom(new RoomSource() {
                                     Center = p,
-                                    Dimensions = s.Abs
+                                    Dimensions = s.abs
                                 });
                             }
                             
@@ -168,7 +168,7 @@ namespace BrainWaves {
                         Build(h.Center + forward * indexForward + right * indexSide, new Floor());
                     }
                 }
-                World.AddEntity(new Light(World, h.Center.Round));
+                World.AddEntity(new Light(World, h.Center.round));
             }
             void BuildDeadEnd(HallwaySource h) {
                 var forward = h.Direction;

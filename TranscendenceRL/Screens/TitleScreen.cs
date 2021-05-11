@@ -285,7 +285,7 @@ namespace TranscendenceRL {
                 World.UpdatePresent();
             }
             if(pov == null || povTimer < 1) {
-                pov = World.entities.all.OfType<AIShip>().OrderBy(s => (s.position - camera).Magnitude).First();
+                pov = World.entities.all.OfType<AIShip>().OrderBy(s => (s.position - camera).magnitude).First();
                 UpdatePOVDesc();
                 povTimer = 150;
             } else if(!pov.active) {
@@ -293,12 +293,12 @@ namespace TranscendenceRL {
             }
 
             //Smoothly move the camera to where it should be
-            if ((camera - pov.position).Magnitude < pov.velocity.Magnitude / 15 + 1) {
+            if ((camera - pov.position).magnitude < pov.velocity.magnitude / 15 + 1) {
                 camera = pov.position;
             } else {
                 var step = (pov.position - camera) / 15;
-                if (step.Magnitude < 1) {
-                    step = step.Normal;
+                if (step.magnitude < 1) {
+                    step = step.normal;
                 }
                 camera += step;
             }
@@ -351,7 +351,7 @@ namespace TranscendenceRL {
                     if (g == 0 || g == ' ' || this.GetForeground(x,y).A == 0) {
                         
                         
-                        if(tiles.TryGetValue(location.RoundDown, out var tile)) {
+                        if(tiles.TryGetValue(location.roundDown, out var tile)) {
                             if(tile.Background == Color.Transparent) {
                                 tile.Background = World.backdrop.GetBackground(location, camera);
                             }

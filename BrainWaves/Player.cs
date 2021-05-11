@@ -43,7 +43,7 @@ namespace BrainWaves {
                     foreach (var offset in new XY[] { new XY(-1, 0), new XY(1, 0), new XY(0, -1), new XY(0, 1) }) {
                         var next = p + offset;
                         if (known.Add(next)) {
-                            q.Enqueue(next, (next - Position).Magnitude);
+                            q.Enqueue(next, (next - Position).magnitude);
                         }
                     }
                 }
@@ -73,7 +73,7 @@ namespace BrainWaves {
                         break;
                     case Guard g:
                         g.pushed = true;
-                        g.distanceMap = new DistanceMap(visible.OrderBy(p => (Position - p).Magnitude2).Last(), g.distanceMap.distanceFunction);
+                        g.distanceMap = new DistanceMap(visible.OrderBy(p => (Position - p).magnitude2).Last(), g.distanceMap.distanceFunction);
                         g.distanceMap.Calculate(g.Position);
                         break;
                     case Light l:

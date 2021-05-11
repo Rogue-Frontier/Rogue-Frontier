@@ -1,4 +1,34 @@
 ﻿<Module>
+
+	<ItemType	codename=	"item_dark_cannon"
+			name=		"Darkspeed cannon"
+			level=		"2"
+			mass=		"2000"
+
+			invoke=		"installWeapon"
+				
+			desc=		"."
+		>
+		<Weapon
+			powerUse=		"10"
+			fireCooldown=	"120"
+			missileSpeed=	"300"
+			damageType=		"1"
+			damageHP=		"12"
+			lifetime=		"20"
+
+			char=			"d"
+			foreground=		"FFFFFFFF"
+			>
+			<Trail
+				lifetime=	"20"
+				char=		"d"
+				foreground=	"FFFFFFFF"
+				background=	"000000FF"
+				/>
+		</Weapon>
+	</ItemType>
+
 	<ItemType	codename=	"item_sidewinder_missile"
 				name=		"Sidewinder missile"
 				level=		"2"
@@ -70,10 +100,12 @@
                 rotationDecel="12"
                 rotationMaxSpeed="8"
 
-                char="A"
-                foreground="Magenta"
-    >
+                char="g"
+                foreground="FF0080FF"
+		>
 	    <Devices>
+
+			<Weapon codename="item_dark_cannon"/>
 		    <Weapon codename="item_sidewinder_missile_launcher"/>
 			<Reactor codename="item_foundry_reactor"/>
 			<Reactor codename="item_foundry_battery"/>

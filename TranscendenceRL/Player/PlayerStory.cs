@@ -630,7 +630,7 @@ a residential station of the United Constellation.",
                     return mission.GetScene(prev, source, playerShip);
                 }
                 
-                var target = source.world.entities.all.OfType<Station>().Where(s => s.type.codename == "station_orion_warlords_camp").FirstOrDefault(other => (other.position - source.position).Magnitude < 256);
+                var target = source.world.entities.all.OfType<Station>().Where(s => s.type.codename == "station_orion_warlords_camp").FirstOrDefault(other => (other.position - source.position).magnitude < 256);
 
                 if (target == null) {
                     return new TextScene(prev,

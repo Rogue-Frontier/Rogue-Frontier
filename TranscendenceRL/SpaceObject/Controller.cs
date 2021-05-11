@@ -27,7 +27,7 @@ namespace TranscendenceRL {
 
             attacker = ((attacker?.active == true) ? attacker : null) ?? owner.world.entities.all
                 .OfType<AIShip>()
-                .FirstOrDefault(s => (s.position - owner.position).Magnitude < 100
+                .FirstOrDefault(s => (s.position - owner.position).magnitude < 100
                             && s.controller is ICombatOrder o && (o.CanTarget(target) || o.CanTarget(owner)));
             if (attacker != null) {
                 new AttackOrder(attacker).Update(owner);
@@ -65,42 +65,42 @@ namespace TranscendenceRL {
 
             var velDiff = owner.velocity - target.velocity;
             double decel = owner.shipClass.thrust * Program.TICKS_PER_SECOND / 2;
-            double stoppingTime = velDiff.Magnitude / decel;
-            double stoppingDistance = owner.velocity.Magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
+            double stoppingTime = velDiff.magnitude / decel;
+            double stoppingDistance = owner.velocity.magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
             var stoppingPoint = owner.position;
-            if (!owner.velocity.IsZero) {
-                stoppingPoint += owner.velocity.Normal * stoppingDistance;
+            if (!owner.velocity.isZero) {
+                stoppingPoint += owner.velocity.normal * stoppingDistance;
             }
             var dest = target.position + (target.velocity * stoppingTime) + this.offset.Rotate(target.stoppingRotation * Math.PI / 180);
             var offset = dest - stoppingPoint;
 
             //Heading.Crosshair(owner.World, dest);
 
-            var velProjection = velDiff * velDiff.Dot(offset.Normal) / velDiff.Dot(velDiff);
+            var velProjection = velDiff * velDiff.Dot(offset.normal) / velDiff.Dot(velDiff);
             var velRejection = velDiff - velProjection;
 
             //Make sure we're going the right way
-            if (velDiff.Magnitude > 5 && velRejection.Magnitude > velProjection.Magnitude/2) {
+            if (velDiff.magnitude > 5 && velRejection.magnitude > velProjection.magnitude/2) {
                 //Decelerate
-                var backAngle = Math.PI + velRejection.Angle;
+                var backAngle = Math.PI + velRejection.angleRad;
                 var faceBack = new FaceOrder(backAngle);
                 faceBack.Update(owner);
-                var angleDiff = Math.Abs(Helper.AngleDiff(owner.rotationDegrees, backAngle * 180 / Math.PI));
+                var angleDiff = Math.Abs(Helper.AngleDiff(owner.rotationDeg, backAngle * 180 / Math.PI));
                 if (angleDiff < 5) {
                     owner.SetThrusting(true);
                 }
             } else {
                 //Prepare to decelerate
-                if (offset.Magnitude < 1) {
+                if (offset.magnitude < 1) {
                     //If we're close enough to dest, then just teleport there
-                    if((dest - owner.position).Magnitude > 1) {
+                    if((dest - owner.position).magnitude > 1) {
                         owner.SetDecelerating(true);
                     } else {
                         owner.velocity = target.velocity;
                         owner.position = dest;
 
                         //Match the target's facing
-                        var Face = new FaceOrder(target.rotationDegrees * Math.PI / 180);
+                        var Face = new FaceOrder(target.rotationDeg * Math.PI / 180);
                         Face.Update(owner);
                     }
 
@@ -108,12 +108,12 @@ namespace TranscendenceRL {
                     //Approach the target
 
                     //Face the target
-                    var Face = new FaceOrder(offset.Angle);
+                    var Face = new FaceOrder(offset.angleRad);
                     //var Face = new FaceOrder(Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, owner.ShipClass.thrust * 30, out _));
                     Face.Update(owner);
 
                     //If we're facing close enough
-                    if (Math.Abs(Helper.AngleDiff(owner.rotationDegrees, offset.Angle * 180 / Math.PI)) < 10 && (velProjection.Magnitude < offset.Magnitude/2 || velDiff.Magnitude == 0)) {
+                    if (Math.Abs(Helper.AngleDiff(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10 && (velProjection.magnitude < offset.magnitude/2 || velDiff.magnitude == 0)) {
 
                         //Go
                         owner.SetThrusting(true);
@@ -160,7 +160,7 @@ namespace TranscendenceRL {
                 return;
             }
 
-            var target = owner.world.entities.GetAll(p => (GuardTarget.position - p).Magnitude < 20).OfType<SpaceObject>().Where(o => !o.IsEqual(owner) && GuardTarget.CanTarget(o)).GetRandomOrDefault(owner.destiny);
+            var target = owner.world.entities.GetAll(p => (GuardTarget.position - p).magnitude < 20).OfType<SpaceObject>().Where(o => !o.IsEqual(owner) && GuardTarget.CanTarget(o)).GetRandomOrDefault(owner.destiny);
 
             if (target != null) {
                 attackOrder = new AttackOrder(target);
@@ -168,7 +168,7 @@ namespace TranscendenceRL {
                 return;
             }
             
-            if ((owner.position - GuardTarget.position).Magnitude < 6) {
+            if ((owner.position - GuardTarget.position).magnitude < 6) {
                 //If no enemy in range of station, dock at station
                 owner.dock = new Docking(GuardTarget);
             } else {
@@ -228,7 +228,7 @@ namespace TranscendenceRL {
                    .Where(w => w != weapon)
                    .ToList();
             }
-            bool RangeCheck() => (owner.position - target.position).Magnitude < weapon.currentRange;
+            bool RangeCheck() => (owner.position - target.position).magnitude < weapon.currentRange;
             void SetFiring() {
                 Set(weapon);
             }
@@ -237,7 +237,7 @@ namespace TranscendenceRL {
             owner.dock = null;
 
             var offset = (target.position - owner.position);
-            var dist = offset.Magnitude;
+            var dist = offset.magnitude;
 
             if (owner.shipClass.name == "Embargo-class missileship") {
                 int i = 0;
@@ -252,7 +252,7 @@ namespace TranscendenceRL {
                 //If we are too close, then move away
 
                 //Face away from the target
-                new FaceOrder(offset.Angle + Math.PI).Update(owner);
+                new FaceOrder(offset.angleRad + Math.PI).Update(owner);
 
                 //Get moving!
                 owner.SetThrusting(true);
@@ -266,7 +266,7 @@ namespace TranscendenceRL {
                     aim.Update(owner);
 
                     if (Math.Abs(aim.GetAngleDiff(owner)) < 10
-                        && (owner.velocity - target.velocity).Magnitude < 5) {
+                        && (owner.velocity - target.velocity).magnitude < 5) {
                         owner.SetThrusting(true);
                     }
                     //Fire if we are close enough
@@ -312,8 +312,8 @@ namespace TranscendenceRL {
             };
             var target = owner.world.entities.all
                 .OfType<SpaceObject>()
-                .Where(p => (patrolTarget.position - p.position).Magnitude < attackRadius)
-                .Where(p => (owner.position - p.position).Magnitude < 50)
+                .Where(p => (patrolTarget.position - p.position).magnitude < attackRadius)
+                .Where(p => (owner.position - p.position).magnitude < 50)
                 .Where(o => owner.IsEnemy(o))
                 .Where(o => !SSpaceObject.IsEqual(o, owner) && !SSpaceObject.IsEqual(o, patrolTarget))
                 .GetRandomOrDefault(owner.destiny);
@@ -325,7 +325,7 @@ namespace TranscendenceRL {
             }
 
             var offsetFromTarget = (owner.position - patrolTarget.position);
-            var dist = offsetFromTarget.Magnitude;
+            var dist = offsetFromTarget.magnitude;
 
             var deltaDist = patrolRadius - dist;
 
@@ -339,7 +339,7 @@ namespace TranscendenceRL {
 
             var deltaOffset = nextOffset - offsetFromTarget;
 
-            var Face = new FaceOrder(deltaOffset.Angle);
+            var Face = new FaceOrder(deltaOffset.angleRad);
             Face.Update(owner);
             owner.SetThrusting(true);
         }
@@ -388,21 +388,21 @@ namespace TranscendenceRL {
 
             offset += randomOffset;
 
-            var speedTowards = (owner.velocity - target.velocity).Dot(offset.Normal);
+            var speedTowards = (owner.velocity - target.velocity).Dot(offset.normal);
             if (speedTowards < 0) {
                 //Decelerate
-                var Face = new FaceOrder(Math.PI + owner.velocity.Angle);
+                var Face = new FaceOrder(Math.PI + owner.velocity.angleRad);
                 Face.Update(owner);
                 owner.SetThrusting(true);
             } else {
                 //Approach
 
                 //Face the target
-                var Face = new FaceOrder(offset.Angle);
+                var Face = new FaceOrder(offset.angleRad);
                 Face.Update(owner);
 
                 //If we're facing close enough
-                if (Math.Abs(Helper.AngleDiff(owner.rotationDegrees, offset.Angle * 180 / Math.PI)) < 10 && speedTowards < 10) {
+                if (Math.Abs(Helper.AngleDiff(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10 && speedTowards < 10) {
 
                     //Go
                     owner.SetThrusting(true);
@@ -429,7 +429,7 @@ namespace TranscendenceRL {
         public SpaceObject target;
         public double missileSpeed;
         public double GetTargetRads(AIShip owner) => Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
-        public double GetAngleDiff(AIShip owner) => Helper.AngleDiff(owner.rotationDegrees, GetTargetRads(owner) * 180 / Math.PI);
+        public double GetAngleDiff(AIShip owner) => Helper.AngleDiff(owner.rotationDeg, GetTargetRads(owner) * 180 / Math.PI);
         public AimOrder(SpaceObject target, double missileSpeed) {
             this.target = target;
             this.missileSpeed = missileSpeed;
@@ -439,8 +439,8 @@ namespace TranscendenceRL {
             var targetRads = this.GetTargetRads(owner);
             var facingRads = owner.stoppingRotation * Math.PI / 180;
 
-            var ccw = (XY.Polar(facingRads + 1 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;
-            var cw = (XY.Polar(facingRads - 1 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;
+            var ccw = (XY.Polar(facingRads + 1 * Math.PI / 180) - XY.Polar(targetRads)).magnitude;
+            var cw = (XY.Polar(facingRads - 1 * Math.PI / 180) - XY.Polar(targetRads)).magnitude;
             if (ccw < cw) {
                 owner.SetRotating(Rotating.CCW);
             } else if (cw < ccw) {
@@ -456,8 +456,8 @@ namespace TranscendenceRL {
         public void Update(AIShip owner) {
             var facingRads = owner.ship.stoppingRotationWithCounterTurn * Math.PI / 180;
 
-            var ccw = (XY.Polar(facingRads + 1 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;
-            var cw = (XY.Polar(facingRads - 1 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;
+            var ccw = (XY.Polar(facingRads + 1 * Math.PI / 180) - XY.Polar(targetRads)).magnitude;
+            var cw = (XY.Polar(facingRads - 1 * Math.PI / 180) - XY.Polar(targetRads)).magnitude;
             if (ccw < cw) {
                 owner.SetRotating(Rotating.CCW);
             } else if (cw < ccw) {

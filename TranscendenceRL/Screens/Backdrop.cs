@@ -78,7 +78,7 @@ namespace TranscendenceRL {
         }
         public ColoredGlyph GetTile(XY point, XY camera) {
             var apparent = point - camera * (1 - parallaxFactor);
-            return tiles.TryGetValue(apparent.RoundDown, out var result) ? result : new ColoredGlyph(Color.Transparent, Color.Transparent, ' ');
+            return tiles.TryGetValue(apparent.roundDown, out var result) ? result : new ColoredGlyph(Color.Transparent, Color.Transparent, ' ');
         }
     }
     public class CompositeLayer : ILayer {
@@ -125,14 +125,14 @@ namespace TranscendenceRL {
         public Color GetBackgroundFixed(XY point) {
             Color result = Color.Black;
             foreach (var layer in layers.AsEnumerable().Reverse()) {
-                var apparent = point.RoundDown;
+                var apparent = point.roundDown;
                 result = result.Blend(layer[apparent.xi, apparent.yi]);
             }
             return result;
         }
         public Color GetTile(XY point) {
             if (layers.Any()) {
-                var apparent = point.RoundDown;
+                var apparent = point.roundDown;
                 var top = layers.Last()[apparent.xi, apparent.yi];
                 for (int i = layers.Count - 2; i > -1; i--) {
                     Blend(layers[i][apparent.xi, apparent.yi]);
@@ -207,11 +207,11 @@ namespace TranscendenceRL {
         }
         public ColoredGlyph GetTile(XY point, XY camera) {
             var apparent = point - camera * (1 - parallaxFactor);
-            apparent = apparent.RoundDown;
+            apparent = apparent.roundDown;
             return tiles[apparent.xi, apparent.yi];
         }
         public ColoredGlyph GetTileFixed(XY point) {
-            point = point.RoundDown;
+            point = point.roundDown;
             return tiles[point.xi, point.yi];
         }
     }

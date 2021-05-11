@@ -304,7 +304,7 @@ namespace IslandHopper {
                 Children.Add(new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", player.Inventory.Select(Item => new ListItem(Item)), item => {
                     //Just drop the item for now
                     player.Inventory.Remove(item);
-                    World.entities.Place(item);
+                    World.entities.PlaceNew(item);
 
                     World.player.Witness(new InfoEvent(new ColoredString("You drop: ") + item.Name.WithBackground(Color.Black)));
                     return true;

@@ -37,7 +37,7 @@ namespace TranscendenceRL {
             for (int y = 0; y < lines.Length; y++) {
                 var s = lines[y];
                 var pos = new XY(-s.Length, -lines.Length + y * 2);
-                var margin = new AIShip(new BaseShip(World, ShipClass.empty, new Sovereign(), pos) { rotationDegrees = 90 }, null);
+                var margin = new AIShip(new BaseShip(World, ShipClass.empty, new Sovereign(), pos) { rotationDeg = 90 }, null);
                 for (int x = 0; x < s.Length; x++) {
                     var c = s[x];
                     if (c == ' ')
@@ -105,7 +105,7 @@ namespace TranscendenceRL {
 
                     var location = new XY(x + 0.1, y + 0.1) - screenCenter;
 
-                    if (tiles.TryGetValue(location.RoundDown, out var tile)) {
+                    if (tiles.TryGetValue(location.roundDown, out var tile)) {
                         this.SetCellAppearance(x, y, tile);
                     }
                 }

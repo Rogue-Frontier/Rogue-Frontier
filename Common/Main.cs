@@ -27,14 +27,21 @@ namespace Common {
 		public static SetDict<(int, int), T> Downsample<T>(this Dictionary<(int, int), T> from, double scale) {
 			var result = new SetDict<(int, int), T>();
 			foreach ((int x, int y) p in from.Keys) {
-				result.Add(new XY((p.x / scale), (int)(p.y / scale)).RoundDown, from[p]);
+				result.Add(new XY((p.x / scale), (int)(p.y / scale)).roundDown, from[p]);
 			}
 			return result;
 		}
 		public static SetDict<(int,int), T> DownsampleSet<T>(this Dictionary<(int, int), HashSet<T>> from, double scale) {
 			var result = new SetDict<(int, int), T>();
 			foreach ((int x, int y) p in from.Keys) {
-				result.AddRange(new XY((p.x / scale), (int)(p.y / scale)).RoundDown, from[p]);
+				result.AddRange(new XY((p.x / scale), (int)(p.y / scale)).roundDown, from[p]);
+			}
+			return result;
+		}
+		public static SetDict<(int, int), T> DownsampleSet<T>(this Dictionary<(int, int), HashSet<T>> from, double scale, Func<T, bool> filter) {
+			var result = new SetDict<(int, int), T>();
+			foreach ((int x, int y) p in from.Keys) {
+				result.AddRange(new XY((p.x / scale), (int)(p.y / scale)).roundDown, from[p].Where(filter));
 			}
 			return result;
 		}
@@ -47,7 +54,7 @@ namespace Common {
             }
         }
 		public static bool CalcAim(XYZ difference, double speed, out double lower, out double higher) {
-			double horizontal = difference.xy.Magnitude;
+			double horizontal = difference.xy.magnitude;
 			double vertical = difference.z;
 			const double g = 9.8;
 			double part1 = speed * speed;
@@ -64,7 +71,7 @@ namespace Common {
 		}
 		public static bool CalcAim2(XYZ difference, double speed, out XYZ lower, out XYZ higher) {
 			if (CalcAim(difference, speed, out var lowerAltitude, out var upperAltitude)) {
-				double azimuth = difference.xy.Angle;
+				double azimuth = difference.xy.angleRad;
 				lower = new XYZ(speed * Math.Cos(azimuth) * Math.Cos(lowerAltitude), speed * Math.Sin(azimuth) * Math.Cos(lowerAltitude), speed * Math.Sin(lowerAltitude));
 				higher = new XYZ(speed * Math.Cos(azimuth) * Math.Cos(upperAltitude), speed * Math.Sin(azimuth) * Math.Cos(upperAltitude), speed * Math.Sin(upperAltitude));
 				return true;
@@ -138,17 +145,17 @@ namespace Common {
 			var posDiffPrev = posDiff;
 			posDiff = posFuture;
 			*/
-			timeToHit = posDiff.Magnitude / missileSpeed;
+			timeToHit = posDiff.magnitude / missileSpeed;
 			XY posDiffNext;
 			double timeToHitPrev;
 			int i = 10;
 			do {
 				posDiffNext = posDiff + velDiff * timeToHit;
 				timeToHitPrev = timeToHit;
-				timeToHit = posDiffNext.Magnitude / missileSpeed;
+				timeToHit = posDiffNext.magnitude / missileSpeed;
 			} while (Math.Abs(timeToHit - timeToHitPrev) > 0.1 && i --> 0);
 
-			return posDiffNext.Angle;
+			return posDiffNext.angleRad;
 			/*
 			var a = velDiff.Dot(velDiff) - missileSpeed * missileSpeed;
 			var b = 2 * velDiff.Dot(posDiff);
@@ -491,7 +498,7 @@ namespace Common {
 			var center = dimensions / 2;
 			var halfWidth = dimensions.x / 2;
 			var halfHeight = dimensions.y / 2;
-			var diagonalAngle = dimensions.Angle;
+			var diagonalAngle = dimensions.angleRad;
 			if((angle < diagonalAngle || angle > Math.PI * 2 - diagonalAngle)	//Right side
 				|| (angle < Math.PI + diagonalAngle && angle > Math.PI - diagonalAngle) //Left side
 				) {

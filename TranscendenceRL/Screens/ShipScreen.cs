@@ -15,14 +15,10 @@ using Common;
 namespace TranscendenceRL {
     class ShipScreen : Console {
         public Console prev;
-        public Console back;
         public PlayerShip PlayerShip;
         //Idea: Show an ASCII-art map of the ship where the player can walk around
         public ShipScreen(Console prev, PlayerShip PlayerShip) : base(prev.Width, prev.Height) {
             this.prev = prev;
-            this.back = new Console(prev.Width, prev.Height);
-            back.RenderBackground();
-
 
             this.PlayerShip = PlayerShip;
         }
@@ -31,14 +27,13 @@ namespace TranscendenceRL {
             //back.Render(delta);
 
             this.Clear();
-            this.RenderBackground();
 
             var name = PlayerShip.shipClass.name;
             var x = Width / 4 - name.Length / 2;
             var y = 4;
 
             void Print(int x, int y, string s) =>
-                this.Print(x, y, s, Color.White, Color.Transparent);
+                this.Print(x, y, s, Color.White, Color.Black);
             void Print2(int x, int y, string s) =>
                 this.Print(x, y, s, Color.White, Color.Black.SetAlpha(102));
 

@@ -42,7 +42,7 @@ namespace BrainWaves {
                     foreach (var offset in new XY[] { new XY(-1, 0), new XY(1, 0), new XY(0, -1), new XY(0, 1) }) {
                         var next = p + offset;
                         if (known.Add(next)) {
-                            q.Enqueue(next, (next - Position).Magnitude);
+                            q.Enqueue(next, (next - Position).magnitude);
                         }
                     }
                 }
@@ -80,7 +80,7 @@ namespace BrainWaves {
                             this.distanceMap = distanceMap;
                         }
                     }
-                } else if ((Position - distanceMap.center).Magnitude < 10) {
+                } else if ((Position - distanceMap.center).magnitude < 10) {
 
                 }
                 var dest = distanceMap.prev[Position];

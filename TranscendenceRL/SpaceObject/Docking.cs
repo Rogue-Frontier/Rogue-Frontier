@@ -21,17 +21,17 @@ namespace TranscendenceRL {
         }
         public bool UpdateDocking(IShip ship) {
             double decel = ship.shipClass.thrust / 2 * Program.TICKS_PER_SECOND;
-            double stoppingTime = (ship.velocity - Target.velocity).Magnitude / decel;
-            double stoppingDistance = ship.velocity.Magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
+            double stoppingTime = (ship.velocity - Target.velocity).magnitude / decel;
+            double stoppingDistance = ship.velocity.magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
             var stoppingPoint = ship.position;
-            if (!ship.velocity.IsZero) {
-                stoppingPoint += ship.velocity.Normal * stoppingDistance;
+            if (!ship.velocity.isZero) {
+                stoppingPoint += ship.velocity.normal * stoppingDistance;
             }
             var offset = Target.position + (Target.velocity * stoppingTime) - stoppingPoint;
 
-            if (offset.Magnitude > 0.25) {
-                ship.velocity += XY.Polar(offset.Angle, ship.shipClass.thrust);
-            } else if ((ship.position - Target.position).Magnitude < 1) {
+            if (offset.magnitude > 0.25) {
+                ship.velocity += XY.Polar(offset.angleRad, ship.shipClass.thrust);
+            } else if ((ship.position - Target.position).magnitude < 1) {
                 ship.velocity = Target.velocity;
                 return true;
             }

@@ -63,52 +63,52 @@ namespace Common {
 		public XY PlusX(double x) => new XY(this.x + x, y);
 		public XY PlusY(double y) => new XY(x, this.y + y);
 		[JsonIgnore]
-		public XY Abs => new XY(Math.Abs(xi), Math.Abs(yi));
+		public XY abs => new XY(Math.Abs(xi), Math.Abs(yi));
 		[JsonIgnore]
-		public XY Truncate => new XY(xi, yi);
+		public XY truncate => new XY(xi, yi);
 		[JsonIgnore]
-		public XY FlipX => new XY(-x, y);
+		public XY flipX => new XY(-x, y);
 		[JsonIgnore]
-		public XY FlipY => new XY(x, -y);
+		public XY flipY => new XY(x, -y);
 		[JsonIgnore] 
-		public XY Round => new XY(Math.Round(x), Math.Round(y));
+		public XY round => new XY(Math.Round(x), Math.Round(y));
 		[JsonIgnore] 
-		public XY RoundDown => new XY(Math.Round(x, MidpointRounding.ToNegativeInfinity), Math.Round(y, MidpointRounding.ToNegativeInfinity));
+		public XY roundDown => new XY(Math.Round(x, MidpointRounding.ToNegativeInfinity), Math.Round(y, MidpointRounding.ToNegativeInfinity));
 		[JsonIgnore] 
-		public XY RoundAway => new XY(Math.Round(x, MidpointRounding.AwayFromZero), Math.Round(y, MidpointRounding.AwayFromZero));
+		public XY roundAway => new XY(Math.Round(x, MidpointRounding.AwayFromZero), Math.Round(y, MidpointRounding.AwayFromZero));
 
-		public static XY Polar(double angle, double magnitude = 1) {
-			return new XY(Math.Cos(angle) * magnitude, Math.Sin(angle) * magnitude);
+		public static XY Polar(double angleRad, double magnitude = 1) {
+			return new XY(Math.Cos(angleRad) * magnitude, Math.Sin(angleRad) * magnitude);
 		}
-		public XY Snap(int gridSize) => (this / gridSize).RoundDown * gridSize;
+		public XY Snap(int gridSize) => (this / gridSize).roundDown * gridSize;
 
-		public XY Snap(double gridSize) => (this / gridSize).RoundDown * gridSize;
+		public XY Snap(double gridSize) => (this / gridSize).roundDown * gridSize;
 
 		public static implicit operator (int, int)(XY p) => (p.xi, p.yi);
 		public static implicit operator (double, double)(XY p) => (p.x, p.y);
 
 		public double Dot(XY other) => x * other.x + y * other.y;
 		[JsonIgnore]
-		public bool IsZero => Magnitude < 0.1;
+		public bool isZero => magnitude < 0.1;
 		public XY Scale(XY origin, double scale) => (this - origin) * scale + origin;
 
 		public XY WithMagnitude(double magnitude) {
-			var a = Angle;
+			var a = angleRad;
 			return new XY(Math.Cos(a) * magnitude, Math.Sin(a) * magnitude);
 		}
 
 		[JsonIgnore] 
-		public double MaxCoord => Math.Max(Math.Abs(x), Math.Abs(y));
+		public double maxCoord => Math.Max(Math.Abs(x), Math.Abs(y));
 		[JsonIgnore] 
-		public double Manhattan => Math.Abs(x) + Math.Abs(y);
+		public double manhattan => Math.Abs(x) + Math.Abs(y);
 		[JsonIgnore] 
-		public double Magnitude => Math.Sqrt(x * x + y * y);
+		public double magnitude => Math.Sqrt(x * x + y * y);
 		[JsonIgnore] 
-		public double Magnitude2 => (x * x + y * y);
+		public double magnitude2 => (x * x + y * y);
 		[JsonIgnore]
-		public XY Normal {
+		public XY normal {
 			get {
-				double magnitude = Magnitude;
+				double magnitude = this.magnitude;
 				if(magnitude > 0) {
 					return new XY(x / magnitude, y / magnitude);
 				} else {
@@ -117,7 +117,8 @@ namespace Common {
 			}
 		}
 		[JsonIgnore]
-		public double Angle => Math.Atan2(y, x);
+		public double angleRad => Math.Atan2(y, x);
+		public double angleDeg => angleRad * 180 / Math.PI;
 
 		public XY Rotate(double angle) {
 			if(angle == 0) {
@@ -160,8 +161,8 @@ namespace Common {
 			this.z = z;
 		}
         public XYZ copy => new XYZ(x, y, z);
-		public double xyAngle => xy.Angle;
-		public double zAngle => Math.Atan2(z, xy.Magnitude);
+		public double xyAngle => xy.angleRad;
+		public double zAngle => Math.Atan2(z, xy.magnitude);
 		public XY xy => new XY(x, y);
         public XYZ i => new XYZ(xi, yi, zi);
 		public static XYZ operator +(XYZ p1, XYZ p2) => new XYZ(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
@@ -410,19 +411,29 @@ namespace Common {
             this.locator = locator;
         }
         public void Clear() => all.Clear();
-        public void UpdateSpace() {
-            space.Clear();
-            foreach (var t in all) {
-                var u = locator.Locate(t);
-                Initialize(u);
-                this[u].Add(t);
-            }
-        }
-        public void Place(T t) {
+		public void UpdateSpace() {
+			space.Clear();
+			foreach (var t in all) {
+				var u = locator.Locate(t);
+				Initialize(u);
+				space[u].Add(t);
+
+			}
+		}
+		private void Initialize(U u) {
+			if (!space.ContainsKey(u)) {
+				space[u] = new HashSet<T>();
+			}
+		}
+		public void PlaceNew(T t) {
             if (all.Add(t))
                 Place(locator.Locate(t), t);
         }
-        public void Remove(T t) {
+		private void Place(U u, T t) {
+			Initialize(u);
+			space[u].Add(t);
+		}
+		public void Remove(T t) {
             all.Remove(t);
             UpdateSpace();
         }
@@ -436,16 +447,35 @@ namespace Common {
 			}
 			return result;
 		}
-        private void Place(U u, T t) {
-            Initialize(u);
-            this[u].Add(t);
-        }
-        private void Initialize(U u) {
-            if (!space.ContainsKey(u)) {
-                space[u] = new HashSet<T>();
-            }
-        }
-    }
+		public Dictionary<U, HashSet<T>> GetScaledSpace(Func<U, U> scale) {
+			var space = new Dictionary<U, HashSet<T>>();
+			void Initialize(U u) {
+				if (!space.ContainsKey(u)) {
+					space[u] = new HashSet<T>();
+				}
+			}
+			foreach (var t in all) {
+				var u = scale(locator.Locate(t));
+				Initialize(u);
+				space[u].Add(t);
+			}
+			return space;
+		}
+		public Dictionary<U, HashSet<T>> GetScaledSpace(Func<U, U> scale, Func<T, bool> filter) {
+			var space = new Dictionary<U, HashSet<T>>();
+			void Initialize(U u) {
+				if (!space.ContainsKey(u)) {
+					space[u] = new HashSet<T>();
+				}
+			}
+			foreach (var t in all.Where(filter)) {
+				var u = scale(locator.Locate(t));
+				Initialize(u);
+				space[u].Add(t);
+			}
+			return space;
+		}
+	}
 
 	public class SetDict<U, T> {
 		HashSet<T> all;

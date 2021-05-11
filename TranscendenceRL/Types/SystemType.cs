@@ -338,7 +338,7 @@ namespace TranscendenceRL {
         }
         public Color Generate((int,int) p) {
             //var xy = new XY(p);
-            return new Color(255, 255, 204, Math.Min(255, (int)(radius * 255 / ((lc.pos - p).Magnitude + 1))));
+            return new Color(255, 255, 204, Math.Min(255, (int)(radius * 255 / ((lc.pos - p).magnitude + 1))));
         }
     }
     public class SystemStar : SystemElement {

@@ -36,7 +36,7 @@ namespace Graphics {
                 for (int y = 0; y < Height; y++) {
                     var offset = new XY(x, Height - y) - new XY(Width / 2, Height / 2);
                     var location = camera + offset;
-                    if (tiles.TryGetValue(location.RoundDown, out var tile)) {
+                    if (tiles.TryGetValue(location.roundDown, out var tile)) {
                         if (tile.Background == Color.Transparent) {
                             tile.Background = World.backdrop.GetBackground(location, camera);
                         }

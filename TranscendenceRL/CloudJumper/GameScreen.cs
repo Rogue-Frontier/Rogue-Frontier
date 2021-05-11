@@ -30,9 +30,9 @@ namespace CloudJumper {
             playership.Position += new XY(1 / 8f, 0);
 
 
-            var c = clouds.FirstOrDefault(c => c.pos == (Point)playership.Position.RoundAway);
+            var c = clouds.FirstOrDefault(c => c.pos == (Point)playership.Position.roundAway);
             if (c != null) {
-                if(playership.Velocity.Magnitude > 4) {
+                if(playership.Velocity.magnitude > 4) {
                     int a = c.symbol.Foreground.A;
                     var delta = random.Next(1, 30);
                     a -= delta;

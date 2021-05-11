@@ -52,7 +52,7 @@ namespace BrainWaves {
             foreach (var e in entities.all) {
                 e.UpdateStep();
 
-                var p = e.Position.RoundDown;
+                var p = e.Position.roundDown;
                 if (e.Tile != null && !tiles.ContainsKey(p)) {
                     tiles[p] = e.Tile;
                 }
@@ -60,7 +60,7 @@ namespace BrainWaves {
         }
         public void UpdateTiles(Dictionary<(int, int), ColoredGlyph> tiles) {
             foreach (var e in entities.all) {
-                var p = e.Position.RoundDown;
+                var p = e.Position.roundDown;
                 if (e.Tile != null && !tiles.ContainsKey(p)) {
                     tiles[p] = e.Tile;
                 }

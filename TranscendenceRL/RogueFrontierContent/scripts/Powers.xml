@@ -14,7 +14,11 @@
 			char=			"*"
 			foreground=		"FF55FFFF"
 			>
-			<Trail lifetime="30" background="CC88DDFF"/>
+			<Trail
+				lifetime=	"30"
+				char=		"*"
+				foreground=	"FF55FFFF"
+				background=	"CC88DDFF"/>
 		</Weapon>
 	</PowerType>
 </Module>

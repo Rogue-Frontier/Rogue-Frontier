@@ -13,8 +13,8 @@ namespace BrainWaves {
         void UpdateStep();
         public bool IsVisible(HashSet<(int, int)> visible, XY p) {
             var displacement = (Position - p);
-            var direction = displacement.Normal;
-            var dist = displacement.Magnitude;
+            var direction = displacement.normal;
+            var dist = displacement.magnitude;
             bool result = true;
 
 
@@ -26,14 +26,14 @@ namespace BrainWaves {
                 //Looking down a hallway at an angle
                 for (int i = 1; i < dist / 2 + 1; i++) {
                     var behind = p + direction * i;
-                    behind = behind.Round;
+                    behind = behind.round;
                     result = result && visible.Contains(behind) && World.voxels.Get(behind) is Floor;
                 }
             } else if (v is Wall) {
                 //Looking down a hallway at an angle
                 for (int i = 1; i < dist / 2 + 1; i++) {
                     var behind = p + direction * i;
-                    behind = behind.Round;
+                    behind = behind.round;
 
                     var left = behind + direction.Rotate(90 * Math.PI / 180);
                     var right = behind + direction.Rotate(90 * Math.PI / 180);
@@ -49,7 +49,7 @@ namespace BrainWaves {
         public void RemoveDark(HashSet<(int, int)> visible) {
             visible.RemoveWhere(p => {
                 var b = World.brightness[p];
-                return (b < 128 && (Position - p).Magnitude > Math.Max(2, b / 16));
+                return (b < 128 && (Position - p).magnitude > Math.Max(2, b / 16));
             });
         }
 

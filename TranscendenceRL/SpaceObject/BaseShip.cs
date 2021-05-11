@@ -38,7 +38,7 @@ namespace TranscendenceRL {
         HashSet<Item> cargo { get; }
         DeviceSystem devices { get; }
         ShipClass shipClass { get; }
-        double rotationDegrees { get; }
+        double rotationDeg { get; }
         public double stoppingRotation { get; }
         Docking dock { get; set; }
     }
@@ -69,18 +69,18 @@ namespace TranscendenceRL {
         public delegate void Destroyed(BaseShip ship, SpaceObject destroyer, Wreck wreck);
         public FuncSet<IContainer<Destroyed>> onDestroyed = new FuncSet<IContainer<Destroyed>>();
 
-        public double rotationDegrees { get; set; }
+        public double rotationDeg { get; set; }
         [JsonIgnore]
         public double stoppingRotation { get {
                 var stoppingTime = Program.TICKS_PER_SECOND * Math.Abs(rotatingVel) / (shipClass.rotationDecel);
-                return rotationDegrees + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((shipClass.rotationDecel / Program.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
+                return rotationDeg + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((shipClass.rotationDecel / Program.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
         }}
         [JsonIgnore]
         public double stoppingRotationWithCounterTurn {
             get {
                 var stoppingRate = shipClass.rotationDecel + shipClass.rotationAccel;
                 var stoppingTime = Math.Abs(Program.TICKS_PER_SECOND * rotatingVel / stoppingRate);
-                return rotationDegrees + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((stoppingRate / Program.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
+                return rotationDeg + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((stoppingRate / Program.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
             }
         }
 
@@ -185,11 +185,11 @@ namespace TranscendenceRL {
             }
             UpdateThrust();
             UpdateTurn();
-            rotationDegrees += rotatingVel;
+            rotationDeg += rotatingVel;
             UpdateBrake();
             void UpdateThrust() {
                 if (thrusting) {
-                    var rotationRads = rotationDegrees * Math.PI / 180;
+                    var rotationRads = rotationDeg * Math.PI / 180;
 
                     var exhaust = new EffectParticle(position + XY.Polar(rotationRads, -1),
                         velocity + XY.Polar(rotationRads, -shipClass.thrust),
@@ -198,8 +198,8 @@ namespace TranscendenceRL {
                     world.AddEffect(exhaust);
 
                     velocity += XY.Polar(rotationRads, shipClass.thrust);
-                    if (velocity.Magnitude > shipClass.maxSpeed) {
-                        velocity = velocity.Normal * shipClass.maxSpeed;
+                    if (velocity.magnitude > shipClass.maxSpeed) {
+                        velocity = velocity.normal * shipClass.maxSpeed;
                     }
 
                     thrusting = false;
@@ -239,8 +239,8 @@ namespace TranscendenceRL {
             void Decel() => rotatingVel -= Math.Min(Math.Abs(rotatingVel), shipClass.rotationDecel / Program.TICKS_PER_SECOND) * Math.Sign(rotatingVel); ;
             void UpdateBrake() {
                 if (decelerating) {
-                    if (velocity.Magnitude > 0.05) {
-                        velocity -= velocity.Normal * Math.Min(velocity.Magnitude, shipClass.thrust / 2);
+                    if (velocity.magnitude > 0.05) {
+                        velocity -= velocity.normal * Math.Min(velocity.magnitude, shipClass.thrust / 2);
                     } else {
                         velocity = new XY();
                     }
@@ -270,7 +270,7 @@ namespace TranscendenceRL {
         [JsonIgnore] 
         public XY velocity { get => ship.velocity; set => ship.velocity = value; }
         [JsonIgnore] 
-        public double rotationDegrees => ship.rotationDegrees;
+        public double rotationDeg => ship.rotationDeg;
         [JsonIgnore]
         public HashSet<Item> cargo => ship.cargo;
         [JsonIgnore] 
@@ -354,7 +354,9 @@ namespace TranscendenceRL {
         [JsonIgnore] 
         public XY velocity { get => ship.velocity; set => ship.velocity = value; }
         [JsonIgnore] 
-        public double rotationDegrees => ship.rotationDegrees;
+        public double rotationDeg => ship.rotationDeg;
+        [JsonIgnore]
+        public double rotationRad => ship.rotationDeg * Math.PI / 180;
         [JsonIgnore] 
         public double stoppingRotation => ship.stoppingRotation;
         [JsonIgnore] 
@@ -417,8 +419,8 @@ namespace TranscendenceRL {
         public void SetRotatingToFace(double targetRads) {
             var facingRads = ship.stoppingRotationWithCounterTurn * Math.PI / 180;
 
-            var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;
-            var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(targetRads)).Magnitude;
+            var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(targetRads)).magnitude;
+            var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(targetRads)).magnitude;
             if (ccw < cw) {
                 SetRotating(Rotating.CCW);
             } else if (cw < ccw) {
@@ -501,7 +503,7 @@ namespace TranscendenceRL {
                     goto CheckTarget;
                 } else if (!target.active) {
                     goto CheckTarget;
-                } else if((target.position - position).Magnitude > 100) {
+                } else if((target.position - position).magnitude > 100) {
                     goto CheckTarget;
                 } else {
                     //Found target
@@ -522,7 +524,7 @@ namespace TranscendenceRL {
                     world.entities.all
                     .OfType<SpaceObject>()
                     .Where(e => this.IsEnemy(e))
-                    .OrderBy(e => (e.position - position).Magnitude)
+                    .OrderBy(e => (e.position - position).magnitude)
                     .Select(s => s is Segment seg ? seg.parent : s)
                     .Distinct()
                     .ToList();
@@ -547,7 +549,7 @@ namespace TranscendenceRL {
                     goto CheckTarget;
                 } else if (!target.active) {
                     goto CheckTarget;
-                } else if ((target.position - position).Magnitude > 100) {
+                } else if ((target.position - position).magnitude > 100) {
                     goto CheckTarget;
                 } else {
                     //Found target
@@ -567,7 +569,7 @@ namespace TranscendenceRL {
                 TargetList = world.entities.all
                     .OfType<SpaceObject>()
                     .Where(e => this.IsFriendly(e))
-                    .OrderBy(e => (e.position - position).Magnitude)
+                    .OrderBy(e => (e.position - position).magnitude)
                     .Select(s => s is Segment seg ? seg.parent : s)
                     .Distinct()
                     .ToList();
@@ -683,7 +685,7 @@ namespace TranscendenceRL {
             }
 
             ticks++;
-            visible = new HashSet<Entity>(world.entities.GetAll(p => (position - p).MaxCoord < 50));
+            visible = new HashSet<Entity>(world.entities.GetAll(p => (position - p).maxCoord < 50));
             if (ticks%30 == 0) {
                 foreach (var s in visible.OfType<Station>().Where(s => !known.Contains(s))) {
                     messages.Add(new Transmission(s, $"Discovered: {s.type.name}"));

@@ -31,7 +31,7 @@ namespace TranscendenceRL.Types {
         public PowerWeapon(FragmentDesc desc) {
             this.desc = desc;
         }
-        public void Invoke(PlayerShip invoker) => SWeapon.CreateShot(desc, invoker, invoker.rotationDegrees * Math.PI / 180);
+        public void Invoke(PlayerShip invoker) => SWeapon.CreateShot(desc, invoker, invoker.rotationDeg * Math.PI / 180);
     }
     public interface IPower {
         public int cooldownPeriod { get; }

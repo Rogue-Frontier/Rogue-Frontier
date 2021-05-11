@@ -30,7 +30,7 @@ namespace TranscendenceRL {
             //Idea: Highlight a segment of the aimline based on the firetime left on the weapon
             XY point = parent.position;
             int step = 2;
-            XY inc = XY.Polar(parent.rotationDegrees * Math.PI / 180, 1)  * step;
+            XY inc = XY.Polar(parent.rotationDeg * Math.PI / 180, 1)  * step;
             int length = 20;
             for(int i = 0; i < length; i += step) {
                 point += inc;

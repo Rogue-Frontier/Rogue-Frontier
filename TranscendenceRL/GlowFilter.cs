@@ -48,7 +48,7 @@ namespace TranscendenceRL {
                     var factorF = foreground.GetLuma() / 128;
                     var factorB = background.GetLuma() / 128;
                     foreach (var p in points) {
-                        var delta = p.tint.WithValues(alpha: Math.Max(2, 36 - (int)(p.pos - new XY(x, y)).Manhattan / 4));
+                        var delta = p.tint.WithValues(alpha: Math.Max(2, 36 - (int)(p.pos - new XY(x, y)).manhattan / 4));
 
                         foreground = foreground.Blend(delta.Multiply(a: factorF));
                         background = background.Blend(delta.Multiply(a: factorB));

@@ -29,8 +29,8 @@ namespace TranscendenceRL {
             world.AddEffect(new EffectParticle(worldPos, new ColoredGlyph(color, Color.Transparent, '+'), 1));
 
             //Draw a trail leading back to the player
-            var trailNorm = offset.Normal;
-            var trailLength = Math.Min(3, offset.Magnitude / 4) + 1;
+            var trailNorm = offset.normal;
+            var trailLength = Math.Min(3, offset.magnitude / 4) + 1;
             for (int i = 1; i < trailLength; i++) {
                 world.AddEffect(new EffectParticle(worldPos - trailNorm * i, new ColoredGlyph(color, Color.Transparent, '.'), 1));
             }
@@ -67,8 +67,9 @@ namespace TranscendenceRL {
         public bool active => Lifetime > 0;
 
         private ColoredGlyph _Tile;
-        public ColoredGlyph tile => new ColoredGlyph(_Tile.Foreground.WithValues(alpha: (int) (255 * Math.Min(1, 1f * Lifetime / Program.TICKS_PER_SECOND))),
-            _Tile.Background.SetAlpha((byte)(192 + (63 * Math.Min(1, 1f * Lifetime / Program.TICKS_PER_SECOND)))).Premultiply(),
+        public ColoredGlyph tile => new ColoredGlyph(
+            _Tile.Foreground.WithValues(alpha: (int) (255 * Math.Min(1, 1f * Lifetime / 15))),
+            _Tile.Background.SetAlpha((byte)(192 + (63 * Math.Min(1, 1f * Lifetime / 15)))).Premultiply(),
             _Tile.GlyphCharacter);
 
         public void Update() {

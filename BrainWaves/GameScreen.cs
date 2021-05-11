@@ -119,7 +119,7 @@ namespace BrainWaves {
 					void Print(int c) => this.SetCellAppearance(xScreen, yScreen, Glyph(c));
 
 					if (Player.visible.Contains(location)) {
-						var entities = World.entities[location.RoundAway];
+						var entities = World.entities[location.roundAway];
 
 						ColoredGlyph cg;
 						if (entities.Any()) {
@@ -139,7 +139,7 @@ namespace BrainWaves {
 						if(v == null) {
 							back = Color.White;
 							Print(0);
-						} else if (World.entities[location.RoundAway].OfType<Guard>().Any(g => (g.tick % 60) < 10)) {
+						} else if (World.entities[location.roundAway].OfType<Guard>().Any(g => (g.tick % 60) < 10)) {
 							SetCell(new ColoredGlyph(Color.Red, back, 3));
 						} else if (Player.seen.Contains(location)) {
 							Print(v.Symbol);

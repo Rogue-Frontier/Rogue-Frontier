@@ -84,8 +84,8 @@ namespace TranscendenceRL {
                 maneuver?.Update(this);
 
                 var dest = position + velocity / Program.TICKS_PER_SECOND;
-                var inc = velocity.Normal * 0.5;
-                var steps = velocity.Magnitude * 2 / Program.TICKS_PER_SECOND;
+                var inc = velocity.normal * 0.5;
+                var steps = velocity.magnitude * 2 / Program.TICKS_PER_SECOND;
                 for (int i = 0; i < steps; i++) {
                     position += inc;
 
@@ -108,7 +108,7 @@ namespace TranscendenceRL {
                                 }
 
                                 Fragment();
-                                var angle = (hit.position - position).Angle;
+                                var angle = (hit.position - position).angleRad;
                                 world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
                                 return;
                             case ProjectileBarrier barrier:
@@ -147,7 +147,7 @@ namespace TranscendenceRL {
                 && Aiming.CalcFireAngle(this, maneuver.target, fragment.missileSpeed, out var result)) {
                 centerAngle = result;
             } else {
-                centerAngle = velocity.Angle;
+                centerAngle = velocity.angleRad;
             }
             for (int i = 0; i < fragment.count; i++) {
                 double angle = centerAngle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
@@ -174,8 +174,8 @@ namespace TranscendenceRL {
             var offset = target.position - p.position;
             var velLeft = vel.Rotate(maneuver);
             var velRight = vel.Rotate(-maneuver);
-            var distLeft = (offset - velLeft).Magnitude;
-            var distRight = (offset - velRight).Magnitude;
+            var distLeft = (offset - velLeft).magnitude;
+            var distRight = (offset - velRight).magnitude;
 
             if(maneuverDistance == 0) {
                 if (distLeft < distRight) {
@@ -185,7 +185,7 @@ namespace TranscendenceRL {
                 }
             } else {
                 (var closer, var farther) = distLeft < distRight ? (velLeft, velRight) : (velRight, velLeft);
-                if (offset.Magnitude > maneuverDistance) {
+                if (offset.magnitude > maneuverDistance) {
                     p.velocity = closer;
                 } else {
                     p.velocity = farther;

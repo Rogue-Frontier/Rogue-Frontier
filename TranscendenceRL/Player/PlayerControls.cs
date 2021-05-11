@@ -114,10 +114,10 @@ namespace TranscendenceRL {
 					playerShip.dock = null;
 				} else {
 					Dockable dest = null;
-					if(playerShip.GetTarget(out var t) && (playerShip.position - t.position).Magnitude < 8 && t is Dockable d) {
+					if(playerShip.GetTarget(out var t) && (playerShip.position - t.position).magnitude < 8 && t is Dockable d) {
 						dest = d;
                     }
-					dest = dest ?? playerShip.world.entities.GetAll(p => (playerShip.position - p).Magnitude < 8).OfType<Dockable>().OrderBy(p => (p.position - playerShip.position).Magnitude).FirstOrDefault();
+					dest = dest ?? playerShip.world.entities.GetAll(p => (playerShip.position - p).magnitude < 8).OfType<Dockable>().OrderBy(p => (p.position - playerShip.position).magnitude).FirstOrDefault();
 					if (dest != null) {
 						playerShip.AddMessage(new InfoMessage("Docking sequence engaged"));
 						playerShip.dock = new Docking(dest);
@@ -129,7 +129,7 @@ namespace TranscendenceRL {
 				pauseMenu.IsVisible = true;
 			}
 			if (info.IsKeyPressed(controls[ShipMenu])) {
-				sceneContainer?.Children.Add(new SceneScan(new ShipScreen(playerMain, playerShip)) { IsFocused = true });
+				sceneContainer?.Children.Add(new ShipScreen(playerMain, playerShip) { IsFocused = true });
 			}
 			if (info.IsKeyPressed(controls[Powers])) {
 				if(powerMenu != null)

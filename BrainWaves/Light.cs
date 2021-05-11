@@ -34,21 +34,21 @@ namespace BrainWaves {
                     foreach (var offset in new XY[] { new XY(-1, 0), new XY(1, 0), new XY(0, -1), new XY(0, 1) }) {
                         var next = p + offset;
                         if (known.Add(next)) {
-                            q.Enqueue(next, (next - Position).Magnitude);
+                            q.Enqueue(next, (next - Position).magnitude);
                         }
                     }
                 }
             }
             bool IsVisible(XY p) {
-                var prev = p + (Position - p).Normal;
-                prev = prev.Round;
+                var prev = p + (Position - p).normal;
+                prev = prev.round;
                 return visible.Contains(prev) && (World.voxels[prev] is Floor);
             }
 
             foreach(var p in visible) {
                 ref byte b = ref World.brightness[p];
                 var prev = b;
-                var d = (Position - p).Magnitude2 / 3;
+                var d = (Position - p).magnitude2 / 3;
                 if (d < 1) {
                     b = 255;
                 } else {

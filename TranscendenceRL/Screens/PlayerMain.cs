@@ -90,7 +90,7 @@ namespace TranscendenceRL {
 			vignette = new Vignette(playerShip, Width, Height);
 			sceneContainer = new Console(Width, Height);
 			sceneContainer.Focused += (e, o) => this.IsFocused = true;
-			uiMain = new Readout(camera, playerShip, tiles, Width, Height);
+			uiMain = new Readout(camera, playerShip, Width, Height);
 			uiEdge = new Edgemap(camera, playerShip, Width, Height);
 			uiMinimap = new Minimap(this, playerShip, 16);
 			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
@@ -136,7 +136,7 @@ namespace TranscendenceRL {
 			ColoredGlyph GetTile(XY xy) {
 				var back = World.backdrop.GetTile(xy, camera.position);
 				//Round down to ensure we don't get duplicated tiles along the origin
-				if (tiles.TryGetValue(xy.RoundDown, out ColoredGlyph g)) {
+				if (tiles.TryGetValue(xy.roundDown, out ColoredGlyph g)) {
 					g = g.Clone();          //Don't modify the source
 					g.Background = back.Background.Premultiply().Blend(g.Background);
 					return g;
@@ -218,6 +218,7 @@ namespace TranscendenceRL {
 
 				vignette.Update(delta);
 
+				uiMain.viewScale = uiMegamap.viewScale;
 				uiMain.Update(delta);
 
 				uiEdge.viewScale = uiMegamap.viewScale;
@@ -280,7 +281,7 @@ namespace TranscendenceRL {
 				for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
 					XY location = camera.position + new XY(x, y).Rotate(camera.rotation);
 
-					if (tiles.TryGetValue(location.RoundDown, out var tile)) {
+					if (tiles.TryGetValue(location.roundDown, out var tile)) {
 						var xScreen = x + HalfViewWidth;
 						var yScreen = HalfViewHeight - y;
 						this.SetCellAppearance(xScreen, yScreen, tile);
@@ -337,14 +338,14 @@ namespace TranscendenceRL {
 
 				mousePos = state.SurfaceCellPosition;
 				var centerOffset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
-
-				var worldPos = centerOffset.Rotate(camera.rotation) + camera.position;
+				centerOffset *= uiMegamap.viewScale;
+				var worldPos = (centerOffset.Rotate(camera.rotation) + camera.position);
 				SpaceObject t;
 				if (state.Mouse.MiddleClicked) {
 					var targetList = new List<SpaceObject>(
 						World.entities.all
 						.OfType<SpaceObject>()
-						.OrderBy(e => (e.position - worldPos).Magnitude)
+						.OrderBy(e => (e.position - worldPos).magnitude)
 						.Select(s => s is Segment seg ? seg.parent : s)
 						.Distinct()
 						);
@@ -387,9 +388,19 @@ namespace TranscendenceRL {
 
 					if (playerOffset.xi != 0 && playerOffset.yi != 0) {
 
-						EffectParticle.DrawArrow(World, worldPos, playerOffset, Color.White);
+						var radius = playerOffset.magnitude;
+						var facing = XY.Polar(playerShip.rotationRad, radius);
+						var aim = playerShip.position + facing;
 
-						var mouseRads = playerOffset.Angle;
+						var off = (worldPos - aim).magnitude;
+						var tolerance = Math.Sqrt(radius) / 3;
+						Color c = off < tolerance ? Color.White : Color.White.SetAlpha(255 * 3/4);
+
+						EffectParticle.DrawArrow(World, worldPos, playerOffset, c);
+
+						//EffectParticle.DrawArrow(World, aim, facing, Color.Yellow);
+
+						var mouseRads = playerOffset.angleRad;
 						playerShip.SetRotatingToFace(mouseRads);
 					}
 				}
@@ -514,16 +525,34 @@ namespace TranscendenceRL {
 					this.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, 128)));
 				}
 
-				var scaledMap = player.world.entities.space.DownsampleSet(viewScale);
-				foreach ((var p, HashSet<Entity> set) in scaledMap.space) {
+				var scaledEntities = player.world.entities.space.DownsampleSet(viewScale);
+				var scaledEffects = player.world.effects.space.DownsampleSet(viewScale);
+				HashSet<(int, int)> rendered = new HashSet<(int, int)>();
+				foreach ((var p, HashSet<Entity> set) in scaledEntities.space) {
 					var visible = set.Where(t => !(t is Segment)).Where(t => t.tile != null);
 					if (visible.Any()) {
 						var e = visible.ElementAt((int)time % visible.Count());
 						var offset = (e.position - player.position) / viewScale;
 						var (x, y) = screenCenter + offset.Rotate(-camera.rotation);
-
 						y = Height - y;
 						if(x > -1 && x < Width && y > -1 && y < Height) {
+							var t = new ColoredGlyph(e.tile.Foreground, this.GetBackground(x, y), e.tile.Glyph);
+							this.SetCellAppearance(x, y, t);
+							rendered.Add((x, y));
+						}
+					}
+				}
+				foreach ((var p, HashSet<Effect> set) in scaledEffects.space) {
+					var visible = set.Where(t => !(t is Segment)).Where(t => t.tile != null);
+					if (visible.Any()) {
+						var e = visible.ElementAt((int)time % visible.Count());
+						var offset = (e.position - player.position) / viewScale;
+						var (x, y) = screenCenter + offset.Rotate(-camera.rotation);
+						y = Height - y;
+						if (x > -1 && x < Width && y > -1 && y < Height) {
+							if (rendered.Contains((x, y))) {
+								continue;
+							}
 
 							var t = new ColoredGlyph(e.tile.Foreground, this.GetBackground(x, y), e.tile.Glyph);
 							this.SetCellAppearance(x, y, t);
@@ -658,18 +687,13 @@ namespace TranscendenceRL {
 		*/
 		Camera camera;
 		PlayerShip player;
-		Dictionary<(int, int), ColoredGlyph> tiles;
-		public int borderBound;
+		public double viewScale;
 
 		public int arrowDistance;
 
-		public double time;
-
-		public Readout(Camera camera, PlayerShip player, Dictionary<(int, int), ColoredGlyph> tiles, int width, int height) : base(width, height) {
+		public Readout(Camera camera, PlayerShip player, int width, int height) : base(width, height) {
 			this.camera = camera;
 			this.player = player;
-			this.tiles = tiles;
-			borderBound = Math.Max(Width, Height)/2;
 
 			//arrowDistance = Math.Min(Width, Height)/2 - 6;
 			arrowDistance = 32;
@@ -691,30 +715,28 @@ namespace TranscendenceRL {
         }
         public override void Update(TimeSpan delta) {
             base.Update(delta);
-			time += delta.TotalSeconds;
         }
         public override void Render(TimeSpan drawTime) {
 			this.Clear();
 			XY screenSize = new XY(Width - 2, Height - 2);
 			XY screenCenter = screenSize / 2;
 			var messageY = Height * 3 / 5;
-
 			int targetX = 48, targetY = 1;
 			if (player.GetTarget(out SpaceObject playerTarget)) {
-				this.Print(targetX, targetY++, "[Target]");
+				this.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
 				this.Print(targetX, targetY++, playerTarget.name);
 				PrintTarget(targetX, targetY, playerTarget);
 
 
-				var offset = playerTarget.position - player.position;
+				var offset = (playerTarget.position - player.position) / viewScale;
 				if (Math.Abs(offset.x) > Width / 2 || Math.Abs(offset.y) > Height / 2) {
 
-					var offsetNormal = offset.Normal.FlipY;
+					var offsetNormal = offset.normal.flipY;
 					var p = screenCenter + offsetNormal * arrowDistance;
 
 					this.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '+'));
 
-					var trailLength = Math.Min(3, offset.Magnitude / 4) + 1;
+					var trailLength = Math.Min(3, offset.magnitude / 4) + 1;
 					for (int i = 1; i < trailLength; i++) {
 						p -= offsetNormal;
 						this.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '.'));
@@ -726,7 +748,7 @@ namespace TranscendenceRL {
 			}
 			var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
 			if(autoTarget != null && autoTarget != playerTarget) {
-				this.Print(targetX, targetY++, "[Auto]");
+				this.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
 				this.Print(targetX, targetY++, autoTarget.name);
 				PrintTarget(targetX, targetY, autoTarget);
 			}
@@ -780,9 +802,9 @@ namespace TranscendenceRL {
 					//Draw a line from message to source
 
 					var screenCenterOffset = new XY(Width * 3 / 4, Height - messageY) - screenCenter;
-					var messagePos = (player.position + screenCenterOffset).RoundDown;
+					var messagePos = (player.position + screenCenterOffset).roundDown;
 
-					var sourcePos = t.source.position.RoundDown;
+					var sourcePos = t.source.position.roundDown;
 					sourcePos = player.position + (sourcePos - player.position).Rotate(-camera.rotation);
 					if (messagePos.yi == sourcePos.yi) {
 						continue;
@@ -824,7 +846,7 @@ namespace TranscendenceRL {
 					bool truncateX = Math.Abs(offset.x) > Width / 2 - 3;
 					bool truncateY = Math.Abs(offset.y) > Height / 2 - 3;
 					if (truncateX || truncateY) {
-						var sourcePosEdge = Helper.GetBoundaryPoint(screenSize, offset.Angle) - screenSize / 2 + player.position;
+						var sourcePosEdge = Helper.GetBoundaryPoint(screenSize, offset.angleRad) - screenSize / 2 + player.position;
 						offset = sourcePosEdge - player.position;
 						if (truncateX) { offset.x -= Math.Sign(offset.x) * (i + 2); }
 						if (truncateY) { offset.y -= Math.Sign(offset.y) * (i + 2); }
@@ -886,23 +908,24 @@ namespace TranscendenceRL {
 			{
 				int x = 3;
 				int y = 3;
+				var b = Color.Black;
 				if (player.energy.totalMaxOutput > 0) {
-					this.Print(x, y, $"[{new string(' ', 16)}]", Color.White, Color.Transparent);
-					this.Print(x + 1, y, $"{new string('=', 16)}", Color.Gray, Color.Transparent);
+					this.Print(x, y, $"[{new string(' ', 16)}]", Color.White, b);
+					this.Print(x + 1, y, $"{new string('=', 16)}", Color.Gray, b);
 					if (player.energy.totalUsedOutput > 0) {
 						this.Print(x + 1, y,
 							new ColoredString(new string('=', 16 * player.energy.totalUsedOutput / player.energy.totalMaxOutput),
-								Color.Yellow, Color.Transparent));
+								Color.Yellow, b));
 					}
 					this.Print(x + 1 + 16 + 2, y,
-							new ColoredString("Total Output", Color.White, Color.Transparent));
+							new ColoredString("Total Output", Color.White, b));
 
 					y++;
 					foreach (var reactor in player.ship.devices.Reactors) {
 						this.Print(x, y,
-							new ColoredString("[", Color.White, Color.Transparent)
-							+ new ColoredString(new string(' ', 16), Color.Transparent, Color.Transparent)
-							+ new ColoredString("]", Color.White, Color.Transparent));
+							new ColoredString("[", Color.White, b)
+							+ new ColoredString(new string(' ', 16), Color.Transparent, b)
+							+ new ColoredString("]", Color.White, b));
 
 						if (reactor.energy > 0) {
 							Color bar = Color.White;
@@ -917,14 +940,14 @@ namespace TranscendenceRL {
 
 							int length = (int)(15 * reactor.energy / reactor.desc.capacity);
 							this.Print(x + 1, y,
-								new ColoredString($"{new string('=', length)}{end}", bar, Color.Transparent)
-								+ new ColoredString(new string('=', 15 - length), Color.Gray, Color.Transparent)
+								new ColoredString($"{new string('=', length)}{end}", bar, b)
+								+ new ColoredString(new string('=', 15 - length), Color.Gray, b)
 								);
 						} else {
-							this.Print(x + 1, y, $"[{new string('=', 16)}]", Color.Gray, Color.Transparent);
+							this.Print(x + 1, y, $"[{new string('=', 16)}]", Color.Gray, b);
 						}
 						this.Print(x + 1 + 16 + 2, y,
-									new ColoredString(reactor.source.type.name, Color.White, Color.Transparent));
+									new ColoredString(reactor.source.type.name, Color.White, b));
 						y++;
 					}
 				}
@@ -942,9 +965,9 @@ namespace TranscendenceRL {
 							foreground = Color.White;
 						}
 
-						this.Print(x, y, "[", Color.White, Color.Transparent);
+						this.Print(x, y, "[", Color.White, b);
 						this.Print(x + 1, y, w.GetBar());
-						this.Print(x + 1 + 16, y, tag, foreground, Color.Transparent);
+						this.Print(x + 1 + 16, y, tag, foreground, b);
 						y++;
 						i++;
 					}
@@ -993,7 +1016,7 @@ namespace TranscendenceRL {
 
 			var range = 192;
 
-			var nearby = player.world.entities.GetAll(((int, int) p) => (player.position - p).MaxCoord < range);
+			var nearby = player.world.entities.GetAll(((int, int) p) => (player.position - p).maxCoord < range);
 			foreach (var entity in nearby) {
 				var offset = (entity.position - player.position).Rotate(-camera.rotation);
 				var (x, y) = offset / viewScale;
@@ -1006,7 +1029,7 @@ namespace TranscendenceRL {
 					}
 
 
-					(x, y) = Helper.GetBoundaryPoint(screenSize, offset.Angle);
+					(x, y) = Helper.GetBoundaryPoint(screenSize, offset.angleRad);
 
 					Color c = Color.Transparent;
 					if (entity is SpaceObject so) {
