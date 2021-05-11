@@ -608,6 +608,17 @@ namespace Common {
 
 		}
 		*/
+		public static TEnum TryAttributeEnum<TEnum>(this XElement e, string attribute, TEnum fallback = default) where TEnum : struct {
+			return e.Attribute(attribute)?.ParseEnum<TEnum>(fallback) ?? fallback;
+        }
+		public static TEnum ExpectAttributeEnum<TEnum>(this XElement e, string attribute) where TEnum : struct {
+			string value = e.ExpectAttribute(attribute);
+			if (Enum.TryParse<TEnum>(value, out TEnum result)) {
+				return result;
+			} else {
+				throw new Exception($"Enum value of {typeof(TEnum).Name} expected: {attribute}=\"{value}\"");
+			}
+		}
 		//We expect either no value or a valid value; an invalid value gets an exception
 		public static TEnum ParseEnum<TEnum>(this XAttribute a, TEnum fallback = default) where TEnum : struct {
 			if (a == null) {

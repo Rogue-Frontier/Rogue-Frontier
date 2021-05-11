@@ -21,4 +21,19 @@
 				background=	"CC88DDFF"/>
 		</Weapon>
 	</PowerType>
+	<PowerType codename="power_echo"
+		name=			"Echo"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		>
+		<ProjectileBarrier barrierType="echo" lifetime="900" radius="4"/>
+	</PowerType>
+
+	<PowerType codename="power_accuse"
+		name=			"Accuse"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		>
+		<ProjectileBarrier barrierType="accuse" lifetime="900" radius="4"/>
+	</PowerType>
 </Module>

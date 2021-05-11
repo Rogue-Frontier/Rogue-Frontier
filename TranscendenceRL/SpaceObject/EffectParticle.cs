@@ -68,8 +68,8 @@ namespace TranscendenceRL {
 
         private ColoredGlyph _Tile;
         public ColoredGlyph tile => new ColoredGlyph(
-            _Tile.Foreground.WithValues(alpha: (int) (255 * Math.Min(1, 1f * Lifetime / 15))),
-            _Tile.Background.SetAlpha((byte)(192 + (63 * Math.Min(1, 1f * Lifetime / 15)))).Premultiply(),
+            _Tile.Foreground.WithValues(alpha: (int) (_Tile.Foreground.A * Math.Min(1, 1f * Lifetime / 15))),
+            _Tile.Background.SetAlpha((byte)(_Tile.Background.A * Math.Min(1, 1f * Lifetime / 15))).Premultiply(),
             _Tile.GlyphCharacter);
 
         public void Update() {

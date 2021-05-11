@@ -438,7 +438,8 @@ namespace TranscendenceRL {
             var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").position;
             var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
             var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerSovereign, playerStart));
-            playerShip.powers.Add(new Power(w.types.Lookup<PowerType>("power_silence")));
+            //playerShip.powers.Add(new Power(w.types.Lookup<PowerType>("power_silence")));
+            playerShip.powers.AddRange(w.types.powerType.Values.Select(pt => new Power(pt)));
             playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
             w.AddEffect(new Heading(playerShip));

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using static TranscendenceRL.Weapon;
+using TranscendenceRL.Barrier;
 
 namespace TranscendenceRL {
     public interface ITrail {
@@ -89,8 +90,8 @@ namespace TranscendenceRL {
                 for (int i = 0; i < steps; i++) {
                     position += inc;
 
-                    
-                    
+
+                    bool stop = false;
                     foreach(var other in world.entities[position].Except(exclude)) {
                         switch(other) {
                             case Segment seg when exclude.Contains(seg.parent):
@@ -113,12 +114,17 @@ namespace TranscendenceRL {
                                 return;
                             case ProjectileBarrier barrier:
                                 barrier.Interact(this);
+                                stop = true;
+                                //Keep interacting with all the barriers
                                 break;
                             case Projectile p when hitProjectile:
                                 p.lifetime = 0;
                                 lifetime = 0;
                                 break;
                         }
+                    }
+                    if(stop) {
+                        return;
                     }
                     CollisionDone:
                     world.AddEffect(trail.GetTrail(position));

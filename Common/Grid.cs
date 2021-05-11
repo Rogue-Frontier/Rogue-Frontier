@@ -39,6 +39,7 @@ namespace Common {
 		}
 		public static XY operator +(XY p, XY other) => new XY(p.x + other.x, p.y + other.y);
 		public static XY operator +(XY p, (int x, int y) other) => new XY(p.x + other.x, p.y + other.y);
+		public static XY operator -(XY p) => new XY(-p.x, -p.y);
 		public static XY operator -(XY p, XY other) => new XY(p.x - other.x, p.y - other.y);
 		public static XY operator -(XY p, (int x, int y) other) => new XY(p.x - other.x, p.y - other.y);
 		public static XY operator *(XY p, XY other) => new XY(p.x * other.x, p.y * other.y);
