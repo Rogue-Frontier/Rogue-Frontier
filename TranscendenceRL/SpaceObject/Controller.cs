@@ -365,7 +365,7 @@ namespace TranscendenceRL {
             aim.Update(owner);
 
             //Fire if we are close enough
-            if (weapon.desc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
+            if (weapon.desc.shot.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
                 weapon.SetFiring(true, target);
             }
         }

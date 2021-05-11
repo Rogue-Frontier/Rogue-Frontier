@@ -174,14 +174,12 @@ namespace TranscendenceRL {
         public int powerUse;
         public int fireCooldown;
         public int repeat;
-        public bool omnidirectional;
         public FragmentDesc shot;
 
         public int initialCharges;
         public ItemType ammoType;
 
-        public double maneuver;
-        public bool hitProjectile;
+        public bool targetProjectile;
         public bool autoFire;
 
         public int missileSpeed => shot.missileSpeed;
@@ -192,24 +190,17 @@ namespace TranscendenceRL {
         public int minRange => shot.missileSpeed * shot.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
         public StaticTile effect;
         public CapacitorDesc capacitor;
-        public Maneuver GetManeuver(SpaceObject target) =>
-            maneuver > 0 &&
-            target != null ?
-            new Maneuver(target, maneuver) :
-            null;
         public Weapon GetWeapon(Item i) => new Weapon(i, this);
         public WeaponDesc() { }
         public WeaponDesc(TypeCollection types, XElement e) {
             powerUse = e.ExpectAttributeInt(nameof(powerUse));
             fireCooldown = e.ExpectAttributeInt(nameof(fireCooldown));
             repeat = e.TryAttributeInt(nameof(repeat), 0);
-            omnidirectional = e.TryAttributeBool(nameof(omnidirectional), false);
             shot = new FragmentDesc(e);
 
-            maneuver = e.TryAttributeDouble(nameof(maneuver), 0) * Math.PI / (180);
 
             if(e.TryAttributeBool("pointDefense", false)) {
-                hitProjectile = true;
+                targetProjectile = true;
                 autoFire = true;
             }
 
@@ -228,11 +219,16 @@ namespace TranscendenceRL {
     }
     public class FragmentDesc {
         public int count;
+        public bool omnidirectional;
+        public bool? requiresLockStatus;
         public double spreadAngle;
         public int missileSpeed;
         public int damageType;
         public int damageHP;
         public int lifetime;
+        public double maneuver;
+        public double maneuverRadius;
+        public int fragmentInterval;
         public DisruptorDesc disruptor;
         public HashSet<FragmentDesc> fragments;
         public StaticTile effect;
@@ -240,11 +236,20 @@ namespace TranscendenceRL {
         public FragmentDesc() {}
         public FragmentDesc(XElement e) {
             count = e.TryAttributeInt(nameof(count), 1);
-            spreadAngle = e.TryAttributeDouble(nameof(spreadAngle), count == 1 ? 0 : 3) * Math.PI / 180;
+            if(e.TryAttributeBool("spreadOmni")) {
+                spreadAngle = (2 * Math.PI) / count;
+            } else {
+                spreadAngle = e.TryAttributeDouble(nameof(spreadAngle), count == 1 ? 0 : 3) * Math.PI / 180;
+            }
+            omnidirectional = e.TryAttributeBool(nameof(omnidirectional));
+            requiresLockStatus = e.TryAttributeBoolOptional(nameof(requiresLockStatus));
             missileSpeed = e.ExpectAttributeInt(nameof(missileSpeed));
             damageType = e.ExpectAttributeInt(nameof(damageType));
             damageHP = e.ExpectAttributeInt(nameof(damageHP));
             lifetime = e.ExpectAttributeInt(nameof(lifetime));
+            maneuver = e.TryAttributeDouble(nameof(maneuver), 0) * Math.PI / (180);
+            maneuverRadius = e.TryAttributeDouble(nameof(maneuverRadius), 0);
+            fragmentInterval = e.TryAttributeInt(nameof(fragmentInterval), 0);
             fragments = new HashSet<FragmentDesc>();
 
             if (e.HasElement("Disruptor", out var xmlDisruptor)) {

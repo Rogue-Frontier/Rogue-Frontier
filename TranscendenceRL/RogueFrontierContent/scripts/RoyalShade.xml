@@ -1,0 +1,95 @@
+﻿<Module>
+	<ItemType	codename=	"item_sidewinder_missile"
+				name=		"Sidewinder missile"
+				level=		"2"
+				mass=		"200"
+				
+				desc=		"This missile contains a laser module that aims at its target."
+		>
+
+	</ItemType>
+	<ItemType	codename=	"item_sidewinder_missile_launcher"
+			name=		"Sidewinder missile launcher"
+			level=		"2"
+			mass=		"2000"
+
+			invoke=		"installWeapon"
+				
+			desc=		"."
+		>
+		<Weapon
+			maneuver=		"4"
+			maneuverRadius=	"12"
+			powerUse=		"10"
+			fireCooldown=	"90"
+			missileSpeed=	"40"
+			damageType=		"1"
+			damageHP=		"6"
+			lifetime=		"180"
+
+			char=			"s"
+			foreground=		"Orange"
+			
+			ammoType="item_sidewinder_missile"
+			>
+			<Fragment
+				count=				"1"
+				requiresLockStatus=	"true"
+				omnidirectional=	"true"
+				fragmentInterval=	"20"
+				missileSpeed=		"60"
+				lifetime=			"60"
+				damageType=			"1"
+				damageHP=			"6"
+				
+				char=				"."
+				foreground=			"Red"
+				/>
+			<Fragment
+				count=				"9"
+				requiresLockStatus=	"true"
+				omnidirectional=	"true"
+				spreadAngle=		"20"
+				missileSpeed=		"60"
+				lifetime=			"60"
+				damageType=			"1"
+				damageHP=			"6"
+				
+				char=				"."
+				foreground=			"Red"
+				/>
+		</Weapon>
+	</ItemType>
+
+	<ShipClass  codename="ship_royal_guard"
+                name="Royal Guard"
+                thrust="0.5"
+                maxSpeed="25"
+
+                rotationAccel="6"
+                rotationDecel="12"
+                rotationMaxSpeed="8"
+
+                char="A"
+                foreground="Magenta"
+    >
+	    <Devices>
+		    <Weapon codename="item_sidewinder_missile_launcher"/>
+			<Reactor codename="item_foundry_reactor"/>
+			<Reactor codename="item_foundry_battery"/>
+        </Devices>
+		<Items>
+			<Item count="25" codename="item_sidewinder_missile"/>
+		</Items>
+        <LayeredArmorSystem>
+			<Armor  codename="item_crystalsteel_plate"/>
+        </LayeredArmorSystem>
+        <PlayerSettings
+            startingClass="true"
+            description=""
+            >
+			<Map>
+			</Map>
+        </PlayerSettings>
+    </ShipClass>
+</Module>

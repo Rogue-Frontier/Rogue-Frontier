@@ -91,9 +91,9 @@ namespace TranscendenceRL {
             if(desc.capacitor != null) {
                 capacitor = new Capacitor(desc.capacitor);
             }
-            if (desc.omnidirectional) {
+            if (desc.shot.omnidirectional) {
                 aiming = new Omnidirectional();
-            } else if(desc.maneuver > 0) {
+            } else if(desc.shot.maneuver > 0) {
                 aiming = new Targeting();
             }
             if(desc.initialCharges > -1) {
@@ -103,12 +103,9 @@ namespace TranscendenceRL {
             }
         }
         public ColoredString GetBar() {
-            
-
             if(ammo?.AllowFire == false) {
                 return new ColoredString(new string(' ', 16), Color.Transparent, Color.Transparent);
             }
-
             ColoredString bar;
 
             int fireBar = (int)(16f * (desc.fireCooldown - fireTime) / desc.fireCooldown);
@@ -158,7 +155,7 @@ namespace TranscendenceRL {
                     firing = true;
                     beginRepeat = false;
                 } else if (desc.autoFire) {
-                    if (desc.hitProjectile) {
+                    if (desc.targetProjectile) {
                         var target = Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s));
                         if (target != null
                             && Aiming.CalcFireAngle(owner, target, this, out var d)) {
@@ -206,7 +203,7 @@ namespace TranscendenceRL {
                     firing = true;
                     beginRepeat = false;
                 } else if(desc.autoFire) {
-                    if(desc.hitProjectile) {
+                    if(desc.targetProjectile) {
                         var target = Aiming.AcquireMissile(owner, this, s => SShip.IsEnemy(owner, s));
                         if(target != null
                             && Aiming.CalcFireAngle(owner, target, this, out var d)) {
@@ -258,10 +255,7 @@ namespace TranscendenceRL {
             capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);
             capacitor?.Discharge();
 
-            Maneuver maneuver = null;
-            if (desc.maneuver > 0 && aiming != null && aiming.target != null) {
-                maneuver = new Maneuver(aiming.target, desc.maneuver);
-            }
+            var maneuver = new Maneuver(aiming?.target, desc.shot.maneuver, desc.shot.maneuverRadius);
 
             var shotDesc = desc.shot;
             double angleInterval = shotDesc.spreadAngle / shotDesc.count;
@@ -271,7 +265,7 @@ namespace TranscendenceRL {
                     shotDesc,
                     source.position + XY.Polar(angle),
                     source.velocity + XY.Polar(angle, missileSpeed),
-                    maneuver) { hitProjectile = desc.hitProjectile };
+                    maneuver) { hitProjectile = desc.targetProjectile };
                 source.world.AddEntity(p);
             }
         }
@@ -328,7 +322,7 @@ namespace TranscendenceRL {
             void ResetTarget() { }
             void UpdateTarget(SpaceObject target = null) {}
 
-            static bool CalcFireAngle(SpaceObject owner, SpaceObject target, Weapon weapon, out double? result) {
+            static bool CalcFireAngle(MovingObject owner, MovingObject target, Weapon weapon, out double? result) {
                 if(((target.position - owner.position).Magnitude < weapon.currentRange)) {
                     result = Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, weapon.missileSpeed, out var _);
                     return true;
@@ -337,9 +331,23 @@ namespace TranscendenceRL {
                     return false;
                 }
             }
-            static bool CalcFireAngle(SpaceObject owner, Projectile target, Weapon weapon, out double? result) {
+            static double CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed) {
+                return Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
+            }
+            static bool CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed, out double result) {
+                var velDiff = target.velocity - owner.velocity;
+                if(velDiff.Magnitude < missileSpeed) {
+                    result = Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
+                    return true;
+                } else {
+                    result = 0;
+                    return false;
+                }
+            }
+
+            static bool CalcFireAngle(MovingObject owner, Projectile target, Weapon weapon, out double? result) {
                 if (((target.position - owner.position).Magnitude < weapon.currentRange)) {
-                    result = Helper.CalcFireAngle(target.position - owner.position, target.Velocity - owner.velocity, weapon.missileSpeed, out var _);
+                    result = Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, weapon.missileSpeed, out var _);
                     return true;
                 } else {
                     result = null;
@@ -354,7 +362,7 @@ namespace TranscendenceRL {
                     .GetAll(p => (owner.position - p).Magnitude2 < weapon.currentRange2)
                     .OfType<Projectile>()
                     .Where(p => filter(p.Source))
-                    .OrderBy(p => (owner.position - p.position).Dot(p.Velocity))
+                    .OrderBy(p => (owner.position - p.position).Dot(p.velocity))
                     //.OrderBy(p => (owner.Position - p.Position).Magnitude2)
                     .FirstOrDefault();
             }

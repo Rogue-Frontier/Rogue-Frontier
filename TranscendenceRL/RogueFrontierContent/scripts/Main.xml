@@ -6,6 +6,7 @@
 	<Module file="OrionWarlords.xml"/>
 	<Module file="IronPirates.xml"/>
 	<Module file="Errorist.xml"/>
+	<Module file="RoyalShade.xml"/>
 	<Module file="Powers.xml"/>
 	<Module file="Player.xml"/>
 	<Module file="Reactors.xml"/>

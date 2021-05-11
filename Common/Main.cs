@@ -139,7 +139,7 @@ namespace Common {
 			posDiff = posFuture;
 			*/
 			timeToHit = posDiff.Magnitude / missileSpeed;
-			XY posDiffNext = null;
+			XY posDiffNext;
 			double timeToHitPrev;
 			int i = 10;
 			do {
@@ -571,6 +571,18 @@ namespace Common {
 		}
 		public static bool TryAttributeBool(this XElement e, string attribute, bool fallback = false) {
 			return e.TryAttribute(attribute).ParseBool(fallback);
+		}
+		public static bool? TryAttributeBoolOptional(this XElement e, string name, bool? fallback = null) {
+			return e.Attribute(name)?.TryAttributeBoolOptional(fallback);
+		}
+		public static bool? TryAttributeBoolOptional(this XAttribute a, bool? fallback = null) {
+			if (a == null) {
+				return fallback;
+			} else if (bool.TryParse(a.Value, out bool result)) {
+				return result;
+			} else {
+				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\" ### {a.Parent.Name}");
+			}
 		}
 		/*
 		public static bool? ParseBool(this string s, bool? fallback = null) {

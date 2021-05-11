@@ -2,11 +2,16 @@
 using SadConsole;
 
 namespace TranscendenceRL {
-    public interface SpaceObject : Entity {
-        string name { get; }
+    public interface MovingObject : Entity {
+
         World world { get; }
-        Sovereign sovereign { get; }
         XY velocity { get; }
+    }
+    public interface SpaceObject : MovingObject {
+        string name { get; }
+        //World world { get; }
+        Sovereign sovereign { get; }
+        //XY velocity { get; }
         void Damage(SpaceObject source, int hp);
         void Destroy(SpaceObject source = null);
     }

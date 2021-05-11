@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using static TranscendenceRL.Weapon;
 
 namespace TranscendenceRL {
     public interface ITrail {
@@ -19,15 +20,15 @@ namespace TranscendenceRL {
         }
         public Effect GetTrail(XY Position) => new EffectParticle(Position, Tile, 3);
     }
-    public class Projectile : Entity {
+    public class Projectile : MovingObject {
         [JsonProperty]
-        public World World { get; private set; }
+        public World world { get; private set; }
         [JsonProperty] 
         public SpaceObject Source;
         [JsonProperty] 
         public XY position { get; private set; }
         [JsonProperty] 
-        public XY Velocity { get; set; }
+        public XY velocity { get; set; }
         [JsonProperty]
         public int lifetime { get; set; }
         [JsonProperty] 
@@ -46,10 +47,10 @@ namespace TranscendenceRL {
 
         public Projectile(SpaceObject Source, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
             this.Source = Source;
-            this.World = Source.world;
+            this.world = Source.world;
             this.tile = desc.effect.Glyph;
             this.position = Position;
-            this.Velocity = Velocity;
+            this.velocity = Velocity;
             this.lifetime = desc.lifetime;
             this.desc = desc;
             this.trail = (ITrail)desc.trail ?? new SimpleTrail(desc.effect.Glyph);
@@ -59,6 +60,11 @@ namespace TranscendenceRL {
             if(lifetime > 1) {
                 lifetime--;
                 UpdateMove();
+                foreach (var f in desc.fragments) {
+                    if (f.fragmentInterval > 0 && lifetime % f.fragmentInterval == 0) {
+                        Fragment(f);
+                    }
+                }
             } else if(lifetime == 1) {
                 lifetime--;
                 UpdateMove();
@@ -77,15 +83,15 @@ namespace TranscendenceRL {
 
                 maneuver?.Update(this);
 
-                var dest = position + Velocity / Program.TICKS_PER_SECOND;
-                var inc = Velocity.Normal * 0.5;
-                var steps = Velocity.Magnitude * 2 / Program.TICKS_PER_SECOND;
+                var dest = position + velocity / Program.TICKS_PER_SECOND;
+                var inc = velocity.Normal * 0.5;
+                var steps = velocity.Magnitude * 2 / Program.TICKS_PER_SECOND;
                 for (int i = 0; i < steps; i++) {
                     position += inc;
 
                     
                     
-                    foreach(var other in World.entities[position].Except(exclude)) {
+                    foreach(var other in world.entities[position].Except(exclude)) {
                         switch(other) {
                             case Segment seg when exclude.Contains(seg.parent):
                                 continue;
@@ -103,7 +109,7 @@ namespace TranscendenceRL {
 
                                 Fragment();
                                 var angle = (hit.position - position).Angle;
-                                World.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
+                                world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
                                 return;
                             case ProjectileBarrier barrier:
                                 barrier.Interact(this);
@@ -115,45 +121,77 @@ namespace TranscendenceRL {
                         }
                     }
                     CollisionDone:
-                    World.AddEffect(trail.GetTrail(position));
+                    world.AddEffect(trail.GetTrail(position));
                 }
 
                 position = dest;
             }
         }
         public void Fragment() {
-            foreach (var fragment in desc.fragments) {
-                double angleInterval = fragment.spreadAngle / fragment.count;
-                for (int i = 0; i < fragment.count; i++) {
-                    double angle = Velocity.Angle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-                    Projectile p = new Projectile(Source, fragment, position + XY.Polar(angle, 0.5), Velocity + XY.Polar(angle, fragment.missileSpeed));
-                    World.AddEntity(p);
-                }
+            foreach (var f in desc.fragments) {
+                Fragment(f);
+            }
+        }
+        public void Fragment(FragmentDesc fragment) {
+            if(fragment.requiresLockStatus != null
+                && fragment.requiresLockStatus != (maneuver.target != null)) {
+                return;
+            }
+            
+
+            double angleInterval = fragment.spreadAngle / fragment.count;
+            double centerAngle;
+
+            if(fragment.omnidirectional
+                && maneuver?.target?.active == true
+                && Aiming.CalcFireAngle(this, maneuver.target, fragment.missileSpeed, out var result)) {
+                centerAngle = result;
+            } else {
+                centerAngle = velocity.Angle;
+            }
+            for (int i = 0; i < fragment.count; i++) {
+                double angle = centerAngle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
+                Projectile p = new Projectile(Source, fragment, position + XY.Polar(angle, 0.5), velocity + XY.Polar(angle, fragment.missileSpeed));
+                world.AddEntity(p);
             }
         }
     }
 
     public class Maneuver {
-        SpaceObject target;
-        double maneuver;
-        public Maneuver(SpaceObject target, double maneuver) {
+        public SpaceObject target;
+        public double maneuver;
+        public double maneuverDistance;
+        public Maneuver(SpaceObject target, double maneuver, double maneuverDistance) {
             this.target = target;
             this.maneuver = maneuver;
+            this.maneuverDistance = maneuverDistance;
         }
         public void Update(Projectile p) {
-            var vel = p.Velocity;
+            if(target == null || maneuver == 0) {
+                return;
+            }
+            var vel = p.velocity;
             var offset = target.position - p.position;
             var velLeft = vel.Rotate(maneuver);
             var velRight = vel.Rotate(-maneuver);
             var distLeft = (offset - velLeft).Magnitude;
             var distRight = (offset - velRight).Magnitude;
-            if (distLeft < distRight) {
-                p.Velocity = velLeft;
-            } else if(distRight < distLeft) {
-                p.Velocity = velRight;
+
+            if(maneuverDistance == 0) {
+                if (distLeft < distRight) {
+                    p.velocity = velLeft;
+                } else if (distRight < distLeft) {
+                    p.velocity = velRight;
+                }
+            } else {
+                (var closer, var farther) = distLeft < distRight ? (velLeft, velRight) : (velRight, velLeft);
+                if (offset.Magnitude > maneuverDistance) {
+                    p.velocity = closer;
+                } else {
+                    p.velocity = farther;
+                }
             }
         }
-
     }
 
 }
