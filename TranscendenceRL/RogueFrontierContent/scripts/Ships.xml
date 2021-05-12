@@ -10,7 +10,7 @@
 
                 char="A"
                 foreground="Magenta"
-    >
+	    >
 	    <Devices>
 		    <Weapon codename="item_amethyst_laser"/>
 			<Weapon codename="item_dynamite_cannon"/>

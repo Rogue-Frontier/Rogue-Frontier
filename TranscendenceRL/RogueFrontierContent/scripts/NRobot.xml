@@ -2,20 +2,112 @@
 	<Sovereign	codename=	"sovereign_nrobot"
 				alignment=	"DestructiveOrder"
 	/>
-
-	<ShipClass	codename=			"ship_supreme_ego"
-				name=				"Supreme-ego-class fighter"
-				thrust=				"0.2"
-				maxSpeed=			"15"
-
-				rotationAccel=		"3"
-				rotationDecel=		"6"
-				rotationMaxSpeed=	"4"
-
-				char=				"c"
-				foreground=			"LightGreen"
+	<ItemType	codename=	"item_shutdown_cannon"
+		name=		"SHUTDOWN cannon"
+		level=		"3"
+		mass=		"4000"
+		desc=		"."
 		>
+		<Weapon
+			powerUse=		"30"
+			fireCooldown=	"90"
+			missileSpeed=	"60"
+			damageType=		"1"
+			damageHP=		"1"
+			lifetime=		"60"
+			char=			"*"
+			foreground=		"Cyan"
+			>
+			<Capacitor
+				minChargeToFire=		"35"
+				dischargePerShot=		"35"
+				chargePerTick=			"0.08388885"
+				maxCharge=				"100"
+				bonusSpeedPerCharge=	"0.30"
+				bonusDamagePerCharge=	"0.30"
+				bonusLifetimePerCharge=	"0.30"
+				/>
+			<Disruptor
+				thrustMode="off"
+				turnMode="off"
+				brakeMode="on"
+				fireMode="off"
+				lifetime="120"
+				/>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_breakdown_cannon"
+		name=		"BREAKDOWN cannon"
+		level=		"3"
+		mass=		"4000"
+		desc=		"."
+		>
+		<Weapon
+			powerUse=		"20"
+			fireCooldown=	"120"
+			missileSpeed=	"10"
+			damageType=		"1"
+			damageHP=		"1"
+			lifetime=		"30"
+			char=			"*"
+			foreground=		"FF0080FF"
+			>
+			<Fragment
+				count=			"3"
+				spreadAngle=	"90"
+				missileSpeed=	"10"
+				damageType=		"1"
+				damageHP=		"1"
+				lifetime=		"60"
+				char=			"*"
+				foreground=		"Orange"
+				>
+				<Fragment
+					count=			"18"
+					spreadAngle=	"360"
+					missileSpeed=	"40"
+					damageType=		"1"
+					damageHP=		"1"
+					lifetime=		"30"
+					char=			"*"
+					foreground=		"Cyan"
+				/>
+			</Fragment>
+			<Capacitor
+				minChargeToFire=		"35"
+				dischargePerShot=		"35"
+				chargePerTick=			"0.08388885"
+				maxCharge=				"100"
+				bonusSpeedPerCharge=	"0.30"
+				bonusDamagePerCharge=	"0.30"
+				bonusLifetimePerCharge=	"0.30"
+				/>
+		</Weapon>
+	</ItemType>
+
+	<ShipClass	codename=	"ship_hyperego"
+		name=				"Hyperego-class fighter"
+		thrust=				"0.2"
+		maxSpeed=			"15"
+
+		rotationAccel=		"3"
+		rotationDecel=		"6"
+		rotationMaxSpeed=	"4"
+
+		char=				"c"
+		foreground=			"LightGreen"
+		>
+		<Devices>
+			<Weapon codename="item_shutdown_cannon"/>
+			<Weapon codename="item_breakdown_cannon"/>
+			<Reactor codename="item_foundry_reactor"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="item_crystalsteel_plate"/>
+		</LayeredArmorSystem>
 	</ShipClass>
+
 	<StationType	codename="station_nrobot_castle"
 					name=		"NRobot castle"
 					sovereign=	"sovereign_nrobot"
@@ -23,7 +115,7 @@
 					hp=			"250"
 
 					char=		"N"
-					foreground="RedOrange"
+					foreground=	"OrangeRed"
 		>
 		<Segments>
 

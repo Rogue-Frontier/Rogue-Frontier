@@ -96,9 +96,6 @@
     <None Update="RogueFrontierContent\scripts\Main.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\scripts\Missions.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="RogueFrontierContent\sprites\NewEra.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

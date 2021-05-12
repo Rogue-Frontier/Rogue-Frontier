@@ -338,7 +338,7 @@ namespace Common {
 							throw new Exception($"Color value expected: {attribute}=\"{s}\" ### {e.Name}");
 						}
 					} catch {
-						throw new Exception($"Color value expected: {attribute}=\"{s}\" ### {e.Name}");
+						throw new Exception($"Color name expected: {attribute}=\"{s}\" ### {e.Name}");
 					}
 			} else {
 				return fallback;

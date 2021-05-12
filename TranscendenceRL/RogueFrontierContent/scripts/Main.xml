@@ -1,17 +1,21 @@
 ﻿<Module>
-	<Module file="Daughters.xml"/>
 	<Module file="Genomes.xml"/>
-	<Module file="Items.xml"/>
-	<Module file="Missions.xml"/>
-	<Module file="OrionWarlords.xml"/>
-	<Module file="IronPirates.xml"/>
-	<Module file="Errorist.xml"/>
-	<Module file="RoyalShade.xml"/>
-	<Module file="Powers.xml"/>
-	<Module file="Player.xml"/>
-	<Module file="Reactors.xml"/>
-	<Module file="Ships.xml"/>
-	<Module file="Systems.xml"/>
+
 	<Module file="Constellation.xml"/>
 	<Module file="ConstellationMilitia.xml"/>
+	<Module file="Daughters.xml"/>
+	<Module file="Errorist.xml"/>
+	<Module file="IronPirates.xml"/>
+	<Module file="NRobot.xml"/>
+	<Module file="OrionWarlords.xml"/>
+	<Module file="Player.xml"/>
+	<Module file="RoyalShade.xml"/>
+
+	<Module file="Items.xml"/>
+	<Module file="Powers.xml"/>
+	<Module file="Reactors.xml"/>
+	
+	<Module file="Ships.xml"/>
+	
+	<Module file="Systems.xml"/>
 </Module>
