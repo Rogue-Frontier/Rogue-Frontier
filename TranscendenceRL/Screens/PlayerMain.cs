@@ -1193,7 +1193,11 @@ namespace TranscendenceRL {
 			foreach (var p in playerShip.powers) {
 				char key = indexToKey(index);
 				if(p.cooldownLeft > 0) {
-					this.Print(x, y++, $"[{key}] {p.type.name}{new string('>', 16 - 16 * p.cooldownLeft / p.cooldownPeriod)}", Color.Gray);
+					int chargeBar = 16 * p.cooldownLeft / p.cooldownPeriod;
+					this.Print(x, y++,
+						new ColoredString($"[{key}] {p.type.name,-8}{new string('>', 16 - chargeBar)}",
+							Color.Gray, Color.Black) + new string(' ', chargeBar)
+						);
                 } else if(p.invokeCharge > 0) {
 					var chargeMeter = Math.Min(16, 16 * p.invokeCharge / p.invokeDelay);
 
@@ -1202,11 +1206,11 @@ namespace TranscendenceRL {
 						c = Color.Orange;
                     }
 					this.Print(x, y++,
-						new ColoredString($"[{key}] {p.type.name}{new string('>', chargeMeter)}", c, Color.Black)
+						new ColoredString($"[{key}] {p.type.name, -8}{new string('>', chargeMeter)}", c, Color.Black)
 						+ new ColoredString(new string('>', 16 - chargeMeter), Color.Gray, Color.Black)
 						);
 				} else {
-					this.Print(x, y++, new ColoredString($"[{key}] {p.type.name}", Color.White, Color.Transparent) + new ColoredString($"{new string('>', 16)}", Color.Gray, Color.Transparent));
+					this.Print(x, y++, new ColoredString($"[{key}] {p.type.name, -8}", Color.White, Color.Black) + new ColoredString($"{new string('>', 16)}", Color.Gray, Color.Black));
 				}
 				index++;
             }

@@ -16,7 +16,13 @@ namespace TranscendenceRL {
         public Armor armor;
         public Shields shields;
         public Reactor reactor;
-
+        public Item(Item clone) {
+            type = clone.type;
+            weapon = clone.weapon != null ? new Weapon(this, clone.weapon.desc) : null;
+            armor = clone.armor != null ? new Armor(this, clone.armor.desc) : null;
+            shields = clone.shields != null ? new Shields(this, clone.shields.desc) : null;
+            reactor = clone.reactor != null ? new Reactor(this, clone.reactor.desc) : null;
+        }
         public Item(ItemType type) {
             this.type = type;
             //These fields are to remain null while the item is not installed and to be populated upon installation
@@ -24,6 +30,15 @@ namespace TranscendenceRL {
             armor = null;
             shields = null;
             reactor = null;
+        }
+        public T GetDevice<T>() {
+            var type = typeof(T);
+            return (T)new Dictionary<Type, object>() {
+                { typeof(Weapon), weapon },
+                { typeof(Armor), armor },
+                { typeof(Shields), shields },
+                { typeof(Reactor), reactor },
+            }[type];
         }
         public Weapon InstallWeapon() => weapon = type.weapon?.GetWeapon(this);
         public Armor InstallArmor() => armor = type.armor?.GetArmor(this);
@@ -82,7 +97,6 @@ namespace TranscendenceRL {
         public int fireTime;
         public bool firing;
         public int repeatsLeft;
-
         public Weapon(Item source, WeaponDesc desc) {
             this.source = source;
             this.desc = desc;

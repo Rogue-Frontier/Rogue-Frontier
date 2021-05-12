@@ -133,11 +133,18 @@ namespace TranscendenceRL {
 
                                 if(cargo.Any()) {
                                     ship.cargo.Clear();
-                                    ship.cargo.UnionWith(cargo);
+                                    ship.cargo.UnionWith(cargo.Select(s => new Item(s)));
                                 }
                                 if(devices.Any()) {
                                     ship.devices.Clear();
-                                    ship.devices.Install(devices);
+                                    ship.devices.Install(devices.Select(d => {
+                                        var source = new Item(d.source);
+                                        return (Device)(d switch {
+                                            Weapon w => source.weapon,
+                                            Shields s => source.shields,
+                                            Reactor r => source.reactor,
+                                        });
+                                    }));
                                 }
 
                                 World.AddEntity(ship);
