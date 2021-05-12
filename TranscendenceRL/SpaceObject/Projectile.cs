@@ -90,13 +90,13 @@ namespace TranscendenceRL {
                 for (int i = 0; i < steps; i++) {
                     position += inc;
 
-
+                    bool destroyed = false;
                     bool stop = false;
                     foreach(var other in world.entities[position].Except(exclude)) {
                         switch(other) {
                             case Segment seg when exclude.Contains(seg.parent):
                                 continue;
-                            case SpaceObject hit:
+                            case SpaceObject hit when !destroyed:
                                 lifetime = 0;
                                 hit.Damage(Source, desc.damageHP);
 
@@ -111,19 +111,21 @@ namespace TranscendenceRL {
                                 Fragment();
                                 var angle = (hit.position - position).angleRad;
                                 world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
-                                return;
+                                destroyed = true;
+                                break;
+                            case Projectile p when hitProjectile && !destroyed:
+                                p.lifetime = 0;
+                                lifetime = 0;
+                                destroyed = true;
+                                break;
                             case ProjectileBarrier barrier:
                                 barrier.Interact(this);
                                 stop = true;
                                 //Keep interacting with all the barriers
                                 break;
-                            case Projectile p when hitProjectile:
-                                p.lifetime = 0;
-                                lifetime = 0;
-                                break;
                         }
                     }
-                    if(stop) {
+                    if(stop || destroyed) {
                         return;
                     }
                     CollisionDone:
