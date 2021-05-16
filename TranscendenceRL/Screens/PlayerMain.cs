@@ -20,7 +20,7 @@ namespace TranscendenceRL {
 		[JsonIgnore]
 		private PlayerMain main;
 		[JsonIgnore]
-		public PlayerDestroyed Value => (p, d, w) => main.EndGame(d, w);
+		public PlayerDestroyed Value => main == null ? null : (p, d, w) => main.EndGame(d, w);
 		public EndGame(PlayerMain main) {
 			this.main = main;
 		}
@@ -86,7 +86,7 @@ namespace TranscendenceRL {
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
 
 			back = new BackdropConsole(Width, Height, World.backdrop, camera);
-			uiMegamap = new Megamap(camera, playerShip, Width, Height);
+			uiMegamap = new Megamap(camera, playerShip, World.backdrop.layers.Last(), Width, Height);
 			vignette = new Vignette(playerShip, Width, Height);
 			sceneContainer = new Console(Width, Height);
 			sceneContainer.Focused += (e, o) => this.IsFocused = true;
@@ -151,7 +151,7 @@ namespace TranscendenceRL {
 				wreck = wreck
 			};
 			playerShip.player.Epitaphs.Add(epitaph);
-			new DeadGame(World, playerShip.player, playerShip, epitaph);
+			new DeadGame(World, playerShip.player, playerShip, epitaph).Save();
 			//Bug: Background is not included because it is a separate console
 			var ds = new DeathScreen(this, epitaph);
 			SadConsole.Game.Instance.Screen = new DeathTransition(this, ds) { IsFocused = true };
@@ -444,15 +444,15 @@ namespace TranscendenceRL {
 	class Megamap : Console {
 		Camera camera;
 		PlayerShip player;
-		GeneratedLayer BackVoid;
+		GeneratedLayer background;
 		public double viewScale;
 		double time;
 
 		public byte alpha;
-		public Megamap(Camera camera, PlayerShip player, int width, int height) : base(width, height) {
+		public Megamap(Camera camera, PlayerShip player, GeneratedLayer back, int width, int height) : base(width, height) {
 			this.camera = camera;
 			this.player = player;
-			BackVoid = new GeneratedLayer(1, new Rand());
+			this.background = back;
 			viewScale = 1;
 			time = 0;
 		}
@@ -510,7 +510,7 @@ namespace TranscendenceRL {
 
 						var starlight = player.world.backdrop.starlight.GetTile(pos).PremultiplySet(255);
 
-						var cg = BackVoid.GetTileFixed(new XY(x, y));
+						var cg = this.background.GetTileFixed(new XY(x, y));
 						//Make sure to clone this so that we don't apply alpha changes to the original
 						var glyph = cg.Glyph;
 						var background = cg.Background.BlendPremultiply(starlight, alpha);
@@ -607,11 +607,11 @@ namespace TranscendenceRL {
 
 			foreach(var p in particles) {
 				p.position += p.Velocity / Program.TICKS_PER_SECOND;
-				p.Lifetime--;
+				p.lifetime--;
 				p.Velocity -= p.Velocity / 15;
 
 				p.tile.Foreground = p.tile.Foreground.SetAlpha(
-					(byte)(255 * Math.Min(p.Lifetime / 30f, 1))
+					(byte)(255 * Math.Min(p.lifetime / 30f, 1))
 					);
             }
 			particles.RemoveWhere(p => !p.active);

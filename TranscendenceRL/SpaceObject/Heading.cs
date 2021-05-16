@@ -19,25 +19,40 @@ namespace TranscendenceRL {
         public bool active => parent.active;
 
         public ColoredGlyph tile => null;
-
+        int ticks;
+        public EffectParticle[] particles;
         public void Update() {
             if(parent.dock?.docked == true) {
+                ticks = 0;
                 return;
             }
-            //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
-            //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 153), Color.Transparent);
-
-            //Idea: Highlight a segment of the aimline based on the firetime left on the weapon
-            XY point = parent.position;
+            const int interval = 30;
+            XY start = parent.position;
             int step = 2;
-            XY inc = XY.Polar(parent.rotationDeg * Math.PI / 180, 1)  * step;
-            int length = 20;
-            for(int i = 0; i < length; i += step) {
-                point += inc;
-                var value = 153 - Math.Max(1, i / 2) * 153/length;
-                ColoredGlyph pointEffect = new ColoredGlyph(new Color(value, value, value), Color.Transparent, '.');
-                parent.world.AddEffect(new EffectParticle(point, pointEffect, 1));
+            XY inc = XY.Polar(parent.rotationDeg * Math.PI / 180, 1) * step;
+            if (ticks == 0) {
+
+                //Idea: Highlight a segment of the aimline based on the firetime left on the weapon
+                int length = 20;
+                int count = length / step;
+                particles = new EffectParticle[count];
+                for (int i = 0; i < count; i++) {
+                    var point = start + inc * i;
+                    var value = 153 - Math.Max(1, i) * 153 / length;
+                    var cg = new ColoredGlyph(new Color(value, value, value), Color.Transparent, '.');
+                    var particle = new EffectParticle(point, cg, interval + 1);
+                    particles[i] = particle;
+                    parent.world.AddEffect(particle);
+                }
+            } else {
+                for (int i = 0; i < particles.Length; i++) {
+                    var p = particles[i];
+                    p.position = start + inc * i;
+                    p.lifetime = interval + 1 + (interval * (i - particles.Length)) / particles.Length;
+                }
             }
+            ticks++;
+            
         }
         public static void AimLine(World World, XY start, double angle) {
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);

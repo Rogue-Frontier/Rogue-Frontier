@@ -24,10 +24,7 @@ namespace TranscendenceRL {
 				throw new Exception("Ship must be able to decelerate rotation");
             }
         }
-		public ShipClass() {
-			cargo = new ItemList();
-			devices = new DeviceList();
-		}
+		public ShipClass() {}
 		public void Initialize(TypeCollection collection, XElement e) {
 			codename = e.ExpectAttribute("codename");
 			name = e.ExpectAttribute("name");

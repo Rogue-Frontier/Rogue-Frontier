@@ -26,6 +26,7 @@ namespace TranscendenceRL {
                 playerShip.ship.damageSystem.Restore();
 
                 //Resurrect the player; remove wreck and restore ship + heading
+                epitaph.wreck.Destroy(null);
                 world.entities.all.Remove(epitaph.wreck);
                 playerShip.ship.active = true;
                 playerShip.AddMessage(new InfoMessage("A vision of disaster flashes before your eyes"));

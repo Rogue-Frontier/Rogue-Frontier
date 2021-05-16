@@ -13,37 +13,36 @@ namespace TranscendenceRL {
         ConstructiveOrder, ConstructiveChaos, Neutral, DestructiveOrder, DestructiveChaos
     }
     public class Sovereign : DesignType {
-        public class AutoEnemySovereignSelf : IContainer<AutoSovereign> {
+        public class AutoEnemySelf : IContainer<AutoSovereign> {
             public Sovereign self;
-            public AutoEnemySovereignSelf(Sovereign self) {
+            public AutoEnemySelf(Sovereign self) {
                 this.self = self;
             }
             [JsonIgnore]
             public AutoSovereign Value => s => s == self ? Disposition.Friend : Disposition.Enemy;
         }
-        public class AutoEnemySovereign : IContainer<AutoSovereign> {
+        public class AutoEnemy : IContainer<AutoSovereign> {
             [JsonIgnore]
             public AutoSovereign Value => s => Disposition.Enemy;
         }
-        public class AutoEnemySpaceObject : IContainer<AutoSpaceObject> {
+        public class AutoNeutral : IContainer<AutoSovereign> {
             [JsonIgnore]
-            public AutoSpaceObject Value => s => Disposition.Enemy;
+            public AutoSovereign Value => s => Disposition.Neutral;
         }
 
         public static readonly Sovereign Inanimate = new Sovereign() {
-            alignment = Alignment.Neutral
+            codename = "sovereign_inanimate",
+            AutoSovereignDisposition = new AutoNeutral()
         };
         public static readonly Sovereign Gladiator = new Sovereign() {
             codename = "sovereign_gladiator",
-            AutoSovereignDisposition = new AutoEnemySovereign(),
-            AutoSpaceObjectDisposition = new AutoEnemySpaceObject()
+            AutoSovereignDisposition = new AutoEnemy(),
         };
         public static Sovereign SelfOnly { get {
                 Sovereign s = new Sovereign() {
                     codename = "sovereign_self",
-                    AutoSpaceObjectDisposition = new AutoEnemySpaceObject()
                 };
-                s.AutoSovereignDisposition = new AutoEnemySovereignSelf(s);
+                s.AutoSovereignDisposition = new AutoEnemySelf(s);
                 return s;
         } }
 
@@ -53,10 +52,9 @@ namespace TranscendenceRL {
         public Alignment alignment;
         //private Sovereign parent;
 
-        public Dict<Sovereign, Disposition> sovDispositions;
+        public Dict<string, Disposition> sovDispositions;
         public Dict<Entity, Disposition> entityDispositions;
         public IContainer<AutoSovereign> AutoSovereignDisposition;
-        public IContainer<AutoSpaceObject> AutoSpaceObjectDisposition;
 
         public static readonly Dictionary<Alignment, Dictionary<Alignment, Disposition>> dispositionTable = new Dictionary<Alignment, Dictionary<Alignment, Disposition>> {
             { ConstructiveOrder, new Dictionary<Alignment, Disposition>{
@@ -96,7 +94,7 @@ namespace TranscendenceRL {
         public delegate Disposition AutoSpaceObject(SpaceObject other);
 
         public Sovereign() {
-            sovDispositions = new Dict<Sovereign, Disposition>();
+            sovDispositions = new Dict<string, Disposition>();
             entityDispositions = new Dict<Entity, Disposition>();
         }
         public void Initialize(TypeCollection tc, XElement e) {
@@ -114,24 +112,24 @@ namespace TranscendenceRL {
                     var mutual = xmlRel.ExpectAttributeBool("mutual");
 
                     var sov = tc.sovereign[other];
-                    sovDispositions[sov] = disposition;
+                    sovDispositions[sov.codename] = disposition;
                     if (mutual) {
-                        sov.sovDispositions[this] = disposition;
+                        sov.sovDispositions[this.codename] = disposition;
                     }
                 }
             }
 
         }
-        public void SetDisposition(Sovereign other, Disposition d) => sovDispositions[other] = d;
+        public void SetDisposition(Sovereign other, Disposition d) => sovDispositions[other.codename] = d;
         public void SetDisposition(SpaceObject other, Disposition d) => entityDispositions[other] = d;
         public Disposition GetDisposition(Sovereign other) {
-            if(sovDispositions.TryGetValue(other, out Disposition d)
+            if(sovDispositions.TryGetValue(other.codename, out Disposition d)
                 //|| (parent?.sovDispositions.TryGetValue(other, out d) == true)
                 ) {
                 return d;
             } else {
-                sovDispositions[other] = GetAutoDisposition(other);
-                return sovDispositions[other];
+                sovDispositions[other.codename] = GetAutoDisposition(other);
+                return sovDispositions[other.codename];
             }
         }
         public bool IsEnemy(Sovereign other) => GetDisposition(other) == Disposition.Enemy;
@@ -144,8 +142,10 @@ namespace TranscendenceRL {
             if (other.sovereign != null) {
                 return GetDisposition(other.sovereign);
             }
-            entityDispositions[other] = GetAutoDisposition(other);
-            return entityDispositions[other];
+
+            throw new Exception("Unknown sovereign");
+            //entityDispositions[other] = GetAutoDisposition(other.sovereign);
+            //return entityDispositions[other];
         }
         public bool IsFriend(SpaceObject other) => GetDisposition(other) == Disposition.Friend;
         public bool IsEnemy(SpaceObject other) => GetDisposition(other) == Disposition.Enemy;
@@ -153,16 +153,10 @@ namespace TranscendenceRL {
             var d = AutoSovereignDisposition?.Value?.Invoke(other);
             if(d.HasValue) {
                 return d.Value;
-            } else if (other == this) {
-                //We don't fight ourselves (usually)
-                return Friend;
             } else {
                 //Initialize from default values given our alignments
                 return dispositionTable[alignment][other.alignment];
             }
-        }
-        public Disposition GetAutoDisposition(SpaceObject other) {
-            return AutoSpaceObjectDisposition?.Value?.Invoke(other) ?? Disposition.Neutral;
         }
     }
     public enum Disposition {

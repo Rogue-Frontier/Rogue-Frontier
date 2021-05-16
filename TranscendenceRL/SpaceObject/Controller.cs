@@ -186,20 +186,21 @@ namespace TranscendenceRL {
                 sleepTicks--;
                 return;
             }
-            if(!(target?.active ?? false)) {
-                var weapon = owner.devices.Weapons.FirstOrDefault();
-                if(weapon == null) {
-                    return;
-                }
-                //currentRange is variable and minRange is constant, so weapon dynamics may affect attack range
-                target = owner.world.entities.all.OfType<SpaceObject>().Where(so => owner.IsEnemy(so)).GetRandomOrDefault(owner.destiny);
 
-                //If we can't find a target, then give up for a while
-                if (target == null) {
-                    sleepTicks = 150;
-                }
-            } else {
+            if (owner.devices.Weapons.Count == 0) {
+                sleepTicks = 150;
+                return;
+            }
+            if (target?.active == true) {
                 new AttackOrder(target).Update(owner);
+                return;
+            }
+            //currentRange is variable and minRange is constant, so weapon dynamics may affect attack range
+            target = owner.world.entities.all.OfType<SpaceObject>().Where(o => !owner.IsEqual(o)).Where(o => owner.IsEnemy(o)).GetRandomOrDefault(owner.destiny);
+
+            //If we can't find a target, then give up for a while
+            if (target == null) {
+                sleepTicks = 150;
             }
         }
         public bool Active => true;
@@ -239,9 +240,6 @@ namespace TranscendenceRL {
             var offset = (target.position - owner.position);
             var dist = offset.magnitude;
 
-            if (owner.shipClass.name == "Embargo-class missileship") {
-                int i = 0;
-            }
             omni.ForEach(w => {
                 if (dist < w.currentRange) {
                     Set(w);

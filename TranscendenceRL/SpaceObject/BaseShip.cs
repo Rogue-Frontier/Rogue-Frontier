@@ -101,10 +101,9 @@ namespace TranscendenceRL {
             this.active = true;
             
             this.cargo = new HashSet<Item>();
-            this.cargo.UnionWith(shipClass.cargo?.Generate(world.types));
-
+            this.cargo.UnionWith(shipClass.cargo?.Generate(world.types) ?? new List<Item>());
             this.devices = new DeviceSystem();
-            this.devices.Install(shipClass.devices?.Generate(world.types));
+            this.devices.Install(shipClass.devices?.Generate(world.types) ?? new List<Device>());
 
             this.damageSystem = shipClass.damageDesc.Create(this);
             this.destiny = new Rand(world.karma.NextInteger());
@@ -130,6 +129,7 @@ namespace TranscendenceRL {
             );
             world.AddEntity(wreck);
 
+            onDestroyed.set.RemoveWhere(d => d.Value == null);
             foreach(var on in onDestroyed.set) {
                 on.Value.Invoke(this, source, wreck);
             }
@@ -332,9 +332,13 @@ namespace TranscendenceRL {
         }
         [JsonIgnore]
         public Destroyed Value { get {
-                var self = this;
+                var player = this.player;
+                if(player == null) {
+                    return null;
+                }
                 return (BaseShip s, SpaceObject source, Wreck wreck) => {
-                    foreach (var f in self.player.onDestroyed.set) f.Value.Invoke(self.player, source, wreck);
+                    player.onDestroyed.set.RemoveWhere(d => d.Value == null);
+                    foreach (var f in player.onDestroyed.set) f.Value.Invoke(player, source, wreck);
                 };
         } }
         public override bool Equals(object obj) => obj is BaseOnDestroyed b && b.player == player;

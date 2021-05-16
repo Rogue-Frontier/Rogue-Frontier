@@ -184,7 +184,7 @@ namespace TranscendenceRL {
             if (random.NextDouble() * 100 < (1 / (parallaxFactor + 1))) {
                 const string vwls = "?&%~=+;";
                 var star = vwls[random.NextInteger(vwls.Length)];
-                var foreground = new Color(255, 255 - random.NextInteger(25, 51), 255 - random.NextInteger(25, 51), (byte)(225 * Math.Sqrt(parallaxFactor)));
+                var foreground = new Color(255, random.NextInteger(204, 230), random.NextInteger(204, 230), (byte)(225 * Math.Sqrt(parallaxFactor)));
                 return new ColoredGlyph(foreground, background, star);
             } else {
                 return new ColoredGlyph(Color.Transparent, background, ' ');

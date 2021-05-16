@@ -435,6 +435,7 @@ Destroy them as fast as you can""";
         public void AddDrones() {
             foreach(var d in drones) {
                 station.world.AddEntity(d);
+                station.world.AddEffect(new Heading(d));
             }
         }
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {

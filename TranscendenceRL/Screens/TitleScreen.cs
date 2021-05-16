@@ -238,6 +238,7 @@ namespace TranscendenceRL {
                             EnemyDestroyed();
                         });
                         World.AddEntity(ship);
+                        World.AddEffect(new Heading(ship));
                     }                        
                     shipCount = waveSize;
                 }

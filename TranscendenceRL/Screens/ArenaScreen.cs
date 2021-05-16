@@ -386,7 +386,8 @@ namespace TranscendenceRL {
                     World.RemoveEntity(playerMain.playerShip);
                     var aiShip = new AIShip(playerMain.playerShip.ship, new AttackAllOrder());
                     World.AddEntity(aiShip);
-                    
+                    World.AddEffect(new Heading(aiShip));
+
                     pov = aiShip;
                     Reset(playerMain.camera.position);
 

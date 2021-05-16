@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using Console = SadConsole.Console;
 using Common;
+using SadConsole.Input;
 
 namespace TranscendenceRL {
     class DeathTransition : Console {
@@ -40,6 +41,16 @@ namespace TranscendenceRL {
                 }
             }
         }
+        public override bool ProcessKeyboard(Keyboard keyboard) {
+            if (keyboard.IsKeyPressed(Keys.Enter)) {
+                Transition();
+            }
+            return base.ProcessKeyboard(keyboard);
+        }
+        public void Transition () {
+            SadConsole.Game.Instance.Screen = next;
+            next.IsFocused = true;
+        }
         public override void Update(TimeSpan delta) {
             prev.Update(delta);
             time += delta.TotalSeconds / 2;
@@ -55,8 +66,7 @@ namespace TranscendenceRL {
                     }
                 }
             } else {
-                SadConsole.Game.Instance.Screen = next;
-                next.IsFocused = true;
+                Transition();
             }
             base.Update(delta);
         }

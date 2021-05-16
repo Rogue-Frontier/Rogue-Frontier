@@ -154,6 +154,7 @@ namespace TranscendenceRL {
             this.epitaph = epitaph;
         }
         public void Save() {
+            Directory.CreateDirectory("save");
             File.WriteAllText(player.file, SaveGame.Serialize(this));
         }
     }

@@ -16,6 +16,7 @@ namespace TranscendenceRL {
         public Armor armor;
         public Shields shields;
         public Reactor reactor;
+        public Item() { }
         public Item(Item clone) {
             type = clone.type;
             weapon = clone.weapon != null ? new Weapon(this, clone.weapon.desc) : null;
@@ -493,9 +494,10 @@ namespace TranscendenceRL {
 
     }
     public class Armor {
-        public Item source { get; private set; }
+        public Item source;
         public ArmorDesc desc;
         public int hp;
+        public Armor() { }
         public Armor(Item source, ArmorDesc desc) {
             this.source = source;
             this.desc = desc;
@@ -506,7 +508,7 @@ namespace TranscendenceRL {
         }
     }
     public class Shields : Device {
-        public Item source { get; private set; }
+        public Item source { get; set; }
         public ShieldDesc desc;
         public int hp;
         public int depletionTime;
@@ -543,7 +545,7 @@ namespace TranscendenceRL {
         }
     }
     public class Reactor : Device {
-        public Item source { get; private set; }
+        public Item source { get; set; }
         public ReactorDesc desc;
         public double energy;
         public double energyDelta;

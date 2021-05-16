@@ -13,8 +13,8 @@ namespace TranscendenceRL {
 		List<AIShip> Generate(TypeCollection tc, SpaceObject owner);
 	}
 	public class ShipList : ShipGenerator {
-		List<ShipGenerator> generators;
-		public ShipList() {}
+		public List<ShipGenerator> generators;
+		public ShipList() { generators = new List<ShipGenerator>(); }
 		public ShipList(XElement e) {
 			generators = new List<ShipGenerator>();
 			foreach (var element in e.Elements()) {
@@ -101,6 +101,7 @@ namespace TranscendenceRL {
         }
 		public class PatrolDesc : IOrderDesc {
 			public int patrolRadius;
+			public PatrolDesc() { }
 			public PatrolDesc(XElement e) {
 				patrolRadius = e.ExpectAttributeInt("patrolRadius");
             }
@@ -222,7 +223,7 @@ namespace TranscendenceRL {
 		List<Device> Generate(TypeCollection tc);
 	}
 	public class DeviceList : DeviceGenerator {
-		List<DeviceGenerator> generators;
+		public List<DeviceGenerator> generators;
 		public DeviceList() {
 			generators = new List<DeviceGenerator>();
 		}
@@ -259,6 +260,7 @@ namespace TranscendenceRL {
 
 	class ReactorEntry : DeviceGenerator {
 		public string codename;
+		public ReactorEntry() { }
 		public ReactorEntry(XElement e) {
 			this.codename = e.ExpectAttribute("codename");
 		}
@@ -286,6 +288,7 @@ namespace TranscendenceRL {
 
 	class ShieldsEntry : DeviceGenerator {
 		public string codename;
+		public ShieldsEntry() { }
 		public ShieldsEntry(XElement e) {
 			this.codename = e.ExpectAttribute("codename");
 		}
@@ -316,7 +319,7 @@ namespace TranscendenceRL {
 		List<Weapon> Generate(TypeCollection tc);
 	}
 	public class WeaponList : WeaponGenerator {
-		List<WeaponGenerator> generators;
+		public List<WeaponGenerator> generators;
 		public WeaponList() {
 			generators = new List<WeaponGenerator>();
 		}
@@ -341,6 +344,7 @@ namespace TranscendenceRL {
 	class WeaponEntry : DeviceGenerator, WeaponGenerator {
 		public string codename;
 		public bool omnidirectional;
+		public WeaponEntry() { }
 		public WeaponEntry(XElement e) {
 			codename = e.ExpectAttribute("codename");
 			omnidirectional = e.TryAttributeBool("omnidirectional", false);

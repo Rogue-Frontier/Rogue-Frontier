@@ -1,4 +1,5 @@
 ﻿using Common;
+using Newtonsoft.Json;
 using SadConsole;
 using SadRogue.Primitives;
 using System;
@@ -9,19 +10,19 @@ using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     public class EffectParticle : Effect {
-        public int Lifetime;
+        public int lifetime;
         public EffectParticle() { }
         public EffectParticle(XY Position, ColoredGlyph Tile, int Lifetime) {
             this.position = Position;
             this.Velocity = new XY();
             this.tile = Tile;
-            this.Lifetime = Lifetime;
+            this.lifetime = Lifetime;
         }
         public EffectParticle(XY Position, XY Velocity, ColoredGlyph Tile, int Lifetime) {
             this.position = Position;
             this.Velocity = Velocity;
             this.tile = Tile;
-            this.Lifetime = Lifetime;
+            this.lifetime = Lifetime;
         }
 
         public static void DrawArrow(World world, XY worldPos, XY offset, Color color) {
@@ -37,14 +38,14 @@ namespace TranscendenceRL {
         }
         public XY position { get; set; }
         public XY Velocity { get; set; }
-
-        public bool active => Lifetime > 0;
+        [JsonIgnore]
+        public bool active => lifetime > 0;
 
         public ColoredGlyph tile { get; private set; }
 
         public void Update() {
             position += Velocity / Program.TICKS_PER_SECOND;
-            Lifetime--;
+            lifetime--;
         }
     }
     public class FadingTile : Effect {

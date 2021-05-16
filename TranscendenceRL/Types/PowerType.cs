@@ -30,7 +30,7 @@ namespace TranscendenceRL.Types {
     }
     //Power that generates a weapon effect
     public class PowerWeapon : PowerEffect {
-        FragmentDesc desc;
+        public FragmentDesc desc;
         public PowerWeapon() { }
         public PowerWeapon(XElement e) {
             this.desc = new FragmentDesc(e);
