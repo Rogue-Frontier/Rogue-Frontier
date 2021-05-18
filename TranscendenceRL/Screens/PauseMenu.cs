@@ -58,7 +58,7 @@ namespace TranscendenceRL {
                 int y = 6;
                 var controls = playerMain.playerShip.player.Settings;
                 foreach (var line in controls.GetString().Replace("\r",null).Split('\n')) {
-                    this.Print(x, y++, line.PadRight(Width/2), Color.White, Color.Black);
+                    this.Print(x, y++, line.PadRight(Width - x - 4), Color.White, Color.Black);
                 }
             }
 

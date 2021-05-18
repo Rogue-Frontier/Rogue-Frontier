@@ -31,6 +31,7 @@ namespace TranscendenceRL {
 		PauseMenu pauseMenu;
 
 		Console sceneContainer;
+
 		public PlayerControls(PlayerShip playerShip, PlayerMain console, PowerMenu powerMenu, PauseMenu pauseMenu, Console sceneContainer) {
 			this.playerShip = playerShip;
 			this.playerMain = console;
@@ -97,6 +98,7 @@ namespace TranscendenceRL {
 		}
         public void ProcessKeyboard(Keyboard info) {
 			var controls = playerShip.player.Settings.controls;
+
 			//Move the player
 			ProcessArrows(info);
 			ProcessTargeting(info);
@@ -146,6 +148,8 @@ namespace TranscendenceRL {
 			if (info.KeysDown.Select(d => d.Key).Intersect<Keys>(new Keys[] { Keys.LeftControl, Keys.LeftShift, Keys.Enter }).Count() == 3) {
 				playerShip.Destroy(playerShip);
 			}
+
+#if DEBUG
 			if (info.IsKeyPressed(C)) {
 				if(info.IsKeyDown(LeftShift)) {
 					playerShip.Destroy(playerShip);
@@ -153,6 +157,7 @@ namespace TranscendenceRL {
 					playerShip.Damage(playerShip, playerShip.ship.damageSystem.GetHP() - 5);
 				}
 			}
+#endif
 			if (info.IsKeyPressed(V)) {
 				playerShip.ship.controlHijack = new ControlHijack() { ticksLeft = 90, thrustMode = HijackMode.FORCE_ON };
 			}

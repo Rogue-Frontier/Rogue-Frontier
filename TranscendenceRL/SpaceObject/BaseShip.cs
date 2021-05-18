@@ -730,6 +730,16 @@ namespace TranscendenceRL {
                 Heading.Crosshair(world, target.position);
             }
 
+            powers.ForEach(p => {
+                if (p.cooldownLeft > 0) {
+                    p.cooldownLeft--;
+
+                    if (p.cooldownLeft == 0) {
+                        AddMessage(new InfoMessage($"[Power] {p.type.name} is ready"));
+                    }
+                }
+            });
+
             if (firingPrimary && selectedPrimary < ship.devices.Weapons.Count) {
                 if(!energy.disabled.Contains(ship.devices.Weapons[selectedPrimary])) {
                     ship.devices.Weapons[selectedPrimary].SetFiring(true, target);

@@ -257,9 +257,9 @@ namespace TranscendenceRL {
 			} else {
 				vignette.Update(delta);
 			}
-
-			//Need to update powermenu while it is hidden
-			powerMenu.Update(delta);
+			if (powerMenu.IsVisible) {
+				powerMenu.Update(delta);
+			}
 
 			if (pauseMenu.IsVisible) {
 				pauseMenu.Update(delta);
@@ -350,20 +350,22 @@ namespace TranscendenceRL {
 		public override bool ProcessMouse(MouseScreenObjectState state) {
 			if(pauseMenu.IsVisible) {
 				pauseMenu.ProcessMouseTree(state.Mouse);
-            } else if (powerMenu.IsVisible) {
+            } else /* if (powerMenu.IsVisible) {
 				powerMenu.ProcessMouseTree(state.Mouse);
-            } else if(sceneContainer.Children.Any()) {
+            } else */ if(sceneContainer.Children.Any()) {
 				sceneContainer.ProcessMouseTree(state.Mouse);
             } else if(state.IsOnScreenObject) {
 
+				bool moved = mousePos != state.SurfaceCellPosition;
+				mousePos = state.SurfaceCellPosition;
+
 				//Placeholder for mouse wheel-based weapon selection
-				if(state.Mouse.ScrollWheelValueChange > 100) {
+				if (state.Mouse.ScrollWheelValueChange > 100) {
 					playerShip.NextWeapon();
                 } else if(state.Mouse.ScrollWheelValueChange < -100) {
 					playerShip.PrevWeapon();
                 }
 
-				mousePos = state.SurfaceCellPosition;
 				var centerOffset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
 				centerOffset *= uiMegamap.viewScale;
 				var worldPos = (centerOffset.Rotate(camera.rotation) + camera.position);
@@ -410,7 +412,9 @@ namespace TranscendenceRL {
 					enableMouseTurn = false;
 				}
 
-				if(enableMouseTurn) {
+				//Also enable mouse turn with Power Menu
+
+				if (enableMouseTurn && playerShip.ship.rotating == Rotating.None) {
 					var playerOffset = worldPos - playerShip.position;
 
 					if (playerOffset.xi != 0 && playerOffset.yi != 0) {
@@ -985,12 +989,12 @@ namespace TranscendenceRL {
 				int x = 3;
 				int y = 3;
 				var b = Color.Black;
-				if (player.energy.totalMaxOutput > 0) {
+				if (player.energy.devices.Reactors.Any()) {
 					this.Print(x, y, $"[{new string(' ', 16)}]", Color.White, b);
 					this.Print(x + 1, y, $"{new string('=', 16)}", Color.Gray, b);
 					if (player.energy.totalUsedOutput > 0) {
 						this.Print(x + 1, y,
-							new ColoredString(new string('=', 16 * player.energy.totalUsedOutput / player.energy.totalMaxOutput),
+							new ColoredString(new string('=', (int)Math.Ceiling(16f * player.energy.totalUsedOutput / player.energy.totalMaxOutput)),
 								Color.Yellow, b));
 					}
 					this.Print(x + 1 + 16 + 2, y,
@@ -1052,15 +1056,15 @@ namespace TranscendenceRL {
 				switch (player.ship.damageSystem) {
 					case LayeredArmorSystem las:
 						foreach (var armor in las.layers) {
-							this.Print(x, y, "[", Color.White, Color.Transparent);
-							this.Print(x + 1, y, new string('>', 16 ), Color.Gray, Color.Transparent);
-							this.Print(x + 1, y, new string('>', 16 * armor.hp / armor.desc.maxHP), Color.White, Color.Transparent);
-							this.Print(x + 1 + 16, y, $"-[{armor.source.type.name}", Color.White, Color.Transparent);
+							this.Print(x, y, "[", Color.White, Color.Black);
+							this.Print(x + 1, y, new string('>', 16 ), Color.Gray, Color.Black);
+							this.Print(x + 1, y, new string('>', 16 * armor.hp / armor.desc.maxHP), Color.White, Color.Black);
+							this.Print(x + 1 + 16, y, $"-[{armor.source.type.name}", Color.White, Color.Black);
 							y++;
 						}
 						break;
 					case HPSystem hp:
-						this.Print(x, y, $"HP: {hp.hp}");
+						this.Print(x, y, $"HP: {hp.hp}", Color.White, Color.Black);
 						break;
 				}
 			}
@@ -1204,9 +1208,7 @@ namespace TranscendenceRL {
 					if (ticks % 3 == 0) {
 						p.charging = false;
 					}
-				} else if(p.cooldownLeft > 0) {
-					p.cooldownLeft--;
-                } else if(p.invokeCharge > 0) {
+				} else if(p.invokeCharge > 0) {
 					if (p.invokeCharge >= p.invokeDelay) {
 						//Invoke now!
 						p.cooldownLeft = p.cooldownPeriod;
@@ -1271,8 +1273,16 @@ namespace TranscendenceRL {
 				if(p.cooldownLeft > 0) {
 					int chargeBar = 16 * p.cooldownLeft / p.cooldownPeriod;
 					this.Print(x, y++,
-						new ColoredString($"[{key}] {p.type.name,-8}{new string('>', 16 - chargeBar)}",
-							Color.Gray, Color.Black) + new string(' ', chargeBar)
+						new ColoredString(
+							$"[{key}] {p.type.name,-8}",
+							Color.Gray, Color.Black
+							) + new ColoredString(
+								new string('>', 16 - chargeBar),
+								Color.White, Color.Black
+							) + new ColoredString(
+								new string('>', chargeBar),
+								Color.Gray, Color.Black
+							)
 						);
                 } else if(p.invokeCharge > 0) {
 					var chargeMeter = Math.Min(16, 16 * p.invokeCharge / p.invokeDelay);
@@ -1283,10 +1293,10 @@ namespace TranscendenceRL {
                     }
 					this.Print(x, y++,
 						new ColoredString($"[{key}] {p.type.name, -8}{new string('>', chargeMeter)}", c, Color.Black)
-						+ new ColoredString(new string('>', 16 - chargeMeter), Color.Gray, Color.Black)
+						+ new ColoredString(new string('>', 16 - chargeMeter), Color.White, Color.Black)
 						);
 				} else {
-					this.Print(x, y++, new ColoredString($"[{key}] {p.type.name, -8}", Color.White, Color.Black) + new ColoredString($"{new string('>', 16)}", Color.Gray, Color.Black));
+					this.Print(x, y++, new ColoredString($"[{key}] {p.type.name, -8}", Color.White, Color.Black) + new ColoredString($"{new string('>', 16)}", Color.White, Color.Black));
 				}
 				index++;
             }

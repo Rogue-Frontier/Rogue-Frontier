@@ -141,13 +141,12 @@ namespace TranscendenceRL {
                 Transition(SListScreen.CargoScreen(this, PlayerShip));
             } else if (info.IsKeyPressed(Keys.D)) {
                 Transition(SListScreen.LoadoutScreen(this, PlayerShip));
-                
             }
 
             void Transition(Console s) {
-                s.IsFocused = true;
                 Parent.Children.Add(s);
                 Parent.Children.Remove(this);
+                s.IsFocused = true;
             }
             return base.ProcessKeyboard(info);
         }
