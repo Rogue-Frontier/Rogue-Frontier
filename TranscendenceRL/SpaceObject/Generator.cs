@@ -240,6 +240,9 @@ namespace TranscendenceRL {
 					case "Reactor":
 						generators.Add(new ReactorEntry(element));
 						break;
+					case "Misc":
+						generators.Add(new MiscEntry(element));
+						break;
 					default:
 						throw new Exception($"Unknown <Devices> subelement {element.Name}");
 				}
@@ -282,6 +285,30 @@ namespace TranscendenceRL {
 			var item = new Item(type);
 			if (item.InstallReactor() == null) {
 				throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
+			}
+		}
+	}
+
+	class MiscEntry : DeviceGenerator {
+		public string codename;
+		public MiscEntry() { }
+		public MiscEntry(XElement e) {
+			this.codename = e.ExpectAttribute("codename");
+		}
+		List<Device> DeviceGenerator.Generate(TypeCollection tc) {
+			return new List<Device> { Generate(tc) };
+		}
+		MiscDevice Generate(TypeCollection tc) {
+			var type = tc.Lookup<ItemType>(codename);
+			var item = new Item(type);
+			return item.InstallMisc() ?? throw new Exception($"Expected <ItemType> type with <Misc> desc: {codename}");
+		}
+		//In case we want to make sure immediately that the type is valid
+		public void ValidateEager(TypeCollection tc) {
+			var type = tc.Lookup<ItemType>(codename);
+			var item = new Item(type);
+			if (item.InstallReactor() == null) {
+				throw new Exception($"Expected <ItemType> type with <Misc> desc: {codename}");
 			}
 		}
 	}

@@ -143,6 +143,7 @@ namespace TranscendenceRL {
                                             Weapon w => source.weapon,
                                             Shields s => source.shields,
                                             Reactor r => source.reactor,
+                                            MiscDevice m => source.misc
                                         });
                                     }));
                                 }
@@ -238,7 +239,7 @@ namespace TranscendenceRL {
                         int i = 0;
                         foreach (var type in keys) {
                             var item = new Item(itemDict[type]);
-                            var device = (Device)item.InstallReactor() ?? (Device)item.InstallShields() ?? (Device)item.InstallWeapon();
+                            var device = (Device)item.InstallReactor() ?? (Device)item.InstallShields() ?? (Device)item.InstallWeapon() ?? (Device)item.InstallMisc();
 
                             if(device == null) {
                                 continue;
@@ -407,12 +408,15 @@ namespace TranscendenceRL {
             }
             if (info.IsKeyPressed(Keys.A)) {
                 if (nearest is AIShip a) {
+                    a.ship.active = false;
                     World.RemoveEntity(a);
-                    var playerShip = new PlayerShip(new Player() { Settings = settings }, a.ship);
+
+                    var playerShip = new PlayerShip(new Player() { Settings = settings }, new BaseShip(a.ship));
 
                     playerMain = new PlayerMain(Width, Height, World, playerShip) { IsFocused = true, camera = new Camera(camera) };
                     playerShip.onDestroyed += new ArenaScreenReset(this);
                     World.AddEntity(playerShip);
+                    World.AddEffect(new Heading(playerShip));
 
                     pov = playerShip;
 

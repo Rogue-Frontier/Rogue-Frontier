@@ -53,6 +53,9 @@ namespace TranscendenceRL {
             position += velocity / Program.TICKS_PER_SECOND;
         }
     }
+    public interface StationBehavior {
+        void Update(Station owner);
+    }
     public class Station : SpaceObject, Dockable, ITrader {
         [JsonIgnore]
         public string name => type.name;
@@ -68,6 +71,8 @@ namespace TranscendenceRL {
         public XY velocity { get; set; }
         [JsonProperty]
         public bool active { get; set; }
+
+        public StationBehavior behavior;
         public List<Segment> segments;
         public HullSystem damageSystem;
         [JsonProperty]
@@ -86,6 +91,16 @@ namespace TranscendenceRL {
             cargo = new HashSet<Item>(Type.cargo?.Generate(World.types) ?? new List<Item>());
             weapons = type.weapons?.Generate(World.types);
             weapons?.ForEach(w => w.aiming = new Omnidirectional());
+            InitBehavior(Type.behavior);
+        }
+        public void InitBehavior(StationBehaviors behavior) {
+            switch (behavior) {
+                case StationBehaviors.raisu:
+                    break;
+                case StationBehaviors.none:
+                default:
+                    break;
+            }
         }
         public void CreateSegments() {
             segments = new List<Segment>();
@@ -142,10 +157,12 @@ namespace TranscendenceRL {
             }
             
             world.AddEntity(wreck);
-            foreach(var segment in segments) {
-                var offset = segment.desc.offset;
-                var tile = new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, segment.desc.tile.Glyph.GlyphCharacter);
-                world.AddEntity(new Segment(wreck, new SegmentDesc(offset, new StaticTile(tile))));
+            if (segments != null) {
+                foreach (var segment in segments) {
+                    var offset = segment.desc.offset;
+                    var tile = new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, segment.desc.tile.Original.GlyphCharacter);
+                    world.AddEntity(new Segment(wreck, new SegmentDesc(offset, new StaticTile(tile))));
+                }
             }
 
             if (source.sovereign != sovereign) {
@@ -164,7 +181,7 @@ namespace TranscendenceRL {
 
         public Console GetScene(Console prev, PlayerShip playerShip) => null;
 
-        public ColoredGlyph tile => type.tile.Glyph;
+        public ColoredGlyph tile => type.tile.Original;
 
     }
     public class Segment : SpaceObject {
@@ -194,6 +211,6 @@ namespace TranscendenceRL {
         public void Update() {
         }
         [JsonIgnore] 
-        public ColoredGlyph tile => desc.tile.Glyph;
+        public ColoredGlyph tile => desc.tile.Original;
     }
 }

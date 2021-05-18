@@ -63,9 +63,7 @@
 		<Weapons>
 		</Weapons>
 		<Dock type="united_constellation"/>
-		<!--
-		<HeroImage path="RogueFrontierContent/ConstellationAstra.asc"/>
-		-->
+		<HeroImage path="RogueFrontierContent/sprites/ConstellationAstra.asc.cg"/>
 	</StationType>
 
 	<StationType	codename="station_constellation_habitat"
@@ -75,7 +73,7 @@
 					hp=			"100"
 
 					char=		"H"
-					foreground="BB6633"
+					foreground="BB6633FF"
 		>
 		<Segments>
 			<Point offsetX="0"
@@ -105,7 +103,7 @@
 				hp=			"200"
 
 				char=		"H"
-				foreground="BB6633"
+				foreground="BB6633FF"
 		>
 		<Segments>
 			<Point offsetX="0"

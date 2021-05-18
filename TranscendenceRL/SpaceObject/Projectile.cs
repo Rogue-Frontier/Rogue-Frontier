@@ -45,16 +45,16 @@ namespace TranscendenceRL {
         public bool hitProjectile;
 
         public bool active => lifetime > 0;
-
+        public Projectile() { }
         public Projectile(SpaceObject Source, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
             this.Source = Source;
             this.world = Source.world;
-            this.tile = desc.effect.Glyph;
+            this.tile = desc.effect.Original;
             this.position = Position;
             this.velocity = Velocity;
             this.lifetime = desc.lifetime;
             this.desc = desc;
-            this.trail = (ITrail)desc.trail ?? new SimpleTrail(desc.effect.Glyph);
+            this.trail = (ITrail)desc.trail ?? new SimpleTrail(desc.effect.Original);
             this.maneuver = maneuver;
         }
         public void Update() {

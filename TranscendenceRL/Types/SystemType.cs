@@ -61,6 +61,8 @@ namespace TranscendenceRL {
                     return new SystemSibling(e);
                 case "Star":
                     return new SystemStar(e);
+                case "Stargate":
+                    return new SystemStargate(e);
                 case "Station":
                     return new SystemStation(e);
                 case "Marker":
@@ -379,6 +381,16 @@ namespace TranscendenceRL {
             lc.world.AddEntity(s);
             s.CreateSegments();
             s.CreateGuards();
+        }
+    }
+
+    public class SystemStargate : SystemElement {
+        public SystemStargate() { }
+        public SystemStargate(XElement e) { }
+        public void Generate(LocationContext lc, TypeCollection tc) {
+            var s = new Stargate(lc.world, lc.pos);
+            lc.world.AddEntity(s);
+            s.CreateSegments();
         }
     }
 

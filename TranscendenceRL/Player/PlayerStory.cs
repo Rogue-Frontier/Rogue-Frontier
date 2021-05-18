@@ -7,6 +7,7 @@ using ASECII;
 using Common;
 using SadConsole;
 using SadRogue.Primitives;
+using TranscendenceRL;
 using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
@@ -526,20 +527,41 @@ and services for money. Some might have jobs that you can take.""
                 
                 if(targets.IsSubsetOf(playerShip.known)) {
                     
-                    var sc = new TextScene(prev,
+                    return new TextScene(prev,
 @$"""You've found all the friendly stations in the system. Now that
 you know what services each provide you can return to them when
 needed.""",
                     new List<SceneOption>() {
                         new SceneOption() { escape = true,
                             key = 'C', name = "Continue",
-                            next = Undock
+                            next = Continue
                     }}) { background = heroImage };
+                    Console Continue(Console prev) {
+                        return new TextScene(prev,
+@$"""Now that you're learning to find what you need,
+let me give you another goal.""
+
+""Look around the system. Find all the warlords and pirates,
+where they're hiding in this system.""
+
+""Then, look out there, far out there. At the edge of the system
+is an Errorist compound, where unhinged ""scientists"" commit
+inhumane experiments involving radiation.""
+
+""Fight back at the Orion Warlords and Iron Pirates.
+And when you've gotten used to fighting warlords and pirates,
+go and start destroying Errorists.""",
+                        new List<SceneOption>() {
+                            new SceneOption() { escape = true,
+                                key = 'C', name = "Continue",
+                                next = Undock
+                        }}) { background = heroImage };
+                    }
                     Console Undock(Console prev) {
                         story.mainInteractions.Remove(this);
+                        story.mainInteractions.Add(new DestroyOuterEnemy(story, station, playerShip));
                         return null;
                     }
-                    return sc;
                 } else {
                     int count = targets.Count - targets.Intersect(playerShip.known).Count();
 
@@ -572,15 +594,69 @@ Use your starship's megamap to look for it.""",
         }
     }
 
+
+    class DestroyOuterEnemy : IPlayerInteraction {
+        PlayerStory story;
+        Station station;
+        Station target;
+        public DestroyOuterEnemy(PlayerStory story, Station station, PlayerShip playerShip) {
+            this.story = story;
+            this.station = station;
+            var w = station.world;
+
+            target = new Station(w, w.types.Lookup<StationType>("station_errorist_compound"), XY.Polar(1, 800));
+            target.CreateSegments();
+            target.CreateGuards();
+            w.AddEntity(target);
+        }
+        public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
+            if (d != station) {
+                return null;
+            }
+            var s = station;
+            var heroImage = s.type.heroImage;
+
+            if (!target.active) {
+
+                var sc = new TextScene(prev,
+@$"""Well, congratulations. You've survived my final exam.
+That's all the training I have for you. Hopefully now you
+have at least a fighting chance when you leave this place.""
+
+""Goodbye.""",
+                new List<SceneOption>() {
+                        new SceneOption() { escape = true,
+                            key = 'C', name = "Continue",
+                            next = Undock
+                    }}) { background = heroImage };
+                Console Undock(Console prev) {
+                    story.mainInteractions.Remove(this);
+                    return null;
+                }
+                return sc;
+            } else {
+                return new TextScene(prev,
+@$"""Go and destroy the Errorist compound when you're ready.""",
+                new List<SceneOption>() {
+                        new SceneOption() { escape = true,
+                            key = 'U', name = "Undock",
+                            next = null
+                    }}) { background = heroImage };
+            }
+        }
+    }
+
     class PlayerStory {
         public HashSet<IPlayerInteraction> mainInteractions;
         public HashSet<IPlayerInteraction> secondaryInteractions;
+        public HashSet<IPlayerInteraction> completedInteractions;
 
 
         public PlayerStory() {
             mainInteractions = new HashSet<IPlayerInteraction>();
             mainInteractions.Add(new DaughtersIntro(this));
             secondaryInteractions = new HashSet<IPlayerInteraction>();
+            completedInteractions = new HashSet<IPlayerInteraction>();
         }
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
             Console sc;
@@ -626,7 +702,7 @@ a residential station of the United Constellation.",
                     });
             }
             Console MeetingHall(Console prev) {
-                var mission = mainInteractions.OfType<DestroyStation>().FirstOrDefault(i => i.source == source);
+                var mission = mainInteractions.OfType<DestroyTarget>().FirstOrDefault(i => i.source == source);
                 if (mission != null) {
                     return mission.GetScene(prev, source, playerShip);
                 }
@@ -643,7 +719,7 @@ a residential station of the United Constellation.",
                         }
                     });
                 } else {
-                    mission = mainInteractions.OfType<DestroyStation>().FirstOrDefault(i => i.target == target);
+                    mission = mainInteractions.OfType<DestroyTarget>().FirstOrDefault(i => i.target == target);
 
                     if(mission != null) {
 
@@ -698,8 +774,8 @@ What do you say?""
                         });
                     }
                     Console Accepted(Console prev) {
-                        DestroyStation mission = null;
-                        mission = new DestroyStation(source, target) { inProgress = InProgress, debrief = Debrief };
+                        DestroyTarget mission = null;
+                        mission = new DestroyTarget(source, target) { inProgress = InProgress, debrief = Debrief };
 
                         mainInteractions.Add(mission);
                         return null;
@@ -772,11 +848,13 @@ There is a modest degree of artificial gravity here.",
                         key = 'U', name = "Undock",
                         next = null
                     }
-                });
+                }) { background = source.type.heroImage };
             }
             Console Trade(Console from) => new TradeScene(from, playerShip, source);
             return Intro();
         }
+
+        public bool raisuLiberated;
         public Console Raisu(Console prev, Station source, PlayerShip playerShip) {
             Console Intro() {
                 var nearby = source.world.entities.all
@@ -809,7 +887,112 @@ nobody attends to the docking bay right now.",
                     });
 
                     Console MeetingHall(Console prev) {
-                        return null;
+
+                        var c = source.world.entities.all
+                            .OfType<Station>()
+                            .Where(s => s.type.codename == "station_orion_warlords_camp")
+                            .Count();
+                        if(c > 0) {
+                            return new TextScene(prev,
+@"The station master glares at you.
+
+""Please get out of here before you screw this up.
+We're in the middle of a hostage situation here.
+You're gonna get us killed just sticking around here.
+So if you really want to be a hero, come back when
+you've hit the Orion Warlords where it hurts.
+", new List<SceneOption>() {
+                                new SceneOption() {escape = true,
+                                    key = 'C', name = "Continue",
+                                    next = null
+                                }
+                            });
+                        }
+
+                        if(raisuLiberated) {
+
+                            return new TextScene(prev,
+@"Not much is happening around the station right now.
+You feel a sense of relief.", new List<SceneOption>() {
+                                new SceneOption() {escape = true,
+                                    key = 'C', name = "Continue",
+                                    next = null
+                                }
+                            });
+                        }
+
+                        var target = playerShip.world.entities.all.OfType<AIShip>()
+                                .FirstOrDefault(s => s.shipClass.codename == "ship_arnold_vitrion");
+                        if(target != null) {
+
+                            return new TextScene(prev,
+@"The station master waits for you at the entrance.
+
+""Is it true? Have you confronted the Orion Warlords? They have
+given us a lifetime of suffering. I have one thing to ask of you. 
+Give them eternity.""
+
+""Destroy Arnold Vitrion. And the Orion Warlords will fall.""
+
+The station master brings out a modified Orion Warlords weapon.
+
+""Take these missiles if you have to.""
+", new List<SceneOption>() {
+                                new SceneOption() {escape = true,
+                                    key = 'C', name = "Continue",
+                                    next = Accept
+                                }
+                            });
+                            Console Accept(Console prev) {
+                                playerShip.cargo.Add(new Item(playerShip.world.types.Lookup<ItemType>("itBoostedLongbow")));
+
+                                DestroyTarget mission = null;
+                                mission = new DestroyTarget(source, target) { inProgress = InProgress, debrief = Debrief };
+
+                                mainInteractions.Add(mission);
+                                return null;
+                                Console InProgress(Console prev) {
+                                    var s = source;
+                                    var t = target;
+                                    return new TextScene(prev,
+        @"""You made a promise. Destroy Arnold Vitrion.""",
+                                        new List<SceneOption>() {
+                                    new SceneOption() {escape = true,
+                                        key = 'U', name = "Undock",
+                                        next = null
+                                    }
+                                    });
+                                }
+                                Console Debrief(Console prev) {
+                                    return new TextScene(prev,
+@"""Thank you for destroying Arnold Vitrion. Now the real fight begins""",
+                                        new List<SceneOption>() {
+                                            new SceneOption() {escape = false,
+                                                key = 'U', name = "Undock",
+                                                next = Debriefed
+                                            }
+                                        });
+                                }
+                                Console Debriefed(Console prev) {
+                                    raisuLiberated = true;
+                                    mainInteractions.Remove(mission);
+                                    return null;
+                                }
+                            }
+                        }
+
+
+
+
+                        return new TextScene(prev,
+@"Not much is happening around the station right now.
+The air is dead around these parts.", new List<SceneOption>() {
+                                new SceneOption() {escape = true,
+                                    key = 'C', name = "Continue",
+                                    next = null
+                                }
+                        });
+
                     }
                 }
 
@@ -830,16 +1013,16 @@ nobody attends to the docking bay right now.",
             return Intro();
         }
     }
-    class DestroyStation : IPlayerInteraction {
+    class DestroyTarget : IPlayerInteraction {
         public Station source;
-        public Station target;
+        public SpaceObject target;
         public Func<Console, Console> inProgress, debrief;
-        public DestroyStation(Station source, Station target) {
+        public DestroyTarget(Station source, SpaceObject target) {
             this.source = source;
             this.target = target;
         }
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
-            if(d == source) {
+            if(d != source) {
                 return null;
             }
             if(target.active) {
@@ -850,3 +1033,4 @@ nobody attends to the docking bay right now.",
         }
     }
 }
+

@@ -22,7 +22,7 @@ namespace TranscendenceRL {
             int x = 2;
             int y = 2;
 
-            var fs = FontSize * 4;
+            var fs = FontSize * 3;
 
             this.Children.Add(new Label("[Paused]") { Position = new Point(x, y++), FontSize = fs });
             y++;
@@ -46,11 +46,22 @@ namespace TranscendenceRL {
             var c = new ConsoleComposite(playerMain.back, playerMain);
             for (int y = 0; y < Height; y++) {
                 for (int x = 0; x < Width; x++) {
-                    var cg = c[x, y].Gray();
+                    var source = c[x, y];
+                    var cg = source.Gray();
                     sparkle.Filter(x, y, ref cg);
                     this.SetCellAppearance(x, y, cg);
                 }
             }
+
+            {
+                int x = Width/2 + 8;
+                int y = 6;
+                var controls = playerMain.playerShip.player.Settings;
+                foreach (var line in controls.GetString().Replace("\r",null).Split('\n')) {
+                    this.Print(x, y++, line.PadRight(Width/2), Color.White, Color.Black);
+                }
+            }
+
             base.Render(delta);
         }
         public override bool ProcessKeyboard(Keyboard info) {

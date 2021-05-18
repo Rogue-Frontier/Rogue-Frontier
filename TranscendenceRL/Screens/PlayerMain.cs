@@ -61,12 +61,12 @@ namespace TranscendenceRL {
 		MouseScreenObjectState mouse;
 
 		public BackdropConsole back;
-		Megamap uiMegamap;
-		Vignette vignette;
+		public Megamap uiMegamap;
+		public Vignette vignette;
 		public Console sceneContainer;
-		Readout uiMain;	//If this is visible, then all other ui Consoles are visible
-		Edgemap uiEdge;
-		Minimap uiMinimap;
+		public Readout uiMain;  //If this is visible, then all other ui Consoles are visible
+		public Edgemap uiEdge;
+		public Minimap uiMinimap;
 
 		PowerMenu powerMenu;
 		PauseMenu pauseMenu;
@@ -108,21 +108,49 @@ namespace TranscendenceRL {
 		public void ShowUI() {
 			uiMain.IsVisible = true;
         }
+		public void HideAll() {
+			//Force exit any scenes
+			sceneContainer.Children.Clear();
+			//Force exit power menu
+			powerMenu.IsVisible = false;
+			//Pretty sure this can't happen but make sure
+			pauseMenu.IsVisible = false;
+			uiMain.IsVisible = false;
+		}
+		public void Gate() {
+			if(playerShip.CheckGate() == null) {
+				return;
+            }
+
+			HideAll();
+
+
+			World.entities.Remove(playerShip);
+
+			SadConsole.Game.Instance.Screen = new GateTransition(this, EndCrawl) { IsFocused = true };
+			Console EndCrawl() {
+				SimpleCrawl ds = null;
+				ds = new SimpleCrawl("You have left Human Space.\n\n", EndPause) { Position = new Point(Width / 4, 8), IsFocused = true };
+				void EndPause() {
+					SadConsole.Game.Instance.Screen = new Pause(ds, EndGame, 3);
+				}
+				return ds;
+			}
+			void EndGame() {
+				SadConsole.Game.Instance.Screen = new DeathScreen(this,
+					new Epitaph() {
+						desc = $"Left Human Space",
+						deathFrame = null,
+						wreck = null
+			}) { IsFocused = true };
+			}
+
+		}
 		public void EndGame(SpaceObject destroyer, Wreck wreck) {
 			//Clear mortal time so that we don't slow down after the player dies
 			playerShip.mortalTime = 0;
+			HideAll();
 
-			//Force exit any scenes
-			sceneContainer.Children.Clear();
-
-			//Force exit power menu
-			powerMenu.IsVisible = false;
-
-			//Pretty sure this can't happen but make sure
-			pauseMenu.IsVisible = false;
-
-			uiMain.IsVisible = false;
-			
 			//Get a snapshot of the player
 			var size = Height;
 			var deathFrame = new ColoredGlyph[size, size];
@@ -227,7 +255,6 @@ namespace TranscendenceRL {
 				uiMinimap.alpha = (byte)(255 - uiMegamap.alpha);
 				uiMinimap.Update(delta);
 			} else {
-
 				vignette.Update(delta);
 			}
 
@@ -441,7 +468,7 @@ namespace TranscendenceRL {
 			base.Render(drawTime);
 		}
 	}
-	class Megamap : Console {
+	public class Megamap : Console {
 		Camera camera;
 		PlayerShip player;
 		GeneratedLayer background;
@@ -563,7 +590,7 @@ namespace TranscendenceRL {
 			base.Render(delta);
         }
     }
-	class Vignette : Console {
+	public class Vignette : Console {
 		PlayerShip player;
 		public float powerAlpha;
 		public HashSet<EffectParticle> particles;
@@ -571,6 +598,9 @@ namespace TranscendenceRL {
 		public XY screenCenter;
 		public int ticks;
 		public Random r;
+		public int[,] grid;
+		public bool chargingUp;
+		int recoveryTime;
 		public Vignette(PlayerShip player, int width, int height) : base(width, height) {
 			this.player = player;
 			FocusOnMouseClick = false;
@@ -579,16 +609,38 @@ namespace TranscendenceRL {
 			particles = new HashSet<EffectParticle>();
 			screenCenter = new XY(width / 2, height / 2);
 			r = new Random();
+			grid = new int[width, height];
+			for(int x = 0; x < width; x++) {
+				for(int y = 0; y < height; y++) {
+					grid[x, y] = r.Next(0, 120);
+                }
+            }
 		}
         public override void Update(TimeSpan delta) {
 			var charging = player.powers.Where(p => p.charging);
-			if(charging.Any()) {
-				var charge = Math.Min(1, charging.Max(p => (float) p.invokeCharge / p.invokeDelay));
-				if(powerAlpha < charge) {
+			if (charging.Any()) {
+				var charge = Math.Min(1, charging.Max(p => (float)p.invokeCharge / p.invokeDelay));
+				if (powerAlpha < charge) {
 					powerAlpha += (charge - powerAlpha) / 10f;
-                }
+				}
+				if (recoveryTime < 360) {
+					recoveryTime++;
+				}
+				this.chargingUp = true;
 			} else {
-				powerAlpha -= powerAlpha / 120;
+				var gate = player.CheckGate();
+				if (gate != null) {
+					float targetAlpha = (float)Math.Min(1, (1 - (player.position - gate.position).magnitude / 16));
+					if(powerAlpha < targetAlpha) {
+						powerAlpha += (targetAlpha - powerAlpha) / 60f;
+					}
+				} else {
+					this.chargingUp = false;
+					powerAlpha -= powerAlpha / 120;
+					if (powerAlpha < 0.01 && recoveryTime > 0) {
+						recoveryTime--;
+					}
+				}
 			}
 			ticks++;
 			if(ticks % 5 == 0 && player.ship.controlHijack?.ticksLeft > 30) {
@@ -631,6 +683,31 @@ namespace TranscendenceRL {
 				borderColor = borderColor.Blend(new Color(204, 153, 255, 255) * (float)Math.Min(1, powerAlpha * 1.5)).Premultiply();
 
 				borderSize += (int)(12 * powerAlpha);
+
+				var maxAlpha = powerAlpha * 102;
+				for (int x = 0; x < Width; x++) {
+					for(int y = 0; y < Height; y++) {
+						var alpha = (Math.Sin((grid[x, y] + ticks) * 2 * Math.PI / 240) + 1) * maxAlpha;
+						this.SetCellAppearance(x, y,
+							new ColoredGlyph(
+								borderColor.SetAlpha((byte)(alpha)),
+								Color.Transparent,
+								'-'));
+                    }
+                }
+			} else if(!chargingUp && recoveryTime > 0) {
+				/*
+				var maxAlpha = Math.Min(1, recoveryTime / 120f) * 128;
+				for (int x = 0; x < Width; x++) {
+					for (int y = 0; y < Height; y++) {
+						var alpha = (Math.Sin((grid[x, y] + ticks) * 2 * Math.PI / 240) + 1) * maxAlpha;
+						this.SetCellAppearance(x, y,
+							new ColoredGlyph(
+								Color.Black.SetAlpha((byte)(alpha)),
+								Color.Transparent,
+								this.Font.SolidGlyphIndex));
+					}
+				}*/
 			}
 			if (player.mortalTime > 0) {
 				borderColor = borderColor.Blend(Color.Red.SetAlpha((byte)(Math.Min(1, player.mortalTime / 4.5) * 255)));
@@ -660,12 +737,11 @@ namespace TranscendenceRL {
 				byte alpha = (byte)Math.Max(0, 255 - decrease);
 
 				var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
-
-				var cg = new ColoredGlyph(Color.Transparent, borderColor.SetAlpha(alpha).Premultiply(), ' ');
+				var c = borderColor.SetAlpha(alpha).Premultiply();
 				foreach (var point in screenPerimeter.PerimeterPositions()) {
 					//var back = this.GetBackground(point.X, point.Y).Premultiply();
 					var (x, y) = point;
-					this.SetCellAppearance(x, y, cg);
+					this.SetBackground(x, y, c);
 				}
 			}
 
@@ -677,7 +753,7 @@ namespace TranscendenceRL {
 			base.Render(delta);
         }
     }
-	class Readout : Console {
+	public class Readout : Console {
 		/*
 		struct Snow {
 			public char c;
@@ -718,7 +794,7 @@ namespace TranscendenceRL {
         }
         public override void Render(TimeSpan drawTime) {
 			this.Clear();
-			XY screenSize = new XY(Width - 2, Height - 2);
+			XY screenSize = new XY(Width, Height);
 			XY screenCenter = screenSize / 2;
 			var messageY = Height * 3 / 5;
 			int targetX = 48, targetY = 1;

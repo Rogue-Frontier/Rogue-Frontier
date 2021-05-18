@@ -17,6 +17,7 @@ namespace TranscendenceRL {
 		TargetFriendly,
 		ClearTarget,
 		ShipMenu,
+		Gate,
 		TargetEnemy,
 		Powers,
 		NextWeapon,
@@ -128,6 +129,11 @@ namespace TranscendenceRL {
 			if(info.IsKeyPressed(Escape)) {
 				pauseMenu.IsVisible = true;
 			}
+
+			if(info.IsKeyPressed(controls[ControlKeys.Gate])) {
+				playerMain.Gate();
+            }
+
 			if (info.IsKeyPressed(controls[ShipMenu])) {
 				sceneContainer?.Children.Add(new ShipScreen(playerMain, playerShip) { IsFocused = true });
 			}

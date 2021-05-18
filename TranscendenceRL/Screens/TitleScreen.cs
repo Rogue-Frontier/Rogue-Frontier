@@ -65,7 +65,7 @@ namespace TranscendenceRL {
             load = new LoadMenu(48, 64, settings) { Position = new Point(0, 30), FontSize = fs };
         }
         private void StartGame() {
-            SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, World, StartCrawl)) { IsFocused = true };
+            SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, World, settings, StartCrawl)) { IsFocused = true };
             
             void StartCrawl(ShipSelectorModel context) {
                 var loc = $"{AppDomain.CurrentDomain.BaseDirectory}/save/{context.playerName}";
@@ -133,26 +133,26 @@ namespace TranscendenceRL {
 
                     void Transition() {
                         GameHost.Instance.Screen = new Pause((Console)GameHost.Instance.Screen,Transition2, 1);
+                    }
 
-                        void Transition2() {
-                            GameHost.Instance.Screen = new SimpleCrawl("Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch
-                            {
-                                1 => "Maybe history will remember.",
-                                2 => "Tomorrow will be forever.",
-                                3 => "Life runs short; hurry along now.",
-                                _ => "Maybe all of it will have been for something.",
-                            }), Transition3) { Position = new Point(Width / 4, 8), IsFocused=true };
+                    void Transition2() {
+                        GameHost.Instance.Screen = new SimpleCrawl("Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch {
+                            1 => "Maybe history will remember.",
+                            2 => "Tomorrow will be forever.",
+                            3 => "Life runs short; hurry along now.",
+                            _ => "Maybe all of it will have been for something.",
+                        }), Transition3) { Position = new Point(Width / 4, 8), IsFocused = true };
+                    }
 
-                            void Transition3() {
-                                GameHost.Instance.Screen = new FadeIn(new Pause(playerMain, Transition4, 1)) { IsFocused = true };
-                                void Transition4() {
-                                    GameHost.Instance.Screen = playerMain;
-                                    playerMain.IsFocused = true;
-                                    playerMain.ShowUI();
+                    void Transition3() {
+                        GameHost.Instance.Screen = new FadeIn(new Pause(playerMain, Transition4, 1)) { IsFocused = true };
+                        
+                    }
+                    void Transition4() {
+                        GameHost.Instance.Screen = playerMain;
+                        playerMain.IsFocused = true;
+                        playerMain.ShowUI();
 
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -180,7 +180,7 @@ namespace TranscendenceRL {
             }
         }
         private void StartSurvival() {
-            SadConsole.Game.Instance.Screen = new PlayerCreator(this, World, CreateGame) { IsFocused = true };
+            SadConsole.Game.Instance.Screen = new PlayerCreator(this, World, settings, CreateGame) { IsFocused = true };
 
             void CreateGame(ShipSelectorModel context) {
                 var loc = AppDomain.CurrentDomain.BaseDirectory + Path.PathSeparator + context.playerName;
@@ -215,38 +215,8 @@ namespace TranscendenceRL {
 
                 AddStarterKit(playerShip);
 
-                int waveSize = 1;
-                int shipCount = 1;
-                void EnemyDestroyed() {
-                    shipCount--;
-                    if(shipCount == 0) {
-                        waveSize++;
+                World.AddEvent(new Waves(playerShip));
 
-                        World.AddEntity(new TimedEvent(240, () => {
-                            playerShip.messages.Add(new InfoMessage("Wave incoming!"));
-                            CreateWave();
-                        }));
-                    }
-                }
-                void CreateWave() {
-                    for (int i = 0; i < waveSize; i++) {
-                        var ship = new AIShip(new BaseShip(World,
-                            World.types.shipClass.Values.GetRandom(World.karma),
-                            Sovereign.Gladiator,
-                            XY.Polar(0, 100)), new AttackOrder(playerShip));
-                        ship.ship.onDestroyed += new Container<Destroyed>((b, destroyer, wreck) => {
-                            EnemyDestroyed();
-                        });
-                        World.AddEntity(ship);
-                        World.AddEffect(new Heading(ship));
-                    }                        
-                    shipCount = waveSize;
-                }
-
-                World.AddEntity(new TimedEvent(240, () => {
-                    playerShip.messages.Add(new InfoMessage("Wave incoming!"));
-                    CreateWave();
-                }));
 
                 var playerMain = new PlayerMain(Width, Height, World, playerShip);
                 playerShip.onDestroyed += new EndGame(playerMain);
@@ -434,7 +404,7 @@ namespace TranscendenceRL {
             World w = new World(u);
             w.types.Lookup<SystemType>("system_orion").Generate(w);
             w.UpdatePresent();
-            var quickStartClass = "ship_hyperego";
+            var quickStartClass = "ship_beowulf";
             var playerClass = w.types.Lookup<ShipClass>(quickStartClass);
             var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").position;
             var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
@@ -472,9 +442,11 @@ namespace TranscendenceRL {
 
         void AddStarterKit(PlayerShip playerShip) {
             var World = playerShip.world;
-            playerShip.powers.Add(new Power(World.types.powerType["power_silence"]));
             playerShip.cargo.Add(new Item(World.types.itemType["item_silence_charm"]));
 
+            playerShip.cargo.Add(new Item(World.types.itemType["item_armor_repair_patch"]));
+            playerShip.cargo.Add(new Item(World.types.itemType["item_armor_repair_patch"]));
+            playerShip.cargo.Add(new Item(World.types.itemType["item_armor_repair_patch"]));
             playerShip.cargo.Add(new Item(World.types.itemType["item_armor_repair_patch"]));
 
 

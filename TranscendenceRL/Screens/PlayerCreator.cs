@@ -11,7 +11,7 @@ using Console = SadConsole.Console;
 using Label = ArchConsole.Label;
 using System.IO;
 using ArchConsole;
-
+using static TranscendenceRL.ControlKeys;
 namespace TranscendenceRL {
 
     class ShipSelectorModel {
@@ -36,10 +36,11 @@ namespace TranscendenceRL {
 
         private Console prev;
         private ShipSelectorModel context;
+        private Settings settings;
         private Action<ShipSelectorModel> next;
         private LabelButton leftArrow, rightArrow;
         double time = 0;
-        public PlayerCreator(Console prev, World World, Action<ShipSelectorModel> next) : base(prev.Width, prev.Height) {
+        public PlayerCreator(Console prev, World World, Settings settings, Action<ShipSelectorModel> next) : base(prev.Width, prev.Height) {
             this.prev = prev;
             this.next = next;
             DefaultBackground = Color.Black;
@@ -54,6 +55,7 @@ namespace TranscendenceRL {
                 playerName = "Luminous",
                 playerGenome = World.types.genomeType.Values.First()
             };
+            this.settings = settings;
 
             int y = 2;
 
@@ -172,40 +174,8 @@ namespace TranscendenceRL {
             }
 
             y += 2;
-            foreach(var line in new string[] {
-                "[Controls]",
-                "",
-                "[Escape]  Pause",
-                "",
-                "[Up]      Thrust",
-                "[Left]    Turn left",
-                "[Right]   Turn right",
-                "[Down]    Brake",
-                "",
-                "[P]       Power menu",
-                "",
-                "[A]       Autopilot",
-                "[S]       Ship Screen",
-                "[D]       Dock",
-                "",
-                "[Minus]   Megamap zoom out",
-                "[Plus]    Megamap zoom in",
-                "",
-                "[R]       Clear target",
-                "[T]       Target next enemy",
-                "[F]       Target next friendly",
-                "",
-                "[W]       Next primary weapon",
-                "[Z]       Turn to aim target",
-                "[X]       Fire primary weapon",
-                "",
-                "[Left Click]      Fire primary weapon",
-                "[Right Click]     Thrust",
-                "[Middle Click]    Target nearest",
-                "[Mouse Wheel]     Select primary weapon",
 
-
-            }) {
+            foreach (var line in settings.GetString().Split('\n', '\r')) {
                 this.Print(descX, y++, line);
             }
 
@@ -282,7 +252,7 @@ namespace TranscendenceRL {
         
         public void Back() {
             IsFocused = false;
-            SadConsole.Game.Instance.Screen = new TitleSlideOut(this, prev) { IsFocused = true };
+            Game.Instance.Screen = new TitleSlideOut(this, prev) { IsFocused = true };
         }
         public void Start() {
             next(context);

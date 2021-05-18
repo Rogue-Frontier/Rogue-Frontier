@@ -3,17 +3,19 @@
 				name=		"Simple fuel rod"
 				level=		"1"
 				mass=		"1000"
+				value=		"200"
 
 				invoke=		"refuel"
 				energy=		"2500"
 
-				desc=		"This basic fuel rod provides 25 MJ of energy"
+				desc=		"This basic fuel rod provides 2500 units of energy"
 		>
 	</ItemType>
 	<ItemType	codename=	"item_armor_repair_patch"
 				name=		"armor repair patch"
 				level=		"1"
 				mass=		"1000"
+				value=		"500"
 
 				invoke=		"repairArmor"
 				repairHP=	"30"
@@ -26,6 +28,8 @@
 			name=		"Silence charm"
 			level=		"1"
 			mass=		"1000"
+
+			value=		"3000"
 
 			invoke=		"invokePower"
 			powerType=	"power_silence"
@@ -95,6 +99,8 @@
 				level=		"1"
 				mass=		"1000"
 
+				value=		"2000"
+
 				desc=		"The Amethyst laser cannon is the only laser weapon with a magenta-colored beam."
 		>
 		<Weapon
@@ -112,6 +118,7 @@
 				name=		"Beowulf dual laser cannon"
 				level=		"1"
 				mass=		"2000"
+				value=		"3000"
 
 				desc=		"The Beowulf dual laser cannon allows you to strike with speed."
 		>
@@ -133,6 +140,7 @@
 				name=		"Klaw missile"
 				level=		"2"
 				mass=		"200"
+				value=		"8"
 				
 				desc=		"A Klaw missile seeks its target somewhat aggressively."
 		>
@@ -141,6 +149,7 @@
 				name=		"Klaw missile launcher"
 				level=		"2"
 				mass=		"2000"
+				value=		"400"
 
 				invoke=		"installWeapon"
 				
@@ -173,6 +182,8 @@
 				level=		"2"
 				mass=		"2000"
 
+				value=		"3500"
+
 				invoke=		"installWeapon"
 
 				desc=		"This lightweight kinetic gun is mounted on an omnidirectional turret for automatic aiming. Like any other disposable weapon, it has limited ammo and easy installation."
@@ -200,6 +211,7 @@
 				name=		"Sharpshooter anti-missile defender"
 				level=		"3"
 				mass=		"1000"
+				value=		"4000"
 				
 				invoke=		"installWeapon"
 
@@ -225,6 +237,9 @@
 				mass=		"4000"
 
 				
+				value=		"1500"
+
+				
 				desc=		"The flintlock mass driver fires a basic kinetic projectile."
 		>
 		<Weapon
@@ -245,6 +260,9 @@
 				name=		"Sabre mass driver"
 				level=		"2"
 				mass=		"4000"
+
+				
+				value=		"2500"
 
 				desc=		"The sabre mass driver fires a stronger kinetic projectile."
 		>
@@ -268,6 +286,9 @@
 				level=		"1"
 
 				
+				value=		"1500"
+
+				
 				desc=		"This semicrystalline armor maintains its aesthetic beauty at all damage levels, but it can be quite brittle. The fact that gemsteel glows bright violet when exposed to light is one reason why it is not recommended for stealth fighters."
 		>
 		<Armor	maxHP=		"100"
@@ -280,6 +301,9 @@
 				name=		"Knightscale plate"
 				mass=		"6000"
 				level=		"1"
+
+				
+				value=		"5000"
 				
 				desc=		"This strong armor is made for the Knight series of gunships."
 		>
@@ -297,6 +321,8 @@
 				mass=		"8000"
 				level=		"2"
 				
+				value=		"4500"
+				
 				desc=		"This hardy armor is the main choice of plating for the Wagon-class."
 				>
 		<Armor	maxHP=		"200"
@@ -309,6 +335,7 @@
 			name=		"Dynamite charge"
 			level=		"1"
 			mass=		"2000"
+			value=		"12"
 
 			desc=		"This cheap explosive is capable of blowing apart a civilian starship (with some difficulty)."
 		/>
@@ -317,7 +344,7 @@
 			name=		"Dynamite cannon"
 			level=		"1"
 			mass=		"2000"
-
+			value=		"2000"
 			
 			invoke=		"installWeapon"
 
@@ -363,6 +390,36 @@
 				char=			"z"
 				foreground=		"FF0000FF"
 				/>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_intelligun"
+			name=		"IntelliGun 1.0"
+			level=		"2"
+			mass=		"200"
+			value=		"8"
+
+			invoke=		"installWeapon"
+				
+			desc=		"The IntelliGun fires tracking kinetic rounds."
+		>
+
+		<Weapon
+
+			maneuver=		"8"
+
+			powerUse=		"10"
+			fireCooldown=	"30"
+			missileSpeed=	"40"
+			damageType=		"1"
+			damageHP=		"6"
+			lifetime=		"180"
+
+			initialCharges= "300"
+
+			char=			"+"
+			foreground=		"White"
+			>
 		</Weapon>
 	</ItemType>
 </Module>

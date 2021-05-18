@@ -8,10 +8,15 @@ using SadConsole;
 using Newtonsoft.Json;
 
 namespace TranscendenceRL {
+	public enum StationBehaviors {
+		none,
+		raisu
+    }
 	public class StationType : DesignType {
 		public string codename;
 		public string name;
 		public int hp;
+		public StationBehaviors behavior;
 		public Sovereign Sovereign;
 		public StaticTile tile;
 		public ItemList cargo;
@@ -27,9 +32,11 @@ namespace TranscendenceRL {
 			codename = e.ExpectAttribute("codename");
 			name = e.ExpectAttribute("name");
 			hp = e.ExpectAttributeInt("hp");
+			behavior = e.TryAttributeEnum<StationBehaviors>(nameof(behavior), StationBehaviors.none);
 			Sovereign = collection.Lookup<Sovereign>(e.ExpectAttribute("sovereign"));
 			tile = new StaticTile(e);
 			segments = new List<SegmentDesc>();
+			
 			if (e.HasElement("Segments", out var xmlSegments)) {
 				foreach (var xmlSegment in xmlSegments.Elements()) {
 					switch (xmlSegment.Name.LocalName) {
@@ -74,6 +81,7 @@ namespace TranscendenceRL {
 					this.heroImage = heroImageText.ToImage(heroImageTint);
 				}
 			}
+
 		}
 		public static List<SegmentDesc> CreateRing(string foreground = "White", string background = "Black") {
 			SegmentDesc Create(int x, int y, char c) {

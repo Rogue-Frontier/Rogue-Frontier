@@ -26,8 +26,10 @@ namespace TranscendenceRL {
                 playerShip.ship.damageSystem.Restore();
 
                 //Resurrect the player; remove wreck and restore ship + heading
-                epitaph.wreck.Destroy(null);
-                world.entities.all.Remove(epitaph.wreck);
+                if (epitaph.wreck != null) {
+                    epitaph.wreck.Destroy(null);
+                    world.entities.all.Remove(epitaph.wreck);
+                }
                 playerShip.ship.active = true;
                 playerShip.AddMessage(new InfoMessage("A vision of disaster flashes before your eyes"));
                 world.entities.all.Add(playerShip);
@@ -48,13 +50,6 @@ namespace TranscendenceRL {
             base.Update(delta);
         }
         public override void Render(TimeSpan delta) {
-            var size = epitaph.deathFrame.GetLength(0);
-            int y;
-            for (y = 0; y < size; y++) {
-                for (int x = 0; x < size; x++) {
-                    this.SetCellAppearance(Width - x - 2, y + 1, epitaph.deathFrame[x, y]);
-                }
-            }
             var player = playerShip.player;
             var str =
 @$"
@@ -72,10 +67,20 @@ Final Cargo
 Ships Destroyed
 {string.Join('\n', playerShip.shipsDestroyed.GroupBy(sc => sc.shipClass).Select(pair => $"    {pair.Key.name, -16}{pair.Count(), 4}"))}
 ".Replace("\r", "");
-            y = 2;
+            int y = 2;
             foreach(var line in str.Split('\n')) {
                 this.Print(2, y++, line);
             }
+
+            if(epitaph.deathFrame != null) {
+                var size = epitaph.deathFrame.GetLength(0);
+                for (y = 0; y < size; y++) {
+                    for (int x = 0; x < size; x++) {
+                        this.SetCellAppearance(Width - x - 2, y + 1, epitaph.deathFrame[x, y]);
+                    }
+                }
+            }
+            
 
             base.Render(delta);
         }

@@ -367,7 +367,7 @@ namespace TranscendenceRL {
                 weapon.SetFiring(true, target);
             }
         }
-        public bool Active => target.active && weapon != null;
+        public bool Active => target?.active == true && weapon != null;
     }
     public class ApproachOrbitOrder : IOrder {
         public SpaceObject target;

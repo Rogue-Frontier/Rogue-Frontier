@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 namespace TranscendenceRL {
+	public enum ShipBehaviors {
+		none, arnold
+    }
     public class ShipClass : DesignType {
 		public static ShipClass empty => new ShipClass() { devices = new DeviceList(), damageDesc = new HPSystemDesc(), rotationDecel = 1 };
 
@@ -13,6 +16,7 @@ namespace TranscendenceRL {
 		public double rotationMaxSpeed;
 		public double rotationDecel;
 		public double rotationAccel;
+		public ShipBehaviors behavior;
 		public StaticTile tile;
 		public HullSystemDesc damageDesc;
 		public ItemList cargo;
@@ -33,6 +37,7 @@ namespace TranscendenceRL {
 			rotationMaxSpeed = e.ExpectAttributeDouble("rotationMaxSpeed");
 			rotationDecel = e.ExpectAttributeDouble("rotationDecel");
 			rotationAccel = e.ExpectAttributeDouble("rotationAccel");
+			behavior = e.TryAttributeEnum(nameof(behavior), ShipBehaviors.none);
 			tile = new StaticTile(e);
 			if(e.HasElement("HPSystem", out XElement xmlHPSystem)) {
 				damageDesc = new HPSystemDesc(xmlHPSystem);

@@ -108,6 +108,18 @@ namespace TranscendenceRL {
             this.damageSystem = shipClass.damageDesc.Create(this);
             this.destiny = new Rand(world.karma.NextInteger());
         }
+        public BaseShip(BaseShip source) {
+            this.world = source.world;
+            this.shipClass = source.shipClass;
+            this.sovereign = source.sovereign;
+            this.position = source.position;
+            this.velocity = source.velocity;
+            this.active = true;
+            this.cargo = source.cargo;
+            this.devices = source.devices;
+            this.damageSystem = source.damageSystem;
+            this.destiny = source.destiny;
+        }
         public void SetThrusting(bool thrusting = true) => this.thrusting = thrusting;
         public void SetRotating(Rotating rotating = Rotating.None) {
             this.rotating = rotating;
@@ -251,8 +263,31 @@ namespace TranscendenceRL {
         public void UpdateMotion() {
             position += velocity / Program.TICKS_PER_SECOND;
         }
-        public ColoredGlyph tile => shipClass.tile.Glyph;
+        public ColoredGlyph tile => shipClass.tile.Original;
     }
+    public interface ShipBehavior {
+        void Update(IShip owner);
+    }
+    public class Arnold : ShipBehavior {
+        int ticks = 0;
+        HashSet<PlayerShip> playersMet = new HashSet<PlayerShip>();
+        public void Update(IShip owner) {
+            ticks++;
+            if (ticks % 150 == 0) {
+                var players = owner.world.entities.all
+                    .OfType<PlayerShip>()
+                    .Where(p => (p.position - owner.position).magnitude < 80)
+                    .Where(p => !playersMet.Contains(p));
+                foreach(var p in players) {
+                    p.AddMessage(new Transmission(owner, "Kack! What the hell are you doing here??"));
+                }
+                playersMet.UnionWith(players);
+
+            }
+        }
+    }
+
+
     public class AIShip : IShip {
         public static int ID = 0;
         public int Id = ID++;
@@ -279,6 +314,7 @@ namespace TranscendenceRL {
         [JsonIgnore] 
         public HullSystem damageSystem => ship.damageSystem;
 
+        public ShipBehavior behavior;
         public BaseShip ship;
         public IOrder controller;
         public Docking dock { get; set; }
@@ -295,6 +331,14 @@ namespace TranscendenceRL {
         public AIShip(BaseShip ship, IOrder controller) {
             this.ship = ship;
             this.controller = controller;
+            InitBehavior(ship.shipClass.behavior);
+        }
+        public void InitBehavior(ShipBehaviors b) {
+            switch(b) {
+                case ShipBehaviors.arnold:
+                    behavior = new Arnold();
+                    break;
+            }
         }
         public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
         public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
@@ -307,7 +351,7 @@ namespace TranscendenceRL {
             ship.Destroy(source);
         }
         public void Update() {
-
+            behavior?.Update(this);
             controller.Update(this);
 
             dock?.Update(this);
@@ -436,6 +480,11 @@ namespace TranscendenceRL {
                     SetRotating(Rotating.CCW);
                 }
             }
+        }
+        public Stargate CheckGate() {
+            return world.entities[position]
+                .Select(s => (s is Segment seg ? seg.parent : s))
+                .OfType<Stargate>().FirstOrDefault();
         }
         public void NextWeapon() {
             selectedPrimary++;

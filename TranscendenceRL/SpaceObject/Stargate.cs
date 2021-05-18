@@ -25,7 +25,7 @@ namespace TranscendenceRL {
         [JsonProperty]
         public HashSet<Segment> Segments { get; private set; }
         [JsonIgnore]
-        public ColoredGlyph tile => null;
+        public ColoredGlyph tile => new ColoredGlyph(Color.Purple, Color.White, '*');
         public Stargate() { }
         public Stargate(World World, XY Position) {
             this.world = World;
@@ -36,7 +36,7 @@ namespace TranscendenceRL {
         public void CreateSegments() {
             Segments = new HashSet<Segment>();
 
-            int radius = 6;
+            int radius = 8;
             double circumference = 2 * Math.PI * radius;
             for (int i = 0; i < 2 * Math.PI * radius; i++) {
                 Segments.Add(new Segment(this, new SegmentDesc(
@@ -64,11 +64,15 @@ namespace TranscendenceRL {
                    )));
             }
 
+            Rand r = new Rand();
             radius--;
             for (int i = 0; i < 2 * Math.PI * radius; i++) {
                 Segments.Add(new Segment(this, new SegmentDesc(
                     XY.Polar(2 * Math.PI * i / circumference, radius),
-                    new ColoredGlyph(Color.Violet.SetAlpha(204), Color.Transparent, '#')
+                    new ColoredGlyph(
+                        Color.Violet.SetAlpha((byte)(204 + r.NextInteger(-51, 51))),
+                        Color.Blue.SetAlpha((byte)(204 + r.NextInteger(-51, 51))),
+                        '#')
                     )));
             }
             for (int x = -radius + 1; x < radius; x++) {
@@ -76,8 +80,9 @@ namespace TranscendenceRL {
                     if (x * x + y * y <= radius*radius) {
                         Segments.Add(new Segment(this, new SegmentDesc(
                             new XY(x, y),
-                            new ColoredGlyph(Color.BlueViolet.SetAlpha(204),
-                                Color.Transparent, '%')
+                            new ColoredGlyph(
+                                Color.BlueViolet.SetAlpha((byte)(204 + r.NextInteger(-51, 51))),
+                                Color.DarkBlue.SetAlpha((byte)(204 + r.NextInteger(-51, 51))), '%')
                         )));
                     }
                 }

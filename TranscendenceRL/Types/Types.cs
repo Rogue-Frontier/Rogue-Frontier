@@ -232,9 +232,13 @@ namespace TranscendenceRL {
 	public interface DesignType {
 		void Initialize(TypeCollection collection, XElement e);
 	}
-	public class StaticTile {
+	public interface ITile {
+		public ColoredGlyph Original { get; }
+		void Update() { }
+    }
+	public class StaticTile : ITile {
 		[JsonProperty]
-		public ColoredGlyph Glyph { get; set; }
+		public ColoredGlyph Original { get; set; }
 		public StaticTile() {
         }
 		public StaticTile(XElement e) {
@@ -242,18 +246,40 @@ namespace TranscendenceRL {
 			Color foreground = e.TryAttributeColor("foreground", Color.White);
 			Color background = e.TryAttributeColor("background", Color.Transparent);
 
-			Glyph = new ColoredGlyph(foreground, background, c);
+			Original = new ColoredGlyph(foreground, background, c);
 		}
-		public StaticTile(ColoredGlyph Glyph) => this.Glyph = Glyph;
+		public StaticTile(ColoredGlyph Glyph) => this.Original = Glyph;
 		public StaticTile(char c) {
-			Glyph = new ColoredGlyph(Color.White, Color.Black, c);
+			Original = new ColoredGlyph(Color.White, Color.Black, c);
 		}
 		public StaticTile(char c, string foreground, string background) {
 			var fore = (Color)typeof(Color).GetField(foreground).GetValue(null);
 			var back = (Color)typeof(Color).GetField(background).GetValue(null);
-			Glyph = new ColoredGlyph(fore, back, c);
+			Original = new ColoredGlyph(fore, back, c);
 		}
-		public static implicit operator ColoredGlyph(StaticTile t) => t.Glyph;
+		public static implicit operator ColoredGlyph(StaticTile t) => t.Original;
 		public static implicit operator StaticTile(ColoredGlyph cg) => new StaticTile(cg);
+	}
+
+	public class AlphaTile : ITile {
+		[JsonProperty]
+		public ColoredGlyph Original { get; set; }
+		public ColoredGlyph Glyph => new ColoredGlyph(
+			Original.Foreground.SetAlpha((byte)(
+				Original.Foreground.A + alphaRange * Math.Sin(ticks * 2 * Math.PI / cycle))),
+			Original.Background.SetAlpha((byte)(
+				Original.Background.A + alphaRange * Math.Sin(ticks * 2 * Math.PI / cycle))),
+			Original.Glyph);
+		int cycle;
+		int alphaRange;
+
+		int ticks = 0;
+		public AlphaTile(ColoredGlyph Glyph) {
+			this.Original = Glyph;
+		}
+		public void Update() {
+			ticks++;
+        }
+		public static implicit operator ColoredGlyph(AlphaTile t) => t.Original;
 	}
 }

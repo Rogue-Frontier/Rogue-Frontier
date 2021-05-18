@@ -308,7 +308,7 @@
 			<Weapon codename="item_laser_pointer"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="item_knightscale_plate"/>
+			<Armor  codename="itHunterscalePlate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 

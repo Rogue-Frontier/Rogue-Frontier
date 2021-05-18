@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using SadRogue.Primitives;
-
+using static Common.Main;
 namespace Common {
     public class SparkleFilter {
         float[,] time;
@@ -28,10 +28,7 @@ namespace Common {
             var value = Math.Sin(time[x, y] * 2 * Math.PI / cycle);
             float brightness = cg.Foreground.GetBrightness();
             brightness = (float)Math.Clamp(brightness + value * brightness / 4, 0, 1);
-
-            var f = cg.Foreground;
-            f = Color.FromHSL(f.GetHue(), f.GetSaturation(), brightness);
-            cg.Foreground = f;
+            cg.Foreground = cg.Foreground.SetBrightness(brightness);
         }
     }
 }

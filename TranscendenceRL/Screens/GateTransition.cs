@@ -2,13 +2,11 @@
 using SadConsole;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Console = SadConsole.Console;
-using Common;
 using SadConsole.Input;
 
 namespace TranscendenceRL {
-    public class DeathTransition : Console {
+    public class GateTransition : Console {
         Console prev, next;
         public class Particle {
             public int x, destY;
@@ -16,12 +14,20 @@ namespace TranscendenceRL {
         }
         HashSet<Particle> particles;
         double time;
-        public DeathTransition(Console prev, Console next) : base(prev.Width, prev.Height) {
+        public GateTransition(Console prev, Console next) : base(prev.Width, prev.Height) {
             this.prev = prev;
             this.next = next;
+            InitParticles();
+        }
+        public GateTransition(Console prev, Func<Console> next) : base(prev.Width, prev.Height) {
+            this.prev = prev;
+            this.next = next();
+            InitParticles();
+        }
+        public void InitParticles() {
             particles = new HashSet<Particle>();
-            for(int y = 0; y < Height/2; y++) {
-                for(int x = 0; x < Width; x++) {
+            for (int y = 0; y < Height / 2; y++) {
+                for (int x = 0; x < Width; x++) {
                     particles.Add(new Particle() {
                         x = x,
                         y = -1,
@@ -30,7 +36,7 @@ namespace TranscendenceRL {
                     });
                 }
             }
-            for (int y = Height/2; y < Height; y++) {
+            for (int y = Height / 2; y < Height; y++) {
                 for (int x = 0; x < Width; x++) {
                     particles.Add(new Particle() {
                         x = x,
@@ -47,22 +53,22 @@ namespace TranscendenceRL {
             }
             return base.ProcessKeyboard(keyboard);
         }
-        public void Transition () {
+        public void Transition() {
             SadConsole.Game.Instance.Screen = next;
             next.IsFocused = true;
         }
         public override void Update(TimeSpan delta) {
             prev.Update(delta);
             time += delta.TotalSeconds / 2;
-            if(time < 4) {
+            if (time < 2) {
                 return;
-            } else if(time < 9) {
+            } else if (time < 6) {
                 foreach (var p in particles) {
-                    if(p.delay > 0) {
-                        p.delay -= delta.TotalSeconds/2;
+                    if (p.delay > 0) {
+                        p.delay -= delta.TotalSeconds * 2 / 3;
                     } else {
                         var offset = (p.destY - p.y);
-                        p.y += Math.MinMagnitude(offset, Math.MaxMagnitude(Math.Sign(offset), offset * delta.TotalSeconds/2));
+                        p.y += Math.MinMagnitude(offset, Math.MaxMagnitude(Math.Sign(offset), offset * delta.TotalSeconds / 2));
                     }
                 }
             } else {
@@ -74,7 +80,7 @@ namespace TranscendenceRL {
             prev.Render(delta);
             base.Render(delta);
             this.Clear();
-            foreach(var p in particles) {
+            foreach (var p in particles) {
                 this.SetCellAppearance(p.x, (int)p.y, new ColoredGlyph(Color.Black, Color.Black, ' '));
             }
         }

@@ -82,7 +82,7 @@ namespace TranscendenceRL {
         }
     }
     public class Refuel : InvokeAction {
-        int energy;
+        public int energy;
         public Refuel() { }
         public Refuel(TypeCollection tc, XElement e) {
             energy = e.ExpectAttributeInt("energy");
@@ -91,18 +91,9 @@ namespace TranscendenceRL {
             return "Refuel reactor";
         }
         public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
-            var reactor = player.devices.Reactors.FirstOrDefault(r => !r.desc.battery);
-
-            if(reactor == null) {
-                return;
-            }
-
-            reactor.energy += energy;
-            player.AddMessage(new InfoMessage($"Refueled reactor with {item.type.name}"));
-
-            player.cargo.Remove(item);
-
-            callback?.Invoke();
+            var p = prev.Parent;
+            p.Children.Remove(prev);
+            p.Children.Add(SListScreen.RefuelReactor(prev, player, item, this, callback));
         }
     }
 
@@ -118,6 +109,7 @@ namespace TranscendenceRL {
         public WeaponDesc weapon;
         public ShieldDesc shield;
         public ReactorDesc reactor;
+        public MiscDesc misc;
 
         public InvokeAction invoke;
 
@@ -159,6 +151,9 @@ namespace TranscendenceRL {
             }
             if(e.HasElement("Reactor", out var xmlReactor)) {
                 reactor = new ReactorDesc(xmlReactor);
+            }
+            if(e.HasElement("Misc", out var xmlMisc)) {
+                misc = new MiscDesc(xmlMisc);
             }
         }
     }
@@ -359,6 +354,16 @@ namespace TranscendenceRL {
             capacity = e.ExpectAttributeInt(nameof(capacity));
             efficiency = e.TryAttributeDouble(nameof(efficiency), 1);
             battery = e.TryAttributeBool(nameof(battery), false);
+        }
+    }
+    public class MiscDesc {
+        public bool missileJack;
+        public int interval;
+        public MiscDevice GetMisc(Item i) => new MiscDevice(i, this);
+        public MiscDesc() { }
+        public MiscDesc(XElement e) {
+            missileJack = e.TryAttributeBool(nameof(missileJack), false);
+            interval = e.ExpectAttributeInt(nameof(interval));
         }
     }
 }

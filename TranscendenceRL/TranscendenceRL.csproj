@@ -45,6 +45,9 @@
     <None Update="readme.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="RogueFrontierContent\sprites\ConstellationAstra.asc.cg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="RogueFrontierContent\unused\BenedictPortrait.asc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -162,6 +165,10 @@
     <None Update="RogueFrontierContent\scripts\Constellation.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="RogueFrontierContent\text\" />
   </ItemGroup>
 
   <Import Project="..\Common\Common.projitems" Label="Shared" />

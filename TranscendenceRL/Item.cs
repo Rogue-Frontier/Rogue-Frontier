@@ -16,6 +16,7 @@ namespace TranscendenceRL {
         public Armor armor;
         public Shields shields;
         public Reactor reactor;
+        public MiscDevice misc;
         public Item() { }
         public Item(Item clone) {
             type = clone.type;
@@ -23,6 +24,7 @@ namespace TranscendenceRL {
             armor = clone.armor != null ? new Armor(this, clone.armor.desc) : null;
             shields = clone.shields != null ? new Shields(this, clone.shields.desc) : null;
             reactor = clone.reactor != null ? new Reactor(this, clone.reactor.desc) : null;
+            misc = clone.misc != null ? new MiscDevice(this, clone.misc.desc) : null;
         }
         public Item(ItemType type) {
             this.type = type;
@@ -39,12 +41,19 @@ namespace TranscendenceRL {
                 { typeof(Armor), armor },
                 { typeof(Shields), shields },
                 { typeof(Reactor), reactor },
+                { typeof(MiscDevice), misc }
             }[type];
         }
-        public Weapon InstallWeapon() => weapon = type.weapon?.GetWeapon(this);
-        public Armor InstallArmor() => armor = type.armor?.GetArmor(this);
-        public Shields InstallShields() => shields = type.shield?.GetShields(this);
-        public Reactor InstallReactor() => reactor = type.reactor?.GetReactor(this);
+        public Weapon InstallWeapon() => type.weapon != null ?
+            weapon = new Weapon(this, type.weapon) : null;
+        public Armor InstallArmor() => type.armor != null ?
+            armor = new Armor(this, type.armor) : null;
+        public Shields InstallShields() => type.shield != null ?
+            shields = new Shields(this, type.shield) : null;
+        public Reactor InstallReactor() => type.reactor != null ?
+            reactor = new Reactor(this, type.reactor) : null;
+        public MiscDevice InstallMisc() => type.misc != null ?
+            misc = new MiscDevice(this, type.misc) : null;
         public void RemoveAll() {
             weapon = null;
             armor = null;
@@ -84,7 +93,7 @@ namespace TranscendenceRL {
     public class Weapon : Powered {
         public Item source { get; private set; }
         public WeaponDesc desc;
-        public int powerUse => fireTime > 0 ? desc.powerUse : 0;
+        public int powerUse => fireTime > 0 ? desc.powerUse : desc.powerUse / 10;
         public int missileSpeed { get {
                 int result = desc.shot.missileSpeed;
                 capacitor?.ModifyMissileSpeed(ref result);
@@ -269,12 +278,11 @@ namespace TranscendenceRL {
             capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);
             capacitor?.Discharge();
 
-            var maneuver = new Maneuver(aiming?.target, desc.shot.maneuver, desc.shot.maneuverRadius);
-
             var shotDesc = desc.shot;
             double angleInterval = shotDesc.spreadAngle / shotDesc.count;
             for (int i = 0; i < shotDesc.count; i++) {
                 double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
+                var maneuver = new Maneuver(aiming?.target, desc.shot.maneuver, desc.shot.maneuverRadius);
                 Projectile p = new Projectile(source,
                     shotDesc,
                     source.position + XY.Polar(angle),
@@ -560,18 +568,52 @@ namespace TranscendenceRL {
             energy = Math.Max(0, Math.Min(energy + (energyDelta < 0 ? energyDelta / desc.efficiency : energyDelta) / 30, desc.capacity));
         }
     }
-
-    public interface IUsable {
-
-    }
-    public class ArmorRepair : IUsable {
-        public Item source;
-        public ArmorRepair(Item source) {
+    public class MiscDevice : Device {
+        public Item source { get; set; }
+        public MiscDesc desc;
+        public int ticks;
+        public MiscDevice(Item source, MiscDesc desc) {
             this.source = source;
+            this.desc = desc;
         }
-        public void Use(PlayerShip playerShip, Armor armor) {
-            playerShip.cargo.Remove(source);
+        public void Update(IShip owner) {
+            ticks++;
+            if(ticks%desc.interval == 0) {
+                if(desc.missileJack) {
+                    //May not work in Arena mode if we assume control
+                    //bc weapon locks are focused on the old AI ship
+                    var missile = owner.world.entities.all
+                        .OfType<Projectile>()
+                        .FirstOrDefault(
+                            p => (owner.position - p.position).magnitude < 24
+                              && p.maneuver != null
+                              && p.maneuver.maneuver > 0
+                              && SSpaceObject.Equals(p.maneuver.target, owner)
+                            );
+                    if(missile != null) {
 
+                        if (owner is PlayerShip) {
+                            int i = 0;
+                        }
+
+                        missile.maneuver.target = missile.Source;
+                        missile.Source = owner;
+
+                        var offset = (missile.position - owner.position);
+                        var dist = offset.magnitude;
+                        var inc = offset.normal;
+                        for(var i = 0; i < dist; i++) {
+                            var p = owner.position + inc * i;
+                            owner.world.AddEffect(new EffectParticle(p, new ColoredGlyph(Color.Orange, Color.Transparent, '-'), 10));
+                        }
+
+                    } else {
+                        if(owner is PlayerShip && owner.world.entities.all.OfType<Projectile>().Any()) {
+                            int i = 0;
+                        }
+                    }
+                }
+            }
         }
     }
 }

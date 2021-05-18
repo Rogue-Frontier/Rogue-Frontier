@@ -12,6 +12,8 @@ using SadConsole.Input;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Data;
+using NCalc;
 
 namespace Common {
     public static class Main {
@@ -137,6 +139,7 @@ namespace Common {
 		public static Color WithValues(this Color c, int? red = null, int? green = null, int? blue = null, int? alpha = null) {
 			return new Color(red ?? c.R, green ?? c.G, blue ?? c.B, alpha ?? c.A);
 		}
+		public static Color SetBrightness(this Color c, float brightness) => Color.FromHSL(c.GetHue(), c.GetSaturation(), brightness);
 		public static double CalcFireAngle(XY posDiff, XY velDiff, double missileSpeed, out double timeToHit) {
 			/*
 			var timeToHit = posDiff.Magnitude / missileSpeed;
@@ -389,10 +392,14 @@ namespace Common {
 			}
 		}
 		public static int ExpectAttributeInt(this XAttribute a) {
-			if(int.TryParse(a.Value, out int result)) {
+			
+			if (int.TryParse(a.Value, out int result)) {
 				return result;
+			} else if (a.Value.Any()) {
+				Expression e = new Expression(a.Value);
+				return Convert.ToInt32(e.Evaluate());
 			} else {
-				throw new Exception($"int value expected: {a.Name} = \"{a.Value}\"");
+				throw new Exception($"int value / equation expected: {a.Name} = \"{a.Value}\"");
 			}
 		}
 
@@ -407,6 +414,9 @@ namespace Common {
 		public static double ExpectAttributeDouble(this XAttribute a) {
 			if (double.TryParse(a.Value, out double result)) {
 				return result;
+			} else if (a.Value.Any()) {
+				Expression e = new Expression(a.Value);
+				return Convert.ToDouble(e.Evaluate());
 			} else {
 				throw new Exception($"double value expected: {a.Name} = \"{a.Value}\"");
 			}
@@ -735,6 +745,22 @@ namespace Common {
 				b: (byte)((alpha * foreground.B + inv_alpha * background.B) >> 8),
 				alpha: setAlpha
 				);
+		}
+		public static ColoredGlyph Blend(this ColoredGlyph back, ColoredGlyph front) {
+			List<CellDecorator> d = new List<CellDecorator>();
+			Color f = back.Foreground;
+			Color b = back.Background;
+			int g = back.Glyph;
+
+			if (front.Glyph != 0 && front.Glyph != ' ' && front.Foreground.A != 0) {
+				d.Add(new CellDecorator(f, g, Mirror.None));
+
+				f = front.Foreground;
+				g = front.Glyph;
+			}
+			b = b.Premultiply().Blend(front.Background);
+
+			return new ColoredGlyph(f, b, g) { Decorators = d.ToArray() };
 		}
 
 		public static ColoredGlyph PremultiplySet(this ColoredGlyph cg, int alpha) {

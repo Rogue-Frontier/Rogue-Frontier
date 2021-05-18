@@ -5,6 +5,10 @@
 		<System>
 			<Star	 radius="50"/>
 
+			<Orbital radius="150" angle="random">
+				<Stargate></Stargate>
+			</Orbital>
+
 			<Orbital count="5"
 					 radius="300"
 					 angle="random">
@@ -17,10 +21,13 @@
 				<Group>
 					<Asteroids angle="60" size="20"/>
 					<Station codename="station_raisu"/>
+					<Sibling radiusInc="200" angleInc="60">
+						<Station codename="station_arnold_habitat"/>
+					</Sibling>
 				</Group>
 			</Orbital>
 
-			<Orbital radius="500"
+			<Orbital radius="400"
 					 angle="random">
 
 				<!--Giant planet-->

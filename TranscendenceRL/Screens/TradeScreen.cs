@@ -47,26 +47,24 @@ namespace TranscendenceRL {
             foreach (var key in keyboard.KeysPressed) {
                 switch (key.Key) {
                     case Keys.Up:
-                        if (from.Any()) {
-                            if (index == null) {
-                                index = from.Count - 1;
-                            } else {
-                                index = Math.Max(index.Value - 1, 0);
-                            }
-                        } else {
-                            index = null;
-                        }
+                        index = from.Any()
+                            ? (index == null ? (from.Count - 1) : Math.Max(index.Value - 1, 0))
+                            : null;
+                        break;
+                    case Keys.PageUp:
+                        index = from.Any()
+                            ? (index == null ? (from.Count - 1) : Math.Max(index.Value - 26, 0))
+                            : null;
                         break;
                     case Keys.Down:
-                        if (from.Any()) {
-                            if (index == null) {
-                                index = 0;
-                            } else {
-                                index = Math.Min(index.Value + 1, from.Count - 1);
-                            }
-                        } else {
-                            index = null;
-                        }
+                        index = from.Any()
+                            ? (index == null ? 0 : Math.Min(index.Value + 1, from.Count - 1))
+                            : null;
+                        break;
+                    case Keys.PageDown:
+                        index = from.Any()
+                            ? (index == null ? 0 : Math.Min(index.Value + 26, from.Count - 1))
+                            : null;
                         break;
                     case Keys.Left:
                         playerSide = true;
@@ -118,24 +116,21 @@ namespace TranscendenceRL {
 
                 ref int? index = ref (playerSide ? ref playerIndex : ref dockedIndex);
                 if (index != null) {
-                    if (!playerSide) {
-
-
-                        var item = from.ElementAt(index.Value);
-
+                    var item = from.ElementAt(index.Value);
+                    if (playerSide) {
+                        player.money += item.type.value;
+                    } else {
                         if (player.money < item.type.value) {
                             return;
                         }
                         player.money -= item.type.value;
-
-                        from.Remove(item);
-                        to.Add(item);
-
-                        if (from.Any()) {
-                            index = Math.Min(index ?? 0, from.Count - 1);
-                        } else {
-                            index = null;
-                        }
+                    }
+                    from.Remove(item);
+                    to.Add(item);
+                    if (from.Any()) {
+                        index = Math.Min(index ?? 0, from.Count - 1);
+                    } else {
+                        index = null;
                     }
                 }
             }
@@ -173,6 +168,21 @@ namespace TranscendenceRL {
                     i++;
                     y++;
                 }
+
+
+                var height = 26;
+                var barStart = (height * (start)) / playerItems.Count;
+                var barEnd = (height * (end)) / playerItems.Count;
+
+                for(i = 0; i < height; i++) {
+                    if(i < barStart || i > barEnd) {
+                        this.SetCellAppearance(x - 1, 16 + i,
+                            new ColoredGlyph(Color.LightGray, Color.Black, '|'));
+                    } else {
+                        this.SetCellAppearance(x - 1, 16 + i,
+    new ColoredGlyph(Color.White, Color.Black, '#'));
+                    }
+                }
             } else {
                 var highlightColor = playerSide ? Color.Yellow : Color.White;
                 var name = new ColoredString("<Empty>", highlightColor, Color.Black);
@@ -193,7 +203,7 @@ namespace TranscendenceRL {
                     this.Print(x, y++, $"      -{$"{item.type.value}".PadLeft(8)}", f, b);
                 }
             }
-            x += 32;
+            x += 32 + 1;
             y = 16;
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
                 this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
@@ -222,6 +232,20 @@ namespace TranscendenceRL {
                     this.Print(x, y, name);
                     i++;
                     y++;
+                }
+
+                var height = 26;
+                var barStart = (height * (start)) / dockedItems.Count;
+                var barEnd = (height * (end)) / dockedItems.Count;
+
+                for (i = 0; i < height; i++) {
+                    if (i < barStart || i > barEnd) {
+                        this.SetCellAppearance(x - 1, 16 + i,
+                            new ColoredGlyph(Color.LightGray, Color.Black, '|'));
+                    } else {
+                        this.SetCellAppearance(x - 1, 16 + i,
+    new ColoredGlyph(Color.White, Color.Black, '#'));
+                    }
                 }
             } else {
                 var highlightColor = !playerSide ? Color.Yellow : Color.White;
