@@ -30,6 +30,8 @@
 				mass=		"8000"
 				level=		"4"
 
+				invoke=		"installWeapon"
+
 				desc=		"The Iron cannon fires a crude seeking missile."
 				>
 		<Weapon			powerUse=		"50"
@@ -83,7 +85,7 @@
 				rotationMaxSpeed=	"4"
 
 				char=				"i"
-				foreground=			"Gray"
+				foreground=			"LightGray"
 		>
 		<Devices>
 			<Weapon	codename="item_iron_laser"/>

@@ -1,4 +1,5 @@
 ﻿using Common;
+using Newtonsoft.Json;
 using SadConsole;
 using SadRogue.Primitives;
 using System;
@@ -11,10 +12,12 @@ namespace TranscendenceRL {
         public PlayerShip owner;
         public XY offset;
         public int lifetime;
-        HashSet<Projectile> cloneList;
+        public HashSet<Projectile> cloneList;
         public XY position { get; set; }
 
+        [JsonIgnore]
         public bool active => lifetime > 0;
+        [JsonIgnore]
         public ColoredGlyph tile => new ColoredGlyph(Color.Yellow, Color.Black, '*');
         public AccuseBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> cloneList) {
             this.owner = owner;

@@ -203,6 +203,12 @@ namespace TranscendenceRL {
                     this.Print(x, y++, $"      -{$"{item.type.value}".PadLeft(8)}", f, b);
                 }
             }
+
+            y = Height - 16;
+            foreach (var m in playerShip.messages) {
+                this.Print(x, y++, m.Draw());
+            }
+
             x += 32 + 1;
             y = 16;
             foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {

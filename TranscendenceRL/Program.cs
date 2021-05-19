@@ -65,7 +65,7 @@ namespace TranscendenceRL {
 #if DEBUG
             ShowTitle();
             //title.QuickStart();
-            title.QuickStart();
+            title.StartSurvival();
 #else
             ShowSplash();
 #endif

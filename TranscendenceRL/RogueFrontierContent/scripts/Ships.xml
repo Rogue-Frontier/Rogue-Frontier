@@ -174,8 +174,8 @@
 			<Item codename="item_armor_repair_patch"/>
 		</Items>
         <Devices>
-			<Weapon codename="item_sharpshooter_defender"/>
 			<Weapon codename="item_musket_cannon"/>
+			<Weapon codename="item_sharpshooter_defender"/>
 			<Reactor codename="item_foundry_reactor"/>
 			<Reactor codename="item_foundry_battery"/>
 		</Devices>

@@ -14,7 +14,7 @@ namespace TranscendenceRL {
             this.devices = devices;
             this.disabled = new HashSet<Powered>();
         }
-        public void Update() {
+        public void Update(PlayerShip player) {
             if (!devices.Reactors.Any()) {
                 return;
             }
@@ -37,10 +37,13 @@ namespace TranscendenceRL {
 
             int sourceOutput = sources[sourceIndex].maxOutput;
 
+            HashSet<Powered> deactivated = new HashSet<Powered>();
+
+            //Devices consume power
             int outputUsed = 0;
             foreach(var powered in devices.Powered.Where(p => !disabled.Contains(p))) {
                 if(outputUsed + powered.powerUse > maxOutputLeft) {
-                    disabled.Add(powered);
+                    deactivated.Add(powered);
                     continue;
                 }
                 outputUsed += powered.powerUse;
@@ -60,6 +63,16 @@ namespace TranscendenceRL {
                 }
             }
 
+            
+            if(deactivated.Any()) {
+                disabled.UnionWith(deactivated);
+                player.AddMessage(new InfoMessage("Reactor output overload!"));
+                foreach(var d in deactivated) {
+                    player.AddMessage(new InfoMessage($"{d.source.type.name} deactivated!"));
+                }
+            }
+
+            //Batteries recharge from reactor
             int maxReactorOutputLeft = maxOutputLeft - batteries.Sum(b => b.maxOutput);
             foreach(var battery in batteries.Where(b => b.energy < b.desc.capacity)) {
                 if(maxReactorOutputLeft > 0) {

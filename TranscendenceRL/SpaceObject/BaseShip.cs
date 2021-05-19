@@ -481,6 +481,12 @@ namespace TranscendenceRL {
                 }
             }
         }
+        public void DisengageAutopilot() {
+            if (autopilot) {
+                autopilot = false;
+                AddMessage(new InfoMessage($"Autopilot disengaged"));
+            }
+        }
         public Stargate CheckGate() {
             return world.entities[position]
                 .Select(s => (s is Segment seg ? seg.parent : s))
@@ -766,7 +772,7 @@ namespace TranscendenceRL {
             foreach (var enabled in ship.devices.Installed.Except(energy.disabled)) {
                 enabled.Update(this);
             }
-            energy.Update();
+            energy.Update(this);
         }
         public void AddMessage(IPlayerMessage message) {
             var existing = messages.FirstOrDefault(m => m.message.String.Equals(message.message.String));

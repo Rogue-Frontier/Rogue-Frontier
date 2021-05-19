@@ -4,6 +4,7 @@ using System.Text;
 
 namespace TranscendenceRL {
     public interface Event {
+        bool active { get; }
         void Update();
     }
 }

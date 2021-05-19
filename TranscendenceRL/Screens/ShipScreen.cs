@@ -15,12 +15,12 @@ using Common;
 namespace TranscendenceRL {
     class ShipScreen : Console {
         public Console prev;
-        public PlayerShip PlayerShip;
+        public PlayerShip playerShip;
         //Idea: Show an ASCII-art map of the ship where the player can walk around
         public ShipScreen(Console prev, PlayerShip PlayerShip) : base(prev.Width, prev.Height) {
             this.prev = prev;
 
-            this.PlayerShip = PlayerShip;
+            this.playerShip = PlayerShip;
         }
         public override void Render(TimeSpan delta) {
 
@@ -28,7 +28,7 @@ namespace TranscendenceRL {
 
             this.Clear();
 
-            var name = PlayerShip.shipClass.name;
+            var name = playerShip.shipClass.name;
             var x = Width / 4 - name.Length / 2;
             var y = 4;
 
@@ -40,7 +40,7 @@ namespace TranscendenceRL {
             Print(x, y, name);
 
 
-            var map = PlayerShip.shipClass.playerSettings?.map ?? new string[] { "" };
+            var map = playerShip.shipClass.playerSettings?.map ?? new string[] { "" };
             x = Math.Max(0, Width / 4 - map.Select(line => line.Length).Max() / 2);
             y = 2;
 
@@ -52,16 +52,17 @@ namespace TranscendenceRL {
             }
             y++;
 
-            Print(x, y, $"{$"Thrust:    {PlayerShip.shipClass.thrust}", -16}{$"Rotation acceleration: {PlayerShip.shipClass.rotationAccel, 4} deg/s^2"}");
+            x = 1;
+            Print(x, y, $"{$"Thrust:    {playerShip.shipClass.thrust}", -16}{$"Rotation acceleration: {playerShip.shipClass.rotationAccel, 4} deg/s^2"}");
             y++;
-            Print(x, y, $"{$"Max Speed: {PlayerShip.shipClass.maxSpeed}",-16}{$"Rotation deceleration: {PlayerShip.shipClass.rotationDecel, 4} deg/s^2"}");
+            Print(x, y, $"{$"Max Speed: {playerShip.shipClass.maxSpeed}",-16}{$"Rotation deceleration: {playerShip.shipClass.rotationDecel, 4} deg/s^2"}");
             y++; 
-            Print(x, y, $"{"",-16}{$"Rotation max speed:    {PlayerShip.shipClass.rotationMaxSpeed*30, 4} deg/s^2"}");
+            Print(x, y, $"{"",-16}{$"Rotation max speed:    {playerShip.shipClass.rotationMaxSpeed*30, 4} deg/s^2"}");
 
             x = Width / 2;
             y = 2;
 
-            var reactors = PlayerShip.ship.devices.Reactors;
+            var reactors = playerShip.ship.devices.Reactors;
             if(reactors.Any()) {
                 Print(x, y++, "[Reactors]");
                 foreach (var r in reactors) {
@@ -78,7 +79,7 @@ namespace TranscendenceRL {
             }
 
 
-            var ds = PlayerShip.ship.damageSystem;
+            var ds = playerShip.ship.damageSystem;
             if(ds is HPSystem hp) {
                 Print(x, y++, "[Health]");
                 Print(x, y++, $"HP: {hp.hp}");
@@ -91,7 +92,7 @@ namespace TranscendenceRL {
                 y++;
             }
 
-            var weapons = PlayerShip.ship.devices.Weapons;
+            var weapons = playerShip.ship.devices.Weapons;
             if (weapons.Any()) {
                 Print(x, y++, "[Weapons]");
                 foreach (var w in weapons) {
@@ -100,11 +101,15 @@ namespace TranscendenceRL {
                     Print(x, y++, $"Projectile speed: {w.desc.missileSpeed}");
                     Print(x, y++, $"Shots per second: {60f / w.desc.fireCooldown}");
 
+                    if(w.ammo is Weapon.ChargeAmmo c) {
+                        Print(x, y++, $"Ammo: ${c.charges}");
+                    }
+
                     y++;
                 }
             }
 
-            var misc = PlayerShip.ship.devices.Installed.OfType<MiscDevice>();
+            var misc = playerShip.ship.devices.Installed.OfType<MiscDevice>();
             if(misc.Any()) {
                 Print(x, y++, "[Misc]");
                 foreach (var m in misc) {
@@ -113,9 +118,17 @@ namespace TranscendenceRL {
                 }
             }
 
+            if (playerShip.messages.Any()) {
+                Print(x, y++, "[Messages]");
+                foreach (var m in playerShip.messages) {
+                    this.Print(x, y++, m.Draw());
+                }
+                y++;
+            }
+
             x = 1;
-            y = Height - 10;
-            this.Print(x, y++, "[B] Enable/Disable", Color.White, Color.Black);
+            y = Height - 5;
+            this.Print(x, y++, "[A] Activate / Deactivate Devices", Color.White, Color.Black);
             this.Print(x, y++, "[C] Cargo", Color.White, Color.Black);
             this.Print(x, y++, "[D] Devices", Color.White, Color.Black);
             this.Print(x, y++, "[U] Usables", Color.White, Color.Black);
@@ -134,13 +147,13 @@ namespace TranscendenceRL {
                 prev.IsFocused = true;
                 Parent.Children.Remove(this);
             } else if(info.IsKeyPressed(Keys.U)) {
-                Transition(SListScreen.UsableScreen(this, PlayerShip));
-            } else if (info.IsKeyPressed(Keys.B)) {
-                Transition(SListScreen.PowerScreen(this, PlayerShip));
+                Transition(SListScreen.UsableScreen(this, playerShip));
+            } else if (info.IsKeyPressed(Keys.A)) {
+                Transition(SListScreen.PowerScreen(this, playerShip));
             } else if (info.IsKeyPressed(Keys.C)) {
-                Transition(SListScreen.CargoScreen(this, PlayerShip));
+                Transition(SListScreen.CargoScreen(this, playerShip));
             } else if (info.IsKeyPressed(Keys.D)) {
-                Transition(SListScreen.LoadoutScreen(this, PlayerShip));
+                Transition(SListScreen.LoadoutScreen(this, playerShip));
             }
 
             void Transition(Console s) {

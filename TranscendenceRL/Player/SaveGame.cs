@@ -139,7 +139,8 @@ namespace TranscendenceRL {
             this.playerShip = playerShip;
         }
         public void Save() {
-            File.WriteAllText(player.file, SaveGame.Serialize(this));
+            var s = SaveGame.Serialize(this);
+            File.WriteAllText(player.file, s);
         }
     }
     class DeadGame {

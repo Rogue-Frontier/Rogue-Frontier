@@ -179,7 +179,7 @@ namespace TranscendenceRL {
                 load.Reset();
             }
         }
-        private void StartSurvival() {
+        public void StartSurvival() {
             SadConsole.Game.Instance.Screen = new PlayerCreator(this, World, settings, CreateGame) { IsFocused = true };
 
             void CreateGame(ShipSelectorModel context) {
@@ -216,7 +216,7 @@ namespace TranscendenceRL {
                 AddStarterKit(playerShip);
 
                 World.AddEvent(new Waves(playerShip));
-
+                playerShip.powers.AddRange(World.types.powerType.Values.Select(pt => new Power(pt)));
 
                 var playerMain = new PlayerMain(Width, Height, World, playerShip);
                 playerShip.onDestroyed += new EndGame(playerMain);
@@ -225,8 +225,24 @@ namespace TranscendenceRL {
                 playerMain.PlaceTiles();
                 playerMain.DrawWorld();
 
-                SadConsole.Game.Instance.Screen = playerMain;
-                playerMain.IsFocused = true;
+                SimpleCrawl ds = null;
+                ds = new SimpleCrawl(
+@"You find yourself in the Zone of No Escape.
+
+Unidentified spacecraft appear out of nowhere
+and make no response to your transmissions...
+
+Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new Point(Width / 4, 8), IsFocused = true };
+
+
+                SadConsole.Game.Instance.Screen = ds;
+                void IntroPause() {
+                    SadConsole.Game.Instance.Screen = new Pause(ds, StartGame, 3) { IsFocused = true };
+                }
+                void StartGame() {
+                    SadConsole.Game.Instance.Screen = playerMain;
+                    playerMain.IsFocused = true;
+                }
             }
         }
 

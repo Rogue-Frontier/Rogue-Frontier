@@ -126,6 +126,12 @@ namespace TranscendenceRL {
                 ammo = new ItemAmmo(desc.ammoType);
             }
         }
+        public string GetReadoutName() {
+            if(ammo is ChargeAmmo c) {
+                return $"{source.type.name} [{c.charges}]";
+            }
+            return source.type.name;
+        }
         public ColoredString GetBar() {
             if(ammo?.AllowFire == false) {
                 return new ColoredString(new string(' ', 16), Color.Transparent, Color.Black);

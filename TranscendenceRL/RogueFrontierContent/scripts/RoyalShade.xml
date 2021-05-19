@@ -116,12 +116,5 @@
         <LayeredArmorSystem>
 			<Armor  codename="item_crystalsteel_plate"/>
         </LayeredArmorSystem>
-        <PlayerSettings
-            startingClass="true"
-            description=""
-            >
-			<Map>
-			</Map>
-        </PlayerSettings>
     </ShipClass>
 </Module>

@@ -8,12 +8,26 @@ namespace TranscendenceRL {
     public interface IOrder {
         bool Active { get; }
         void Update(AIShip owner);
-    }
-
-    public interface ICombatOrder {
         public bool CanTarget(SpaceObject other) => false;
     }
-    public class EscortOrder : IOrder, ICombatOrder {
+    public class CompoundOrder : IOrder {
+        public List<IOrder> orders;
+        public CompoundOrder(params IOrder[] orders) {
+            this.orders = new List<IOrder>(orders);
+        }
+        public void Update(AIShip owner) {
+            if(orders.Count == 0) {
+                return;
+            }
+            IOrder first = orders.First();
+            first.Update(owner);
+            if(!first.Active) {
+                orders.RemoveAt(0);
+            }
+        }
+        public bool Active => orders.Any();
+    }
+    public class EscortOrder : IOrder {
         public SpaceObject attacker;
         public IShip target;
         public XY offset;
@@ -28,7 +42,7 @@ namespace TranscendenceRL {
             attacker = ((attacker?.active == true) ? attacker : null) ?? owner.world.entities.all
                 .OfType<AIShip>()
                 .FirstOrDefault(s => (s.position - owner.position).magnitude < 100
-                            && s.controller is ICombatOrder o && (o.CanTarget(target) || o.CanTarget(owner)));
+                            && (s.controller.CanTarget(target) || s.controller.CanTarget(owner)));
             if (attacker != null) {
                 new AttackOrder(attacker).Update(owner);
             } else {
@@ -46,7 +60,9 @@ namespace TranscendenceRL {
         }
         public void Update(AIShip owner) {
             var offset = this.offset.Rotate(target.stoppingRotation * Math.PI / 180);
+#if DEBUG
             Heading.Crosshair(owner.world, target.position + offset);
+#endif
             new ApproachOrder(target, this.offset).Update(owner);
         }
         public bool Active => target.active;
@@ -74,8 +90,9 @@ namespace TranscendenceRL {
             var dest = target.position + (target.velocity * stoppingTime) + this.offset.Rotate(target.stoppingRotation * Math.PI / 180);
             var offset = dest - stoppingPoint;
 
-            //Heading.Crosshair(owner.World, dest);
-
+#if DEBUG
+            Heading.Crosshair(owner.world, dest);
+#endif
             var velProjection = velDiff * velDiff.Dot(offset.normal) / velDiff.Dot(velDiff);
             var velRejection = velDiff - velProjection;
 
@@ -126,7 +143,7 @@ namespace TranscendenceRL {
         }
         public bool Active => true;
     }
-    public class GuardOrder : IOrder, ICombatOrder {
+    public class GuardOrder : IOrder {
         public SpaceObject GuardTarget;
         public AttackOrder attackOrder;
         public int attackTime;
@@ -177,7 +194,7 @@ namespace TranscendenceRL {
         }
         public bool Active => GuardTarget.active;
     }
-    public class AttackAllOrder : IOrder, ICombatOrder {
+    public class AttackAllOrder : IOrder {
         public int sleepTicks;
         public SpaceObject target;
         public bool CanTarget(SpaceObject other) => other == target;
@@ -205,7 +222,7 @@ namespace TranscendenceRL {
         }
         public bool Active => true;
     }
-    public class AttackOrder : IOrder, ICombatOrder {
+    public class AttackOrder : IOrder {
         public SpaceObject target;
         public Weapon weapon;
         public List<Weapon> omni;
@@ -344,7 +361,7 @@ namespace TranscendenceRL {
         public bool Active => patrolTarget.active;
     }
 
-    public class SnipeOrder : IOrder, ICombatOrder {
+    public class SnipeOrder : IOrder {
         public SpaceObject target;
         public Weapon weapon;
         public SnipeOrder(SpaceObject target) {

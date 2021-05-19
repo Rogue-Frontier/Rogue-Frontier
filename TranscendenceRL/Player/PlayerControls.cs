@@ -92,11 +92,11 @@ namespace TranscendenceRL {
 			ProcessTargeting(info);
 
 			if (info.IsKeyPressed(controls[Powers])) {
-				if (powerMenu != null)
+				if (powerMenu != null) {
 					powerMenu.IsVisible = !powerMenu.IsVisible;
-
+				}
 			}
-			if (info.IsKeyPressed(controls[Autopilot])) {
+			if (!playerMain.autopilotUpdate && info.IsKeyPressed(controls[Autopilot])) {
 				playerShip.autopilot = !playerShip.autopilot;
 				playerShip.AddMessage(new InfoMessage($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
 			}
@@ -107,7 +107,7 @@ namespace TranscendenceRL {
 			//Move the player
 			ProcessArrows(info);
 			ProcessTargeting(info);
-			if(info.IsKeyPressed(controls[Autopilot])) {
+			if(!playerMain.autopilotUpdate && info.IsKeyPressed(controls[Autopilot])) {
 				playerShip.autopilot = !playerShip.autopilot;
 				playerShip.AddMessage(new InfoMessage($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
 			}
@@ -138,10 +138,12 @@ namespace TranscendenceRL {
 			}
 
 			if(info.IsKeyPressed(controls[ControlKeys.Gate])) {
+				playerShip.DisengageAutopilot();
 				playerMain.Gate();
             }
 
 			if (info.IsKeyPressed(controls[ShipMenu])) {
+				playerShip.DisengageAutopilot();
 				sceneContainer?.Children.Add(new ShipScreen(playerMain, playerShip) { IsFocused = true });
 			}
 			if (info.IsKeyPressed(controls[Powers])) {

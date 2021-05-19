@@ -63,7 +63,7 @@ namespace TranscendenceRL {
 {$"[Left Click]",indent     }Next primary weapon
 {$"[Right Click]",indent    }Thrust
 {$"[Middle Click]",indent   }Target nearest
-{$"[Mouse Wheel]",indent    }Select primary weapon";
+{$"[Mouse Wheel]",indent    }Select primary weapon".Replace("\r", null);
 		}
 
     }

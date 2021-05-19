@@ -76,6 +76,7 @@ namespace TranscendenceRL {
 		TargetingMarker crosshair;
 
 		double updateWait;
+		public bool autopilotUpdate;
 
 		public PlayerMain(int Width, int Height, World World, PlayerShip playerShip) : base(Width, Height) {
 			DefaultBackground = Color.Transparent;
@@ -220,12 +221,14 @@ namespace TranscendenceRL {
 			if(passTime) {
 				UpdateWorld();
 				if(playerShip.autopilot) {
+					autopilotUpdate = true;
 					ProcessKeyboard(keyboard);
 					ProcessMouse(mouse);
 					UpdateWorld();
 					ProcessKeyboard(keyboard);
 					ProcessMouse(mouse);
 					UpdateWorld();
+					autopilotUpdate = false;
                 }
 				PlaceTiles();
 				world.UpdatePresent();
@@ -237,6 +240,7 @@ namespace TranscendenceRL {
 				Console scene = story.GetScene(this, d, playerShip) ?? d.GetScene(this, playerShip);
 				
 				if (scene != null) {
+					playerShip.DisengageAutopilot();
 					playerShip.dock = null;
 					sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
 				} else {
@@ -1088,7 +1092,7 @@ namespace TranscendenceRL {
 				if (weapons.Any()) {
 					int i = 0;
 					foreach (var w in weapons) {
-						string tag = $"{(i == player.selectedPrimary ? "->" : "  ")}{w.source.type.name}";
+						string tag = $"{(i == player.selectedPrimary ? "->" : "  ")}{w.GetReadoutName()}";
 						Color foreground;
 						if (player.energy.disabled.Contains(w)) {
 							foreground = Color.Gray;

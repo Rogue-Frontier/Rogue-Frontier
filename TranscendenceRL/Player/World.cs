@@ -95,6 +95,7 @@ namespace TranscendenceRL {
 
             entities.all.RemoveWhere(e => !e.active);
             effects.all.RemoveWhere(e => !e.active);
+            events.RemoveWhere(e => !e.active);
         }
         public void UpdatePresent() {
             UpdateAdded();
