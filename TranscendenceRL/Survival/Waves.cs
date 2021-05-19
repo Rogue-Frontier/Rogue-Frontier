@@ -40,7 +40,6 @@ namespace TranscendenceRL {
 {"ship_laser_drone", 30 },
 {"ship_orion_raider", 90 },
 {"ship_huntsman", 150 },
-{"ship_gunboat", 240 },
 
             };
 

@@ -13,7 +13,7 @@ namespace TranscendenceRL {
         PlayerShip playerShip;
         Epitaph epitaph;
         public DeathScreen(PlayerMain playerMain, Epitaph epitaph) : base(playerMain.Width, playerMain.Height) {
-            var world = playerMain.World;
+            var world = playerMain.world;
             this.playerShip = playerMain.playerShip;
             
             this.epitaph = epitaph;

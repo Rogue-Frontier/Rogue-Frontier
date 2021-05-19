@@ -76,7 +76,7 @@ namespace TranscendenceRL {
         public void Save() {
 
             var ps = playerMain.playerShip;
-            new LiveGame(playerMain.World, ps.player, ps).Save();
+            new LiveGame(playerMain.world, ps.player, ps).Save();
         }
         public void SaveContinue() {
             //Temporarily PlayerMain events before saving
@@ -99,7 +99,7 @@ namespace TranscendenceRL {
         }
 
         public void Quit() {
-            var w = playerMain.World;
+            var w = playerMain.world;
             GameHost.Instance.Screen = new TitleScreen(playerMain.Width, playerMain.Height, new World(new Universe(w.types, new Rand()))) { IsFocused = true };
         }
     }

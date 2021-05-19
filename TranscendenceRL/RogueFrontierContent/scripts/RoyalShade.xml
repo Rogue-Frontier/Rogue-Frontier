@@ -55,7 +55,7 @@
 			missileSpeed=	"40"
 			damageType=		"1"
 			damageHP=		"6"
-			lifetime=		"180"
+			lifetime=		"240"
 
 			char=			"s"
 			foreground=		"Orange"

@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using System.IO;
 using ArchConsole;
 using static TranscendenceRL.PlayerShip;
+using System.Threading.Tasks;
 
 namespace TranscendenceRL {
 
@@ -50,12 +51,13 @@ namespace TranscendenceRL {
 				_camera = value;
 				back.camera = value;
 			} }
-		public World World;
+		public World world;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		private PlayerStory story = new PlayerStory();
 		public PlayerShip playerShip;
 		public PlayerControls playerControls;
-		Point mousePos;
+		Point mouseScreenPos;
+		XY mouseWorldPos;
 
 		Keyboard keyboard;
 		MouseScreenObjectState mouse;
@@ -81,7 +83,7 @@ namespace TranscendenceRL {
 			UseMouse = true;
 			UseKeyboard = true;
 			_camera = new Camera();
-			this.World = World;
+			this.world = World;
 			this.playerShip = playerShip;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
 
@@ -125,7 +127,7 @@ namespace TranscendenceRL {
 			HideAll();
 
 
-			World.entities.Remove(playerShip);
+			world.entities.Remove(playerShip);
 
 			SadConsole.Game.Instance.Screen = new GateTransition(this, EndCrawl) { IsFocused = true };
 			Console EndCrawl() {
@@ -162,7 +164,7 @@ namespace TranscendenceRL {
 				}
             }
 			ColoredGlyph GetTile(XY xy) {
-				var back = World.backdrop.GetTile(xy, camera.position);
+				var back = world.backdrop.GetTile(xy, camera.position);
 				//Round down to ensure we don't get duplicated tiles along the origin
 				if (tiles.TryGetValue(xy.roundDown, out ColoredGlyph g)) {
 					g = g.Clone();          //Don't modify the source
@@ -179,17 +181,17 @@ namespace TranscendenceRL {
 				wreck = wreck
 			};
 			playerShip.player.Epitaphs.Add(epitaph);
-			new DeadGame(World, playerShip.player, playerShip, epitaph).Save();
+			Task.Run(() => new DeadGame(world, playerShip.player, playerShip, epitaph).Save());
 			//Bug: Background is not included because it is a separate console
 			var ds = new DeathScreen(this, epitaph);
 			SadConsole.Game.Instance.Screen = new DeathTransition(this, ds) { IsFocused = true };
 		}
 		public void UpdateWorld() {
-			World.UpdateActive();
+			world.UpdateActive();
 		}
 		public void PlaceTiles() {
 			tiles.Clear();
-			World.PlaceTiles(tiles);
+			world.PlaceTiles(tiles);
 		}
 		public override void Update(TimeSpan delta) {
 			if(sceneContainer.Children.Any()) {
@@ -226,7 +228,7 @@ namespace TranscendenceRL {
 					UpdateWorld();
                 }
 				PlaceTiles();
-				World.UpdatePresent();
+				world.UpdatePresent();
 			}
 
 			camera.position = playerShip.position;
@@ -347,17 +349,39 @@ namespace TranscendenceRL {
             }
 			return base.ProcessKeyboard(info);
 		}
+		public void TargetMouse() {
+			var targetList = new List<SpaceObject>(
+						world.entities.all
+						.OfType<SpaceObject>()
+						.OrderBy(e => (e.position - mouseWorldPos).magnitude)
+						.Select(s => s is Segment seg ? seg.parent : s)
+						.Distinct()
+						);
+
+			//Set target to object closest to mouse cursor
+			//If there is no target closer to the cursor than the playership, then we toggle aiming by crosshair
+			//Using the crosshair, we can effectively force any omnidirectional weapons to point at the crosshair
+			if (targetList.First() == playerShip) {
+				if (playerShip.GetTarget(out var t) && t == crosshair) {
+					playerShip.ClearTarget();
+				} else {
+					playerShip.SetTargetList(new List<SpaceObject>() { crosshair });
+				}
+			} else {
+				playerShip.TargetList = targetList;
+				playerShip.targetIndex = 0;
+				playerShip.UpdateAutoAim();
+			}
+		}
 		public override bool ProcessMouse(MouseScreenObjectState state) {
 			if(pauseMenu.IsVisible) {
 				pauseMenu.ProcessMouseTree(state.Mouse);
-            } else /* if (powerMenu.IsVisible) {
-				powerMenu.ProcessMouseTree(state.Mouse);
-            } else */ if(sceneContainer.Children.Any()) {
+            } else if(sceneContainer.Children.Any()) {
 				sceneContainer.ProcessMouseTree(state.Mouse);
             } else if(state.IsOnScreenObject) {
 
-				bool moved = mousePos != state.SurfaceCellPosition;
-				mousePos = state.SurfaceCellPosition;
+				bool moved = mouseScreenPos != state.SurfaceCellPosition;
+				mouseScreenPos = state.SurfaceCellPosition;
 
 				//Placeholder for mouse wheel-based weapon selection
 				if (state.Mouse.ScrollWheelValueChange > 100) {
@@ -366,47 +390,26 @@ namespace TranscendenceRL {
 					playerShip.PrevWeapon();
                 }
 
-				var centerOffset = new XY(mousePos.X, Height - mousePos.Y) - new XY(Width / 2, Height / 2);
+				var centerOffset = new XY(mouseScreenPos.X, Height - mouseScreenPos.Y) - new XY(Width / 2, Height / 2);
 				centerOffset *= uiMegamap.viewScale;
-				var worldPos = (centerOffset.Rotate(camera.rotation) + camera.position);
+				mouseWorldPos = (centerOffset.Rotate(camera.rotation) + camera.position);
 				SpaceObject t;
 				if (state.Mouse.MiddleClicked) {
-					var targetList = new List<SpaceObject>(
-						World.entities.all
-						.OfType<SpaceObject>()
-						.OrderBy(e => (e.position - worldPos).magnitude)
-						.Select(s => s is Segment seg ? seg.parent : s)
-						.Distinct()
-						);
-
-					//Set target to object closest to mouse cursor
-					//If there is no target closer to the cursor than the playership, then we toggle aiming by crosshair
-					//Using the crosshair, we can effectively force any omnidirectional weapons to point at the crosshair
-					if (targetList.First() == playerShip) {
-						if (playerShip.GetTarget(out t) && t == crosshair) {
-							playerShip.ClearTarget();
-						} else {
-							playerShip.SetTargetList(new List<SpaceObject>() { crosshair });
-						}
-					} else {
-						playerShip.TargetList = targetList;
-						playerShip.targetIndex = 0;
-						playerShip.UpdateAutoAim();
-					}
+					TargetMouse();
 				}
 
 
 				bool enableMouseTurn = true;
 				//Update the crosshair if we're aiming with it
 				if (playerShip.GetTarget(out t) && t == crosshair) {
-					crosshair.position = worldPos;
+					crosshair.position = mouseWorldPos;
 					crosshair.velocity = playerShip.velocity;
 					//If we set velocity to match player's velocity, then the weapon will aim directly at the crosshair
 					//If we set the velocity to zero, then the weapon will aim to the lead angle of the crosshair
 
 					crosshair.Update();
 
-					Heading.Crosshair(World, crosshair.position);
+					Heading.Crosshair(world, crosshair.position);
 
 					//Idea: Aiming with crosshair disables mouse turning
 					enableMouseTurn = false;
@@ -415,7 +418,7 @@ namespace TranscendenceRL {
 				//Also enable mouse turn with Power Menu
 
 				if (enableMouseTurn && playerShip.ship.rotating == Rotating.None) {
-					var playerOffset = worldPos - playerShip.position;
+					var playerOffset = mouseWorldPos - playerShip.position;
 
 					if (playerOffset.xi != 0 && playerOffset.yi != 0) {
 
@@ -423,11 +426,11 @@ namespace TranscendenceRL {
 						var facing = XY.Polar(playerShip.rotationRad, radius);
 						var aim = playerShip.position + facing;
 
-						var off = (worldPos - aim).magnitude;
+						var off = (mouseWorldPos - aim).magnitude;
 						var tolerance = Math.Sqrt(radius) / 3;
 						Color c = off < tolerance ? Color.White : Color.White.SetAlpha(255 * 3/4);
 
-						EffectParticle.DrawArrow(World, worldPos, playerOffset, c);
+						EffectParticle.DrawArrow(world, mouseWorldPos, playerOffset, c);
 
 						//EffectParticle.DrawArrow(World, aim, facing, Color.Yellow);
 
@@ -989,52 +992,102 @@ namespace TranscendenceRL {
 				int x = 3;
 				int y = 3;
 				var b = Color.Black;
-				if (player.energy.devices.Reactors.Any()) {
-					this.Print(x, y, $"[{new string(' ', 16)}]", Color.White, b);
-					this.Print(x + 1, y, $"{new string('=', 16)}", Color.Gray, b);
-					if (player.energy.totalUsedOutput > 0) {
-						this.Print(x + 1, y,
-							new ColoredString(new string('=', (int)Math.Ceiling(16f * player.energy.totalUsedOutput / player.energy.totalMaxOutput)),
-								Color.Yellow, b));
-					}
-					this.Print(x + 1 + 16 + 2, y,
-							new ColoredString("Total Output", Color.White, b));
+				var reactors = player.ship.devices.Reactors;
+				if (reactors.Any()) {
 
-					y++;
-					foreach (var reactor in player.ship.devices.Reactors) {
+					{
+						ColoredString bar;
+						if (player.energy.totalUsedOutput > 0) {
+							int length = (int)Math.Ceiling(16f * player.energy.totalUsedOutput / player.energy.totalMaxOutput);
+							bar = new ColoredString(new string('=', length), Color.Yellow, b)
+								+ new ColoredString(new string('=', 16 - length), Color.Gray, b);
+						} else {
+							bar = new ColoredString(new string('=', 16), Color.Gray, b);
+                        }
 						this.Print(x, y,
 							new ColoredString("[", Color.White, b)
-							+ new ColoredString(new string(' ', 16), Color.Transparent, b)
-							+ new ColoredString("]", Color.White, b));
+							+ bar
+							+ new ColoredString("]", Color.White, b)
+							);
+						this.Print(x + 1 + 16 + 2, y,
+								new ColoredString("Total Output", Color.White, b));
+						y++;
+					}
 
-						if (reactor.energy > 0) {
-							Color bar = Color.White;
-							char end = '=';
-							if (reactor.energyDelta < 0) {
-								bar = Color.Yellow;
-								end = '<';
-							} else if (reactor.energyDelta > 0) {
-								end = '>';
-								bar = Color.Cyan;
+					if(reactors.Count > 1) {
+						double totalFuel = reactors.Sum(r => r.energy);
+						double maxFuel = reactors.Sum(r => r.desc.capacity);
+						double netDelta = reactors.Sum(r => r.energyDelta);
+
+						ColoredString bar;
+						if (totalFuel > 0) {
+
+							Color f = Color.White;
+							char arrow = '=';
+							if (netDelta < 0) {
+								f = Color.Yellow;
+								arrow = '<';
+							} else if (netDelta > 0) {
+								arrow = '>';
+								f = Color.Cyan;
 							}
 
-							int length = (int)(15 * reactor.energy / reactor.desc.capacity);
-							this.Print(x + 1, y,
-								new ColoredString($"{new string('=', length)}{end}", bar, b)
-								+ new ColoredString(new string('=', 15 - length), Color.Gray, b)
-								);
+							int length = (int)Math.Ceiling(16 * totalFuel / maxFuel);
+							bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
+								+ new ColoredString(new string('=', 16 - length), Color.Gray, b);
 						} else {
-							this.Print(x + 1, y, $"[{new string('=', 16)}]", Color.Gray, b);
+							bar = new ColoredString(new string('=', 16), Color.Gray, b);
 						}
+
+
+						this.Print(x, y,
+							new ColoredString("[", Color.White, b)
+							+ bar
+							+ new ColoredString("]", Color.White, b)
+							);
+
 						this.Print(x + 1 + 16 + 2, y,
+								new ColoredString("Total Output", Color.White, b));
+						y++;
+					}
+
+					foreach (var reactor in reactors) {
+
+						ColoredString bar;
+						if (reactor.energy > 0) {
+							Color f = Color.White;
+							char arrow = '=';
+							if (reactor.energyDelta < 0) {
+								f = Color.Yellow;
+								arrow = '<';
+							} else if (reactor.energyDelta > 0) {
+								arrow = '>';
+								f = Color.Cyan;
+							}
+
+							int length = (int)Math.Ceiling(16 * reactor.energy / reactor.desc.capacity);
+							
+							bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
+								+ new ColoredString(new string('=', 16 - length), Color.Gray, b);
+						} else {
+							bar = new ColoredString(new string('=', 16), Color.Gray, b);
+						}
+
+						this.Print(x, y,
+							new ColoredString("[", Color.White, b)
+							+ bar
+							+ new ColoredString("]", Color.White, b));
+						this.Print(x + 16 + 2 + 1, y,
 									new ColoredString(reactor.source.type.name, Color.White, b));
 						y++;
 					}
+
+					y++;
 				}
-				y++;
-				if (player.ship.devices.Weapons.Any()) {
+				var weapons = player.ship.devices.Weapons;
+				if (weapons.Any()) {
 					int i = 0;
-					foreach (var w in player.ship.devices.Weapons) {
+					foreach (var w in weapons) {
 						string tag = $"{(i == player.selectedPrimary ? "->" : "  ")}{w.source.type.name}";
 						Color foreground;
 						if (player.energy.disabled.Contains(w)) {
@@ -1045,14 +1098,36 @@ namespace TranscendenceRL {
 							foreground = Color.White;
 						}
 
-						this.Print(x, y, "[", Color.White, b);
-						this.Print(x + 1, y, w.GetBar());
-						this.Print(x + 1 + 16, y, tag, foreground, b);
+						this.Print(x, y,
+							new ColoredString("[", Color.White, b)
+							+ w.GetBar()
+							+ new ColoredString(tag, foreground, b));
 						y++;
 						i++;
 					}
+
+					y++;
 				}
-				y++;
+
+				var misc = player.ship.devices.Installed.OfType<MiscDevice>();
+				if (misc.Any()) {
+					int i = 0;
+					foreach (var m in misc) {
+						string tag = m.source.type.name;
+						var f = Color.White;
+						this.Print(x, y,
+							new ColoredString("[", Color.White, b)
+							+ new ColoredString(new string('.', 16), f, b)
+							+ new ColoredString("]", Color.White, b)
+							+ " "
+							+ new ColoredString(tag, f, b));
+						y++;
+						i++;
+					}
+
+					y++;
+				}
+
 				switch (player.ship.damageSystem) {
 					case LayeredArmorSystem las:
 						foreach (var armor in las.layers) {

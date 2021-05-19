@@ -41,15 +41,26 @@ namespace TranscendenceRL {
                 //other.velocity = other.velocity.WithMagnitude(400);
                 var world = owner.world;
 
-                var velocity = other.velocity + XY.Polar(offset.angleRad + Math.PI/2, other.velocity.magnitude/2);
-                var p = new Projectile(other.Source, other.desc, other.position, velocity, other.maneuver);
-                cloneList.Add(p);
-                world.AddEntity(p);
+                Clone(offset.angleRad + Math.PI / 8);
+                Clone(offset.angleRad - Math.PI / 8);
+                Clone(offset.angleRad + Math.PI * 2 / 8);
+                Clone(offset.angleRad - Math.PI * 2 / 8);
+                Clone(offset.angleRad + Math.PI * 3 / 8);
+                Clone(offset.angleRad - Math.PI * 3 / 8);
 
-                velocity = other.velocity + XY.Polar(offset.angleRad - Math.PI/2, other.velocity.magnitude / 2);
-                p = new Projectile(other.Source, other.desc, other.position, velocity, other.maneuver);
-                cloneList.Add(p);
-                world.AddEntity(p);
+                /*
+                for(double angle = offset.angleRad - Math.PI / 2; angle = offset.angleRad + Math.PI / 2; angle++) {
+
+                }
+                */
+
+
+                void Clone(double angle) {
+                    var velocity = other.velocity + XY.Polar(angle, other.velocity.magnitude / 2);
+                    var p = new Projectile(other.Source, other.desc, other.position, velocity, other.maneuver);
+                    cloneList.Add(p);
+                    world.AddEntity(p);
+                }
                 return;
             }
         }

@@ -65,7 +65,11 @@ namespace TranscendenceRL {
 				}
 			}
 			if (info.IsKeyPressed(controls[TargetEnemy])) {
-				playerShip.NextTargetEnemy();
+				if (info.IsKeyDown(LeftShift)) {
+					playerMain.TargetMouse();
+				} else {
+					playerShip.NextTargetEnemy();
+				}
 			}
 			if (info.IsKeyPressed(controls[NextWeapon])) {
 				playerShip.NextWeapon();
@@ -74,6 +78,7 @@ namespace TranscendenceRL {
 				playerShip.SetFiringPrimary();
 			}
 			if (info.IsKeyDown(controls[AutoAim])) {
+				
 				if (playerShip.GetTarget(out SpaceObject target) && playerShip.GetPrimary(out Weapon w)) {
 					playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.position - playerShip.position, target.velocity - playerShip.velocity, w.missileSpeed, out _));
 				}

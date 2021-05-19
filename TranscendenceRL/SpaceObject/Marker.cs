@@ -1,4 +1,5 @@
 ﻿using Common;
+using Newtonsoft.Json;
 using SadConsole;
 using System;
 using System.Collections.Generic;
@@ -23,17 +24,18 @@ namespace TranscendenceRL {
     }
 
     class TargetingMarker : SpaceObject {
-        PlayerShip Owner;
-        List<SpaceObject> Nearby;
-        public string name { get; private set; }
+        public PlayerShip Owner;
+        public List<SpaceObject> Nearby;
+        public string name { get; set; }
         public XY position { get; set; }
         public bool active { get; set; }
+        [JsonIgnore]
         public ColoredGlyph tile => null;
         public XY velocity { get; set; }
-
-        public World world => throw new NotImplementedException();
-
-        public Sovereign sovereign => throw new NotImplementedException();
+        [JsonIgnore]
+        public World world => Owner.world;
+        [JsonIgnore]
+        public Sovereign sovereign => Owner.sovereign;
 
         public TargetingMarker(PlayerShip Owner, string Name, XY Position) {
             this.Owner = Owner;
