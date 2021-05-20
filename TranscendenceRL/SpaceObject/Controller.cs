@@ -231,20 +231,24 @@ namespace TranscendenceRL {
             this.target = target;
         }
         public bool CanTarget(SpaceObject other) => other == target;
-        void Set(Weapon w) => w.SetFiring(true, target);
+        private void Set(Weapon w) => w.SetFiring(true, target);
         public void Update(AIShip owner) {
-            if (weapon == null) {
-                var w = owner.devices.Weapons;
+            var weapons = owner.devices.Weapons;
+            if (weapon?.AllowFire != true) {
+                var w = weapons.Where(w => w.AllowFire);
                 weapon = w.FirstOrDefault(w => w.aiming == null) ?? w.FirstOrDefault();
                 if (weapon == null) {
                     omni = null;
                     return;
                 }
                 aim = new AimOrder(target, weapon.missileSpeed);
-                omni = owner.devices.Weapons
+                omni = w
                    .Where(w => w.aiming != null)
                    .Where(w => w != weapon)
                    .ToList();
+            } else if (!weapon.CanFire && weapons.Count > 1) {
+                var w = weapons.Where(w => w.CanFire);
+                weapon = w.FirstOrDefault(w => w.aiming == null) ?? weapon;
             }
             bool RangeCheck() => (owner.position - target.position).magnitude < weapon.currentRange;
             void SetFiring() {
@@ -369,11 +373,14 @@ namespace TranscendenceRL {
         }
         public bool CanTarget(SpaceObject other) => other == target;
         public void Update(AIShip owner) {
-            if (weapon == null) {
-                weapon = owner.devices.Weapons.FirstOrDefault();
+            var weapons = owner.devices.Weapons;
+            if (weapon?.AllowFire != true) {
+                weapon = weapons.FirstOrDefault(w => w.AllowFire);
                 if (weapon == null) {
                     return;
                 }
+            } else if(!weapon.CanFire && weapons.Count > 1) {
+                weapon = weapons.FirstOrDefault(w => w.CanFire) ?? weapon;
             }
             //Aim at the target
             var aim = new AimOrder(target, weapon.missileSpeed);
@@ -384,7 +391,7 @@ namespace TranscendenceRL {
                 weapon.SetFiring(true, target);
             }
         }
-        public bool Active => target?.active == true && weapon != null;
+        public bool Active => target?.active == true && weapon?.AllowFire == true;
     }
     public class ApproachOrbitOrder : IOrder {
         public SpaceObject target;

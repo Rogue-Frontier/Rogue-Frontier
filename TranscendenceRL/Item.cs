@@ -264,18 +264,8 @@ namespace TranscendenceRL {
         public bool RangeCheck(SpaceObject user, SpaceObject target) {
             return (user.position - target.position).magnitude < currentRange;
         }
-        public bool CanFire() {
-            if(fireTime > 0) {
-                return false;
-            }
-            bool firing = true;
-            capacitor?.CheckFire(ref firing);
-            if(ammo != null ) {
-
-                ammo.CheckFire(ref firing);
-            }
-            return firing;
-        }
+        public bool AllowFire => ammo?.AllowFire ?? true;
+        public bool CanFire => fireTime == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
         public void Fire(SpaceObject source, double direction) {
             int damageHP = desc.damageHP;
             int missileSpeed = desc.shot.missileSpeed;
@@ -461,7 +451,7 @@ namespace TranscendenceRL {
             bool AllowFire { get; }
             public void Update(IShip source) { }
             public void Update(Station source) { }
-            void CheckFire(ref bool firing);
+            void CheckFire(ref bool firing) => firing &= AllowFire;
             void OnFire();
         }
         public class ChargeAmmo : IAmmo {
@@ -469,9 +459,6 @@ namespace TranscendenceRL {
             public bool AllowFire => charges > 0;
             public ChargeAmmo(int charges) {
                 this.charges = charges;
-            }
-            public void CheckFire(ref bool firing) {
-                firing &= AllowFire;
             }
 
             public void OnFire() {
@@ -497,9 +484,6 @@ namespace TranscendenceRL {
                     itemSource = items;
                     item = items.FirstOrDefault(i => i.type == itemType);
                 }
-            }
-            public void CheckFire(ref bool firing) {
-                firing &= AllowFire;
             }
             public void OnFire() {
                 itemSource.Remove(item);
