@@ -165,14 +165,25 @@ namespace TranscendenceRL {
                 }
             }
 
+            var guards = world.entities.all.OfType<AIShip>().Where(
+                s => s.controller is GuardOrder o && o.GuardTarget == this);
             if (source.sovereign != sovereign) {
-                var guards = from guard in world.entities.all.OfType<AIShip>()
-                             where guard.controller is GuardOrder order && order.GuardTarget == this
-                             select (GuardOrder)guard.controller;
-                foreach (var order in guards) {
-                    order.attackTime = -1;
-                    order.attackOrder = new AttackOrder(source);
+                foreach (var g in guards) {
+                    g.controller = new AttackOrder(source);
                 }
+            } else {
+                var next = world.entities.all.OfType<Station>().Where(s => s.type == type && s != this).OrderBy(p => (p.position - position).magnitude2).FirstOrDefault();
+                if(next != null) {
+                    foreach(var g in guards) {
+                        var o = (GuardOrder)g.controller;
+                        o.GuardTarget = next;
+                    }
+                } else {
+                    foreach (var g in guards) {
+                        g.controller = new PatrolOrder(this, 20);
+                    }
+                }
+
             }
         }
         public void Update() {

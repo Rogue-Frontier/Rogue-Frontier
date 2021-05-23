@@ -148,10 +148,12 @@ namespace TranscendenceRL {
         public AttackOrder attackOrder;
         public int attackTime;
         public int lazyTicks;
+
         public GuardOrder(SpaceObject guard) {
             this.GuardTarget = guard;
             attackOrder = null;
             attackTime = 0;
+
         }
 
         public bool CanTarget(SpaceObject other) => other == attackOrder?.target;
@@ -196,8 +198,11 @@ namespace TranscendenceRL {
     }
     public class AttackAllOrder : IOrder {
         public int sleepTicks;
-        public SpaceObject target;
-        public bool CanTarget(SpaceObject other) => other == target;
+        public AttackOrder attackOrder;
+        public bool CanTarget(SpaceObject other) => other == attackOrder.target;
+        public AttackAllOrder() {
+            attackOrder = new AttackOrder(null);
+        }
         public void Update(AIShip owner) {
             if(sleepTicks > 0) {
                 sleepTicks--;
@@ -208,15 +213,17 @@ namespace TranscendenceRL {
                 sleepTicks = 150;
                 return;
             }
-            if (target?.active == true) {
-                new AttackOrder(target).Update(owner);
+            if (attackOrder.target?.active == true) {
+                attackOrder.Update(owner);
                 return;
             }
             //currentRange is variable and minRange is constant, so weapon dynamics may affect attack range
-            target = owner.world.entities.all.OfType<SpaceObject>().Where(o => !owner.IsEqual(o)).Where(o => owner.IsEnemy(o)).GetRandomOrDefault(owner.destiny);
+            var target = owner.world.entities.all.OfType<SpaceObject>().Where(o => !owner.IsEqual(o)).Where(o => owner.IsEnemy(o)).GetRandomOrDefault(owner.destiny);
 
             //If we can't find a target, then give up for a while
-            if (target == null) {
+            if (target != null) {
+                attackOrder.target = target;
+            } else {
                 sleepTicks = 150;
             }
         }

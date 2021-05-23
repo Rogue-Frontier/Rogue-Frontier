@@ -376,13 +376,13 @@ namespace TranscendenceRL {
                 return owner.world.entities.GetAll(p => (owner.position - p).magnitude2 < weapon.currentRange2).OfType<SpaceObject>().FirstOrDefault(filter);
             }
             static Projectile AcquireMissile(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
-                return owner.world.entities
-                    .GetAll(p => (owner.position - p).magnitude2 < weapon.currentRange2)
-                    .OfType<Projectile>()
-                    .Where(p => filter(p.Source))
-                    .OrderBy(p => (owner.position - p.position).Dot(p.velocity))
-                    //.OrderBy(p => (owner.Position - p.Position).Magnitude2)
-                    .FirstOrDefault();
+                return owner.world.entities.all
+                                    .OfType<Projectile>()
+                                    .Where(p => (owner.position - p.position).magnitude2 < weapon.currentRange2)
+                                    .Where(p => filter(p.Source))
+                                    .OrderBy(p => (owner.position - p.position).Dot(p.velocity))
+                                    //.OrderBy(p => (owner.Position - p.Position).Magnitude2)
+                                    .FirstOrDefault();
             }
         }
         public class Targeting : Aiming {

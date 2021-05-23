@@ -237,7 +237,7 @@ namespace TranscendenceRL {
                 c++;
                 charging = false;
             } else if(prevEnter && !enter) {
-                ref int c = ref charge[navIndex];
+                int c = charge[navIndex];
                 if (c >= maxCharge) {
                     //Make sure we aren't sent back to the screen again
                     prevEnter = false;
