@@ -75,18 +75,18 @@ namespace TranscendenceRL {
     public static class SWeapon {
         public static void CreateShot(this FragmentDesc fragment, SpaceObject Source, double direction) {
 
-            var World = Source.world;
-            var Position = Source.position;
-            var Velocity = Source.velocity;
+            var world = Source.world;
+            var position = Source.position;
+            var velocity = Source.velocity;
             var angleInterval = fragment.spreadAngle / fragment.count;
 
             for (int i = 0; i < fragment.count; i++) {
                 double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-                var p = new Projectile(Source,
+                var p = new Projectile(Source, world,
                     fragment,
-                    Position + XY.Polar(angle, 0.5),
-                    Velocity + XY.Polar(angle, fragment.missileSpeed));
-                World.AddEntity(p);
+                    position + XY.Polar(angle, 0.5),
+                    velocity + XY.Polar(angle, fragment.missileSpeed));
+                world.AddEntity(p);
             }
         }
     }
@@ -233,7 +233,7 @@ namespace TranscendenceRL {
                     beginRepeat = false;
                 } else if(desc.autoFire) {
                     if(desc.targetProjectile) {
-                        var target = Aiming.AcquireMissile(owner, this, s => SShip.IsEnemy(owner, s));
+                        var target = Aiming.AcquireMissile(owner, this, s => s == null || SShip.IsEnemy(owner, s));
                         if(target != null
                             && Aiming.CalcFireAngle(owner, target, this, out var d)) {
                             direction = d;
@@ -279,7 +279,7 @@ namespace TranscendenceRL {
             for (int i = 0; i < shotDesc.count; i++) {
                 double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
                 var maneuver = new Maneuver(aiming?.target, desc.shot.maneuver, desc.shot.maneuverRadius);
-                Projectile p = new Projectile(source,
+                Projectile p = new Projectile(source, source.world,
                     shotDesc,
                     source.position + XY.Polar(angle),
                     source.velocity + XY.Polar(angle, missileSpeed),
@@ -379,7 +379,7 @@ namespace TranscendenceRL {
                 return owner.world.entities.all
                                     .OfType<Projectile>()
                                     .Where(p => (owner.position - p.position).magnitude2 < weapon.currentRange2)
-                                    .Where(p => filter(p.Source))
+                                    .Where(p => filter(p.source))
                                     .OrderBy(p => (owner.position - p.position).Dot(p.velocity))
                                     //.OrderBy(p => (owner.Position - p.Position).Magnitude2)
                                     .FirstOrDefault();
@@ -586,8 +586,8 @@ namespace TranscendenceRL {
                             int i = 0;
                         }
 
-                        missile.maneuver.target = missile.Source;
-                        missile.Source = owner;
+                        missile.maneuver.target = missile.source;
+                        missile.source = owner;
 
                         var offset = (missile.position - owner.position);
                         var dist = offset.magnitude;

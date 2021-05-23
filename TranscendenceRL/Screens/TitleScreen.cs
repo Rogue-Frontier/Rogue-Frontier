@@ -122,7 +122,7 @@ namespace TranscendenceRL {
 
                     var playerMain = new PlayerMain(Width, Height, w, playerShip);
                     playerMain.HideUI();
-                    playerShip.onDestroyed += new EndGame(playerMain);
+                    playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
 
                     playerMain.Update(new TimeSpan());
                     playerMain.PlaceTiles();
@@ -212,14 +212,22 @@ namespace TranscendenceRL {
 
                 World.AddEffect(new Heading(playerShip));
                 World.AddEntity(playerShip);
-
                 AddStarterKit(playerShip);
 
                 World.AddEvent(new Waves(playerShip));
+
+                var stationType = World.types.Lookup<StationType>("station_constellation_astra");
+                var station = new Station(World, stationType, playerStart);
+                station.onDestroyed += new NotifyStationDestroyed(playerShip, station);
+                World.AddEntity(station);
+                station.CreateSegments();
+                station.CreateGuards();
+
+
                 playerShip.powers.AddRange(World.types.powerType.Values.Select(pt => new Power(pt)));
 
                 var playerMain = new PlayerMain(Width, Height, World, playerShip);
-                playerShip.onDestroyed += new EndGame(playerMain);
+                playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
 
                 playerMain.Update(new TimeSpan());
                 playerMain.PlaceTiles();
@@ -425,7 +433,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").position;
             var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
             var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerSovereign, playerStart));
-            //playerShip.powers.Add(new Power(w.types.Lookup<PowerType>("power_silence")));
+            //playerShip.powers.Add(new Power(w.types.Lookup<PowerType>("power_declare")));
             playerShip.powers.AddRange(w.types.powerType.Values.Select(pt => new Power(pt)));
             playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
 
@@ -447,7 +455,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
 
 
             var playerMain = new PlayerMain(Width, Height, w, playerShip);
-            playerShip.onDestroyed += new EndGame(playerMain);
+            playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
 
 
             playerMain.IsFocused = true;

@@ -34,7 +34,7 @@ namespace TranscendenceRL {
             this.position = owner.position + offset;
         }
         public void Interact(Projectile other) {
-            if (other.Source == owner) {
+            if (other.source == owner) {
                 if (cloneList.Contains(other)) {
                     return;
                 }
@@ -60,7 +60,7 @@ namespace TranscendenceRL {
 
                 void Clone(double angle) {
                     var velocity = other.velocity + XY.Polar(angle, other.velocity.magnitude / 2);
-                    var p = new Projectile(other.Source, other.desc, other.position, velocity, other.maneuver);
+                    var p = new Projectile(other.source, other.world, other.desc, other.position, velocity, other.maneuver);
                     cloneList.Add(p);
                     world.AddEntity(p);
                 }

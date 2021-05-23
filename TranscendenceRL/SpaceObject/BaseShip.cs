@@ -140,12 +140,12 @@ namespace TranscendenceRL {
                 )
             );
             world.AddEntity(wreck);
+            active = false;
 
             onDestroyed.set.RemoveWhere(d => d.Value == null);
             foreach(var on in onDestroyed.set) {
                 on.Value.Invoke(this, source, wreck);
             }
-            active = false;
         }
         public void Update() {
             UpdateControls();

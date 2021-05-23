@@ -79,6 +79,11 @@ namespace TranscendenceRL {
         public HashSet<Item> cargo { get; set; }
         public List<Weapon> weapons;
         public List<AIShip> guards;
+
+
+        public delegate void StationDestroyed(Station station, SpaceObject destroyer, Wreck wreck);
+        public FuncSet<IContainer<StationDestroyed>> onDestroyed = new();
+
         public Station() { }
         public Station(World World, StationType Type, XY Position) {
             this.world = World;
@@ -133,7 +138,7 @@ namespace TranscendenceRL {
         */
         public void Damage(SpaceObject source, int hp) {
             damageSystem.Damage(this, source, hp);
-            if(source.sovereign != sovereign) {
+            if(source != null && source.sovereign != sovereign) {
 
                 var guards = from guard in world.entities.all.OfType<AIShip>()
                              where guard.controller is GuardOrder order && order.GuardTarget == this
@@ -167,7 +172,7 @@ namespace TranscendenceRL {
 
             var guards = world.entities.all.OfType<AIShip>().Where(
                 s => s.controller is GuardOrder o && o.GuardTarget == this);
-            if (source.sovereign != sovereign) {
+            if (source != null && source.sovereign != sovereign) {
                 foreach (var g in guards) {
                     g.controller = new AttackOrder(source);
                 }
@@ -183,7 +188,11 @@ namespace TranscendenceRL {
                         g.controller = new PatrolOrder(this, 20);
                     }
                 }
+            }
 
+            onDestroyed.set.RemoveWhere(d => d.Value == null);
+            foreach (var on in onDestroyed.set) {
+                on.Value.Invoke(this, source, wreck);
             }
         }
         public void Update() {

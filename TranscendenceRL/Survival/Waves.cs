@@ -14,10 +14,7 @@ namespace TranscendenceRL {
         public int ticks;
         [JsonIgnore]
         public bool active => true;
-
         public int difficulty = 90;
-
-
         public static Dictionary<string, int> map = new Dictionary<string, int> {
                 {"ship_amethyst", 120},
                 {"ship_beowulf", 180 },

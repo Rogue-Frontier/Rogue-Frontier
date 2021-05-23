@@ -25,7 +25,7 @@ namespace TranscendenceRL {
         [JsonProperty]
         public World world { get; private set; }
         [JsonProperty] 
-        public SpaceObject Source;
+        public SpaceObject source;
         [JsonProperty] 
         public XY position { get; private set; }
         [JsonProperty] 
@@ -46,9 +46,9 @@ namespace TranscendenceRL {
 
         public bool active => lifetime > 0;
         public Projectile() { }
-        public Projectile(SpaceObject Source, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
-            this.Source = Source;
-            this.world = Source.world;
+        public Projectile(SpaceObject Source, World world, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
+            this.source = Source;
+            this.world = world;
             this.tile = desc.effect.Original;
             this.position = Position;
             this.velocity = Velocity;
@@ -74,11 +74,11 @@ namespace TranscendenceRL {
 
 
             void UpdateMove() {
-                HashSet<Entity> exclude = new HashSet<Entity> { null, Source, this };
-                if(Source is PlayerShip ps) {
+                HashSet<Entity> exclude = new HashSet<Entity> { null, source, this };
+                if(source is PlayerShip ps) {
                     exclude.Add(ps.dock?.Target);
                 }
-                if(Source is AIShip s) {
+                if(source is AIShip s) {
                     exclude.UnionWith(s.avoidHit);
                 }
 
@@ -98,7 +98,7 @@ namespace TranscendenceRL {
                                 continue;
                             case SpaceObject hit when !destroyed:
                                 lifetime = 0;
-                                hit.Damage(Source, desc.damageHP);
+                                hit.Damage(source, desc.damageHP);
 
                                 if(desc.disruptor != null) {
                                     if (hit is PlayerShip sh) {
@@ -159,7 +159,7 @@ namespace TranscendenceRL {
             }
             for (int i = 0; i < fragment.count; i++) {
                 double angle = centerAngle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-                Projectile p = new Projectile(Source, fragment, position + XY.Polar(angle, 0.5), velocity + XY.Polar(angle, fragment.missileSpeed));
+                Projectile p = new Projectile(source, world, fragment, position + XY.Polar(angle, 0.5), velocity + XY.Polar(angle, fragment.missileSpeed));
                 world.AddEntity(p);
             }
         }

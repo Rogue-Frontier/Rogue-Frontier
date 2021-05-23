@@ -29,9 +29,10 @@ namespace TranscendenceRL {
             this.position = owner.position + offset;
         }
         public void Interact(Projectile other) {
-            if(other.Source == owner) {
+            if(other.source == owner) {
                 return;
             }
+            other.source = null;
             other.velocity = new XY() -other.velocity;
         }
     }

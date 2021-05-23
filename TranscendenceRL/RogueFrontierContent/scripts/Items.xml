@@ -32,7 +32,7 @@
 			value=		"3000"
 
 			invoke=		"invokePower"
-			powerType=	"power_silence"
+			powerType=	"power_declare"
 			charges=	"5"
 			
 			desc=		"This charm contains concentrated energy from The Orator. Invoke this charm to release the energy as a destructive burst."

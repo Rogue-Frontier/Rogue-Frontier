@@ -81,7 +81,7 @@ namespace TranscendenceRL {
         public void SaveContinue() {
             //Temporarily PlayerMain events before saving
             var ps = playerMain.playerShip;
-            var endgame = new HashSet<EndGame>(ps.onDestroyed.set.OfType<EndGame>());
+            var endgame = new HashSet<EndGamePlayerDestroyed>(ps.onDestroyed.set.OfType<EndGamePlayerDestroyed>());
             ps.onDestroyed.set.ExceptWith(endgame);
 
             Save();
@@ -92,7 +92,7 @@ namespace TranscendenceRL {
         }
         public void SaveQuit() {
             //Remove PlayerMain events
-            playerMain.playerShip.onDestroyed.set.RemoveWhere(d => d is EndGame);
+            playerMain.playerShip.onDestroyed.set.RemoveWhere(d => d is EndGamePlayerDestroyed);
 
             Save();
             Quit();

@@ -204,7 +204,7 @@ namespace TranscendenceRL {
                 }
             }
 
-            y = Height - 16;
+            y = Height - 12;
             foreach (var m in playerShip.messages) {
                 this.Print(x, y++, m.Draw());
             }

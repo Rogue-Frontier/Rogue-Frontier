@@ -42,7 +42,7 @@ namespace TranscendenceRL {
                         switch (loaded) {
                             case LiveGame live: {
                                     var playerMain = new PlayerMain(Width, Height, live.world, live.playerShip) { IsFocused = true };
-                                    live.playerShip.onDestroyed += new EndGame(playerMain);
+                                    live.playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
                                     GameHost.Instance.Screen = playerMain;
                                     break;
                                 }

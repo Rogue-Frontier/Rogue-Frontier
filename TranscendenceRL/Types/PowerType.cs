@@ -6,21 +6,28 @@ using System.Xml.Linq;
 
 namespace TranscendenceRL.Types {
     public class PowerType : DesignType {
+        public string codename;
         public string name;
         public int cooldownTime;
         public int invokeDelay;
+        public string message;
 
         public PowerEffect Effect;
         public void Initialize(TypeCollection collection, XElement e) {
+            codename = e.ExpectAttribute(nameof(codename));
             name = e.ExpectAttribute(nameof(name));
             cooldownTime = e.ExpectAttributeInt(nameof(cooldownTime));
             invokeDelay = e.ExpectAttributeInt(nameof(invokeDelay));
+            message = e.TryAttribute(nameof(message), null);
 
-            if(e.HasElement("Weapon", out XElement xmlWeapon)) {
+            if (e.HasElement("Weapon", out var xmlWeapon)) {
                 Effect = new PowerWeapon(xmlWeapon);
-            }
-            if(e.HasElement("ProjectileBarrier", out XElement xmlProjectileBarrier)) {
+            } else if(e.HasElement("Heal", out var xmlHeal)) {
+                Effect = new PowerHeal();
+            } else if (e.HasElement("ProjectileBarrier", out var xmlProjectileBarrier)) {
                 Effect = new PowerProjectileBarrier(xmlProjectileBarrier);
+            } else {
+                throw new Exception($"Power must have effect: {codename} ### {e} ### {e.Parent}");
             }
         }
     }
@@ -36,6 +43,15 @@ namespace TranscendenceRL.Types {
             this.desc = new FragmentDesc(e);
         }
         public void Invoke(PlayerShip invoker) => SWeapon.CreateShot(desc, invoker, invoker.rotationDeg * Math.PI / 180);
+    }
+    public class PowerHeal : PowerEffect {
+        public PowerHeal() { }
+        public PowerHeal(XElement e) {
+
+        }
+        public void Invoke(PlayerShip invoker) {
+            invoker.hull.Restore();
+        }
     }
     public class PowerProjectileBarrier : PowerEffect {
         public enum BarrierType {

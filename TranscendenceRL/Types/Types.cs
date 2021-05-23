@@ -104,6 +104,17 @@ namespace TranscendenceRL {
                 case "Source":
                     AddSource(element);
                     break;
+				case "Content":
+					ProcessRoot(file, element);
+					break;
+				case "Unused":
+
+					break;
+#if DEBUG
+				case "Debug":
+					ProcessRoot(file, element);
+					break;
+#endif
 				case "GenomeType":
 					AddType<GenomeType>(element);
 					break;

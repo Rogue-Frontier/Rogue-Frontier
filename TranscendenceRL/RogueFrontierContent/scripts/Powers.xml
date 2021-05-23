@@ -1,8 +1,10 @@
 ﻿<Module>
-	<PowerType codename="power_silence"
-		name=			"Silence"
+	<!-- The Orator -->
+	<PowerType codename="power_declare"
+		name=			"DECLARE"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
+		message=		"You DECLARE the divinity of The Orator"
 		>
 		<Weapon
 			count=			"90"
@@ -21,19 +23,70 @@
 				background=	"CC88DDFF"/>
 		</Weapon>
 	</PowerType>
+	<PowerType codename="power_swear"
+		name=			"SWEAR"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		message=		"You SWEAR by your devotion to The Orator"
+		>
+		<Heal/>
+	</PowerType>
 	<PowerType codename="power_echo"
-		name=			"Echo"
+		name=			"ECHO"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
 		>
 		<ProjectileBarrier barrierType="echo" lifetime="900" radius="4"/>
 	</PowerType>
 
-	<PowerType codename="power_accuse"
-		name=			"Accuse"
+	<PowerType codename="power_decry"
+		name=			"DECRY"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
+		message=		"You DECRY those who oppose The Orator"
 		>
 		<ProjectileBarrier barrierType="accuse" lifetime="900" radius="4"/>
 	</PowerType>
+
+	<Unused>
+		<!-- The Dictator -->
+		<PowerType codename="power_silence"
+			name=			"SILENCE"
+			invokeDelay=	"120"
+			cooldownTime=	"3600"
+			>
+		</PowerType>
+
+		<PowerType codename="power_accuse"
+			name=			"ACCUSE"
+			invokeDelay=	"120"
+			cooldownTime=	"3600"
+			>
+		</PowerType>
+		<PowerType codename="power_manipulate"
+			name=			"MANIPULATE"
+			invokeDelay=	"120"
+			cooldownTime=	"3600"
+			>
+		</PowerType>
+		<PowerType codename="power_ignore"
+			name=			"IGNORE"
+			invokeDelay=	"120"
+			cooldownTime=	"3600"
+			>
+		</PowerType>
+		<PowerType codename="power_deny"
+			name=			"DENY"
+			invokeDelay=	"120"
+			cooldownTime=	"3600"
+			>
+		</PowerType>
+
+		<PowerType codename="power_control"
+			name=			"CONTROL"
+			invokeDelay=	"120"
+			cooldownTime=	"3600"
+			>
+		</PowerType>
+	</Unused>
 </Module>

@@ -13,16 +13,30 @@ using Newtonsoft.Json;
 using System.IO;
 using ArchConsole;
 using static TranscendenceRL.PlayerShip;
+using static TranscendenceRL.Station;
 using System.Threading.Tasks;
 
 namespace TranscendenceRL {
 
-	public class EndGame : IContainer<PlayerDestroyed> {
+	public class NotifyStationDestroyed : IContainer<StationDestroyed> {
+		public PlayerShip playerShip;
+		public Station source;
+		[JsonIgnore]
+		public StationDestroyed Value =>
+			(s, d, w) => playerShip?.AddMessage(new Transmission(source, $"{source.name} destroyed by {d?.name ?? "unknown forces"}!"));
+		public NotifyStationDestroyed(PlayerShip playerShip, Station source) {
+			this.playerShip = playerShip;
+			this.source = source;
+        }
+    }
+
+	public class EndGamePlayerDestroyed : IContainer<PlayerDestroyed> {
 		[JsonIgnore]
 		private PlayerMain main;
 		[JsonIgnore]
-		public PlayerDestroyed Value => main == null ? null : (p, d, w) => main.EndGame(d, w);
-		public EndGame(PlayerMain main) {
+		public PlayerDestroyed Value => main == null ? null :
+			(p, d, w) => main.EndGame($"Destroyed by {d?.name ?? "unknown forces"}", w);
+		public EndGamePlayerDestroyed(PlayerMain main) {
 			this.main = main;
 		}
 	}
@@ -149,7 +163,7 @@ namespace TranscendenceRL {
 			}
 
 		}
-		public void EndGame(SpaceObject destroyer, Wreck wreck) {
+		public void EndGame(string message, Wreck wreck) {
 			//Clear mortal time so that we don't slow down after the player dies
 			playerShip.mortalTime = 0;
 			HideAll();
@@ -177,7 +191,7 @@ namespace TranscendenceRL {
 				}
 			}
 			var epitaph = new Epitaph() {
-				desc = $"Destroyed by {destroyer.name}",
+				desc = message,
 				deathFrame = deathFrame,
 				wreck = wreck
 			};
@@ -204,7 +218,7 @@ namespace TranscendenceRL {
 
 			if(pauseMenu.IsVisible) {
 				passTime = false;
-            }else if(playerShip.mortalTime > 0) {
+            }else if(playerShip.active && playerShip.mortalTime > 0) {
 
 				//Note that while the world updates are slowed down, the game window actually updates faster since there's less work per frame
 				var timePassed = delta.TotalSeconds;
@@ -1292,7 +1306,9 @@ namespace TranscendenceRL {
 						//Invoke now!
 						p.cooldownLeft = p.cooldownPeriod;
 						p.type.Effect.Invoke(playerShip);
-
+						if (p.type.message != null) {
+							playerShip.AddMessage(new InfoMessage(p.type.message));
+						}
 						//Reset charge
 						p.invokeCharge = 0;
 						p.charging = false;
