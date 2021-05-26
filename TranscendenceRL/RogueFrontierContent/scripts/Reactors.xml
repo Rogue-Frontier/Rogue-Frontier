@@ -5,7 +5,7 @@
 				mass=		"1000"
 		>
 		<Reactor
-			maxOutput=		"40"
+			maxOutput=		"30"
 			capacity=		"4000"
 			efficiency=		"1.0"
 			battery=		"false"
@@ -18,7 +18,7 @@
 			mass=		"1000"
 		>
 		<Reactor
-			maxOutput=		"15"
+			maxOutput=		"20"
 			capacity=		"500"
 			efficiency=		"1.0"
 			battery=		"true"

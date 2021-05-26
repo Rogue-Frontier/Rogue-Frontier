@@ -1011,31 +1011,11 @@ namespace TranscendenceRL {
 				var reactors = player.ship.devices.Reactors;
 				if (reactors.Any()) {
 					{
-						ColoredString bar;
-						if (player.energy.totalUsedOutput > 0) {
-							int length = (int)Math.Ceiling(16f * player.energy.totalUsedOutput / player.energy.totalMaxOutput);
-							bar = new ColoredString(new string('=', length), Color.Yellow, b)
-								+ new ColoredString(new string('=', 16 - length), Color.Gray, b);
-						} else {
-							bar = new ColoredString(new string('=', 16), Color.Gray, b);
-                        }
-						this.Print(x, y,
-							new ColoredString("[", Color.White, b)
-							+ bar
-							+ new ColoredString("]", Color.White, b)
-							);
-						this.Print(x + 1 + 16 + 2, y,
-								new ColoredString("Total Output", Color.White, b));
-						y++;
-					}
-					if(reactors.Count > 1) {
 						double totalFuel = reactors.Sum(r => r.energy);
 						double maxFuel = reactors.Sum(r => r.desc.capacity);
 						double netDelta = reactors.Sum(r => r.energyDelta);
-
 						ColoredString bar;
 						if (totalFuel > 0) {
-
 							Color f = Color.White;
 							char arrow = '=';
 							if (netDelta < 0) {
@@ -1053,17 +1033,23 @@ namespace TranscendenceRL {
 							bar = new ColoredString(new string('=', 16), Color.Gray, b);
 						}
 
-
+						{
+							int length = (int)Math.Ceiling(16f * player.energy.totalUsedOutput / player.energy.totalMaxOutput);
+							for(int i = 0; i < length; i++) {
+								bar[i].Background = Color.DarkKhaki;
+                            }
+						}
 						this.Print(x, y,
-							new ColoredString("[", Color.White, b)
+							  new ColoredString("[", Color.White, b)
 							+ bar
 							+ new ColoredString("]", Color.White, b)
+							+ " "
+							+ new ColoredString($"Total Usage ({player.energy.totalMaxOutput})", Color.White, b)
 							);
-
-						this.Print(x + 1 + 16 + 2, y,
-								new ColoredString("Total Fuel", Color.White, b));
 						y++;
 					}
+
+
 					foreach (var reactor in reactors) {
 
 						ColoredString bar;
@@ -1086,12 +1072,20 @@ namespace TranscendenceRL {
 							bar = new ColoredString(new string('=', 16), Color.Gray, b);
 						}
 
+						{
+							int length = (int)Math.Ceiling(-16f * reactor.energyDelta / reactor.maxOutput);
+							for (int i = 0; i < length; i++) {
+								bar[i].Background = Color.DarkKhaki;
+							}
+						}
+
 						this.Print(x, y,
 							new ColoredString("[", Color.White, b)
 							+ bar
-							+ new ColoredString("]", Color.White, b));
-						this.Print(x + 16 + 2 + 1, y,
-									new ColoredString(reactor.source.type.name, Color.White, b));
+							+ new ColoredString("]", Color.White, b)
+							+ " "
+							+ new ColoredString($"{reactor.source.type.name} ({reactor.maxOutput})", Color.White, b)
+							);
 						y++;
 					}
 					y++;

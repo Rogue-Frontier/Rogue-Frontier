@@ -320,7 +320,7 @@ namespace TranscendenceRL {
                 Escape
                 );
 
-            string GetName(Powered i) => i.source.type.name;
+            string GetName(Powered i) => $"{i.source.type.name} ({(disabled.Contains(i) ? "Disabled" : "Enabled")})";
             List<ColoredString> GetDesc(Powered p) {
                 List<ColoredString> result = new List<ColoredString>();
                 var desc = p.source.type.desc.SplitLine(32);

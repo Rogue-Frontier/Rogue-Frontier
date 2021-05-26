@@ -19,35 +19,33 @@ namespace TranscendenceRL {
                 return;
             }
 
-            var reactors = new List<Reactor>();
+            var generators = new List<Reactor>();
             var batteries = new List<Reactor>();
             foreach(var reactor in devices.Reactors) {
                 reactor.energyDelta = 0;
                 if(reactor.desc.battery) {
                     batteries.Add(reactor);
                 } else {
-                    reactors.Add(reactor);
+                    generators.Add(reactor);
                 }
             }
-            var sources = reactors.Concat(batteries).ToList();
+            var sources = generators.Concat(batteries).ToList();
 
             totalMaxOutput = sources.Sum(r => r.maxOutput);
             int maxOutputLeft = totalMaxOutput;
             int sourceIndex = 0;
-
             int sourceOutput = sources[sourceIndex].maxOutput;
-
             HashSet<Powered> deactivated = new HashSet<Powered>();
-
             //Devices consume power
             int outputUsed = 0;
             foreach(var powered in devices.Powered.Where(p => !disabled.Contains(p))) {
-                if(outputUsed + powered.powerUse > maxOutputLeft) {
+                if(powered.powerUse > maxOutputLeft) {
                     deactivated.Add(powered);
                     continue;
                 }
-                outputUsed += powered.powerUse;
-                maxOutputLeft -= outputUsed;
+                var powerUse = powered.powerUse;
+                outputUsed += powerUse;
+                maxOutputLeft -= powerUse;
 
             CheckReactor:
                 if (outputUsed > sourceOutput) {
