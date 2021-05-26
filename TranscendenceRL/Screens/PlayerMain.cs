@@ -637,7 +637,7 @@ namespace TranscendenceRL {
 			grid = new int[width, height];
 			for(int x = 0; x < width; x++) {
 				for(int y = 0; y < height; y++) {
-					grid[x, y] = r.Next(0, 120);
+					grid[x, y] = r.Next(0, 240);
                 }
             }
 		}
@@ -704,44 +704,40 @@ namespace TranscendenceRL {
 
 			Color borderColor = Color.Black;
 			int borderSize = 2;
+
 			if (powerAlpha > 0) {
 				borderColor = borderColor.Blend(new Color(204, 153, 255, 255) * (float)Math.Min(1, powerAlpha * 1.5)).Premultiply();
 
 				borderSize += (int)(12 * powerAlpha);
 
+				Mortal();
+
 				var maxAlpha = powerAlpha * 102;
 				for (int x = 0; x < Width; x++) {
-					for(int y = 0; y < Height; y++) {
+					for (int y = 0; y < Height; y++) {
 						var alpha = (Math.Sin((grid[x, y] + ticks) * 2 * Math.PI / 240) + 1) * maxAlpha;
 						this.SetCellAppearance(x, y,
 							new ColoredGlyph(
 								borderColor.SetAlpha((byte)(alpha)),
 								Color.Transparent,
 								'-'));
-                    }
-                }
-			} else if(!chargingUp && recoveryTime > 0) {
-				/*
-				var maxAlpha = Math.Min(1, recoveryTime / 120f) * 128;
-				for (int x = 0; x < Width; x++) {
-					for (int y = 0; y < Height; y++) {
-						var alpha = (Math.Sin((grid[x, y] + ticks) * 2 * Math.PI / 240) + 1) * maxAlpha;
-						this.SetCellAppearance(x, y,
-							new ColoredGlyph(
-								Color.Black.SetAlpha((byte)(alpha)),
-								Color.Transparent,
-								this.Font.SolidGlyphIndex));
 					}
-				}*/
-			}
-			if (player.mortalTime > 0) {
-				borderColor = borderColor.Blend(Color.Red.SetAlpha((byte)(Math.Min(1, player.mortalTime / 4.5) * 255)));
-				
+				}
+			} else {
+				Mortal();
+            }
 
-				var fraction = (player.mortalTime - Math.Truncate(player.mortalTime));
+			void Mortal() {
+				if (player.mortalTime > 0) {
+					borderColor = borderColor.Blend(Color.Red.SetAlpha((byte)(Math.Min(1, player.mortalTime / 4.5) * 255)));
 
-				borderSize += (int)(6 * fraction);
+
+					var fraction = (player.mortalTime - Math.Truncate(player.mortalTime));
+
+					borderSize += (int)(6 * fraction);
+				}
 			}
+
 			if (player.ship.controlHijack?.ticksLeft > 0) {
 				var ticks = player.ship.controlHijack.ticksLeft;
 				var strength = Math.Min(ticks / 60f, 1);
@@ -791,6 +787,7 @@ namespace TranscendenceRL {
 		public double viewScale;
 
 		public int arrowDistance;
+		public int ticks;
 
 		public Readout(Camera camera, PlayerShip player, int width, int height) : base(width, height) {
 			this.camera = camera;
@@ -815,6 +812,7 @@ namespace TranscendenceRL {
 			FocusOnMouseClick = false;
         }
         public override void Update(TimeSpan delta) {
+			ticks++;
             base.Update(delta);
         }
         public override void Render(TimeSpan drawTime) {
@@ -1012,7 +1010,6 @@ namespace TranscendenceRL {
 				var b = Color.Black;
 				var reactors = player.ship.devices.Reactors;
 				if (reactors.Any()) {
-
 					{
 						ColoredString bar;
 						if (player.energy.totalUsedOutput > 0) {
@@ -1031,7 +1028,6 @@ namespace TranscendenceRL {
 								new ColoredString("Total Output", Color.White, b));
 						y++;
 					}
-
 					if(reactors.Count > 1) {
 						double totalFuel = reactors.Sum(r => r.energy);
 						double maxFuel = reactors.Sum(r => r.desc.capacity);
@@ -1065,10 +1061,9 @@ namespace TranscendenceRL {
 							);
 
 						this.Print(x + 1 + 16 + 2, y,
-								new ColoredString("Total Output", Color.White, b));
+								new ColoredString("Total Fuel", Color.White, b));
 						y++;
 					}
-
 					foreach (var reactor in reactors) {
 
 						ColoredString bar;
@@ -1099,7 +1094,6 @@ namespace TranscendenceRL {
 									new ColoredString(reactor.source.type.name, Color.White, b));
 						y++;
 					}
-
 					y++;
 				}
 				var weapons = player.ship.devices.Weapons;
@@ -1126,7 +1120,6 @@ namespace TranscendenceRL {
 
 					y++;
 				}
-
 				var misc = player.ship.devices.Installed.OfType<MiscDevice>();
 				if (misc.Any()) {
 					int i = 0;
@@ -1145,7 +1138,6 @@ namespace TranscendenceRL {
 
 					y++;
 				}
-
 				switch (player.ship.damageSystem) {
 					case LayeredArmorSystem las:
 						foreach (var armor in las.layers) {
@@ -1161,6 +1153,32 @@ namespace TranscendenceRL {
 						break;
 				}
 			}
+
+			/*
+            if(true){
+				int x = 3;
+				int y = 35;
+				foreach (var p in player.powers) {
+					if (p.fullyCharged) {
+						var c = Color.Yellow;
+						if (ticks % 30 < 15) {
+							c = Color.Orange;
+						}
+
+						this.Print(x + 2, y++,
+							new ColoredString(
+								$"{p.type.name,-8}",
+								Color.Orange, Color.Black
+								) + new ColoredString(
+									new string('>', 16),
+									c, Color.Black
+								)
+							);
+					}
+				}
+			}
+			*/
+
 			base.Render(drawTime);
         }
     }
@@ -1302,7 +1320,9 @@ namespace TranscendenceRL {
 						p.charging = false;
 					}
 				} else if(p.invokeCharge > 0) {
-					if (p.invokeCharge >= p.invokeDelay) {
+					if(p.invokeCharge < p.invokeDelay) {
+						p.invokeCharge--;
+					} else {
 						//Invoke now!
 						p.cooldownLeft = p.cooldownPeriod;
 						p.type.Effect.Invoke(playerShip);
@@ -1312,8 +1332,6 @@ namespace TranscendenceRL {
 						//Reset charge
 						p.invokeCharge = 0;
 						p.charging = false;
-					} else {
-						p.invokeCharge--;
 					}
 				}
             }
@@ -1339,11 +1357,22 @@ namespace TranscendenceRL {
 				foreach(var p in playerShip.powers) {
 					p.invokeCharge = 0;
 					p.charging = false;
-                }
-
+				}
 				//Hide menu
 				IsVisible = false;
             }
+			if(keyboard.IsKeyPressed(Keys.P)) {
+				//Set charge for all powers back to 0
+				foreach (var p in playerShip.powers) {
+					if(p.invokeCharge < p.invokeDelay) {
+						p.invokeCharge = 0;
+						p.charging = false;
+					}
+				}
+				//Hide menu
+				IsVisible = false;
+			}
+
             return base.ProcessKeyboard(keyboard);
         }
 		public override void Render(TimeSpan delta) {

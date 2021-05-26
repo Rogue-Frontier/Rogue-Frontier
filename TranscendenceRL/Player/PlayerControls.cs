@@ -91,11 +91,6 @@ namespace TranscendenceRL {
 			ProcessArrows(info);
 			ProcessTargeting(info);
 
-			if (info.IsKeyPressed(controls[Powers])) {
-				if (powerMenu != null) {
-					powerMenu.IsVisible = !powerMenu.IsVisible;
-				}
-			}
 			if (!playerMain.autopilotUpdate && info.IsKeyPressed(controls[Autopilot])) {
 				playerShip.autopilot = !playerShip.autopilot;
 				playerShip.AddMessage(new InfoMessage($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));

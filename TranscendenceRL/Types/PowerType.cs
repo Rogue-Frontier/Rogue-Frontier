@@ -108,6 +108,7 @@ namespace TranscendenceRL.Types {
 
         public int cooldownPeriod => type.cooldownTime;
         public int invokeDelay => type.invokeDelay;
+        public bool fullyCharged => invokeCharge >= invokeDelay;
 
         public int cooldownLeft { get; set; }
         public bool ready => cooldownLeft == 0;
