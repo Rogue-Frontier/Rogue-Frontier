@@ -712,10 +712,15 @@ namespace TranscendenceRL {
 
 				Mortal();
 
+
+				var p = player.position.roundDown;
 				var maxAlpha = powerAlpha * 102;
 				for (int x = 0; x < Width; x++) {
 					for (int y = 0; y < Height; y++) {
-						var alpha = (Math.Sin((grid[x, y] + ticks) * 2 * Math.PI / 240) + 1) * maxAlpha;
+						int x2 = ((x + p.xi) % Width + Width) % Width;
+						int y2 = ((y - p.yi) % Height + Height) % Height;
+
+						var alpha = (Math.Sin((grid[x2, y2] + ticks) * 2 * Math.PI / 240) + 1) * maxAlpha;
 						this.SetCellAppearance(x, y,
 							new ColoredGlyph(
 								borderColor.SetAlpha((byte)(alpha)),
