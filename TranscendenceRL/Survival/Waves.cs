@@ -33,10 +33,10 @@ namespace TranscendenceRL {
                 {"ship_royal_guard", 450 },
             };
         public Waves(PlayerShip playerShip) {
-
             this.playerShip = playerShip;
-            CreateWave();
-
+            ships = new();
+        }
+        public void Validate() {
             map.Keys.ToList().Select(playerShip.world.types.Lookup<ShipClass>);
         }
         HashSet<AIShip> ships;

@@ -51,6 +51,7 @@ namespace TranscendenceRL.Types {
         }
         public void Invoke(PlayerShip invoker) {
             invoker.hull.Restore();
+            invoker.devices.Reactors.ForEach(r => r.energy = r.desc.capacity);
         }
     }
     public class PowerProjectileBarrier : PowerEffect {
@@ -80,18 +81,22 @@ namespace TranscendenceRL.Types {
                     construct = (position, lifetime) => new EchoBarrier(invoker, position, lifetime);
                     break;
             }
-            double step = 1f / radius;
-            for (double angle = 0; angle < end; angle += step) {
-                var barrier = construct(XY.Polar(angle, radius), lifetime);
-                world.AddEntity(barrier);
-            }
 
-            step = 1f / (radius + 1);
-            for (double angle = 0; angle < end; angle += step) {
-                var barrier = construct(XY.Polar(angle, radius + 1), lifetime);
-                world.AddEntity(barrier);
+            HashSet<(int, int)> covered = new();
+            for(double r = radius; r < radius + 2; r++) {
+                double step = 1f / (r * 2);
+                for (double angle = 0; angle < end; angle += step) {
+                    var p = XY.Polar(angle, r);
+                    /*
+                    if(covered.Contains(p)) {
+                        continue;
+                    }
+                    covered.Add(p);
+                    */
+                    var barrier = construct(p, lifetime);
+                    world.AddEntity(barrier);
+                }
             }
-
         }
     }
     public interface IPower {

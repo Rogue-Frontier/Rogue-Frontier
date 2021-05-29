@@ -166,15 +166,13 @@ namespace TranscendenceRL {
             y++;
 
             //Show installed devices on the right pane
-            this.Print(descX, y, "Installed Devices:");
+            this.Print(descX, y, "[Devices]");
             y++;
             foreach (var device in current.devices.Generate(World.types)) {
-                this.Print(descX+4, y, device.source.type.name);
+                this.Print(descX + 4, y, device.source.type.name);
                 y++;
             }
-
             y += 2;
-
             foreach (var line in settings.GetString().Split('\n', '\r')) {
                 this.Print(descX, y++, line);
             }

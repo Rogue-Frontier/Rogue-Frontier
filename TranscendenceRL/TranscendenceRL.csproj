@@ -48,6 +48,9 @@
     <None Update="RogueFrontierContent\sprites\ConstellationAstra.asc.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="RogueFrontierContent\sprites\RogueFrontierPosterV2.asc.cg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="RogueFrontierContent\unused\BenedictPortrait.asc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

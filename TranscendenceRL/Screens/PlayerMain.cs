@@ -84,26 +84,26 @@ namespace TranscendenceRL {
 		public Edgemap uiEdge;
 		public Minimap uiMinimap;
 
-		PowerMenu powerMenu;
-		PauseMenu pauseMenu;
+		public PowerMenu powerMenu;
+		public PauseMenu pauseMenu;
 
 		TargetingMarker crosshair;
 
 		double updateWait;
 		public bool autopilotUpdate;
 
-		public PlayerMain(int Width, int Height, World World, PlayerShip playerShip) : base(Width, Height) {
+		public PlayerMain(int Width, int Height, World world, PlayerShip playerShip) : base(Width, Height) {
 			DefaultBackground = Color.Transparent;
 			DefaultForeground = Color.Transparent;
 			UseMouse = true;
 			UseKeyboard = true;
 			_camera = new Camera();
-			this.world = World;
+			this.world = world;
 			this.playerShip = playerShip;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
 
-			back = new BackdropConsole(Width, Height, World.backdrop, camera);
-			uiMegamap = new Megamap(camera, playerShip, World.backdrop.layers.Last(), Width, Height);
+			back = new BackdropConsole(Width, Height, world.backdrop, camera);
+			uiMegamap = new Megamap(camera, playerShip, world.backdrop.layers.Last(), Width, Height);
 			vignette = new Vignette(playerShip, Width, Height);
 			sceneContainer = new Console(Width, Height);
 			sceneContainer.Focused += (e, o) => this.IsFocused = true;
@@ -113,9 +113,7 @@ namespace TranscendenceRL {
 			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
 			pauseMenu = new PauseMenu(this) { IsVisible = false };
 			crosshair = new TargetingMarker(playerShip, "Mouse Cursor", new XY());
-
-			this.playerControls = new PlayerControls(playerShip, this, powerMenu, pauseMenu, sceneContainer);
-
+			playerControls = new PlayerControls(playerShip, this);
 			//Don't allow anyone to get focus via mouse click
 			FocusOnMouseClick = false;
 		}
@@ -345,8 +343,9 @@ namespace TranscendenceRL {
 				return base.ProcessKeyboard(info);
 			}
 
-
-			uiMegamap.ProcessKeyboard(info);
+			if (uiMain.IsVisible) {
+				uiMegamap.ProcessKeyboard(info);
+			}
 			keyboard = info;
 
 			//Intercept the alphanumeric/Escape keys if the power menu is active
@@ -1387,9 +1386,11 @@ namespace TranscendenceRL {
             }
 			var back = Color.Black;
 			this.Print(x, y++, "[Powers]", foreground, back);
-			this.Print(x, y++, "[Ship control locked]", foreground, back);
-			this.Print(x, y++, "[Press ESC to cancel]", foreground, back);
-			this.Print(x, y++, "[Press key to invoke]", foreground, back);
+			//this.Print(x, y++, "[Ship control locked]", foreground, back);
+			this.Print(x, y++, "[ESC     -> cancel]", foreground, back);
+			this.Print(x, y++, "[P       -> close ]", foreground, back);
+			this.Print(x, y++, "[Hold    -> charge]", foreground, back);
+			this.Print(x, y++, "[Release -> invoke]", foreground, back);
 			y++;
 			foreach (var p in playerShip.powers) {
 				char key = indexToKey(index);

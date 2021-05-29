@@ -183,7 +183,7 @@ namespace TranscendenceRL {
             SadConsole.Game.Instance.Screen = new PlayerCreator(this, World, settings, CreateGame) { IsFocused = true };
 
             void CreateGame(ShipSelectorModel context) {
-                var loc = AppDomain.CurrentDomain.BaseDirectory + Path.PathSeparator + context.playerName;
+                var loc = $"{AppDomain.CurrentDomain.BaseDirectory}/save/{context.playerName}";
                 string file;
                 do { file = $"{loc}-{new Random().Next(9999)}.trl"; }
                 while (File.Exists(file));

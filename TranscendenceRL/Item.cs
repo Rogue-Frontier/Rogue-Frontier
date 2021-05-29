@@ -547,6 +547,7 @@ namespace TranscendenceRL {
         public ReactorDesc desc;
         public double energy;
         public double energyDelta;
+        public int chargeDelay;
         public int maxOutput => energy > 0 ? desc.maxOutput : 0;
         public Reactor(Item source, ReactorDesc desc) {
             this.source = source;

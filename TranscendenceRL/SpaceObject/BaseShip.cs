@@ -127,18 +127,13 @@ namespace TranscendenceRL {
         public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
         public void Damage(SpaceObject source, int hp) => damageSystem.Damage(this, source, hp);
         public void Destroy(SpaceObject source) {
-            var wreck = new Wreck(this);
-            wreck.cargo.UnionWith(cargo);
-            wreck.cargo.UnionWith(
-                devices.Installed.Select(
-                    d => d.source).Where(
-                    i => i != null).Select(
-                    i => {
+            var items = cargo.Concat(devices.Installed.Select(d => d.source)
+                .Where(i => i != null).Select(i => {
                         i.RemoveArmor();
                         return i;
                     }
-                )
-            );
+                ));
+            var wreck = new Wreck(this, items);
             world.AddEntity(wreck);
             active = false;
 

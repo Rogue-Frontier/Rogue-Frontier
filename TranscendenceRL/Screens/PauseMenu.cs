@@ -34,6 +34,8 @@ namespace TranscendenceRL {
             y++;
             y++;
             y++;
+            this.Children.Add(new LabelButton("Self Destruct", SelfDestruct) { Position = new Point(x, y++), FontSize = fs });
+            y++;
             this.Children.Add(new LabelButton("Delete & Quit", Quit) { Position = new Point(x, y++), FontSize = fs });
         }
         public override void Update(TimeSpan delta) {
@@ -97,7 +99,20 @@ namespace TranscendenceRL {
             Save();
             Quit();
         }
+        public void SelfDestruct() {
+            var p = playerMain.playerShip;
+            var items = p.cargo.Concat(p.devices.Installed.Select(d => d.source)
+                .Where(i => i != null).Select(i => {
+                    i.RemoveArmor();
+                    return i;
+                }));
+            Wreck w = new Wreck(p, items);
+            playerMain.world.AddEntity(w);
 
+            playerMain.world.RemoveEntity(p);
+
+            playerMain.EndGame("Self destructed", w);
+        }
         public void Quit() {
             var w = playerMain.world;
             GameHost.Instance.Screen = new TitleScreen(playerMain.Width, playerMain.Height, new World(new Universe(w.types, new Rand()))) { IsFocused = true };

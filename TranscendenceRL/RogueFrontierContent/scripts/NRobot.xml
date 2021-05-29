@@ -18,7 +18,7 @@
 		>
 		<Weapon
 			powerUse=		"30"
-			fireCooldown=	"90"
+			fireCooldown=	"60"
 			missileSpeed=	"60"
 			damageType=		"1"
 			damageHP=		"1"
@@ -31,9 +31,9 @@
 				dischargePerShot=		"35"
 				chargePerTick=			"35/90"
 				maxCharge=				"100"
-				bonusSpeedPerCharge=	"0.30"
-				bonusDamagePerCharge=	"0.30"
-				bonusLifetimePerCharge=	"0.30"
+				bonusSpeedPerCharge=	"30/100"
+				bonusDamagePerCharge=	"30/100"
+				bonusLifetimePerCharge=	"30/100"
 				/>
 			<Disruptor
 				thrustMode="off"
@@ -111,6 +111,7 @@
 			<Weapon codename="item_shutdown_cannon"/>
 			<Weapon codename="item_breakdown_cannon"/>
 			<Reactor codename="item_foundry_reactor"/>
+			<Reactor codename="item_foundry_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_crystalsteel_plate"/>

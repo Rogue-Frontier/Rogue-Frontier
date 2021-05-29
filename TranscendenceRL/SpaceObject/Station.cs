@@ -32,14 +32,17 @@ namespace TranscendenceRL {
         [JsonIgnore]
         public ColoredGlyph tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.tile.GlyphCharacter);
         public Wreck() { }
-        public Wreck(SpaceObject creator) {
+        public Wreck(SpaceObject creator, IEnumerable<Item> cargo = null) {
             this.creator = creator;
             this.world = creator.world;
             this.sovereign = Sovereign.Inanimate;
             this.position = creator.position;
             this.velocity = creator.velocity;
             this.active = true;
-            cargo = new HashSet<Item>();
+            this.cargo = new HashSet<Item>();
+            if (cargo?.Any() == true) {
+                this.cargo.UnionWith(cargo);
+            }
         }
         public Console GetScene(Console prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
         public void Damage(SpaceObject source, int hp) {

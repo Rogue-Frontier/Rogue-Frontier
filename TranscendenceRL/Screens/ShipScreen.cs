@@ -53,11 +53,11 @@ namespace TranscendenceRL {
             y++;
 
             x = 1;
-            Print(x, y, $"{$"Thrust:    {playerShip.shipClass.thrust}", -16}{$"Rotation acceleration: {playerShip.shipClass.rotationAccel, 4} deg/s^2"}");
+            Print(x, y, $"{$"Thrust:    {playerShip.shipClass.thrust}", -16}{$"Rotate acceleration: {playerShip.shipClass.rotationAccel, 3} deg/s^2"}");
             y++;
-            Print(x, y, $"{$"Max Speed: {playerShip.shipClass.maxSpeed}",-16}{$"Rotation deceleration: {playerShip.shipClass.rotationDecel, 4} deg/s^2"}");
+            Print(x, y, $"{$"Max Speed: {playerShip.shipClass.maxSpeed}",-16}{$"Rotate deceleration: {playerShip.shipClass.rotationDecel, 3} deg/s^2"}");
             y++; 
-            Print(x, y, $"{"",-16}{$"Rotation max speed:    {playerShip.shipClass.rotationMaxSpeed*30, 4} deg/s^2"}");
+            Print(x, y, $"{"",-16}{$"Rotate max speed:    {playerShip.shipClass.rotationMaxSpeed*30, 3} deg/s^2"}");
 
             x = Width / 2;
             y = 2;

@@ -39,25 +39,30 @@ namespace TranscendenceRL {
             //Devices consume power
             int outputUsed = 0;
             foreach(var powered in devices.Powered.Where(p => !disabled.Contains(p))) {
-                if(powered.powerUse > maxOutputLeft) {
+                var powerUse = powered.powerUse;
+                if (powerUse <= 0) { continue; }
+                if (powerUse > maxOutputLeft) {
                     deactivated.Add(powered);
                     continue;
                 }
-                var powerUse = powered.powerUse;
                 outputUsed += powerUse;
                 maxOutputLeft -= powerUse;
 
             CheckReactor:
+                var source = sources[sourceIndex];
+
+                if(source.desc.battery) {
+                    source.chargeDelay = 60;
+                }
                 if (outputUsed > sourceOutput) {
                     outputUsed -= sourceOutput;
-                    sources[sourceIndex].energyDelta = -sourceOutput;
-
+                    source.energyDelta = -sourceOutput;
                     //Go to the next reactor
                     sourceIndex++;
                     sourceOutput = sources[sourceIndex].maxOutput;
                     goto CheckReactor;
                 } else {
-                    sources[sourceIndex].energyDelta = -outputUsed;
+                    source.energyDelta = -outputUsed;
                 }
             }
 
@@ -73,25 +78,31 @@ namespace TranscendenceRL {
             //Batteries recharge from reactor
             int maxReactorOutputLeft = maxOutputLeft - batteries.Sum(b => b.maxOutput);
             foreach(var battery in batteries.Where(b => b.energy < b.desc.capacity)) {
-                if(maxReactorOutputLeft > 0) {
-                    int delta = Math.Min(battery.maxOutput, maxReactorOutputLeft);
-                    battery.energyDelta = delta;
+                if(maxReactorOutputLeft == 0) {
+                    continue;
+                }
+                if(battery.chargeDelay > 0) {
+                    battery.chargeDelay--;
+                    continue;
+                }
 
-                    outputUsed += delta;
-                    maxReactorOutputLeft -= delta;
+                int delta = Math.Min(battery.maxOutput, maxReactorOutputLeft);
+                battery.energyDelta = delta;
 
-                CheckReactor:
-                    if (outputUsed > sourceOutput) {
-                        outputUsed -= sourceOutput;
-                        sources[sourceIndex].energyDelta = -sourceOutput;
+                outputUsed += delta;
+                maxReactorOutputLeft -= delta;
 
-                        //Go to the next reactor
-                        sourceIndex++;
-                        sourceOutput = sources[sourceIndex].maxOutput;
-                        goto CheckReactor;
-                    } else {
-                        sources[sourceIndex].energyDelta = -outputUsed;
-                    }
+            CheckReactor:
+                if (outputUsed > sourceOutput) {
+                    outputUsed -= sourceOutput;
+                    sources[sourceIndex].energyDelta = -sourceOutput;
+
+                    //Go to the next reactor
+                    sourceIndex++;
+                    sourceOutput = sources[sourceIndex].maxOutput;
+                    goto CheckReactor;
+                } else {
+                    sources[sourceIndex].energyDelta = -outputUsed;
                 }
             }
 

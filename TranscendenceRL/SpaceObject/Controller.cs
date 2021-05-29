@@ -240,6 +240,9 @@ namespace TranscendenceRL {
         public bool CanTarget(SpaceObject other) => other == target;
         private void Set(Weapon w) => w.SetFiring(true, target);
         public void Update(AIShip owner) {
+            if(target == null) {
+                return;
+            }
             var weapons = owner.devices.Weapons;
             if (weapon?.AllowFire != true) {
                 var w = weapons.Where(w => w.AllowFire);
@@ -313,7 +316,7 @@ namespace TranscendenceRL {
                 }
             }
         }
-        public bool Active => target.active && weapon != null;
+        public bool Active => target?.active == true && weapon != null;
     }
 
     public class PatrolOrder : IOrder {

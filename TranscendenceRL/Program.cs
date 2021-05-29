@@ -20,7 +20,7 @@ namespace TranscendenceRL {
         public static int Width, Height;
         public static string font = CheckFile("RogueFrontierContent/sprites/IBMCGA.font");
         public static string main = CheckFile("RogueFrontierContent/scripts/Main.xml");
-        public static string cover = CheckFile("RogueFrontierContent/sprites/RogueFrontierPoster.cg");
+        public static string cover = CheckFile("RogueFrontierContent/sprites/RogueFrontierPosterV2.asc.cg");
         public static string splash = CheckFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
 		static void Main(string[] args) {
 			// Setup the engine and create the main window.
@@ -49,15 +49,37 @@ namespace TranscendenceRL {
             var title = new TitleScreen(Width, Height, w);
             var titleSlide = new TitleSlideOpening(title) { IsFocused = true };
 
-            KeyConsole container = new KeyConsole(Width, Height, (k) => {
+            var splashBack = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText(splash)));
+            var splashBackground = new DisplayImage(Width / 2, Height / 2, splashBack, new Point()) { FontSize = title.FontSize * 2 };
+
+            int index = 0;
+            KeyConsole container = null;
+            container = new KeyConsole(Width, Height, (k) => {
                 if (k.IsKeyPressed(Keys.Enter)) {
-                    ShowTitle();
+                    switch(index) {
+                        case 1: {
+                                container.Children.Clear();
+                                Console c = new(Width, Height);
+                                container.Children.Add(c);
+                                ShowOpening(c);
+                                break;
+                            }
+                        case 2: {
+                                container.Children.Clear();
+                                Console c = new(Width, Height);
+                                container.Children.Add(c);
+                                ShowPoster(c);
+                                break;
+                            }
+                        case 3:
+                        default:
+                            ShowTitle();
+                            break;
+                    }
+                    
                 }
             }) { IsFocused = true, UseKeyboard = true,
             };
-
-            var splashBack = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText(splash)));
-            var splashBackground = new DisplayImage(Width / 2, Height / 2, splashBack, new Point()) { FontSize = container.FontSize * 2 };
             container.Children.Add(splashBackground);
 
             GameHost.Instance.Screen = container;
@@ -69,7 +91,9 @@ namespace TranscendenceRL {
 #else
             ShowSplash();
 #endif
+
             void ShowSplash() {
+                index = 1;
                 SplashScreen c = null;
                 c = new SplashScreen(() => ShowCrawl(c));
                 container.Children.Add(c);
@@ -98,6 +122,7 @@ namespace TranscendenceRL {
             }
 
             void ShowOpening(Console prev) {
+                index = 2;
                 prev.Parent.Children.Remove(splashBackground);
 
                 Console c = null;
@@ -112,7 +137,7 @@ And the vision that was
 more than just a dream...
                     ".Replace("\r", null), () => ShowFade2(c)) {
                     Position = new Point(4, 4),
-                    FontSize = prev.FontSize
+                    FontSize = title.FontSize * 3
                 };
 
                 prev.Parent.Children.Add(c);
@@ -142,7 +167,8 @@ more than just a dream...
                 prev.Parent.Children.Remove(prev);
             }
             void ShowPoster(Console prev) {
-                var display = new DisplayImage(Width, Height, poster, new Point(Width/2 - poster.Size.X/2 - 16, -5));
+                index = 3;
+                var display = new DisplayImage(Width, Height, poster, new Point(Width / 2 - poster.Size.X / 2 - 32, -5)) { FontSize = title.FontSize };
 
                 Console pause = null;
                 pause = new PauseTransition(Width, Height, 2, display, () => ShowPosterFade(pause));
@@ -162,6 +188,7 @@ more than just a dream...
             }
 
             void ShowTitle() {
+                index = 4;
                 titleSlide.IsFocused = true;
                 GameHost.Instance.Screen = titleSlide;
             }
