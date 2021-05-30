@@ -537,26 +537,32 @@ namespace TranscendenceRL {
             foreach (var key in keyboard.KeysPressed) {
                 switch (key.Key) {
                     case Keys.Up:
-                        if (items.Any()) {
-                            if (playerIndex == null) {
-                                playerIndex = items.Count() - 1;
-                            } else {
-                                playerIndex = Math.Max(playerIndex.Value - 1, 0);
-                            }
-                        } else {
-                            playerIndex = null;
-                        }
+                        playerIndex = items.Any() ?
+                            (playerIndex == null ? (items.Count() - 1) :
+                                playerIndex == 0 ? null :
+                                Math.Max(playerIndex.Value - 1, 0))
+                            : null;
+                        break;
+                    case Keys.PageUp:
+                        playerIndex = items.Any() ?
+                            (playerIndex == null ? (items.Count() - 1) :
+                                playerIndex == 0 ? null :
+                                Math.Max(playerIndex.Value - 26, 0))
+                            : null;
                         break;
                     case Keys.Down:
-                        if (items.Any()) {
-                            if (playerIndex == null) {
-                                playerIndex = 0;
-                            } else {
-                                playerIndex = Math.Min(playerIndex.Value + 1, items.Count() - 1);
-                            }
-                        } else {
-                            playerIndex = null;
-                        }
+                        playerIndex = items.Any() ?
+                            (playerIndex == null ? 0 :
+                                playerIndex == items.Count() - 1 ? null :
+                                Math.Min(playerIndex.Value + 1, items.Count() - 1))
+                            : null;
+                        break;
+                    case Keys.PageDown:
+                        playerIndex = items.Any() ?
+                            (playerIndex == null ? 0 :
+                                playerIndex == items.Count() - 1 ? null :
+                                Math.Min(playerIndex.Value + 26, items.Count() - 1))
+                            : null;
                         break;
                     case Keys.Enter:
                         if (playerIndex != null) {

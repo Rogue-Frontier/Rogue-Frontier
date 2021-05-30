@@ -26,13 +26,13 @@ namespace TranscendenceRL {
 			// Setup the engine and create the main window.
 			SadConsole.Game.Create(Width, Height, font);
             // Hook the start event so we can add consoles to the system.
-            SadConsole.Game.Instance.OnStart = Init;
+            SadConsole.Game.Instance.OnStart = Start;
 			// Start the game.
 			SadConsole.Game.Instance.Run();
 			SadConsole.Game.Instance.Dispose();
 		}
 
-		private static void Init() {
+		public static void Start() {
             Directory.CreateDirectory("save");
 #if false
             GameHost.Instance.Screen = new BackdropConsole(Width, Height, new Backdrop(), () => new Common.XY(0.5, 0.5));

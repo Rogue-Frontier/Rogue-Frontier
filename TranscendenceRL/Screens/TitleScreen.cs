@@ -20,6 +20,7 @@ namespace TranscendenceRL {
 
         ConfigMenu config;
         LoadMenu load;
+        Console credits;
 
         World World;
         
@@ -51,6 +52,7 @@ namespace TranscendenceRL {
             Children.Add(new LabelButton("[Enter]     Play Story Mode", StartGame) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Shift + A] Arena Mode", StartArena) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++), FontSize = fs });
+            Children.Add(new LabelButton("[Shift + I] Credits", StartCredits) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Shift + L] Load Game", StartLoad) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Shift + S] Survival Mode", StartSurvival) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++), FontSize = fs });
@@ -63,6 +65,18 @@ namespace TranscendenceRL {
             }
             config = new ConfigMenu(48, 64, settings) { Position = new Point(0, 30), FontSize= fs };
             load = new LoadMenu(48, 64, settings) { Position = new Point(0, 30), FontSize = fs };
+            credits = new Console(48, 64) { Position = new Point(0, 30), FontSize = fs };
+
+            y = 0;
+            credits.Children.Add(new Label("[Credits]") { Position = new(0, y++) });
+            credits.Children.Add(new Label($"     Developer - Alex Chen") { Position = new(0, y++) });
+            credits.Children.Add(new Label("  Moral Support - Abdirahman Abdi") { Position = new(0, y++) });
+            credits.Children.Add(new Label(" Special Thanks - Andy De George") { Position = new(0, y++) });
+            credits.Children.Add(new Label(" Special Thanks - George Moromisato") { Position = new(0, y++) });
+
+            y++;
+            credits.Children.Add(new Label("Transcendence Rogue Frontier is an independent fangame") { Position = new(0, y++) });
+            credits.Children.Add(new Label("Transcendence is owned by Kronosaur Productions") { Position = new(0, y++) });
         }
         private void StartGame() {
             SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, World, settings, StartCrawl)) { IsFocused = true };
@@ -152,7 +166,6 @@ namespace TranscendenceRL {
                         GameHost.Instance.Screen = playerMain;
                         playerMain.IsFocused = true;
                         playerMain.ShowUI();
-
                     }
                 }
             }
@@ -161,8 +174,18 @@ namespace TranscendenceRL {
         public void StartArena() {
             SadConsole.Game.Instance.Screen = new ArenaScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov };
         }
+        private void StartCredits() {
+            Children.Remove(config);
+            Children.Remove(load);
+            if (Children.Contains(credits)) {
+                Children.Remove(credits);
+            } else {
+                Children.Add(credits);
+            }
+        }
         private void StartConfig() {
             Children.Remove(load);
+            Children.Remove(credits);
             if (Children.Contains(config)) {
                 Children.Remove(config);
             } else {
@@ -172,6 +195,7 @@ namespace TranscendenceRL {
         }
         private void StartLoad() {
             Children.Remove(config);
+            Children.Remove(credits);
             if (Children.Contains(load)) {
                 Children.Remove(load);
             } else {
@@ -382,7 +406,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
                 } else if (Children.Contains(config)) {
                     Children.Remove(config);
                 } else {
-                    Environment.Exit(0);
+                    Program.Start();
                 }
             }
             if (info.IsKeyDown(LeftShift)) {
@@ -391,6 +415,9 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
                 }
                 if (info.IsKeyPressed(C)) {
                     StartConfig();
+                }
+                if (info.IsKeyPressed(I)) {
+                    StartCredits();
                 }
                 if (info.IsKeyPressed(L)) {
                     StartLoad();

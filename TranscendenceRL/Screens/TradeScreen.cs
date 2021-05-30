@@ -47,23 +47,31 @@ namespace TranscendenceRL {
             foreach (var key in keyboard.KeysPressed) {
                 switch (key.Key) {
                     case Keys.Up:
-                        index = from.Any()
-                            ? (index == null ? (from.Count - 1) : Math.Max(index.Value - 1, 0))
+                        index = from.Any() ?
+                            (index == null ? (from.Count() - 1) :
+                                index == 0 ? null:
+                                Math.Max(index.Value - 1, 0))
                             : null;
                         break;
                     case Keys.PageUp:
-                        index = from.Any()
-                            ? (index == null ? (from.Count - 1) : Math.Max(index.Value - 26, 0))
+                        index = from.Any() ?
+                            (index == null ? (from.Count() - 1) :
+                                index == 0 ? null :
+                                Math.Max(index.Value - 26, 0))
                             : null;
                         break;
                     case Keys.Down:
-                        index = from.Any()
-                            ? (index == null ? 0 : Math.Min(index.Value + 1, from.Count - 1))
+                        index = from.Any() ?
+                            (index == null ? 0 :
+                                index == from.Count() - 1 ? null :
+                                Math.Min(index.Value + 1, from.Count() - 1))
                             : null;
                         break;
                     case Keys.PageDown:
-                        index = from.Any()
-                            ? (index == null ? 0 : Math.Min(index.Value + 26, from.Count - 1))
+                        index = from.Any() ?
+                            (index == null ? 0 :
+                                index == from.Count() - 1 ? null :
+                                Math.Min(index.Value + 26, from.Count() - 1))
                             : null;
                         break;
                     case Keys.Left:

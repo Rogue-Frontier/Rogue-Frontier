@@ -109,7 +109,7 @@ namespace TranscendenceRL {
 					playerShip.dock = null;
 				} else {
 					Dockable dest = null;
-					if (playerShip.GetTarget(out var t) && (playerShip.position - t.position).magnitude < 8 && t is Dockable d) {
+					if (playerShip.GetTarget(out var t) && (playerShip.position - t.position).magnitude < 24 && t is Dockable d) {
 						dest = d;
 					}
 					dest = dest ?? playerShip.world.entities.GetAll(p => (playerShip.position - p).magnitude < 8).OfType<Dockable>().OrderBy(p => (p.position - playerShip.position).magnitude).FirstOrDefault();
