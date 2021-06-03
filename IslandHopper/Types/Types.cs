@@ -138,17 +138,9 @@ namespace IslandHopper {
 		//Identity identity;
 		public int knownChance;
         public ItemType unknownType;
+        public HeadDesc head;
         public GunType gun;
         public GrenadeType grenade;
-
-        public Item GetItem(Island World, XYZ Position) {
-            Item i = new Item(this) {
-                World = World,
-                Position = Position,
-                Velocity = new XYZ(),
-            };
-            return i;
-        }
 
 
         public void Initialize(TypeCollection collection, XElement e) {
@@ -188,12 +180,14 @@ namespace IslandHopper {
 					throw new Exception($"Unknown DesignType: {unknownType}");
 				}
 			}
-            if (e.HasElement(GrenadeType.Tag, out XElement grenade)) {
-                this.grenade = new GrenadeType(collection, grenade);
+            if (e.HasElement(HeadDesc.Tag, out XElement xmlHead)) {
+                this.head = new HeadDesc(xmlHead);
             }
-            //If we have a gun, initialize it now
-            if (e.HasElement(GunType.Tag, out XElement gun)) {
-				this.gun = new GunType(collection, gun);
+            if (e.HasElement(GrenadeType.Tag, out XElement xmlGrenade)) {
+                this.grenade = new GrenadeType(collection, xmlGrenade);
+            }
+            if (e.HasElement(GunType.Tag, out XElement xmlGun)) {
+				this.gun = new GunType(collection, xmlGun);
 			}
             
 
@@ -231,21 +225,18 @@ namespace IslandHopper {
                 explosionForce = e.TryAttributeInt(nameof(explosionForce), 5);
                 explosionRadius = e.TryAttributeInt(nameof(explosionRadius), 5);
             }
-            public Grenade GetGrenade(IItem item) => new Grenade(item) {
-                type = this,
-                Armed = false,
-                Countdown = fuseTime
-            };
+        }
+        public class HeadDesc {
+            public static string Tag => "Head";
+            public int defense, durability;
+            public HeadDesc() { }
+            public HeadDesc(XElement e) {
+                defense = e.ExpectAttributeInt(nameof(defense));
+                durability = e.ExpectAttributeInt(nameof(durability));
+            }
         }
         public class GunType {
             public static string Tag = "Gun";
-			public Gun CreateGun(IItem Item) => new Gun() {
-                gunType = this,
-                AmmoLeft = initialAmmo,
-                ClipLeft = initialClip,
-                FireTimeLeft = 0,
-                ReloadTimeLeft = 0
-            };
 
             public enum WeaponDifficulty {
                 none = 0,

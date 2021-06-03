@@ -12,6 +12,7 @@ using static IslandHopper.ItemType.GunType;
 namespace IslandHopper {
 	public interface IItem : Entity, Damageable {
         void Destroy();
+        Head Head { get; set; }
         Grenade Grenade { get; set; }
 		Gun Gun { get; set; }
 
@@ -36,6 +37,10 @@ namespace IslandHopper {
         public Grenade(IItem item) {
             this.item = item;
             this.Armed = false;
+        }
+        public Grenade(IItem item, GrenadeType type) : this(item) {
+            this.type = type;
+            this.Countdown = type.fuseTime;
         }
         public void Arm(bool Armed = true) {
             this.Armed = Armed;
@@ -104,6 +109,13 @@ namespace IslandHopper {
         public int AmmoLeft;
 
         public Gun() { }
+        public Gun(GunType type) {
+            gunType = type;
+            AmmoLeft = type.initialAmmo;
+            ClipLeft = type.initialClip;
+            FireTimeLeft = 0;
+            ReloadTimeLeft = 0;
+        }
 
         public void OnHit(Damager b, Damageable d) {
 
@@ -274,6 +286,21 @@ namespace IslandHopper {
             }
         }
     }
+
+    public class Head : ItemComponent {
+        public void Modify(ref ColoredString Name) {}
+        public void UpdateRealtime() {}
+        public void UpdateStep() {}
+        public IItem source;
+        public HeadDesc desc;
+        public int durability;
+        public Head(IItem source, HeadDesc desc) {
+            this.source = source;
+            this.desc = desc;
+            this.durability = desc.durability;
+        }
+
+    }
     public class Item : IItem {
 		public Island World { get; set; }
 		public XYZ Position { get; set; }
@@ -296,18 +323,25 @@ namespace IslandHopper {
 
 
         public ItemType Type { get; set; }
+        public Head Head { get; set; }
         public Grenade Grenade { get; set; }
 		public Gun Gun { get; set; }
 
         public bool Active { get; private set; } = true;
 
-        public Item(ItemType Type) {
-            this.Type = Type;
+        public Item(ItemType type) {
+            this.Type = type;
             Velocity = new XYZ();
-            Gun = Type.gun?.CreateGun(this);
-            Grenade = Type.grenade?.GetGrenade(this);
+            Head = type.head == null ? null : new Head(this, type.head);
+            Gun = type.gun == null ? null : new Gun(type.gun);
+            Grenade = type.grenade == null ? null : new Grenade(this, type.grenade);
         }
-		public void OnRemoved() { }
+
+        public Item(ItemType type, Island world, XYZ position) : this(type) {
+            this.World = world;
+            this.Position = position;
+        }
+        public void OnRemoved() { }
 
         public ColoredString GetApparentName(Player p) {
             if(p.known.Contains(Type)) {

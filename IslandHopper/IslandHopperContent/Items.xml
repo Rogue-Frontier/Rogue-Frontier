@@ -172,7 +172,7 @@ EASTER EGGS
 	</ItemType>
 	<ItemType
 		name=			"Hardy Hard Hardhat"
-		desc=			"WOW!!! ANOTHER JOKE!!! HARDY HAR HAR!!! WHOEVER WRITES THESE DESCRIPTIONS OUGHT TO SHUT UP!!!11111111111"
+		desc=			"Perfect for both construction workers and destruction workers"
 		mass=			"0.5"
 		>
 		<Head
@@ -181,7 +181,7 @@ EASTER EGGS
 			/>
 	</ItemType>
 	<ItemType
-		name=			"Softie Softcap"
+		name=			"Softie's Softcap"
 		desc=			"This cap makes you want to work extra hard just to prove that you're not a softie."
 		mass=			"0.2"
 		>

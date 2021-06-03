@@ -74,7 +74,7 @@ namespace IslandHopper {
                 World.AddEffect(new Burn(this, 60));
             }
         }
-        public void Witness(WorldEvent we) {
+        public void AddMessage(PlayerMessage we) {
 
         }
     }

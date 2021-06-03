@@ -7,8 +7,12 @@ using SadRogue.Primitives;
 
 namespace IslandHopper {
 	class IslandHopper {
-		const int Width = 150;
-		const int Height = 90;
+		static int Width;
+		static int Height;
+		static IslandHopper() {
+			Height = 60;
+			Width = Height * 5 / 3;
+		}
 
 		static void Main(string[] args) {
 			// Setup the engine and create the main window.

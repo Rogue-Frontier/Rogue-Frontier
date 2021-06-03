@@ -15,14 +15,14 @@ using System.IO;
 namespace IslandHopper {
 	static class Themes {
 	}
-	class GameConsole : ControlsConsole {
+	class PlayerMain : ControlsConsole {
         Island World;
         DateTime lastUpdate;
         int ticks;
 
         Dictionary<(int, int), int> visibleVoxelHeight = new Dictionary<(int, int), int>(); //World XY -> World Z
 
-        public GameConsole(int Width, int Height, Island World) : base(Width, Height) {
+        public PlayerMain(int Width, int Height, Island World) : base(Width, Height) {
             this.World = World;
             
             DefaultBackground = Color.Black;
@@ -79,7 +79,7 @@ namespace IslandHopper {
             this.Clear();
 
             int HalfViewWidth = Width/2 - 8;
-            int HalfViewHeight = Height/2 - 8;
+            int HalfViewHeight = Height/2 - 4;
 			for(int x = -HalfViewWidth; x < HalfViewWidth; x++) {
 				for(int y = -HalfViewHeight; y < HalfViewHeight; y++) {
 					XYZ location = World.camera + new XYZ(x, y, 0);
@@ -243,6 +243,10 @@ namespace IslandHopper {
                 throw new Exception();
             }
 
+            if(info.IsKeyPressed(Keys.Escape)) {
+                SadConsole.Game.Instance.Screen = new TitleConsole(Width, Height);
+            }
+
             if (info.IsKeyDown(Keys.Up) || info.IsKeyDown(Keys.Down) || info.IsKeyDown(Keys.Right) || info.IsKeyDown(Keys.Left)) {
                 XYZ direction = new XYZ();
                 if (info.IsKeyDown(Keys.Up)) {
@@ -286,8 +290,8 @@ namespace IslandHopper {
                 //Running is also a jump action but without z > 0, so we can jump while running
                 if (player.OnGround() && !player.Actions.Any(a => a is Jump j && j.z > 0))
                     player.Actions.Add(new Jump(player, new XYZ(0, 0, 3), 10));
-            } else if(info.IsKeyPressed(Keys.A)) {
-                if(info.IsKeyDown(Keys.LeftShift)) {
+            } else if (info.IsKeyPressed(Keys.A)) {
+                if (info.IsKeyDown(Keys.LeftShift)) {
                     Children.Add(new MeleeMenu(Width, Height, player, World.entities.all.Where(e => (e.Position - player.Position).Magnitude < 1.5)) { IsFocused = true });
                 } else {
                     Children.Add(new HistoryMenu(Width, Height, player.HistoryLog) { IsFocused = true });
@@ -306,27 +310,28 @@ namespace IslandHopper {
                     player.Inventory.Remove(item);
                     World.entities.PlaceNew(item);
 
-                    World.player.Witness(new InfoEvent(new ColoredString("You drop: ") + item.Name.WithBackground(Color.Black)));
+                    World.player.AddMessage(new InfoEvent(new ColoredString("You drop: ") + item.Name.WithBackground(Color.Black)));
                     return true;
                 }) { IsFocused = true });
-            } else if (info.IsKeyPressed(Keys.U)) {
-                //World.AddEntity(new ExplosionSource(World, World.player.Position, 10));
-                //Use menu
-                Children.Add(new ListMenu<IItem>(Width, Height, "Select items to use. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
+            } else if (info.IsKeyPressed(E)) {
 
-                    if (item.Grenade != null && !item.Grenade.Armed) {
-                        item.Grenade.Arm();
-                        player.Witness(new InfoEvent(new ColoredString("You arm: ") + item.Name.WithBackground(Color.Black)));
+                Children.Add(new ListMenu<IItem>(Width, Height, "Select inventory items to equip. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
+
+                    if(item.Head != null && player.Equipment.head == null) {
+                        player.Inventory.Remove(item);
+                        player.Equipment.head = item;
+                        World.player.AddMessage(new InfoEvent(new ColoredString("You equip: ") + item.Name.WithBackground(Color.Black)));
                     }
                     return false;
                 }) { IsFocused = true });
+
             } else if (info.IsKeyPressed(Keys.G)) {
                 Children.Add(new ListMenu<IItem>(Width, Height, "Select items to get. Press ESC to finish.", World.entities[World.player.Position].OfType<IItem>().Select(Item => new ListItem(Item)), item => {
                     //Just take the item for now
                     World.player.Inventory.Add(item);
                     World.entities.Remove(item);
 
-                    World.player.Witness(new InfoEvent(new ColoredString("You get: ") + item.Name.WithBackground(Color.Black)));
+                    World.player.AddMessage(new InfoEvent(new ColoredString("You get: ") + item.Name.WithBackground(Color.Black)));
                     return true;
                 }) { IsFocused = true });
             } else if (info.IsKeyPressed(Keys.I)) {
@@ -340,10 +345,20 @@ namespace IslandHopper {
                 Children.Add(new LookMenu(Width, Height, World) { IsFocused = true });
             } else if (info.IsKeyPressed(Keys.S)) {
                 //TODO: Ask the player if they want to cancel their current ShootAction
-
                 Children.Add(new ShootMenu(Width, Height, World, World.player) { IsFocused = true });
             } else if (info.IsKeyPressed(Keys.T)) {
                 Children.Add(new ThrowMenu(Width, Height, World, World.player) { IsFocused = true });
+            } else if (info.IsKeyPressed(Keys.U)) {
+                //World.AddEntity(new ExplosionSource(World, World.player.Position, 10));
+                //Use menu
+                Children.Add(new ListMenu<IItem>(Width, Height, "Select items to use. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
+
+                    if (item.Grenade?.Armed == false) {
+                        item.Grenade.Arm();
+                        player.AddMessage(new InfoEvent(new ColoredString("You arm: ") + item.Name.WithBackground(Color.Black)));
+                    }
+                    return false;
+                }) { IsFocused = true });
             } else if (info.IsKeyDown(Keys.OemPeriod) && info.IsKeyDown(Keys.RightControl)) {
                 if (!World.player.Actions.Any(a => a is WaitAction)) {
                     World.player.Actions.Add(new WaitAction(1));
@@ -352,7 +367,7 @@ namespace IslandHopper {
                 if (!World.player.Actions.Any(a => a is WaitAction)) {
                     Debug.Print("waiting");
                     World.player.Actions.Add(new WaitAction(Constants.STEPS_PER_SECOND));
-                    World.player.Witness(new InfoEvent(new ColoredString("You wait")));
+                    World.player.AddMessage(new InfoEvent(new ColoredString("You wait")));
                 }
             }
             return base.ProcessKeyboard(info);

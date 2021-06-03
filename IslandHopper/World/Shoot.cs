@@ -97,12 +97,12 @@ namespace IslandHopper {
                 //TO DO
                 //For now, we should just leave a message saying that the gun is out of ammo
                 targeting.shotsLeft = 0;
-                player.Witness(new InfoEvent(item.Name + new ColoredString(" is out of ammo!")));
+                player.AddMessage(new InfoEvent(item.Name + new ColoredString(" is out of ammo!")));
             } else if (item.Gun.GetState() == Gun.State.NeedsReload) {
                 //For now, we just reload if we need to
                 item.Gun.Reload();
 
-                player.Witness(new InfoEvent(player.Name + new ColoredString(" reloads ") + item.Name.WithBackground(Color.Black)));
+                player.AddMessage(new InfoEvent(player.Name + new ColoredString(" reloads ") + item.Name.WithBackground(Color.Black)));
             } else if (item.Gun.GetState() == Gun.State.Reloading) {
                 //Don't allow aiming while we're reloading
             } else if (needAdjust) {
@@ -129,7 +129,7 @@ namespace IslandHopper {
                 aim += diff.Normal * delta;
                 aimReticle.Position = player.Position + aim;
             } else if ((targeting.Position - player.Position).Magnitude > item.Gun.range) {
-                player.Witness(new InfoEvent((targeting.Target?.Name ?? new ColoredString("Target")) + new ColoredString(" is out of range!")));
+                player.AddMessage(new InfoEvent((targeting.Target?.Name ?? new ColoredString("Target")) + new ColoredString(" is out of range!")));
             } else if (item.Gun.GetState() == Gun.State.Ready) {
                 //Close enough to fire
                 item.Gun.Fire(player, item, targeting.Target, targeting.Position);

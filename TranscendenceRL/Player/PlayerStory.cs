@@ -741,16 +741,17 @@ destroy it for us. So, uh, thank you and good luck!""
 
 
                     return new TextScene(prev,
-@"You aimlessly stand in the center of the empty Meeting Hall.
+@"You aimlessly stand in the center of the Meeting Hall.
 After 10 minutes, the station master approaches you.
 
-""Hi, uh, you seem to have a nice gunship. I'm currently dealing
-with a nearby Orion Warlords outpost. They keep sending us a lot
-of threats. We're not really worried about being attacked so much
-as we just want them to shut the hell up. Even the health inspector
-is less asinine than these idiots.""
+""Hi, uh, you seem to have a nice gunship. I'm currently
+dealing with a nearby Orion Warlords outpost. They keep
+sending us a lot of threats. We're not really worried
+about being attacked so much as we just want them to
+shut up. Even the health inspector is less asinine
+than these idiots.""
 
-""I'll pay you a few hundred to shut them up indefinitely.
+""I'll pay you 400 cons to shut them up indefinitely.
 What do you say?""
 ",
                     new List<SceneOption>() {
@@ -765,7 +766,8 @@ What do you say?""
 
                     Console Accept(Console prev) {
                         return new TextScene(prev,
-@"""Okay, thank you! Go destroy them and then I'll see you back here.""",
+@"""Okay, thank you! Go destroy them and
+then I'll see you back here.""",
                             new List<SceneOption>() {
                                 new SceneOption() {escape = false,
                                     key = 'U', name = "Undock",
@@ -794,7 +796,7 @@ What do you say?""
                         Console Debrief(Console prev) {
                             return new TextScene(prev,
 @"""Thank you very much for destroying those warlords for us!
-As promised, here's your money.""",
+As promised, here's your money - 400 cons""",
                                 new List<SceneOption>() {
                                     new SceneOption() {escape = false,
                                         key = 'U', name = "Undock",
@@ -803,6 +805,7 @@ As promised, here's your money.""",
                                 });
                         }
                         Console Debriefed(Console prev) {
+                            playerShip.player.money += 400;
                             mainInteractions.Remove(mission);
                             return null;
                         }

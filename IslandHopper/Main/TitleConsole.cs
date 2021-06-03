@@ -102,7 +102,7 @@ namespace IslandHopper {
 						}),
 						new TimerLimited(0.05, () => {
 							for(int i = 0; i < 25; i++)
-								land.Add(new XY(Width/2 + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15), planeLevel));
+								land.Add(new XY(Width/2 + Random.Amplitude(15) + Random.Amplitude(15) + Random.Amplitude(15), planeLevel));
 						}, (int) (landSpawnTime / 0.05))
 					};
 				}),

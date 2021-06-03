@@ -9,13 +9,14 @@ namespace IslandHopper {
 	public interface ICharacter : Entity, Damageable {
 		HashSet<IItem> Inventory { get; }
 		HashSet<EntityAction> Actions { get; }
-		void Witness(WorldEvent we);
+		void AddMessage(PlayerMessage we);
 	}
     public class Player : ICharacter {
 		public XYZ Velocity { get; set; }
 		public XYZ Position { get; set; }
 		public Island World { get; set; }
 		public HashSet<EntityAction> Actions { get; private set; }
+		public Equipment Equipment;
 		public HashSet<IItem> Inventory { get; private set; }
         public HashSet<Effect> Watch { get; private set; }
 		public List<HistoryEntry> HistoryLog { get; }	//All events that the player has witnessed
@@ -36,6 +37,7 @@ namespace IslandHopper {
 			this.Position = Position;
 			this.Velocity = new XYZ(0, 0, 0);
 			Actions = new HashSet<EntityAction>();
+			Equipment = new Equipment();
 			Inventory = new HashSet<IItem>();
             Watch = new HashSet<Effect>();
 
@@ -61,7 +63,7 @@ namespace IslandHopper {
             }
             if (health.bloodHP < 1 || health.bodyHP < 1) {
                 Active = false;
-                this.Witness(new InfoEvent("You have died"));
+                this.AddMessage(new InfoEvent("You have died"));
             }
             /*
             if(AllowUpdate()) {
@@ -95,7 +97,7 @@ namespace IslandHopper {
 			//HistoryRecent.RemoveAll(e => e.ScreenTime < 1);
 		}
 
-		public void Witness(WorldEvent e) {
+		public void AddMessage(PlayerMessage e) {
             var desc = e.Desc;
             if(HistoryLog.Count == 0) {
                 var entry = new HistoryEntry(desc);
@@ -129,10 +131,10 @@ namespace IslandHopper {
             } else if (source is ExplosionDamage e) {
                 health.Damage(e.damage);
                 Velocity += e.knockback;
-                Witness(new InfoEvent(new ColoredString($"You are caught in an explosion and take {e.damage} damage!")));
+                AddMessage(new InfoEvent(new ColoredString($"You are caught in an explosion and take {e.damage} damage!")));
             } else if(source is Flame f) {
 				health.Damage(f.damage);
-				Witness(new InfoEvent(new ColoredString($"You are caught in flames!")));
+				AddMessage(new InfoEvent(new ColoredString($"You are caught in flames!")));
 			}
         }
 

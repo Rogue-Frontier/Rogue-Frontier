@@ -206,9 +206,9 @@ namespace IslandHopper {
             Done:
             g.Position = final;
         }
-        public static void Witness(this Entity e, WorldEvent we) {
+        public static void Witness(this Entity e, PlayerMessage we) {
 			if (e is ICharacter w)
-				w.Witness(we);
+				w.AddMessage(we);
 		}
 	}
 

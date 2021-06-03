@@ -287,7 +287,7 @@ namespace IslandHopper {
                 w.AddEntity(t);
                 //Track this on the player
                 p.Watch.Add(t);
-                p.Witness(new InfoEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black) + new ColoredString(" | at: ") + target.Name.WithBackground(Color.Black)));
+                p.AddMessage(new InfoEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black) + new ColoredString(" | at: ") + target.Name.WithBackground(Color.Black)));
             }
         }
         public void ThrowItem(XYZ target, IItem item) {
@@ -299,7 +299,7 @@ namespace IslandHopper {
                 w.AddEntity(t);
                 //Track this on the player
                 p.Watch.Add(t);
-                p.Witness(new InfoEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black)));
+                p.AddMessage(new InfoEvent(new ColoredString("You throw: ") + item.Name.WithBackground(Color.Black)));
             }
         }
         public void Close() {
@@ -467,8 +467,9 @@ namespace IslandHopper {
             this.history = history;
         }
         public override void Render(TimeSpan delta) {
-            int x = 0;
-            int y = Height-1;
+            this.Clear();
+            int x = 1;
+            int y = Height-5;
             for(int i = history.Count - bottomIndex - 1; i > -1; i--) {
                 this.Print(x, y, history[i].Desc);
                 y--;

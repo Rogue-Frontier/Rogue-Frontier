@@ -79,7 +79,7 @@ namespace IslandHopper {
 
                 foreach ((var w, var c) in items.dict) {
                     for (int i = 0; i < c; i++) {
-                        player.Inventory.Add(w.GetItem(World, player.Position));
+                        player.Inventory.Add(new Item(w, World, player.Position));
                     }
                 }
                 World.player = player;
@@ -100,7 +100,7 @@ namespace IslandHopper {
 
                     Func<int, int> next = r.NextInteger;
 
-                    World.entities.PlaceNew(s[r.NextInteger(s.Length)].GetItem(World, new XYZ(next(World.voxels.Width), next(World.voxels.Height), 1)));
+                    World.entities.PlaceNew(new Item(s[r.NextInteger(s.Length)], World, new XYZ(next(World.voxels.Width), next(World.voxels.Height), 1)));
                     World.entities.PlaceNew(new Enemy(World, new XYZ(next(World.voxels.Width), next(World.voxels.Height), 1)));
                 }
                 World.entities.PlaceNew(World.player);
@@ -110,51 +110,54 @@ namespace IslandHopper {
                 World.AddEntity(plane);
                 plane.OnAdded();
 
-                GameHost.Instance.Screen = new GameConsole(Width, Height, World) { IsFocused = true };
+                GameHost.Instance.Screen = new PlayerMain(Width, Height, World) { IsFocused = true };
             }) { Position = new Point(x, y) });
         }
 
         public override void Render(TimeSpan delta) {
             this.Clear();
             if(preview != null) {
-                int x = 64;
+                int x = 32;
                 int y = 0;
-                this.Print(x, y++, preview.name);
+
+                preview.image?.Render(this, new Point(x, 0));
+
+                void Print(string s) => this.Print(x, y++, new ColoredString(s, Color.White, Color.Black));
+
+                Print(preview.name);
                 y++;
                 switch (preview.gun.projectile) {
                     case BulletDesc b:
-                        this.Print(x, y++, $"Projectile:  Bullet");
-                        this.Print(x, y++, $"Speed:       {b.speed}");
-                        this.Print(x, y++, $"Damage:      {b.damage}");
-                        this.Print(x, y++, $"Lifetime:    {b.lifetime}");
+                        Print($"Projectile:  Bullet");
+                        Print($"Speed:       {b.speed}");
+                        Print($"Damage:      {b.damage}");
+                        Print($"Lifetime:    {b.lifetime}");
                         break;
                     case FlameDesc f:
-                        this.Print(x, y++, $"Projectile:  Flame");
-                        this.Print(x, y++, $"Speed:       {f.speed}");
-                        this.Print(x, y++, $"Damage:      {f.damage}");
-                        this.Print(x, y++, $"Lifetime:    {f.lifetime}");
+                        Print($"Projectile:  Flame");
+                        Print($"Speed:       {f.speed}");
+                        Print($"Damage:      {f.damage}");
+                        Print($"Lifetime:    {f.lifetime}");
                         break;
                     case GrenadeDesc g:
-                        this.Print(x, y++, $"Projectile:  Grenade");
-                        this.Print(x, y++, $"Speed:       {g.speed}");
-                        this.Print(x, y++, $"Fuse time:   {g.grenadeType.fuseTime}");
-                        this.Print(x, y++, $"Blast Radius:{g.grenadeType.explosionRadius}");
-                        this.Print(x, y++, $"Blast Power: {g.grenadeType.explosionDamage}");
+                        Print($"Projectile:  Grenade");
+                        Print($"Speed:       {g.speed}");
+                        Print($"Fuse time:   {g.grenadeType.fuseTime}");
+                        Print($"Blast Radius:{g.grenadeType.explosionRadius}");
+                        Print($"Blast Power: {g.grenadeType.explosionDamage}");
                         break;
                 }
                 y = 8;
-                this.Print(x, y++, $"Clip size:   {preview.gun.clipSize}");
-                this.Print(x, y++, $"Max ammo:    {preview.gun.maxAmmo}");
-
-                this.Print(x, y++, $"Fire time:   {preview.gun.fireTime}");
-                this.Print(x, y++, $"Reload time: {preview.gun.reloadTime}");
+                Print($"Clip size:   {preview.gun.clipSize}");
+                Print($"Max ammo:    {preview.gun.maxAmmo}");
+                Print($"Fire time:   {preview.gun.fireTime}");
+                Print($"Reload time: {preview.gun.reloadTime}");
                 y++;
-                foreach(var l in preview.desc.Replace("\r", null).Split("\n")) {
+                foreach(var l in preview.desc.Replace("\r", null).SplitLine(32)) {
                     this.Print(x, y++, l);
                 }
-                
-                y = 20;
-                preview.image?.Render(this, new Point(x, y));
+
+
             }
             base.Render(delta);
         }
