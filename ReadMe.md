@@ -1,5 +1,5 @@
 # Transcendence: Rogue Frontier
-![Cover](https://github.com/INeedAUniqueUsername/TranscendenceRL/blob/master/TranscendenceRL/RogueFrontierContent/RogueFrontierPoster.png)
+![Cover](https://github.com/INeedAUniqueUsername/TranscendenceRL/blob/master/TranscendenceRL/RogueFrontierContent/sprites/RogueFrontierPosterV2.asc.png)
 
 [Itch.io](https://ineedauniqueusername.itch.io/rogue-frontier)
 
