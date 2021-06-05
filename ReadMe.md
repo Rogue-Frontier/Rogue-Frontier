@@ -19,6 +19,8 @@ Please make sure you have .NET 5.0 installed. Let me know if you have any proble
 This game is currently a well-developed engine demo. Most of the main UI features are polished and complete. The XML content and type system is complete. Basic movement, combat, and AI are implemented. The current bottleneck is content writing and level design.
 
 ## Future Work
+I plan to write story and implement long-term player progression.
+
 For a particularly advanced goal, I would like to implement station docking as a turn-based roguelike sub-game where the player can walk around ASCII-style station floors and interact with characters in person.
 
 The second part of *Transcendence* is titled "The Vault of the Galaxy." In kind, I plan to title the second part of *Transcendence: Rogue Frontier* as "The Hall of the GALASCII" (Galactic Alliance Launching Aggressive Strikes Countering Interstellar Inquisition)
