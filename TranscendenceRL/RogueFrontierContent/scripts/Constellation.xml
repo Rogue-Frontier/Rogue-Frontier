@@ -10,6 +10,8 @@
 
 					char=		"U"
 					foreground="LightGray"
+
+					behavior=	"reinforceNearby"
 		>
 		<Segments>
 			<MultiPoint offsetX="2"

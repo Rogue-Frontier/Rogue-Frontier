@@ -13,5 +13,6 @@ namespace TranscendenceRL {
         public List<Epitaph> Epitaphs = new List<Epitaph>();
 
         public int money;
+
     }
 }

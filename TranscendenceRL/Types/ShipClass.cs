@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml.Linq;
 namespace TranscendenceRL {
 	public enum ShipBehaviors {
-		none, arnold
+		none, sulphin
     }
     public class ShipClass : DesignType {
 		public static ShipClass empty => new ShipClass() { devices = new DeviceList(), damageDesc = new HPSystemDesc(), rotationDecel = 1 };

@@ -10,8 +10,10 @@ using Newtonsoft.Json;
 namespace TranscendenceRL {
 	public enum StationBehaviors {
 		none,
-		raisu
-    }
+		raisu,
+		pirate,
+		reinforceNearby
+	}
 	public class StationType : DesignType {
 		public string codename;
 		public string name;
@@ -32,7 +34,7 @@ namespace TranscendenceRL {
 			codename = e.ExpectAttribute("codename");
 			name = e.ExpectAttribute("name");
 			hp = e.ExpectAttributeInt("hp");
-			behavior = e.TryAttributeEnum<StationBehaviors>(nameof(behavior), StationBehaviors.none);
+			behavior = e.TryAttributeEnum(nameof(behavior), StationBehaviors.none);
 			Sovereign = collection.Lookup<Sovereign>(e.ExpectAttribute("sovereign"));
 			tile = new StaticTile(e);
 			segments = new List<SegmentDesc>();

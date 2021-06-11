@@ -226,8 +226,8 @@
             />
 	</ShipClass>
 
-	<ShipClass	codename=			"ship_arnold_vitrion"
-				name=				"Arnold Vitrion"
+	<ShipClass	codename=			"ship_william_sulphin"
+				name=				"William Sulphin"
 				thrust=				"0.2"
 				maxSpeed=			"15"
 
@@ -238,7 +238,7 @@
 				char=				"R"
 				foreground=			"White"
 
-				behavior=			"arnold"
+				behavior=			"sulphin"
 		>
 		<Devices>
 			<Weapon	codename="itOrionBallista"/>
@@ -293,7 +293,7 @@
 
 
 	<StationType	codename="station_arnold_habitat"
-				name=		"Arnold Vitrion's container habitat"
+				name=		"William Sulphin's container habitat"
 				sovereign=	"svOrionWarlords"
 
 				hp=			"200"
@@ -314,7 +314,7 @@
 
 		<Guards>
 			<Ship	count="6"	codename="ship_orion_raider" sovereign="svOrionWarlords" order="patrol" patrolRadius="20"/>
-			<Ship	count="1"	codename="ship_arnold_vitrion" sovereign="svOrionWarlords" order="patrol" patrolRadius="5"/>
+			<Ship	count="1"	codename="ship_william_sulphin" sovereign="svOrionWarlords" order="patrol" patrolRadius="5"/>
 		</Guards>
 		<Weapons>
 		</Weapons>

@@ -22,6 +22,7 @@ namespace TranscendenceRL {
         LoadMenu load;
         Console credits;
 
+        Profile profile;
         World World;
         
         public static string[] title = File.ReadAllText("RogueFrontierContent/sprites/Title.txt").Replace("\r\n", "\n").Split('\n');
@@ -39,6 +40,8 @@ namespace TranscendenceRL {
         public TitleScreen(int width, int height, World World) : base(width, height) {
             this.World = World;
 
+            profile = Profile.Load(out var p) ? p : new Profile();
+
             UseKeyboard = true;
 
             screenCenter = new XY(Width / 2, Height / 2);
@@ -52,9 +55,10 @@ namespace TranscendenceRL {
             Children.Add(new LabelButton("[Enter]     Play Story Mode", StartGame) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Shift + A] Arena Mode", StartArena) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++), FontSize = fs });
-            Children.Add(new LabelButton("[Shift + I] Credits", StartCredits) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Shift + L] Load Game", StartLoad) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Shift + S] Survival Mode", StartSurvival) { Position = new Point(x, y++), FontSize = fs });
+
+            Children.Add(new LabelButton("[Shift + Z] Credits", StartCredits) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++), FontSize = fs });
 
             var f = "Settings.json";
@@ -64,7 +68,7 @@ namespace TranscendenceRL {
                 settings = Settings.standard;
             }
             config = new ConfigMenu(48, 64, settings) { Position = new Point(0, 30), FontSize= fs };
-            load = new LoadMenu(48, 64, settings) { Position = new Point(0, 30), FontSize = fs };
+            load = new LoadMenu(48, 64, profile) { Position = new Point(0, 30), FontSize = fs };
             credits = new Console(48, 64) { Position = new Point(0, 30), FontSize = fs };
 
             y = 0;
@@ -134,7 +138,7 @@ namespace TranscendenceRL {
                     }, SaveGame.settings));
                     */
 
-                    var playerMain = new PlayerMain(Width, Height, w, playerShip);
+                    var playerMain = new PlayerMain(Width, Height, profile, playerShip);
                     playerMain.HideUI();
                     playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
 
@@ -174,31 +178,42 @@ namespace TranscendenceRL {
         public void StartArena() {
             SadConsole.Game.Instance.Screen = new ArenaScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov };
         }
+        private void ClearMenu() {
+            foreach (var c in new Console[] { config, load, credits }) {
+                Children.Remove(c);
+            }
+        }
         private void StartCredits() {
-            Children.Remove(config);
-            Children.Remove(load);
             if (Children.Contains(credits)) {
                 Children.Remove(credits);
             } else {
+                ClearMenu();
                 Children.Add(credits);
             }
         }
         private void StartConfig() {
-            Children.Remove(load);
-            Children.Remove(credits);
             if (Children.Contains(config)) {
                 Children.Remove(config);
             } else {
+                ClearMenu();
                 Children.Add(config);
                 config.Reset();
             }
         }
         private void StartLoad() {
-            Children.Remove(config);
-            Children.Remove(credits);
             if (Children.Contains(load)) {
                 Children.Remove(load);
             } else {
+                ClearMenu();
+                Children.Add(load);
+                load.Reset();
+            }
+        }
+        private void StartProfile() {
+            if (Children.Contains(load)) {
+                Children.Remove(load);
+            } else {
+                ClearMenu();
                 Children.Add(load);
                 load.Reset();
             }
@@ -250,7 +265,7 @@ namespace TranscendenceRL {
 
                 playerShip.powers.AddRange(World.types.powerType.Values.Select(pt => new Power(pt)));
 
-                var playerMain = new PlayerMain(Width, Height, World, playerShip);
+                var playerMain = new PlayerMain(Width, Height, profile, playerShip);
                 playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
 
                 playerMain.Update(new TimeSpan());
@@ -277,7 +292,6 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
                 }
             }
         }
-
         private void Exit() {
             Environment.Exit(0);
         }
@@ -416,14 +430,17 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
                 if (info.IsKeyPressed(C)) {
                     StartConfig();
                 }
-                if (info.IsKeyPressed(I)) {
-                    StartCredits();
-                }
                 if (info.IsKeyPressed(L)) {
                     StartLoad();
                 }
+                if (info.IsKeyPressed(P)) {
+                    StartProfile();
+                }
                 if (info.IsKeyPressed(S)) {
                     StartSurvival();
+                }
+                if (info.IsKeyPressed(Z)) {
+                    StartCredits();
                 }
 #if DEBUG
                 if (info.IsKeyPressed(G)) {
@@ -455,7 +472,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             World w = new World(u);
             w.types.Lookup<SystemType>("system_orion").Generate(w);
             w.UpdatePresent();
-            var quickStartClass = "ship_beowulf";
+            var quickStartClass = "ship_royal_guard";
             var playerClass = w.types.Lookup<ShipClass>(quickStartClass);
             var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").position;
             var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
@@ -481,7 +498,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             */
 
 
-            var playerMain = new PlayerMain(Width, Height, w, playerShip);
+            var playerMain = new PlayerMain(Width, Height, profile, playerShip);
             playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
 
 

@@ -62,7 +62,7 @@ namespace TranscendenceRL {
         public DeviceSystem devices { get; private set; }
         [JsonProperty]
         public HullSystem damageSystem { get; private set; }
-        public ControlHijack controlHijack;
+        public Disrupt controlHijack;
 
         public Rand destiny;
 
@@ -150,36 +150,36 @@ namespace TranscendenceRL {
         public void UpdateControls() {
             if(controlHijack != null) {
                 switch(controlHijack.thrustMode) {
-                    case HijackMode.FORCE_ON:
+                    case DisruptMode.FORCE_ON:
                         thrusting = true;
                         break;
-                    case HijackMode.FORCE_OFF:
+                    case DisruptMode.FORCE_OFF:
                         thrusting = false;
                         break;
                 }
                 switch (controlHijack.turnMode) {
-                    case HijackMode.FORCE_ON:
+                    case DisruptMode.FORCE_ON:
                         rotating = Rotating.CCW;
                         break;
-                    case HijackMode.FORCE_OFF:
+                    case DisruptMode.FORCE_OFF:
                         rotating = Rotating.None;
                         break;
                 }
                 switch(controlHijack.brakeMode) {
-                    case HijackMode.FORCE_ON:
+                    case DisruptMode.FORCE_ON:
                         decelerating = true;
                         break;
-                    case HijackMode.FORCE_OFF:
+                    case DisruptMode.FORCE_OFF:
                         decelerating = false;
                         break;
                 }
                 switch (controlHijack.fireMode) {
-                    case HijackMode.FORCE_ON:
+                    case DisruptMode.FORCE_ON:
                         foreach (var w in devices.Weapons) {
                             w.firing = true;
                         }
                         break;
-                    case HijackMode.FORCE_OFF:
+                    case DisruptMode.FORCE_OFF:
                         foreach (var w in devices.Weapons) {
                             w.firing = false;
                         }
@@ -263,7 +263,7 @@ namespace TranscendenceRL {
     public interface ShipBehavior {
         void Update(IShip owner);
     }
-    public class Arnold : ShipBehavior {
+    public class Sulphin : ShipBehavior {
         int ticks = 0;
         HashSet<PlayerShip> playersMet = new HashSet<PlayerShip>();
         public void Update(IShip owner) {
@@ -330,8 +330,8 @@ namespace TranscendenceRL {
         }
         public void InitBehavior(ShipBehaviors b) {
             switch(b) {
-                case ShipBehaviors.arnold:
-                    behavior = new Arnold();
+                case ShipBehaviors.sulphin:
+                    behavior = new Sulphin();
                     break;
             }
         }

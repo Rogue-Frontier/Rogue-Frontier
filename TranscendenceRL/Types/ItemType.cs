@@ -278,7 +278,7 @@ namespace TranscendenceRL {
         public Effect GetTrail(XY Position) => new FadingTile(Position, new ColoredGlyph(foreground, background, glyph), lifetime);
     }
     public class DisruptorDesc {
-        HijackMode thrustMode, turnMode, brakeMode, fireMode;
+        DisruptMode thrustMode, turnMode, brakeMode, fireMode;
         public int lifetime;
         public DisruptorDesc() { }
         public DisruptorDesc(XElement e) {
@@ -288,22 +288,22 @@ namespace TranscendenceRL {
             fireMode = GetMode(e.TryAttribute(nameof(fireMode), null));
             lifetime = e.TryAttributeInt(nameof(lifetime), 60);
         }
-        public ControlHijack GetHijack() => new ControlHijack() {
+        public Disrupt GetHijack() => new Disrupt() {
             thrustMode = thrustMode,
             turnMode = turnMode,
             brakeMode = brakeMode,
             fireMode = fireMode,
             ticksLeft = lifetime
         };
-        public HijackMode GetMode(string str) {
+        public DisruptMode GetMode(string str) {
             switch(str) {
                 case "on":
-                    return HijackMode.FORCE_ON;
+                    return DisruptMode.FORCE_ON;
                 case "off":
-                    return HijackMode.FORCE_OFF;
+                    return DisruptMode.FORCE_OFF;
                 case "none":
                 case null:
-                    return HijackMode.NONE;
+                    return DisruptMode.NONE;
                 default:
                     throw new Exception($"Invalid value {str}");
 

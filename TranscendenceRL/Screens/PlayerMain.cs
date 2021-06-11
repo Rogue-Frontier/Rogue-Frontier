@@ -65,6 +65,7 @@ namespace TranscendenceRL {
 				_camera = value;
 				back.camera = value;
 			} }
+		public Profile profile;
 		public World world;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		private PlayerStory story = new PlayerStory();
@@ -92,13 +93,14 @@ namespace TranscendenceRL {
 		double updateWait;
 		public bool autopilotUpdate;
 
-		public PlayerMain(int Width, int Height, World world, PlayerShip playerShip) : base(Width, Height) {
+		public PlayerMain(int Width, int Height, Profile profile, PlayerShip playerShip) : base(Width, Height) {
+			this.profile = profile;
 			DefaultBackground = Color.Transparent;
 			DefaultForeground = Color.Transparent;
 			UseMouse = true;
 			UseKeyboard = true;
 			_camera = new Camera();
-			this.world = world;
+			this.world = playerShip.world;
 			this.playerShip = playerShip;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
 
@@ -136,12 +138,8 @@ namespace TranscendenceRL {
 			if(playerShip.CheckGate() == null) {
 				return;
             }
-
 			HideAll();
-
-
 			world.entities.Remove(playerShip);
-
 			SadConsole.Game.Instance.Screen = new GateTransition(this, EndCrawl) { IsFocused = true };
 			Console EndCrawl() {
 				SimpleCrawl ds = null;
@@ -157,7 +155,7 @@ namespace TranscendenceRL {
 						desc = $"Left Human Space",
 						deathFrame = null,
 						wreck = null
-			}) { IsFocused = true };
+				}) { IsFocused = true };
 			}
 
 		}
@@ -165,7 +163,6 @@ namespace TranscendenceRL {
 			//Clear mortal time so that we don't slow down after the player dies
 			playerShip.mortalTime = 0;
 			HideAll();
-
 			//Get a snapshot of the player
 			var size = Height;
 			var deathFrame = new ColoredGlyph[size, size];
@@ -185,7 +182,6 @@ namespace TranscendenceRL {
 					return g;
 				} else {
 					return back;
-					//return GetBackTile(xy);
 				}
 			}
 			var epitaph = new Epitaph() {

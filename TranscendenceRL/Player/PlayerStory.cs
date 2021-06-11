@@ -907,7 +907,7 @@ You feel a sense of relief.", new() {
                             });
                         }
                         var target = playerShip.world.entities.all.OfType<AIShip>()
-                                .FirstOrDefault(s => s.shipClass.codename == "ship_arnold_vitrion");
+                                .FirstOrDefault(s => s.shipClass.codename == "ship_william_sulphin");
                         if(target != null) {
                             return new TextScene(prev,
 @"The station master waits for you at the entrance.
@@ -916,7 +916,7 @@ You feel a sense of relief.", new() {
 given us a lifetime of suffering. I have one thing to ask of you. 
 Give them eternity.""
 
-""Destroy Arnold Vitrion. And the Orion Warlords will fall.""
+""Destroy William Sulphin. And the Orion Warlords will fall.""
 
 The station master brings out a modified Orion Warlords weapon.
 
@@ -935,7 +935,7 @@ The station master brings out a modified Orion Warlords weapon.
                                 return null;
                                 Console InProgress(Console prev) {
                                     return new TextScene(prev,
-        @"""You made a promise. Destroy Arnold Vitrion.""",
+        @"""You made a promise. Destroy William Sulphin.""",
                                         new() {
                                     new() {escape = true,
                                         key = 'U', name = "Undock",
@@ -945,7 +945,7 @@ The station master brings out a modified Orion Warlords weapon.
                                 }
                                 Console Debrief(Console prev) {
                                     return new TextScene(prev,
-@"""Thank you for destroying Arnold Vitrion. Now the real fight begins""",
+@"""Thank you for destroying William Sulphin. Now the real fight begins""",
                                         new() {
                                             new() {escape = false,
                                                 key = 'U', name = "Undock",

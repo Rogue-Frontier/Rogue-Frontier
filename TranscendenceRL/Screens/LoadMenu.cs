@@ -11,9 +11,9 @@ using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
     class LoadMenu : Console {
-        Settings settings;
-        public LoadMenu(int Width, int Height, Settings settings) : base(Width, Height) {
-            this.settings = settings;
+        Profile profile;
+        public LoadMenu(int Width, int Height, Profile profile) : base(Width, Height) {
+            this.profile = profile;
 
             UseKeyboard = true;
             FocusOnMouseClick = true;
@@ -41,13 +41,13 @@ namespace TranscendenceRL {
 
                         switch (loaded) {
                             case LiveGame live: {
-                                    var playerMain = new PlayerMain(Width, Height, live.world, live.playerShip) { IsFocused = true };
+                                    var playerMain = new PlayerMain(Width, Height, profile, live.playerShip) { IsFocused = true };
                                     live.playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
                                     GameHost.Instance.Screen = playerMain;
                                     break;
                                 }
                             case DeadGame dead: {
-                                    var deathScreen = new DeathScreen(new PlayerMain(Width, Height, dead.world, dead.playerShip), dead.epitaph) { IsFocused = true };
+                                    var deathScreen = new DeathScreen(new PlayerMain(Width, Height, profile, dead.playerShip), dead.epitaph) { IsFocused = true };
                                     GameHost.Instance.Screen = deathScreen;
                                     break;
                                 }
@@ -59,7 +59,6 @@ namespace TranscendenceRL {
                 Children.Add(new Label("No save files found") { Position = new Point(x, y++), FontSize = FontSize });
             }
         }
-        string GetLabel(ControlKeys control) => $"{control.ToString(),-16} {settings.controls[control].ToString(),-12}";
 
         public override bool ProcessKeyboard(Keyboard info) {
             if (info.IsKeyPressed(Keys.Escape)) {

@@ -157,6 +157,14 @@ namespace TranscendenceRL {
         }
 
         public bool CanTarget(SpaceObject other) => other == attackOrder?.target;
+        public void Attack(SpaceObject target, int attackTime) {
+            this.attackOrder = new AttackOrder(target);
+            this.attackTime = attackTime;
+        }
+        public void ClearAttack() {
+            attackOrder = null;
+            attackTime = 0;
+        }
         public void Update(AIShip owner) {
             if (attackTime > 0) {
                 attackTime--;

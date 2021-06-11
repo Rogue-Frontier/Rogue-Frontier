@@ -18,10 +18,10 @@ namespace TranscendenceRL {
             Width = Height * 5 / 3;
         }
         public static int Width, Height;
-        public static string font = CheckFile("RogueFrontierContent/sprites/IBMCGA.font");
-        public static string main = CheckFile("RogueFrontierContent/scripts/Main.xml");
-        public static string cover = CheckFile("RogueFrontierContent/sprites/RogueFrontierPosterV2.asc.cg");
-        public static string splash = CheckFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
+        public static string font = ExpectFile("RogueFrontierContent/sprites/IBMCGA.font");
+        public static string main = ExpectFile("RogueFrontierContent/scripts/Main.xml");
+        public static string cover = ExpectFile("RogueFrontierContent/sprites/RogueFrontierPosterV2.asc.cg");
+        public static string splash = ExpectFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
 		static void Main(string[] args) {
 			// Setup the engine and create the main window.
 			SadConsole.Game.Create(Width, Height, font);

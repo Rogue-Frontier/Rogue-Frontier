@@ -367,6 +367,7 @@ namespace TranscendenceRL {
             }
             */
             lc.world.backdrop.starlight.layers.Insert(0, new GeneratedGrid<Color>(new LightGenerator(lc, radius)));
+            lc.world.stars.Add(new Star(lc.pos, radius));
         }
     }
     public class SystemStation : SystemElement {

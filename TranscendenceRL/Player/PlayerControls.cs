@@ -151,7 +151,7 @@ namespace TranscendenceRL {
 			}
 
 			if (info.IsKeyPressed(V)) {
-				playerShip.ship.controlHijack = new ControlHijack() { ticksLeft = 90, thrustMode = HijackMode.FORCE_ON };
+				playerShip.ship.controlHijack = new Disrupt() { ticksLeft = 90, thrustMode = DisruptMode.FORCE_ON };
 			}
 #endif
 

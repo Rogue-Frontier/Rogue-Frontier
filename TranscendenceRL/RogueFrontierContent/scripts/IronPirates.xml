@@ -146,6 +146,8 @@
 
 					char=		"O"
 					foreground="White"
+					
+				behavior=	"pirate"
 		>
 		<Segments>
 
@@ -196,6 +198,10 @@
 
 				char=		"O"
 				foreground="White"
+
+				
+				behavior=	"pirate"
+
 		>
 		<Segments>
 

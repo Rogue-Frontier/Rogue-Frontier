@@ -31,6 +31,10 @@ namespace TranscendenceRL {
         public HashSet<Item> cargo { get; private set; }
         [JsonIgnore]
         public ColoredGlyph tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.tile.GlyphCharacter);
+        [JsonProperty]
+        public int ticks;
+        [JsonProperty]
+        public XY gravity;
         public Wreck() { }
         public Wreck(SpaceObject creator, IEnumerable<Item> cargo = null) {
             this.creator = creator;
@@ -43,6 +47,8 @@ namespace TranscendenceRL {
             if (cargo?.Any() == true) {
                 this.cargo.UnionWith(cargo);
             }
+
+            gravity = new XY(0, 0);
         }
         public Console GetScene(Console prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
         public void Damage(SpaceObject source, int hp) {
@@ -54,6 +60,23 @@ namespace TranscendenceRL {
 
         public void Update() {
             position += velocity / Program.TICKS_PER_SECOND;
+
+            ticks++;
+            if(ticks%30 == 0) {
+                gravity = new XY(0, 0);
+                double stress = 0;
+                foreach (var star in world.stars) {
+                    var towards = (star.position - position);
+                    var magnitude = Math.Pow(star.radius, 2) / (towards.magnitude2 * Program.TICKS_PER_SECOND);
+                    var pull = towards.WithMagnitude(magnitude);
+                    gravity += pull;
+                    stress += magnitude;
+                }
+                if (stress > 10f / Program.TICKS_PER_SECOND) {
+                    Destroy(null);
+                }
+            }
+            velocity += gravity;
         }
     }
     public interface StationBehavior {
@@ -105,6 +128,12 @@ namespace TranscendenceRL {
             switch (behavior) {
                 case StationBehaviors.raisu:
                     break;
+                case StationBehaviors.pirate:
+                    this.behavior = new Pirate();
+                    break;
+                case StationBehaviors.reinforceNearby:
+                    this.behavior = new ReinforceNearby();
+                    break;
                 case StationBehaviors.none:
                 default:
                     break;
@@ -130,6 +159,9 @@ namespace TranscendenceRL {
                 }
             }
         }
+        public void UpdateGuardList() {
+            guards = new List<AIShip>(world.entities.all.OfType<AIShip>().Where(s => s.controller is GuardOrder g && g.GuardTarget == this));
+        }
         /*
         public HashSet<SpaceObject> GetParts() {
             var set = new HashSet<SpaceObject>();
@@ -147,8 +179,7 @@ namespace TranscendenceRL {
                              where guard.controller is GuardOrder order && order.GuardTarget == this
                              select (GuardOrder)guard.controller;
                 foreach(var order in guards) {
-                    order.attackTime = 300;
-                    order.attackOrder = new AttackOrder(source);
+                    order.Attack(source, 300);
                 }
             }
         }
@@ -200,6 +231,7 @@ namespace TranscendenceRL {
         }
         public void Update() {
             weapons?.ForEach(w => w.Update(this));
+            behavior?.Update(this);
         }
 
         public Console GetScene(Console prev, PlayerShip playerShip) => null;

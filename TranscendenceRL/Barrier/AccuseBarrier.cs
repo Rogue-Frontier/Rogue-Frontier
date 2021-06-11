@@ -19,6 +19,7 @@ namespace TranscendenceRL {
         public bool active => lifetime > 0;
         [JsonIgnore]
         public ColoredGlyph tile => new ColoredGlyph(Color.Yellow, Color.Black, '*');
+        public AccuseBarrier() { }
         public AccuseBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> cloneList) {
             this.owner = owner;
             this.offset = offset;
@@ -30,7 +31,7 @@ namespace TranscendenceRL {
             lifetime--;
             UpdatePosition();
         }
-        public void UpdatePosition() {
+        public void UpdatePosition() {    
             this.position = owner.position + offset;
         }
         public void Interact(Projectile other) {

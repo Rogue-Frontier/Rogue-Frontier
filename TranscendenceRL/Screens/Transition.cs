@@ -15,9 +15,11 @@ namespace TranscendenceRL {
         double time = 0;
         double interval;
         bool fast;
-        public TitleSlideOpening(Console next) : base(next.Width, next.Height) {
+        bool updateNext;
+        public TitleSlideOpening(Console next, bool updateNext = true) : base(next.Width, next.Height) {
             x = next.Width;
             this.next = next;
+            this.updateNext = updateNext;
             interval = 4f / Width;
 
             //Draw one frame now so that we don't cut out for one frame
@@ -25,7 +27,9 @@ namespace TranscendenceRL {
             Render(new TimeSpan());
         }
         public override void Update(TimeSpan delta) {
-            next.Update(delta);
+            if (updateNext) {
+                next.Update(delta);
+            }
             base.Update(delta);
             if (fast) {
                 x -= (int)(Width * delta.TotalSeconds);

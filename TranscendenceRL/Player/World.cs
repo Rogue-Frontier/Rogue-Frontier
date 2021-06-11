@@ -44,6 +44,8 @@ namespace TranscendenceRL {
         public List<Effect> effectsAdded = new List<Effect>();
         public List<Effect> effectsRemoved = new List<Effect>();
 
+        public List<Star> stars = new List<Star>();
+
         public Universe universe;
         [JsonIgnore]
         public TypeCollection types => universe.types;

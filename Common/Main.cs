@@ -17,13 +17,22 @@ using NCalc;
 
 namespace Common {
     public static class Main {
-		public static string CheckFile(string path) {
+		public static string ExpectFile(string path) {
 			if(File.Exists(path)) {
 				return path;
             } else {
 				throw new Exception($"File {path} does not exist");
             }
         }
+		public static bool TryFile(string path, out string file) {
+			if (File.Exists(path)) {
+				file = path;
+				return true;
+			} else {
+				file = null;
+				return false;
+			}
+		}
 		public static T GetRandom<T>(this IEnumerable<T> e, Rand r) => e.ElementAt(r.NextInteger(e.Count()));
 		public static T GetRandomOrDefault<T>(this IEnumerable<T> e, Rand r) => e.Any() ? e.ElementAt(r.NextInteger(e.Count())) : default(T);
 		public static SetDict<(int, int), T> Downsample<T>(this Dictionary<(int, int), T> from, double scale) {

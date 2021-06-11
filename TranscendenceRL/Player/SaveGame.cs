@@ -129,7 +129,7 @@ namespace TranscendenceRL {
         }
         public static readonly Formatting form = Formatting.Indented;
     }
-    class LiveGame {
+    public class LiveGame {
         public World world;
         public Player player { get; private set; }
         public PlayerShip playerShip;
@@ -143,7 +143,7 @@ namespace TranscendenceRL {
             File.WriteAllText(player.file, s);
         }
     }
-    class DeadGame {
+    public class DeadGame {
         public World world;
         public Player player { get; private set; }
         public PlayerShip playerShip;
