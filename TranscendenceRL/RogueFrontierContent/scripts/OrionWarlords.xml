@@ -72,15 +72,14 @@
 	</ItemType>
 
 
-	<ItemType	codename=	"itBoostedLongbow"
-			name=		"Boosted Longbow"
+	<ItemType	codename=	"itTraitorLongbow"
+			name=		"Traitor's Longbow"
 			mass=		"5000"
 			level=		"3"
 
 			value=		"1200"
 
-			desc=		"This modified Orion Longbow has a much stronger capacitor system."
-
+			desc=		"This modified Orion Longbow launches fragmenting shells."
 				
 			invoke=		"installWeapon"
 				>

@@ -210,7 +210,11 @@ namespace TranscendenceRL {
 			//If the player is in mortality, then slow down time
 			bool passTime = true;
 
-			if(pauseMenu.IsVisible) {
+			if (sceneContainer.Children.Any()) {
+				passTime = false;
+			}
+
+			if (pauseMenu.IsVisible) {
 				passTime = false;
             }else if(playerShip.active && playerShip.mortalTime > 0) {
 

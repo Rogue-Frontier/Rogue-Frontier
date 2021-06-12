@@ -928,7 +928,7 @@ The station master brings out a modified Orion Warlords weapon.
                                 }
                             });
                             Console Accept(Console prev) {
-                                playerShip.cargo.Add(new Item(playerShip.world.types.Lookup<ItemType>("itBoostedLongbow")));
+                                playerShip.cargo.Add(new Item(playerShip.world.types.Lookup<ItemType>("itTraitorLongbow")));
                                 DestroyTarget mission = null;
                                 mission = new DestroyTarget(source, target) { inProgress = InProgress, debrief = Debrief };
                                 mainInteractions.Add(mission);
@@ -945,7 +945,9 @@ The station master brings out a modified Orion Warlords weapon.
                                 }
                                 Console Debrief(Console prev) {
                                     return new TextScene(prev,
-@"""Thank you for destroying William Sulphin. Now the real fight begins""",
+@"""Thank you for destroying William Sulphin.""
+
+""Now the real fight begins""",
                                         new() {
                                             new() {escape = false,
                                                 key = 'U', name = "Undock",
@@ -962,7 +964,8 @@ The station master brings out a modified Orion Warlords weapon.
                         }
                         return new TextScene(prev,
 @"Not much is happening around the station right now.
-The air is dead around these parts.", new() {
+The mood here isn't particularly terrible, but it's
+not particularly happy either.", new() {
                                 new() {escape = true,
                                     key = 'C', name = "Continue",
                                     next = null
@@ -973,18 +976,63 @@ The air is dead around these parts.", new() {
             }
             return Intro();
         }
-        public Console OrionWarlordsCamp(Console prev, Station source, PlayerShip playerShip) {
-            Console Intro() {
+        public Console OrionWarlordsCamp(Console home, Station source, PlayerShip playerShip) {
+            Console Intro(Console prev) {
                 return new TextScene(prev,
-@"You are docked at an Orion Warlords Camp.",
+@"You are docked at an Orion Warlords Camp.
+Enemy soldiers glare at you from the windows
+of the station.",
                     new() {
+                        new() {
+                            key='B', name="Break in",
+                            next = BreakIn},
                         new() {escape = true,
                             key = 'U', name = "Undock",
                             next = null
                         }
                 });
             }
-            return Intro();
+            Console BreakIn(Console prev) {
+                if(source.damageSystem.GetHP() < 50) {
+                    return new TextScene(prev,
+@"You bash down the entry gate with a lot of force.
+You make your way to the bridge and destroy the
+black box, shutting off the distress signal.
+
+You leave the station in ruins.",
+                        new() {
+                            new() {
+                                escape = true,
+                                key = 'C',
+                                name = "Continue",
+                                next = Done
+                            }
+                        });
+                    Console Done(Console prev) {
+                        Wreck wreck = null;
+                        var hook = new Container<Station.StationDestroyed>((s, d, w) => {
+                            wreck = w;
+                        });
+                        source.onDestroyed.set.Add(hook);
+                        source.Destroy(playerShip);
+                        source.onDestroyed.set.Remove(hook);
+
+                        return wreck.GetScene(home, playerShip);
+                    }
+                }
+
+                return new TextScene(prev,
+@"The entry gate refuses to budge...",
+                    new() {
+                        new() {
+                            escape = true,
+                            key = 'C',
+                            name = "Continue",
+                            next = Intro
+                        }
+                    });
+            }
+            return Intro(home);
         }
     }
     class DestroyTarget : IPlayerInteraction {
