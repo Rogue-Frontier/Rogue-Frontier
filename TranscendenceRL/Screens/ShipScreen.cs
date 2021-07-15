@@ -11,6 +11,7 @@ using Console = SadConsole.Console;
 
 using static UI;
 using Common;
+using ArchConsole;
 
 namespace TranscendenceRL {
     class ShipScreen : Console {
@@ -21,6 +22,12 @@ namespace TranscendenceRL {
             this.prev = prev;
 
             this.playerShip = PlayerShip;
+
+            int x = 1, y = Height - 5;
+            Children.Add(new LabelButton("[A] Activate / Deactivate Devices", ShowPower) { Position = (x, y++) });
+            Children.Add(new LabelButton("[C] Cargo", ShowCargo) { Position = (x, y++) });
+            Children.Add(new LabelButton("[D] Devices", ShowCargo) { Position = (x, y++) });
+            Children.Add(new LabelButton("[U] Usables", ShowUsable) { Position = (x, y++) });
         }
         public override void Render(TimeSpan delta) {
 
@@ -125,15 +132,6 @@ namespace TranscendenceRL {
                 }
                 y++;
             }
-
-            x = 1;
-            y = Height - 5;
-            this.Print(x, y++, "[A] Activate / Deactivate Devices", Color.White, Color.Black);
-            this.Print(x, y++, "[C] Cargo", Color.White, Color.Black);
-            this.Print(x, y++, "[D] Devices", Color.White, Color.Black);
-            this.Print(x, y++, "[U] Usables", Color.White, Color.Black);
-
-
             /*
             foreach(var item in PlayerShip.ship.Items) {
 
@@ -147,21 +145,24 @@ namespace TranscendenceRL {
                 prev.IsFocused = true;
                 Parent.Children.Remove(this);
             } else if(info.IsKeyPressed(Keys.U)) {
-                Transition(SListScreen.UsableScreen(this, playerShip));
+                ShowUsable();
             } else if (info.IsKeyPressed(Keys.A)) {
-                Transition(SListScreen.PowerScreen(this, playerShip));
+                ShowPower();
             } else if (info.IsKeyPressed(Keys.C)) {
-                Transition(SListScreen.CargoScreen(this, playerShip));
+                ShowCargo();
             } else if (info.IsKeyPressed(Keys.D)) {
-                Transition(SListScreen.LoadoutScreen(this, playerShip));
-            }
-
-            void Transition(Console s) {
-                Parent.Children.Add(s);
-                Parent.Children.Remove(this);
-                s.IsFocused = true;
+                ShowLoadout();
             }
             return base.ProcessKeyboard(info);
+        }
+        public void ShowUsable() => Transition(SListScreen.UsableScreen(this, playerShip));
+        public void ShowPower() => Transition(SListScreen.PowerScreen(this, playerShip));
+        public void ShowCargo() => Transition(SListScreen.CargoScreen(this, playerShip));
+        public void ShowLoadout() => Transition(SListScreen.LoadoutScreen(this, playerShip));
+        public void Transition(Console s) {
+            Parent.Children.Add(s);
+            Parent.Children.Remove(this);
+            s.IsFocused = true;
         }
     }
     public class SListScreen {
@@ -186,7 +187,7 @@ namespace TranscendenceRL {
                 Escape
                 );
 
-            string GetName(Item i) => $"{(installedUsable.Contains(i) ? "[Installed] " : "[Cargo]     ")}{i.type.name}";
+            string GetName(Item i) => $"{(installedUsable.Contains(i) ? "Equip> " : "Cargo> ")}{i.type.name}";
             List<ColoredString> GetDesc(Item item) {
                 var invoke = item.type.invoke;
 
@@ -320,7 +321,7 @@ namespace TranscendenceRL {
                 Escape
                 );
 
-            string GetName(Powered i) => $"{i.source.type.name} ({(disabled.Contains(i) ? "Disabled" : "Enabled")})";
+            string GetName(Powered i) => $"{(disabled.Contains(i) ? "Disabled" : "Enabled")}> {i.source.type.name}";
             List<ColoredString> GetDesc(Powered p) {
                 List<ColoredString> result = new List<ColoredString>();
                 var desc = p.source.type.desc.SplitLine(32);
@@ -512,6 +513,7 @@ namespace TranscendenceRL {
         GetDesc getDesc;
         Invoke invoke;
         Escape escape;
+        int tick;
         public delegate string GetName(T t);
         public delegate List<ColoredString> GetDesc(T t);
         public delegate void Invoke(T t);
@@ -542,6 +544,7 @@ namespace TranscendenceRL {
                                 playerIndex == 0 ? null :
                                 Math.Max(playerIndex.Value - 1, 0))
                             : null;
+                        tick = 0;
                         break;
                     case Keys.PageUp:
                         playerIndex = items.Any() ?
@@ -549,6 +552,7 @@ namespace TranscendenceRL {
                                 playerIndex == 0 ? null :
                                 Math.Max(playerIndex.Value - 26, 0))
                             : null;
+                        tick = 0;
                         break;
                     case Keys.Down:
                         playerIndex = items.Any() ?
@@ -556,6 +560,7 @@ namespace TranscendenceRL {
                                 playerIndex == items.Count() - 1 ? null :
                                 Math.Min(playerIndex.Value + 1, items.Count() - 1))
                             : null;
+                        tick = 0; 
                         break;
                     case Keys.PageDown:
                         playerIndex = items.Any() ?
@@ -563,6 +568,7 @@ namespace TranscendenceRL {
                                 playerIndex == items.Count() - 1 ? null :
                                 Math.Min(playerIndex.Value + 26, items.Count() - 1))
                             : null;
+                        tick = 0; 
                         break;
                     case Keys.Enter:
                         if (playerIndex != null) {
@@ -596,6 +602,10 @@ namespace TranscendenceRL {
             }
             return base.ProcessKeyboard(keyboard);
         }
+        public override void Update(TimeSpan delta) {
+            tick++;
+            base.Update(delta);
+        }
         public override void Render(TimeSpan delta) {
             int x = 16;
             int y = 16;
@@ -618,8 +628,20 @@ namespace TranscendenceRL {
                 int i = start;
                 while (i < end) {
                     var highlightColor = i == highlight ? Color.Yellow : Color.White;
+                    var n = getName(items.ElementAt(i));
+                    if(n.Length > 26) {
+                        if (i == highlight) {
+                            int index = Math.Min(tick / 15, n.Length - 26);//((tick / 15) % (n.Length - 25));
+                            n = n.Substring(index);
+                            if (n.Length > 26) {
+                                n = $"{n.Substring(0, 23)}...";
+                            }
+                        } else {
+                            n = $"{n.Substring(0, 23)}...";
+                        }
+                    }
                     var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", highlightColor, Color.Black)
-                             + new ColoredString(getName(items.ElementAt(i)), highlightColor, Color.Black);
+                             + new ColoredString(n, highlightColor, Color.Black);
                     this.Print(x, y, name);
 
                     i++;

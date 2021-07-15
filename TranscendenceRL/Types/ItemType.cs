@@ -168,6 +168,7 @@ namespace TranscendenceRL {
     public class WeaponDesc {
         public int powerUse;
         public int fireCooldown;
+        public int recoil;
         public int repeat;
         public FragmentDesc shot;
 
@@ -190,6 +191,7 @@ namespace TranscendenceRL {
         public WeaponDesc(TypeCollection types, XElement e) {
             powerUse = e.ExpectAttributeInt(nameof(powerUse));
             fireCooldown = e.ExpectAttributeInt(nameof(fireCooldown));
+            recoil = e.TryAttributeInt(nameof(recoil), 0);
             repeat = e.TryAttributeInt(nameof(repeat), 0);
             shot = new FragmentDesc(e);
 

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static IslandHopper.ItemType;
-using static IslandHopper.ItemType.GunType;
+using static IslandHopper.ItemType.GunDesc;
 
 namespace IslandHopper {
 	public interface IItem : Entity, Damageable {
@@ -97,9 +97,9 @@ namespace IslandHopper {
             Ready,
         }
 
-        public int range => gunType.projectile.range;
-
-        public GunType gunType;
+        public int range => desc.projectile.range;
+        public IItem item;
+        public GunDesc desc;
         public int ReloadTimeLeft;
         public int FireTimeLeft;
 
@@ -109,10 +109,11 @@ namespace IslandHopper {
         public int AmmoLeft;
 
         public Gun() { }
-        public Gun(GunType type) {
-            gunType = type;
-            AmmoLeft = type.initialAmmo;
-            ClipLeft = type.initialClip;
+        public Gun(IItem item, GunDesc desc) {
+            this.item = item;
+            this.desc = desc;
+            AmmoLeft = desc.initialAmmo;
+            ClipLeft = desc.initialClip;
             FireTimeLeft = 0;
             ReloadTimeLeft = 0;
         }
@@ -121,14 +122,14 @@ namespace IslandHopper {
 
         }
         public void Reload() {
-            if(gunType.reloadTime > 0) {
-                ReloadTimeLeft = gunType.reloadTime;
+            if(desc.reloadTime > 0) {
+                ReloadTimeLeft = desc.reloadTime;
             } else {
                 OnReload();
             }
         }
         private void OnReload() {
-            int reloaded = Math.Min(gunType.clipSize - ClipLeft, AmmoLeft);
+            int reloaded = Math.Min(desc.clipSize - ClipLeft, AmmoLeft);
             ClipLeft += reloaded;
             AmmoLeft -= reloaded;
         }
@@ -160,16 +161,16 @@ namespace IslandHopper {
         }
         public void Fire(Entity user, IItem item, Entity target, XYZ targetPos) {
 
-            switch(gunType.projectile) {
+            switch(desc.projectile) {
                 case BulletDesc bt: {
                         Bullet b = null;
-                        for(int i = 0; i < gunType.projectileCount; i++) {
+                        for(int i = 0; i < desc.projectileCount; i++) {
                             var bulletSpeed = bt.speed;
                             var bulletVel = (targetPos - user.Position).Normal * bulletSpeed;
-                            var spreadAngle = gunType.spread * Math.PI / 180;
+                            var spreadAngle = desc.spread * Math.PI / 180;
                             bulletVel = bulletVel.RotateZ(user.World.karma.NextDouble() * spreadAngle - spreadAngle / 2);
                             int damage = bt.damage;
-                            if (ClipLeft == 0 && gunType.critOnLastShot) {
+                            if (ClipLeft == 0 && desc.critOnLastShot) {
                                 damage *= 3;
                             }
                             b = new Bullet(user, item, target, bulletVel, damage);
@@ -184,7 +185,7 @@ namespace IslandHopper {
                         break;
                     }
                 case FlameDesc ft: {
-                        for(int i = 0; i < gunType.projectileCount; i++) {
+                        for(int i = 0; i < desc.projectileCount; i++) {
                             var flameSpeed = ft.speed;
                             var direction = (targetPos - user.Position).Normal;
                             XYZ flameVel =
@@ -200,18 +201,18 @@ namespace IslandHopper {
                         if (user is Player p) {
                             p.frameCounter = Math.Max(p.frameCounter, 20);
                         }
-                        if (TimeSinceLastFire > gunType.fireTime * 2) {
+                        if (TimeSinceLastFire > desc.fireTime * 2) {
                             user.Witness(new InfoEvent(user.Name + new ColoredString(" fires ") + item.Name.WithBackground(Color.Black) + (target != null ? (new ColoredString(" at ") + target.Name.WithBackground(Color.Black)) : new ColoredString(""))));
                         }
                         break;
                     }
                 case GrenadeDesc gd: {
                         LaunchedGrenade g = null;
-                        for (int i = 0; i < gunType.projectileCount; i++) {
+                        for (int i = 0; i < desc.projectileCount; i++) {
                             var grenadeSpeed = gd.speed;
                             var grenadeVel = (targetPos - user.Position).Normal * grenadeSpeed;
                             
-                            if (ClipLeft == 0 && gunType.critOnLastShot) {
+                            if (ClipLeft == 0 && desc.critOnLastShot) {
                                 //
                             }
                             var direction = (targetPos - user.Position).Normal;
@@ -236,7 +237,7 @@ namespace IslandHopper {
             TimeSinceLastFire = 0;
             //Decrement ClipLeft last so that it doesn't affect the name display
             ClipLeft--;
-            FireTimeLeft = gunType.fireTime;
+            FireTimeLeft = desc.fireTime;
         }
         public void Modify(ref ColoredString Name) {
             Name = new ColoredString($"[{ClipLeft} / {AmmoLeft}] ", Color.Yellow, Color.Black) + Name;
@@ -333,7 +334,7 @@ namespace IslandHopper {
             this.Type = type;
             Velocity = new XYZ();
             Head = type.head == null ? null : new Head(this, type.head);
-            Gun = type.gun == null ? null : new Gun(type.gun);
+            Gun = type.gun == null ? null : new Gun(this, type.gun);
             Grenade = type.grenade == null ? null : new Grenade(this, type.grenade);
         }
 

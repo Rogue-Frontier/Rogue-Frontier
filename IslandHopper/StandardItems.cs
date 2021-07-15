@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using static IslandHopper.ItemType;
-using static IslandHopper.ItemType.GunType;
+using static IslandHopper.ItemType.GunDesc;
 
 namespace IslandHopper {
     public static class StandardTypes {
@@ -11,7 +11,7 @@ namespace IslandHopper {
             name = "The Stopped Clock",
             desc = "Time flies when you're blowing up strangers into smithereens.",
             image = ColorImage.FromFile("IslandHopperContent/StoppedClock.asc.cg"),
-            gun = new GunType() {
+            gun = new GunDesc() {
                 clipSize = 12,
                 difficulty = (int)WeaponDifficulty.medium,
                 critOnLastShot = false,
@@ -40,7 +40,7 @@ namespace IslandHopper {
             name = "The Hot Rod",
             desc = "This metal rod is so hot that it learned how to breathe fire. Wait, what?",
             image = ColorImage.FromFile("IslandHopperContent/TheHotRod.asc.cg"),
-            gun = new GunType() {
+            gun = new GunDesc() {
                 projectileCount = 8,
                 clipSize = 50,
                 initialClip = 50,
@@ -58,40 +58,49 @@ namespace IslandHopper {
             name = "The Seventh Striker",
             desc = "This seven-shooter revolver hits different on the last shot.",
             image = ColorImage.FromFile("IslandHopperContent/TheSeventhStriker.asc.cg"),
-            gun = new GunType() {
-                projectileCount=1,
-                initialClip=7,
-                clipSize=7,
-                initialAmmo=28,
-                maxAmmo=28,
-                critOnLastShot=true,
-                difficulty=0,
-                reloadTime=60,
-                fireTime=20,
+            gun = new GunDesc() {
+                projectileCount = 1,
+                initialClip = 7,
+                clipSize = 7,
+                initialAmmo = 28,
+                maxAmmo = 28,
+                critOnLastShot = true,
+                difficulty = 0,
+                reloadTime = 60,
+                fireTime = 20,
                 projectile = new BulletDesc() {
-                    damage=12,
+                    damage = 12,
                 }
             },
         }, itSameOldShotgun = new ItemType() {
-            name="Same Old Shotgun",
+            name = "Same Old Shotgun",
             desc = "This is the same shotgun that your grandpa used back when this whole war started.",
             image = ColorImage.FromFile("IslandHopperContent/SameOldShotgun.asc.cg"),
-            gun = new GunType() {
-                projectileCount=6,
-                initialClip=4,
-                clipSize=4,
-                initialAmmo=24,
-                maxAmmo=24,
-                difficulty=0,
-                reloadTime=90,
-                fireTime=30,
+            gun = new GunDesc() {
+                projectileCount = 6,
+                initialClip = 4,
+                clipSize = 4,
+                initialAmmo = 24,
+                maxAmmo = 24,
+                difficulty = 0,
+                reloadTime = 90,
+                fireTime = 30,
                 projectile = new BulletDesc() {
-                    damage=8
+                    damage = 8
                 },
                 spread = 10
             }
+        }, itStandardAmmo = new ItemType() {
+            name = "Standard ammo pack",
+            desc = "Standard ammo pack",
+            ammo = new AmmoDesc() {
+                amount = 30
+            }
         };
-        public static ItemType[] stdWeapons = new ItemType[] { itHotRod, itSeventhStriker, itStoppedClock, itSameOldShotgun };
+        public static ItemType[] stdWeapons = new ItemType[] {
+            itHotRod, itSeventhStriker, itStoppedClock, itSameOldShotgun, itStandardAmmo
+        
+        };
     }
 }
 /*

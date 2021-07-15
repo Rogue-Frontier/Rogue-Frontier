@@ -102,15 +102,36 @@ namespace IslandHopper {
                 switch (action) {
                     case ShootAction fire:
                         var gun = fire.item.Gun;
-                        var delay = gun.FireTimeLeft + gun.ReloadTimeLeft;
+                        var delay = gun.ReloadTimeLeft > 0 ? gun.ReloadTimeLeft : gun.FireTimeLeft;
                         this.Print(1, printY, fire.Name + new ColoredString(" ")
-                            + new ColoredString(new string('>', delay)));
+                            + GetBar(delay));
+                        break;
+                    case ReloadAction reload:
+                        this.Print(1, printY, reload.Name + new ColoredString(" ")
+                            + GetBar(reload.ticks));
                         break;
                     default:
                         this.Print(1, printY, action.Name);
                         break;
                 }
                 printY++;
+            }
+
+            ColoredString GetBar(int ticks) {
+                int second = 60;
+                int seconds = ticks / second;
+                var baseColor = seconds > 3 ? Color.Red : seconds > 2 ? Color.Orange : seconds > 1 ? Color.Yellow : Color.White;
+                var s = new ColoredString(new string('>', Math.Min(second, ticks)), baseColor, Color.Black);
+
+                if(seconds > 0) {
+                    var remainder = ticks % second;
+                    var remainderColor = seconds > 2 ? Color.Red : seconds > 1 ? Color.Orange : Color.Yellow;
+                    foreach (var cg in s.Take(remainder)) {
+                        cg.Foreground = remainderColor;
+                    }
+                }
+                
+                return s;
             }
 
             int printX;
@@ -317,7 +338,7 @@ namespace IslandHopper {
 
                 Children.Add(new ListMenu<IItem>(Width, Height, "Select inventory items to equip. Press ESC to finish.", World.player.Inventory.Select(Item => new ListItem(Item)), item => {
 
-                    if(item.Head != null && player.Equipment.head == null) {
+                    if (item.Head != null && player.Equipment.head == null) {
                         player.Inventory.Remove(item);
                         player.Equipment.head = item;
                         World.player.AddMessage(new InfoEvent(new ColoredString("You equip: ") + item.Name.WithBackground(Color.Black)));
@@ -343,6 +364,8 @@ namespace IslandHopper {
                 }) { IsFocused = true });
             } else if (info.IsKeyPressed(Keys.L)) {
                 Children.Add(new LookMenu(Width, Height, World) { IsFocused = true });
+            } else if(info.IsKeyPressed(Keys.R)) {
+                Children.Add(new ReloadMenu(Width, Height, World, World.player) { IsFocused = true });
             } else if (info.IsKeyPressed(Keys.S)) {
                 //TODO: Ask the player if they want to cancel their current ShootAction
                 Children.Add(new ShootMenu(Width, Height, World, World.player) { IsFocused = true });

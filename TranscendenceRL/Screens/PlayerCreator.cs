@@ -24,6 +24,8 @@ namespace TranscendenceRL {
 
         public string playerName;
         public GenomeType playerGenome;
+
+        public char[,] portrait;
     }
     class PlayerCreator : ControlsConsole {
         private ref World World => ref context.World;
@@ -53,18 +55,24 @@ namespace TranscendenceRL {
                 genomes = World.types.genomeType.Values.ToList(),
                 genomeIndex = 0,
                 playerName = "Luminous",
-                playerGenome = World.types.genomeType.Values.First()
+                playerGenome = World.types.genomeType.Values.First(),
+                portrait = new char[8, 8]
             };
             this.settings = settings;
 
+            int x = 2;
             int y = 2;
 
-            var nameField = new LabeledField("Name           ", context.playerName, (e, text) => context.playerName = text) { Position = new Point(0, y) };
+            Children.Add(new TextPainter(context.portrait) { Position = (x, y) });
+
+            x = 10;
+
+            var nameField = new LabeledField("Name           ", context.playerName, (e, text) => context.playerName = text) { Position = (x, y) };
             this.Children.Add(nameField);
 
             y++;
 
-            Label identityLabel = new Label("Identity       ") { Position = new Point(0, y)};
+            Label identityLabel = new Label("Identity       ") { Position = (x, y)};
             this.Children.Add(identityLabel);
 
             LabelButton identityButton = null;
@@ -92,18 +100,18 @@ namespace TranscendenceRL {
                             possessiveNoun="theirs",
                             reflexive="theirself"
                         };
-                        this.Children.Add(new LabeledField("Identity       ", playerGenome.name, (e, s) => playerGenome.name = s) { Position = new Point(0, y++)});
-                        this.Children.Add(new LabeledField("Species        ", playerGenome.species, (e, s) => playerGenome.species = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledField("Gender         ", playerGenome.gender, (e, s) => playerGenome.gender = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledField("Subjective     ", playerGenome.subjective, (e, s) => playerGenome.subjective = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledField("Objective      ", playerGenome.objective, (e, s) => playerGenome.objective = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledField("Possessive Adj.", playerGenome.possessiveAdj, (e, s) => playerGenome.possessiveAdj = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledField("Possessive Noun", playerGenome.possessiveNoun, (e, s) => playerGenome.possessiveNoun = s) { Position = new Point(0, y++) });
-                        this.Children.Add(new LabeledField("Reflexive      ", playerGenome.reflexive, (e, s) => playerGenome.reflexive = s) { Position = new Point(0, y++) });
+                        this.Children.Add(new LabeledField("Identity       ", playerGenome.name, (e, s) => playerGenome.name = s) { Position = (x, y++)});
+                        this.Children.Add(new LabeledField("Species        ", playerGenome.species, (e, s) => playerGenome.species = s) { Position = (x, y++) });
+                        this.Children.Add(new LabeledField("Gender         ", playerGenome.gender, (e, s) => playerGenome.gender = s) { Position = (x, y++) });
+                        this.Children.Add(new LabeledField("Subjective     ", playerGenome.subjective, (e, s) => playerGenome.subjective = s) { Position = (x, y++) });
+                        this.Children.Add(new LabeledField("Objective      ", playerGenome.objective, (e, s) => playerGenome.objective = s) { Position = (x, y++) });
+                        this.Children.Add(new LabeledField("Possessive Adj.", playerGenome.possessiveAdj, (e, s) => playerGenome.possessiveAdj = s) { Position = (x, y++) });
+                        this.Children.Add(new LabeledField("Possessive Noun", playerGenome.possessiveNoun, (e, s) => playerGenome.possessiveNoun = s) { Position = (x, y++) });
+                        this.Children.Add(new LabeledField("Reflexive      ", playerGenome.reflexive, (e, s) => playerGenome.reflexive = s) { Position = (x, y++) });
                     }
                 }
                 lastClick = time;
-            }) { Position = new Point(16, y) };
+            }) { Position = new Point(x + 16, y) };
             Children.Add(identityButton);
 
             string back = "[Escape] Back";

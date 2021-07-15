@@ -139,7 +139,8 @@ namespace IslandHopper {
 		public int knownChance;
         public ItemType unknownType;
         public HeadDesc head;
-        public GunType gun;
+        public GunDesc gun;
+        public AmmoDesc ammo;
         public GrenadeType grenade;
 
 
@@ -186,10 +187,13 @@ namespace IslandHopper {
             if (e.HasElement(GrenadeType.Tag, out XElement xmlGrenade)) {
                 this.grenade = new GrenadeType(collection, xmlGrenade);
             }
-            if (e.HasElement(GunType.Tag, out XElement xmlGun)) {
-				this.gun = new GunType(collection, xmlGun);
+            if (e.HasElement(GunDesc.Tag, out XElement xmlGun)) {
+				this.gun = new GunDesc(collection, xmlGun);
 			}
-            
+            if (e.HasElement(AmmoDesc.Tag, out XElement xmlAmmo)) {
+                this.ammo = new AmmoDesc(xmlAmmo);
+            }
+
 
             //Initialize our nested types now (they are not accessible to anyone else at bind time)
             foreach (var inner in e.Elements("ItemType")) {
@@ -235,7 +239,7 @@ namespace IslandHopper {
                 durability = e.ExpectAttributeInt(nameof(durability));
             }
         }
-        public class GunType {
+        public class GunDesc {
             public static string Tag = "Gun";
 
             public enum WeaponDifficulty {
@@ -306,8 +310,8 @@ namespace IslandHopper {
             public int initialClip;
             public int initialAmmo;
 
-            public GunType() { }
-			public GunType(TypeCollection collection, XElement e) {
+            public GunDesc() { }
+			public GunDesc(TypeCollection collection, XElement e) {
                 //Don't modify the original source when we inherit
                 e = new XElement(e);
                 inherit = e.TryAttribute(nameof(inherit), null);
@@ -355,6 +359,14 @@ namespace IslandHopper {
                 }
             }
 		}
+        public class AmmoDesc {
+            public static string Tag = "Ammo";
+            public int amount;
+            public AmmoDesc() { }
+            public AmmoDesc(XElement e) {
+                amount = e.ExpectAttributeInt(nameof(amount));
+            }
+        }
         class Symbol {
 			private char c;
 			private Color background, foreground;

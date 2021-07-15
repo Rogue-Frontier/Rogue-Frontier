@@ -251,6 +251,12 @@ namespace TranscendenceRL {
                 if (firing) {
                     ammo?.OnFire();
                     Fire(owner, direction.Value);
+
+                    //Apply on next tick (create a delta-momentum variable)
+                    if (desc.recoil > 0) {
+                        owner.velocity += XY.Polar(direction.Value + Math.PI, desc.recoil);
+                    }
+
                     fireTime = desc.fireCooldown;
                     if (beginRepeat) {
                         repeatsLeft = desc.repeat;

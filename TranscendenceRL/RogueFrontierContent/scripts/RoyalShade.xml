@@ -12,6 +12,8 @@
 		<Weapon
 			powerUse=		"10"
 			fireCooldown=	"120"
+			recoil=			"12"
+
 			missileSpeed=	"300"
 			damageType=		"1"
 			damageHP=		"12"

@@ -141,7 +141,7 @@ namespace IslandHopper {
         public bool Active() => player.Active && player.Actions.Contains(this);
         public bool Done() => !active;
 
-        public ColoredString Name => (new ColoredString(item.Gun.ReloadTimeLeft > 0 ? "Reload " : item.Gun.FireTimeLeft > 0 ? "Fire " : "Aim ", Color.Cyan, Color.Black)
+        public ColoredString Name => (new ColoredString($"{(item.Gun.ReloadTimeLeft > 0 ? "Reload" : item.Gun.FireTimeLeft > 0 ? "Fire" : "Aim"), -8}", Color.Cyan, Color.Black)
                             + item.Name);
 
     }

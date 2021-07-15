@@ -445,7 +445,7 @@ namespace TranscendenceRL {
 
 						var off = (mouseWorldPos - aim).magnitude;
 						var tolerance = Math.Sqrt(radius) / 3;
-						Color c = off < tolerance ? Color.White : Color.White.SetAlpha(255 * 3/4);
+						Color c = off < tolerance ? Color.White : Color.White.SetAlpha(255 * 3/5);
 
 						EffectParticle.DrawArrow(world, mouseWorldPos, playerOffset, c);
 
@@ -825,13 +825,9 @@ namespace TranscendenceRL {
 			XY screenCenter = screenSize / 2;
 			var messageY = Height * 3 / 5;
 			int targetX = 48, targetY = 1;
-			if (player.GetTarget(out SpaceObject playerTarget)) {
-				this.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
-				this.Print(targetX, targetY++, playerTarget.name);
-				PrintTarget(targetX, targetY, playerTarget);
 
-
-				var offset = (playerTarget.position - player.position) / viewScale;
+			void DrawTargetArrow(SpaceObject target) {
+				var offset = (target.position - player.position) / viewScale;
 				if (Math.Abs(offset.x) > Width / 2 || Math.Abs(offset.y) > Height / 2) {
 
 					var offsetNormal = offset.normal.flipY;
@@ -845,15 +841,27 @@ namespace TranscendenceRL {
 						this.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '.'));
 					}
 				}
+			}
+
+			if (player.GetTarget(out SpaceObject playerTarget)) {
+				this.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
+				this.Print(targetX, targetY++, playerTarget.name);
+				PrintTarget(targetX, targetY, playerTarget);
+				DrawTargetArrow(playerTarget);
+
+
 
 				targetX += 32;
 				targetY = 1;
 			}
-			var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
-			if(autoTarget != null && autoTarget != playerTarget) {
-				this.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
-				this.Print(targetX, targetY++, autoTarget.name);
-				PrintTarget(targetX, targetY, autoTarget);
+			//var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
+			foreach (var autoTarget in player.devices.Weapons.Select(w => w.target)) {
+				if (autoTarget != null && autoTarget != playerTarget) {
+					this.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
+					this.Print(targetX, targetY++, autoTarget.name);
+					PrintTarget(targetX, targetY, autoTarget);
+					DrawTargetArrow(autoTarget);
+				}
 			}
 
 			void PrintTarget(int x, int y, SpaceObject target) {

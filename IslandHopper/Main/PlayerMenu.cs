@@ -168,6 +168,71 @@ namespace IslandHopper {
             }
         }
     }
+    class ReloadMenu : Console {
+        Island w;
+        Player p;
+        ListMenu<IItem> itemSelector, ammoSelector;
+
+        public ReloadMenu(int width, int height, Island w, Player p) : base(width, height) {
+            UseKeyboard = true;
+
+            this.w = w;
+            this.p = p;
+        }
+        public override void Update(TimeSpan time) {
+            base.Update(time);
+            if (itemSelector == null) {
+                UpdateItemSelector();
+            }
+            ((Console)ammoSelector ?? itemSelector).Update(time);
+        }
+        public override void Render(TimeSpan drawTime) {
+            this.Clear();
+            base.Render(drawTime);
+            ((Console)ammoSelector ?? itemSelector).Render(drawTime);
+        }
+        public void UpdateItemSelector() {
+            itemSelector = new ListMenu<IItem>(Width, Height, "Select item to reload. ESC to cancel.", p.Inventory.Where(Item => Item.Gun != null).Select(Item => new ListItem(Item)), target => {
+                //Remove the item selector and add a location selector
+                ammoSelector = new ListMenu<IItem>(Width, Height, "Select item to consume. ESC to cancel.",
+                    p.Inventory.Where(i => i.Type.ammo != null).Select(i => new ListItem(i)), ammo => {
+                        var g = target.Gun;
+                        p.Actions.Add(new ReloadAction(g, ammo.Type.ammo.amount));
+                        p.Inventory.Remove(ammo);
+                        Close();
+                        return true;
+                    });
+                return false;
+            });
+        }
+        public void Close() {
+            Parent.IsFocused = true;
+            Parent.Children.Remove(this);
+        }
+        public override bool ProcessKeyboard(SadConsole.Input.Keyboard info) {
+            if (info.IsKeyPressed(Keys.Escape)) {
+                if (ammoSelector != null) {
+                    ammoSelector = null;
+                    //UpdateItemSelector();
+                } else {
+                    Close();
+                }
+                return true;
+            } else {
+                return ((Console)ammoSelector ?? itemSelector).ProcessKeyboard(info);
+            }
+        }
+        class FireMenu : Console {
+            Player p;
+            Gun g;
+            Entity target;
+            public FireMenu(int Width, int Height, Player p, Gun g, Entity target) : base(Width, Height) {
+                this.p = p;
+                this.g = g;
+                this.target = target;
+            }
+        }
+    }
     class ShootMenu : Console {
         Island w;
         Player p;

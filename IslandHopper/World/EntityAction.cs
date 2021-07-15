@@ -225,4 +225,25 @@ namespace IslandHopper {
 
         public ColoredString Name => new ColoredString("Walk", Color.Cyan, Color.Black);
     }
+
+    public class ReloadAction : EntityAction, Damager {
+        public Gun gun;
+        public int amount;
+        public int ticks;
+        public ReloadAction(Gun gun, int amount) {
+            this.gun = gun;
+            this.amount = amount;
+            ticks = 90;
+        }
+        public void Update() {
+            ticks--;
+            if (Done()) {
+                
+                gun.AmmoLeft += amount;
+                gun.AmmoLeft = Math.Min(gun.AmmoLeft, gun.desc.maxAmmo);
+            }
+        }
+        public bool Done() => ticks == 0;
+        public ColoredString Name => new ColoredString("Reload", Color.Cyan, Color.Black) + " " + gun.item.Name;
+    }
 }

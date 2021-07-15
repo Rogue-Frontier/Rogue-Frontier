@@ -13,7 +13,7 @@ using SadConsole.Input;
 using System.IO;
 using Console = SadConsole.Console;
 using ArchConsole;
-using static IslandHopper.ItemType.GunType;
+using static IslandHopper.ItemType.GunDesc;
 
 namespace IslandHopper {
     public class ShopConsole : Console {
@@ -126,33 +126,41 @@ namespace IslandHopper {
 
                 Print(preview.name);
                 y++;
-                switch (preview.gun.projectile) {
-                    case BulletDesc b:
-                        Print($"Projectile:  Bullet");
-                        Print($"Speed:       {b.speed}");
-                        Print($"Damage:      {b.damage}");
-                        Print($"Lifetime:    {b.lifetime}");
-                        break;
-                    case FlameDesc f:
-                        Print($"Projectile:  Flame");
-                        Print($"Speed:       {f.speed}");
-                        Print($"Damage:      {f.damage}");
-                        Print($"Lifetime:    {f.lifetime}");
-                        break;
-                    case GrenadeDesc g:
-                        Print($"Projectile:  Grenade");
-                        Print($"Speed:       {g.speed}");
-                        Print($"Fuse time:   {g.grenadeType.fuseTime}");
-                        Print($"Blast Radius:{g.grenadeType.explosionRadius}");
-                        Print($"Blast Power: {g.grenadeType.explosionDamage}");
-                        break;
+                if(preview.ammo != null) {
+                    Print($"[Ammo]");
+                    Print($"Amount: {preview.ammo.amount}");
+                    y++;
                 }
-                y = 8;
-                Print($"Clip size:   {preview.gun.clipSize}");
-                Print($"Max ammo:    {preview.gun.maxAmmo}");
-                Print($"Fire time:   {preview.gun.fireTime}");
-                Print($"Reload time: {preview.gun.reloadTime}");
-                y++;
+                if (preview.gun != null) {
+                    Print($"[Gun]");
+                    switch (preview.gun.projectile) {
+                        case BulletDesc b:
+                            Print($"Projectile:  Bullet");
+                            Print($"Speed:       {b.speed}");
+                            Print($"Damage:      {b.damage}");
+                            Print($"Lifetime:    {b.lifetime}");
+                            break;
+                        case FlameDesc f:
+                            Print($"Projectile:  Flame");
+                            Print($"Speed:       {f.speed}");
+                            Print($"Damage:      {f.damage}");
+                            Print($"Lifetime:    {f.lifetime}");
+                            break;
+                        case GrenadeDesc g:
+                            Print($"Projectile:  Grenade");
+                            Print($"Speed:       {g.speed}");
+                            Print($"Fuse time:   {g.grenadeType.fuseTime}");
+                            Print($"Blast Radius:{g.grenadeType.explosionRadius}");
+                            Print($"Blast Power: {g.grenadeType.explosionDamage}");
+                            break;
+                    }
+                    y = 8;
+                    Print($"Clip size:   {preview.gun.clipSize}");
+                    Print($"Max ammo:    {preview.gun.maxAmmo}");
+                    Print($"Fire time:   {preview.gun.fireTime}");
+                    Print($"Reload time: {preview.gun.reloadTime}");
+                    y++;
+                }
                 foreach(var l in preview.desc.Replace("\r", null).SplitLine(32)) {
                     this.Print(x, y++, l);
                 }

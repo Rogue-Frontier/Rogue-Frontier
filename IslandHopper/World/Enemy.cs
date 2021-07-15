@@ -92,7 +92,7 @@ namespace IslandHopper {
 
             void UpdateWeapon() {
                 if(weapon == null || !actor.Inventory.Contains(weapon) || weapon.Gun.AmmoLeft + weapon.Gun.ClipLeft == 0) {
-                    weapon = actor.Inventory.FirstOrDefault(i => i.Gun.AmmoLeft + i.Gun.ClipLeft > 0);
+                    weapon = actor.Inventory.FirstOrDefault(i => i.Gun != null && i.Gun.AmmoLeft + i.Gun.ClipLeft > 0);
                 }
             }
             void UpdateAttack() {
