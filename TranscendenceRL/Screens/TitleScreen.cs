@@ -30,7 +30,7 @@ namespace TranscendenceRL {
 
         public AIShip pov;
         public int povTimer;
-        public List<InfoMessage> povDesc;
+        public List<Message> povDesc;
 
         XY screenCenter;
 
@@ -123,7 +123,7 @@ namespace TranscendenceRL {
                     var playerStart = start.position;
                     var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
                     var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerSovereign, playerStart));
-                    playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+                    playerShip.messages.Add(new Message("Welcome to Transcendence: Rogue Frontier!"));
 
                     w.AddEffect(new Heading(playerShip));
                     w.AddEntity(playerShip);
@@ -244,7 +244,7 @@ namespace TranscendenceRL {
                 var playerStart = new XY(0, 0);
                 var playerSovereign = World.types.Lookup<Sovereign>("sovereign_player");
                 var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
-                playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+                playerShip.messages.Add(new Message("Welcome to Transcendence: Rogue Frontier!"));
 
                 World.RemoveAll();
 
@@ -337,16 +337,16 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             }
         }
         public void UpdatePOVDesc() {
-            povDesc = new List<InfoMessage> {
-                    new InfoMessage(pov.name),
+            povDesc = new List<Message> {
+                    new Message(pov.name),
                 };
             if (pov.damageSystem is LayeredArmorSystem las) {
-                povDesc.AddRange(las.GetDesc().Select(m => new InfoMessage(m.String)));
+                povDesc.AddRange(las.GetDesc().Select(m => new Message(m.String)));
             } else if (pov.damageSystem is HPSystem hp) {
-                povDesc.Add(new InfoMessage($"HP: {hp}"));
+                povDesc.Add(new Message($"HP: {hp}"));
             }
             foreach (var device in pov.ship.devices.Installed) {
-                povDesc.Add(new InfoMessage(device.source.type.name));
+                povDesc.Add(new Message(device.source.type.name));
             }
         }
         public override void Render(TimeSpan drawTime) {
@@ -472,14 +472,14 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             World w = new World(u);
             w.types.Lookup<SystemType>("system_orion").Generate(w);
             w.UpdatePresent();
-            var quickStartClass = "ship_royal_guard";
+            var quickStartClass = "ship_hyperego";
             var playerClass = w.types.Lookup<ShipClass>(quickStartClass);
             var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").position;
             var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
             var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerSovereign, playerStart));
             //playerShip.powers.Add(new Power(w.types.Lookup<PowerType>("power_declare")));
             playerShip.powers.AddRange(w.types.powerType.Values.Select(pt => new Power(pt)));
-            playerShip.messages.Add(new InfoMessage("Welcome to Transcendence: Rogue Frontier!"));
+            playerShip.messages.Add(new Message("Welcome to Transcendence: Rogue Frontier!"));
 
             w.AddEffect(new Heading(playerShip));
             w.AddEntity(playerShip);

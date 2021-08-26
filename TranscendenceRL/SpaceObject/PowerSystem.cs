@@ -69,9 +69,9 @@ namespace TranscendenceRL {
             
             if(deactivated.Any()) {
                 disabled.UnionWith(deactivated);
-                player.AddMessage(new InfoMessage("Reactor output overload!"));
+                player.AddMessage(new Message("Reactor output overload!"));
                 foreach(var d in deactivated) {
-                    player.AddMessage(new InfoMessage($"{d.source.type.name} deactivated!"));
+                    player.AddMessage(new Message($"{d.source.type.name} deactivated!"));
                 }
             }
 

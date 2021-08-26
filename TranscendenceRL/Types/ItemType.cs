@@ -28,13 +28,13 @@ namespace TranscendenceRL {
         }
         public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
             if(player.cargo.Contains(item)) {
-                player.AddMessage(new InfoMessage($"Installed weapon {item.type.name}"));
+                player.AddMessage(new Message($"Installed weapon {item.type.name}"));
 
                 player.cargo.Remove(item);
                 item.InstallWeapon();
                 player.devices.Install(item.weapon);
             } else {
-                player.AddMessage(new InfoMessage($"Removed weapon {item.type.name}"));
+                player.AddMessage(new Message($"Removed weapon {item.type.name}"));
 
                 player.devices.Remove(item.weapon);
                 item.RemoveWeapon();
@@ -70,7 +70,7 @@ namespace TranscendenceRL {
             return "Invoke this charm";
         }
         public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
-            player.AddMessage(new InfoMessage($"Invoked the power of {item.type.name}"));
+            player.AddMessage(new Message($"Invoked the power of {item.type.name}"));
 
             charges--;
             if (charges == 0) {

@@ -11,19 +11,25 @@ namespace TranscendenceRL {
         public PlayerShip owner;
         public XY offset;
         public int lifetime;
+        public HashSet<Projectile> reflected;
         public XY position { get; set; }
 
         public bool active => lifetime > 0;
-        public ColoredGlyph tile => new ColoredGlyph(Color.Yellow, Color.Black, '*');
-        public EchoBarrier(PlayerShip owner, XY offset, int lifetime) {
+        public ColoredGlyph tile => new ColoredGlyph(Color.Goldenrod, Color.Black, '*');
+        public EchoBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> reflected) {
             this.owner = owner;
             this.offset = offset;
             this.lifetime = lifetime;
+            this.reflected = reflected;
             UpdatePosition();
         }
         public void Update() {
-            lifetime--;
-            UpdatePosition();
+            if (owner.active) {
+                lifetime--;
+                UpdatePosition();
+            } else {
+                lifetime = 0;
+            }
         }
         public void UpdatePosition() {
             this.position = owner.position + offset;
@@ -32,8 +38,16 @@ namespace TranscendenceRL {
             if(other.source == owner) {
                 return;
             }
+            if(reflected.Contains(other)) {
+                return;
+            }
+            reflected.Add(other);
+            if(other.maneuver?.target != null) {
+                other.maneuver.target = other.source;
+            }
             other.source = null;
             other.velocity = new XY() -other.velocity;
+
         }
     }
 }

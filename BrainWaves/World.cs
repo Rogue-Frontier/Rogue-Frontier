@@ -6,7 +6,13 @@ using System.Collections.Generic;
 namespace BrainWaves {
     public class World {
 
-        public LocatorDict<Entity, (int, int)> entities = new LocatorDict<Entity, (int, int)>(e => (e.Position.xi, e.Position.yi));
+        class GridPosition : ILocator<Entity, (int, int)> {
+            public (int, int) Locate(Entity e) => (e.Position.xi, e.Position.yi);
+        }
+
+        public LocatorDict<Entity, (int, int)> entities = new LocatorDict<Entity, (int, int)>(
+            new GridPosition()
+            );
         public List<Entity> entitiesAdded = new List<Entity>();
         public List<Entity> entitiesRemoved = new List<Entity>();
         public Random karma = new Random();

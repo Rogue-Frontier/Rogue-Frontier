@@ -479,7 +479,7 @@ namespace TranscendenceRL {
         public void DisengageAutopilot() {
             if (autopilot) {
                 autopilot = false;
-                AddMessage(new InfoMessage($"Autopilot disengaged"));
+                AddMessage(new Message($"Autopilot disengaged"));
             }
         }
         public Stargate CheckGate() {
@@ -710,7 +710,7 @@ namespace TranscendenceRL {
             if(hp > ship.damageSystem.GetHP() / 3) {
                 if(mortalTime <= 0) {
                     if(mortalChances > 0) {
-                        AddMessage(new InfoMessage("Escape while you can!"));
+                        AddMessage(new Message("Escape while you can!"));
 
                         mortalTime = mortalChances * 3.0 + 1;
                         mortalChances--;
@@ -736,7 +736,7 @@ namespace TranscendenceRL {
                     p.cooldownLeft--;
 
                     if (p.cooldownLeft == 0) {
-                        AddMessage(new InfoMessage($"[Power] {p.type.name} is ready"));
+                        AddMessage(new Message($"[Power] {p.type.name} is ready"));
                     }
                 }
             });

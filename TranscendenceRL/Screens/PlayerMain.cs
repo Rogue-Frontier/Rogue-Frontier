@@ -256,7 +256,7 @@ namespace TranscendenceRL {
 					playerShip.dock = null;
 					sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
 				} else {
-					playerShip.AddMessage(new InfoMessage($"Stationed on {d.name}"));
+					playerShip.AddMessage(new Message($"Stationed on {d.name}"));
                 }
 			}
 			if (uiMain.IsVisible) {
@@ -1333,7 +1333,7 @@ namespace TranscendenceRL {
 						p.cooldownLeft = p.cooldownPeriod;
 						p.type.Effect.Invoke(playerShip);
 						if (p.type.message != null) {
-							playerShip.AddMessage(new InfoMessage(p.type.message));
+							playerShip.AddMessage(new Message(p.type.message));
 						}
 						//Reset charge
 						p.invokeCharge = 0;

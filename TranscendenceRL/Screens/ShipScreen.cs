@@ -337,10 +337,10 @@ namespace TranscendenceRL {
             void InvokeItem(Powered p) {
                 if(disabled.Contains(p)) {
                     disabled.Remove(p);
-                    player.AddMessage(new InfoMessage($"Enabled {p.source.type.name}"));
+                    player.AddMessage(new Message($"Enabled {p.source.type.name}"));
                 } else {
                     disabled.Add(p);
-                    player.AddMessage(new InfoMessage($"Disabled {p.source.type.name}"));
+                    player.AddMessage(new Message($"Disabled {p.source.type.name}"));
                 }
                 screen.UpdateIndex();
             }
@@ -435,7 +435,7 @@ namespace TranscendenceRL {
                 if(repairHP > 0) {
                     segment.hp += repairHP;
                     player.cargo.Remove(source);
-                    player.AddMessage(new InfoMessage($"Used {source.type.name} to restore {repairHP} hp on {segment.source.type.name}"));
+                    player.AddMessage(new Message($"Used {source.type.name} to restore {repairHP} hp on {segment.source.type.name}"));
 
                     callback?.Invoke();
                     Escape();
@@ -490,7 +490,7 @@ namespace TranscendenceRL {
                 if (refuelEnergy > 0) {
                     r.energy += refuelEnergy;
                     player.cargo.Remove(source);
-                    player.AddMessage(new InfoMessage($"Used {source.type.name} to refuel {refuelEnergy} energy on {r.source.type.name}"));
+                    player.AddMessage(new Message($"Used {source.type.name} to refuel {refuelEnergy} energy on {r.source.type.name}"));
 
                     callback?.Invoke();
                     Escape();

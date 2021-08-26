@@ -17,10 +17,10 @@
 			foreground=		"FF55FFFF"
 			>
 			<Trail
-				lifetime=	"30"
+				lifetime=	"20"
 				char=		"*"
 				foreground=	"FF55FFFF"
-				background=	"CC88DDFF"/>
+				background=	"BB77DDFF"/>
 		</Weapon>
 	</PowerType>
 	<PowerType codename="power_swear"
@@ -32,9 +32,10 @@
 		<Heal/>
 	</PowerType>
 	<PowerType codename="power_echo"
-		name=			"ECHO"
+		name=			"SHIELD"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
+		message=		"You SHIELD yourself from malice"
 		>
 		<ProjectileBarrier barrierType="echo" lifetime="900" radius="4"/>
 	</PowerType>

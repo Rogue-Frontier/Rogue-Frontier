@@ -38,7 +38,7 @@ namespace TranscendenceRL {
                 world.entities.all.Remove(wreck);
             }
             playerShip.ship.active = true;
-            playerShip.AddMessage(new InfoMessage("A vision of disaster flashes before your eyes"));
+            playerShip.AddMessage(new Message("A vision of disaster flashes before your eyes"));
             world.entities.all.Add(playerShip);
             world.effects.all.Add(new Heading(playerShip));
             GameHost.Instance.Screen = new TitleSlideOpening(new Pause(playerMain, Resume, 4), false) { IsFocused = true };

@@ -106,7 +106,7 @@ namespace TranscendenceRL {
 
 
 
-            playerShip.messages.Add(new InfoMessage("Wave incoming!"));
+            playerShip.messages.Add(new Message("Wave incoming!"));
             var f = ships.First();
             playerShip.messages.Add(new Transmission(f, $"{f.name} detected!"));
         }

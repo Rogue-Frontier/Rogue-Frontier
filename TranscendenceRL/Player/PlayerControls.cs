@@ -95,15 +95,15 @@ namespace TranscendenceRL {
 			}
 			if (!playerMain.autopilotUpdate && info.IsKeyPressed(controls[Autopilot])) {
 				playerShip.autopilot = !playerShip.autopilot;
-				playerShip.AddMessage(new InfoMessage($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
+				playerShip.AddMessage(new Message($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
 			}
 
 			if (info.IsKeyPressed(controls[Dock])) {
 				if (playerShip.dock != null) {
 					if (playerShip.dock.docked) {
-						playerShip.AddMessage(new InfoMessage("Undocked"));
+						playerShip.AddMessage(new Message("Undocked"));
 					} else {
-						playerShip.AddMessage(new InfoMessage("Docking sequence canceled"));
+						playerShip.AddMessage(new Message("Docking sequence canceled"));
 					}
 
 					playerShip.dock = null;
@@ -114,7 +114,7 @@ namespace TranscendenceRL {
 					}
 					dest = dest ?? playerShip.world.entities.GetAll(p => (playerShip.position - p).magnitude < 8).OfType<Dockable>().OrderBy(p => (p.position - playerShip.position).magnitude).FirstOrDefault();
 					if (dest != null) {
-						playerShip.AddMessage(new InfoMessage("Docking sequence engaged"));
+						playerShip.AddMessage(new Message("Docking sequence engaged"));
 						playerShip.dock = new Docking(dest);
 					}
 

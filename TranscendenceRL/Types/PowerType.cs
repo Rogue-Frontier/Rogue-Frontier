@@ -73,13 +73,16 @@ namespace TranscendenceRL.Types {
 
             Func<XY, int, ProjectileBarrier> construct = null;
             switch(barrierType) {
-                case BarrierType.accuse:
-                    HashSet<Projectile> cloneList = new HashSet<Projectile>();
-                    construct = (position, lifetime) => new AccuseBarrier(invoker, position, lifetime, cloneList);
+                case BarrierType.accuse: {
+                        HashSet<Projectile> cloned = new HashSet<Projectile>();
+                        construct = (position, lifetime) => new AccuseBarrier(invoker, position, lifetime, cloned);
+                    }
                     break;
-                case BarrierType.echo:
-                    construct = (position, lifetime) => new EchoBarrier(invoker, position, lifetime);
-                    break;
+                case BarrierType.echo: {
+                        HashSet<Projectile> reflected = new HashSet<Projectile>();
+                        construct = (position, lifetime) => new EchoBarrier(invoker, position, lifetime, reflected);
+                        break;
+                    }
             }
 
             HashSet<(int, int)> covered = new();

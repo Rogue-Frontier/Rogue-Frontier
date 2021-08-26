@@ -18,11 +18,11 @@ namespace TranscendenceRL {
     }
     public class Transmission : IPlayerMessage {
         public SpaceObject source;
-        public InfoMessage info;
+        public Message info;
         public Transmission() { }
         public Transmission(SpaceObject source, string message, int updateInterval = 3) {
             this.source = source;
-            this.info = new InfoMessage(message, updateInterval);
+            this.info = new Message(message, updateInterval);
         }
         public bool Active => info.Active;
         public ColoredString message => info.message;
@@ -30,7 +30,7 @@ namespace TranscendenceRL {
         public ColoredString Draw() => info.Draw();
         public void Update() => info.Update();
     }
-    public class InfoMessage: IPlayerMessage {
+    public class Message : IPlayerMessage {
         [JsonIgnore]
         public ColoredString message => new ColoredString(text, Color.White, Color.Transparent);
         public string text;
@@ -39,8 +39,8 @@ namespace TranscendenceRL {
         public int ticksRemaining;
         public int updateInterval;
         public int flashTicks;
-        public InfoMessage() { }
-        public InfoMessage(string text, int updateInterval = 3) {
+        public Message() { }
+        public Message(string text, int updateInterval = 3) {
             this.text = text;
             index = 0;
             ticks = 0;
