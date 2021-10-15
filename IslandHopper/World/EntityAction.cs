@@ -238,9 +238,7 @@ namespace IslandHopper {
         public void Update() {
             ticks--;
             if (Done()) {
-                
-                gun.AmmoLeft += amount;
-                gun.AmmoLeft = Math.Min(gun.AmmoLeft, gun.desc.maxAmmo);
+                gun.AmmoLeft = Math.Min(gun.AmmoLeft + amount, gun.desc.maxAmmo);
             }
         }
         public bool Done() => ticks == 0;

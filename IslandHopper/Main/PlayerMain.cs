@@ -13,8 +13,6 @@ using SadConsole.Input;
 using System.IO;
 
 namespace IslandHopper {
-	static class Themes {
-	}
 	class PlayerMain : ControlsConsole {
         Island World;
         DateTime lastUpdate;
@@ -33,12 +31,10 @@ namespace IslandHopper {
         public override void Update(TimeSpan delta) {
             base.Update(delta);
             ticks++;
-            World.entities.UpdateSpace();       //	Update all entity positions on the grid
+            World.realTicks++;
             foreach (var e in World.entities.all) {
                 e.UpdateRealtime(delta);
             }
-
-            World.effects.UpdateSpace();
             foreach (var e in World.effects.all) {
                 e.UpdateRealtime(delta);
             }
@@ -46,10 +42,13 @@ namespace IslandHopper {
             if (World.player.AllowUpdate() && IsFocused && (now - lastUpdate).TotalSeconds > 1 / 60f) {
                 lastUpdate = now;
                 this.DebugInfo("Global Update");
+                World.gameTicks++;
+                World.entities.UpdateSpace();
                 foreach (var e in new List<Entity>(World.entities.all)) {
                     e.DebugInfo("UpdateStep() by world");
                     e.UpdateStep();
                 }
+                World.effects.UpdateSpace();
                 foreach (var e in new List<Effect>(World.effects.all)) {
                     e.DebugInfo("UpdateStep() by world");
                     e.UpdateStep();
@@ -58,7 +57,6 @@ namespace IslandHopper {
             } else {
                 //System.Console.WriteLine("not updating");
             }
-
             var Removed = new List<Entity>();
             World.entities.all.RemoveWhere(e => {
                 bool result = !e.Active;
@@ -68,9 +66,7 @@ namespace IslandHopper {
                 return result;
             });
             Removed.ForEach(e => e.OnRemoved());
-
             World.effects.all.RemoveWhere(e => !e.Active);
-
         }
         private int HalfWidth { get => Width / 2; }
 		private int HalfHeight { get => Height / 2; }

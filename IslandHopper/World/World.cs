@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 namespace IslandHopper {
 	public class Island {
 		public Rand karma;
+		public int gameTicks;
+		public double realTicks;
 		public LocatorDict<Entity, (int, int, int)> entities { get; set; }     //	3D entity grid used for collision detection
         public LocatorDict<Effect, (int, int, int)> effects { get; set; }
 		public ArraySpace<Voxel> voxels { get; set; }   //	3D voxel grid used for collision detection

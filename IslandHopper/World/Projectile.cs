@@ -213,7 +213,6 @@ namespace IslandHopper {
                 Active = false;
             }
             Func<Entity, bool> collisionFilter = e => {
-
                 if(e is Flame || e is Fire) {
                     return true;
                 }
@@ -233,11 +232,12 @@ namespace IslandHopper {
             var count = trail.Count;
             if (rnd(0, 5) == 0) {
                 foreach (var point in trail) {
-                    if (World.voxels[point.PlusZ(-1)] is Grass g) {
-                        if (rnd(0, count * 5) == 0) {
-                            World.AddEntity(new Fire(World) { Position = point, Velocity = new XYZ() });
-                            break;
-                        }
+                    if (rnd(0, count * 5) == 0
+                        && World.voxels[point.PlusZ(-1)] is Grass g
+                        && !World.entities[point].OfType<Fire>().Any()) {
+
+                        World.AddEntity(new Fire(World) { Position = point, Velocity = new XYZ() });
+                        break;
                     }
 
                 }
@@ -257,30 +257,36 @@ namespace IslandHopper {
         public Island World { get; set; }
         public XYZ Position { get; set; }
         public XYZ Velocity { get; set; }
-        public ColoredGlyph SymbolCenter => new ColoredGlyph(Color.Orange, Color.Transparent, 'v');
+        public ColoredGlyph SymbolCenter => new ColoredGlyph(
+            World.realTicks%10 < 5 ? Color.Gold : Color.Orange,
+            Color.Transparent, 'v');
+        public int ticks;
         public bool Active { get; set; } = true;
         public ColoredString Name => new ColoredString("Fire", Color.Red, Color.Black);
         public Fire(Island World) {
             this.World = World;
         }
-        public void UpdateRealtime(TimeSpan delta) { }
+        public void UpdateRealtime(TimeSpan delta) {
+        }
         public void UpdateStep() {
+            if (World.gameTicks % 10 != 0) {
+                return;
+            }
             var below = Position.PlusZ(-1);
             if(World.voxels.InBounds(below) && World.voxels[below] is Grass g) {
                 Func<int, int, int> rnd = World.karma.NextInteger;
-
-                if(rnd(0, 150) == 0) {
+                int r = rnd(0, 400);
+                if(r == 0) {
                     World.voxels[below] = new Dirt();
                     Active = false;
-                }
-                if (rnd(0, 150) == 0) {
+                } else if (r == 1) {
                     var adjacent = new XY[] { new XY(-1, 0), new XY(1, 0), new XY(0, -1), new XY(0, 1) }
                                     .Select(p => Position + p)
                                     .Where(p => World.voxels.InBounds(p))
                                     .Where(p => World.voxels[p.PlusZ(-1)] is Grass g)
-                                    .Where(p => World.entities[p].OfType<Fire>().Count() == 0);
+                                    .Where(p => !World.entities[p].OfType<Fire>().Any());
                     if(adjacent.Any()) {
-                        var p = adjacent.ElementAt(rnd(0, adjacent.Count())).PlusZ(-1);
+                        var p = adjacent.ElementAt(rnd(0, adjacent.Count()));
                         World.AddEntity(new Fire(World) { Position = p });
                     }
                 }

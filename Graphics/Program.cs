@@ -4,6 +4,8 @@ using SadConsole.Renderers;
 using System;
 using System.IO;
 using TranscendenceRL;
+using Console = SadConsole.Console;
+using SadRogue.Primitives;
 namespace Graphics
 {
 
@@ -13,7 +15,7 @@ namespace Graphics
 		static void Main(string[] args) {
 			// Setup the engine and create the main window.
 			SadConsole.Game.Create(Width, Height, "RogueFrontierContent/sprites/IBMCGA.font");
-			SadConsole.Game.Instance.DefaultFontSize = Font.Sizes.One;
+			SadConsole.Game.Instance.DefaultFontSize = Font.Sizes.Four;
 			SadConsole.Game.Instance.OnStart = Init;
 			SadConsole.Game.Instance.Run();
 			SadConsole.Game.Instance.Dispose();
@@ -25,10 +27,22 @@ namespace Graphics
 
 			Directory.CreateDirectory("GraphicsContent");
 
-			var s = new WorldDraw(2000, 2000, w);
+			var str = "ARCHCANNON";
+			var s = new Console(str.Length, 1);
+			//var s = new WorldDraw(2000, 2000, w);
+			s.Print(0, 0, str, Color.White, Color.Black);
+
+			int x = 0;
+			foreach(var c in str) {
+				s.Print(x, 0, c.ToString(), Color.FromHSL((1f * x) / str.Length, 1, 0.7f), Color.Black);
+				x++;
+            }
+
 			s.Render(new TimeSpan());
 			var t = ((ScreenSurfaceRenderer)s.Renderer).BackingTexture;
-			t.Save("GraphicsContent/Background.png");
+			t.Save("GraphicsContent/Archcannon.png");
+
+			Environment.Exit(0);
 
 		}
 	}
