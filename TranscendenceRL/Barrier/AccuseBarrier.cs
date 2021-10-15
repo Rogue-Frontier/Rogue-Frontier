@@ -9,18 +9,20 @@ using System.Text;
 namespace TranscendenceRL {
     //Surrounds the playership, any projectile that hits this barrier accelerates to extreme speed
     class AccuseBarrier : ProjectileBarrier {
+        [JsonIgnore]
+        public bool active => lifetime > 0;
+        [JsonIgnore]
+        public ColoredGlyph tile => new ColoredGlyph(Color.OrangeRed, Color.Black, '*');
+
+        public int Id { get; private set; }
         public PlayerShip owner;
         public XY offset;
         public int lifetime;
         public HashSet<Projectile> cloned;
         public XY position { get; set; }
-
-        [JsonIgnore]
-        public bool active => lifetime > 0;
-        [JsonIgnore]
-        public ColoredGlyph tile => new ColoredGlyph(Color.OrangeRed, Color.Black, '*');
         public AccuseBarrier() { }
         public AccuseBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> cloned) {
+            this.Id = owner.world.nextId++;
             this.owner = owner;
             this.offset = offset;
             this.lifetime = lifetime;

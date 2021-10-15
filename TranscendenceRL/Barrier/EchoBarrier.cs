@@ -8,15 +8,18 @@ using System.Text;
 namespace TranscendenceRL {
     //Surrounds the playership, reflects their projectiles back so that they bounce around
     class EchoBarrier : ProjectileBarrier {
+        public bool active => lifetime > 0;
+        public ColoredGlyph tile => new ColoredGlyph(Color.Goldenrod, Color.Black, '*');
+
+
+        public int Id { get; private set; }
         public PlayerShip owner;
         public XY offset;
         public int lifetime;
         public HashSet<Projectile> reflected;
         public XY position { get; set; }
-
-        public bool active => lifetime > 0;
-        public ColoredGlyph tile => new ColoredGlyph(Color.Goldenrod, Color.Black, '*');
         public EchoBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> reflected) {
+            this.Id = owner.world.nextId++;
             this.owner = owner;
             this.offset = offset;
             this.lifetime = lifetime;

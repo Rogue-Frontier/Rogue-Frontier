@@ -12,7 +12,6 @@ using static Common.Main;
 namespace TranscendenceRL {
     partial class Program {
 		public static int TICKS_PER_SECOND = 60;
-
         static Program() {
             Height = 60;
             Width = Height * 5 / 3;
@@ -23,8 +22,11 @@ namespace TranscendenceRL {
         public static string cover = ExpectFile("RogueFrontierContent/sprites/RogueFrontierPosterV2.asc.cg");
         public static string splash = ExpectFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
 		static void Main(string[] args) {
-			// Setup the engine and create the main window.
-			SadConsole.Game.Create(Width, Height, font);
+            Directory.CreateDirectory("save");
+            
+
+            // Setup the engine and create the main window.
+            SadConsole.Game.Create(Width, Height, font);
             // Hook the start event so we can add consoles to the system.
             SadConsole.Game.Instance.OnStart = Start;
 			// Start the game.
@@ -33,14 +35,12 @@ namespace TranscendenceRL {
 		}
 
 		public static void Start() {
-            Directory.CreateDirectory("save");
+            var w = new World();
+            w.types.LoadFile(main);
 #if false
             GameHost.Instance.Screen = new BackdropConsole(Width, Height, new Backdrop(), () => new Common.XY(0.5, 0.5));
 			return;
 #endif
-			World w = new World();
-			w.types.LoadFile(main);
-
             //var files = Directory.GetFiles($"{AppDomain.CurrentDomain.BaseDirectory}save", "*.trl");
             //SaveGame.Deserialize(File.ReadAllText(files.First()));
 

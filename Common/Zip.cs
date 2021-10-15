@@ -6,9 +6,7 @@ namespace Common {
     public static class Space {
         public static void CopyTo(Stream src, Stream dest) {
             byte[] bytes = new byte[4096];
-
             int cnt;
-
             while ((cnt = src.Read(bytes, 0, bytes.Length)) != 0) {
                 dest.Write(bytes, 0, cnt);
             }
@@ -25,6 +23,14 @@ namespace Common {
                 }
 
                 return mso.ToArray();
+            }
+        }
+        public static string Unzip(MemoryStream input) {
+            using (var mso = new MemoryStream()) {
+                using (var gs = new GZipStream(input, CompressionMode.Decompress)) {
+                    CopyTo(gs, mso);
+                }
+                return Encoding.UTF8.GetString(mso.ToArray());
             }
         }
 

@@ -14,6 +14,7 @@ namespace TranscendenceRL {
         void Update();
     }
     public interface Entity : Effect {
+        int Id { get; }
     }
 
 }

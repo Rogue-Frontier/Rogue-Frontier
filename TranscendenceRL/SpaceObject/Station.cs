@@ -16,7 +16,13 @@ namespace TranscendenceRL {
     public class Wreck : Dockable {
         [JsonIgnore]
         public string name => $"Wreck of {creator.name}";
-        public SpaceObject creator;
+        [JsonIgnore]
+        public ColoredGlyph tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.tile.GlyphCharacter);
+
+        [JsonProperty]
+        public int Id { get; private set; }
+        [JsonProperty]
+        public SpaceObject creator { get; private set; }
         [JsonProperty]
         public World world { get; private set; }
         [JsonProperty]
@@ -29,15 +35,16 @@ namespace TranscendenceRL {
         public bool active { get; private set; }
         [JsonProperty] 
         public HashSet<Item> cargo { get; private set; }
-        [JsonIgnore]
-        public ColoredGlyph tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.tile.GlyphCharacter);
         [JsonProperty]
-        public int ticks;
+        public int ticks { get; private set; }
         [JsonProperty]
-        public XY gravity;
+        public XY gravity { get; private set; }
         public Wreck() { }
         public Wreck(SpaceObject creator, IEnumerable<Item> cargo = null) {
+            this.Id = creator.world.nextId++;
             this.creator = creator;
+
+
             this.world = creator.world;
             this.sovereign = Sovereign.Inanimate;
             this.position = creator.position;
@@ -85,6 +92,9 @@ namespace TranscendenceRL {
     public class Station : SpaceObject, Dockable, ITrader {
         [JsonIgnore]
         public string name => type.name;
+
+        [JsonProperty]
+        public int Id { get; set; }
         [JsonProperty]
         public World world { get; set; }
         [JsonProperty]
@@ -112,6 +122,7 @@ namespace TranscendenceRL {
 
         public Station() { }
         public Station(World World, StationType Type, XY Position) {
+            this.Id = world.nextId++;
             this.world = World;
             this.type = Type;
             this.position = Position;
@@ -251,10 +262,14 @@ namespace TranscendenceRL {
         public XY velocity => parent.velocity;
         [JsonIgnore] 
         public Sovereign sovereign => parent.sovereign;
+        
+        [JsonProperty]
+        public int Id { get; private set; }
         public SpaceObject parent;
         public SegmentDesc desc;
         public Segment() { }
         public Segment(SpaceObject parent, SegmentDesc desc) {
+            this.Id = parent.world.nextId++;
             this.parent = parent;
             this.desc = desc;
         }

@@ -12,6 +12,13 @@ namespace TranscendenceRL {
     public class Stargate : SpaceObject {
         [JsonIgnore]
         public string name => $"Stargate";
+        [JsonIgnore]
+        public bool active => true;
+        [JsonIgnore]
+        public ColoredGlyph tile => new ColoredGlyph(Color.Purple, Color.White, '*');
+
+        [JsonProperty]
+        public int Id { get; private set; }
         [JsonProperty]
         public World world { get; private set; }
         [JsonProperty]
@@ -21,13 +28,10 @@ namespace TranscendenceRL {
         [JsonProperty]
         public XY velocity { get; private set; }
         [JsonProperty]
-        public bool active => true;
-        [JsonProperty]
         public HashSet<Segment> Segments { get; private set; }
-        [JsonIgnore]
-        public ColoredGlyph tile => new ColoredGlyph(Color.Purple, Color.White, '*');
         public Stargate() { }
         public Stargate(World World, XY Position) {
+            this.Id = world.nextId++;
             this.world = World;
             this.sovereign = Sovereign.Inanimate;
             this.position = Position;

@@ -18,13 +18,9 @@ namespace TranscendenceRL {
     public class Universe {
         public Rand karma;
         public TypeCollection types;
-        public Universe(TypeCollection types, Rand karma) {
-            this.types = types; 
-            this.karma = karma;
-        }
-        public Universe() {
-            karma = new Rand();
-            types = new TypeCollection();
+        public Universe(TypeCollection types = null, Rand karma = null) {
+            this.types = types ?? new TypeCollection(); 
+            this.karma = karma ?? new Rand();
         }
     }
 
@@ -54,6 +50,8 @@ namespace TranscendenceRL {
         public Backdrop backdrop;
 
         public int tick;
+        public int nextId;
+
         public World() {
             this.universe = new Universe();
             backdrop = new Backdrop();

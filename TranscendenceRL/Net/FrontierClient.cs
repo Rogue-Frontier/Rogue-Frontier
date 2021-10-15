@@ -10,21 +10,46 @@ using SadConsole.Input;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace TranscendenceRL {
     class GameClient : TcpClient {
         private ClientScreen game;
+        private MemoryStream received;
+        private string command;
+        private int length;
         public GameClient(string address, int port, ClientScreen game) : base(address, port) {
             this.game = game;
         }
         protected override void OnConnected() { }
         protected override void OnDisconnected() { }
         protected override void OnReceived(byte[] buffer, long offset, long size) {
-
-
-
-            var b = Space.Unzip(buffer);
-            //game.World = SaveGame.Deserialize(b) as World;
+            var s = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            var m = Regex.Match(s, "([A-Z]+)([0-9]+)");
+            if (m.Success) {
+                received = new MemoryStream();
+                command = m.Groups[1].Captures[0].Value;
+                length = int.Parse(m.Groups[2].Captures[0].Value);
+            } else {
+                received.Write(buffer, (int)offset, (int)size);
+                if (received.Length >= length) {
+                    //var str = Space.Unzip(received);
+                    var str = Encoding.UTF8.GetString(received.ToArray());
+                    var d = SaveGame.Deserialize(str);
+                    switch (command) {
+                        case "WORLD":
+                            game.World = (World)d;
+                            break;
+                        case "CAMERA":
+                            game.camera = (XY)d;
+                            break;
+                    }
+                    received.Close();
+                }
+            }
         }
         protected override void OnError(SocketError error) =>
             Debug.WriteLine($"Chat TCP client caught an error with code {error}");
@@ -43,21 +68,17 @@ namespace TranscendenceRL {
         MouseWatch mouse = new MouseWatch();
         public ClientScreen(int width, int height, TitleScreen prev) : base(width, height) {
             this.prev = prev;
-            this.World = new World();
+            this.World = prev.World;
             UseKeyboard = true;
-
             screenCenter = new XY(Width / 2, Height / 2);
-
-            camera = new XY(0, 0);
+            camera = prev.camera;
             client = new GameClient("127.0.0.1", 1111, this);
             client.ConnectAsync();
         }
         public override void Update(TimeSpan timeSpan) {
-
             World.UpdateAdded();
             World.UpdateActive();
             World.UpdateRemoved();
-
             tiles.Clear();
             World.PlaceTiles(tiles);
 

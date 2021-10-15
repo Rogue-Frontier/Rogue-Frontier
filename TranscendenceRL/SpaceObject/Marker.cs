@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     class Marker : Entity {
+        public int Id => -1;
         public string Name { get; private set; }
         public XY position { get; set; }
         public bool active { get; set; }
@@ -24,18 +25,21 @@ namespace TranscendenceRL {
     }
 
     class TargetingMarker : SpaceObject {
-        public PlayerShip Owner;
-        public List<SpaceObject> Nearby;
-        public string name { get; set; }
-        public XY position { get; set; }
-        public bool active { get; set; }
         [JsonIgnore]
         public ColoredGlyph tile => null;
-        public XY velocity { get; set; }
         [JsonIgnore]
         public World world => Owner.world;
         [JsonIgnore]
         public Sovereign sovereign => Owner.sovereign;
+
+        public int Id => -1;
+
+        public PlayerShip Owner;
+        public List<SpaceObject> Nearby;
+        public string name { get; set; }
+        public XY position { get; set; }
+        public XY velocity { get; set; }
+        public bool active { get; set; }
 
         public TargetingMarker(PlayerShip Owner, string Name, XY Position) {
             this.Owner = Owner;

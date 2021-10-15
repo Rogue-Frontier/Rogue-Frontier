@@ -53,7 +53,11 @@ namespace TranscendenceRL {
         public ShipClass shipClass { get; private set; }
         [JsonProperty]
         public Sovereign sovereign { get; private set; }
+        [JsonProperty]
         public XY position { get; set; }
+        [JsonProperty]
+        public int Id { get; private set; }
+        [JsonProperty]
         public XY velocity { get; set; }
         public bool active { get; set; }
         [JsonProperty]
@@ -62,14 +66,24 @@ namespace TranscendenceRL {
         public DeviceSystem devices { get; private set; }
         [JsonProperty]
         public HullSystem damageSystem { get; private set; }
+        [JsonProperty]
         public Disrupt controlHijack;
-
+        [JsonProperty]
         public Rand destiny;
+        [JsonProperty]
+        public double rotationDeg { get; set; }
+        public bool thrusting;
+        public Rotating rotating;
+        public double rotatingVel;
+        public bool decelerating;
+
 
         public delegate void Destroyed(BaseShip ship, SpaceObject destroyer, Wreck wreck);
         public FuncSet<IContainer<Destroyed>> onDestroyed = new FuncSet<IContainer<Destroyed>>();
 
-        public double rotationDeg { get; set; }
+
+
+
         [JsonIgnore]
         public double stoppingRotation { get {
                 var stoppingTime = Program.TICKS_PER_SECOND * Math.Abs(rotatingVel) / (shipClass.rotationDecel);
@@ -83,14 +97,10 @@ namespace TranscendenceRL {
                 return rotationDeg + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((stoppingRate / Program.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
             }
         }
-
-        public bool thrusting;
-        public Rotating rotating;
-        public double rotatingVel;
-        public bool decelerating;
         public BaseShip() { }
         public BaseShip(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.world = world;
+            this.Id = world.nextId++;
             this.shipClass = shipClass;
             
             this.sovereign = Sovereign;
@@ -284,9 +294,8 @@ namespace TranscendenceRL {
 
 
     public class AIShip : IShip {
-        public static int ID = 0;
-        public int Id = ID++;
-
+        [JsonIgnore]
+        public int Id => ship.Id;
         [JsonIgnore]
         public string name => ship.name;
         [JsonIgnore]
@@ -305,24 +314,21 @@ namespace TranscendenceRL {
         public HashSet<Item> cargo => ship.cargo;
         [JsonIgnore] 
         public DeviceSystem devices => ship.devices;
-
         [JsonIgnore] 
         public HullSystem damageSystem => ship.damageSystem;
-
-        public ShipBehavior behavior;
-        public BaseShip ship;
-        public IOrder controller;
-        public Docking dock { get; set; }
-        [JsonIgnore] 
+        [JsonIgnore]
         public Rand destiny => ship.destiny;
-        [JsonIgnore] 
+        [JsonIgnore]
         public double stoppingRotation => ship.stoppingRotation;
-
         [JsonIgnore]
         public HashSet<SpaceObject> avoidHit => new HashSet<SpaceObject> {
             dock?.Target, (controller as GuardOrder)?.GuardTarget
         };
 
+        public ShipBehavior behavior;
+        public BaseShip ship;
+        public IOrder controller;
+        public Docking dock { get; set; }
         public AIShip(BaseShip ship, IOrder controller) {
             this.ship = ship;
             this.controller = controller;
@@ -383,9 +389,10 @@ namespace TranscendenceRL {
         public override bool Equals(object obj) => obj is BaseOnDestroyed b && b.player == player;
     }
     public class PlayerShip : IShip {
-        public Player player;
-        [JsonIgnore] 
+        [JsonIgnore]
         public string name => ship.name;
+        [JsonIgnore]
+        public int Id => ship.Id;
         [JsonIgnore] 
         public World world => ship.world;
         [JsonIgnore] 
@@ -404,6 +411,16 @@ namespace TranscendenceRL {
         public double stoppingRotation => ship.stoppingRotation;
         [JsonIgnore] 
         public HashSet<Item> cargo => ship.cargo;
+        [JsonIgnore]
+        public DeviceSystem devices => ship.devices;
+        [JsonIgnore]
+        public HullSystem hull => ship.damageSystem;
+
+        public Player player;
+        public BaseShip ship;
+        public EnergySystem energy;
+        public List<Power> powers;
+        public Docking dock { get; set; }
 
         public int targetIndex = -1;
         public bool targetFriends = false;
@@ -415,22 +432,12 @@ namespace TranscendenceRL {
         public int mortalChances = 3;
         public double mortalTime = 0;
 
-        [JsonIgnore] 
-        public DeviceSystem devices => ship.devices;
-        public HullSystem hull => ship.damageSystem;
-        public BaseShip ship;
-        public EnergySystem energy;
-        public List<Power> powers;
-        public Docking dock { get; set; }
-
-        public bool autopilot;
+        public bool autopilot = false;
 
         public List<IPlayerMessage> messages = new List<IPlayerMessage>();
-
         public HashSet<Entity> visible = new HashSet<Entity>();
         public HashSet<Station> known = new HashSet<Station>();
         int ticks = 0;
-
         public HashSet<IShip> shipsDestroyed = new HashSet<IShip>();
 
         public delegate void PlayerDestroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);

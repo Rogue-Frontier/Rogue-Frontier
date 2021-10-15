@@ -300,6 +300,8 @@ namespace TranscendenceRL {
                     //If we are in range, then aim and fire
 
                     //Aim at the target
+
+                    aim.target = target;
                     aim.Update(owner);
 
                     if (Math.Abs(aim.GetAngleDiff(owner)) < 10
@@ -316,6 +318,7 @@ namespace TranscendenceRL {
 
                     new ApproachOrbitOrder(target).Update(owner);
                     //Fire if our angle is good enough
+                    aim.target = target;
                     if (freeAim
                         || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3 && RangeCheck()) {
                         SetFiring();
@@ -470,6 +473,7 @@ namespace TranscendenceRL {
         public double missileSpeed;
         public double GetTargetRads(AIShip owner) => Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
         public double GetAngleDiff(AIShip owner) => Helper.AngleDiff(owner.rotationDeg, GetTargetRads(owner) * 180 / Math.PI);
+
         public AimOrder(SpaceObject target, double missileSpeed) {
             this.target = target;
             this.missileSpeed = missileSpeed;

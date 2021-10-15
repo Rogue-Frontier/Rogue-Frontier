@@ -27,8 +27,13 @@ namespace TranscendenceRL {
                 Thread.Yield();
             }
             game.requests++;
-            var s = Common.Space.Zip(SaveGame.Serialize(game.World));
+            //var s = Common.Space.Zip(SaveGame.Serialize(game.World));
+            var s = (SaveGame.Serialize(game.World));
             game.requests--;
+            SendCommand("WORLD", s);
+        }
+        public void SendCommand(string command, string s) {
+            Send($"{command}{s.Length}");
             Send(s);
         }
         protected override void OnDisconnected() {}
@@ -41,6 +46,10 @@ namespace TranscendenceRL {
         public GameServer(IPAddress address, int port, ServerScreen game) : base(address, port) {
             this.game = game;
         }
+        public void MulticastCommand(string command, string s) {
+            Multicast($"{command}{s.Length}");
+            Multicast(s);
+        }
         protected override TcpSession CreateSession() => new GameSession(this, game);
         protected override void OnError(SocketError error) =>
             Debug.WriteLine($"Chat TCP server caught an error with code {error}");
@@ -49,26 +58,24 @@ namespace TranscendenceRL {
 
     public class ServerScreen : Console {
         TitleScreen prev;
-        GameServer server;
         public World World;
         public SpaceObject pov;
-        public int povTimer;
-        public List<Message> povDesc;
-        XY screenCenter;
         public XY camera;
         public Dictionary<(int, int), ColoredGlyph> tiles = new Dictionary<(int, int), ColoredGlyph>();
         MouseWatch mouse = new MouseWatch();
 
+        public Dictionary<int, Entity> entityLookup = new Dictionary<int, Entity>();
+
         public int requests;
         public bool busy;
+        GameServer server;
         public ServerScreen(int width, int height, TitleScreen prev) : base(width, height) {
             this.prev = prev;
             this.World = prev.World;
-
+            camera = prev.camera;
 
             UseKeyboard = true;
-            screenCenter = new XY(Width / 2, Height / 2);
-            camera = new XY(0, 0);
+
             server = new GameServer(IPAddress.Any, 1111, this);
             server.Start();
         }
@@ -81,6 +88,12 @@ namespace TranscendenceRL {
             World.UpdateAdded();
             World.UpdateActive();
             World.UpdateRemoved();
+
+            entityLookup.Clear();
+            foreach(var e in World.entities.all) {
+                entityLookup[e.Id] = e;
+            }
+
             busy = false;
             tiles.Clear();
             World.PlaceTiles(tiles);
@@ -132,6 +145,7 @@ namespace TranscendenceRL {
             mouse.nowPos = new Point(mouse.nowPos.X, Height - mouse.nowPos.Y);
             if (mouse.left == ClickState.Held) {
                 camera += new XY(mouse.prevPos - mouse.nowPos);
+                server.MulticastCommand("CAMERA", SaveGame.Serialize(camera));
             }
 
             return base.ProcessMouse(state);

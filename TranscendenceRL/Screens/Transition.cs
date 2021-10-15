@@ -71,7 +71,7 @@ namespace TranscendenceRL {
             }
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
-            if(keyboard.IsKeyPressed(Keys.Enter)) {
+            if(keyboard.IsKeyPressed(Keys.Enter) || keyboard.IsKeyPressed(Keys.Escape)) {
                 fast = true;
             }
             return base.ProcessKeyboard(keyboard);
@@ -96,7 +96,12 @@ namespace TranscendenceRL {
         public override void Update(TimeSpan delta) {
             next.Update(delta);
             base.Update(delta);
-            if(x > -16) {
+
+            if (fast) {
+                x = -16;
+            }
+
+            if (x > -16) {
                 x -= (int)(Width * delta.TotalSeconds);
             } else {
                 SadConsole.Game.Instance.Screen = next;
@@ -129,7 +134,7 @@ namespace TranscendenceRL {
             }
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
-            if (keyboard.IsKeyPressed(Keys.Enter)) {
+            if (keyboard.IsKeyPressed(Keys.Enter) || keyboard.IsKeyPressed(Keys.Escape)) {
                 fast = true;
             }
             return base.ProcessKeyboard(keyboard);

@@ -23,6 +23,8 @@ namespace TranscendenceRL {
     }
     public class Projectile : MovingObject {
         [JsonProperty]
+        public int Id { get; private set; }
+        [JsonProperty]
         public World world { get; private set; }
         [JsonProperty] 
         public SpaceObject source;
@@ -44,9 +46,11 @@ namespace TranscendenceRL {
         [JsonProperty]
         public bool hitProjectile;
 
+        [JsonIgnore]
         public bool active => lifetime > 0;
         public Projectile() { }
         public Projectile(SpaceObject Source, World world, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
+            this.Id = world.nextId++;
             this.source = Source;
             this.world = world;
             this.tile = desc.effect.Original;
