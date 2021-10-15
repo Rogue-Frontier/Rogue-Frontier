@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="CoreCLR-NCalc" Version="2.2.92" />
+    <PackageReference Include="NetCoreServer" Version="5.1.0" />
     <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
     <PackageReference Include="SadConsole.Host.MonoGame" Version="9.0.0-beta1" />
   </ItemGroup>

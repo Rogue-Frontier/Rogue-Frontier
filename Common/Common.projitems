@@ -24,4 +24,9 @@
   <ItemGroup>
     <MonoGameContentReference Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Zip.cs">
+      <SubType>Designer</SubType>
+    </Compile>
+  </ItemGroup>
 </Project>

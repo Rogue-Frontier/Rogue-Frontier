@@ -16,14 +16,14 @@ using static TranscendenceRL.BaseShip;
 using System.Threading.Tasks;
 
 namespace TranscendenceRL {
-    class TitleScreen : Console {
+    public class TitleScreen : Console {
 
         ConfigMenu config;
         LoadMenu load;
         Console credits;
 
         Profile profile;
-        World World;
+        public World World;
         
         public static string[] title = File.ReadAllText("RogueFrontierContent/sprites/Title.txt").Replace("\r\n", "\n").Split('\n');
         Settings settings;
@@ -57,6 +57,9 @@ namespace TranscendenceRL {
             Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Shift + L] Load Game", StartLoad) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Shift + S] Survival Mode", StartSurvival) { Position = new Point(x, y++), FontSize = fs });
+            Children.Add(new LabelButton("[Shift + N] Multiplayer Server", Server) { Position = new Point(x, y++), FontSize = fs });
+            Children.Add(new LabelButton("[Shift + M] Multiplayer Client", Client) { Position = new Point(x, y++), FontSize = fs });
+
 
             Children.Add(new LabelButton("[Shift + Z] Credits", StartCredits) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++), FontSize = fs });
@@ -208,6 +211,13 @@ namespace TranscendenceRL {
                 Children.Add(load);
                 load.Reset();
             }
+        }
+        private void Server() {
+            Game.Instance.Screen = new ServerScreen(Width, Height, this) { IsFocused = true };
+        }
+        private void Client() {
+
+            Game.Instance.Screen = new ClientScreen(Width, Height, this) { IsFocused = true };
         }
         private void StartProfile() {
             if (Children.Contains(load)) {
@@ -432,6 +442,12 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
                 }
                 if (info.IsKeyPressed(L)) {
                     StartLoad();
+                }
+                if (info.IsKeyPressed(N)) {
+                    Server();
+                }
+                if (info.IsKeyPressed(M)) {
+                    Client();
                 }
                 if (info.IsKeyPressed(P)) {
                     StartProfile();
