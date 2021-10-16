@@ -13,6 +13,9 @@ namespace TranscendenceRL {
         public List<Epitaph> Epitaphs = new List<Epitaph>();
 
         public int money;
-
+        public Player() { }
+        public Player(Settings settings) {
+            this.Settings = settings;
+        }
     }
 }

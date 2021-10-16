@@ -1,6 +1,8 @@
 ﻿using Common;
 using SadConsole;
 using SadConsole.Input;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using TranscendenceRL.Screens;
 using static SadConsole.Input.Keys;
@@ -24,7 +26,7 @@ namespace TranscendenceRL {
 		FirePrimary,
 		AutoAim
     }
-    public class PlayerControls {
+	public class PlayerControls {
 		PlayerShip playerShip;
 		PlayerMain playerMain;
 		public PlayerControls(PlayerShip playerShip, PlayerMain console) {
@@ -49,7 +51,11 @@ namespace TranscendenceRL {
 		public void ProcessTargeting(Keyboard info) {
 			var controls = playerShip.player.Settings.controls;
 			if (info.IsKeyPressed(controls[TargetFriendly])) {
-				playerShip.NextTargetFriendly();
+				if (info.IsKeyDown(LeftShift)) {
+					playerMain.TargetMouse();
+				} else {
+					playerShip.NextTargetFriendly();
+				}
 			}
 			if (info.IsKeyPressed(controls[ClearTarget])) {
 				if (playerShip.targetIndex > -1) {
@@ -78,8 +84,6 @@ namespace TranscendenceRL {
 		}
 
 		public void ProcessPowerMenu(Keyboard info) {
-			var controls = playerShip.player.Settings.controls;
-
 			ProcessArrows(info);
 			ProcessTargeting(info);
 			ProcessCommon(info);
@@ -155,6 +159,38 @@ namespace TranscendenceRL {
 			}
 #endif
 
+		}
+    }
+
+	public class PlayerInput {
+		public bool Thrust, TurnLeft, TurnRight, Brake;
+		public bool TargetFriendly, TargetMouse, TargetEnemy, ClearTarget, NextWeapon, FirePrimary, AutoAim;
+		public bool ToggleUI, Gate, Autopilot, Dock, ShipMenu;
+		public PlayerInput() {}
+		public PlayerInput(Dictionary<ControlKeys, Keys> controls, Keyboard info) {
+			Thrust =	info.IsKeyDown(controls[ControlKeys.Thrust]);
+			TurnLeft =	info.IsKeyDown(controls[ControlKeys.TurnLeft]);
+			TurnRight = info.IsKeyDown(controls[ControlKeys.TurnRight]);
+			Brake =		info.IsKeyDown(controls[ControlKeys.Brake]);
+
+			TargetFriendly = info.IsKeyPressed(controls[ControlKeys.TargetFriendly])
+							&& !info.IsKeyDown(LeftShift);
+			TargetMouse = info.IsKeyPressed(controls[ControlKeys.TargetFriendly])
+							&& info.IsKeyDown(LeftShift);
+			ClearTarget = info.IsKeyPressed(controls[ControlKeys.ClearTarget]);
+			TargetEnemy = info.IsKeyPressed(controls[ControlKeys.TargetEnemy])
+							&& !info.IsKeyDown(LeftShift);
+			TargetMouse = info.IsKeyPressed(controls[ControlKeys.TargetEnemy])
+							&& info.IsKeyDown(LeftShift);
+			NextWeapon = info.IsKeyPressed(controls[ControlKeys.NextWeapon]);
+			FirePrimary = info.IsKeyPressed(controls[ControlKeys.FirePrimary]);
+			AutoAim = info.IsKeyDown(controls[ControlKeys.AutoAim]);
+
+			ToggleUI = info.IsKeyPressed(Tab);
+			Gate = info.IsKeyPressed(controls[ControlKeys.Gate]);
+			Autopilot = info.IsKeyPressed(controls[ControlKeys.Autopilot]);
+			Dock = info.IsKeyPressed(controls[ControlKeys.Dock]);
+			ShipMenu = info.IsKeyPressed(controls[ControlKeys.ShipMenu]);
 		}
     }
 }

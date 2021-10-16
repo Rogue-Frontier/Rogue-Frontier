@@ -453,8 +453,9 @@ namespace TranscendenceRL {
             powers = new List<Power>();
 
             //Remember to create the Heading when you add or replace this ship in the World
-
-
+            Attach();
+        }
+        public void Attach() {
             //Hook up our own event to the ship since calling Damage can call base ship's Destroy without calling our own Destroy()
             ship.onDestroyed += new BaseOnDestroyed(this);
         }

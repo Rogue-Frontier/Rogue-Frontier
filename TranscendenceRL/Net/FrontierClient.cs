@@ -14,14 +14,16 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Linq;
+using TranscendenceRL.Net;
 
 namespace TranscendenceRL {
-    class GameClient : TcpClient {
-        private ClientScreen game;
+    class FrontierClient : TcpClient {
+        private ScreenClient game;
         private MemoryStream received;
-        private string command;
+        private ClientCommands command;
         private int length;
-        public GameClient(string address, int port, ClientScreen game) : base(address, port) {
+        public FrontierClient(string address, int port, ScreenClient game) : base(address, port) {
             this.game = game;
         }
         protected override void OnConnected() { }
@@ -31,7 +33,7 @@ namespace TranscendenceRL {
             var m = Regex.Match(s, "([A-Z]+)([0-9]+)");
             if (m.Success) {
                 received = new MemoryStream();
-                command = m.Groups[1].Captures[0].Value;
+                command = Enum.Parse<ClientCommands>(m.Groups[1].Captures[0].Value);
                 length = int.Parse(m.Groups[2].Captures[0].Value);
             } else {
                 received.Write(buffer, (int)offset, (int)size);
@@ -39,14 +41,17 @@ namespace TranscendenceRL {
                     //var str = Space.Unzip(received);
                     var str = Encoding.UTF8.GetString(received.ToArray());
                     var d = SaveGame.Deserialize(str);
+
                     switch (command) {
-                        case "WORLD":
+                        case ClientCommands.WORLD:
                             game.World = (World)d;
+                            game.InitPlayer();
                             break;
-                        case "CAMERA":
+                        case ClientCommands.CAMERA:
                             game.camera = (XY)d;
                             break;
                     }
+
                     received.Close();
                 }
             }
@@ -55,48 +60,59 @@ namespace TranscendenceRL {
             Debug.WriteLine($"Chat TCP client caught an error with code {error}");
     }
 
-    class ClientScreen : Console {
-        public TitleScreen prev;
-        private GameClient client;
-        public World World;
-        public SpaceObject pov;
-        public int povTimer;
-        public List<Message> povDesc;
-        XY screenCenter;
-        public XY camera;
+    public class ScreenClient : Console {
         public Dictionary<(int, int), ColoredGlyph> tiles = new Dictionary<(int, int), ColoredGlyph>();
-        MouseWatch mouse = new MouseWatch();
-        public ClientScreen(int width, int height, TitleScreen prev) : base(width, height) {
+        public MouseWatch mouse = new MouseWatch();
+
+        public TitleScreen prev;
+        public World World;
+        public XY camera;
+
+        public PlayerMain playerMain;
+        public AIShip removed;
+        private FrontierClient client;
+        public ScreenClient(int width, int height, TitleScreen prev) : base(width, height) {
             this.prev = prev;
             this.World = prev.World;
+            this.camera = prev.camera;
+
+            this.playerMain = null;
+            this.removed = null;
+            
+            this.client = new FrontierClient("127.0.0.1", 1111, this);
+            this.client.ConnectAsync();
+
             UseKeyboard = true;
-            screenCenter = new XY(Width / 2, Height / 2);
-            camera = prev.camera;
-            client = new GameClient("127.0.0.1", 1111, this);
-            client.ConnectAsync();
+        }
+        public void InitPlayer() {
+            var s = World.entities.all.OfType<AIShip>().FirstOrDefault();
+            World.RemoveEntity(s);
+            if (s != null) {
+                var playerShip = new PlayerShip(new Player(prev.settings), s.ship);
+                World.AddEntity(playerShip);
+                playerMain = new PlayerMain(Width, Height, new Profile(), playerShip);
+            }
         }
         public override void Update(TimeSpan timeSpan) {
+            if (playerMain != null) {
+                playerMain.IsFocused = true;
+                playerMain.Update(timeSpan);
+                IsFocused = true;
+                base.Update(timeSpan);
+                return;
+            }
             World.UpdateAdded();
             World.UpdateActive();
             World.UpdateRemoved();
             tiles.Clear();
             World.PlaceTiles(tiles);
-
-            if (pov == null) {
-                return;
-            }
-            //Smoothly move the camera to where it should be
-            if ((camera - pov.position).magnitude < pov.velocity.magnitude / 15 + 1) {
-                camera = pov.position;
-            } else {
-                var step = (pov.position - camera) / 15;
-                if (step.magnitude < 1) {
-                    step = step.normal;
-                }
-                camera += step;
-            }
         }
         public override void Render(TimeSpan drawTime) {
+            if (playerMain != null) {
+                playerMain.Render(drawTime);
+                return;
+            }
+
             this.Clear();
 
             for (int x = 0; x < Width; x++) {
@@ -135,18 +151,29 @@ namespace TranscendenceRL {
 
         }
         public override bool ProcessKeyboard(Keyboard info) {
-            if (info.IsKeyPressed(Keys.K)) {
-                if (pov.active) {
-                    pov.Destroy(pov);
-                }
-            }
+
+            string s = SaveGame.Serialize(info);
+            var k = SaveGame.Deserialize(s);
 
             if (info.IsKeyPressed(Keys.Escape)) {
-                client.Disconnect();
-                prev.pov = null;
-                prev.camera = camera;
-                SadConsole.Game.Instance.Screen = prev;
-                prev.IsFocused = true;
+                if (playerMain != null) {
+                    if (playerMain.sceneContainer.Children.Any()) {
+                        return playerMain.ProcessKeyboard(info);
+                    }
+                    playerMain.playerShip.Detach();
+                    World.RemoveEntity(playerMain.playerShip);
+
+                    World.AddEntity(removed);
+                    World.AddEffect(new Heading(removed));
+                } else {
+                    client.Disconnect();
+                    prev.pov = null;
+                    prev.camera = camera;
+                    SadConsole.Game.Instance.Screen = prev;
+                    prev.IsFocused = true;
+                }
+            } else if (playerMain != null) {
+                return playerMain.ProcessKeyboard(info);
             }
             return base.ProcessKeyboard(info);
         }

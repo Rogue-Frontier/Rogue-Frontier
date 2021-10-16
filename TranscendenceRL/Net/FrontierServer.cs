@@ -15,11 +15,17 @@ using System.Threading;
 using TranscendenceRL;
 using Console = SadConsole.Console;
 using Debug = System.Diagnostics.Debug;
+using System.Text.RegularExpressions;
+using System.IO;
+using TranscendenceRL.Net;
 
 namespace TranscendenceRL {
-    class GameSession : TcpSession {
-        ServerScreen game;
-        public GameSession(TcpServer server, ServerScreen game) : base(server) {
+    class FrontierSession : TcpSession {
+        private ScreenServer game;
+        private MemoryStream received;
+        private ServerCommands command;
+        private int length;
+        public FrontierSession(TcpServer server, ScreenServer game) : base(server) {
             this.game = game;
         }
         protected override void OnConnected() {
@@ -37,26 +43,46 @@ namespace TranscendenceRL {
             Send(s);
         }
         protected override void OnDisconnected() {}
-        protected override void OnReceived(byte[] buffer, long offset, long size) {}
+        protected override void OnReceived(byte[] buffer, long offset, long size) {
+            var s = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            var m = Regex.Match(s, "([A-Z]+)([0-9]+)");
+            if (m.Success) {
+                received = new MemoryStream();
+                command = Enum.Parse<ServerCommands>(m.Groups[1].Captures[0].Value);
+                length = int.Parse(m.Groups[2].Captures[0].Value);
+            } else {
+                received.Write(buffer, (int)offset, (int)size);
+                if (received.Length >= length) {
+                    //var str = Space.Unzip(received);
+                    var str = Encoding.UTF8.GetString(received.ToArray());
+                    var d = SaveGame.Deserialize(str);
+                    switch (command) {
+                        case ServerCommands.PLAYER_INPUT:
+                            break;
+                    }
+                    received.Close();
+                }
+            }
+        }
         protected override void OnError(SocketError error) =>
             Debug.WriteLine($"Chat TCP session caught an error with code {error}");
     }
-    class GameServer : TcpServer {
-        public ServerScreen game;
-        public GameServer(IPAddress address, int port, ServerScreen game) : base(address, port) {
+    class FrontierServer : TcpServer {
+        public ScreenServer game;
+        public FrontierServer(IPAddress address, int port, ScreenServer game) : base(address, port) {
             this.game = game;
         }
         public void MulticastCommand(string command, string s) {
             Multicast($"{command}{s.Length}");
             Multicast(s);
         }
-        protected override TcpSession CreateSession() => new GameSession(this, game);
+        protected override TcpSession CreateSession() => new FrontierSession(this, game);
         protected override void OnError(SocketError error) =>
             Debug.WriteLine($"Chat TCP server caught an error with code {error}");
     }
 
 
-    public class ServerScreen : Console {
+    public class ScreenServer : Console {
         TitleScreen prev;
         public World World;
         public SpaceObject pov;
@@ -68,15 +94,15 @@ namespace TranscendenceRL {
 
         public int requests;
         public bool busy;
-        GameServer server;
-        public ServerScreen(int width, int height, TitleScreen prev) : base(width, height) {
+        FrontierServer server;
+        public ScreenServer(int width, int height, TitleScreen prev) : base(width, height) {
             this.prev = prev;
             this.World = prev.World;
             camera = prev.camera;
 
             UseKeyboard = true;
 
-            server = new GameServer(IPAddress.Any, 1111, this);
+            server = new FrontierServer(IPAddress.Any, 1111, this);
             server.Start();
         }
         public override void Update(TimeSpan timeSpan) {

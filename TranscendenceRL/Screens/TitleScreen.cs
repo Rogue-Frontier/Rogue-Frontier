@@ -22,11 +22,11 @@ namespace TranscendenceRL {
         LoadMenu load;
         Console credits;
 
-        Profile profile;
+        public Profile profile;
         public World World;
         
         public static string[] title = File.ReadAllText("RogueFrontierContent/sprites/Title.txt").Replace("\r\n", "\n").Split('\n');
-        Settings settings;
+        public Settings settings;
 
         public AIShip pov;
         public int povTimer;
@@ -213,11 +213,11 @@ namespace TranscendenceRL {
             }
         }
         private void Server() {
-            Game.Instance.Screen = new ServerScreen(Width, Height, this) { IsFocused = true };
+            Game.Instance.Screen = new ScreenServer(Width, Height, this) { IsFocused = true };
         }
         private void Client() {
 
-            Game.Instance.Screen = new ClientScreen(Width, Height, this) { IsFocused = true };
+            Game.Instance.Screen = new ScreenClient(Width, Height, this) { IsFocused = true };
         }
         private void StartProfile() {
             if (Children.Contains(load)) {
