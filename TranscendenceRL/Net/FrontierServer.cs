@@ -18,10 +18,14 @@ using Debug = System.Diagnostics.Debug;
 using System.Text.RegularExpressions;
 using System.IO;
 using TranscendenceRL.Net;
+using System.Linq;
 
 namespace TranscendenceRL {
     class FrontierSession : TcpSession {
         private ScreenServer game;
+
+        private PlayerShip playerShip;
+
         private MemoryStream received;
         private ServerCommands command;
         private int length;
@@ -36,16 +40,16 @@ namespace TranscendenceRL {
             //var s = Common.Space.Zip(SaveGame.Serialize(game.World));
             var s = (SaveGame.Serialize(game.World));
             game.requests--;
-            SendCommand("WORLD", s);
+            SendCommand(ClientCommands.WORLD, s);
         }
-        public void SendCommand(string command, string s) {
-            Send($"{command}{s.Length}");
+        public void SendCommand(ClientCommands command, string s) {
+            Send($"{Enum.GetName(command)}{s.Length}");
             Send(s);
         }
         protected override void OnDisconnected() {}
         protected override void OnReceived(byte[] buffer, long offset, long size) {
-            var s = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            var m = Regex.Match(s, "([A-Z]+)([0-9]+)");
+            var str = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            var m = Regex.Match(str, "([A-Z_]+)([0-9]+)");
             if (m.Success) {
                 received = new MemoryStream();
                 command = Enum.Parse<ServerCommands>(m.Groups[1].Captures[0].Value);
@@ -54,10 +58,21 @@ namespace TranscendenceRL {
                 received.Write(buffer, (int)offset, (int)size);
                 if (received.Length >= length) {
                     //var str = Space.Unzip(received);
-                    var str = Encoding.UTF8.GetString(received.ToArray());
-                    var d = SaveGame.Deserialize(str);
+                    str = Encoding.UTF8.GetString(received.ToArray());
+                    //var d = SaveGame.Deserialize(str);
                     switch (command) {
+                        case ServerCommands.PLAYER_ASSUME:
+                            int Id = int.Parse(str);
+                            var s = (AIShip)game.entityLookup[Id];
+                            var World = game.World;
+                            World.RemoveEntity(s);
+                            playerShip = new PlayerShip(new Player(new Settings()), s.ship);
+                            World.AddEntity(playerShip);
+                            break;
                         case ServerCommands.PLAYER_INPUT:
+                            var input = SaveGame.Deserialize<PlayerInput>(str);
+                            input.ServerOnly();
+                            game.playerControls[playerShip] = input;
                             break;
                     }
                     received.Close();
@@ -91,6 +106,9 @@ namespace TranscendenceRL {
         MouseWatch mouse = new MouseWatch();
 
         public Dictionary<int, Entity> entityLookup = new Dictionary<int, Entity>();
+        public Dictionary<PlayerShip, PlayerInput> playerControls = new Dictionary<PlayerShip, PlayerInput>();
+
+
 
         public int requests;
         public bool busy;
@@ -111,6 +129,12 @@ namespace TranscendenceRL {
                 return;
             }
             busy = true;
+
+            foreach(var (player, input) in playerControls) {
+                var c = new PlayerControls(player, null) { input = input };
+                c.ProcessAll();
+            }
+
             World.UpdateAdded();
             World.UpdateActive();
             World.UpdateRemoved();
@@ -125,6 +149,7 @@ namespace TranscendenceRL {
             World.PlaceTiles(tiles);
 
             if (pov == null) {
+                pov = (SpaceObject)playerControls.Keys.FirstOrDefault() ?? (SpaceObject)World.entities.all.OfType<AIShip>().FirstOrDefault();
                 return;
             }
             //Smoothly move the camera to where it should be

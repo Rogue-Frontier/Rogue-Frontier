@@ -31,7 +31,7 @@ namespace TranscendenceRL {
         public HashSet<Segment> Segments { get; private set; }
         public Stargate() { }
         public Stargate(World World, XY Position) {
-            this.Id = world.nextId++;
+            this.Id = World.nextId++;
             this.world = World;
             this.sovereign = Sovereign.Inanimate;
             this.position = Position;

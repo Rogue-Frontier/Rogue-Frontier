@@ -27,9 +27,9 @@ namespace TranscendenceRL {
 		AutoAim
     }
 	public class PlayerControls {
-		private PlayerShip playerShip;
+		public PlayerShip playerShip;
 		private PlayerMain playerMain;
-		private PlayerInput input;
+		public PlayerInput input;
 		public PlayerControls(PlayerShip playerShip, PlayerMain playerMain) {
 			this.playerShip = playerShip;
 			this.playerMain = playerMain;
@@ -125,6 +125,12 @@ namespace TranscendenceRL {
 				}
 			}
 		}
+		public void ProcessAll() {
+			ProcessArrows();
+			ProcessTargeting();
+			ProcessCommon();
+			ProcessOther();
+		}
 		public void UpdateInput(Keyboard info) {
 			input = new PlayerInput(playerShip.player.Settings.controls, info);
 		}
@@ -189,6 +195,16 @@ namespace TranscendenceRL {
 
 			Escape = info.IsKeyPressed(Keys.Escape);
 			Powers = info.IsKeyPressed(controls[ControlKeys.Powers]);
+		}
+		public void ClientOnly() {
+			Autopilot = false;
+		}
+		public void ServerOnly() {
+			ToggleUI = false;
+			Autopilot = false;
+			ShipMenu = false;
+			Escape = false;
+			Powers = false;
 		}
     }
 }

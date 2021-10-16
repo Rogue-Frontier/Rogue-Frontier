@@ -122,7 +122,7 @@ namespace TranscendenceRL {
 
         public Station() { }
         public Station(World World, StationType Type, XY Position) {
-            this.Id = world.nextId++;
+            this.Id = World.nextId++;
             this.world = World;
             this.type = Type;
             this.position = Position;

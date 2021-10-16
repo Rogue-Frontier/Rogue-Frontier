@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace TranscendenceRL.Net {
     public enum ServerCommands {
+        PLAYER_ASSUME,
         PLAYER_INPUT
     }
     public enum ClientCommands {

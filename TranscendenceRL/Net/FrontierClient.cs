@@ -30,7 +30,7 @@ namespace TranscendenceRL {
         protected override void OnDisconnected() { }
         protected override void OnReceived(byte[] buffer, long offset, long size) {
             var s = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            var m = Regex.Match(s, "([A-Z]+)([0-9]+)");
+            var m = Regex.Match(s, "([A-Z_]+)([0-9]+)");
             if (m.Success) {
                 received = new MemoryStream();
                 command = Enum.Parse<ClientCommands>(m.Groups[1].Captures[0].Value);
@@ -55,6 +55,10 @@ namespace TranscendenceRL {
                     received.Close();
                 }
             }
+        }
+        public void SendCommand(ServerCommands command, string s) {
+            Send($"{Enum.GetName(command)}{s.Length}");
+            Send(s);
         }
         protected override void OnError(SocketError error) =>
             Debug.WriteLine($"Chat TCP client caught an error with code {error}");
@@ -86,11 +90,12 @@ namespace TranscendenceRL {
         }
         public void InitPlayer() {
             var s = World.entities.all.OfType<AIShip>().FirstOrDefault();
-            World.RemoveEntity(s);
             if (s != null) {
+                World.RemoveEntity(s);
                 var playerShip = new PlayerShip(new Player(prev.settings), s.ship);
                 World.AddEntity(playerShip);
                 playerMain = new PlayerMain(Width, Height, new Profile(), playerShip);
+                client.SendCommand(ServerCommands.PLAYER_ASSUME, s.Id.ToString());
             }
         }
         public override void Update(TimeSpan timeSpan) {
@@ -169,11 +174,16 @@ namespace TranscendenceRL {
                     client.Disconnect();
                     prev.pov = null;
                     prev.camera = camera;
-                    SadConsole.Game.Instance.Screen = prev;
+                    Game.Instance.Screen = prev;
                     prev.IsFocused = true;
                 }
             } else if (playerMain != null) {
-                return playerMain.ProcessKeyboard(info);
+                var result = playerMain.ProcessKeyboard(info);
+                if (playerMain.playerControls.input != null) {
+                    client.SendCommand(ServerCommands.PLAYER_INPUT,
+                        SaveGame.Serialize(playerMain.playerControls.input));
+                }
+                return result;
             }
             return base.ProcessKeyboard(info);
         }
