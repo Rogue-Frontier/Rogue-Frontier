@@ -27,82 +27,69 @@ namespace TranscendenceRL {
 		AutoAim
     }
 	public class PlayerControls {
-		PlayerShip playerShip;
-		PlayerMain playerMain;
-		public PlayerControls(PlayerShip playerShip, PlayerMain console) {
+		private PlayerShip playerShip;
+		private PlayerMain playerMain;
+		private PlayerInput input;
+		public PlayerControls(PlayerShip playerShip, PlayerMain playerMain) {
 			this.playerShip = playerShip;
-			this.playerMain = console;
+			this.playerMain = playerMain;
         }
-		public void ProcessArrows(Keyboard info) {
-			var controls = playerShip.player.Settings.controls;
-			if (info.IsKeyDown(controls[Thrust])) {
+		public void ProcessArrows() {
+			if (input.Thrust) {
 				playerShip.SetThrusting();
 			}
-			if (info.IsKeyDown(controls[TurnLeft])) {
+			if (input.TurnLeft) {
 				playerShip.SetRotating(Rotating.CCW);
 			}
-			if (info.IsKeyDown(controls[TurnRight])) {
+			if (input.TurnRight) {
 				playerShip.SetRotating(Rotating.CW);
 			}
-			if (info.IsKeyDown(controls[Brake])) {
+			if (input.Brake) {
 				playerShip.SetDecelerating();
 			}
 		}
-		public void ProcessTargeting(Keyboard info) {
-			var controls = playerShip.player.Settings.controls;
-			if (info.IsKeyPressed(controls[TargetFriendly])) {
-				if (info.IsKeyDown(LeftShift)) {
-					playerMain.TargetMouse();
-				} else {
-					playerShip.NextTargetFriendly();
-				}
+		public void ProcessTargeting() {
+            if (input.TargetFriendly) {
+				playerShip.NextTargetFriendly();
 			}
-			if (info.IsKeyPressed(controls[ClearTarget])) {
+            if (input.TargetMouse) {
+				playerMain.TargetMouse();
+            }
+			if(input.ClearTarget) {
 				if (playerShip.targetIndex > -1) {
 					playerShip.ClearTarget();
 				}
 			}
-			if (info.IsKeyPressed(controls[TargetEnemy])) {
-				if (info.IsKeyDown(LeftShift)) {
-					playerMain.TargetMouse();
-				} else {
-					playerShip.NextTargetEnemy();
-				}
+			if(input.TargetEnemy) {
+				playerShip.NextTargetEnemy();
 			}
-			if (info.IsKeyPressed(controls[NextWeapon])) {
+			if(input.NextWeapon) {
 				playerShip.NextWeapon();
-			}
-			if (info.IsKeyDown(controls[FirePrimary])) {
+            }
+			if(input.FirePrimary) {
 				playerShip.SetFiringPrimary();
 			}
-			if (info.IsKeyDown(controls[AutoAim])) {
-				
+			if(input.AutoAim) {
 				if (playerShip.GetTarget(out SpaceObject target) && playerShip.GetPrimary(out Weapon w)) {
 					playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.position - playerShip.position, target.velocity - playerShip.velocity, w.missileSpeed, out _));
 				}
 			}
 		}
 
-		public void ProcessPowerMenu(Keyboard info) {
-			ProcessArrows(info);
-			ProcessTargeting(info);
-			ProcessCommon(info);
-		}
-		public void ProcessCommon(Keyboard info) {
-			var controls = playerShip.player.Settings.controls;
-			if (info.IsKeyPressed(Tab)) {
+		public void ProcessCommon() {
+			if (input.ToggleUI) {
 				playerMain.uiMain.IsVisible = !playerMain.uiMain.IsVisible;
 			}
-			if (info.IsKeyPressed(controls[ControlKeys.Gate])) {
+			if (input.Gate) {
 				playerShip.DisengageAutopilot();
 				playerMain.Gate();
 			}
-			if (!playerMain.autopilotUpdate && info.IsKeyPressed(controls[Autopilot])) {
+			if (input.Autopilot && !playerMain.autopilotUpdate) {
 				playerShip.autopilot = !playerShip.autopilot;
 				playerShip.AddMessage(new Message($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
 			}
 
-			if (info.IsKeyPressed(controls[Dock])) {
+			if (input.Dock) {
 				if (playerShip.dock != null) {
 					if (playerShip.dock.docked) {
 						playerShip.AddMessage(new Message("Undocked"));
@@ -121,30 +108,38 @@ namespace TranscendenceRL {
 						playerShip.AddMessage(new Message("Docking sequence engaged"));
 						playerShip.dock = new Docking(dest);
 					}
-
 				}
 			}
-			if (info.IsKeyPressed(controls[ShipMenu])) {
+			if (input.ShipMenu) {
 				playerShip.DisengageAutopilot();
 				playerMain.sceneContainer?.Children.Add(new ShipScreen(playerMain, playerShip) { IsFocused = true });
 			}
 		}
-        public void ProcessKeyboard(Keyboard info) {
-			var controls = playerShip.player.Settings.controls;
-
-			//Move the player
-			ProcessArrows(info);
-			ProcessTargeting(info);
-			ProcessCommon(info);
-
-			if(info.IsKeyPressed(Escape)) {
+		public void ProcessOther() {
+			if (input.Escape) {
 				playerMain.pauseMenu.IsVisible = true;
 			}
-			if (info.IsKeyPressed(controls[Powers])) {
+			if (input.Powers) {
 				if (playerMain.powerMenu != null) {
 					playerMain.powerMenu.IsVisible = !playerMain.powerMenu.IsVisible;
 				}
 			}
+		}
+		public void UpdateInput(Keyboard info) {
+			input = new PlayerInput(playerShip.player.Settings.controls, info);
+		}
+		public void ProcessPowerMenu(Keyboard info) {
+			UpdateInput(info);
+			ProcessArrows();
+			ProcessTargeting();
+			ProcessCommon();
+		}
+        public void ProcessKeyboard(Keyboard info) {
+			UpdateInput(info);
+			ProcessArrows();
+			ProcessTargeting();
+			ProcessCommon();
+			ProcessOther();
 #if DEBUG
 			if (info.IsKeyPressed(C)) {
 				if(info.IsKeyDown(LeftShift)) {
@@ -158,7 +153,6 @@ namespace TranscendenceRL {
 				playerShip.ship.controlHijack = new Disrupt() { ticksLeft = 90, thrustMode = DisruptMode.FORCE_ON };
 			}
 #endif
-
 		}
     }
 
@@ -166,6 +160,7 @@ namespace TranscendenceRL {
 		public bool Thrust, TurnLeft, TurnRight, Brake;
 		public bool TargetFriendly, TargetMouse, TargetEnemy, ClearTarget, NextWeapon, FirePrimary, AutoAim;
 		public bool ToggleUI, Gate, Autopilot, Dock, ShipMenu;
+		public bool Escape, Powers;
 		public PlayerInput() {}
 		public PlayerInput(Dictionary<ControlKeys, Keys> controls, Keyboard info) {
 			Thrust =	info.IsKeyDown(controls[ControlKeys.Thrust]);
@@ -191,6 +186,9 @@ namespace TranscendenceRL {
 			Autopilot = info.IsKeyPressed(controls[ControlKeys.Autopilot]);
 			Dock = info.IsKeyPressed(controls[ControlKeys.Dock]);
 			ShipMenu = info.IsKeyPressed(controls[ControlKeys.ShipMenu]);
+
+			Escape = info.IsKeyPressed(Keys.Escape);
+			Powers = info.IsKeyPressed(controls[ControlKeys.Powers]);
 		}
     }
 }
