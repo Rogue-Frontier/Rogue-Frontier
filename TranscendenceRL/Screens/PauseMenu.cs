@@ -36,7 +36,7 @@ namespace TranscendenceRL {
             y++;
             this.Children.Add(new LabelButton("Self Destruct", SelfDestruct) { Position = new Point(x, y++), FontSize = fs });
             y++;
-            this.Children.Add(new LabelButton("Delete & Quit", Quit) { Position = new Point(x, y++), FontSize = fs });
+            this.Children.Add(new LabelButton("Delete & Quit", DeleteQuit) { Position = new Point(x, y++), FontSize = fs });
         }
         public override void Update(TimeSpan delta) {
             sparkle.Update();
@@ -76,9 +76,11 @@ namespace TranscendenceRL {
             IsVisible = false;
         }
         public void Save() {
-
             var ps = playerMain.playerShip;
             new LiveGame(playerMain.world, ps.player, ps).Save();
+        }
+        public void Delete() {
+            File.Delete(playerMain.playerShip.player.file);
         }
         public void SaveContinue() {
             //Temporarily PlayerMain events before saving
@@ -99,6 +101,15 @@ namespace TranscendenceRL {
             Save();
             Quit();
         }
+
+        public void DeleteQuit() {
+            //Remove PlayerMain events
+            playerMain.playerShip.onDestroyed.set.RemoveWhere(d => d is EndGamePlayerDestroyed);
+
+            Delete();
+            Quit();
+        }
+
         public void SelfDestruct() {
             var p = playerMain.playerShip;
             var items = p.cargo.Concat(p.devices.Installed.Select(d => d.source)

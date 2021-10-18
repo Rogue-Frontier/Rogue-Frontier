@@ -47,6 +47,26 @@ namespace TranscendenceRL {
         public static BaseShip dead => new BaseShip(World.empty, ShipClass.empty, Sovereign.Gladiator, XY.Zero) { active = false };
         [JsonIgnore]
         public string name => shipClass.name;
+        [JsonIgnore]
+        public ColoredGlyph tile => shipClass.tile.Original;
+
+        [JsonIgnore]
+        public double stoppingRotation {
+            get {
+                var stoppingTime = Program.TICKS_PER_SECOND * Math.Abs(rotatingVel) / (shipClass.rotationDecel);
+                return rotationDeg + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((shipClass.rotationDecel / Program.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
+            }
+        }
+        [JsonIgnore]
+        public double stoppingRotationWithCounterTurn {
+            get {
+                var stoppingRate = shipClass.rotationDecel + shipClass.rotationAccel;
+                var stoppingTime = Math.Abs(Program.TICKS_PER_SECOND * rotatingVel / stoppingRate);
+                return rotationDeg + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((stoppingRate / Program.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
+            }
+        }
+
+
         [JsonProperty]
         public World world { get; private set; }
         [JsonProperty]
@@ -56,7 +76,7 @@ namespace TranscendenceRL {
         [JsonProperty]
         public XY position { get; set; }
         [JsonProperty]
-        public int Id { get; private set; }
+        public int Id { get; set; }
         [JsonProperty]
         public XY velocity { get; set; }
         public bool active { get; set; }
@@ -83,20 +103,6 @@ namespace TranscendenceRL {
 
 
 
-
-        [JsonIgnore]
-        public double stoppingRotation { get {
-                var stoppingTime = Program.TICKS_PER_SECOND * Math.Abs(rotatingVel) / (shipClass.rotationDecel);
-                return rotationDeg + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((shipClass.rotationDecel / Program.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
-        }}
-        [JsonIgnore]
-        public double stoppingRotationWithCounterTurn {
-            get {
-                var stoppingRate = shipClass.rotationDecel + shipClass.rotationAccel;
-                var stoppingTime = Math.Abs(Program.TICKS_PER_SECOND * rotatingVel / stoppingRate);
-                return rotationDeg + (rotatingVel * stoppingTime) + Math.Sign(rotatingVel) * ((stoppingRate / Program.TICKS_PER_SECOND) * stoppingTime * stoppingTime) / 2;
-            }
-        }
         public BaseShip() { }
         public BaseShip(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.world = world;
@@ -268,7 +274,6 @@ namespace TranscendenceRL {
         public void UpdateMotion() {
             position += velocity / Program.TICKS_PER_SECOND;
         }
-        public ColoredGlyph tile => shipClass.tile.Original;
     }
     public interface ShipBehavior {
         void Update(IShip owner);
@@ -329,6 +334,7 @@ namespace TranscendenceRL {
         public BaseShip ship;
         public IOrder controller;
         public Docking dock { get; set; }
+        public AIShip() { }
         public AIShip(BaseShip ship, IOrder controller) {
             this.ship = ship;
             this.controller = controller;
@@ -445,6 +451,7 @@ namespace TranscendenceRL {
         public delegate void PlayerDamaged(PlayerShip playerShip, SpaceObject damager, int hp);
         public FuncSet<IContainer<PlayerDamaged>> onDamaged = new FuncSet<IContainer<PlayerDamaged>>();
 
+        public PlayerShip() { }
         public PlayerShip(Player player, BaseShip ship) {
             this.player = player;
             this.ship = ship;

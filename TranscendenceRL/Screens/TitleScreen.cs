@@ -212,10 +212,10 @@ namespace TranscendenceRL {
                 load.Reset();
             }
         }
-        private void Server() {
+        public void Server() {
             Game.Instance.Screen = new ScreenServer(Width, Height, this) { IsFocused = true };
         }
-        private void Client() {
+        public void Client() {
 
             Game.Instance.Screen = new ScreenClient(Width, Height, this) { IsFocused = true };
         }

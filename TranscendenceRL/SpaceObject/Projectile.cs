@@ -23,13 +23,13 @@ namespace TranscendenceRL {
     }
     public class Projectile : MovingObject {
         [JsonProperty]
-        public int Id { get; private set; }
+        public int Id { get; set; }
         [JsonProperty]
-        public World world { get; private set; }
+        public World world { get; set; }
         [JsonProperty] 
         public SpaceObject source;
         [JsonProperty] 
-        public XY position { get; private set; }
+        public XY position { get; set; }
         [JsonProperty] 
         public XY velocity { get; set; }
         [JsonProperty]

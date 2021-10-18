@@ -72,6 +72,9 @@ namespace IslandHopper {
             } else if (source is Flame f) {
                 health.Damage(f.damage);
                 World.AddEffect(new Burn(this, 60));
+            } else if (source is Fire fire) {
+                health.Damage(1);
+                World.AddEffect(new Burn(this, 20));
             }
         }
         public void AddMessage(PlayerMessage we) {

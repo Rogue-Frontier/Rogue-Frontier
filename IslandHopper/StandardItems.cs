@@ -22,7 +22,7 @@ namespace IslandHopper {
                 knockback = 0,
                 noiseRange = 24,
                 projectile = new GrenadeDesc() {
-                    speed = 30,
+                    speed = 90,
                     grenadeType = new GrenadeType() {
                         canArm = false,
                         detonateOnDamage = true,
@@ -38,7 +38,7 @@ namespace IslandHopper {
             }
         }, itHotRod = new ItemType() {
             name = "The Hot Rod",
-            desc = "This metal rod is so hot that it learned how to breathe fire. Wait, what?",
+            desc = "This metal rod is so hot that it turns the surrounding air into plasma. Wait, what?",
             image = ColorImage.FromFile("IslandHopperContent/TheHotRod.asc.cg"),
             gun = new GunDesc() {
                 projectileCount = 8,

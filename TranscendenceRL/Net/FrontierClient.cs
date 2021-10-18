@@ -15,13 +15,14 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
-using TranscendenceRL.Net;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     class FrontierClient : TcpClient {
         private ScreenClient game;
         private MemoryStream received;
-        private ClientCommands command;
+        private CommandClient command;
         private int length;
         public FrontierClient(string address, int port, ScreenClient game) : base(address, port) {
             this.game = game;
@@ -33,22 +34,44 @@ namespace TranscendenceRL {
             var m = Regex.Match(s, "([A-Z_]+)([0-9]+)");
             if (m.Success) {
                 received = new MemoryStream();
-                command = Enum.Parse<ClientCommands>(m.Groups[1].Captures[0].Value);
+                command = Enum.Parse<CommandClient>(m.Groups[1].Captures[0].Value);
                 length = int.Parse(m.Groups[2].Captures[0].Value);
             } else {
                 received.Write(buffer, (int)offset, (int)size);
                 if (received.Length >= length) {
                     //var str = Space.Unzip(received);
                     var str = Encoding.UTF8.GetString(received.ToArray());
-                    var d = SaveGame.Deserialize(str);
-
                     switch (command) {
-                        case ClientCommands.WORLD:
-                            game.World = (World)d;
-                            game.InitPlayer();
+                        case CommandClient.SET_WORLD:
+                            var World = SaveGame.Deserialize<World>(str);
+                            game.World = World;
+
+                            AIShip ai = null;
+                            var playerId = game.playerMain?.playerShip?.Id;
+                            if (playerId.HasValue && game.entityLookup.TryGetValue(playerId.Value, out var en)) {
+                                ai = en as AIShip;
+                            }
+                            ai ??= World.entities.all.OfType<AIShip>().FirstOrDefault();
+                            if (ai != null) {
+                                game.removed = ai;
+                                World.RemoveEntity(ai);
+                                var playerShip = new PlayerShip(new Player(game.prev.settings), ai.ship);
+                                World.AddEntity(playerShip);
+                                game.SetPlayerMain(new PlayerMain(game.Width, game.Height,
+                                    new Profile(), playerShip));
+                                SendCommand(CommandServer.PLAYER_SHIP_ASSUME, ai.Id.ToString());
+                            }
                             break;
-                        case ClientCommands.CAMERA:
-                            game.camera = (XY)d;
+                        case CommandClient.SET_CAMERA:
+                            game.camera = SaveGame.Deserialize<XY>(str);
+                            break;
+                        case CommandClient.ENTITY_ENFORCE_CERTAINTY:
+                            var l = SaveGame.Deserialize<List<Entity>>(str);
+                            foreach (var state in l) {
+                                if(game.entityLookup.TryGetValue(state.Id, out Entity e)) {
+                                    e.SetSharedState(state);
+                                }
+                            }
                             break;
                     }
 
@@ -56,65 +79,136 @@ namespace TranscendenceRL {
                 }
             }
         }
-        public void SendCommand(ServerCommands command, string s) {
-            Send($"{Enum.GetName(command)}{s.Length}");
-            Send(s);
+        public void SendCommand(CommandServer command, string s) {
+            SendAsync($"{Enum.GetName(command)}{s.Length}");
+            SendAsync(s);
         }
         protected override void OnError(SocketError error) =>
             Debug.WriteLine($"Chat TCP client caught an error with code {error}");
     }
 
     public class ScreenClient : Console {
-        public Dictionary<(int, int), ColoredGlyph> tiles = new Dictionary<(int, int), ColoredGlyph>();
-        public MouseWatch mouse = new MouseWatch();
-
         public TitleScreen prev;
         public World World;
         public XY camera;
 
+        public Console PauseMenu;
         public PlayerMain playerMain;
         public AIShip removed;
         private FrontierClient client;
+
+        public MouseWatch mouse = new();
+        public Dictionary<(int, int), ColoredGlyph> tiles = new();
+        public Dictionary<int, Entity> entityLookup = new();
+        public Dictionary<PlayerShip, PlayerInput> playerControls = new();
         public ScreenClient(int width, int height, TitleScreen prev) : base(width, height) {
             this.prev = prev;
             this.World = prev.World;
             this.camera = prev.camera;
 
+
             this.playerMain = null;
             this.removed = null;
-            
             this.client = new FrontierClient("127.0.0.1", 1111, this);
-            this.client.ConnectAsync();
-
+            
             UseKeyboard = true;
+
+            UpdateUI();
         }
-        public void InitPlayer() {
-            var s = World.entities.all.OfType<AIShip>().FirstOrDefault();
-            if (s != null) {
-                World.RemoveEntity(s);
-                var playerShip = new PlayerShip(new Player(prev.settings), s.ship);
-                World.AddEntity(playerShip);
-                playerMain = new PlayerMain(Width, Height, new Profile(), playerShip);
-                client.SendCommand(ServerCommands.PLAYER_ASSUME, s.Id.ToString());
+        public void SetPlayerMain(PlayerMain playerMain) {
+            this.playerMain = playerMain;
+
+            var fs = FontSize * 3;
+            this.PauseMenu = new Console(Width, Height);
+            this.PauseMenu.Children.Add(new LabelButton("Leave Player", LeavePlayer) { Position = new Point(2, 2), FontSize = fs });
+            this.PauseMenu.Children.Add(new LabelButton("Disconnect", Disconnect) { Position = new Point(2, 4), FontSize = fs });
+
+            this.PauseMenu.IsVisible = false;
+        }
+        public void UpdateUI() {
+            var fs = FontSize * 2;
+            Children.Clear();
+            LabelButton clientButton = null;
+
+            void UpdateText() {
+                clientButton.text = client.IsConnected ? "Connected" :
+                    client.IsConnecting ? "Connecting..." : "Connect";
             }
+            void ConnectClient() {
+                if (client.IsConnected) {
+                    Task.Run(() => {
+                        client.DisconnectAsync();
+                        UpdateText();
+                    });
+                } else if (client.IsConnecting) {
+                    Task.Run(() => {
+                        client.DisconnectAsync();
+                        UpdateText();
+                    });
+                } else {
+                    Task.Run(() => {
+                        client.ConnectAsync();
+                        UpdateText();
+                    });
+                }
+                UpdateText();
+            }
+
+            clientButton = new LabelButton("Connect",
+                () => ConnectClient()) { Position = new Point(1, 1), FontSize = fs };
+            Children.Add(clientButton);
+
+            UpdateText();
         }
         public override void Update(TimeSpan timeSpan) {
             if (playerMain != null) {
-                playerMain.IsFocused = true;
-                playerMain.Update(timeSpan);
-                IsFocused = true;
-                base.Update(timeSpan);
+
+                if (PauseMenu.IsVisible) {
+                    PauseMenu.IsFocused = true;
+                    PauseMenu.Update(timeSpan);
+
+                    playerControls.UpdatePlayerControls();
+                    playerMain.Update(timeSpan);
+                    entityLookup.UpdateEntityLookup(World);
+
+                    IsFocused = true;
+                    base.Update(timeSpan);
+                } else {
+                    playerControls.UpdatePlayerControls();
+                    playerMain.IsFocused = true;
+                    playerMain.Update(timeSpan);
+                    entityLookup.UpdateEntityLookup(World);
+
+                    IsFocused = true;
+                    base.Update(timeSpan);
+                }
+
                 return;
+            } else {
+                playerControls.UpdatePlayerControls();
+
+                World.UpdateAdded();
+                World.UpdateActive();
+                World.UpdateRemoved();
+
+                entityLookup.UpdateEntityLookup(World);
+
+                tiles.Clear();
+                World.PlaceTiles(tiles);
             }
-            World.UpdateAdded();
-            World.UpdateActive();
-            World.UpdateRemoved();
-            tiles.Clear();
-            World.PlaceTiles(tiles);
         }
         public override void Render(TimeSpan drawTime) {
             if (playerMain != null) {
                 playerMain.Render(drawTime);
+                if(PauseMenu.IsVisible) {
+                    PauseMenu.Clear();
+                    for(int y = 0; y < PauseMenu.Height; y++) {
+                        for(int x = 0; x < PauseMenu.Width; x++) {
+                            PauseMenu.SetBackground(x, y, Color.Black.SetAlpha(128));
+                        }
+                    }
+                    PauseMenu.Render(drawTime);
+                }
                 return;
             }
 
@@ -146,30 +240,51 @@ namespace TranscendenceRL {
             base.Render(drawTime);
         }
         public override bool ProcessMouse(MouseScreenObjectState state) {
-            mouse.Update(state, IsMouseOver);
-            mouse.nowPos = new Point(mouse.nowPos.X, Height - mouse.nowPos.Y);
-            if (mouse.left == ClickState.Held) {
-                camera += new XY(mouse.prevPos - mouse.nowPos);
+             if(playerMain != null) {
+                if (PauseMenu.IsVisible) {
+                    PauseMenu.ProcessMouseTree(state.Mouse);
+                } else {
+                    playerMain.ProcessMouseTree(state.Mouse);
+                }
+                return true;
+            } else {
+                mouse.Update(state, IsMouseOver);
+                mouse.nowPos = new Point(mouse.nowPos.X, Height - mouse.nowPos.Y);
+                if (mouse.left == ClickState.Held) {
+                    camera += new XY(mouse.prevPos - mouse.nowPos);
+                }
+
+                return base.ProcessMouse(state);
             }
 
-            return base.ProcessMouse(state);
+        }
+        public void LeavePlayer() {
+            if (playerMain != null) {
+                playerMain.playerShip.Detach();
+                World.RemoveEntity(playerMain.playerShip);
+                playerMain = null;
+            }
+            if (removed != null) {
+                World.AddEntity(removed);
+                World.AddEffect(new Heading(removed));
+            }
+            client.SendCommand(CommandServer.PLAYER_SHIP_LEAVE, "ok");
 
+            UpdateUI();
+        }
+        public void Disconnect() {
+            LeavePlayer();
+            client.Disconnect();
+            UpdateUI();
         }
         public override bool ProcessKeyboard(Keyboard info) {
-
-            string s = SaveGame.Serialize(info);
-            var k = SaveGame.Deserialize(s);
 
             if (info.IsKeyPressed(Keys.Escape)) {
                 if (playerMain != null) {
                     if (playerMain.sceneContainer.Children.Any()) {
                         return playerMain.ProcessKeyboard(info);
                     }
-                    playerMain.playerShip.Detach();
-                    World.RemoveEntity(playerMain.playerShip);
-
-                    World.AddEntity(removed);
-                    World.AddEffect(new Heading(removed));
+                    PauseMenu.IsVisible = !PauseMenu.IsVisible;
                 } else {
                     client.Disconnect();
                     prev.pov = null;
@@ -180,7 +295,7 @@ namespace TranscendenceRL {
             } else if (playerMain != null) {
                 var result = playerMain.ProcessKeyboard(info);
                 if (playerMain.playerControls.input != null) {
-                    client.SendCommand(ServerCommands.PLAYER_INPUT,
+                    client.SendCommand(CommandServer.PLAYER_SHIP_INPUT,
                         SaveGame.Serialize(playerMain.playerControls.input));
                 }
                 return result;

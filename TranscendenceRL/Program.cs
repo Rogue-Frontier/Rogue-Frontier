@@ -9,6 +9,8 @@ using ASECII;
 using SadConsole.Input;
 using System;
 using static Common.Main;
+using System.Threading.Tasks;
+
 namespace TranscendenceRL {
     partial class Program {
 		public static int TICKS_PER_SECOND = 60;
@@ -23,18 +25,32 @@ namespace TranscendenceRL {
         public static string splash = ExpectFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
 		static void Main(string[] args) {
             Directory.CreateDirectory("save");
-            
-
-            // Setup the engine and create the main window.
-            SadConsole.Game.Create(Width, Height, font);
-            // Hook the start event so we can add consoles to the system.
-            SadConsole.Game.Instance.OnStart = Start;
-			// Start the game.
-			SadConsole.Game.Instance.Run();
-			SadConsole.Game.Instance.Dispose();
+            Game.Create(Width, Height, font);
+            Game.Instance.OnStart = Start;
+            if (args.Any()) {
+                switch(args[0]) {
+                    case "server":
+                        Game.Instance.OnStart = StartServer;
+                        break;
+                    case "client":
+                        Game.Instance.OnStart = StartClient;
+                        break;
+                }
+            }
+            Game.Instance.Run();
+			Game.Instance.Dispose();
 		}
-
-		public static void Start() {
+        public static void StartServer() {
+            var w = new World();
+            w.types.LoadFile(main);
+            new TitleScreen(Width, Height, w).Server();
+        }
+        public static void StartClient() {
+            var w = new World();
+            w.types.LoadFile(main);
+            new TitleScreen(Width, Height, w).Client();
+        }
+        public static void Start() {
             var w = new World();
             w.types.LoadFile(main);
 #if false
@@ -87,7 +103,7 @@ namespace TranscendenceRL {
 #if DEBUG
             ShowTitle();
             //title.QuickStart();
-            title.StartSurvival();
+            //title.StartSurvival();
 #else
             ShowSplash();
 #endif

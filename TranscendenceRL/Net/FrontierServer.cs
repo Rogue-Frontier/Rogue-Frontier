@@ -7,52 +7,62 @@ using static SadConsole.Input.Keys;
 using SadRogue.Primitives;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using TranscendenceRL;
 using Console = SadConsole.Console;
 using Debug = System.Diagnostics.Debug;
 using System.Text.RegularExpressions;
 using System.IO;
-using TranscendenceRL.Net;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     class FrontierSession : TcpSession {
         private ScreenServer game;
-
         private PlayerShip playerShip;
+        private AIShip removed;
 
         private MemoryStream received;
-        private ServerCommands command;
+        private CommandServer command;
         private int length;
         public FrontierSession(TcpServer server, ScreenServer game) : base(server) {
             this.game = game;
         }
         protected override void OnConnected() {
-            while(game.busy) {
+
+            while (game.busy) {
                 Thread.Yield();
             }
             game.requests++;
             //var s = Common.Space.Zip(SaveGame.Serialize(game.World));
             var s = (SaveGame.Serialize(game.World));
             game.requests--;
-            SendCommand(ClientCommands.WORLD, s);
+            SendCommand(CommandClient.SET_WORLD, s);
         }
-        public void SendCommand(ClientCommands command, string s) {
+        public void SendCommand(CommandClient command, string s) {
             Send($"{Enum.GetName(command)}{s.Length}");
             Send(s);
         }
-        protected override void OnDisconnected() {}
+        private void RemovePlayer() {
+            if (playerShip != null) {
+                game.World.RemoveEntity(playerShip);
+                game.playerControls.Remove(playerShip);
+            }
+            if (removed != null) {
+                game.World.AddEntity(removed);
+            }
+        }
+        protected override void OnDisconnected() {
+            RemovePlayer();
+        }
         protected override void OnReceived(byte[] buffer, long offset, long size) {
             var str = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             var m = Regex.Match(str, "([A-Z_]+)([0-9]+)");
             if (m.Success) {
                 received = new MemoryStream();
-                command = Enum.Parse<ServerCommands>(m.Groups[1].Captures[0].Value);
+                command = Enum.Parse<CommandServer>(m.Groups[1].Captures[0].Value);
                 length = int.Parse(m.Groups[2].Captures[0].Value);
             } else {
                 received.Write(buffer, (int)offset, (int)size);
@@ -61,15 +71,22 @@ namespace TranscendenceRL {
                     str = Encoding.UTF8.GetString(received.ToArray());
                     //var d = SaveGame.Deserialize(str);
                     switch (command) {
-                        case ServerCommands.PLAYER_ASSUME:
+                        case CommandServer.PLAYER_SHIP_ASSUME:
                             int Id = int.Parse(str);
-                            var s = (AIShip)game.entityLookup[Id];
+                            var ai = (AIShip)game.entityLookup[Id];
                             var World = game.World;
-                            World.RemoveEntity(s);
-                            playerShip = new PlayerShip(new Player(new Settings()), s.ship);
+                            removed = ai;
+                            World.RemoveEntity(ai);
+                            playerShip = new PlayerShip(new Player(new Settings()), ai.ship);
                             World.AddEntity(playerShip);
                             break;
-                        case ServerCommands.PLAYER_INPUT:
+                        case CommandServer.PLAYER_SHIP_LEAVE:
+                            RemovePlayer();
+                            break;
+                        case CommandServer.PLAYER_SHIP_INPUT:
+                            if(playerShip == null) {
+                                return;
+                            }
                             var input = SaveGame.Deserialize<PlayerInput>(str);
                             input.ServerOnly();
                             game.playerControls[playerShip] = input;
@@ -82,13 +99,13 @@ namespace TranscendenceRL {
         protected override void OnError(SocketError error) =>
             Debug.WriteLine($"Chat TCP session caught an error with code {error}");
     }
-    class FrontierServer : TcpServer {
+    public class FrontierServer : TcpServer {
         public ScreenServer game;
         public FrontierServer(IPAddress address, int port, ScreenServer game) : base(address, port) {
             this.game = game;
         }
-        public void MulticastCommand(string command, string s) {
-            Multicast($"{command}{s.Length}");
+        public void MulticastCommand(CommandClient command, string s) {
+            Multicast($"{Enum.GetName(command)}{s.Length}");
             Multicast(s);
         }
         protected override TcpSession CreateSession() => new FrontierSession(this, game);
@@ -98,21 +115,18 @@ namespace TranscendenceRL {
 
 
     public class ScreenServer : Console {
-        TitleScreen prev;
+        public TitleScreen prev { get; }
         public World World;
         public SpaceObject pov;
         public XY camera;
-        public Dictionary<(int, int), ColoredGlyph> tiles = new Dictionary<(int, int), ColoredGlyph>();
-        MouseWatch mouse = new MouseWatch();
-
-        public Dictionary<int, Entity> entityLookup = new Dictionary<int, Entity>();
-        public Dictionary<PlayerShip, PlayerInput> playerControls = new Dictionary<PlayerShip, PlayerInput>();
-
-
+        public MouseWatch mouse { get; } = new();
+        public Dictionary<(int, int), ColoredGlyph> tiles { get; } = new();
+        public Dictionary<int, Entity> entityLookup = new();
+        public Dictionary<PlayerShip, PlayerInput> playerControls = new();
 
         public int requests;
         public bool busy;
-        FrontierServer server;
+        private FrontierServer server;
         public ScreenServer(int width, int height, TitleScreen prev) : base(width, height) {
             this.prev = prev;
             this.World = prev.World;
@@ -122,29 +136,77 @@ namespace TranscendenceRL {
 
             server = new FrontierServer(IPAddress.Any, 1111, this);
             server.Start();
+            UpdateUI();
         }
-        public override void Update(TimeSpan timeSpan) {
 
+        public void UpdateUI() {
+            var fs = FontSize * 2;
+            Children.Clear();
+            LabelButton clientButton = null;
+
+            void UpdateText() {
+                clientButton.text = server.IsAccepting ? "Online" :
+                    server.IsStarted ? "Running" : "Offline";
+            }
+            void StartServer() {
+                if (server.IsAccepting) {
+                    Task.Run(() => {
+                        server.Stop();
+                        UpdateText();
+                    });
+                } else if (server.IsStarted) {
+                    Task.Run(() => {
+                        server.Stop();
+                        UpdateText();
+                    });
+                } else {
+                    Task.Run(() => {
+                        server.Start();
+                        UpdateText();
+                    });
+                }
+                UpdateText();
+            }
+
+            clientButton = new LabelButton("",
+                () => StartServer()) { Position = new Point(1, 1), FontSize = fs };
+            Children.Add(clientButton);
+
+            UpdateText();
+        }
+        public void StartServer() {
+            if (server.IsStarted) {
+                server.Stop();
+            } else {
+                server.Start();
+            }
+        }
+
+        public override void Update(TimeSpan timeSpan) {
             if (requests > 0) {
                 return;
             }
+
+            playerControls.UpdatePlayerControls();
+
             busy = true;
-
-            foreach(var (player, input) in playerControls) {
-                var c = new PlayerControls(player, null) { input = input };
-                c.ProcessAll();
-            }
-
             World.UpdateAdded();
             World.UpdateActive();
             World.UpdateRemoved();
+            busy = false;
 
-            entityLookup.Clear();
-            foreach(var e in World.entities.all) {
-                entityLookup[e.Id] = e;
+            entityLookup.UpdateEntityLookup(World);
+            if (World.tick % 90 == 0) {
+                List<Entity> entityAtlas = new List<Entity>();
+                foreach (var e in World.entities.all) {
+                    var en = e.GetSharedState();
+                    if(en != null) {
+                        entityAtlas.Add(en);
+                    }
+                }
+                server.MulticastCommand(CommandClient.ENTITY_ENFORCE_CERTAINTY, SaveGame.Serialize(entityAtlas));
             }
 
-            busy = false;
             tiles.Clear();
             World.PlaceTiles(tiles);
 
@@ -192,11 +254,13 @@ namespace TranscendenceRL {
             base.Render(drawTime);
         }
         public override bool ProcessMouse(MouseScreenObjectState state) {
+
+
             mouse.Update(state, IsMouseOver);
             mouse.nowPos = new Point(mouse.nowPos.X, Height - mouse.nowPos.Y);
             if (mouse.left == ClickState.Held) {
                 camera += new XY(mouse.prevPos - mouse.nowPos);
-                server.MulticastCommand("CAMERA", SaveGame.Serialize(camera));
+                server.MulticastCommand(CommandClient.SET_CAMERA, SaveGame.Serialize(camera));
             }
 
             return base.ProcessMouse(state);

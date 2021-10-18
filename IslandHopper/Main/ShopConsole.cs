@@ -26,7 +26,7 @@ namespace IslandHopper {
             int x = 4;
             int y = 4;
 
-            Children.Add(new Label("Shop") { Position = new Point(x, y) });
+            Children.Add(new Label("[Shop]") { Position = new Point(x, y) });
             y += 2;
             foreach(var s in StandardTypes.stdWeapons) {
 
@@ -61,8 +61,6 @@ namespace IslandHopper {
             }
             y++;
             Children.Add(new LabelButton("Start", () => {
-
-
                 //TO DO: Create a multi-tiled plane structure to introduce the player
                 int size = 128;
                 int height = 30;
@@ -111,7 +109,27 @@ namespace IslandHopper {
                 plane.OnAdded();
 
                 GameHost.Instance.Screen = new PlayerMain(Width, Height, World) { IsFocused = true };
-            }) { Position = new Point(x, y) });
+            }) { Position = new Point(x, y++) });
+            y++;
+            y += 8;
+
+            var str =
+@"[Controls]
+
+[A] Announcements
+[C] Cancel action
+[D] Drop item
+[E] Equip item
+[G] Get item
+[I] Inventory
+[L] Look around
+[S] Shoot item
+[T] Throw item
+[U] Use an item
+[.] Wait";
+            foreach(var l in str.Replace("\r", "").Split("\n")) {
+                Children.Add(new Label(l + " ") { Position = new Point(x, y++) });
+            }
         }
 
         public override void Render(TimeSpan delta) {
@@ -161,9 +179,7 @@ namespace IslandHopper {
                     Print($"Reload time: {preview.gun.reloadTime}");
                     y++;
                 }
-                foreach(var l in preview.desc.Replace("\r", null).SplitLine(32)) {
-                    this.Print(x, y++, l);
-                }
+                preview.desc.Replace("\r", null).SplitLine(32).ForEach(Print);
 
 
             }
