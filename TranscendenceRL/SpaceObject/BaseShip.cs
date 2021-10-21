@@ -764,8 +764,8 @@ namespace TranscendenceRL {
             }
 
             ticks++;
-            visible = new HashSet<Entity>(world.entities.GetAll(p => (position - p).maxCoord < 50));
-            if (ticks%30 == 0) {
+            if (ticks%60 == 0) {
+                visible = new HashSet<Entity>(world.entities.GetAll(p => (position - p).maxCoord < 50));
                 foreach (var s in visible.OfType<Station>().Where(s => !known.Contains(s))) {
                     messages.Add(new Transmission(s, $"Discovered: {s.type.name}"));
                     known.Add(s);

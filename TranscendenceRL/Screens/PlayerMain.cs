@@ -93,6 +93,8 @@ namespace TranscendenceRL {
 		double updateWait;
 		public bool autopilotUpdate;
 
+		//public bool frameRendered = true;
+
 		public PlayerMain(int Width, int Height, Profile profile, PlayerShip playerShip) : base(Width, Height) {
 			this.profile = profile;
 			DefaultBackground = Color.Transparent;
@@ -145,12 +147,12 @@ namespace TranscendenceRL {
 				SimpleCrawl ds = null;
 				ds = new SimpleCrawl("You have left Human Space.\n\n", EndPause) { Position = new Point(Width / 4, 8), IsFocused = true };
 				void EndPause() {
-					SadConsole.Game.Instance.Screen = new Pause(ds, EndGame, 3);
+					Game.Instance.Screen = new Pause(ds, EndGame, 3);
 				}
 				return ds;
 			}
 			void EndGame() {
-				SadConsole.Game.Instance.Screen = new DeathScreen(this,
+				Game.Instance.Screen = new DeathScreen(this,
 					new Epitaph() {
 						desc = $"Left Human Space",
 						deathFrame = null,
@@ -195,28 +197,20 @@ namespace TranscendenceRL {
 			var ds = new DeathScreen(this, epitaph);
 			SadConsole.Game.Instance.Screen = new DeathTransition(this, ds) { IsFocused = true };
 		}
-		public void UpdateWorld() {
-			world.UpdateActive();
-		}
 		public void PlaceTiles() {
 			tiles.Clear();
 			world.PlaceTiles(tiles);
 		}
 		public override void Update(TimeSpan delta) {
-			if(sceneContainer.Children.Any()) {
-				sceneContainer.Update(delta);
-            }
 
+			//if(!frameRendered) return;
+			if (pauseMenu.IsVisible) {
+				pauseMenu.Update(delta);
+				return;
+			}
 			//If the player is in mortality, then slow down time
 			bool passTime = true;
-
-			if (sceneContainer.Children.Any()) {
-				passTime = false;
-			}
-
-			if (pauseMenu.IsVisible) {
-				passTime = false;
-            }else if(playerShip.active && playerShip.mortalTime > 0) {
+			if(playerShip.active && playerShip.mortalTime > 0) {
 
 				//Note that while the world updates are slowed down, the game window actually updates faster since there's less work per frame
 				var timePassed = delta.TotalSeconds;
@@ -230,58 +224,66 @@ namespace TranscendenceRL {
                 }
 				playerShip.mortalTime -= timePassed;
 			}
-			if(passTime) {
-				UpdateWorld();
-				if(playerShip.autopilot) {
+
+
+			if (sceneContainer.Children.Any()) {
+				sceneContainer.Update(delta);
+			} else {
+				if (uiMain.IsVisible) {
+					uiMegamap.Update(delta);
+
+					vignette.Update(delta);
+
+					uiMain.viewScale = uiMegamap.viewScale;
+					uiMain.Update(delta);
+
+					uiEdge.viewScale = uiMegamap.viewScale;
+					uiEdge.Update(delta);
+
+					uiMinimap.alpha = (byte)(255 - uiMegamap.alpha);
+					uiMinimap.Update(delta);
+				} else {
+					vignette.Update(delta);
+				}
+				if (powerMenu.IsVisible) {
+					powerMenu.Update(delta);
+				}
+			}
+			if (passTime) {
+				world.UpdateActive();
+				world.UpdatePresent();
+
+				if (playerShip.autopilot) {
 					autopilotUpdate = true;
+					
 					ProcessKeyboard(keyboard);
 					ProcessMouse(mouse);
-					UpdateWorld();
+					world.UpdateActive();
+					world.UpdatePresent();
+
 					ProcessKeyboard(keyboard);
 					ProcessMouse(mouse);
-					UpdateWorld();
+					world.UpdateActive();
+					world.UpdatePresent();
+
 					autopilotUpdate = false;
                 }
 				PlaceTiles();
-				world.UpdatePresent();
-			}
 
+				var dock = playerShip.dock;
+				if (dock?.justDocked == true && dock.Target is Dockable d) {
+					Console scene = story.GetScene(this, d, playerShip) ?? d.GetScene(this, playerShip);
+					if (scene != null) {
+						playerShip.DisengageAutopilot();
+						playerShip.dock = null;
+						sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
+					} else {
+						playerShip.AddMessage(new Message($"Stationed on {d.name}"));
+					}
+				}
+			}
 			camera.position = playerShip.position;
-			if (playerShip.dock?.justDocked == true && playerShip.dock.Target is Dockable d) {
-
-				Console scene = story.GetScene(this, d, playerShip) ?? d.GetScene(this, playerShip);
-				
-				if (scene != null) {
-					playerShip.DisengageAutopilot();
-					playerShip.dock = null;
-					sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
-				} else {
-					playerShip.AddMessage(new Message($"Stationed on {d.name}"));
-                }
-			}
-			if (uiMain.IsVisible) {
-				uiMegamap.Update(delta);
-
-				vignette.Update(delta);
-
-				uiMain.viewScale = uiMegamap.viewScale;
-				uiMain.Update(delta);
-
-				uiEdge.viewScale = uiMegamap.viewScale;
-				uiEdge.Update(delta);
-
-				uiMinimap.alpha = (byte)(255 - uiMegamap.alpha);
-				uiMinimap.Update(delta);
-			} else {
-				vignette.Update(delta);
-			}
-			if (powerMenu.IsVisible) {
-				powerMenu.Update(delta);
-			}
-
-			if (pauseMenu.IsVisible) {
-				pauseMenu.Update(delta);
-			}
+			//frameRendered = false;
 
 			//Required to update children
 			base.Update(delta);
@@ -308,13 +310,13 @@ namespace TranscendenceRL {
 					uiEdge.Render(drawTime);
 					uiMinimap.Render(drawTime);
 				} else {
-
 					vignette.Render(drawTime);
 				}
 				if (powerMenu.IsVisible) {
 					powerMenu.Render(drawTime);
 				}
 			}
+			//frameRendered = true;
 		}
 		public void DrawWorld() {
 			int ViewWidth = Width;
@@ -397,7 +399,7 @@ namespace TranscendenceRL {
 				sceneContainer.ProcessMouseTree(state.Mouse);
             } else if(state.IsOnScreenObject) {
 
-				bool moved = mouseScreenPos != state.SurfaceCellPosition;
+				//bool moved = mouseScreenPos != state.SurfaceCellPosition;
 				mouseScreenPos = state.SurfaceCellPosition;
 
 				//Placeholder for mouse wheel-based weapon selection
@@ -424,7 +426,7 @@ namespace TranscendenceRL {
 					//If we set velocity to match player's velocity, then the weapon will aim directly at the crosshair
 					//If we set the velocity to zero, then the weapon will aim to the lead angle of the crosshair
 
-					crosshair.Update();
+					//crosshair.Update();
 
 					Heading.Crosshair(world, crosshair.position);
 
@@ -697,7 +699,7 @@ namespace TranscendenceRL {
         public override void Render(TimeSpan delta) {
 			this.Clear();
 
-			XY screenSize = new XY(Width, Height);
+			//XY screenSize = new XY(Width, Height);
 
 			//Set the color of the vignette
 

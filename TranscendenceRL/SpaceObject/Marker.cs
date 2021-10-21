@@ -31,11 +31,11 @@ namespace TranscendenceRL {
         public World world => Owner.world;
         [JsonIgnore]
         public Sovereign sovereign => Owner.sovereign;
-
+        [JsonIgnore]
         public int Id => -1;
 
         public PlayerShip Owner;
-        public List<SpaceObject> Nearby;
+        //public List<SpaceObject> Nearby;
         public string name { get; set; }
         public XY position { get; set; }
         public XY velocity { get; set; }
@@ -43,20 +43,16 @@ namespace TranscendenceRL {
 
         public TargetingMarker(PlayerShip Owner, string Name, XY Position) {
             this.Owner = Owner;
-            this.Nearby = new List<SpaceObject>();
+            //this.Nearby = new List<SpaceObject>();
             this.name = Name;
             this.position = Position;
             this.velocity = new XY();
             this.active = true;
         }
         public void Update() {
-            Nearby = Owner.world.entities.all.OfType<SpaceObject>().Except(new SpaceObject[] { Owner }).OrderBy(e => (e.position - position).magnitude).ToList();
+            //Nearby = Owner.world.entities.all.OfType<SpaceObject>().Except(new SpaceObject[] { Owner }).OrderBy(e => (e.position - position).magnitude).ToList();
         }
-
-        public void Damage(SpaceObject source, int hp) {
-        }
-
-        public void Destroy(SpaceObject source = null) {
-        }
+        public void Damage(SpaceObject source, int hp) { }
+        public void Destroy(SpaceObject source = null) { }
     }
 }

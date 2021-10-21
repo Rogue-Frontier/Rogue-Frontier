@@ -318,10 +318,7 @@ namespace TranscendenceRL {
             public void CheckFire(ref bool firing) => firing = firing && AllowFire;
             public bool AllowFire => desc.minChargeToFire <= charge;
             public void Update() {
-                charge += desc.chargePerTick;
-                if(charge > desc.maxCharge) {
-                    charge = desc.maxCharge;
-                }
+                charge = Math.Min(desc.maxCharge, charge + desc.chargePerTick);
             }
             public void ModifyMissileSpeed(ref int missileSpeed) {
                 missileSpeed += (int)(desc.bonusSpeedPerCharge * charge);

@@ -178,9 +178,10 @@ namespace TranscendenceRL {
             }
         }
 
-        public void StartArena() {
-            SadConsole.Game.Instance.Screen = new ArenaScreen(this, settings, World) { IsFocused = true, camera = camera, pov = pov };
-        }
+        public void StartArena() =>
+            Game.Instance.Screen = new ArenaScreen(this, settings, World) {
+                IsFocused = true, camera = camera, pov = pov
+            };
         private void ClearMenu() {
             foreach (var c in new Console[] { config, load, credits }) {
                 Children.Remove(c);
@@ -212,13 +213,14 @@ namespace TranscendenceRL {
                 load.Reset();
             }
         }
-        public void Server() {
-            Game.Instance.Screen = new ScreenServer(Width, Height, this) { IsFocused = true };
-        }
-        public void Client() {
-
-            Game.Instance.Screen = new ScreenClient(Width, Height, this) { IsFocused = true };
-        }
+        public void Server() =>
+            Game.Instance.Screen = new ScreenServer(Width, Height, this) {
+                IsFocused = true
+            };
+        public void Client() =>
+            Game.Instance.Screen = new ScreenClient(Width, Height, this) {
+                IsFocused = true
+            };
         private void StartProfile() {
             if (Children.Contains(load)) {
                 Children.Remove(load);
@@ -229,7 +231,7 @@ namespace TranscendenceRL {
             }
         }
         public void StartSurvival() {
-            SadConsole.Game.Instance.Screen = new PlayerCreator(this, World, settings, CreateGame) { IsFocused = true };
+            Game.Instance.Screen = new PlayerCreator(this, World, settings, CreateGame) { IsFocused = true };
 
             void CreateGame(ShipSelectorModel context) {
                 var loc = $"{AppDomain.CurrentDomain.BaseDirectory}/save/{context.playerName}";
