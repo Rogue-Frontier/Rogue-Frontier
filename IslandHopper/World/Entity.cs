@@ -109,17 +109,17 @@ namespace IslandHopper {
 			*/
 			g.Position = final;
 		}
-		public static void UpdateMotionCollision(this Entity g, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
+		public static void UpdateMotionCollision(this Entity g, Func<Entity, bool> collideEntity = null, Func<Voxel, bool> collideTile = null) {
 			//If the velocity is too small, then we get an infinite loop from trying to increment
 			var Velocity = g.Velocity / 30;
             if (Velocity < 0.1) {
                 var p = g.Position + Velocity;
                 var v = g.World.voxels.Try(p);
-                if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
-                    if (ignoreEntityCollision != null) {
+                if (v is Air || collideTile?.Invoke(v) == false) {
+                    if (collideEntity != null) {
                         var entities = g.World.entities[p].Where(e => !ReferenceEquals(e, g));
                         foreach (var entity in entities) {
-                            if (!ignoreEntityCollision(entity)) {
+                            if (collideEntity(entity)) {
                                 return;
                             }
                         }
@@ -136,11 +136,11 @@ namespace IslandHopper {
 			XYZ final = g.Position;
 			for (XYZ p = g.Position + step; (g.Position - p).Magnitude < Velocity.Magnitude; p += step) {
 				var v = g.World.voxels.Try(p);
-				if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
-					if(ignoreEntityCollision != null) {
+				if (v is Air || collideTile?.Invoke(v) == false) {
+					if(collideEntity != null) {
 						var entities = g.World.entities[p].Where(e => !ReferenceEquals(e, g));
                         foreach(var entity in entities) {
-                            if(!ignoreEntityCollision(entity)) {
+                            if(collideEntity(entity)) {
                                 goto Done;
                             }
                         }
@@ -155,17 +155,17 @@ namespace IslandHopper {
             Done:
 			g.Position = final;
 		}
-        public static void UpdateMotionCollisionTrail(this Entity g, out HashSet<XYZ> trail, Func<Entity, bool> ignoreEntityCollision = null, Func<Voxel, bool> ignoreTileCollision = null) {
+        public static void UpdateMotionCollisionTrail(this Entity g, out HashSet<XYZ> trail, Func<Entity, bool> collideEntity = null, Func<Voxel, bool> collideTile = null) {
             trail = new HashSet<XYZ>(new XYZGridComparer());
 			var Velocity = g.Velocity / 30;
             if (Velocity < 0.1) {
                 var p = g.Position + Velocity;
                 var v = g.World.voxels.Try(p);
-                if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
-                    if (ignoreEntityCollision != null) {
+                if (v is Air || collideTile?.Invoke(v) == false) {
+                    if (collideEntity != null) {
                         var entities = g.World.entities[p].Where(e => !ReferenceEquals(e, g));
                         foreach (var entity in entities) {
-                            if (!ignoreEntityCollision(entity)) {
+                            if (collideEntity(entity)) {
                                 return;
                             }
                         }
@@ -185,11 +185,11 @@ namespace IslandHopper {
             trail.Add(final.i);
             for (XYZ p = g.Position + step; (g.Position - p).Magnitude < Velocity.Magnitude; p += step) {
                 var v = g.World.voxels.Try(p);
-                if (v is Air || ignoreTileCollision?.Invoke(v) == true) {
-                    if (ignoreEntityCollision != null) {
+                if (v is Air || collideTile?.Invoke(v) == false) {
+                    if (collideEntity != null) {
                         var entities = g.World.entities[p].Where(e => !ReferenceEquals(e, g));
                         foreach(var entity in entities) {
-                            if(!ignoreEntityCollision(entity)) {
+                            if(collideEntity(entity)) {
                                 goto Done;
                             }
                         }

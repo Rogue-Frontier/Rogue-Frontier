@@ -384,7 +384,7 @@ namespace IslandHopper {
                 }
             } else if (info.IsKeyPressed(Keys.OemPeriod)) {
                 if (!World.player.Actions.Any(a => a is WaitAction)) {
-                    Debug.Print("waiting");
+                    //Debug.Print("waiting");
                     World.player.Actions.Add(new WaitAction(Constants.STEPS_PER_SECOND));
                     World.player.AddMessage(new InfoEvent(new ColoredString("You wait")));
                 }

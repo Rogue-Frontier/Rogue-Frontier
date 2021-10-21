@@ -41,16 +41,16 @@ namespace IslandHopper {
             Thrown.UpdateGravity();
             Thrown.UpdateMotionCollision(e => {
 				if (e == this) {
-					this.DebugInfo("Ignore collision with self");
-					return true;
+					//this.DebugInfo("Ignore collision with self");
+					return false;
 				} else if (e == Thrower) {
-                    this.DebugInfo("Ignore collision with thrower");
-                    return true;
+                    //this.DebugInfo("Ignore collision with thrower");
+                    return false;
                 } else {
-                    this.DebugInfo("Flying collision with object");
+                    //this.DebugInfo("Flying collision with object");
 					Thrower.Witness(new InfoEvent($"Thrown {Thrown.Name} hits {e.Name}"));
                     flying = false;
-                    return false;
+                    return true;
                 }
             });
             if (this.OnGround() && Velocity.Magnitude < 0.2) {
@@ -146,20 +146,6 @@ namespace IslandHopper {
 		}
 
 		public void UpdateStep() {
-            /*
-			Func<Entity, bool> ignoreSource = e => e == Source;
-			Func<Entity, bool> filterTarget = e => e != Target;
-			//We only reach this if the other conditions were not met
-			Func<Entity, bool> onHit = e => {
-				Active = false;
-				Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
-				return false;
-			};
-
-			Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
-
-			this.UpdateMotionCollision(collisionFilter);
-            */
 		}
 	}
 
@@ -214,7 +200,7 @@ namespace IslandHopper {
             }
             Func<Entity, bool> collisionFilter = e => {
                 if(e is Flame || e is Fire) {
-                    return true;
+                    return false;
                 }
                 Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
                 if (e is Damageable d) {
@@ -223,7 +209,7 @@ namespace IslandHopper {
                 }
 
                 Active = false;
-                return false;
+                return true;
             };
             this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
             Velocity -= Velocity * 0.5 / 30;
@@ -253,7 +239,7 @@ namespace IslandHopper {
             
         }
     }
-    public class Fire : Entity {
+    public class Fire : Entity, Damager {
         public Island World { get; set; }
         public XYZ Position { get; set; }
         public XYZ Velocity { get; set; }
@@ -272,6 +258,13 @@ namespace IslandHopper {
             if (World.gameTicks % 10 != 0) {
                 return;
             }
+
+
+            var burn = World.entities[Position].Where(e => !ReferenceEquals(e, this)).OfType<Damageable>().FirstOrDefault();
+            if(burn != null) {
+                burn.OnDamaged(this);
+            }
+
             var below = Position.PlusZ(-1);
             if(World.voxels.InBounds(below) && World.voxels[below] is Grass g) {
                 Func<int, int, int> rnd = World.karma.NextInteger;
@@ -377,34 +370,21 @@ namespace IslandHopper {
             //Why do I waste my life trying to fix this goddamned bug?
             //Func<Entity, bool> collisionFilter = Helper.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget), onHit);
 
-            Func<Entity, bool> collisionFilter = e => {
-                //IGNORE if the entity is our Source
-                if(Source != null && e == Source) {
-                    return true;
-                }
+            Func<Entity, bool> collideEntity = e => {
+                if(Source != null && e == Source)   return false;
+                if(e is Bullet b && b.Item == Item) return false;
+                if (Target != null && e != Target)  return false;
 
-                //IGNORE if the entity is a bullet from the same item
-                if(e is Bullet b && b.Item == Item) {
-                    return true;
-                }
-
-                //IGNORE if the entity is NOT our target
-                if (Target != null && e != Target) {
-                    return true;
-                }
                 Source.Witness(new InfoEvent($"The {Name} hits {e.Name}"));
-
-
                 if(e is Damageable d) {
                     d.OnDamaged(this);
                     Item?.Gun?.OnHit(this, d);
                 }
 
-
                 Active = false;
-                return false;
+                return true;
             };
-            this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collisionFilter);
+            this.UpdateMotionCollisionTrail(out HashSet<XYZ> trail, collideEntity);
             foreach(var point in trail) {
 
                 World.AddEffect(new Trail(point, 10, SymbolCenter.GlyphCharacter));
@@ -440,12 +420,17 @@ namespace IslandHopper {
 		public void UpdateStep() {
 			this.UpdateGravity();
 
-			Func<Entity, bool> ignoreSource = e => e == Source;
-			Func<Entity, bool> filterTarget = e => e != Target;
+            Func<Entity, bool> collideEntity = e => {
+                if(Source != null && e == Source) {
+                    return false;
+                }
+                if(Target != null && e != Target) {
+                    return false;
+                }
+                return true;
+            };
 
-			Func<Entity, bool> collisionFilter = Main.Or(Source.Elvis(ignoreSource), Target.Elvis(filterTarget));
-
-			this.UpdateMotionCollision(collisionFilter);
+			this.UpdateMotionCollision(collideEntity);
 		}
 	}
 	class ExplosionBlock : Entity {

@@ -135,8 +135,11 @@ namespace IslandHopper {
             } else if(source is Flame f) {
 				health.Damage(f.damage);
 				AddMessage(new InfoEvent(new ColoredString($"You are caught in flames!")));
+			} else if (source is Fire fire) {
+				health.Damage(1);
+				World.AddEffect(new Burn(this, 20));
 			}
-        }
+		}
 
         public ColoredGlyph SymbolCenter => new ColoredString("@", Color.White, Color.Black)[0];
 		public ColoredString Name => new ColoredString("Player", Color.White, Color.Black);
