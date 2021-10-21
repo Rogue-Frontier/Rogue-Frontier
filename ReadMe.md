@@ -3,7 +3,7 @@
 
 [Itch.io](https://ineedauniqueusername.itch.io/rogue-frontier)
 
-TranscendenceRL is an ASCII-style space adventure RPG set in an alternate universe of *Transcendence*, a roguelike space-opera game by George Moromisato.
+TranscendenceRL is an ambitious ASCII-style space adventure RPG set in an alternate universe of *Transcendence*, a roguelike space-opera game by George Moromisato.
 
 # Build
 - Visual Studio 2019
@@ -16,7 +16,7 @@ TranscendenceRL is an ASCII-style space adventure RPG set in an alternate univer
 Please make sure you have .NET 5.0 installed. Let me know if you have any problems with running the game.
 
 # Development
-This game is currently a well-developed engine demo. Most of the main UI features are polished and complete. The XML content and type system is complete. Basic movement, combat, and AI are implemented. The current bottleneck is content writing and level design.
+This game is currently a well-developed engine demo. Most of the main UI features are polished and complete. The XML type system is complete. Basic movement, combat, and AI are implemented. The current bottleneck is content and story development.
 
 ## Future Work
 I plan to write story and implement long-term player progression.
