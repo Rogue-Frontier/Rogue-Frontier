@@ -137,7 +137,7 @@ namespace TranscendenceRL {
 			uiMain.IsVisible = false;
 		}
 		public void Gate() {
-			if(playerShip.CheckGate() == null) {
+			if(!playerShip.CheckGate(out Stargate gate)) {
 				return;
             }
 			HideAll();
@@ -654,8 +654,7 @@ namespace TranscendenceRL {
 				}
 				this.chargingUp = true;
 			} else {
-				var gate = player.CheckGate();
-				if (gate != null) {
+				if (player.CheckGate(out Stargate gate)) {
 					float targetAlpha = (float)Math.Min(1, (1 - (player.position - gate.position).magnitude / 16));
 					if(powerAlpha < targetAlpha) {
 						powerAlpha += (targetAlpha - powerAlpha) / 60f;

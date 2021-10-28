@@ -144,6 +144,11 @@ namespace TranscendenceRL {
             }
         }
         public static void RenderBackground(this Console c) {
+            c.Fill(Color.Black, Color.Black.SetAlpha(128), ' ');
+
+            /*
+            var back = new Console(c.Width, c.Height);
+            
             foreach (var point in new Rectangle(0, 0, c.Width, c.Height).Positions()) {
 
                 var h = point.X % 4 == 0;
@@ -156,8 +161,10 @@ namespace TranscendenceRL {
                 } else if (h || v) {
                     f = new Color(255, 255, 255, 255 * 5 / 8);
                 }
-                c.SetCellAppearance(point.X, point.Y, new ColoredGlyph(f, Color.Transparent, '.'));
+                back.SetCellAppearance(point.X, point.Y, new ColoredGlyph(f, Color.Black.SetAlpha(102), '.'));
             }
+            back.Render(new TimeSpan());
+            */
         }
     }
     class TextScene : Console {
@@ -267,11 +274,9 @@ namespace TranscendenceRL {
             }
         }
         public override void Render(TimeSpan delta) {
-            base.Render(delta);
             this.RenderBackground();
 
             if (background.Any()) {
-                this.Fill(Color.Black, Color.Black, 0);
                 foreach (((var px, var py), var cg) in background) {
                     this.SetCellAppearance(px, py, cg);
                 }
@@ -322,7 +327,10 @@ namespace TranscendenceRL {
                 }
 
             }
-            
+
+
+            base.Render(delta);
+
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
             prevEnter = enter;

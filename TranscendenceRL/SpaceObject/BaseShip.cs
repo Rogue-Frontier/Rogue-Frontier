@@ -497,10 +497,10 @@ namespace TranscendenceRL {
                 AddMessage(new Message($"Autopilot disengaged"));
             }
         }
-        public Stargate CheckGate() {
-            return world.entities[position]
+        public bool CheckGate(out Stargate gate) {
+            return (gate = world.entities[position]
                 .Select(s => (s is Segment seg ? seg.parent : s))
-                .OfType<Stargate>().FirstOrDefault();
+                .OfType<Stargate>().FirstOrDefault()) != null;
         }
         public void NextWeapon() {
             selectedPrimary++;

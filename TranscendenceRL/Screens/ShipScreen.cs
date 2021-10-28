@@ -33,8 +33,10 @@ namespace TranscendenceRL {
 
             //back.Render(delta);
 
-            this.Clear();
 
+
+            this.Clear();
+            this.RenderBackground();
             var name = playerShip.shipClass.name;
             var x = Width / 4 - name.Length / 2;
             var y = 4;
@@ -77,7 +79,7 @@ namespace TranscendenceRL {
 
                     Print(x, y++, $"Output:     {-r.energyDelta}");
                     Print(x, y++, $"Max output: {r.desc.maxOutput}");
-                    Print(x, y++, $"Fuel:       {(int)r.energy}");
+                    Print(x, y++, $"Fuel:       {r.energy:0}");
                     Print(x, y++, $"Max fuel:   {r.desc.capacity}");
                     
 
@@ -463,7 +465,7 @@ namespace TranscendenceRL {
                 Escape
                 ) { IsFocused = true };
 
-            string GetName(Reactor r) => $"{$"[{(int)r.energy} / {r.desc.capacity}]",-12}{r.source.type.name}";
+            string GetName(Reactor r) => $"{$"[{r.energy:0} / {r.desc.capacity}]",-12} {r.source.type.name}";
             List<ColoredString> GetDesc(Reactor r) {
                 var item = r.source;
                 var invoke = item.type.invoke;
@@ -490,7 +492,7 @@ namespace TranscendenceRL {
                 if (refuelEnergy > 0) {
                     r.energy += refuelEnergy;
                     player.cargo.Remove(source);
-                    player.AddMessage(new Message($"Used {source.type.name} to refuel {refuelEnergy} energy on {r.source.type.name}"));
+                    player.AddMessage(new Message($"Used {source.type.name} to refuel {refuelEnergy:0} energy on {r.source.type.name}"));
 
                     callback?.Invoke();
                     Escape();
@@ -574,6 +576,8 @@ namespace TranscendenceRL {
                         if (playerIndex != null) {
                             var item = items.ElementAt(playerIndex.Value);
                             invoke(item);
+
+                            playerIndex = items.Any() ? Math.Clamp(playerIndex.Value, 0, items.Count() - 1) : null;
                         }
                         break;
                     case Keys.Escape:
@@ -610,13 +614,13 @@ namespace TranscendenceRL {
             int x = 16;
             int y = 16;
 
-            this.Clear();
             this.RenderBackground();
-            foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
-                this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
-            }
-            this.Print(x, y, player.name, Color.Yellow, Color.Black);
-            y++;
+
+            //this.Fill(new Rectangle(x, y, 32, 26), Color.Gray, null, '.');
+
+
+            this.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(Color.Yellow, Color.Black, '-'));
+            this.Print(x, y - 2, player.name, Color.Yellow, Color.Black);
             int start = 0;
             int? highlight = null;
             if (playerIndex != null) {
@@ -631,7 +635,10 @@ namespace TranscendenceRL {
                     var n = getName(items.ElementAt(i));
                     if(n.Length > 26) {
                         if (i == highlight) {
-                            int index = Math.Min(tick / 15, n.Length - 26);//((tick / 15) % (n.Length - 25));
+                            //((tick / 15) % (n.Length - 25));
+                            int initialDelay = 60;
+                            int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - 26);
+                            
                             n = n.Substring(index);
                             if (n.Length > 26) {
                                 n = $"{n.Substring(0, 23)}...";
@@ -649,41 +656,48 @@ namespace TranscendenceRL {
                 }
 
 
-                var height = 26;
-                var barStart = (height * (start)) / items.Count();
-                var barEnd = (height * (end)) / items.Count();
+                int height = 26;
+                int barStart = (height * (start)) / items.Count();
+                int barEnd = (height * (end)) / items.Count();
+                int barX = x - 2;
 
                 for (i = 0; i < height; i++) {
-                    if (i < barStart || i > barEnd) {
-                        this.SetCellAppearance(x - 1, 16 + i,
-                            new ColoredGlyph(Color.LightGray, Color.Black, '|'));
-                    } else {
-                        this.SetCellAppearance(x - 1, 16 + i,
-    new ColoredGlyph(Color.White, Color.Black, '#'));
-                    }
+                    ColoredGlyph cg = (i < barStart || i > barEnd) ?
+                        new ColoredGlyph(Color.LightGray, Color.Black, '|') :
+                        new ColoredGlyph(Color.White, Color.Black, '#');
+                    this.SetCellAppearance(barX, 16 + i, cg);
                 }
+
+                this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+                barX += 33;
+                this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
             } else {
                 var highlightColor = Color.Yellow;
                 var name = new ColoredString("<Empty>", highlightColor, Color.Black);
                 this.Print(x, y, name);
+
+                int barX = x - 2;
+                this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+                this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+                barX += 33;
+                this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
             }
+
+            //this.DrawLine(new Point(x, y));
 
             y = Height - 16;
             foreach (var m in player.messages) {
                 this.Print(x, y++, m.Draw());
             }
 
-            x += 32;
+            x += 32 + 2;
             y = 16;
-            if (playerIndex != null) {
+            if (playerIndex.HasValue && playerIndex.Value < items.Count()) {
                 var item = items.ElementAt(playerIndex.Value);
-                
+                this.Print(x, y - 2, getName(item), Color.Yellow, Color.Black);
                 var desc = getDesc(item);
-                if (desc.Any()) {
-                    foreach (var line in desc) {
-                        this.Print(x, y++, line);
-                    }
-                    y++;
+                foreach (var line in desc) {
+                    this.Print(x, y++, line);
                 }
             }
 

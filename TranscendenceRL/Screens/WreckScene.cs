@@ -129,13 +129,11 @@ namespace TranscendenceRL {
             int x = 16;
             int y = 16;
 
-            this.Clear();
             this.RenderBackground();
-            foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
-                this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
-            }
-            this.Print(x, y, playerShip.name, playerSide ? Color.Yellow : Color.White, Color.Black);
-            y++;
+
+            Color c = playerSide ? Color.Yellow : Color.White;
+            this.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(c, Color.Black, '-'));
+            this.Print(x, y - 2, playerShip.name, c, Color.Black);
             int start = 0;
             int? highlight = null;
 
@@ -157,19 +155,39 @@ namespace TranscendenceRL {
                     i++;
                     y++;
                 }
+
+                int height = 26;
+                int barStart = (height * (start)) / playerItems.Count;
+                int barEnd = (height * (end)) / playerItems.Count;
+                int barX = x - 2;
+                for (i = 0; i < height; i++) {
+                    ColoredGlyph cg = i < barStart || i > barEnd ?
+                        new ColoredGlyph(Color.LightGray, Color.Black, '|') :
+                        new ColoredGlyph(Color.White, Color.Black, '#');
+                    this.SetCellAppearance(barX, 16 + i, cg);
+                }
+                this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+                barX += 33;
+                this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
             } else {
                 var highlightColor = playerSide ? Color.Yellow : Color.White;
                 var name = new ColoredString("<Empty>", highlightColor, Color.Black);
                 this.Print(x, y, name);
-            }
-            x += 32;
-            y = 16;
-            foreach (var point in new Rectangle(x, y, 32, 26).Positions()) {
-                this.SetCellAppearance(point.X, point.Y, new ColoredGlyph(Color.Gray, Color.Transparent, '.'));
+
+                int barX = x - 2;
+                this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+                this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+                barX += 33;
+                this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
             }
 
-            this.Print(x, y, docked.name, !playerSide ? Color.Yellow : Color.White, Color.Black);
-            y++;
+            x += 32 + 4;
+            y = 16;
+
+            c = !playerSide ? Color.Yellow : Color.White;
+            this.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(c, Color.Black, '-'));
+            this.Print(x, y - 2, docked.name, c, Color.Black);
+            
             start = 0;
             highlight = null;
             if (dockedIndex != null) {
@@ -192,10 +210,31 @@ namespace TranscendenceRL {
                     i++;
                     y++;
                 }
+
+                int height = 26;
+                int barStart = (height * (start)) / dockedItems.Count;
+                int barEnd = (height * (end)) / dockedItems.Count;
+                int barX = x - 2;
+                for (i = 0; i < height; i++) {
+                    ColoredGlyph cg = i < barStart || i > barEnd ?
+                        new ColoredGlyph(Color.LightGray, Color.Black, '|') :
+                        new ColoredGlyph(Color.White, Color.Black, '#');
+                    this.SetCellAppearance(barX, 16 + i, cg);
+                }
+                this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+                barX += 33;
+                this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
             } else {
                 var highlightColor = !playerSide ? Color.Yellow : Color.White;
                 var name = new ColoredString("<Empty>", highlightColor, Color.Black);
                 this.Print(x, y, name);
+
+
+                int barX = x - 2;
+                this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+                this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+                barX += 33;
+                this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
             }
             base.Render(delta);
         }
