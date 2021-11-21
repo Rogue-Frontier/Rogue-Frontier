@@ -203,6 +203,7 @@ namespace TranscendenceRL {
 		}
 		public override void Update(TimeSpan delta) {
 
+
 			//if(!frameRendered) return;
 			if (pauseMenu.IsVisible) {
 				pauseMenu.Update(delta);
@@ -211,6 +212,7 @@ namespace TranscendenceRL {
 			//If the player is in mortality, then slow down time
 			bool passTime = true;
 			if(playerShip.active && playerShip.mortalTime > 0) {
+
 
 				//Note that while the world updates are slowed down, the game window actually updates faster since there's less work per frame
 				var timePassed = delta.TotalSeconds;
@@ -250,6 +252,8 @@ namespace TranscendenceRL {
 				}
 			}
 			if (passTime) {
+
+				back.Update(delta);
 				world.UpdateActive();
 				world.UpdatePresent();
 
@@ -476,16 +480,21 @@ namespace TranscendenceRL {
 		private Backdrop backdrop;
 		public BackdropConsole(int width, int height, Backdrop backdrop, Camera camera) : base(width, height) {
 			this.camera = camera;
-
 			this.backdrop = backdrop;
 			screenCenter = new XY(Width / 2f, Height / 2f);
 		}
-		public override void Render(TimeSpan drawTime) {
+        public override void Update(TimeSpan delta) {
+			var last = backdrop.layers.Last();
+			if (last.tiles.tree.segmentCount > 50) {
+				last.tiles.tree.Clear();
+            }
+            base.Update(delta);
+        }
+        public override void Render(TimeSpan drawTime) {
 			this.Clear();
 			for (int x = 0; x < Width; x++) {
 				for (int y = 0; y < Height; y++) {
-					var g = this.GetGlyph(x, y);
-
+					//var g = this.GetGlyph(x, y);
 					var offset = new XY(x, Height - y) - screenCenter;
 					var location = camera.position + offset.Rotate(camera.rotation);
 					this.SetCellAppearance(x, y, backdrop.GetTile(location, camera.position));

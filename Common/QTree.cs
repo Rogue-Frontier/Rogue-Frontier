@@ -32,8 +32,9 @@ namespace Common {
         public Dictionary<uint, Segment> xPositive, xNegative, yPositive, yNegative;
         public uint level;
         public uint scale;
+        public int segmentCount => q1.Count + q2.Count + q3.Count + q4.Count;
         public uint size => (uint)Math.Pow(scale, level);
-        public QTree(uint level = 1, uint scale = 8) {
+        public QTree(uint level = 1, uint scale = 32) {
             q1 = new Dictionary<(uint, uint), Section>();
             q2 = new Dictionary<(uint, uint), Section>();
             q3 = new Dictionary<(uint, uint), Section>();

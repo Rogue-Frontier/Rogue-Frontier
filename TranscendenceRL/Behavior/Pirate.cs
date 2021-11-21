@@ -11,7 +11,6 @@ namespace TranscendenceRL {
         public void Update(Station owner) {
             ticks++;
             if (ticks % 300 == 0) {
-
                 foreach(var g in owner.guards) {
                     if (g.controller is GuardOrder order
                         && order.attackTime == -1
@@ -43,23 +42,25 @@ namespace TranscendenceRL {
                     return;
                 }
                 guardOrder.Attack(target, -1);
-                
-            }
-            int CountHelpers(SpaceObject target, SpaceObject guard) {
-                return target.world.entities.all
-                        .OfType<SpaceObject>()
-                        .Where(other => (other.position - target.position).magnitude < 150)
-                        .Where(other => other.CanTarget(guard))
-                        .Count();
-            }
 
-            int CountPirates(SpaceObject target) {
-                return target.world.entities.all
-                        .OfType<AIShip>()
-                        .Where(s => s.sovereign == owner.sovereign)
-                        .Where(s => s.controller is GuardOrder order && order.attackOrder?.target == target)
-                        .Count();
+                int CountHelpers(SpaceObject target, SpaceObject guard) {
+                    return target.world.entities.all
+                            .OfType<SpaceObject>()
+                            .Where(other => (other.position - target.position).magnitude < 150)
+                            .Where(other => other.CanTarget(guard))
+                            .Count();
+                }
+                int CountPirates(SpaceObject target) {
+                    return target.world.entities.all
+                            .OfType<AIShip>()
+                            .Where(s => s.sovereign == owner.sovereign)
+                            .Where(s => s.controller is GuardOrder order
+                                     && order.attackOrder?.target == target)
+                            .Count();
+                }
             }
         }
+
+        
     }
 }
