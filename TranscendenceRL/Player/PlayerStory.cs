@@ -850,7 +850,7 @@ There is a modest degree of artificial gravity here.",
             Console Intro() {
                 var nearby = source.world.entities.all
                     .OfType<AIShip>()
-                    .Where(s => s.controller is PatrolOrder p 
+                    .Where(s => s.controller is PatrolOrbitOrder p 
                              && p.patrolTarget == source);
                 if (nearby.Any()) {
                     return new TextScene(prev,

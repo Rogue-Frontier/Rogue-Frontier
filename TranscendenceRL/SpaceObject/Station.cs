@@ -171,7 +171,12 @@ namespace TranscendenceRL {
             }
         }
         public void UpdateGuardList() {
-            guards = new List<AIShip>(world.entities.all.OfType<AIShip>().Where(s => s.controller is GuardOrder g && g.GuardTarget == this));
+            guards = new List<AIShip>(world.entities.all.OfType<AIShip>().Where(s => s.controller switch {
+                GuardOrder g => g.GuardTarget == this,
+                PatrolOrbitOrder p => p.patrolTarget == this,
+                PatrolCircuitOrder p => p.patrolTarget == this,
+                _ => false
+            }));
         }
         /*
         public HashSet<SpaceObject> GetParts() {
@@ -230,7 +235,7 @@ namespace TranscendenceRL {
                     }
                 } else {
                     foreach (var g in guards) {
-                        g.controller = new PatrolOrder(this, 20);
+                        g.controller = new PatrolOrbitOrder(this, 20);
                     }
                 }
             }

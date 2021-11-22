@@ -47,37 +47,43 @@ namespace TranscendenceRL {
 					orderDesc = new GuardDesc();
 					break;
 				case "patrol":
-					orderDesc = new PatrolDesc(e);
+					orderDesc = new PatrolOrbitDesc(e);
+					break;
+				case "patrolCircuit":
+					orderDesc = new PatrolCircuitDesc(e);
 					break;
 			}
 			this.sovereign = e.TryAttribute(nameof(sovereign), "");
 		}
 		public List<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
 			if (tc.Lookup<ShipClass>(codename, out var shipClass)) {
-				var pd = orderDesc as PatrolDesc;
-
 				Sovereign sov = owner.sovereign;
 				if (sovereign.Any()) {
 					tc.Lookup(sovereign, out sov);
 				}
 
+				Func<int, XY> GetPos;
+				switch(orderDesc) {
+					case PatrolOrbitDesc pod:
+						GetPos = i => owner.position + XY.Polar(
+									Math.PI * 2 * i / count,
+									pod.patrolRadius);
+						break;
+					default:
+						GetPos = i => owner.position;
+						break;
+				}
 				return new List<AIShip>(
 					Enumerable.Range(0, count)
 					.Select(i => new AIShip(new BaseShip(
 							owner.world,
 							shipClass,
 							sov,
-							pd != null ?
-								owner.position + XY.Polar(
-									Math.PI * 2 * i / count,
-									pd.patrolRadius) :
-								owner.position
+							GetPos(i)
 						),
 						orderDesc.CreateOrder(owner)
 						))
 					);
-
-
 			} else {
 				throw new Exception($"Invalid ShipClass type {codename}");
 			}
@@ -88,7 +94,6 @@ namespace TranscendenceRL {
 				throw new Exception($"Invalid ShipClass type {codename}");
 			}
 			if(sovereign.Any() && !tc.Lookup<Sovereign>(sovereign, out var sov)) {
-
 				throw new Exception($"Invalid Sovereign type {sovereign}");
 			}
 		}
@@ -99,13 +104,22 @@ namespace TranscendenceRL {
 		public class GuardDesc : IOrderDesc {
 			public IOrder CreateOrder(SpaceObject owner) => new GuardOrder(owner);
         }
-		public class PatrolDesc : IOrderDesc {
+		public class PatrolOrbitDesc : IOrderDesc {
 			public int patrolRadius;
-			public PatrolDesc() { }
-			public PatrolDesc(XElement e) {
+			public PatrolOrbitDesc() { }
+			public PatrolOrbitDesc(XElement e) {
 				patrolRadius = e.ExpectAttributeInt("patrolRadius");
             }
-			public IOrder CreateOrder(SpaceObject owner) => new PatrolOrder(owner, patrolRadius);
+			public IOrder CreateOrder(SpaceObject owner) => new PatrolOrbitOrder(owner, patrolRadius);
+		}
+		//Patrol an entire cluster of stations (moving out to 50 ls + radius of nearest station)
+		public class PatrolCircuitDesc : IOrderDesc {
+			public int patrolRadius;
+			public PatrolCircuitDesc() { }
+			public PatrolCircuitDesc(XElement e) {
+				patrolRadius = e.ExpectAttributeInt("patrolRadius");
+			}
+			public IOrder CreateOrder(SpaceObject owner) => new PatrolCircuitOrder(owner, patrolRadius);
 		}
 	}
 

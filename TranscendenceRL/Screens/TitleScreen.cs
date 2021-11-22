@@ -490,7 +490,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             World w = new World(u);
             w.types.Lookup<SystemType>("system_orion").Generate(w);
             w.UpdatePresent();
-            var quickStartClass = "ship_hyperego";
+            var quickStartClass = "ship_amethyst";
             var playerClass = w.types.Lookup<ShipClass>(quickStartClass);
             var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").position;
             var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
