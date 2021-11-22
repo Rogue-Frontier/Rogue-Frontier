@@ -158,13 +158,13 @@ namespace TranscendenceRL {
         }
 
         public bool CanTarget(SpaceObject other) => other == attackOrder?.target;
-        public void Attack(SpaceObject target, int attackTime) {
+        public void Attack(SpaceObject target, int attackTime = -1) {
             this.attackOrder = new AttackOrder(target);
             this.attackTime = attackTime;
         }
         public void ClearAttack() {
             attackOrder = null;
-            attackTime = 0;
+            attackTime = -1;
         }
         public void Update(AIShip owner) {
             ticks++;
@@ -186,8 +186,8 @@ namespace TranscendenceRL {
             if (attackOrder?.target?.active == true) {
                 attackOrder.Update(owner);
                 return;
-            } else if (ticks % 10 == 0) {
-                //Look for a nearby attack target every 10 ticks while we're out in the field
+            } else if (ticks % 15 == 0) {
+                //Look for a nearby attack target periodically while we're out in the field
                 var target = owner.world.entities
                     .GetAll(p => (GuardTarget.position - p).magnitude2 < 50 * 50)
                     .OfType<SpaceObject>()
@@ -279,9 +279,6 @@ namespace TranscendenceRL {
                 weapon = w.FirstOrDefault(w => w.aiming == null) ?? weapon;
             }
             bool RangeCheck() => (owner.position - target.position).magnitude2 < weapon.currentRange2;
-            void SetFiring() {
-                Set(weapon);
-            }
 
             //Remove dock
             if (owner.dock != null) {
@@ -297,6 +294,9 @@ namespace TranscendenceRL {
                 }
             });
 
+            void SetFiringPrimary() {
+                Set(weapon);
+            }
             if (dist < 10) {
                 //If we are too close, then move away
 
@@ -323,7 +323,7 @@ namespace TranscendenceRL {
                     //Fire if we are close enough
                     if (freeAim
                         || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3) {
-                        SetFiring();
+                        SetFiringPrimary();
                     }
                 } else {
                     //Otherwise, get closer
@@ -333,7 +333,7 @@ namespace TranscendenceRL {
                     aim.target = target;
                     if (freeAim
                         || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3 && RangeCheck()) {
-                        SetFiring();
+                        SetFiringPrimary();
                     }
 
                 }
@@ -363,7 +363,7 @@ namespace TranscendenceRL {
             }
 
             //Look for an attack target periodically
-            if(tick%10 == 0) {
+            if(tick % 15 == 0) {
                 List<SpaceObject> except = new List<SpaceObject> { owner, patrolTarget };
                 var attackLimit2 = attackLimit * attackLimit;
                 var attackRange2 = 50 * 50;
@@ -430,7 +430,7 @@ namespace TranscendenceRL {
 
 
             //Look for an attack target periodically
-            if (tick % 10 == 0) {
+            if (tick % 15 == 0) {
                 List<SpaceObject> except = new List<SpaceObject> { owner, patrolTarget };
                 var attackLimit2 = attackLimit * attackLimit;
                 var attackRange2 = 50 * 50;
