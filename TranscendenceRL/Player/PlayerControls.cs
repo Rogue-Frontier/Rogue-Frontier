@@ -106,7 +106,7 @@ namespace TranscendenceRL {
 					dest = dest ?? playerShip.world.entities.GetAll(p => (playerShip.position - p).magnitude < 8).OfType<Dockable>().OrderBy(p => (p.position - playerShip.position).magnitude).FirstOrDefault();
 					if (dest != null) {
 						playerShip.AddMessage(new Message("Docking sequence engaged"));
-						playerShip.dock = new Docking(dest);
+						playerShip.dock = new Docking(dest, dest.GetDockPoint());
 					}
 				}
 			}

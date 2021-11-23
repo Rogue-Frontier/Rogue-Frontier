@@ -17,6 +17,7 @@ namespace TranscendenceRL {
     }
     public interface Dockable : SpaceObject {
         Console GetScene(Console prev, PlayerShip playerShip);
+        public XY GetDockPoint() => XY.Zero;
     }
     public static class SSpaceObject {
         public static bool IsEqual(this SpaceObject o1, SpaceObject o2) {

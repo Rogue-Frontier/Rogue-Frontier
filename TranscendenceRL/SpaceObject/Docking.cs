@@ -3,10 +3,16 @@
 namespace TranscendenceRL {
     public class Docking {
         public SpaceObject Target;
+        public XY Offset;
         public bool docked;
         public bool justDocked;
-        public Docking(SpaceObject target) {
-            this.Target = target;
+        public Docking(SpaceObject Target) {
+            this.Target = Target;
+            this.Offset = new XY(0, 0);
+        }
+        public Docking(SpaceObject Target, XY Offset) {
+            this.Target = Target;
+            this.Offset = Offset;
         }
         public void Update(IShip owner) {
             if(!docked) {
@@ -27,11 +33,13 @@ namespace TranscendenceRL {
             if (!ship.velocity.isZero) {
                 stoppingPoint += ship.velocity.normal * stoppingDistance;
             }
-            var offset = Target.position + (Target.velocity * stoppingTime) - stoppingPoint;
+
+            var dest = Target.position + Offset;
+            var offset = dest + (Target.velocity * stoppingTime) - stoppingPoint;
 
             if (offset.magnitude > 0.25) {
                 ship.velocity += XY.Polar(offset.angleRad, ship.shipClass.thrust);
-            } else if ((ship.position - Target.position).magnitude < 1) {
+            } else if ((ship.position - dest).magnitude < 1) {
                 ship.velocity = Target.velocity;
                 return true;
             }

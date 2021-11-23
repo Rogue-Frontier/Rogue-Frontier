@@ -441,9 +441,9 @@ namespace Common {
         public bool Contains(T t) => all.Contains(t);
 		public HashSet<T> GetAll(Predicate<U> keySelector) {
 			HashSet<T> result = new HashSet<T>();
-			foreach(var pair in space) {
-				if(keySelector(pair.Key)) {
-					result.UnionWith(pair.Value);
+			foreach((var key, var set) in space) {
+				if(keySelector(key)) {
+					result.UnionWith(set);
 				}
 			}
 			return result;

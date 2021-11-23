@@ -148,7 +148,6 @@ namespace TranscendenceRL {
         public SpaceObject GuardTarget;
         public AttackOrder attackOrder;
         public int attackTime;
-        public int lazyTicks;
         public int ticks;
         public GuardOrder(SpaceObject guard) {
             this.GuardTarget = guard;
@@ -168,26 +167,28 @@ namespace TranscendenceRL {
         }
         public void Update(AIShip owner) {
             ticks++;
+            //If we have a target, then attack!
+            if (attackOrder?.target?.active == true) {
+                attackOrder.Update(owner);
 
-            //If we have attackTime set, then our attack order expires on time out
-            if (attackTime > 0) {
+                //If we have finite attackTime set, then our attack order expires on time out
                 attackTime--;
                 if (attackTime == 0) {
                     attackOrder = null;
                 }
-            } else if(owner.dock?.docked == true) {
-                //If we're docked, then don't check for enemies every tick
-                lazyTicks++;
-                if(lazyTicks%120 != 0) {
+
+                return;
+            }
+            //Otherwise, we're idle
+
+            //If we're docked, then don't check for enemies every tick
+            if (owner.dock?.docked == true) {
+                if (ticks % 150 != 0) {
                     return;
                 }
             }
-            //If we have a target, then attack!
-            if (attackOrder?.target?.active == true) {
-                attackOrder.Update(owner);
-                return;
-            } else if (ticks % 15 == 0) {
-                //Look for a nearby attack target periodically while we're out in the field
+            //Look for a nearby attack target periodically
+            if (ticks % 15 == 0) {
                 var target = owner.world.entities
                     .GetAll(p => (GuardTarget.position - p).magnitude2 < 50 * 50)
                     .OfType<SpaceObject>()
@@ -196,15 +197,15 @@ namespace TranscendenceRL {
 
                 //If we find a target, start attacking
                 if (target != null) {
-                    attackOrder = new AttackOrder(target);
+                    Attack(target);
                     attackOrder.Update(owner);
                     return;
                 }
             }
-            
+
             //At this point, we definitely don't have an attack target so we return
             if ((owner.position - GuardTarget.position).magnitude2 < 6 * 6) {
-                owner.dock = new Docking(GuardTarget);
+                owner.dock = new Docking(GuardTarget, GuardTarget is Dockable d ? d.GetDockPoint() : XY.Zero);
             } else {
                 new ApproachOrbitOrder(GuardTarget).Update(owner);
             }
@@ -246,6 +247,33 @@ namespace TranscendenceRL {
             }
         }
         public bool Active => true;
+    }
+
+    public class AttackGroupOrder : IOrder {
+        public HashSet<SpaceObject> targets;
+        public AttackOrder attackOrder;
+        public bool CanTarget(SpaceObject other) => targets.Contains(other);
+        public AttackGroupOrder() {
+            attackOrder = new AttackOrder(null);
+        }
+        public void Update(AIShip owner) {
+            if (owner.devices.Weapons.Count == 0) {
+                return;
+            }
+            if (attackOrder.target?.active == true) {
+                attackOrder.Update(owner);
+                return;
+            }
+            //currentRange is variable and minRange is constant, so weapon dynamics may affect attack range
+            targets.RemoveWhere(t => !owner.world.entities.all.Contains(t));
+            var target = targets.GetRandomOrDefault(owner.destiny);
+
+            //If we can't find a target, then give up for a while
+            if (target != null) {
+                attackOrder.target = target;
+            }
+        }
+        public bool Active => targets.Any();
     }
     public class AttackOrder : IOrder {
         public SpaceObject target;

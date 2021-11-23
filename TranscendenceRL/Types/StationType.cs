@@ -25,6 +25,7 @@ namespace TranscendenceRL {
 		public WeaponList weapons;
 		
 		public List<SegmentDesc> segments;
+		public List<XY> dockPoints;
 		
 		public ShipList guards;
 
@@ -37,7 +38,8 @@ namespace TranscendenceRL {
 			behavior = e.TryAttributeEnum(nameof(behavior), StationBehaviors.none);
 			Sovereign = collection.Lookup<Sovereign>(e.ExpectAttribute("sovereign"));
 			tile = new StaticTile(e);
-			segments = new List<SegmentDesc>();
+			segments = new();
+			dockPoints = new();
 			
 			if (e.HasElement("Segments", out var xmlSegments)) {
 				foreach (var xmlSegment in xmlSegments.Elements()) {
@@ -62,6 +64,32 @@ namespace TranscendenceRL {
 						case "Point":
 							segments.Add(new SegmentDesc(xmlSegment));
 							break;
+					}
+				}
+			}
+			if(e.HasElement("Dock", out var xmlDock)) {
+				foreach (var xmlPart in xmlDock.Elements()) {
+					switch (xmlPart.Name.LocalName) {
+						case "MultiPoint": {
+								int angleInc = xmlPart.ExpectAttributeInt("angleInc");
+								var x = xmlPart.ExpectAttributeDouble("offsetX");
+								var y = xmlPart.ExpectAttributeDouble("offsetY");
+								XY offset = new XY(x, y);
+								for (int angle = 0; angle < 360; angle += angleInc) {
+									dockPoints.Add(offset.Rotate(angle * Math.PI / 180));
+								}
+								break;
+							}
+						case "Ring": {
+								dockPoints.AddRange(CreateRing());
+								break;
+							}
+						case "Point": {
+								var x = xmlPart.ExpectAttributeDouble("offsetX");
+								var y = xmlPart.ExpectAttributeDouble("offsetY");
+								dockPoints.Add(new XY(x, y));
+								break;
+							}
 					}
 				}
 			}
@@ -98,6 +126,19 @@ namespace TranscendenceRL {
 								Create(-1, -1, '\\'),
 								Create(-1, 0, '|'),
 								Create(-1, 1, '/')
+							};
+		}
+
+		public static List<XY> CreateRing() {
+			return new List<XY> {
+								new XY(0, 1),
+								new XY(1, 1),
+								new XY(1, 0),
+								new XY(1, -1),
+								new XY(0, -1),
+								new XY(-1, -1),
+								new XY(-1, 0),
+								new XY(-1, 1)
 							};
 		}
 

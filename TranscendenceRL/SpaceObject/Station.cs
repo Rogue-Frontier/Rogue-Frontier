@@ -107,13 +107,17 @@ namespace TranscendenceRL {
         public XY velocity { get; set; }
         [JsonProperty]
         public bool active { get; set; }
-
+        [JsonProperty]
         public StationBehavior behavior;
+        [JsonProperty]
         public List<Segment> segments;
+        [JsonProperty]
         public HullSystem damageSystem;
         [JsonProperty]
         public HashSet<Item> cargo { get; set; }
+        [JsonProperty]
         public List<Weapon> weapons;
+        [JsonProperty]
         public List<AIShip> guards;
 
 
@@ -169,6 +173,13 @@ namespace TranscendenceRL {
                     world.AddEffect(new Heading(guard));
                 }
             }
+        }
+        public IEnumerable<AIShip> GetDocked() {
+            return world.entities.GetAll(p => (position - p).magnitude < 5)
+                .OfType<AIShip>().Where(s => s.dock?.Target == this);
+        }
+        public XY GetDockPoint() {
+            return type.dockPoints.Except(GetDocked().Select(s => s.dock?.Offset)).FirstOrDefault() ?? XY.Zero;
         }
         public void UpdateGuardList() {
             guards = new List<AIShip>(world.entities.all.OfType<AIShip>().Where(s => s.controller switch {

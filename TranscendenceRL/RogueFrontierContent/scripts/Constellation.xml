@@ -14,41 +14,24 @@
 					behavior=	"reinforceNearby"
 		>
 		<Segments>
-			<MultiPoint offsetX="2"
-				   offsetY="-1"
-				   angleInc="90"
-				   char="+"
-				   foreground="White"/>
-			<MultiPoint offsetX="2"
-				   offsetY="0"
-				   angleInc="90"
-				   char="+"
-				   foreground="White"/>
-			<MultiPoint offsetX="2"
-				   offsetY="1"
-				   angleInc="90"
-				   char="+"
-				   foreground="White"/>
-
-
-			<MultiPoint offsetX="2"
-				   offsetY="2"
-				   angleInc="90"
-				   char="#"
-				   foreground="LightGray"/>
-			<MultiPoint offsetX="3"
-				   offsetY="0"
-				   angleInc="90"
-				   char="="
-				   foreground="LightGray"/>
-			<MultiPoint offsetX="4"
-				   offsetY="0"
-				   angleInc="90"
-				   char="="
-				   foreground="White"/>
+			<MultiPoint offsetX="2" offsetY="-1" angleInc="90"
+				   char="+" foreground="White"/>
+			<MultiPoint offsetX="2" offsetY="0" angleInc="90"
+				   char="+" foreground="White"/>
+			<MultiPoint offsetX="2" offsetY="1" angleInc="90"
+				   char="+" foreground="White"/>
+			<MultiPoint offsetX="2" offsetY="2" angleInc="90"
+				   char="#" foreground="LightGray"/>
+			<MultiPoint offsetX="3" offsetY="0" angleInc="90"
+				   char="=" foreground="LightGray"/>
+			<MultiPoint offsetX="4" offsetY="0" angleInc="90"
+				   char="=" foreground="White"/>
 			<Ring/>
 		</Segments>
-
+		<Dock>
+			<MultiPoint offsetX="3" offsetY="0" angleInc="90"/>
+			<MultiPoint offsetX="4" offsetY="0" angleInc="90"/>
+		</Dock>
 		<Guards>
 			<Ship	count="1"	codename="ship_beowulf" order="patrolCircuit" patrolRadius="20"/>
 			<Ship	count="3"	codename="ship_beowulf"/>

@@ -484,10 +484,12 @@ namespace TranscendenceRL {
 			screenCenter = new XY(Width / 2f, Height / 2f);
 		}
         public override void Update(TimeSpan delta) {
+			/*
 			var last = backdrop.layers.Last();
 			if (last.tiles.tree.segmentCount > 50) {
 				last.tiles.tree.Clear();
             }
+			*/
             base.Update(delta);
         }
         public override void Render(TimeSpan drawTime) {
