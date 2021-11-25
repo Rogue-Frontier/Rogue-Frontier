@@ -2,37 +2,43 @@
 	<Sovereign	codename=	"sovereign_iron_pirates"
 				alignment=	"DestructiveOrder"
 	/>
-	<ItemType	codename=	"item_iron_laser"
-				name=		"Iron laser"
+	<ItemType	codename=	"item_iron_driver"
+				name=		"Iron Driver"
 				mass=		"3000"
 				level=		"2"
 
 				invoke=		"installWeapon"
 
-				desc=		"The Iron Pirates use a low-powered laser to ward off civilian threats."
+				desc=		"The Iron Driver is a makeshift kinetic mass driver with modestly-rapid-fire capabilities."
 				>
-		<Weapon	powerUse=		"20"
-				fireCooldown=	"30"
+		<Weapon	powerUse=		"15"
+				fireCooldown=	"20"
 				missileSpeed=	"60"
 				damageType="2"
 				damageHP="5"
 				lifetime="60"
-				char=	"."
-				foreground="OrangeRed"
+				char=	","
+				foreground="White"
 
-				initialCharges=	"300"
+				initialCharges=	"200"
 			>
+			<Capacitor
+					minChargeToFire=		"10"
+					dischargePerShot=		"10"
+					chargePerTick=			"8/30"
+					maxCharge=				"100"
+				/>
 		</Weapon>
 	</ItemType>
 
 	<ItemType	codename=	"item_iron_cannon"
-				name=		"Iron cannon"
+				name=		"Iron Cannon"
 				mass=		"8000"
 				level=		"4"
 
 				invoke=		"installWeapon"
 
-				desc=		"The Iron cannon fires a crude seeking missile."
+				desc=		"The Iron Cannon fires a heavy kinetic shell with crude seeking capabilities."
 				>
 		<Weapon			powerUse=		"50"
 						fireCooldown=	"60"
@@ -44,9 +50,7 @@
 						char=			"+"
 						foreground=		"White"
 	
-						initialCharges=	"300"
-
-
+						initialCharges=	"100"
 						maneuver="2"
 			>
 		</Weapon>
@@ -76,7 +80,7 @@
 		</Armor>
 	</ItemType>
 	<ShipClass	codename=			"ship_iron_gunboat"
-				name=				"Iron gunboat"
+				name=				"Ironside gunboat"
 				thrust=				"0.1"
 				maxSpeed=			"10"
 
@@ -88,30 +92,10 @@
 				foreground=			"LightGray"
 		>
 		<Devices>
-			<Weapon	codename="item_iron_laser"/>
+			<Weapon	codename="item_iron_driver"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="item_ironclad_plate"/>
-		</LayeredArmorSystem>
-	</ShipClass>
-
-	<ShipClass	codename=			"ship_iron_privateer"
-				name=				"Privateer-class gunboat"
-				thrust=				"0.2"
-				maxSpeed=			"15"
-
-				rotationAccel=		"3"
-				rotationDecel=		"6"
-				rotationMaxSpeed=	"4"
-
-				char=				"I"
-				foreground=			"Yellow"
-		>
-		<Devices>
-			<Weapon	codename="item_iron_cannon"/>
-		</Devices>
-		<LayeredArmorSystem>
-			<Armor	codename="item_blockade_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 	<ShipClass	codename=			"ship_iron_embargo"
@@ -130,7 +114,7 @@
 			<Weapon	codename="item_iron_cannon"/>
 
 
-			<Weapon	codename="item_iron_laser" omnidirectional="true"/>
+			<Weapon	codename="item_iron_driver" omnidirectional="true"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="item_blockade_plate"/>
@@ -185,7 +169,7 @@
 			<Ship	count="2"	codename="ship_iron_embargo" order="patrol" patrolRadius="25"/>
 		</Guards>
 		<Weapons>
-			<Weapon	codename="item_iron_laser"/>
+			<Weapon	codename="item_iron_driver"/>
 		</Weapons>
 	</StationType>
 

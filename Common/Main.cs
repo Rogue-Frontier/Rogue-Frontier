@@ -366,6 +366,9 @@ namespace Common {
 				return fallback;
 			} else if(int.TryParse(a.Value, out int result)) {
 				return result;
+			} else if (a.Value.Any()) {
+				Expression e = new Expression(a.Value);
+				return Convert.ToInt32(e.Evaluate());
 			} else {
 				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\" ### {a.Parent.Name}");
 			}
@@ -375,6 +378,9 @@ namespace Common {
 				return null;
 			} else if (int.TryParse(a.Value, out int result)) {
 				return result;
+			} else if (a.Value.Any()) {
+				Expression e = new Expression(a.Value);
+				return Convert.ToInt32(e.Evaluate());
 			} else {
 				throw new Exception($"int value expected: {a.Name}=\"{a.Value}\" ### {a.Parent.Name}");
 			}
@@ -415,7 +421,7 @@ namespace Common {
 		public static double ExpectAttributeDouble(this XElement e, string attribute) {
 			var a = e.Attribute(attribute);
 			if (a == null) {
-				throw new Exception($"<{e.Name}> requires double attribute: {attribute} ### {e.Name}");
+				throw new Exception($"<{e.Name}> requires double attribute: {attribute} ### {e} ### {e.Parent}");
 			} else {
 				return ExpectAttributeDouble(a);
 			}
@@ -448,11 +454,14 @@ namespace Common {
 
 		public static double TryAttributeDouble(this XElement e, string attribute, double fallback = 0) => TryAttributeDouble(e.Attribute(attribute), fallback);
         public static double TryAttributeDouble(this XAttribute a, double fallback = 0) {
-            if (a == null) {
-                return fallback;
-            } else if (double.TryParse(a.Value, out double result)) {
-                return result;
-            } else {
+			if (a == null) {
+				return fallback;
+			} else if (double.TryParse(a.Value, out double result)) {
+				return result;
+			} else if (a.Value.Any()) {
+				Expression e = new Expression(a.Value);
+				return Convert.ToDouble(e.Evaluate());
+			} else {
                 throw new Exception($"double value expected: {a.Name}=\"{a.Value}\"  ### {a.Parent.Name}");
             }
         }

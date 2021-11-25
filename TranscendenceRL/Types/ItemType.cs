@@ -322,13 +322,13 @@ namespace TranscendenceRL {
         public double bonusLifetimePerCharge;
         public CapacitorDesc() { }
         public CapacitorDesc(XElement e) {
-            minChargeToFire = e.TryAttributeDouble(nameof(minChargeToFire));
+            minChargeToFire = e.TryAttributeDouble(nameof(minChargeToFire), 0);
             dischargePerShot = e.ExpectAttributeDouble(nameof(dischargePerShot));
             chargePerTick = e.ExpectAttributeDouble(nameof(chargePerTick));
             maxCharge = e.ExpectAttributeDouble(nameof(maxCharge));
-            bonusSpeedPerCharge = e.ExpectAttributeDouble(nameof(bonusSpeedPerCharge));
-            bonusDamagePerCharge = e.ExpectAttributeDouble(nameof(bonusDamagePerCharge));
-            bonusLifetimePerCharge = e.ExpectAttributeDouble(nameof(bonusLifetimePerCharge));
+            bonusSpeedPerCharge = e.TryAttributeDouble(nameof(bonusSpeedPerCharge));
+            bonusDamagePerCharge = e.TryAttributeDouble(nameof(bonusDamagePerCharge));
+            bonusLifetimePerCharge = e.TryAttributeDouble(nameof(bonusLifetimePerCharge));
         }
     }
     public class ShieldDesc {

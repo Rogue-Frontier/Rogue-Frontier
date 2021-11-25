@@ -9,7 +9,7 @@
 
 				value=		"400"
 
-				desc=		"This primitive kinetic cannon slowly charges up when idle. The shells from this weapon can move scary fast when fully charged."
+				desc=		"This primitive kinetic cannon is designed to accomodate both close range and long-range encounters. While idle, it charges up power for the next shot. The shells from this weapon can fly scary fast when fully charged."
 				
 				invoke=		"installWeapon"
 				>
@@ -42,7 +42,7 @@
 
 				value=		"800"
 
-				desc=		"A fully charged shot from this weapon can be lethal to small gunships. As most of the destructive power comes from charging, It has a relatively simple design compared to other kinetic weapons."
+				desc=		"A fully charged shot from this mass driver can be lethal to small gunships. As most of its destructive power comes from charged up shots, it has a relatively simple design compared to other kinetic weapons."
 
 				
 				invoke=		"installWeapon"
