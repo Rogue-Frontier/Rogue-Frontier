@@ -129,6 +129,8 @@ namespace TranscendenceRL {
         public string GetReadoutName() {
             if(ammo is ChargeAmmo c) {
                 return $"{source.type.name} [{c.charges}]";
+            } else if(ammo is ItemAmmo i) {
+                return $"{source.type.name} [{i.count}]";
             }
             return source.type.name;
         }
@@ -470,9 +472,12 @@ namespace TranscendenceRL {
         }
         public class ItemAmmo : IAmmo {
             public ItemType itemType;
-            public HashSet<Item> itemSource;
-            public Item item;
-            public bool AllowFire => item != null;
+            public HashSet<Item> inventory;
+            public Item unit;
+            public bool AllowFire => unit != null;
+
+            public int count;
+            public int ticks;
             public ItemAmmo(ItemType itemType) {
                 this.itemType = itemType;
             }
@@ -482,14 +487,22 @@ namespace TranscendenceRL {
             public void Update(Station source) {
                 Update(source.cargo);
             }
-            public void Update(HashSet<Item> items) {
-                if (item == null || !items.Contains(item)) {
-                    itemSource = items;
-                    item = items.FirstOrDefault(i => i.type == itemType);
+            public void Update(HashSet<Item> inventory) {
+                ticks++;
+                if(ticks%10 != 0) {
+                    return;
                 }
+                this.inventory = inventory;
+                UpdateUnit();
+            }
+            public void UpdateUnit() {
+                var units = inventory.Where(i => i.type == itemType);
+                unit = units.FirstOrDefault();
+                count = inventory.Count(i => i.type == itemType);
             }
             public void OnFire() {
-                itemSource.Remove(item);
+                inventory.Remove(unit);
+                UpdateUnit();
             }
         }
 

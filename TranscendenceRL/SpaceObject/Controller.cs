@@ -137,10 +137,7 @@ namespace TranscendenceRL {
                         owner.SetThrusting(true);
                     }
                 }
-
-                
             }
-            
         }
         public bool Active => true;
     }

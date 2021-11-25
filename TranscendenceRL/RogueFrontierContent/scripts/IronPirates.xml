@@ -122,7 +122,6 @@
 				rotationAccel=		"3"
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
-
 				
 				char=				"I"
 				foreground=			"Yellow"

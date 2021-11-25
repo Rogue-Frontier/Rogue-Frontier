@@ -92,6 +92,7 @@ namespace TranscendenceRL {
             base.Update(delta);
         }
         public override void Render(TimeSpan delta) {
+            this.Clear();
             var playerShip = playerMain.playerShip;
             var player = playerShip.player;
             var str =
@@ -101,14 +102,14 @@ namespace TranscendenceRL {
 {playerShip.shipClass.name}
 {epitaph.desc}
 
-Final Devices
-{string.Join('\n', playerShip.devices.Installed.Select(device => $"    {device.source.type.name}"))}
+Devices
+{string.Join('\n', playerShip.devices.Installed.Select(device => $"     {device.source.type.name}"))}
 
-Final Cargo
-{string.Join('\n', playerShip.cargo.Select(item => $"    {item.type.name}"))}
+Cargo
+{string.Join('\n', playerShip.cargo.GroupBy(i => i.type.name).Select(group => $"{group.Count(), 4} {group.Key}"))}
 
 Ships Destroyed
-{string.Join('\n', playerShip.shipsDestroyed.GroupBy(sc => sc.shipClass).Select(pair => $"    {pair.Key.name, -16}{pair.Count(), 4}"))}
+{string.Join('\n', playerShip.shipsDestroyed.GroupBy(sc => sc.shipClass).Select(pair => $"{pair.Count(),4} {pair.Key.name, -16}"))}
 ".Replace("\r", "");
             int y = 2;
             foreach(var line in str.Split('\n')) {

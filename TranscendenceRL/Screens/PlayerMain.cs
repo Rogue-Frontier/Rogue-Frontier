@@ -296,24 +296,37 @@ namespace TranscendenceRL {
 			back.Render(drawTime);
 
 			this.Clear();
-			DrawWorld();
-			base.Render(drawTime);
+
+			void RenderSelf() { DrawWorld(); base.Render(drawTime); };
 			if(pauseMenu.IsVisible) {
+				RenderSelf();
 				vignette.Render(drawTime);
 				pauseMenu.Render(drawTime);
 			} else if (sceneContainer.Children.Count > 0) {
+				RenderSelf();
 				vignette.Render(drawTime);
 				sceneContainer.Render(drawTime);
 			} else {
 				if (uiMain.IsVisible) {
-					uiMegamap.Render(drawTime);
+					//If the megamap is completely visible, then skip main render so we can fast travel
+					if (uiMegamap.alpha < 255) {
+						RenderSelf();
 
-					vignette.Render(drawTime);
+						uiMegamap.Render(drawTime);
 
-					uiMain.Render(drawTime);
-					uiEdge.Render(drawTime);
-					uiMinimap.Render(drawTime);
+						vignette.Render(drawTime);
+
+						uiMain.Render(drawTime);
+						uiEdge.Render(drawTime);
+						uiMinimap.Render(drawTime);
+					} else {
+						uiMegamap.Render(drawTime);
+						vignette.Render(drawTime);
+						uiMain.Render(drawTime);
+						uiEdge.Render(drawTime);
+					}
 				} else {
+					RenderSelf();
 					vignette.Render(drawTime);
 				}
 				if (powerMenu.IsVisible) {
@@ -540,7 +553,7 @@ namespace TranscendenceRL {
         public override void Render(TimeSpan delta) {
 			this.Clear();
 
-			if (viewScale > 1) {
+			if (alpha > 0) {
 				XY screenSize = new XY(Width, Height);
 				XY screenCenter = screenSize / 2;
 				for (int x = 0; x < Width; x++) {
@@ -1068,7 +1081,7 @@ namespace TranscendenceRL {
 							+ bar
 							+ new ColoredString("]", Color.White, b)
 							+ " "
-							+ new ColoredString($"Total Usage ({player.energy.totalMaxOutput})", Color.White, b)
+							+ new ColoredString($"[{player.energy.totalUsedOutput,3}/{player.energy.totalMaxOutput,3}] Total Power", Color.White, b)
 							);
 						y++;
 					}
@@ -1108,7 +1121,7 @@ namespace TranscendenceRL {
 							+ bar
 							+ new ColoredString("]", Color.White, b)
 							+ " "
-							+ new ColoredString($"{reactor.source.type.name} ({reactor.maxOutput})", Color.White, b)
+							+ new ColoredString($"[{Math.Abs(reactor.energyDelta),3}/{reactor.maxOutput,3}] {reactor.source.type.name}", Color.White, b)
 							);
 						y++;
 					}
