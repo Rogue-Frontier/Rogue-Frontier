@@ -850,7 +850,7 @@ There is a modest degree of artificial gravity here.",
             Console Intro() {
                 var nearby = source.world.entities.all
                     .OfType<AIShip>()
-                    .Where(s => s.controller is PatrolOrbitOrder p 
+                    .Where(s => s.order is PatrolOrbitOrder p 
                              && p.patrolTarget == source);
                 if (nearby.Any()) {
                     return new TextScene(prev,
@@ -1017,7 +1017,7 @@ You leave the station in ruins.",
                         source.Destroy(playerShip);
                         source.onDestroyed.set.Remove(hook);
 
-                        return wreck.GetScene(home, playerShip);
+                        return wreck.GetDockScene(home, playerShip);
                     }
                 }
 

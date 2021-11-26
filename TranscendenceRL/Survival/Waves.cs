@@ -66,7 +66,7 @@ namespace TranscendenceRL {
             shipList.OrderByDescending(s => map[s]).Select(world.types.Lookup<ShipClass>).ToList().ForEach(createShip);
             void createShip(ShipClass shipClass) {
 
-                IOrder order = new AttackOrder(playerShip);
+                IShipOrder order = new AttackOrder(playerShip);
 
                 AIShip create() =>
                     new AIShip(new BaseShip(world,

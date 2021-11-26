@@ -275,10 +275,12 @@ namespace TranscendenceRL {
             position += velocity / Program.TICKS_PER_SECOND;
         }
     }
-    public interface ShipBehavior {
+    public interface IShipBehavior {
+        //We pass in the owner via update since ideally we'd like to allow
+        //multiple ships run the same behavior
         void Update(IShip owner);
     }
-    public class Sulphin : ShipBehavior {
+    public class Sulphin : IShipBehavior {
         int ticks = 0;
         HashSet<PlayerShip> playersMet = new HashSet<PlayerShip>();
         public void Update(IShip owner) {
@@ -298,7 +300,7 @@ namespace TranscendenceRL {
     }
 
 
-    public class AIShip : IShip {
+    public class AIShip : IShip, DockableObject {
         [JsonIgnore]
         public int Id => ship.Id;
         [JsonIgnore]
@@ -327,17 +329,23 @@ namespace TranscendenceRL {
         public double stoppingRotation => ship.stoppingRotation;
         [JsonIgnore]
         public HashSet<SpaceObject> avoidHit => new HashSet<SpaceObject> {
-            dock?.Target, (controller as GuardOrder)?.GuardTarget
+            dock?.Target, (order as GuardOrder)?.GuardTarget
         };
-
-        public ShipBehavior behavior;
-        public BaseShip ship;
-        public IOrder controller;
         public Docking dock { get; set; }
+
+
+        public bool dockable => false;
+
+        public BaseShip ship;
+        //IShipBehavior and IShipOrder have the same interface but different purpose
+        //The behavior sets the current order and does not affect ship controls
+        public IShipBehavior behavior;
+        //The order represents a packaged action and affects the ship controls
+        public IShipOrder order;
         public AIShip() { }
-        public AIShip(BaseShip ship, IOrder controller) {
+        public AIShip(BaseShip ship, IShipOrder order) {
             this.ship = ship;
-            this.controller = controller;
+            this.order = order;
             InitBehavior(ship.shipClass.behavior);
         }
         public void InitBehavior(ShipBehaviors b) {
@@ -359,7 +367,7 @@ namespace TranscendenceRL {
         }
         public void Update() {
             behavior?.Update(this);
-            controller.Update(this);
+            order.Update(this);
 
             dock?.Update(this);
 
@@ -450,6 +458,8 @@ namespace TranscendenceRL {
         public FuncSet<IContainer<PlayerDestroyed>> onDestroyed = new FuncSet<IContainer<PlayerDestroyed>>();
         public delegate void PlayerDamaged(PlayerShip playerShip, SpaceObject damager, int hp);
         public FuncSet<IContainer<PlayerDamaged>> onDamaged = new FuncSet<IContainer<PlayerDamaged>>();
+
+        public List<AIShip> wingmates;
 
         public PlayerShip() { }
         public PlayerShip(Player player, BaseShip ship) {

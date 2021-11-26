@@ -85,6 +85,7 @@ namespace TranscendenceRL {
 		public Edgemap uiEdge;
 		public Minimap uiMinimap;
 
+		public CommunicationsMenu communicationsMenu;
 		public PowerMenu powerMenu;
 		public PauseMenu pauseMenu;
 
@@ -275,8 +276,8 @@ namespace TranscendenceRL {
 				PlaceTiles();
 
 				var dock = playerShip.dock;
-				if (dock?.justDocked == true && dock.Target is Dockable d) {
-					Console scene = story.GetScene(this, d, playerShip) ?? d.GetScene(this, playerShip);
+				if (dock?.justDocked == true && dock.Target is DockableObject d) {
+					Console scene = story.GetScene(this, d, playerShip) ?? d.GetDockScene(this, playerShip);
 					if (scene != null) {
 						playerShip.DisengageAutopilot();
 						playerShip.dock = null;
@@ -410,11 +411,13 @@ namespace TranscendenceRL {
 			}
 		}
 		public override bool ProcessMouse(MouseScreenObjectState state) {
-			if(pauseMenu.IsVisible) {
+			if (pauseMenu.IsVisible) {
 				pauseMenu.ProcessMouseTree(state.Mouse);
-            } else if(sceneContainer.Children.Any()) {
+			} else if (sceneContainer.Children.Any()) {
 				sceneContainer.ProcessMouseTree(state.Mouse);
-            } else if(state.IsOnScreenObject) {
+			} else if (powerMenu.IsVisible) {
+				powerMenu.ProcessMouseTree(state.Mouse);
+			} else if (state.IsOnScreenObject) {
 
 				//bool moved = mouseScreenPos != state.SurfaceCellPosition;
 				mouseScreenPos = state.SurfaceCellPosition;
@@ -422,9 +425,9 @@ namespace TranscendenceRL {
 				//Placeholder for mouse wheel-based weapon selection
 				if (state.Mouse.ScrollWheelValueChange > 100) {
 					playerShip.NextWeapon();
-                } else if(state.Mouse.ScrollWheelValueChange < -100) {
+				} else if (state.Mouse.ScrollWheelValueChange < -100) {
 					playerShip.PrevWeapon();
-                }
+				}
 
 				var centerOffset = new XY(mouseScreenPos.X, Height - mouseScreenPos.Y) - new XY(Width / 2, Height / 2);
 				centerOffset *= uiMegamap.viewScale;
@@ -464,7 +467,7 @@ namespace TranscendenceRL {
 
 						var off = (mouseWorldPos - aim).magnitude;
 						var tolerance = Math.Sqrt(radius) / 3;
-						Color c = off < tolerance ? Color.White : Color.White.SetAlpha(255 * 3/5);
+						Color c = off < tolerance ? Color.White : Color.White.SetAlpha(255 * 3 / 5);
 
 						EffectParticle.DrawArrow(world, mouseWorldPos, playerOffset, c);
 
@@ -1331,14 +1334,68 @@ namespace TranscendenceRL {
     }
 
 
+	public class CommunicationsMenu : Console {
+		PlayerShip playerShip;
+		int ticks;
+		public CommunicationsMenu(int width, int height, PlayerShip playerShip) : base(width, height) {
+			this.playerShip = playerShip;
+		}
+		public override void Update(TimeSpan delta) {
+			base.Update(delta);
+		}
+		public override bool ProcessKeyboard(Keyboard keyboard) {
 
+			return base.ProcessKeyboard(keyboard);
+		}
+		public override void Render(TimeSpan delta) {
+			int x = 3;
+			int y = 32;
+
+			this.Clear();
+
+			Color foreground = Color.White;
+			if (ticks % 60 < 30) {
+				foreground = Color.Yellow;
+			}
+			var back = Color.Black;
+			this.Print(x, y++, "[Communications]", foreground, back);
+			//this.Print(x, y++, "[Ship control locked]", foreground, back);
+			this.Print(x, y++, "[ESC     -> cancel]", foreground, back);
+			y++;
+
+			int index = 0;
+			foreach (var w in playerShip.wingmates) {
+				char key = indexToKey(index);
+			}
+
+			//this.SetCellAppearance(Width/2, Height/2, new ColoredGlyph(Color.White, Color.White, 'X'));
+
+			base.Render(delta);
+		}
+
+	}
 	public class PowerMenu : Console {
 		PlayerShip playerShip;
 		int ticks;
 		public PowerMenu(int width, int height, PlayerShip playerShip) : base(width, height) {
 			this.playerShip = playerShip;
 			FocusOnMouseClick = false;
+			InitButtons();
+		}
+        protected override void OnVisibleChanged() {
+            if (IsVisible) {
+				InitButtons();
+            }
+            base.OnVisibleChanged();
         }
+		public void InitButtons() {
+			int x = 7;
+			int y = 38;
+			this.Children.Clear();
+			foreach (var p in playerShip.powers) {
+				this.Children.Add(new LabelButton(p.type.name) { Position = new Point(x, y++) });
+			}
+		}
         public override void Update(TimeSpan delta) {
 			ticks++;
 			foreach(var p in playerShip.powers) {

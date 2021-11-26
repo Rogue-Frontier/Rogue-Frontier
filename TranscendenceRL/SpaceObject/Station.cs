@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using static TranscendenceRL.Weapon;
 
 namespace TranscendenceRL {
-    public class Wreck : Dockable {
+    public class Wreck : DockableObject {
         [JsonIgnore]
         public string name => $"Wreck of {creator.name}";
         [JsonIgnore]
@@ -57,7 +57,7 @@ namespace TranscendenceRL {
 
             gravity = new XY(0, 0);
         }
-        public Console GetScene(Console prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
+        public Console GetDockScene(Console prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
         public void Damage(SpaceObject source, int hp) {
         }
 
@@ -89,7 +89,7 @@ namespace TranscendenceRL {
     public interface StationBehavior {
         void Update(Station owner);
     }
-    public class Station : SpaceObject, Dockable, ITrader {
+    public class Station : DockableObject, ITrader {
         [JsonIgnore]
         public string name => type.name;
 
@@ -182,7 +182,7 @@ namespace TranscendenceRL {
             return type.dockPoints.Except(GetDocked().Select(s => s.dock?.Offset)).FirstOrDefault() ?? XY.Zero;
         }
         public void UpdateGuardList() {
-            guards = new List<AIShip>(world.entities.all.OfType<AIShip>().Where(s => s.controller switch {
+            guards = new List<AIShip>(world.entities.all.OfType<AIShip>().Where(s => s.order switch {
                 GuardOrder g => g.GuardTarget == this,
                 PatrolOrbitOrder p => p.patrolTarget == this,
                 PatrolCircuitOrder p => p.patrolTarget == this,
@@ -203,8 +203,8 @@ namespace TranscendenceRL {
             if(source != null && source.sovereign != sovereign) {
 
                 var guards = from guard in world.entities.all.OfType<AIShip>()
-                             where guard.controller is GuardOrder order && order.GuardTarget == this
-                             select (GuardOrder)guard.controller;
+                             where guard.order is GuardOrder order && order.GuardTarget == this
+                             select (GuardOrder)guard.order;
                 foreach(var order in guards) {
                     order.Attack(source, 300);
                 }
@@ -232,21 +232,21 @@ namespace TranscendenceRL {
             }
 
             var guards = world.entities.all.OfType<AIShip>().Where(
-                s => s.controller is GuardOrder o && o.GuardTarget == this);
+                s => s.order is GuardOrder o && o.GuardTarget == this);
             if (source != null && source.sovereign != sovereign) {
                 foreach (var g in guards) {
-                    g.controller = new AttackOrder(source);
+                    g.order = new AttackOrder(source);
                 }
             } else {
                 var next = world.entities.all.OfType<Station>().Where(s => s.type == type && s != this).OrderBy(p => (p.position - position).magnitude2).FirstOrDefault();
                 if(next != null) {
                     foreach(var g in guards) {
-                        var o = (GuardOrder)g.controller;
+                        var o = (GuardOrder)g.order;
                         o.GuardTarget = next;
                     }
                 } else {
                     foreach (var g in guards) {
-                        g.controller = new PatrolOrbitOrder(this, 20);
+                        g.order = new PatrolOrbitOrder(this, 20);
                     }
                 }
             }
@@ -261,7 +261,7 @@ namespace TranscendenceRL {
             behavior?.Update(this);
         }
 
-        public Console GetScene(Console prev, PlayerShip playerShip) => null;
+        public Console GetDockScene(Console prev, PlayerShip playerShip) => null;
 
         public ColoredGlyph tile => type.tile.Original;
 

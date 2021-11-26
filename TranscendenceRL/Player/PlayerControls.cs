@@ -99,11 +99,16 @@ namespace TranscendenceRL {
 
 					playerShip.dock = null;
 				} else {
-					Dockable dest = null;
-					if (playerShip.GetTarget(out var t) && (playerShip.position - t.position).magnitude < 24 && t is Dockable d) {
+					DockableObject dest = null;
+					if (playerShip.GetTarget(out var t) && (playerShip.position - t.position).magnitude < 24 && t is DockableObject d) {
 						dest = d;
 					}
-					dest = dest ?? playerShip.world.entities.GetAll(p => (playerShip.position - p).magnitude < 8).OfType<Dockable>().OrderBy(p => (p.position - playerShip.position).magnitude).FirstOrDefault();
+					dest = dest ?? playerShip.world.entities
+						.GetAll(p => (playerShip.position - p).magnitude < 8)
+						.OfType<DockableObject>()
+						.Where(s => s.dockable)
+						.OrderBy(p => (p.position - playerShip.position).magnitude)
+						.FirstOrDefault();
 					if (dest != null) {
 						playerShip.AddMessage(new Message("Docking sequence engaged"));
 						playerShip.dock = new Docking(dest, dest.GetDockPoint());
@@ -146,7 +151,14 @@ namespace TranscendenceRL {
 			ProcessTargeting();
 			ProcessCommon();
 			ProcessOther();
+
+			if (info.IsKeyPressed(C)) {
+				if (playerMain.communicationsMenu != null) {
+					playerMain.communicationsMenu.IsVisible = !playerMain.communicationsMenu.IsVisible;
+				}
+			}
 #if DEBUG
+			/*
 			if (info.IsKeyPressed(C)) {
 				if(info.IsKeyDown(LeftShift)) {
 					playerShip.Destroy(playerShip);
@@ -158,6 +170,7 @@ namespace TranscendenceRL {
 			if (info.IsKeyPressed(V)) {
 				playerShip.ship.controlHijack = new Disrupt() { ticksLeft = 90, thrustMode = DisruptMode.FORCE_ON };
 			}
+			*/
 #endif
 		}
     }

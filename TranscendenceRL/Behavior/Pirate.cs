@@ -13,7 +13,7 @@ namespace TranscendenceRL {
             if (ticks % 300 == 0) {
                 //Clear any pirate attacks where the target has too many defenders
                 foreach(var g in owner.guards) {
-                    if (g.controller is GuardOrder order
+                    if (g.order is GuardOrder order
                         && order.attackOrder?.Active == true
                         && CountDefenders(order.attackOrder.target, g) > 2) {
                         order.ClearAttack();
@@ -26,7 +26,7 @@ namespace TranscendenceRL {
                             .Where(s => (s.position - owner.position).magnitude < 500);
                 //Handle all available guards
                 foreach (var g in owner.guards) {
-                    if(g.controller is GuardOrder o && o.attackTime < 1) {
+                    if(g.order is GuardOrder o && o.attackTime < 1) {
                         var target = targets.FirstOrDefault(
                             s => CountAttackers(s) < 5 && CountDefenders(s, g) < 3);
                         if (target != null) {
@@ -48,7 +48,7 @@ namespace TranscendenceRL {
                     return target.world.entities.all
                             .OfType<AIShip>()
                             .Where(s => s.sovereign == owner.sovereign)
-                            .Where(s => s.controller is GuardOrder o && o.attackOrder?.target == target)
+                            .Where(s => s.order is GuardOrder o && o.attackOrder?.target == target)
                             .Count();
                 }
             }

@@ -6,29 +6,37 @@ using System.Linq;
 using static TranscendenceRL.Weapon;
 using Helper = Common.Main;
 namespace TranscendenceRL {
-    public interface IOrder {
+    public interface IShipOrder {
         bool Active { get; }
         void Update(AIShip owner);
         public bool CanTarget(SpaceObject other) => false;
     }
-    public class CompoundOrder : IOrder {
-        public List<IOrder> orders;
-        public CompoundOrder(params IOrder[] orders) {
-            this.orders = new List<IOrder>(orders);
+
+    public interface ITargetedOrder {
+        public bool CanTarget(SpaceObject other) => false;
+    }
+    public class CompoundOrder : IShipOrder {
+        public List<IShipOrder> orders;
+        public CompoundOrder(params IShipOrder[] orders) {
+            this.orders = new List<IShipOrder>(orders);
         }
         public void Update(AIShip owner) {
-            if(orders.Count == 0) {
-                return;
-            }
-            IOrder first = orders.First();
-            first.Update(owner);
-            if(!first.Active) {
-                orders.RemoveAt(0);
+            Start:
+            var first = orders.FirstOrDefault();
+            switch(first?.Active) {
+                case true:
+                    first.Update(owner);
+                    return;
+                case false:
+                    orders.RemoveAt(0);
+                    goto Start;
+                default:
+                    return;
             }
         }
         public bool Active => orders.Any();
     }
-    public class EscortOrder : IOrder {
+    public class EscortOrder : IShipOrder {
         public SpaceObject attacker;
         public IShip target;
         public XY offset;
@@ -43,7 +51,7 @@ namespace TranscendenceRL {
             attacker = ((attacker?.active == true) ? attacker : null) ?? owner.world.entities.all
                 .OfType<AIShip>()
                 .FirstOrDefault(s => (s.position - owner.position).magnitude < 100
-                            && (s.controller.CanTarget(target) || s.controller.CanTarget(owner)));
+                            && (s.order.CanTarget(target) || s.order.CanTarget(owner)));
             if (attacker != null) {
                 new AttackOrder(attacker).Update(owner);
             } else {
@@ -52,7 +60,7 @@ namespace TranscendenceRL {
         }
         public bool Active => target.active;
     }
-    public class FollowOrder : IOrder {
+    public class FollowOrder : IShipOrder {
         public IShip target;
         public XY offset;
         public FollowOrder(IShip target, XY offset) {
@@ -68,7 +76,7 @@ namespace TranscendenceRL {
         }
         public bool Active => target.active;
     }
-    public class ApproachOrder : IOrder {
+    public class ApproachOrder : IShipOrder {
         public IShip target;
         public XY offset;
         public ApproachOrder(IShip target, XY offset) {
@@ -141,7 +149,7 @@ namespace TranscendenceRL {
         }
         public bool Active => true;
     }
-    public class GuardOrder : IOrder {
+    public class GuardOrder : IShipOrder {
         public SpaceObject GuardTarget;
         public AttackOrder attackOrder;
         public int attackTime;
@@ -209,7 +217,7 @@ namespace TranscendenceRL {
         }
         public bool Active => GuardTarget.active;
     }
-    public class AttackAllOrder : IOrder {
+    public class AttackAllOrder : IShipOrder {
         public int sleepTicks;
         public AttackOrder attackOrder;
         public bool CanTarget(SpaceObject other) => other == attackOrder.target;
@@ -246,7 +254,7 @@ namespace TranscendenceRL {
         public bool Active => true;
     }
 
-    public class AttackGroupOrder : IOrder {
+    public class AttackGroupOrder : IShipOrder {
         public HashSet<SpaceObject> targets;
         public AttackOrder attackOrder;
         public bool CanTarget(SpaceObject other) => targets.Contains(other);
@@ -272,7 +280,7 @@ namespace TranscendenceRL {
         }
         public bool Active => targets.Any();
     }
-    public class AttackOrder : IOrder {
+    public class AttackOrder : IShipOrder {
         public SpaceObject target;
         public Weapon weapon;
         public List<Weapon> omni;
@@ -367,7 +375,7 @@ namespace TranscendenceRL {
         public bool Active => target?.active == true && weapon != null;
     }
 
-    public class PatrolOrbitOrder : IOrder {
+    public class PatrolOrbitOrder : IShipOrder {
         public SpaceObject patrolTarget;
         public double patrolRadius;
         public double attackLimit;
@@ -429,7 +437,7 @@ namespace TranscendenceRL {
         public bool Active => patrolTarget.active;
     }
 
-    public class PatrolCircuitOrder : IOrder {
+    public class PatrolCircuitOrder : IShipOrder {
         public SpaceObject patrolTarget;
 
         public IEnumerable<SpaceObject> nearbyFriends;
@@ -526,7 +534,7 @@ namespace TranscendenceRL {
         public bool Active => patrolTarget.active;
     }
 
-    public class SnipeOrder : IOrder {
+    public class SnipeOrder : IShipOrder {
         public SpaceObject target;
         public Weapon weapon;
         public SnipeOrder(SpaceObject target) {
@@ -554,7 +562,7 @@ namespace TranscendenceRL {
         }
         public bool Active => target?.active == true && weapon?.AllowFire == true;
     }
-    public class ApproachOrbitOrder : IOrder {
+    public class ApproachOrbitOrder : IShipOrder {
         public SpaceObject target;
         public ApproachOrbitOrder(SpaceObject target) {
             this.target = target;
@@ -595,7 +603,7 @@ namespace TranscendenceRL {
         public bool Active => true;
     }
 
-    public class AimOnceOrder : IOrder {
+    public class AimOnceOrder : IShipOrder {
         public AimOrder order;
         public AimOnceOrder(BaseShip owner, BaseShip target, double missileSpeed) {
             this.order = new AimOrder(target, missileSpeed);
@@ -608,7 +616,7 @@ namespace TranscendenceRL {
 
         public bool Active { get; private set; }
     }
-    public class AimOrder : IOrder {
+    public class AimOrder : IShipOrder {
         public SpaceObject target;
         public double missileSpeed;
         public double GetTargetRads(AIShip owner) => Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
@@ -632,7 +640,7 @@ namespace TranscendenceRL {
             }
         }
     }
-    public class FaceOrder : IOrder {
+    public class FaceOrder : IShipOrder {
         public double targetRads;
         public FaceOrder(double targetRads) {
             this.targetRads = targetRads;

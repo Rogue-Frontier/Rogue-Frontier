@@ -15,10 +15,12 @@ namespace TranscendenceRL {
         void Damage(SpaceObject source, int hp);
         void Destroy(SpaceObject source = null);
     }
-    public interface Dockable : SpaceObject {
-        Console GetScene(Console prev, PlayerShip playerShip);
+    public interface Dockable {
+        public bool dockable => true;
+        Console GetDockScene(Console prev, PlayerShip playerShip) => null;
         public XY GetDockPoint() => XY.Zero;
     }
+    public interface DockableObject : SpaceObject, Dockable { }
     public static class SSpaceObject {
         public static bool IsEqual(this SpaceObject o1, SpaceObject o2) {
             { if (o1 is AIShip s) o1 = s.ship; }

@@ -17,7 +17,7 @@
 				damageType="2"
 				damageHP="5"
 				lifetime="60"
-				char=	","
+				char=	"-"
 				foreground="White"
 
 				initialCharges=	"200"

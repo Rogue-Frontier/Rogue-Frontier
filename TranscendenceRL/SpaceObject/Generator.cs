@@ -99,10 +99,10 @@ namespace TranscendenceRL {
 		}
 
 		public interface IOrderDesc {
-			IOrder CreateOrder(SpaceObject owner);
+			IShipOrder CreateOrder(SpaceObject owner);
         }
 		public class GuardDesc : IOrderDesc {
-			public IOrder CreateOrder(SpaceObject owner) => new GuardOrder(owner);
+			public IShipOrder CreateOrder(SpaceObject owner) => new GuardOrder(owner);
         }
 		public class PatrolOrbitDesc : IOrderDesc {
 			public int patrolRadius;
@@ -110,7 +110,7 @@ namespace TranscendenceRL {
 			public PatrolOrbitDesc(XElement e) {
 				patrolRadius = e.ExpectAttributeInt("patrolRadius");
             }
-			public IOrder CreateOrder(SpaceObject owner) => new PatrolOrbitOrder(owner, patrolRadius);
+			public IShipOrder CreateOrder(SpaceObject owner) => new PatrolOrbitOrder(owner, patrolRadius);
 		}
 		//Patrol an entire cluster of stations (moving out to 50 ls + radius of nearest station)
 		public class PatrolCircuitDesc : IOrderDesc {
@@ -119,7 +119,7 @@ namespace TranscendenceRL {
 			public PatrolCircuitDesc(XElement e) {
 				patrolRadius = e.ExpectAttributeInt("patrolRadius");
 			}
-			public IOrder CreateOrder(SpaceObject owner) => new PatrolCircuitOrder(owner, patrolRadius);
+			public IShipOrder CreateOrder(SpaceObject owner) => new PatrolCircuitOrder(owner, patrolRadius);
 		}
 	}
 
