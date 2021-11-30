@@ -233,9 +233,12 @@ namespace TranscendenceRL {
 
             var guards = world.entities.all.OfType<AIShip>().Where(
                 s => s.order is GuardOrder o && o.GuardTarget == this);
+
+            var gate = world.entities.all.OfType<Stargate>().FirstOrDefault();
+            var lastOrder = new CompoundOrder(new AttackOrder(source), new GateOrder(gate));
             if (source != null && source.sovereign != sovereign) {
                 foreach (var g in guards) {
-                    g.order = new AttackOrder(source);
+                    g.order = lastOrder;
                 }
             } else {
                 var next = world.entities.all.OfType<Station>().Where(s => s.type == type && s != this).OrderBy(p => (p.position - position).magnitude2).FirstOrDefault();

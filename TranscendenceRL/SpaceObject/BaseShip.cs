@@ -44,7 +44,7 @@ namespace TranscendenceRL {
     }
     public class BaseShip : SpaceObject {
         [JsonIgnore]
-        public static BaseShip dead => new BaseShip(World.empty, ShipClass.empty, Sovereign.Gladiator, XY.Zero) { active = false };
+        public static BaseShip dead => new(World.empty, ShipClass.empty, Sovereign.Gladiator, XY.Zero) { active = false };
         [JsonIgnore]
         public string name => shipClass.name;
         [JsonIgnore]
@@ -68,11 +68,11 @@ namespace TranscendenceRL {
 
 
         [JsonProperty]
-        public World world { get; private set; }
+        public World world { get; set; }
         [JsonProperty]
-        public ShipClass shipClass { get; private set; }
+        public ShipClass shipClass { get; set; }
         [JsonProperty]
-        public Sovereign sovereign { get; private set; }
+        public Sovereign sovereign { get; set; }
         [JsonProperty]
         public XY position { get; set; }
         [JsonProperty]
@@ -99,7 +99,7 @@ namespace TranscendenceRL {
 
 
         public delegate void Destroyed(BaseShip ship, SpaceObject destroyer, Wreck wreck);
-        public FuncSet<IContainer<Destroyed>> onDestroyed = new FuncSet<IContainer<Destroyed>>();
+        public FuncSet<IContainer<Destroyed>> onDestroyed = new();
 
 
 
@@ -112,13 +112,13 @@ namespace TranscendenceRL {
             this.sovereign = Sovereign;
             
             this.position = Position;
-            this.velocity = new XY();
+            this.velocity = new();
             
             this.active = true;
             
-            this.cargo = new HashSet<Item>();
+            this.cargo = new();
             this.cargo.UnionWith(shipClass.cargo?.Generate(world.types) ?? new List<Item>());
-            this.devices = new DeviceSystem();
+            this.devices = new();
             this.devices.Install(shipClass.devices?.Generate(world.types) ?? new List<Device>());
 
             this.damageSystem = shipClass.damageDesc.Create(this);
@@ -282,7 +282,7 @@ namespace TranscendenceRL {
     }
     public class Sulphin : IShipBehavior {
         int ticks = 0;
-        HashSet<PlayerShip> playersMet = new HashSet<PlayerShip>();
+        HashSet<PlayerShip> playersMet = new();
         public void Update(IShip owner) {
             ticks++;
             if (ticks % 150 == 0) {
@@ -433,12 +433,12 @@ namespace TranscendenceRL {
         public Player player;
         public BaseShip ship;
         public EnergySystem energy;
-        public List<Power> powers;
+        public List<Power> powers=new();
         public Docking dock { get; set; }
 
         public int targetIndex = -1;
         public bool targetFriends = false;
-        public List<SpaceObject> TargetList = new List<SpaceObject>();
+        public List<SpaceObject> TargetList = new();
 
         public bool firingPrimary = false;
         public int selectedPrimary = 0;
@@ -448,18 +448,18 @@ namespace TranscendenceRL {
 
         public bool autopilot = false;
 
-        public List<IPlayerMessage> messages = new List<IPlayerMessage>();
-        public HashSet<Entity> visible = new HashSet<Entity>();
-        public HashSet<Station> known = new HashSet<Station>();
+        public List<IPlayerMessage> messages = new();
+        public HashSet<Entity> visible = new();
+        public HashSet<Station> known = new();
         int ticks = 0;
-        public HashSet<IShip> shipsDestroyed = new HashSet<IShip>();
+        public HashSet<IShip> shipsDestroyed = new();
 
         public delegate void PlayerDestroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);
-        public FuncSet<IContainer<PlayerDestroyed>> onDestroyed = new FuncSet<IContainer<PlayerDestroyed>>();
+        public FuncSet<IContainer<PlayerDestroyed>> onDestroyed = new();
         public delegate void PlayerDamaged(PlayerShip playerShip, SpaceObject damager, int hp);
-        public FuncSet<IContainer<PlayerDamaged>> onDamaged = new FuncSet<IContainer<PlayerDamaged>>();
+        public FuncSet<IContainer<PlayerDamaged>> onDamaged = new();
 
-        public List<AIShip> wingmates;
+        public List<AIShip> wingmates=new();
 
         public PlayerShip() { }
         public PlayerShip(Player player, BaseShip ship) {
@@ -467,7 +467,6 @@ namespace TranscendenceRL {
             this.ship = ship;
 
             energy = new EnergySystem(ship.devices);
-            powers = new List<Power>();
 
             //Remember to create the Heading when you add or replace this ship in the World
             Attach();
@@ -704,15 +703,11 @@ namespace TranscendenceRL {
                 target = TargetList[targetIndex];
                 if (target.active) {
                     return true;
-                } else {
-                    ForgetTarget();
-                    target = null;
-                    return false;
                 }
-            } else {
-                target = null;
-                return false;
+                ForgetTarget();
             }
+            target = null;
+            return false;
         }
         public Weapon GetPrimary() {
             if(selectedPrimary < ship.devices.Weapons.Count) {

@@ -115,7 +115,8 @@ namespace TranscendenceRL {
 			uiMain = new Readout(camera, playerShip, Width, Height);
 			uiEdge = new Edgemap(camera, playerShip, Width, Height);
 			uiMinimap = new Minimap(this, playerShip, 16);
-			powerMenu = new PowerMenu(Width, Height, playerShip) { IsVisible = false };
+			communicationsMenu = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
+			powerMenu = new PowerMenu(31, 12, playerShip) { IsVisible = false, Position = new(3, 32) };
 			pauseMenu = new PauseMenu(this) { IsVisible = false };
 			crosshair = new TargetingMarker(playerShip, "Mouse Cursor", new XY());
 			playerControls = new PlayerControls(playerShip, this);
@@ -133,6 +134,7 @@ namespace TranscendenceRL {
 			sceneContainer.Children.Clear();
 			//Force exit power menu
 			powerMenu.IsVisible = false;
+			communicationsMenu.IsVisible = false;
 			//Pretty sure this can't happen but make sure
 			pauseMenu.IsVisible = false;
 			uiMain.IsVisible = false;
@@ -251,6 +253,9 @@ namespace TranscendenceRL {
 				if (powerMenu.IsVisible) {
 					powerMenu.Update(delta);
 				}
+                if (communicationsMenu.IsVisible) {
+					communicationsMenu.Update(delta);
+                }
 			}
 			if (passTime) {
 
@@ -333,6 +338,9 @@ namespace TranscendenceRL {
 				if (powerMenu.IsVisible) {
 					powerMenu.Render(drawTime);
 				}
+                if (communicationsMenu.IsVisible) {
+					communicationsMenu.Render(drawTime);
+                }
 			}
 			//frameRendered = true;
 		}
@@ -369,12 +377,15 @@ namespace TranscendenceRL {
 			keyboard = info;
 
 			//Intercept the alphanumeric/Escape keys if the power menu is active
-			if(pauseMenu.IsVisible) {
+			if (pauseMenu.IsVisible) {
 				pauseMenu.ProcessKeyboard(info);
-            } else if (powerMenu.IsVisible) {
-				playerControls.ProcessPowerMenu(info);
+			} else if (powerMenu.IsVisible) {
+				playerControls.ProcessWithMenu(info);
 				powerMenu.ProcessKeyboard(info);
-			} else {
+			} else if (communicationsMenu.IsVisible){
+				playerControls.ProcessWithMenu(info);
+				communicationsMenu.ProcessKeyboard(info);
+			}else {
 				playerControls.ProcessKeyboard(info);
 
 				if(info.IsKeyDown(OemOpenBrackets)) {
@@ -415,10 +426,11 @@ namespace TranscendenceRL {
 				pauseMenu.ProcessMouseTree(state.Mouse);
 			} else if (sceneContainer.Children.Any()) {
 				sceneContainer.ProcessMouseTree(state.Mouse);
-			} else if (powerMenu.IsVisible) {
+			} else if (powerMenu.IsVisible
+				&& powerMenu.blockMouse
+				&& new MouseScreenObjectState(powerMenu, state.Mouse).IsOnScreenObject) {
 				powerMenu.ProcessMouseTree(state.Mouse);
 			} else if (state.IsOnScreenObject) {
-
 				//bool moved = mouseScreenPos != state.SurfaceCellPosition;
 				mouseScreenPos = state.SurfaceCellPosition;
 
@@ -1337,19 +1349,49 @@ namespace TranscendenceRL {
 	public class CommunicationsMenu : Console {
 		PlayerShip playerShip;
 		int ticks;
+		CommandMenu menu;
 		public CommunicationsMenu(int width, int height, PlayerShip playerShip) : base(width, height) {
 			this.playerShip = playerShip;
+			menu = new(this, null, null) { IsVisible = false };
 		}
 		public override void Update(TimeSpan delta) {
+            if (menu.IsVisible) {
+				menu.Update(delta);
+				return;
+            }
+			if (ticks % 30 == 0) {
+				playerShip.wingmates.RemoveAll(w => !w.active);
+			}
 			base.Update(delta);
+			ticks++;
 		}
-		public override bool ProcessKeyboard(Keyboard keyboard) {
-
-			return base.ProcessKeyboard(keyboard);
+		public override bool ProcessKeyboard(Keyboard info) {
+            if (menu.IsVisible == true) {
+				return menu.ProcessKeyboard(info);
+            }
+			foreach (var k in info.KeysPressed) {
+				int index = keyToIndex(k.Character);
+				if (index > -1 && index < 10 && index < playerShip.wingmates.Count) {
+					var w = playerShip.wingmates[index];
+					menu = new(this, playerShip, w) { Position = this.Position };
+				}
+			}
+			if (info.IsKeyPressed(Keys.Escape)) {
+				IsVisible = false;
+			}
+			if (info.IsKeyPressed(Keys.C)) {
+				IsVisible = false;
+			}
+			return base.ProcessKeyboard(info);
 		}
 		public override void Render(TimeSpan delta) {
-			int x = 3;
-			int y = 32;
+
+            if (menu.IsVisible) {
+				menu.Render(delta);
+				return;
+            }
+			int x = 0;
+			int y = 0;
 
 			this.Clear();
 
@@ -1363,20 +1405,114 @@ namespace TranscendenceRL {
 			this.Print(x, y++, "[ESC     -> cancel]", foreground, back);
 			y++;
 
+            if (playerShip.wingmates.Count(w => w.active) == 0) {
+				playerShip.wingmates.AddRange(playerShip.world.entities.all.OfType<AIShip>());
+				foreach(var w in playerShip.wingmates) {
+					w.ship.sovereign = playerShip.sovereign;
+                }
+            }
+
 			int index = 0;
-			foreach (var w in playerShip.wingmates) {
-				char key = indexToKey(index);
+			foreach (var w in playerShip.wingmates.Take(10)) {
+				char key = indexToKey(index++);
+				this.Print(x, y++, $"[{key}] {w.name}: {w.order.GetType().Name}", Color.White, Color.Black);
 			}
 
 			//this.SetCellAppearance(Width/2, Height/2, new ColoredGlyph(Color.White, Color.White, 'X'));
 
 			base.Render(delta);
 		}
+		public class CommandMenu : Console {
+			PlayerShip player;
+			AIShip subject;
+			public int ticks = 0;
+			private Dictionary<string, Action<int>> commands;
 
+			public CommandMenu(Console prev, PlayerShip player, AIShip subject) : base(prev.Width, prev.Height) {
+				this.player = player;
+				this.subject = subject;
+
+				EscortOrder GetEscortOrder(int i) {
+
+					int root = (int)Math.Sqrt(i);
+					int lower = root * root;
+					int upper = (root + 1) * (root + 1);
+					int range = upper - lower;
+					int index = i - lower;
+					return new EscortOrder(player, XY.Polar(
+							-(Math.PI * index / range), root * 2));
+				}
+				commands = new Dictionary<string, Action<int>> {
+					{"Form Up", i => {
+
+
+						player.AddMessage(new Message($"Ordered {subject.name} to {commands.Keys.ElementAt(i)}"));
+						subject.order = GetEscortOrder(i);
+					}}, {"Attack Target", i => {
+
+						if(player.GetTarget(out SpaceObject target)) {
+							subject.order = new CompoundOrder(new AttackOrder(target), GetEscortOrder(i));
+							player.AddMessage(new Message($"Ordered {subject.name} to {commands.Keys.ElementAt(i)}"));
+						} else {
+							player.AddMessage(new Message($"No target selected"));
+						}
+					}}
+				};
+            }
+            public override void Update(TimeSpan delta) {
+				ticks++;
+				base.Update(delta);
+            }
+            public override bool ProcessKeyboard(Keyboard info) {
+				foreach (var k in info.KeysPressed) {
+					int index = keyToIndex(k.Character);
+					if (index > -1 && index < commands.Count) {
+						commands.Values.ElementAt(index)(index);
+					}
+				}
+				if (info.IsKeyPressed(Keys.Escape)) {
+					IsVisible = false;
+				}
+				return base.ProcessKeyboard(info);
+			}
+			public override void Render(TimeSpan delta) {
+				int x = 0;
+				int y = 0;
+
+				this.Clear();
+
+				Color foreground = Color.White;
+				if (ticks % 60 < 30) {
+					foreground = Color.Yellow;
+				}
+				var back = Color.Black;
+				this.Print(x, y++, "[Command]", foreground, back);
+				//this.Print(x, y++, "[Ship control locked]", foreground, back);
+				this.Print(x, y++, "[ESC     -> cancel]", foreground, back);
+				y++;
+				this.Print(x, y++, $"{subject.name}:{subject.order.GetType().Name}", Color.White, Color.Black);
+				y++;
+				int index = 0;
+				foreach (var w in commands.Keys) {
+					char key = indexToKey(index++);
+					this.Print(x, y++, $"[{key}] {w}", Color.White, Color.Black);
+				}
+
+				base.Render(delta);
+            }
+        }
 	}
 	public class PowerMenu : Console {
 		PlayerShip playerShip;
 		int ticks;
+		private bool _blockMouse;
+		public bool blockMouse {
+			set {
+				_blockMouse = value;
+				DefaultBackground = value ? new Color(0, 0, 0, 127) : Color.Transparent;
+            }
+			get => _blockMouse;
+        }
 		public PowerMenu(int width, int height, PlayerShip playerShip) : base(width, height) {
 			this.playerShip = playerShip;
 			FocusOnMouseClick = false;
@@ -1389,11 +1525,19 @@ namespace TranscendenceRL {
             base.OnVisibleChanged();
         }
 		public void InitButtons() {
-			int x = 7;
-			int y = 38;
+			int x = 4;
+			int y = 6;
 			this.Children.Clear();
 			foreach (var p in playerShip.powers) {
-				this.Children.Add(new LabelButton(p.type.name) { Position = new Point(x, y++) });
+				this.Children.Add(new LabelButton(p.type.name) {
+					Position = new Point(x, y++),
+					leftHold = () => {
+						if (p.ready) {
+							//Enable charging
+							p.charging = true;
+						}
+					}
+				});
 			}
 		}
         public override void Update(TimeSpan delta) {
@@ -1464,11 +1608,12 @@ namespace TranscendenceRL {
             return base.ProcessKeyboard(keyboard);
         }
 		public override void Render(TimeSpan delta) {
-			int x = 3;
-			int y = 32;
+			int x = 0;
+			int y = 0;
 			int index = 0;
 
 			this.Clear();
+			
 
 			Color foreground = Color.White;
 			if(ticks%60 < 30) {
@@ -1482,21 +1627,20 @@ namespace TranscendenceRL {
 			this.Print(x, y++, "[Hold    -> charge]", foreground, back);
 			this.Print(x, y++, "[Release -> invoke]", foreground, back);
 			y++;
+
+			var bl = Color.Black;
+			var gr = Color.Gray;
+			var wh = Color.White;
 			foreach (var p in playerShip.powers) {
 				char key = indexToKey(index);
 				if(p.cooldownLeft > 0) {
 					int chargeBar = 16 * p.cooldownLeft / p.cooldownPeriod;
 					this.Print(x, y++,
-						new ColoredString(
-							$"[{key}] {p.type.name,-8}",
-							Color.Gray, Color.Black
-							) + new ColoredString(
-								new string('>', 16 - chargeBar),
-								Color.White, Color.Black
-							) + new ColoredString(
-								new string('>', chargeBar),
-								Color.Gray, Color.Black
-							)
+						new ColoredString($"[{key}] {p.type.name,-8} ", gr, bl) +
+						new ColoredString("[", wh, bl) +
+						new ColoredString(new string('>', 16 - chargeBar), wh, bl) +
+						new ColoredString(new string('>', chargeBar), gr, bl) +
+						new ColoredString("]", wh, bl)
 						);
                 } else if(p.invokeCharge > 0) {
 					var chargeMeter = Math.Min(16, 16 * p.invokeCharge / p.invokeDelay);
@@ -1506,11 +1650,16 @@ namespace TranscendenceRL {
 						c = Color.Orange;
                     }
 					this.Print(x, y++,
-						new ColoredString($"[{key}] {p.type.name, -8}{new string('>', chargeMeter)}", c, Color.Black)
-						+ new ColoredString(new string('>', 16 - chargeMeter), Color.White, Color.Black)
+						new ColoredString($"[{key}] {p.type.name, -8} ", c, bl) +
+						new ColoredString("[", c, bl) +
+						new ColoredString(new string('>', chargeMeter), c, bl) +
+						new ColoredString(new string('>', 16 - chargeMeter), wh, bl) +
+						new ColoredString("]", c, bl)
 						);
 				} else {
-					this.Print(x, y++, new ColoredString($"[{key}] {p.type.name, -8}", Color.White, Color.Black) + new ColoredString($"{new string('>', 16)}", Color.White, Color.Black));
+					this.Print(x, y++,
+						new ColoredString($"[{key}] {p.type.name, -8} ", wh, bl) +
+						new ColoredString($"[{new string('>', 16)}]", wh, bl));
 				}
 				index++;
             }

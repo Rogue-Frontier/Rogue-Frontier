@@ -44,10 +44,8 @@ namespace TranscendenceRL {
             this.target = target;
             this.offset = offset;
         }
-
         public bool CanTarget(SpaceObject other) => other == attacker;
         public void Update(AIShip owner) {
-
             attacker = ((attacker?.active == true) ? attacker : null) ?? owner.world.entities.all
                 .OfType<AIShip>()
                 .FirstOrDefault(s => (s.position - owner.position).magnitude < 100
@@ -70,7 +68,7 @@ namespace TranscendenceRL {
         public void Update(AIShip owner) {
             var offset = this.offset.Rotate(target.stoppingRotation * Math.PI / 180);
 #if DEBUG
-            Heading.Crosshair(owner.world, target.position + offset);
+            //Heading.Crosshair(owner.world, target.position + offset);
 #endif
             new ApproachOrder(target, this.offset).Update(owner);
         }
@@ -96,55 +94,42 @@ namespace TranscendenceRL {
             if (!owner.velocity.isZero) {
                 stoppingPoint += owner.velocity.normal * stoppingDistance;
             }
-            var dest = target.position + (target.velocity * stoppingTime) + this.offset.Rotate(target.stoppingRotation * Math.PI / 180);
-            var offset = dest - stoppingPoint;
+
+            var formationPoint = target.position + this.offset.Rotate(target.stoppingRotation * Math.PI / 180);
+            var dest = formationPoint + (target.velocity * stoppingTime);
+            var offset = formationPoint - owner.position;
 
 #if DEBUG
-            Heading.Crosshair(owner.world, dest);
+            //Heading.Crosshair(owner.world, dest);
 #endif
             var velProjection = velDiff * velDiff.Dot(offset.normal) / velDiff.Dot(velDiff);
             var velRejection = velDiff - velProjection;
 
-            //Make sure we're going the right way
-            if (velDiff.magnitude > 5 && velRejection.magnitude > velProjection.magnitude/2) {
-                //Decelerate
-                var backAngle = Math.PI + velRejection.angleRad;
-                var faceBack = new FaceOrder(backAngle);
-                faceBack.Update(owner);
-                var angleDiff = Math.Abs(Helper.AngleDiff(owner.rotationDeg, backAngle * 180 / Math.PI));
-                if (angleDiff < 5) {
+            if(velRejection.magnitude2 > 1) {
+                owner.SetDecelerating(true);
+            }
+
+            if (offset.magnitude > velDiff.magnitude / 10) {
+                //Approach the target
+                //Face the target
+                var Face = new FaceOrder(offset.angleRad);
+                //var Face = new FaceOrder(Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, owner.ShipClass.thrust * 30, out _));
+                Face.Update(owner);
+
+                //If we're facing close enough
+                if (Math.Abs(Helper.AngleDiff(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10 && (velProjection.magnitude < offset.magnitude / 2 || velDiff.magnitude == 0)) {
+
+                    //Go
                     owner.SetThrusting(true);
                 }
             } else {
-                //Prepare to decelerate
-                if (offset.magnitude < 1) {
-                    //If we're close enough to dest, then just teleport there
-                    if((dest - owner.position).magnitude > 1) {
-                        owner.SetDecelerating(true);
-                    } else {
-                        owner.velocity = target.velocity;
-                        owner.position = dest;
 
-                        //Match the target's facing
-                        var Face = new FaceOrder(target.rotationDeg * Math.PI / 180);
-                        Face.Update(owner);
-                    }
+                owner.velocity = target.velocity;
+                owner.position = formationPoint;
 
-                } else {
-                    //Approach the target
-
-                    //Face the target
-                    var Face = new FaceOrder(offset.angleRad);
-                    //var Face = new FaceOrder(Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, owner.ShipClass.thrust * 30, out _));
-                    Face.Update(owner);
-
-                    //If we're facing close enough
-                    if (Math.Abs(Helper.AngleDiff(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10 && (velProjection.magnitude < offset.magnitude/2 || velDiff.magnitude == 0)) {
-
-                        //Go
-                        owner.SetThrusting(true);
-                    }
-                }
+                //Match the target's facing
+                var Face = new FaceOrder(target.rotationDeg * Math.PI / 180);
+                Face.Update(owner);
             }
         }
         public bool Active => true;
@@ -373,6 +358,23 @@ namespace TranscendenceRL {
             }
         }
         public bool Active => target?.active == true && weapon != null;
+    }
+
+    public class GateOrder : IShipOrder {
+        public Stargate gate;
+        public GateOrder(Stargate gate) {
+            this.gate = gate;
+        }
+        public bool CanTarget(SpaceObject other) => false;
+        public void Update(AIShip owner) {
+            if ((owner.position - gate.position).magnitude2 > 10) {
+                new ApproachOrbitOrder(gate).Update(owner);
+            } else {
+                owner.world.RemoveEntity(owner);
+            }
+        }
+        public bool Active => true;
+
     }
 
     public class PatrolOrbitOrder : IShipOrder {

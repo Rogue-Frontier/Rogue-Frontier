@@ -139,7 +139,7 @@ namespace TranscendenceRL {
 		public void UpdateInput(Keyboard info) {
 			input = new PlayerInput(playerShip.player.Settings.controls, info);
 		}
-		public void ProcessPowerMenu(Keyboard info) {
+		public void ProcessWithMenu(Keyboard info) {
 			UpdateInput(info);
 			ProcessArrows();
 			ProcessTargeting();

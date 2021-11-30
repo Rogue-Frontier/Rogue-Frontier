@@ -71,6 +71,13 @@ namespace TranscendenceRL {
             x = Width / 2;
             y = 2;
 
+            var pl = playerShip.player;
+            Print(x, y++, "[Player]");
+            Print(x, y++, $"Name:       {pl.name}");
+            Print(x, y++, $"Identity:   {pl.Genome.name}");
+            Print(x, y++, $"Money:      {pl.money}");
+            Print(x, y++, $"Title:      Harmless");
+            y++;
             var reactors = playerShip.ship.devices.Reactors;
             if(reactors.Any()) {
                 Print(x, y++, "[Reactors]");
