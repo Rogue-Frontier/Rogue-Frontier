@@ -413,7 +413,8 @@ namespace TranscendenceRL {
 
                     var playerShip = new PlayerShip(new Player() { Settings = settings }, new BaseShip(a.ship));
 
-                    playerMain = new PlayerMain(Width, Height, null, playerShip) { IsFocused = true, camera = new Camera(camera) };
+                    playerMain = new PlayerMain(Width, Height, null, playerShip) { IsFocused = true };
+                    playerMain.camera.position = camera;
                     playerShip.onDestroyed += new ArenaScreenReset(this);
                     World.AddEntity(playerShip);
                     World.AddEffect(new Heading(playerShip));

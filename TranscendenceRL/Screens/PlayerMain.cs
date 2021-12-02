@@ -60,11 +60,7 @@ namespace TranscendenceRL {
         }
     }
 	public class PlayerMain : Console {
-		private Camera _camera;
-		public Camera camera { get => _camera; set {
-				_camera = value;
-				back.camera = value;
-			} }
+		public Camera camera { get; private set; }
 		public Profile profile;
 		public World world;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
@@ -102,7 +98,7 @@ namespace TranscendenceRL {
 			DefaultForeground = Color.Transparent;
 			UseMouse = true;
 			UseKeyboard = true;
-			_camera = new Camera();
+			camera = new Camera();
 			this.world = playerShip.world;
 			this.playerShip = playerShip;
 			tiles = new Dictionary<(int, int), ColoredGlyph>();
@@ -195,10 +191,17 @@ namespace TranscendenceRL {
 				wreck = wreck
 			};
 			playerShip.player.Epitaphs.Add(epitaph);
-			Task.Run(() => new DeadGame(world, playerShip.player, playerShip, epitaph).Save());
 			//Bug: Background is not included because it is a separate console
 			var ds = new DeathScreen(this, epitaph);
-			SadConsole.Game.Instance.Screen = new DeathTransition(this, ds) { IsFocused = true };
+			var dt = new DeathTransition(this, ds);
+			var dp = new DeathPause(this, dt) { IsFocused = true };
+			SadConsole.Game.Instance.Screen = dp;
+			Task.Run(() => {
+				lock (world) {
+					new DeadGame(world, playerShip.player, playerShip, epitaph).Save();
+				}
+				dp.done = true;
+			});
 		}
 		public void PlaceTiles() {
 			tiles.Clear();
@@ -260,25 +263,27 @@ namespace TranscendenceRL {
 			if (passTime) {
 
 				back.Update(delta);
-				world.UpdateActive();
-				world.UpdatePresent();
-
-				if (playerShip.autopilot) {
-					autopilotUpdate = true;
-					
-					ProcessKeyboard(keyboard);
-					ProcessMouse(mouse);
+				lock (world) {
 					world.UpdateActive();
 					world.UpdatePresent();
 
-					ProcessKeyboard(keyboard);
-					ProcessMouse(mouse);
-					world.UpdateActive();
-					world.UpdatePresent();
+					if (playerShip.autopilot) {
+						autopilotUpdate = true;
 
-					autopilotUpdate = false;
-                }
-				PlaceTiles();
+						ProcessKeyboard(keyboard);
+						ProcessMouse(mouse);
+						world.UpdateActive();
+						world.UpdatePresent();
+
+						ProcessKeyboard(keyboard);
+						ProcessMouse(mouse);
+						world.UpdateActive();
+						world.UpdatePresent();
+
+						autopilotUpdate = false;
+					}
+					PlaceTiles();
+				}
 
 				var dock = playerShip.dock;
 				if (dock?.justDocked == true && dock.Target is DockableObject d) {

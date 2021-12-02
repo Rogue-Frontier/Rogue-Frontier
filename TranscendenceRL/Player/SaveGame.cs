@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using static SadConsole.ColoredString;
 using SadRogue.Primitives;
+using System.Threading.Tasks;
 
 namespace TranscendenceRL {
     
@@ -123,6 +124,7 @@ namespace TranscendenceRL {
             TypeNameHandling = TypeNameHandling.All,
             ReferenceLoopHandling = ReferenceLoopHandling.Error,
             ContractResolver = new WritablePropertiesOnlyResolver(),
+            
         };
         static SaveGame() {
             settings.ContractResolver = new DictionaryAsArrayResolver();
@@ -155,8 +157,10 @@ namespace TranscendenceRL {
             this.epitaph = epitaph;
         }
         public void Save() {
+            var str = SaveGame.Serialize(this);
             Directory.CreateDirectory("save");
-            File.WriteAllText(player.file, SaveGame.Serialize(this));
+            File.WriteAllText(player.file, str);
+            File.WriteAllBytes($"{player.file}.bin", Space.Zip(str));
         }
     }
 }

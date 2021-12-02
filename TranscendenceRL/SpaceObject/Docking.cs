@@ -6,6 +6,7 @@ namespace TranscendenceRL {
         public XY Offset;
         public bool docked;
         public bool justDocked;
+        public Docking() {}
         public Docking(SpaceObject Target) {
             this.Target = Target;
             this.Offset = new XY(0, 0);

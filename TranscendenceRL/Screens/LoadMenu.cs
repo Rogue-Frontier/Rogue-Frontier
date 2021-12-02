@@ -47,8 +47,13 @@ namespace TranscendenceRL {
                                     break;
                                 }
                             case DeadGame dead: {
-                                    var deathScreen = new DeathScreen(new PlayerMain(Width, Height, profile, dead.playerShip), dead.epitaph) { IsFocused = true };
+                                    var playerMain = new PlayerMain(Width, Height, profile, dead.playerShip);
+                                    playerMain.camera.position = dead.playerShip.position;
+                                    playerMain.PlaceTiles();
+                                    var deathScreen = new DeathScreen(playerMain, dead.epitaph);
+                                    dead.playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
                                     GameHost.Instance.Screen = deathScreen;
+                                    deathScreen.IsFocused = true;
                                     break;
                                 }
                         }
