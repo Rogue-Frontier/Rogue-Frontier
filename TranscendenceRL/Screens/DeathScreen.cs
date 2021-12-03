@@ -85,7 +85,7 @@ namespace TranscendenceRL {
             }
             TitleScreen();
             void TitleScreen() {
-                SadConsole.Game.Instance.Screen = new TitleSlideOpening(new TitleScreen(Width, Height, new World(playerMain.world.universe))) { IsFocused = true };
+                SadConsole.Game.Instance.Screen = new TitleSlideOpening(new TitleScreen(Width, Height, new System(playerMain.world.universe))) { IsFocused = true };
             }
         }
         public override void Update(TimeSpan delta) {

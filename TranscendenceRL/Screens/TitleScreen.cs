@@ -14,6 +14,7 @@ using TranscendenceRL.Screens;
 using ArchConsole;
 using static TranscendenceRL.BaseShip;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace TranscendenceRL {
     public class TitleScreen : Console {
@@ -23,7 +24,7 @@ namespace TranscendenceRL {
         Console credits;
 
         public Profile profile;
-        public World World;
+        public System World;
         
         public static string[] title = File.ReadAllText("RogueFrontierContent/sprites/Title.txt").Replace("\r\n", "\n").Split('\n');
         public Settings settings;
@@ -37,7 +38,7 @@ namespace TranscendenceRL {
         public XY camera;
         public Dictionary<(int, int), ColoredGlyph> tiles;
 
-        public TitleScreen(int width, int height, World World) : base(width, height) {
+        public TitleScreen(int width, int height, System World) : base(width, height) {
             this.World = World;
 
             profile = Profile.Load(out var p) ? p : new Profile();
@@ -117,7 +118,7 @@ namespace TranscendenceRL {
                     //Name is seed
                     var seed = player.name.GetHashCode();
                     Universe u = new Universe(World.types, new Rand(seed));
-                    World w = new World(u);
+                    System w = new System(u);
                     w.types.Lookup<SystemType>("system_orion").Generate(w);
                     w.UpdatePresent();
 
@@ -483,12 +484,26 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
                 Genome = World.types.genomeType.Values.First()
             };
 
+            var universeDesc = new UniverseDesc(XElement.Parse(
+@"<Universe>
+    <Topology>
+        <System id=""orion"" name=""Orion's Star"" codename=""system_orion""/>
+        <System id=""orion2"" name=""Orion's Star 2"" codename=""system_orion""/>
+        <System id=""orion3"" name=""Orion's Star 3"" codename=""system_orion""/>
+        <System id=""orion4"" name=""Orion's Star 4"" codename=""system_orion""/>
+        <System id=""orion5"" name=""Orion's Star 5"" codename=""system_orion""/>
+
+        <Link fromGateId=""orion:Outbound"" toGateId=""orion2:Outbound""/>
+    </Topology>
+</Universe>
+"
+                ));
+
             //Name is seed
             var seed = player.name.GetHashCode();
-            Universe u = new Universe(World.types, new Rand(seed));
+            Universe u = new Universe(universeDesc, World.types, new Rand(seed));
 
-            World w = new World(u);
-            w.types.Lookup<SystemType>("system_orion").Generate(w);
+            System w = u.systems["orion"];
             w.UpdatePresent();
             var quickStartClass = "ship_amethyst";
             var playerClass = w.types.Lookup<ShipClass>(quickStartClass);

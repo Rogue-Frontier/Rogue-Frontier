@@ -44,7 +44,7 @@ namespace TranscendenceRL {
     }
     public class BaseShip : SpaceObject {
         [JsonIgnore]
-        public static BaseShip dead => new(World.empty, ShipClass.empty, Sovereign.Gladiator, XY.Zero) { active = false };
+        public static BaseShip dead => new(System.empty, ShipClass.empty, Sovereign.Gladiator, XY.Zero) { active = false };
         [JsonIgnore]
         public string name => shipClass.name;
         [JsonIgnore]
@@ -68,7 +68,7 @@ namespace TranscendenceRL {
 
 
         [JsonProperty]
-        public World world { get; set; }
+        public System world { get; set; }
         [JsonProperty]
         public ShipClass shipClass { get; set; }
         [JsonProperty]
@@ -104,7 +104,7 @@ namespace TranscendenceRL {
 
 
         public BaseShip() { }
-        public BaseShip(World world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
+        public BaseShip(System world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
             this.world = world;
             this.Id = world.nextId++;
             this.shipClass = shipClass;
@@ -306,7 +306,7 @@ namespace TranscendenceRL {
         [JsonIgnore]
         public string name => ship.name;
         [JsonIgnore]
-        public World world => ship.world;
+        public System world => ship.world;
         [JsonIgnore] 
         public ShipClass shipClass => ship.shipClass;
         [JsonIgnore] 
@@ -408,7 +408,7 @@ namespace TranscendenceRL {
         [JsonIgnore]
         public int Id => ship.Id;
         [JsonIgnore] 
-        public World world => ship.world;
+        public System world => ship.world;
         [JsonIgnore] 
         public ShipClass shipClass => ship.shipClass;
         [JsonIgnore] 
@@ -507,9 +507,15 @@ namespace TranscendenceRL {
             }
         }
         public bool CheckGate(out Stargate gate) {
-            return (gate = world.entities[position]
-                .Select(s => (s is Segment seg ? seg.parent : s))
-                .OfType<Stargate>().FirstOrDefault()) != null;
+
+            foreach(var s in world.effects[position]) {
+                if((s is Segment seg ? seg.parent : s) is Stargate g) {
+                    gate = g;
+                    return true;
+                }
+            }
+            gate = null;
+            return false;
         }
         public void NextWeapon() {
             selectedPrimary++;

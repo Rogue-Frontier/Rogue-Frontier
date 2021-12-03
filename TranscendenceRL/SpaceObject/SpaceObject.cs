@@ -4,7 +4,7 @@ using SadConsole;
 namespace TranscendenceRL {
     public interface MovingObject : Entity {
 
-        World world { get; }
+        System world { get; }
         XY velocity { get; }
     }
     public interface SpaceObject : MovingObject {

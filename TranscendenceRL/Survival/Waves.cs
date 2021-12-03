@@ -43,7 +43,7 @@ namespace TranscendenceRL {
         public void CreateWave() {
 
             ships = new HashSet<AIShip>();
-            World world = playerShip.world;
+            System world = playerShip.world;
             difficulty += 90;
 
 

@@ -41,17 +41,17 @@ namespace TranscendenceRL {
 			Game.Instance.Dispose();
 		}
         public static void StartServer() {
-            var w = new World();
+            var w = new System();
             w.types.LoadFile(main);
             new TitleScreen(Width, Height, w).Server();
         }
         public static void StartClient() {
-            var w = new World();
+            var w = new System();
             w.types.LoadFile(main);
             new TitleScreen(Width, Height, w).Client();
         }
         public static void Start() {
-            var w = new World();
+            var w = new System();
             w.types.LoadFile(main);
 #if false
             GameHost.Instance.Screen = new BackdropConsole(Width, Height, new Backdrop(), () => new Common.XY(0.5, 0.5));

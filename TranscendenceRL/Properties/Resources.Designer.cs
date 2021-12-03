@@ -9,7 +9,7 @@
 //------------------------------------------------------------------------------
 
 namespace TranscendenceRL.Properties {
-    using System;
+    using global::System;
     
     
     /// <summary>

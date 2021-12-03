@@ -24,7 +24,7 @@ namespace TranscendenceRL {
         [JsonProperty]
         public SpaceObject creator { get; private set; }
         [JsonProperty]
-        public World world { get; private set; }
+        public System world { get; private set; }
         [JsonProperty]
         public Sovereign sovereign { get; private set; }
         [JsonProperty] 
@@ -96,7 +96,7 @@ namespace TranscendenceRL {
         [JsonProperty]
         public int Id { get; set; }
         [JsonProperty]
-        public World world { get; set; }
+        public System world { get; set; }
         [JsonProperty]
         public StationType type { get; set; }
         [JsonProperty]
@@ -125,7 +125,7 @@ namespace TranscendenceRL {
         public FuncSet<IContainer<StationDestroyed>> onDestroyed = new();
 
         public Station() { }
-        public Station(World World, StationType Type, XY Position) {
+        public Station(System World, StationType Type, XY Position) {
             this.Id = World.nextId++;
             this.world = World;
             this.type = Type;
@@ -274,7 +274,7 @@ namespace TranscendenceRL {
         [JsonIgnore]
         public string name => parent.name;
         [JsonIgnore] 
-        public World world => parent.world;
+        public System world => parent.world;
         [JsonIgnore] 
         public XY position => parent.position + desc.offset;
         [JsonIgnore] 

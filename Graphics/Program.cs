@@ -22,7 +22,7 @@ namespace Graphics
 		}
 
 		private static void Init() {
-			World w = new World();
+            TranscendenceRL.System w = new TranscendenceRL.System();
 			w.types.LoadFile("RogueFrontierContent/scripts/Main.xml");
 
 			Directory.CreateDirectory("GraphicsContent");

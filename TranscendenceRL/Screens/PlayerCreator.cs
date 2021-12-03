@@ -15,7 +15,7 @@ using static TranscendenceRL.ControlKeys;
 namespace TranscendenceRL {
 
     class ShipSelectorModel {
-        public World World;
+        public System World;
         public List<ShipClass> playable;
         public int shipIndex;
 
@@ -28,7 +28,7 @@ namespace TranscendenceRL {
         public char[,] portrait;
     }
     class PlayerCreator : ControlsConsole {
-        private ref World World => ref context.World;
+        private ref System World => ref context.World;
         private ref List<ShipClass> playable => ref context.playable;
         private ref int index => ref context.shipIndex;
         private ref List<GenomeType> genomes => ref context.genomes;
@@ -42,7 +42,7 @@ namespace TranscendenceRL {
         private Action<ShipSelectorModel> next;
         private LabelButton leftArrow, rightArrow;
         double time = 0;
-        public PlayerCreator(Console prev, World World, Settings settings, Action<ShipSelectorModel> next) : base(prev.Width, prev.Height) {
+        public PlayerCreator(Console prev, System World, Settings settings, Action<ShipSelectorModel> next) : base(prev.Width, prev.Height) {
             this.prev = prev;
             this.next = next;
             DefaultBackground = Color.Black;

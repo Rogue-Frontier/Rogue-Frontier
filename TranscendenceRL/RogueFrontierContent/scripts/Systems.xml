@@ -2,11 +2,17 @@
 	<SystemType	codename=	"system_orion"
 				name=		"Orion"
 		>
-		<System>
+		<SystemGroup>
 			<Star	 radius="50"/>
 
+			
 			<Orbital radius="150" angle="random">
-				<Stargate></Stargate>
+				<Group>
+					<Stargate gateId="Outbound"/>
+					<Sibling angleInc="135" radiusInc="100">
+						<Stargate gateId="Inbound"/>
+					</Sibling>
+				</Group>
 			</Orbital>
 
 			<Orbital count="5"
@@ -82,6 +88,6 @@
 
 				</Orbital>
 			</Orbital>
-		</System>
+		</SystemGroup>
 	</SystemType>
 </Module>

@@ -86,7 +86,7 @@ namespace TranscendenceRL {
                 c.ProcessAll();
             }
         }
-        public static void UpdateEntityLookup(this Dictionary<int, Entity> entityLookup, World World) {
+        public static void UpdateEntityLookup(this Dictionary<int, Entity> entityLookup, System World) {
             entityLookup.Clear();
             foreach (var e in World.entities.all) {
                 entityLookup[e.Id] = e;

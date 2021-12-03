@@ -20,7 +20,7 @@ namespace TranscendenceRL {
         [JsonProperty]
         public int Id { get; private set; }
         [JsonProperty]
-        public World world { get; private set; }
+        public System world { get; private set; }
         [JsonProperty]
         public Sovereign sovereign { get; private set; }
         [JsonProperty]
@@ -29,8 +29,12 @@ namespace TranscendenceRL {
         public XY velocity { get; private set; }
         [JsonProperty]
         public HashSet<Segment> Segments { get; private set; }
+
+        public string gateId;
+        public string destGateId;
+        public Stargate destGate;
         public Stargate() { }
-        public Stargate(World World, XY Position) {
+        public Stargate(System World, XY Position) {
             this.Id = World.nextId++;
             this.world = World;
             this.sovereign = Sovereign.Inanimate;
@@ -40,37 +44,29 @@ namespace TranscendenceRL {
         public void CreateSegments() {
             Segments = new HashSet<Segment>();
 
+            ColoredGlyph tile = new ColoredGlyph(Color.White, Color.Black, '+');
+
             int radius = 8;
             double circumference = 2 * Math.PI * radius;
-            for (int i = 0; i < 2 * Math.PI * radius; i++) {
+            for (int i = 0; i < circumference; i++) {
                 Segments.Add(new Segment(this, new SegmentDesc(
-                    XY.Polar(2 * Math.PI * i / circumference, radius),
-                    new ColoredGlyph(Color.White, Color.Transparent, '+')
+                    XY.Polar(2 * Math.PI * i / circumference, radius), tile
+                    )));
+                Segments.Add(new Segment(this, new SegmentDesc(
+                    XY.Polar(2 * Math.PI * i / circumference, radius - 0.5), tile
                     )));
             }
 
             foreach(var i in Enumerable.Range(1 + radius, 5)) {
-                Segments.Add(new Segment(this, new SegmentDesc(
-                    XY.Polar(0, i),
-                    new ColoredGlyph(Color.White, Color.Transparent, '+')
-                    )));
-                Segments.Add(new Segment(this, new SegmentDesc(
-                   XY.Polar(Math.PI / 2, i),
-                   new ColoredGlyph(Color.White, Color.Transparent, '+')
-                   )));
-                Segments.Add(new Segment(this, new SegmentDesc(
-                   XY.Polar(Math.PI, i),
-                   new ColoredGlyph(Color.White, Color.Transparent, '+')
-                   )));
-                Segments.Add(new Segment(this, new SegmentDesc(
-                   XY.Polar(Math.PI * 3 / 2, i),
-                   new ColoredGlyph(Color.White, Color.Transparent, '+')
-                   )));
+                Segments.Add(new Segment(this, new SegmentDesc(XY.Polar(0, i), tile)));
+                Segments.Add(new Segment(this, new SegmentDesc(XY.Polar(Math.PI / 2, i), tile)));
+                Segments.Add(new Segment(this, new SegmentDesc(XY.Polar(Math.PI, i), tile)));
+                Segments.Add(new Segment(this, new SegmentDesc(XY.Polar(Math.PI * 3 / 2, i), tile)));
             }
 
             Rand r = new Rand();
             radius--;
-            for (int i = 0; i < 2 * Math.PI * radius; i++) {
+            for (int i = 0; i < circumference; i++) {
                 Segments.Add(new Segment(this, new SegmentDesc(
                     XY.Polar(2 * Math.PI * i / circumference, radius),
                     new ColoredGlyph(
@@ -93,7 +89,7 @@ namespace TranscendenceRL {
             }
 
             foreach (var s in Segments) {
-                world.AddEntity(s);
+                world.AddEffect(s);
             }
         }
         public void Damage(SpaceObject source, int hp) {

@@ -8,7 +8,7 @@ using SadRogue.Primitives;
 namespace TranscendenceRL {
     public class SplashScreen : Console {
         Action next;
-        World World;
+        System World;
         public Dictionary<(int, int), ColoredGlyph> tiles;
         XY screenCenter;
         double time;
@@ -16,7 +16,7 @@ namespace TranscendenceRL {
             this.next = next;
             FontSize = FontSize * 2;
             Random r = new Random(3);
-            this.World = new World();
+            this.World = new System();
             tiles = new Dictionary<(int, int), ColoredGlyph>();
             screenCenter = new XY(Width / 2, Height / 2);
             var lines = new string[] {

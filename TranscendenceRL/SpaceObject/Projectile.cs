@@ -25,7 +25,7 @@ namespace TranscendenceRL {
         [JsonProperty]
         public int Id { get; set; }
         [JsonProperty]
-        public World world { get; set; }
+        public System world { get; set; }
         [JsonProperty] 
         public SpaceObject source;
         [JsonProperty] 
@@ -49,7 +49,7 @@ namespace TranscendenceRL {
         [JsonIgnore]
         public bool active => lifetime > 0;
         public Projectile() { }
-        public Projectile(SpaceObject Source, World world, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
+        public Projectile(SpaceObject Source, System world, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
             this.Id = world.nextId++;
             this.source = Source;
             this.world = world;

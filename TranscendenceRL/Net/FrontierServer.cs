@@ -116,7 +116,7 @@ namespace TranscendenceRL {
 
     public class ScreenServer : Console {
         public TitleScreen prev { get; }
-        public World World;
+        public System World;
         public SpaceObject pov;
         public XY camera;
         public MouseWatch mouse { get; } = new();

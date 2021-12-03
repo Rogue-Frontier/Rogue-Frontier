@@ -25,7 +25,7 @@ namespace TranscendenceRL {
             this.lifetime = Lifetime;
         }
 
-        public static void DrawArrow(World world, XY worldPos, XY offset, Color color) {
+        public static void DrawArrow(System world, XY worldPos, XY offset, Color color) {
             //Draw an effect for the cursor
             world.AddEffect(new EffectParticle(worldPos, new ColoredGlyph(color, Color.Transparent, '+'), 1));
 

@@ -126,7 +126,7 @@ namespace TranscendenceRL {
         }
         public void Quit() {
             var w = playerMain.world;
-            GameHost.Instance.Screen = new TitleScreen(playerMain.Width, playerMain.Height, new World(new Universe(w.types, new Rand()))) { IsFocused = true };
+            GameHost.Instance.Screen = new TitleScreen(playerMain.Width, playerMain.Height, new System(new Universe(w.types, new Rand()))) { IsFocused = true };
         }
     }
 }

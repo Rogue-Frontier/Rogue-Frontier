@@ -132,10 +132,10 @@ namespace TranscendenceRL {
         public static readonly Formatting form = Formatting.Indented;
     }
     public class LiveGame {
-        public World world;
+        public System world;
         public Player player { get; private set; }
         public PlayerShip playerShip;
-        public LiveGame(World world, Player player, PlayerShip playerShip) {
+        public LiveGame(System world, Player player, PlayerShip playerShip) {
             this.world = world;
             this.player = player;
             this.playerShip = playerShip;
@@ -146,11 +146,11 @@ namespace TranscendenceRL {
         }
     }
     public class DeadGame {
-        public World world;
+        public System world;
         public Player player { get; private set; }
         public PlayerShip playerShip;
         public Epitaph epitaph;
-        public DeadGame(World world, Player player, PlayerShip playerShip, Epitaph epitaph) {
+        public DeadGame(System world, Player player, PlayerShip playerShip, Epitaph epitaph) {
             this.world = world;
             this.player = player;
             this.playerShip = playerShip;

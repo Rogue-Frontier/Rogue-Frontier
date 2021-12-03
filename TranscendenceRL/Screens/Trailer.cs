@@ -43,7 +43,7 @@ namespace TranscendenceRL {
             GameHost.Instance.Screen = new BackdropConsole(Width, Height, new Backdrop(), () => new Common.XY(0.5, 0.5));
 			return;
 #endif
-            World w = new World();
+            System w = new System();
             w.types.LoadFile("RogueFrontierContent/scripts/Main.xml");
 
             var poster = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/sprites/RogueFrontierPoster.cg")));

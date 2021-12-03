@@ -35,7 +35,7 @@ namespace TranscendenceRL {
     class ArenaScreen : Console {
         TitleScreen prev;
         Settings settings;
-        World World;
+        System World;
         public XY camera;
         public Dictionary<(int, int), ColoredGlyph> tiles;
         XY screenCenter;
@@ -46,7 +46,7 @@ namespace TranscendenceRL {
 
         public PlayerMain playerMain;
 
-        public ArenaScreen(TitleScreen prev, Settings settings, World World) : base(prev.Width, prev.Height) {
+        public ArenaScreen(TitleScreen prev, Settings settings, System World) : base(prev.Width, prev.Height) {
             this.prev = prev;
             this.settings = settings;
             this.World = World;

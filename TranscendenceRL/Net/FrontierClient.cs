@@ -43,7 +43,7 @@ namespace TranscendenceRL {
                     var str = Encoding.UTF8.GetString(received.ToArray());
                     switch (command) {
                         case CommandClient.SET_WORLD:
-                            var World = SaveGame.Deserialize<World>(str);
+                            var World = SaveGame.Deserialize<System>(str);
                             game.World = World;
 
                             AIShip ai = null;
@@ -89,7 +89,7 @@ namespace TranscendenceRL {
 
     public class ScreenClient : Console {
         public TitleScreen prev;
-        public World World;
+        public System World;
         public XY camera;
 
         public Console PauseMenu;

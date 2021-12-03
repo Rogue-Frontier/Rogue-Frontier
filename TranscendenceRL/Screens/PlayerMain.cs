@@ -15,6 +15,7 @@ using ArchConsole;
 using static TranscendenceRL.PlayerShip;
 using static TranscendenceRL.Station;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace TranscendenceRL {
 
@@ -62,7 +63,7 @@ namespace TranscendenceRL {
 	public class PlayerMain : Console {
 		public Camera camera { get; private set; }
 		public Profile profile;
-		public World world;
+		public System world;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
 		private PlayerStory story = new PlayerStory();
 		public PlayerShip playerShip;
@@ -91,6 +92,9 @@ namespace TranscendenceRL {
 		public bool autopilotUpdate;
 
 		//public bool frameRendered = true;
+		public int updatesSinceRender = 0;
+
+		//EventWaitHandle smooth = new(true, EventResetMode.AutoReset);
 
 		public PlayerMain(int Width, int Height, Profile profile, PlayerShip playerShip) : base(Width, Height) {
 			this.profile = profile;
@@ -139,6 +143,19 @@ namespace TranscendenceRL {
 			if(!playerShip.CheckGate(out Stargate gate)) {
 				return;
             }
+
+			var destGate = gate.destGate;
+
+			if (destGate != null) {
+				world.entities.Remove(playerShip);
+				world = destGate.world;
+				playerShip.ship.world = world;
+				playerShip.ship.position = destGate.position + (playerShip.ship.position - gate.position);
+				world.AddEntity(playerShip);
+				world.AddEffect(new Heading(playerShip));
+				return;
+            }
+
 			HideAll();
 			world.entities.Remove(playerShip);
 			SadConsole.Game.Instance.Screen = new GateTransition(this, EndCrawl) { IsFocused = true };
@@ -208,9 +225,9 @@ namespace TranscendenceRL {
 			world.PlaceTiles(tiles);
 		}
 		public override void Update(TimeSpan delta) {
-
-
 			//if(!frameRendered) return;
+			if (updatesSinceRender > 2) return;
+			updatesSinceRender++;
 			if (pauseMenu.IsVisible) {
 				pauseMenu.Update(delta);
 				return;
@@ -299,6 +316,7 @@ namespace TranscendenceRL {
 			}
 			camera.position = playerShip.position;
 			//frameRendered = false;
+			updatesSinceRender = 0;
 
 			//Required to update children
 			base.Update(delta);

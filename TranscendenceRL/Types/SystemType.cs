@@ -11,20 +11,21 @@ using System.Xml.Linq;
 namespace TranscendenceRL {
     public class SystemType : DesignType {
         public string codename;
-        public string name;
-        public SystemGroup system;
+        public SystemGroup systemGroup;
         public SystemType() {
 
         }
+        public SystemType(SystemGroup system) {
+            this.systemGroup = system;
+        }
         public void Initialize(TypeCollection collection, XElement e) {
             codename = e.ExpectAttribute("codename");
-            name = e.ExpectAttribute("name");
-            if(e.HasElement("System", out var xmlSystem)) {
-                system = new SystemGroup(e);
+            if(e.HasElement("SystemGroup", out var xmlSystem)) {
+                systemGroup = new SystemGroup(xmlSystem);
             }
         }
-        public void Generate(World world) {
-            system.Generate(new LocationContext() {
+        public void Generate(System world) {
+            systemGroup.Generate(new LocationContext() {
             pos = new XY(0, 0),
             focus = new XY(0, 0),
             world = world,
@@ -34,7 +35,7 @@ namespace TranscendenceRL {
         }
     }
     public struct LocationContext {
-        public World world;
+        public System world;
         public XY pos;
         public double angle;
         public double radius;
@@ -386,10 +387,15 @@ namespace TranscendenceRL {
     }
 
     public class SystemStargate : SystemElement {
+        public string gateId;
+        public string destGateId;
         public SystemStargate() { }
-        public SystemStargate(XElement e) { }
+        public SystemStargate(XElement e) {
+            gateId = e.ExpectAttribute(nameof(gateId));
+            destGateId = e.TryAttribute(nameof(destGateId));
+        }
         public void Generate(LocationContext lc, TypeCollection tc) {
-            var s = new Stargate(lc.world, lc.pos);
+            var s = new Stargate(lc.world, lc.pos) { gateId = gateId, destGateId=destGateId };
             lc.world.AddEntity(s);
             s.CreateSegments();
         }

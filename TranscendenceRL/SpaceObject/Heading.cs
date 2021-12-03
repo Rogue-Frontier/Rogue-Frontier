@@ -54,7 +54,7 @@ namespace TranscendenceRL {
             ticks++;
             
         }
-        public static void AimLine(World World, XY start, double angle) {
+        public static void AimLine(System World, XY start, double angle) {
             //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
             ColoredGlyph pointEffect = new ColoredGlyph(new Color(255, 255, 0, 204), Color.Transparent, '.');
             XY point = start;
@@ -90,7 +90,7 @@ namespace TranscendenceRL {
                 World.AddEffect(new EffectParticle(point, bright, 1));
             }
         }
-        public static void Crosshair(World World, XY point) {
+        public static void Crosshair(System World, XY point) {
             //Color foreground = new Color(153, 153, 153);
             Color foreground = new Color(204, 204, 0);
             Color background = Color.Transparent;

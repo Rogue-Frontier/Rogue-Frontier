@@ -15,19 +15,12 @@ namespace TranscendenceRL {
     class EntityLocator : ILocator<Entity, (int, int)> {
         public (int, int) Locate(Entity e) => (e.position.xi, e.position.yi);
     }
-    public class Universe {
-        public Rand karma;
-        public TypeCollection types;
-        public Universe(TypeCollection types = null, Rand karma = null) {
-            this.types = types ?? new TypeCollection(); 
-            this.karma = karma ?? new Rand();
-        }
-    }
 
-    public class World {
+    public class System {
         [JsonIgnore]
-        public static readonly World empty = new World(new Universe());
+        public static readonly System empty = new System(new Universe());
 
+        public string id, name;
 
         public HashSet<Event> events = new HashSet<Event>();
         public List<Event> eventsAdded = new List<Event>();
@@ -52,11 +45,11 @@ namespace TranscendenceRL {
         public int tick;
         public int nextId;
 
-        public World() {
+        public System() {
             this.universe = new Universe();
             backdrop = new Backdrop();
         }
-        public World(Universe universe) {
+        public System(Universe universe) {
             this.universe = universe;
             backdrop = new Backdrop();
         }

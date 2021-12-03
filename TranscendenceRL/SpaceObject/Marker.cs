@@ -28,7 +28,7 @@ namespace TranscendenceRL {
         [JsonIgnore]
         public ColoredGlyph tile => null;
         [JsonIgnore]
-        public World world => Owner.world;
+        public System world => Owner.world;
         [JsonIgnore]
         public Sovereign sovereign => Owner.sovereign;
         [JsonIgnore]
