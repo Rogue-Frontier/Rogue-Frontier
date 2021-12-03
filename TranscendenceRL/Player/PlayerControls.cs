@@ -197,7 +197,7 @@ namespace TranscendenceRL {
 			TargetMouse = info.IsKeyPressed(controls[ControlKeys.TargetEnemy])
 							&& info.IsKeyDown(LeftShift);
 			NextWeapon = info.IsKeyPressed(controls[ControlKeys.NextWeapon]);
-			FirePrimary = info.IsKeyPressed(controls[ControlKeys.FirePrimary]);
+			FirePrimary = info.IsKeyDown(controls[ControlKeys.FirePrimary]);
 			AutoAim = info.IsKeyDown(controls[ControlKeys.AutoAim]);
 
 			ToggleUI = info.IsKeyPressed(Tab);

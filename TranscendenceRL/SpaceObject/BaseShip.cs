@@ -507,7 +507,6 @@ namespace TranscendenceRL {
             }
         }
         public bool CheckGate(out Stargate gate) {
-
             foreach(var s in world.effects[position]) {
                 if((s is Segment seg ? seg.parent : s) is Stargate g) {
                     gate = g;

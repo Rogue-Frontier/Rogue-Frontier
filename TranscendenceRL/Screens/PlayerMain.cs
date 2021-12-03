@@ -316,7 +316,6 @@ namespace TranscendenceRL {
 			}
 			camera.position = playerShip.position;
 			//frameRendered = false;
-			updatesSinceRender = 0;
 
 			//Required to update children
 			base.Update(delta);
@@ -366,6 +365,7 @@ namespace TranscendenceRL {
                 }
 			}
 			//frameRendered = true;
+			updatesSinceRender = 0;
 		}
 		public void DrawWorld() {
 			int ViewWidth = Width;
