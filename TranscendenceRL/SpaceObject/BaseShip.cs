@@ -451,8 +451,10 @@ namespace TranscendenceRL {
         public List<IPlayerMessage> messages = new();
         public HashSet<Entity> visible = new();
         public HashSet<Station> known = new();
+        public HashSet<SpaceObject> missionTargets = new();
         int ticks = 0;
         public HashSet<IShip> shipsDestroyed = new();
+        public HashSet<Station> stationsDestroyed = new();
 
         public delegate void PlayerDestroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);
         public FuncSet<IContainer<PlayerDestroyed>> onDestroyed = new();

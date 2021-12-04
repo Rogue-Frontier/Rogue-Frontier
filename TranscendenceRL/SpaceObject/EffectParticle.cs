@@ -50,6 +50,9 @@ namespace TranscendenceRL {
     }
     public class FadingTile : Effect {
         private int Lifetime;
+        public FadingTile() {
+
+        }
         public FadingTile(XY Position, ColoredGlyph Tile, int Lifetime) {
             this.position = Position;
             this.Velocity = new XY();

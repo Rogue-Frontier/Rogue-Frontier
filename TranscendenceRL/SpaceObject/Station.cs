@@ -214,6 +214,10 @@ namespace TranscendenceRL {
             active = false;
             var wreck = new Wreck(this);
 
+            if (source is PlayerShip ps) {
+                ps.stationsDestroyed.Add(this);
+            }
+
             var drop = weapons?.Select(w => w.source);
             if(drop != null) {
                 foreach (var item in drop) {

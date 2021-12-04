@@ -33,6 +33,7 @@ namespace TranscendenceRL {
 		public PlayerControls(PlayerShip playerShip, PlayerMain playerMain) {
 			this.playerShip = playerShip;
 			this.playerMain = playerMain;
+			this.input = new PlayerInput();
         }
 		public void ProcessArrows() {
 			if (input.Thrust) {
@@ -117,7 +118,7 @@ namespace TranscendenceRL {
 			}
 			if (input.ShipMenu) {
 				playerShip.DisengageAutopilot();
-				playerMain.sceneContainer?.Children.Add(new ShipScreen(playerMain, playerShip) { IsFocused = true });
+				playerMain.sceneContainer?.Children.Add(new ShipScreen(playerMain, playerShip, playerMain.story) { IsFocused = true });
 			}
 		}
 		public void ProcessOther() {

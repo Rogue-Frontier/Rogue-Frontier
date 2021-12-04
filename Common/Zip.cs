@@ -27,8 +27,10 @@ namespace Common {
         }
         public static string Unzip(MemoryStream input) {
             using (var mso = new MemoryStream()) {
+                input.Position = 0;
                 using (var gs = new GZipStream(input, CompressionMode.Decompress)) {
                     CopyTo(gs, mso);
+                    //gs.CopyTo(mso);
                 }
                 return Encoding.UTF8.GetString(mso.ToArray());
             }

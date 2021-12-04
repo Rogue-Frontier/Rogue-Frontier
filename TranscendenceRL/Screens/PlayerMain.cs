@@ -65,7 +65,7 @@ namespace TranscendenceRL {
 		public Profile profile;
 		public System world;
 		public Dictionary<(int, int), ColoredGlyph> tiles;
-		private PlayerStory story = new PlayerStory();
+		public PlayerStory story = new PlayerStory();
 		public PlayerShip playerShip;
 		public PlayerControls playerControls;
 		Point mouseScreenPos;
@@ -510,13 +510,17 @@ namespace TranscendenceRL {
 
 						var mouseRads = playerOffset.angleRad;
 						playerShip.SetRotatingToFace(mouseRads);
+						playerControls.input.TurnRight = playerShip.ship.rotating == Rotating.CW;
+						playerControls.input.TurnLeft = playerShip.ship.rotating == Rotating.CCW;
 					}
 				}
 				if (state.Mouse.LeftButtonDown) {
 					playerShip.SetFiringPrimary();
+					playerControls.input.FirePrimary = true;
 				}
 				if (state.Mouse.RightButtonDown) {
 					playerShip.SetThrusting();
+					playerControls.input.Thrust = true;
 				}
 			}
 			mouse = state;
@@ -636,7 +640,7 @@ namespace TranscendenceRL {
 
 				var visiblePerimeter = new Rectangle((int)(Width / 2 - Width / (2 * viewScale)) + 1, (int)(Height / 2 - Height / (2 * viewScale)) + 1, (int)(Width / viewScale), (int)(Height / viewScale));
 				foreach (var point in visiblePerimeter.PerimeterPositions()) {
-					var b = this.GetBackground(point.X, point.Y);
+					var b = this.GetBackground(point.X - 1, point.Y - 1);
 					this.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, 128)));
 				}
 

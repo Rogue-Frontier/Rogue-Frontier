@@ -17,17 +17,20 @@ namespace TranscendenceRL {
     class ShipScreen : Console {
         public Console prev;
         public PlayerShip playerShip;
+        public PlayerStory story;
         //Idea: Show an ASCII-art map of the ship where the player can walk around
-        public ShipScreen(Console prev, PlayerShip PlayerShip) : base(prev.Width, prev.Height) {
+        public ShipScreen(Console prev, PlayerShip playerShip, PlayerStory story) : base(prev.Width, prev.Height) {
             this.prev = prev;
 
-            this.playerShip = PlayerShip;
+            this.playerShip = playerShip;
+            this.story = story;
 
             int x = 1, y = Height - 5;
             Children.Add(new LabelButton("[A] Activate / Deactivate Devices", ShowPower) { Position = (x, y++) });
             Children.Add(new LabelButton("[C] Cargo", ShowCargo) { Position = (x, y++) });
             Children.Add(new LabelButton("[D] Devices", ShowCargo) { Position = (x, y++) });
-            Children.Add(new LabelButton("[U] Usables", ShowUsable) { Position = (x, y++) });
+            Children.Add(new LabelButton("[I] Invoke Items", ShowInvokable) { Position = (x, y++) });
+            Children.Add(new LabelButton("[M] Missions", ShowMissions) { Position = (x, y++) });
         }
         public override void Render(TimeSpan delta) {
 
@@ -154,7 +157,7 @@ namespace TranscendenceRL {
                 prev.IsFocused = true;
                 Parent.Children.Remove(this);
             } else if(info.IsKeyPressed(Keys.U)) {
-                ShowUsable();
+                ShowInvokable();
             } else if (info.IsKeyPressed(Keys.A)) {
                 ShowPower();
             } else if (info.IsKeyPressed(Keys.C)) {
@@ -164,10 +167,12 @@ namespace TranscendenceRL {
             }
             return base.ProcessKeyboard(info);
         }
-        public void ShowUsable() => Transition(SListScreen.UsableScreen(this, playerShip));
+        public void ShowInvokable() => Transition(SListScreen.InvokableScreen(this, playerShip));
         public void ShowPower() => Transition(SListScreen.PowerScreen(this, playerShip));
         public void ShowCargo() => Transition(SListScreen.CargoScreen(this, playerShip));
         public void ShowLoadout() => Transition(SListScreen.LoadoutScreen(this, playerShip));
+
+        public void ShowMissions() => Transition(SListScreen.MissionScreen(this, playerShip, story));
         public void Transition(Console s) {
             Parent.Children.Add(s);
             Parent.Children.Remove(this);
@@ -175,15 +180,70 @@ namespace TranscendenceRL {
         }
     }
     public class SListScreen {
-        public static ListScreen<Item> UsableScreen(Console prev, PlayerShip player) {
-            ListScreen<Item> screen = null;
-            IEnumerable<Item> cargoUsable;
-            IEnumerable<Item> installedUsable;
-            List<Item> usable;
+        public static ListScreen<IPlayerInteraction> MissionScreen(Console prev, PlayerShip player, PlayerStory story) {
+            ListScreen<IPlayerInteraction> screen = null;
+            List<IPlayerInteraction> missions = new();
             void UpdateList() {
-                cargoUsable = player.cargo.Where(i => i.type.invoke != null);
-                installedUsable = player.devices.Installed.Select(d => d.source).Where(i => i.type.invoke != null);
-                usable = new List<Item>(installedUsable.Concat(cargoUsable));
+                missions.Clear();
+                missions.AddRange(story.mainInteractions);
+                missions.AddRange(story.secondaryInteractions);
+                missions.AddRange(story.completedInteractions);
+            }
+            UpdateList();
+
+            return screen = new(prev,
+                player,
+                missions,
+                GetName,
+                GetDesc,
+                Invoke,
+                Escape
+                );
+
+            string GetName(IPlayerInteraction i) => i switch {
+                DestroyTarget dt => "Destroy Target",
+                _ => "Mission"
+            };
+            List<ColoredString> GetDesc(IPlayerInteraction i) {
+                List<ColoredString> result = new List<ColoredString>();
+                switch (i) {
+                    case DestroyTarget dt:
+                        if (dt.complete) {
+                            result.Add(new($"Mission complete"));
+                            result.Add(new($"Return to {dt.source.name}"));
+                        } else {
+                            result.Add(new ColoredString("Destroy the following targets:"));
+                            foreach (var t in dt.targets) {
+                                result.Add(new($"- {t.name}"));
+                            }
+                            result.Add(new(""));
+                            result.Add(new($"Return to {dt.source.name}"));
+                        }
+                        break;
+
+                }
+                return result;
+            }
+            void Invoke(IPlayerInteraction item) {
+                screen.UpdateIndex();
+            }
+            void Escape() {
+                var p = screen.Parent;
+                p.Children.Remove(screen);
+                p.Children.Add(prev);
+                p.IsFocused = true;
+            }
+        }
+        public static ListScreen<Item> InvokableScreen(Console prev, PlayerShip player) {
+            ListScreen<Item> screen = null;
+            IEnumerable<Item> cargoInvokable;
+            IEnumerable<Item> installedInvokable;
+            List<Item> usable=new();
+            void UpdateList() {
+                cargoInvokable = player.cargo.Where(i => i.type.invoke != null);
+                installedInvokable = player.devices.Installed.Select(d => d.source).Where(i => i.type.invoke != null);
+                usable.Clear();
+                usable.AddRange(installedInvokable.Concat(cargoInvokable));
             }
             UpdateList();
 
@@ -196,7 +256,7 @@ namespace TranscendenceRL {
                 Escape
                 );
 
-            string GetName(Item i) => $"{(installedUsable.Contains(i) ? "Equip> " : "Cargo> ")}{i.type.name}";
+            string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "Equip> " : "Cargo> ")}{i.type.name}";
             List<ColoredString> GetDesc(Item item) {
                 var invoke = item.type.invoke;
 
@@ -220,7 +280,6 @@ namespace TranscendenceRL {
             }
             void Update() {
                 UpdateList();
-                screen.items = usable;
                 screen.UpdateIndex();
             }
 
@@ -304,7 +363,6 @@ namespace TranscendenceRL {
             }
             void InvokeItem(Item item) {
                 var invoke = item.type.invoke;
-
                 invoke?.Invoke(screen, player, item);
                 screen.UpdateIndex();
             }

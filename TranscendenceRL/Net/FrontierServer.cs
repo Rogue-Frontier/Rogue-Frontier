@@ -17,6 +17,7 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using static TranscendenceRL.TellClient;
 
 namespace TranscendenceRL {
     class FrontierSession : TcpSession {
@@ -25,7 +26,6 @@ namespace TranscendenceRL {
         private AIShip removed;
 
         private MemoryStream received;
-        private CommandServer command;
         private int length;
         public FrontierSession(TcpServer server, ScreenServer game) : base(server) {
             this.game = game;
@@ -39,10 +39,11 @@ namespace TranscendenceRL {
             //var s = Common.Space.Zip(SaveGame.Serialize(game.World));
             var s = (SaveGame.Serialize(game.World));
             game.requests--;
-            SendCommand(CommandClient.SET_WORLD, s);
+            TellClient(new SetWorld() { sys = game.World });
         }
-        public void SendCommand(CommandClient command, string s) {
-            Send($"{Enum.GetName(command)}{s.Length}");
+        public void TellClient(TellClient c) {
+            var s = Common.Space.Zip(SaveGame.Serialize(c));
+            Send($"{s.Length}");
             Send(s);
         }
         private void RemovePlayer() {
@@ -58,54 +59,90 @@ namespace TranscendenceRL {
             RemovePlayer();
         }
         protected override void OnReceived(byte[] buffer, long offset, long size) {
-            var str = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            var m = Regex.Match(str, "([A-Z_]+)([0-9]+)");
+
+
+            var s = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            var m = Regex.Match(s, "^(?<length>[0-9]+)");
             if (m.Success) {
                 received = new MemoryStream();
-                command = Enum.Parse<CommandServer>(m.Groups[1].Captures[0].Value);
-                length = int.Parse(m.Groups[2].Captures[0].Value);
+                var l = m.Groups["length"].Value;
+                length = int.Parse(l);
+                if (s.Length > l.Length) {
+                    var b = Encoding.UTF8.GetBytes(l);
+                    OnReceived(buffer, offset + b.LongLength, size - b.LongLength);
+                }
             } else {
                 received.Write(buffer, (int)offset, (int)size);
-                if (received.Length >= length) {
-                    //var str = Space.Unzip(received);
-                    str = Encoding.UTF8.GetString(received.ToArray());
-                    //var d = SaveGame.Deserialize(str);
-                    switch (command) {
-                        case CommandServer.PLAYER_SHIP_ASSUME:
-                            int Id = int.Parse(str);
-                            var ai = (AIShip)game.entityLookup[Id];
-                            var World = game.World;
-                            removed = ai;
-                            World.RemoveEntity(ai);
-                            playerShip = new PlayerShip(new Player(new Settings()), ai.ship);
-                            World.AddEntity(playerShip);
-                            break;
-                        case CommandServer.PLAYER_SHIP_LEAVE:
-                            RemovePlayer();
-                            break;
-                        case CommandServer.PLAYER_SHIP_INPUT:
-                            if(playerShip == null) {
-                                return;
-                            }
-                            var input = SaveGame.Deserialize<PlayerInput>(str);
-                            input.ServerOnly();
-                            game.playerControls[playerShip] = input;
-                            break;
-                    }
-                    received.Close();
-                }
+                CheckReceived();
             }
+        }
+
+        public void CheckReceived() {
+            if (received.Length >= length) {
+                var b = new byte[length];
+                received.Position = 0;
+                received.Read(b, 0, length);
+
+                //var str = Space.Unzip(received);
+                //var command = SaveGame.Deserialize(Encoding.UTF8.GetString(received.ToArray()));
+
+                var r = Common.Space.Unzip(b);
+                var command = SaveGame.Deserialize(r);
+
+                switch (command) {
+                    case TellServer.AssumePlayerShip c:
+                        Handle(c);
+                        break;
+                    case TellServer.LeavePlayerShip:
+                        RemovePlayer();
+                        break;
+                    case TellServer.ControlPlayerShip c:
+                        Handle(c);
+                        break;
+                }
+
+                received.Close();
+            }
+        }
+
+        public void Handle(TellServer.AssumePlayerShip c) {
+            int Id = c.shipId;
+            var ai = (AIShip)game.entityLookup[Id];
+            var World = game.World;
+            removed = ai;
+            World.RemoveEntity(ai);
+            playerShip = new PlayerShip(new Player(new Settings()), ai.ship);
+            World.AddEntity(playerShip);
+        }
+        public void Handle(TellServer.ControlPlayerShip c) {
+            if (playerShip == null) {
+                return;
+            }
+            var input = c.input;
+            input.ServerOnly();
+            game.playerControls[playerShip] = input;
         }
         protected override void OnError(SocketError error) =>
             Debug.WriteLine($"Chat TCP session caught an error with code {error}");
+    }
+    public interface TellServer {
+        public class AssumePlayerShip:TellServer {
+            public int shipId;
+        }
+        public class LeavePlayerShip:TellServer {}
+        public class ControlPlayerShip:TellServer {
+            public PlayerInput input;
+        }
     }
     public class FrontierServer : TcpServer {
         public ScreenServer game;
         public FrontierServer(IPAddress address, int port, ScreenServer game) : base(address, port) {
             this.game = game;
         }
-        public void MulticastCommand(CommandClient command, string s) {
-            Multicast($"{Enum.GetName(command)}{s.Length}");
+        public void TellClients(TellClient c) {
+
+            var s = Common.Space.Zip(SaveGame.Serialize(c));
+            Multicast($"{s.Length}");
             Multicast(s);
         }
         protected override TcpSession CreateSession() => new FrontierSession(this, game);
@@ -204,7 +241,7 @@ namespace TranscendenceRL {
                         entityAtlas.Add(en);
                     }
                 }
-                server.MulticastCommand(CommandClient.ENTITY_ENFORCE_CERTAINTY, SaveGame.Serialize(entityAtlas));
+                server.TellClients(new TellClient.SyncSharedState() { entities = entityAtlas });
             }
 
             tiles.Clear();
@@ -260,7 +297,7 @@ namespace TranscendenceRL {
             mouse.nowPos = new Point(mouse.nowPos.X, Height - mouse.nowPos.Y);
             if (mouse.left == ClickState.Held) {
                 camera += new XY(mouse.prevPos - mouse.nowPos);
-                server.MulticastCommand(CommandClient.SET_CAMERA, SaveGame.Serialize(camera));
+                server.TellClients(new TellClient.SetCamera() { pos = camera });
             }
 
             return base.ProcessMouse(state);

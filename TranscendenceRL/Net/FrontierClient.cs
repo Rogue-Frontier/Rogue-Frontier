@@ -22,7 +22,6 @@ namespace TranscendenceRL {
     class FrontierClient : TcpClient {
         private ScreenClient game;
         private MemoryStream received;
-        private CommandClient command;
         private int length;
         public FrontierClient(string address, int port, ScreenClient game) : base(address, port) {
             this.game = game;
@@ -31,60 +30,85 @@ namespace TranscendenceRL {
         protected override void OnDisconnected() { }
         protected override void OnReceived(byte[] buffer, long offset, long size) {
             var s = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            var m = Regex.Match(s, "([A-Z_]+)([0-9]+)");
+            var m = Regex.Match(s, "^(?<length>[0-9]+)");
             if (m.Success) {
                 received = new MemoryStream();
-                command = Enum.Parse<CommandClient>(m.Groups[1].Captures[0].Value);
-                length = int.Parse(m.Groups[2].Captures[0].Value);
+                var l = m.Groups["length"].Value;
+                length = int.Parse(l);
+                if (s.Length > l.Length) {
+                    var b = Encoding.UTF8.GetBytes(l);
+                    OnReceived(buffer, offset + b.LongLength, size - b.LongLength);
+                }
             } else {
                 received.Write(buffer, (int)offset, (int)size);
-                if (received.Length >= length) {
-                    //var str = Space.Unzip(received);
-                    var str = Encoding.UTF8.GetString(received.ToArray());
-                    switch (command) {
-                        case CommandClient.SET_WORLD:
-                            var World = SaveGame.Deserialize<System>(str);
-                            game.World = World;
-
-                            AIShip ai = null;
-                            var playerId = game.playerMain?.playerShip?.Id;
-                            if (playerId.HasValue && game.entityLookup.TryGetValue(playerId.Value, out var en)) {
-                                ai = en as AIShip;
-                            }
-                            ai ??= World.entities.all.OfType<AIShip>().FirstOrDefault();
-                            if (ai != null) {
-                                game.removed = ai;
-                                World.RemoveEntity(ai);
-                                var playerShip = new PlayerShip(new Player(game.prev.settings), ai.ship);
-                                World.AddEntity(playerShip);
-                                game.SetPlayerMain(new PlayerMain(game.Width, game.Height,
-                                    new Profile(), playerShip));
-                                SendCommand(CommandServer.PLAYER_SHIP_ASSUME, ai.Id.ToString());
-                            }
-                            break;
-                        case CommandClient.SET_CAMERA:
-                            game.camera = SaveGame.Deserialize<XY>(str);
-                            break;
-                        case CommandClient.ENTITY_ENFORCE_CERTAINTY:
-                            var l = SaveGame.Deserialize<List<Entity>>(str);
-                            foreach (var state in l) {
-                                if(game.entityLookup.TryGetValue(state.Id, out Entity e)) {
-                                    e.SetSharedState(state);
-                                }
-                            }
-                            break;
-                    }
-
-                    received.Close();
-                }
+                CheckReceived();
             }
         }
-        public void SendCommand(CommandServer command, string s) {
-            SendAsync($"{Enum.GetName(command)}{s.Length}");
+        public void CheckReceived() {
+            if (received.Length >= length) {
+                var b = new byte[length];
+                received.Position = 0;
+                received.Read(b, 0, length);
+
+                //var str = Space.Unzip(received);
+                //var command = SaveGame.Deserialize(Encoding.UTF8.GetString(received.ToArray()));
+
+                var r = Space.Unzip(b);
+                var command = SaveGame.Deserialize(r);
+                switch (command) {
+                    case TellClient.SetWorld c:
+                        var sys = c.sys;
+                        game.World = sys;
+
+                        AIShip ai = null;
+                        var playerId = game.playerMain?.playerShip?.Id;
+                        if (playerId.HasValue && game.entityLookup.TryGetValue(playerId.Value, out var en)) {
+                            ai = en as AIShip;
+                        }
+                        ai ??= sys.entities.all.OfType<AIShip>().FirstOrDefault();
+                        if (ai != null) {
+                            game.removed = ai;
+                            sys.RemoveEntity(ai);
+                            var playerShip = new PlayerShip(new Player(game.prev.settings), ai.ship);
+                            sys.AddEntity(playerShip);
+                            game.SetPlayerMain(new PlayerMain(game.Width, game.Height,
+                                new Profile(), playerShip));
+                            TellServer(new TellServer.AssumePlayerShip() { shipId = ai.Id });
+                        }
+                        break;
+                    case TellClient.SetCamera c:
+                        game.camera = c.pos;
+                        break;
+                    case TellClient.SyncSharedState c:
+                        foreach (var state in c.entities) {
+                            if (game.entityLookup.TryGetValue(state.Id, out Entity e)) {
+                                e.SetSharedState(state);
+                            }
+                        }
+                        break;
+                }
+
+                received.Close();
+            }
+        }
+        public void TellServer(TellServer c) {
+            var s = Space.Zip(SaveGame.Serialize(c));
+            SendAsync($"{s.Length}");
             SendAsync(s);
         }
         protected override void OnError(SocketError error) =>
             Debug.WriteLine($"Chat TCP client caught an error with code {error}");
+    }
+    public interface TellClient {
+        public struct SetWorld : TellClient {
+            public System sys;
+        }
+        public struct SetCamera : TellClient {
+            public XY pos;
+        }
+        public struct SyncSharedState : TellClient {
+            public List<Entity> entities;
+        }
     }
 
     public class ScreenClient : Console {
@@ -268,8 +292,7 @@ namespace TranscendenceRL {
                 World.AddEntity(removed);
                 World.AddEffect(new Heading(removed));
             }
-            client.SendCommand(CommandServer.PLAYER_SHIP_LEAVE, "ok");
-
+            client.TellServer(new TellServer.LeavePlayerShip());
             UpdateUI();
         }
         public void Disconnect() {
@@ -295,8 +318,7 @@ namespace TranscendenceRL {
             } else if (playerMain != null) {
                 var result = playerMain.ProcessKeyboard(info);
                 if (playerMain.playerControls.input != null) {
-                    client.SendCommand(CommandServer.PLAYER_SHIP_INPUT,
-                        SaveGame.Serialize(playerMain.playerControls.input));
+                    client.TellServer(new TellServer.ControlPlayerShip() { input = playerMain.playerControls.input });
                 }
                 return result;
             }

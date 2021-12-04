@@ -92,6 +92,16 @@ namespace TranscendenceRL {
                 world.AddEffect(s);
             }
         }
+
+        public void Gate(AIShip ai) {
+            ai.world.entities.Remove(ai);
+            if (destGate != null) {
+                var world = destGate.world;
+                ai.ship.world = world;
+                ai.ship.position = destGate.position + (ai.ship.position - ai.position);
+                world.AddEntity(ai);
+            }
+        }
         public void Damage(SpaceObject source, int hp) {
         }
 

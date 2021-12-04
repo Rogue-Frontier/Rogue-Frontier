@@ -12,10 +12,10 @@ using Console = SadConsole.Console;
 
 namespace TranscendenceRL {
 
-    interface IPlayerInteraction {
+    public interface IPlayerInteraction {
         Console GetScene(Console prev, Dockable d, PlayerShip playerShip);
     }
-    class IntroMeeting : IPlayerInteraction {
+    public class IntroMeeting : IPlayerInteraction {
         PlayerStory story;
         public IntroMeeting(PlayerStory story) {
             this.story = story;
@@ -643,7 +643,7 @@ have at least a fighting chance when you leave this place.""
         }
     }
 
-    class PlayerStory {
+    public class PlayerStory {
         public HashSet<IPlayerInteraction> mainInteractions;
         public HashSet<IPlayerInteraction> secondaryInteractions;
         public HashSet<IPlayerInteraction> completedInteractions;
@@ -714,7 +714,7 @@ a residential station of the United Constellation.",
                         }
                     });
                 } else {
-                    mission = mainInteractions.OfType<DestroyTarget>().FirstOrDefault(i => i.target == target);
+                    mission = mainInteractions.OfType<DestroyTarget>().FirstOrDefault(i => i.targets.Contains(target));
 
                     if(mission != null) {
 
@@ -769,7 +769,7 @@ then I'll see you back here.""",
                     }
                     Console Accepted(Console prev) {
                         DestroyTarget mission = null;
-                        mission = new DestroyTarget(source, target) { inProgress = InProgress, debrief = Debrief };
+                        mission = new DestroyTarget(playerShip, source, target) { inProgress = InProgress, debrief = Debrief };
                         mainInteractions.Add(mission);
                         return null;
                         Console InProgress(Console prev) {
@@ -796,6 +796,7 @@ As promised, here's your money - 400 cons""",
                         Console Debriefed(Console prev) {
                             playerShip.player.money += 400;
                             mainInteractions.Remove(mission);
+                            //completedInteractions.Add(mission);
                             return null;
                         }
                     }
@@ -856,132 +857,139 @@ There is a modest degree of artificial gravity here.",
                     return new TextScene(prev,
 @"You are docked at Raisu station, though
 nobody attends to the docking bay right now.",
-                       new() {
-                           new() {escape = true,
-                               key = 'U', name = "Undock",
-                               next = null
-                           }
-                   });
-                } else {
-                    return new TextScene(prev,
-    @"You are docked at Raisu station.",
-                        new() {
-                            new() {escape = true,
-                                key = 'M', name = "Meeting Hall",
-                                next = MeetingHall
-                            },
-                            new() {escape = true,
-                                key = 'U', name = "Undock",
-                                next = null
-                            }
+                    new() {
+                        new() {escape = true,
+                            key = 'U', name = "Undock",
+                            next = null
+                        }
                     });
-                    Console MeetingHall(Console prev) {
-                        var c = source.world.entities.all
-                            .OfType<Station>()
-                            .Where(s => s.type.codename == "station_orion_warlords_camp")
-                            .Count();
-                        if(c > 0) {
-                            return new TextScene(prev,
+                }
+
+                return new TextScene(prev,
+@"You are docked at Raisu station.",
+                    new() {
+                        new() {
+                            escape = true,
+                            key = 'M', name = "Meeting Hall",
+                            next = MeetingHall
+                        },
+                        new() {
+                            escape = true,
+                            key = 'U', name = "Undock",
+                            next = null
+                        }
+                    });
+                Console MeetingHall(Console prev) {
+                    var c = source.world.entities.all
+                        .OfType<Station>()
+                        .Where(s => s.type.codename == "station_orion_warlords_camp")
+                        .Count();
+                    if (c > 0) {
+                        return new TextScene(prev,
 @"The station master glares at you.
 
-""Please get out of here before you screw this up.
-We're in the middle of a hostage situation here.
-You're gonna get us killed just sticking around here.
-So if you really want to be a hero, come back when
-you've hit the Orion Warlords where it hurts.
-", new() {
-                                new() {escape = true,
-                                    key = 'C', name = "Continue",
-                                    next = null
-                                }
-                            });
-                        }
-                        if(raisuLiberated) {
-                            return new TextScene(prev,
+""Please get out of here before you get us killed!""", new() {
+                            new() {
+                                escape = true,
+                                key = 'C', name = "Continue",
+                                next = null
+                            }
+                        });
+                    }
+                    if (raisuLiberated) {
+                        return new TextScene(prev,
 @"Not much is happening around the station right now.
 You feel a sense of relief.", new() {
-                                new() {escape = true,
-                                    key = 'C', name = "Continue",
-                                    next = null
-                                }
-                            });
-                        }
-                        var target = playerShip.world.entities.all.OfType<AIShip>()
-                                .FirstOrDefault(s => s.shipClass.codename == "ship_william_sulphin");
-                        if(target != null) {
-                            return new TextScene(prev,
+                            new() {
+                                escape = true,
+                                key = 'C', name = "Continue",
+                                next = null
+                            }
+                        });
+                    }
+                    var target = playerShip.world.entities.all.OfType<AIShip>()
+                            .FirstOrDefault(s => s.shipClass.codename == "ship_william_sulphin");
+                    if (target != null) {
+                        return new TextScene(prev,
 @"The station master waits for you at the entrance.
 
 ""Is it true? Have you confronted the Orion Warlords? They have
 given us a lifetime of suffering. I have one thing to ask of you. 
 Give them eternity.""
 
-""Destroy William Sulphin. And the Orion Warlords will fall.""
+""Destroy William Sulphin. Let the Orion Warlords fall.""
 
-The station master brings out a modified Orion Warlords weapon.
+The station master brings out a modified warlord weapon.
 
-""Take these missiles if you have to.""
-", new() {
-                                new() {escape = true,
-                                    key = 'C', name = "Continue",
-                                    next = Accept
-                                }
-                            });
-                            Console Accept(Console prev) {
-                                playerShip.cargo.Add(new Item(playerShip.world.types.Lookup<ItemType>("itTraitorLongbow")));
-                                DestroyTarget mission = null;
-                                mission = new DestroyTarget(source, target) { inProgress = InProgress, debrief = Debrief };
-                                mainInteractions.Add(mission);
-                                return null;
-                                Console InProgress(Console prev) {
-                                    return new TextScene(prev,
-        @"""You made a promise. Destroy William Sulphin.""",
+""Take these missiles if you have to.""",
+                        new() {
+                            new() {
+                                escape = true,
+                                key = 'C', name = "Continue",
+                                next = Accept
+                            }
+                        });
+                        Console Accept(Console prev) {
+                            playerShip.cargo.Add(new Item(playerShip.world.types.Lookup<ItemType>("itTraitorLongbow")));
+                            DestroyTarget mission = null;
+                            mission = new DestroyTarget(playerShip, source, target) { inProgress = InProgress, debrief = Debrief };
+                            target.ship.onDestroyed += mission;
+                            mainInteractions.Add(mission);
+                            return null;
+                            Console InProgress(Console prev) {
+                                return new TextScene(prev,
+    @"""You made a promise. Destroy William Sulphin.""",
+                                    new() {
                                         new() {
-                                    new() {escape = true,
-                                        key = 'U', name = "Undock",
-                                        next = null
-                                    }
+                                            escape = true,
+                                            key = 'U', name = "Undock",
+                                            next = null
+                                        }
                                     });
-                                }
-                                Console Debrief(Console prev) {
-                                    return new TextScene(prev,
+                            }
+                            Console Debrief(Console prev) {
+                                return new TextScene(prev,
 @"""Thank you for destroying William Sulphin.""
 
 ""Now the real fight begins""",
+                                    new() {
                                         new() {
-                                            new() {escape = false,
-                                                key = 'U', name = "Undock",
-                                                next = Debriefed
-                                            }
-                                        });
-                                }
-                                Console Debriefed(Console prev) {
-                                    raisuLiberated = true;
-                                    mainInteractions.Remove(mission);
-                                    return null;
-                                }
+                                            escape = false,
+                                            key = 'U', name = "Undock",
+                                            next = Debriefed
+                                        }
+                                    });
+                            }
+                            Console Debriefed(Console prev) {
+                                raisuLiberated = true;
+                                mainInteractions.Remove(mission);
+                                return null;
                             }
                         }
-                        return new TextScene(prev,
-@"Not much is happening around the station right now.
-The mood here isn't particularly terrible, but it's
-not particularly happy either.", new() {
-                                new() {escape = true,
-                                    key = 'C', name = "Continue",
-                                    next = null
-                                }
-                        });
                     }
+                    return new TextScene(prev,
+@"Not much is happening around the station right now.", new() {
+new() {
+    escape = true,
+    key = 'C', name = "Continue",
+    next = null
+}
+});
                 }
             }
             return Intro();
         }
         public Console OrionWarlordsCamp(Console home, Station source, PlayerShip playerShip) {
             Console Intro(Console prev) {
+
                 return new TextScene(prev,
+source.damageSystem.GetHP() >= 50 ?
 @"You are docked at an Orion Warlords Camp.
 Enemy soldiers glare at you from the windows
-of the station.",
+of the station." :
+@"You are docked at an Orion Warlords Camp.
+Your ship identifies a distress signal
+originating from this station.",
                     new() {
                         new() {
                             key='B', name="Break in",
@@ -995,32 +1003,27 @@ of the station.",
             Console BreakIn(Console prev) {
                 if(source.damageSystem.GetHP() < 50) {
                     return new TextScene(prev,
-@"You bash down the entry gate with a lot of force.
+@"You break down the entry gate with your primary weapon.
 You make your way to the bridge and destroy the
 black box, shutting off the distress signal.
 
 You leave the station in ruins.",
                         new() {
                             new() {
+                                escape = false,
+                                key = 'L',
+                                name = "Loot",
+                                next = Loot
+                            },
+                            new() {
                                 escape = true,
-                                key = 'C',
-                                name = "Continue",
-                                next = Done
+                                key = 'U',
+                                name = "Undock",
+                                next = null
                             }
-                        });
-                    Console Done(Console prev) {
-                        Wreck wreck = null;
-                        var hook = new Container<Station.StationDestroyed>((s, d, w) => {
-                            wreck = w;
-                        });
-                        source.onDestroyed.set.Add(hook);
-                        source.Destroy(playerShip);
-                        source.onDestroyed.set.Remove(hook);
 
-                        return wreck.GetDockScene(home, playerShip);
-                    }
+                        });
                 }
-
                 return new TextScene(prev,
 @"The entry gate refuses to budge...",
                     new() {
@@ -1031,27 +1034,67 @@ You leave the station in ruins.",
                             next = Intro
                         }
                     });
+
+                Console Loot(Console prev) {
+                    Wreck wreck = null;
+                    var hook = new Container<Station.StationDestroyed>((s, d, w) => {
+                        wreck = w;
+                    });
+                    source.onDestroyed.set.Add(hook);
+                    source.Destroy(playerShip);
+                    source.onDestroyed.set.Remove(hook);
+
+                    return wreck.GetDockScene(home, playerShip);
+                }
             }
             return Intro(home);
         }
     }
-    class DestroyTarget : IPlayerInteraction {
+    class DestroyTarget : IPlayerInteraction, IContainer<BaseShip.Destroyed>, IContainer<Station.StationDestroyed> {
+        public PlayerShip attacker;
         public Station source;
-        public SpaceObject target;
+        public HashSet<SpaceObject> targets;
+        public bool complete => targets.Count == 0;
         public Func<Console, Console> inProgress, debrief;
-        public DestroyTarget(Station source, SpaceObject target) {
+        public DestroyTarget(PlayerShip attacker, Station source, params SpaceObject[] targets) {
+            this.attacker = attacker;
             this.source = source;
-            this.target = target;
+            this.targets = new(targets);
+            foreach(var t in targets) {
+                switch (t) {
+                    case AIShip s:
+                        s.ship.onDestroyed += this;
+                        break;
+                    case Station s:
+                        s.onDestroyed += this;
+                        break;
+                }
+            }
         }
+
+        BaseShip.Destroyed IContainer<BaseShip.Destroyed>.Value => (s, d, w) => {
+            if (targets.Remove(s) && targets.Count==0) {
+                attacker.AddMessage(new Message("Mission complete!"));
+                s.onDestroyed -= this;
+            }
+        };
+
+        Station.StationDestroyed IContainer<Station.StationDestroyed>.Value => (s, d, w) => {
+            if (targets.Remove(s) && targets.Count == 0) {
+                attacker.AddMessage(new Message("Mission complete!"));
+                s.onDestroyed-= this;
+            }
+        };
+
         public Console GetScene(Console prev, Dockable d, PlayerShip playerShip) {
             if(d != source) {
                 return null;
             }
-            if(target.active) {
-                return inProgress(prev);
-            } else {
+            if(complete) {
                 return debrief(prev);
             }
+
+            return inProgress(prev);
         }
     }
 }

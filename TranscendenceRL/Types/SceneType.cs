@@ -240,10 +240,12 @@ namespace TranscendenceRL {
             }
 
             if (charging) {
-                ref int c = ref charge[navIndex];
-                c++;
-                c++;
-                charging = false;
+                if (navIndex != -1) {
+                    ref int c = ref charge[navIndex];
+                    c++;
+                    c++;
+                    charging = false;
+                }
             } else if(prevEnter && !enter) {
                 int c = charge[navIndex];
                 if (c >= maxCharge) {
