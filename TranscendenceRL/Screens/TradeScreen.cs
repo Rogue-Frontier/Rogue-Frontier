@@ -102,8 +102,10 @@ namespace TranscendenceRL {
                     case Keys.Escape:
                         var p = Parent;
                         p.Children.Remove(this);
-                        p.Children.Add(prev);
-                        prev.IsFocused = true;
+                        if (prev != null) {
+                            p.Children.Add(prev);
+                            prev.IsFocused = true;
+                        }
                         break;
                     default:
                         var ch = char.ToLower(key.Character);
@@ -250,8 +252,8 @@ namespace TranscendenceRL {
                 }
 
                 int height = 26;
-                int barStart = (height * (start)) / playerItems.Count;
-                int barEnd = (height * (end)) / playerItems.Count;
+                int barStart = (height * (start)) / dockedItems.Count;
+                int barEnd = (height * (end)) / dockedItems.Count;
                 int barX = x - 2;
                 for (i = 0; i < height; i++) {
                     ColoredGlyph cg = i < barStart || i > barEnd ?

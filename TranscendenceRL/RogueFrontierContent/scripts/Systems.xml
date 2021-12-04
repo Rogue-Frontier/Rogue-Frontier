@@ -63,6 +63,16 @@
 						<Orbital radius="30" angle="random" increment="20" count="5">
 							<Group>
 								<Station	codename="station_constellation_astra"/>
+								<At index="1">
+									<Sibling	radiusInc="-10">
+										<Station codename="station_armor_shop"/>
+									</Sibling>
+								</At>
+								<At index="3">
+									<Sibling	radiusInc="-10">
+										<Station codename="station_arms_dealer"/>
+									</Sibling>
+								</At>
 								<Sibling	radiusInc="20">
 									<Station codename="station_constellation_habitat"/>
 								</Sibling>

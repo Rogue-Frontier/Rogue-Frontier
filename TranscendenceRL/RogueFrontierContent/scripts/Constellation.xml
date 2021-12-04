@@ -40,7 +40,7 @@
 		</Guards>
 		<Cargo>
 			<Item count="60"	codename="item_simple_fuel_rod"/>
-			<Item count="25"	codename="item_armor_repair_patch"/>
+			<Item count="20"	codename="item_armor_repair_patch"/>
 			<Item count="10"	codename="item_klaw_missile_launcher"/>
 			<Item count="150"	codename="item_klaw_missile"/>
 			<Item count="10"	codename="item_dynamite_cannon"/>
@@ -111,4 +111,90 @@
 		<HeroImage path="RogueFrontierContent/ConstellationAstra.asc"/>
 		-->
 	</StationType>
+
+	<StationType	codename="station_armor_shop"
+				name=		"Armor shop"
+				sovereign=	"sovereign_constellation"
+
+				hp=			"250"
+
+				char=		"A"
+				foreground="LightGray"
+		>
+		<Segments>
+			<Point offsetX="2" offsetY="0"
+				   char="=" foreground="White"/>
+			<Point offsetX="3" offsetY="0"
+				   char="]" foreground="White"/>
+			
+			<Point offsetX="-2" offsetY="0"
+				   char="=" foreground="White"/>
+			<Point offsetX="-3" offsetY="0"
+				   char="[" foreground="White"/>
+			<Ring/>
+		</Segments>
+		<Dock>
+			<Point offsetX="2" offsetY="0"/>
+			<Point offsetX="-2" offsetY="0"/>
+		</Dock>
+		<Guards>
+			<Ship	count="1"	codename="ship_beowulf"/>
+			<Ship	count="2"	codename="ship_amethyst"/>
+			<Ship	count="1"	codename="ship_wagon"/>
+		</Guards>
+		<Cargo>
+			<Item count="40"	codename="item_armor_repair_patch"/>
+			<Item count="8" codename="item_crystalsteel_plate"/>
+			<Item count="8" codename="item_knightsteel_plate"/>
+			<Item count="8" codename="item_bumpersteel_plate"/>
+		</Cargo>
+		<Weapons>
+		</Weapons>
+	</StationType>
+
+	<StationType	codename="station_arms_dealer"
+				name=		"Arms dealer"
+				sovereign=	"sovereign_constellation"
+
+				hp=			"250"
+
+				char=		"A"
+				foreground="LightGray"
+		>
+		<Segments>
+			<Point offsetX="2" offsetY="0"
+				   char="=" foreground="White"/>
+			<Point offsetX="3" offsetY="0"
+				   char="&gt;" foreground="White"/>
+
+			<Point offsetX="-2" offsetY="0"
+				   char="=" foreground="White"/>
+			<Point offsetX="-3" offsetY="0"
+				   char="&lt;" foreground="White"/>
+			<Ring/>
+		</Segments>
+		<Dock>
+			<Point offsetX="2" offsetY="0"/>
+			<Point offsetX="-2" offsetY="0"/>
+		</Dock>
+		<Guards>
+			<Ship	count="2"	codename="ship_beowulf"/>
+			<Ship	count="1"	codename="ship_amethyst"/>
+			<Ship	count="1"	codename="ship_wagon"/>
+		</Guards>
+		<Cargo>
+
+			<Item count="8" codename="item_amethyst_laser"/>
+			<Item count="8" codename="item_dynamite_cannon"/>
+			<Item count="120" codename="item_dynamite_charge"/>
+			<Item count="8" codename="item_beowulf_dual_cannon"/>
+			<Item count="8" codename="item_klaw_missile_launcher"/>
+			<Item count="250" codename="item_klaw_missile"/>
+			<Item count="4"	codename="item_musket_cannon"/>
+			<Item count="8" codename="item_sharpshooter_defender"/>
+		</Cargo>
+		<Weapons>
+		</Weapons>
+	</StationType>
+
 </Module>

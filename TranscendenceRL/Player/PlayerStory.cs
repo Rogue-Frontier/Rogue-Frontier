@@ -668,6 +668,8 @@ have at least a fighting chance when you leave this place.""
                     Dictionary<string, GetDockScreen> funcMap = new Dictionary<string, GetDockScreen> {
                         {"station_constellation_astra", ConstellationAstra},
                         {"station_constellation_habitat", ConstellationHabitat },
+                        {"station_armor_shop", TradeStation },
+                        {"station_arms_dealer", TradeStation },
                         {"station_raisu", Raisu },
                         {"station_orion_warlords_camp", OrionWarlordsCamp }
                     };
@@ -680,6 +682,10 @@ have at least a fighting chance when you leave this place.""
         }
 
         delegate Console GetDockScreen(Console prev, Station source, PlayerShip playerShip);
+
+        public Console TradeStation(Console prev, Station source, PlayerShip playerShip) {
+            return new TradeScene(null, playerShip, source);
+        }
         public Console ConstellationHabitat(Console prev, Station source, PlayerShip playerShip) {
             Console Intro(Console prev) {
                 return new TextScene(prev,

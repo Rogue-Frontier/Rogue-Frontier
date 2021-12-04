@@ -40,6 +40,7 @@ namespace TranscendenceRL {
         public double angle;
         public double radius;
         public XY focus;
+        public int index;
     }
     public interface SystemElement {
         void Generate(LocationContext lc, TypeCollection tc);
@@ -66,6 +67,8 @@ namespace TranscendenceRL {
                     return new SystemStargate(e);
                 case "Station":
                     return new SystemStation(e);
+                case "At":
+                    return new SystemAt(e);
                 case "Marker":
                     return new SystemMarker(e);
                 default:
@@ -89,11 +92,28 @@ namespace TranscendenceRL {
                 focus = lc.focus,
                 angle = lc.angle,
                 radius = radius ?? lc.radius,
-                pos = lc.focus + XY.Polar(lc.angle * Math.PI / 180, radius ?? lc.radius)
+                pos = lc.focus + XY.Polar(lc.angle * Math.PI / 180, radius ?? lc.radius),
+                index = lc.index
             };
             subelements.ForEach(g => g.Generate(sub_lc, tc));
         }
     }
+
+    public class SystemAt : SystemElement {
+        public List<SystemElement> subelements;
+        public int index = -1;
+        public SystemAt() { }
+        public SystemAt(XElement e) {
+            subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
+            index = e.ExpectAttributeInt("index");
+        }
+        public void Generate(LocationContext lc, TypeCollection tc) {
+            if(lc.index == index) {
+                subelements.ForEach(g => g.Generate(lc, tc));
+            }
+        }
+    }
+
     public class SystemOrbital : SystemElement {
         public List<SystemElement> subelements;
 
@@ -155,7 +175,17 @@ namespace TranscendenceRL {
 
             for (int i = 0; i < count; i++) {
                 foreach (var sub in subelements) {
-                    Generate(sub);
+
+
+                    var loc = new LocationContext() {
+                        world = lc.world,
+                        focus = lc.pos,
+                        angle = angle,
+                        radius = radius,
+                        pos = lc.pos + XY.Polar(angle * Math.PI / 180, radius),
+                        index = i
+                    };
+                    sub.Generate(loc, tc);
 
                     if (increment > 0) {
                         angle += increment;
@@ -167,16 +197,6 @@ namespace TranscendenceRL {
                 }
             }
 
-            void Generate(SystemElement sub) {
-                var loc = new LocationContext() {
-                    world = lc.world,
-                    focus = lc.pos,
-                    angle = angle,
-                    radius = radius,
-                    pos = lc.pos + XY.Polar(angle * Math.PI / 180, radius)
-                };
-                sub.Generate(loc, tc);
-            }
         }
     }
     public class SystemMarker : SystemElement {

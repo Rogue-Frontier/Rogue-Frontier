@@ -127,7 +127,7 @@
 		</Devices>
 		
 		<LayeredArmorSystem>
-			<Armor  codename="item_knightscale_plate"/>
+			<Armor  codename="item_knightsteel_plate"/>
         </LayeredArmorSystem>
 		<PlayerSettings
 			startingClass="true"
@@ -235,8 +235,8 @@
 			<Weapon codename="item_flintlock"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="item_knightscale_plate"/>
-            <Armor  codename="item_knightscale_plate"/>
+			<Armor  codename="item_knightsteel_plate"/>
+            <Armor  codename="item_knightsteel_plate"/>
 		</LayeredArmorSystem>
 		<PlayerSettings
 			startingClass=  "false"
@@ -259,9 +259,9 @@
 			<Weapon codename="item_flintlock"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="item_knightscale_plate"/>
-            <Armor  codename="item_knightscale_plate"/>
-            <Armor  codename="item_knightscale_plate"/>
+			<Armor  codename="item_knightsteel_plate"/>
+            <Armor  codename="item_knightsteel_plate"/>
+            <Armor  codename="item_knightsteel_plate"/>
 		</LayeredArmorSystem>
 		<PlayerSettings
 			startingClass=  "false"
@@ -285,8 +285,8 @@
 			<Weapon codename="item_sabre"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="item_knightscale_plate"/>
-            <Armor  codename="item_knightscale_plate"/>
+			<Armor  codename="item_knightsteel_plate"/>
+            <Armor  codename="item_knightsteel_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 

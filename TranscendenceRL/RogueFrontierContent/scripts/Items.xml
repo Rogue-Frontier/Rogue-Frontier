@@ -297,7 +297,7 @@
 
 
 
-	<ItemType	codename=	"item_knightscale_plate"
+	<ItemType	codename=	"item_knightsteel_plate"
 				name=		"Knightscale plate"
 				mass=		"6000"
 				level=		"1"
