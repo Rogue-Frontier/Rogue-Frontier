@@ -1,51 +1,24 @@
-﻿using SadRogue.Primitives;
-using SadConsole;
+﻿using SadConsole;
+using SadConsole.Input;
+using SadRogue.Primitives;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Console = SadConsole.Console;
-using SadConsole.Input;
-
-namespace TranscendenceRL {
+namespace TranscendenceRL.Screens {
     public class GateTransition : Console {
-        Console prev, next;
-        public class Particle {
-            public int x, destY;
-            public double y, delay;
-        }
-        HashSet<Particle> particles;
-        double time;
-        public GateTransition(Console prev, Console next) : base(prev.Width, prev.Height) {
+        Viewport prev, next;
+        double amount;
+        Rectangle rect;
+        public Action Transition;
+        public GateTransition(Viewport prev, Viewport next, Action Transition) : base(prev.Width, prev.Height) {
             this.prev = prev;
             this.next = next;
-            InitParticles();
-        }
-        public GateTransition(Console prev, Func<Console> next) : base(prev.Width, prev.Height) {
-            this.prev = prev;
-            this.next = next();
-            InitParticles();
-        }
-        public void InitParticles() {
-            particles = new HashSet<Particle>();
-            for (int y = 0; y < Height / 2; y++) {
-                for (int x = 0; x < Width; x++) {
-                    particles.Add(new Particle() {
-                        x = x,
-                        y = -1,
-                        destY = y,
-                        delay = (1 + Math.Sin(Math.Sin(x) + Math.Sin(y))) * 3 / 2
-                    });
-                }
-            }
-            for (int y = Height / 2; y < Height; y++) {
-                for (int x = 0; x < Width; x++) {
-                    particles.Add(new Particle() {
-                        x = x,
-                        y = Height,
-                        destY = y,
-                        delay = (1 + Math.Sin(Math.Sin(x) + Math.Sin(y))) * 3 / 2
-                    });
-                }
-            }
+            DefaultBackground = Color.Transparent;
+            rect = new(new(Width / 2, Height / 2), 0, 0);
+            this.Transition = Transition;
         }
         public override bool ProcessKeyboard(Keyboard keyboard) {
             if (keyboard.IsKeyPressed(Keys.Enter)) {
@@ -53,36 +26,43 @@ namespace TranscendenceRL {
             }
             return base.ProcessKeyboard(keyboard);
         }
-        public void Transition() {
-            SadConsole.Game.Instance.Screen = next;
-            next.IsFocused = true;
-        }
         public override void Update(TimeSpan delta) {
             prev.Update(delta);
-            time += delta.TotalSeconds / 2;
-            if (time < 2) {
-                return;
-            } else if (time < 6) {
-                foreach (var p in particles) {
-                    if (p.delay > 0) {
-                        p.delay -= delta.TotalSeconds * 2 / 3;
-                    } else {
-                        var offset = (p.destY - p.y);
-                        p.y += Math.MinMagnitude(offset, Math.MaxMagnitude(Math.Sign(offset), offset * delta.TotalSeconds / 2));
-                    }
-                }
-            } else {
+            //next.Update(delta);
+            base.Update(delta);
+            amount += delta.TotalSeconds * 2;
+
+            rect = new Rectangle(new(Width / 2, Height / 2), (int)(amount*Width /2), (int)(amount*Height/2));
+            if (amount > 1) {
                 Transition();
             }
-            base.Update(delta);
         }
         public override void Render(TimeSpan delta) {
-            prev.Render(delta);
-            base.Render(delta);
             this.Clear();
-            foreach (var p in particles) {
-                this.SetCellAppearance(p.x, (int)p.y, new ColoredGlyph(Color.Black, Color.Black, ' '));
+            HashSet<Point> edge = new(rect.PerimeterPositions());
+
+            Console back = new Console(Width, Height);
+
+            BackdropConsole prevBack = new(prev);
+            BackdropConsole nextBack = new(next);
+
+            foreach (var y in Enumerable.Range(0, Height)) {
+                foreach (var x in Enumerable.Range(0, Width)) {
+                    Point p = new(x, y);
+                    if(edge.Contains(p)) {
+                        this.SetCellAppearance(x, y, new ColoredGlyph(Color.White, Color.Black, '#'));
+                        continue;
+                    }
+                    (var v, var b) = rect.Contains(p) ? (next, nextBack) : (prev, prevBack);
+                    back.SetCellAppearance(x, y, b.GetTile(x, y));
+                    ColoredGlyph g = v.GetTile(x, y);
+                    //var g = (rect.Contains(p) ? next : prev).GetCellAppearance(x, y);
+                    this.SetCellAppearance(x, Height-y, g);
+                    
+                }
             }
+            back.Render(delta);
+            base.Render(delta);
         }
     }
 }

@@ -16,6 +16,7 @@ using static TranscendenceRL.PlayerShip;
 using static TranscendenceRL.Station;
 using System.Threading.Tasks;
 using System.Threading;
+using TranscendenceRL.Screens;
 
 namespace TranscendenceRL {
 
@@ -61,10 +62,10 @@ namespace TranscendenceRL {
         }
     }
 	public class PlayerMain : Console {
+
+		public System world => playerShip.world;
 		public Camera camera { get; private set; }
 		public Profile profile;
-		public System world;
-		public Dictionary<(int, int), ColoredGlyph> tiles;
 		public PlayerStory story = new PlayerStory();
 		public PlayerShip playerShip;
 		public PlayerControls playerControls;
@@ -74,7 +75,10 @@ namespace TranscendenceRL {
 		Keyboard keyboard;
 		MouseScreenObjectState mouse;
 
+
 		public BackdropConsole back;
+		public Viewport viewport;
+		public GateTransition transition;
 		public Megamap uiMegamap;
 		public Vignette vignette;
 		public Console sceneContainer;
@@ -102,27 +106,28 @@ namespace TranscendenceRL {
 			DefaultForeground = Color.Transparent;
 			UseMouse = true;
 			UseKeyboard = true;
-			camera = new Camera();
-			this.world = playerShip.world;
+			camera = new();
 			this.playerShip = playerShip;
-			tiles = new Dictionary<(int, int), ColoredGlyph>();
 
-			back = new BackdropConsole(Width, Height, world.backdrop, camera);
-			uiMegamap = new Megamap(camera, playerShip, world.backdrop.layers.Last(), Width, Height);
-			vignette = new Vignette(playerShip, Width, Height);
-			sceneContainer = new Console(Width, Height);
+			back = new(Width, Height, world.backdrop, camera);
+			viewport = new(this, camera, world);
+			uiMegamap = new(camera, playerShip, world.backdrop.layers.Last(), Width, Height);
+			vignette = new(playerShip, Width, Height);
+			sceneContainer = new(Width, Height);
 			sceneContainer.Focused += (e, o) => this.IsFocused = true;
-			uiMain = new Readout(camera, playerShip, Width, Height);
-			uiEdge = new Edgemap(camera, playerShip, Width, Height);
-			uiMinimap = new Minimap(this, playerShip, 16);
+			uiMain = new(camera, playerShip, Width, Height);
+			uiEdge = new(camera, playerShip, Width, Height);
+			uiMinimap = new(this, playerShip, 16);
 			communicationsMenu = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
-			powerMenu = new PowerMenu(31, 12, playerShip) { IsVisible = false, Position = new(3, 32) };
-			pauseMenu = new PauseMenu(this) { IsVisible = false };
-			crosshair = new TargetingMarker(playerShip, "Mouse Cursor", new XY());
-			playerControls = new PlayerControls(playerShip, this);
+			powerMenu = new(31, 12, playerShip) { IsVisible = false, Position = new(3, 32) };
+			pauseMenu = new(this) { IsVisible = false };
+			crosshair = new(playerShip, "Mouse Cursor", new XY());
+			playerControls = new(playerShip, this);
 			//Don't allow anyone to get focus via mouse click
 			FocusOnMouseClick = false;
 		}
+
+
 		public void HideUI() {
 			uiMain.IsVisible = false;
         }
@@ -147,18 +152,26 @@ namespace TranscendenceRL {
 			var destGate = gate.destGate;
 
 			if (destGate != null) {
+
+				var prevViewport = new Viewport(this, new Camera(playerShip.position), world);
 				world.entities.Remove(playerShip);
-				world = destGate.world;
-				playerShip.ship.world = world;
+				playerShip.ship.world = destGate.world;
 				playerShip.ship.position = destGate.position + (playerShip.ship.position - gate.position);
 				world.AddEntity(playerShip);
 				world.AddEffect(new Heading(playerShip));
+				var nextViewport = new Viewport(this, this.camera, world);
+
+				back = new(nextViewport);
+				viewport = nextViewport;
+				transition = new GateTransition(prevViewport, nextViewport, () => {
+					transition = null;
+				});
 				return;
             }
 
 			HideAll();
 			world.entities.Remove(playerShip);
-			SadConsole.Game.Instance.Screen = new GateTransition(this, EndCrawl) { IsFocused = true };
+			SadConsole.Game.Instance.Screen = new ExitTransition(this, EndCrawl) { IsFocused = true };
 			Console EndCrawl() {
 				SimpleCrawl ds = null;
 				ds = new SimpleCrawl("You have left Human Space.\n\n", EndPause) { Position = new Point(Width / 4, 8), IsFocused = true };
@@ -175,7 +188,6 @@ namespace TranscendenceRL {
 						wreck = null
 				}) { IsFocused = true };
 			}
-
 		}
 		public void EndGame(string message, Wreck wreck) {
 			//Clear mortal time so that we don't slow down after the player dies
@@ -194,7 +206,8 @@ namespace TranscendenceRL {
 			ColoredGlyph GetTile(XY xy) {
 				var back = world.backdrop.GetTile(xy, camera.position);
 				//Round down to ensure we don't get duplicated tiles along the origin
-				if (tiles.TryGetValue(xy.roundDown, out ColoredGlyph g)) {
+
+				if (viewport.tiles.TryGetValue(xy.roundDown, out ColoredGlyph g)) {
 					g = g.Clone();          //Don't modify the source
 					g.Background = back.Background.Premultiply().Blend(g.Background);
 					return g;
@@ -219,10 +232,6 @@ namespace TranscendenceRL {
 				}
 				dp.done = true;
 			});
-		}
-		public void PlaceTiles() {
-			tiles.Clear();
-			world.PlaceTiles(tiles);
 		}
 		public override void Update(TimeSpan delta) {
 			//if(!frameRendered) return;
@@ -299,7 +308,9 @@ namespace TranscendenceRL {
 
 						autopilotUpdate = false;
 					}
-					PlaceTiles();
+
+					viewport.Update(delta);
+					transition?.Update(delta);
 				}
 
 				var dock = playerShip.dock;
@@ -320,25 +331,36 @@ namespace TranscendenceRL {
 			//Required to update children
 			base.Update(delta);
 		}
+
+		public void PlaceTiles() {
+			viewport.Update(new());
+        }
+		public void RenderWorld() {
+			viewport.Render(new());
+		}
 		public override void Render(TimeSpan drawTime) {
-			back.Render(drawTime);
-
-			this.Clear();
-
-			void RenderSelf() { DrawWorld(); base.Render(drawTime); };
+	
 			if(pauseMenu.IsVisible) {
-				RenderSelf();
+				back.Render(drawTime);
+				viewport.Render(drawTime);
 				vignette.Render(drawTime);
 				pauseMenu.Render(drawTime);
 			} else if (sceneContainer.Children.Count > 0) {
-				RenderSelf();
+				back.Render(drawTime);
+				viewport.Render(drawTime);
 				vignette.Render(drawTime);
 				sceneContainer.Render(drawTime);
 			} else {
 				if (uiMain.IsVisible) {
 					//If the megamap is completely visible, then skip main render so we can fast travel
 					if (uiMegamap.alpha < 255) {
-						RenderSelf();
+
+						if (transition != null) {
+							transition.Render(drawTime);
+						} else {
+							back.Render(drawTime);
+							viewport.Render(drawTime);
+						}
 
 						uiMegamap.Render(drawTime);
 
@@ -354,7 +376,12 @@ namespace TranscendenceRL {
 						uiEdge.Render(drawTime);
 					}
 				} else {
-					RenderSelf();
+					if (transition != null) {
+						transition.Render(drawTime);
+					} else {
+						back.Render(drawTime);
+						viewport.Render(drawTime);
+					}
 					vignette.Render(drawTime);
 				}
 				if (powerMenu.IsVisible) {
@@ -366,24 +393,6 @@ namespace TranscendenceRL {
 			}
 			//frameRendered = true;
 			updatesSinceRender = 0;
-		}
-		public void DrawWorld() {
-			int ViewWidth = Width;
-			int ViewHeight = Height;
-			int HalfViewWidth = ViewWidth / 2;
-			int HalfViewHeight = ViewHeight / 2;
-
-			for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
-				for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
-					XY location = camera.position + new XY(x, y).Rotate(camera.rotation);
-
-					if (tiles.TryGetValue(location.roundDown, out var tile)) {
-						var xScreen = x + HalfViewWidth;
-						var yScreen = HalfViewHeight - y;
-						this.SetCellAppearance(xScreen, yScreen, tile);
-					}
-				}
-			}
 		}
 		public override bool ProcessKeyboard(Keyboard info) {
 			if (sceneContainer.Children.Any()) {
@@ -533,18 +542,17 @@ namespace TranscendenceRL {
 
 		private readonly XY screenCenter;
 		private Backdrop backdrop;
+		public BackdropConsole(Viewport view) :base(view.Width, view.Height){
+			this.camera = view.camera;
+			this.backdrop = view.world.backdrop;
+			screenCenter = new(Width / 2f, Height / 2f);
+        }
 		public BackdropConsole(int width, int height, Backdrop backdrop, Camera camera) : base(width, height) {
 			this.camera = camera;
 			this.backdrop = backdrop;
 			screenCenter = new XY(Width / 2f, Height / 2f);
 		}
         public override void Update(TimeSpan delta) {
-			/*
-			var last = backdrop.layers.Last();
-			if (last.tiles.tree.segmentCount > 50) {
-				last.tiles.tree.Clear();
-            }
-			*/
             base.Update(delta);
         }
         public override void Render(TimeSpan drawTime) {
@@ -558,6 +566,11 @@ namespace TranscendenceRL {
 				}
 			}
 			base.Render(drawTime);
+		}
+		public ColoredGlyph GetTile(int x, int y) {
+			var offset = new XY(x, Height - y) - screenCenter;
+			var location = camera.position + offset.Rotate(camera.rotation);
+			return backdrop.GetTile(location, camera.position);
 		}
 	}
 	public class Megamap : Console {
@@ -638,9 +651,9 @@ namespace TranscendenceRL {
 					}
 				}
 
-				var visiblePerimeter = new Rectangle((int)(Width / 2 - Width / (2 * viewScale)) + 1, (int)(Height / 2 - Height / (2 * viewScale)) + 1, (int)(Width / viewScale), (int)(Height / viewScale));
+				var visiblePerimeter = new Rectangle(new(Width / 2, Height / 2), (int)(Width / (viewScale*2) - 1), (int)(Height / (viewScale*2) - 1));
 				foreach (var point in visiblePerimeter.PerimeterPositions()) {
-					var b = this.GetBackground(point.X - 1, point.Y - 1);
+					var b = this.GetBackground(point.X, point.Y);
 					this.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, 128)));
 				}
 
@@ -778,7 +791,7 @@ namespace TranscendenceRL {
 
 				Mortal();
 
-
+				/*
 				var p = player.position.roundDown;
 				var maxAlpha = powerAlpha * 102;
 				for (int x = 0; x < Width; x++) {
@@ -794,6 +807,7 @@ namespace TranscendenceRL {
 								'-'));
 					}
 				}
+				*/
 			} else {
 				Mortal();
             }
@@ -915,9 +929,6 @@ namespace TranscendenceRL {
 				this.Print(targetX, targetY++, playerTarget.name);
 				PrintTarget(targetX, targetY, playerTarget);
 				DrawTargetArrow(playerTarget);
-
-
-
 				targetX += 32;
 				targetY = 1;
 			}
@@ -970,7 +981,6 @@ namespace TranscendenceRL {
 					}
 				}
 			}
-
 			for (int i = 0; i < player.messages.Count; i++) {
 				var message = player.messages[i];
 				var line = message.Draw();

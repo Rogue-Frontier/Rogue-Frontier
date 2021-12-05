@@ -148,7 +148,7 @@ namespace TranscendenceRL {
 
                     playerMain.Update(new TimeSpan());
                     playerMain.PlaceTiles();
-                    playerMain.DrawWorld();
+                    playerMain.RenderWorld();
 
 
                     crawl.next=() => (new FlashTransition(Width, Height, crawl, Transition));
@@ -283,7 +283,7 @@ namespace TranscendenceRL {
 
                 playerMain.Update(new TimeSpan());
                 playerMain.PlaceTiles();
-                playerMain.DrawWorld();
+                playerMain.RenderWorld();
 
                 SimpleCrawl ds = null;
                 ds = new SimpleCrawl(

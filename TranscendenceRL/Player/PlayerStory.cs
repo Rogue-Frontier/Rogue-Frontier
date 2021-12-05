@@ -708,7 +708,10 @@ a residential station of the United Constellation.",
                 if (mission != null) {
                     return mission.GetScene(prev, source, playerShip);
                 }
-                var target = source.world.entities.all.OfType<Station>().Where(s => s.type.codename == "station_orion_warlords_camp").FirstOrDefault(other => (other.position - source.position).magnitude < 256);
+                var target = source.world.entities.all.OfType<Station>().FirstOrDefault(other =>
+                    other.type.codename == "station_orion_warlords_camp"
+                    && (other.position - source.position).magnitude < 256
+                );
 
                 if (target == null) {
                     return new TextScene(prev,
@@ -716,30 +719,28 @@ a residential station of the United Constellation.",
                     new() {
                         new() {escape = true,
                             key = 'L', name = "Leave",
-                            next = (s) => prev
+                            next = Intro
                         }
                     });
-                } else {
-                    mission = mainInteractions.OfType<DestroyTarget>().FirstOrDefault(i => i.targets.Contains(target));
-
-                    if(mission != null) {
-
-                        return new TextScene(prev,
-    @"You aimlessly stand in the center of the empty Meeting Hall.
+                }
+                if (mainInteractions.OfType<DestroyTarget>().Any(i => i.targets.Contains(target))) {
+                    return new TextScene(prev,
+@"You aimlessly stand in the center of the empty Meeting Hall.
 After 2 minutes, the station master approaches you.
 
 ""Hi, uh, we're currently dealing with a particularly annoying
 Orion Warlords camp but I've been told that you're going to
 destroy it for us. So, uh, thank you and good luck!""
 ",
+                    new() {
                         new() {
-                        new() {escape = true,
+                            escape = true,
                             key = 'C', name = "Continue",
                             next = Intro
                         }
-                        });
-                    }
-                    return new TextScene(prev,
+                    });
+                }
+                return new TextScene(prev,
 @"You aimlessly stand in the center of the Meeting Hall.
 After 10 minutes, the station master approaches you.
 
@@ -753,70 +754,76 @@ than these idiots.""
 ""I'll pay you 400 cons to shut them up indefinitely.
 What do you say?""
 ",
+                new() {
                     new() {
-                        new() {escape = false,
-                            key = 'A', name = "Accept",
-                            next = Accept
-                        }, new() {escape = true,
-                            key = 'R', name = "Reject",
-                            next = Reject
-                        },
-                    });
-                    Console Accept(Console prev) {
-                        return new TextScene(prev,
+                        escape = false,
+                        key = 'A', name = "Accept",
+                        next = Accept
+                    },
+                    new() {
+                        escape = true,
+                        key = 'R', name = "Reject",
+                        next = Reject
+                    },
+                });
+                Console Accept(Console prev) {
+                    return new TextScene(prev,
 @"""Okay, thank you! Go destroy them and
 then I'll see you back here.""",
+                        new() {
                             new() {
-                                new() {escape = false,
-                                    key = 'U', name = "Undock",
-                                    next = Accepted
-                                }
+                                escape = false,
+                                key = 'U', name = "Undock",
+                                next = Accepted
+                            }
                         });
-                    }
-                    Console Accepted(Console prev) {
-                        DestroyTarget mission = null;
-                        mission = new DestroyTarget(playerShip, source, target) { inProgress = InProgress, debrief = Debrief };
-                        mainInteractions.Add(mission);
-                        return null;
-                        Console InProgress(Console prev) {
-                            return new TextScene(prev,
-@"""Hey, you're going to destroy that station, right?""",
-                                new() {
-                                    new() {escape = true,
-                                        key = 'U', name = "Undock",
-                                        next = null
-                                    }
-                            });
-                        }
-                        Console Debrief(Console prev) {
-                            return new TextScene(prev,
-@"""Thank you very much for destroying those warlords for us!
-As promised, here's your money - 400 cons""",
-                                new() {
-                                    new() {escape = false,
-                                        key = 'U', name = "Undock",
-                                        next = Debriefed
-                                    }
-                                });
-                        }
-                        Console Debriefed(Console prev) {
-                            playerShip.player.money += 400;
-                            mainInteractions.Remove(mission);
-                            //completedInteractions.Add(mission);
-                            return null;
-                        }
-                    }
-                    Console Reject(Console prev) {
+                }
+                Console Accepted(Console prev) {
+                    DestroyTarget mission = null;
+                    mission = new DestroyTarget(playerShip, source, target) { inProgress = InProgress, debrief = Debrief };
+                    mainInteractions.Add(mission);
+                    return null;
+                    Console InProgress(Console prev) {
                         return new TextScene(prev,
-@"""Oh man, what the hell is it with you people?
-Okay, fine, I'll just find someone else to do it then.""",
+@"""Hey, you're going to destroy that station, right?""",
                             new() {
-                                new() {escape = false,
+                                new() {
+                                    escape = true,
                                     key = 'U', name = "Undock",
                                     next = null
                                 }
                             });
                     }
+                    Console Debrief(Console prev) {
+                        return new TextScene(prev,
+@"""Thank you very much for destroying those warlords for us!
+As promised, here's your money - 400 cons""",
+                            new() {
+                                new() {
+                                    escape = false,
+                                    key = 'U', name = "Undock",
+                                    next = Debriefed
+                                }
+                            });
+                    }
+                    Console Debriefed(Console prev) {
+                        playerShip.player.money += 400;
+                        mainInteractions.Remove(mission);
+                        //completedInteractions.Add(mission);
+                        return null;
+                    }
+                }
+                Console Reject(Console prev) {
+                    return new TextScene(prev,
+@"""Oh man, what the hell is it with you people?
+Okay, fine, I'll just find someone else to do it then.""",
+                        new() {
+                            new() {
+                                escape = false,
+                                key = 'U', name = "Undock",
+                                next = null
+                            }
+                        });
                 }
             }
             return Intro(prev);

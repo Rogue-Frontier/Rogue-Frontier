@@ -288,10 +288,12 @@ namespace TranscendenceRL {
             if (ticks % 150 == 0) {
                 var players = owner.world.entities.all
                     .OfType<PlayerShip>()
-                    .Where(p => (p.position - owner.position).magnitude < 80)
-                    .Where(p => !playersMet.Contains(p));
+                    .Except(playersMet)
+                    .Where(p => (p.position - owner.position).magnitude < 80);
                 foreach(var p in players) {
-                    p.AddMessage(new Transmission(owner, "Kack! What the hell are you doing here??"));
+                    p.AddMessage(new Transmission(owner, new ColoredString(
+                        @"""Kack! Who the hell are you??""", Color.Yellow, Color.Black
+                        )));
                 }
                 playersMet.UnionWith(players);
 

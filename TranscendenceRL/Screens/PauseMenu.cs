@@ -45,7 +45,7 @@ namespace TranscendenceRL {
         public override void Render(TimeSpan delta) {
             this.Clear();
 
-            var c = new ConsoleComposite(playerMain.back, playerMain);
+            var c = new ConsoleComposite(playerMain.back, playerMain.viewport);
             for (int y = 0; y < Height; y++) {
                 for (int x = 0; x < Width; x++) {
                     var source = c[x, y];

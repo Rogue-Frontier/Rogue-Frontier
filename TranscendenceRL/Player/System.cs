@@ -116,10 +116,9 @@ namespace TranscendenceRL {
         }
 
         public void PlaceTiles(Dictionary<(int, int), ColoredGlyph> tiles) {
-            Dictionary<(int, int), Entity> entity = new Dictionary<(int, int), Entity>();
             foreach (var e in entities.all) {
                 var p = e.position.roundDown;
-                if (e.tile != null && (!entity.TryGetValue(p, out var en) || en is Segment)) {
+                if (e.tile != null && (!tiles.ContainsKey(p) || e is Segment)) {
                     tiles[p] = e.tile;
                 }
             }

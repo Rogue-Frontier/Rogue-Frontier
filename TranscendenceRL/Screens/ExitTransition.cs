@@ -2,42 +2,11 @@
 using SadConsole;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Console = SadConsole.Console;
-using Common;
 using SadConsole.Input;
 
 namespace TranscendenceRL {
-
-    public class DeathPause : Console {
-        PlayerMain prev;
-        DeathTransition next;
-
-        public double time;
-        public bool done;
-        Viewport view;
-        public DeathPause(PlayerMain prev, DeathTransition next) : base(prev.Width,prev.Height) {
-            this.prev = prev;
-            this.next = next;
-            view = new Viewport(prev, prev.camera, prev.world);
-            view.Update(new());
-        }
-        public override void Update(TimeSpan delta) {
-            time += delta.TotalSeconds / 4;
-            if(time < 2 && !done) {
-                return;
-            }
-            SadConsole.Game.Instance.Screen = next;
-            next.IsFocused = true;
-
-            base.Update(delta);
-        }
-        public override void Render(TimeSpan delta) {
-            view.Render(delta);
-            base.Render(delta);
-        }
-    }
-    public class DeathTransition : Console {
+    public class ExitTransition : Console {
         Console prev, next;
         public class Particle {
             public int x, destY;
@@ -45,12 +14,20 @@ namespace TranscendenceRL {
         }
         HashSet<Particle> particles;
         double time;
-        public DeathTransition(Console prev, Console next) : base(prev.Width, prev.Height) {
+        public ExitTransition(Console prev, Console next) : base(prev.Width, prev.Height) {
             this.prev = prev;
             this.next = next;
+            InitParticles();
+        }
+        public ExitTransition(Console prev, Func<Console> next) : base(prev.Width, prev.Height) {
+            this.prev = prev;
+            this.next = next();
+            InitParticles();
+        }
+        public void InitParticles() {
             particles = new HashSet<Particle>();
-            for(int y = 0; y < Height/2; y++) {
-                for(int x = 0; x < Width; x++) {
+            for (int y = 0; y < Height / 2; y++) {
+                for (int x = 0; x < Width; x++) {
                     particles.Add(new Particle() {
                         x = x,
                         y = -1,
@@ -59,7 +36,7 @@ namespace TranscendenceRL {
                     });
                 }
             }
-            for (int y = Height/2; y < Height; y++) {
+            for (int y = Height / 2; y < Height; y++) {
                 for (int x = 0; x < Width; x++) {
                     particles.Add(new Particle() {
                         x = x,
@@ -76,22 +53,22 @@ namespace TranscendenceRL {
             }
             return base.ProcessKeyboard(keyboard);
         }
-        public void Transition () {
+        public void Transition() {
             SadConsole.Game.Instance.Screen = next;
             next.IsFocused = true;
         }
         public override void Update(TimeSpan delta) {
-            time += delta.TotalSeconds / 2;
             prev.Update(delta);
-            if (time < 4) {
+            time += delta.TotalSeconds / 2;
+            if (time < 2) {
                 return;
-            } else if(time < 9) {
+            } else if (time < 6) {
                 foreach (var p in particles) {
-                    if(p.delay > 0) {
-                        p.delay -= delta.TotalSeconds/2;
+                    if (p.delay > 0) {
+                        p.delay -= delta.TotalSeconds * 2 / 3;
                     } else {
                         var offset = (p.destY - p.y);
-                        p.y += Math.MinMagnitude(offset, Math.MaxMagnitude(Math.Sign(offset), offset * delta.TotalSeconds/2));
+                        p.y += Math.MinMagnitude(offset, Math.MaxMagnitude(Math.Sign(offset), offset * delta.TotalSeconds / 2));
                     }
                 }
             } else {
@@ -103,7 +80,7 @@ namespace TranscendenceRL {
             prev.Render(delta);
             base.Render(delta);
             this.Clear();
-            foreach(var p in particles) {
+            foreach (var p in particles) {
                 this.SetCellAppearance(p.x, (int)p.y, new ColoredGlyph(Color.Black, Color.Black, ' '));
             }
         }
