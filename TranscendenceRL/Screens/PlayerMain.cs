@@ -734,9 +734,9 @@ namespace TranscendenceRL {
 				this.chargingUp = true;
 			} else {
 				if (player.CheckGate(out Stargate gate)) {
-					float targetAlpha = (float)Math.Min(1, (1 - (player.position - gate.position).magnitude / 16));
+					float targetAlpha = 1;
 					if(powerAlpha < targetAlpha) {
-						powerAlpha += (targetAlpha - powerAlpha) / 60f;
+						powerAlpha += (targetAlpha - powerAlpha) / 30;
 					}
 				} else {
 					this.chargingUp = false;
