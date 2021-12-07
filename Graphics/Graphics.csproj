@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TranscendenceRL\TranscendenceRL.csproj" />
+    <ProjectReference Include="..\RogueFrontier\RogueFrontier.csproj" />
   </ItemGroup>
   
   <ItemGroup>

@@ -5,8 +5,6 @@ VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IslandHopper", "IslandHopper\IslandHopper.csproj", "{D7CF48EC-8F6B-4FAB-ABC6-921916EA8B9C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TranscendenceRL", "TranscendenceRL\TranscendenceRL.csproj", "{28E10D64-8344-4CFA-BC75-05A56E29E495}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrainWaves", "BrainWaves\BrainWaves.csproj", "{53A7CD49-D4D9-40C7-8992-712A25813C67}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Common", "Common\Common.shproj", "{A0CDBD0E-3A41-42B7-9425-A838BC2C7383}"
@@ -15,12 +13,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Graphics", "Graphics\Graphi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Life", "Life\Life.csproj", "{A016F4FF-3054-48AD-9CBD-DD5177F8DD5C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RogueFrontier", "RogueFrontier\RogueFrontier.csproj", "{FD73740F-97C1-4634-9478-4736D3835DBA}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Common\Common.projitems*{28e10d64-8344-4cfa-bc75-05a56e29e495}*SharedItemsImports = 5
 		Common\Common.projitems*{53a7cd49-d4d9-40c7-8992-712a25813c67}*SharedItemsImports = 5
 		Common\Common.projitems*{a0cdbd0e-3a41-42b7-9425-a838bc2c7383}*SharedItemsImports = 13
 		Common\Common.projitems*{d7cf48ec-8f6b-4fab-abc6-921916ea8b9c}*SharedItemsImports = 5
+		Common\Common.projitems*{fd73740f-97c1-4634-9478-4736d3835dba}*SharedItemsImports = 5
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,14 +37,6 @@ Global
 		{D7CF48EC-8F6B-4FAB-ABC6-921916EA8B9C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D7CF48EC-8F6B-4FAB-ABC6-921916EA8B9C}.Release|x86.ActiveCfg = Release|Any CPU
 		{D7CF48EC-8F6B-4FAB-ABC6-921916EA8B9C}.Release|x86.Build.0 = Release|Any CPU
-		{28E10D64-8344-4CFA-BC75-05A56E29E495}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{28E10D64-8344-4CFA-BC75-05A56E29E495}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{28E10D64-8344-4CFA-BC75-05A56E29E495}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{28E10D64-8344-4CFA-BC75-05A56E29E495}.Debug|x86.Build.0 = Debug|Any CPU
-		{28E10D64-8344-4CFA-BC75-05A56E29E495}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{28E10D64-8344-4CFA-BC75-05A56E29E495}.Release|Any CPU.Build.0 = Release|Any CPU
-		{28E10D64-8344-4CFA-BC75-05A56E29E495}.Release|x86.ActiveCfg = Release|Any CPU
-		{28E10D64-8344-4CFA-BC75-05A56E29E495}.Release|x86.Build.0 = Release|Any CPU
 		{53A7CD49-D4D9-40C7-8992-712A25813C67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{53A7CD49-D4D9-40C7-8992-712A25813C67}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53A7CD49-D4D9-40C7-8992-712A25813C67}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -69,6 +61,14 @@ Global
 		{A016F4FF-3054-48AD-9CBD-DD5177F8DD5C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A016F4FF-3054-48AD-9CBD-DD5177F8DD5C}.Release|x86.ActiveCfg = Release|Any CPU
 		{A016F4FF-3054-48AD-9CBD-DD5177F8DD5C}.Release|x86.Build.0 = Release|Any CPU
+		{FD73740F-97C1-4634-9478-4736D3835DBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD73740F-97C1-4634-9478-4736D3835DBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD73740F-97C1-4634-9478-4736D3835DBA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FD73740F-97C1-4634-9478-4736D3835DBA}.Debug|x86.Build.0 = Debug|Any CPU
+		{FD73740F-97C1-4634-9478-4736D3835DBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD73740F-97C1-4634-9478-4736D3835DBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD73740F-97C1-4634-9478-4736D3835DBA}.Release|x86.ActiveCfg = Release|Any CPU
+		{FD73740F-97C1-4634-9478-4736D3835DBA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

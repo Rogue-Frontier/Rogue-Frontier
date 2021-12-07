@@ -5,17 +5,17 @@ using System.Linq;
 using System.Text;
 using Console = SadConsole.Console;
 using SadRogue.Primitives;
-using TranscendenceRL;
+using RogueFrontier;
 using Common;
 using XY = Common.XY;
 
 namespace Graphics {
     class WorldDraw : Console {
-        TranscendenceRL.System World;
+        RogueFrontier.System World;
         public XY camera;
         public Dictionary<(int, int), ColoredGlyph> tiles;
 
-        public WorldDraw(int width, int height, TranscendenceRL.System World) : base(width, height) {
+        public WorldDraw(int width, int height, RogueFrontier.System World) : base(width, height) {
             this.World = World;
             this.camera = new XY(0, 0);
             this.tiles = new Dictionary<(int, int), ColoredGlyph>();

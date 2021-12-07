@@ -1,0 +1,103 @@
+﻿<Module>
+	<SystemType	codename=	"system_orion"
+				name=		"Orion"
+		>
+		<SystemGroup>
+			<Star	 radius="50"/>
+
+			
+			<Orbital radius="150" angle="random">
+				<Group>
+					<Stargate gateId="Outbound"/>
+					<Sibling angleInc="135" radiusInc="100">
+						<Stargate gateId="Inbound"/>
+					</Sibling>
+				</Group>
+			</Orbital>
+
+			<Orbital count="5"
+					 radius="300"
+					 angle="random">
+
+				<Station	codename="station_iron_pirates_hideout"/>
+			</Orbital>
+
+			<Orbital radius="600"
+					 angle="random">
+				<Group>
+					<Asteroids angle="60" size="60"/>
+					<Station codename="station_raisu"/>
+					<Sibling radiusInc="200" angleInc="10">
+						<Station codename="station_arnold_habitat"/>
+					</Sibling>
+				</Group>
+			</Orbital>
+
+			<Orbital radius="400"
+					 angle="random">
+
+				<!--Giant planet-->
+				<Planet radius="20"
+						showOrbit="true"
+							/>
+
+				<Orbital angle="random"
+						 increment="80"
+						 radius="0">
+
+					<!--Tiny Moon-->
+					<Group radius="60">
+					
+						<Planet radius="3"/>
+						<Orbital angle="random" radius="10">
+							<Station	codename="station_orion_warlords_camp"/>
+						</Orbital>
+					</Group>
+
+
+					<Group radius="80">
+						<!--Small Moon-->
+						<Planet radius="10"/>
+
+						<!--Ring of stations-->
+						<Orbital radius="30" angle="random" increment="20" count="5">
+							<Group>
+								<Station	codename="station_constellation_astra"/>
+								<At index="1">
+									<Sibling	radiusInc="-10">
+										<Station codename="station_armor_shop"/>
+									</Sibling>
+								</At>
+								<At index="3">
+									<Sibling	radiusInc="-10">
+										<Station codename="station_arms_dealer"/>
+									</Sibling>
+								</At>
+								<Sibling	radiusInc="20">
+									<Station codename="station_constellation_habitat"/>
+								</Sibling>
+							</Group>
+						</Orbital>
+					</Group>
+
+					<Group radius="100">
+						<!--Far-away small Moon-->
+						<Planet radius="8"/>
+
+						<Orbital angle="random" radius="20">
+							<Group>
+								<Station	codename="station_daughters_outpost"/>
+								<Orbital	radius="5"
+											angle="random"
+											>
+									<Marker		name="Start"/>
+								</Orbital>
+							</Group>
+						</Orbital>
+					</Group>
+
+				</Orbital>
+			</Orbital>
+		</SystemGroup>
+	</SystemType>
+</Module>

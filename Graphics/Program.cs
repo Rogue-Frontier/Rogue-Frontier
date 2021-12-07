@@ -3,7 +3,7 @@ using SadConsole;
 using SadConsole.Renderers;
 using System;
 using System.IO;
-using TranscendenceRL;
+using RogueFrontier;
 using Console = SadConsole.Console;
 using SadRogue.Primitives;
 namespace Graphics
@@ -22,7 +22,7 @@ namespace Graphics
 		}
 
 		private static void Init() {
-            TranscendenceRL.System w = new TranscendenceRL.System();
+            RogueFrontier.System w = new RogueFrontier.System();
 			w.types.LoadFile("RogueFrontierContent/scripts/Main.xml");
 
 			Directory.CreateDirectory("GraphicsContent");
