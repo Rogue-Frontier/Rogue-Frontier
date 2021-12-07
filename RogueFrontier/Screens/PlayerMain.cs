@@ -165,6 +165,9 @@ namespace RogueFrontier {
 				viewport = nextViewport;
 				transition = new GateTransition(prevViewport, nextViewport, () => {
 					transition = null;
+					if (playerShip.mortalTime <= 0) {
+						vignette.powerAlpha = 0f;
+					}
 				});
 				return;
             }

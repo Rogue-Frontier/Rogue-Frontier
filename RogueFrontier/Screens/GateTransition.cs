@@ -13,6 +13,16 @@ namespace RogueFrontier.Screens {
         double amount;
         Rectangle rect;
         public Action Transition;
+
+        class Particle {
+            public int lifetime;
+            public Point pos;
+            public Particle(int lifetime, Point pos) {
+                this.lifetime = lifetime;
+                this.pos = pos;
+            }
+        }
+        private List<Particle> particles=new();
         public GateTransition(Viewport prev, Viewport next, Action Transition) : base(prev.Width, prev.Height) {
             this.prev = prev;
             this.next = next;
@@ -30,16 +40,27 @@ namespace RogueFrontier.Screens {
             prev.Update(delta);
             //next.Update(delta);
             base.Update(delta);
-            amount += delta.TotalSeconds * 1.5;
+            amount += delta.TotalSeconds * 1.2;
 
-            rect = new Rectangle(new(Width / 2, Height / 2), (int)(amount*Width /2), (int)(amount*Height/2));
-            if (amount > 1) {
+            if (amount < 1) {
+                particles.AddRange(rect.PerimeterPositions().Select(p => new Particle(15, p)));
+                particles.ForEach(p => p.lifetime--);
+                particles.RemoveAll(p => p.lifetime < 1);
+
+                rect = new Rectangle(new(Width / 2, Height / 2), (int)(amount * Width / 2), (int)(amount * Height / 2));
+            } else {
                 Transition();
             }
         }
         public override void Render(TimeSpan delta) {
             this.Clear();
-            HashSet<Point> edge = new(rect.PerimeterPositions());
+
+            Console particleLayer = new Console(Width, Height);
+            particles.ForEach(p => {
+                var pos = p.pos;
+                particleLayer.SetBackground(pos.X, pos.Y, new Color(204, 160, 255, p.lifetime * 255 / 15));
+            });
+
 
             Console back = new Console(Width, Height);
 
@@ -49,10 +70,6 @@ namespace RogueFrontier.Screens {
             foreach (var y in Enumerable.Range(0, Height)) {
                 foreach (var x in Enumerable.Range(0, Width)) {
                     Point p = new(x, y);
-                    if(edge.Contains(p)) {
-                        this.SetCellAppearance(x, y, new ColoredGlyph(Color.White, Color.Black, '#'));
-                        continue;
-                    }
                     (var v, var b) = rect.Contains(p) ? (next, nextBack) : (prev, prevBack);
                     back.SetCellAppearance(x, y, b.GetTile(x, y));
                     ColoredGlyph g = v.GetTile(x, y);
@@ -63,6 +80,7 @@ namespace RogueFrontier.Screens {
             }
             back.Render(delta);
             base.Render(delta);
+            particleLayer.Render(delta);
         }
     }
 }

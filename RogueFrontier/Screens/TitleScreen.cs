@@ -51,7 +51,7 @@ namespace RogueFrontier {
             tiles = new Dictionary<(int, int), ColoredGlyph>();
 
             int x = 2;
-            int y = 16;
+            int y = 9;
             var fs = FontSize * 1;
             Children.Add(new LabelButton("[Enter]     Play Story Mode", StartGame) { Position = new Point(x, y++), FontSize = fs });
             Children.Add(new LabelButton("[Shift + A] Arena Mode", StartArena) { Position = new Point(x, y++), FontSize = fs });
@@ -77,14 +77,15 @@ namespace RogueFrontier {
 
             y = 0;
             credits.Children.Add(new Label("[Credits]") { Position = new(0, y++) });
-            credits.Children.Add(new Label($"     Developer - Alex Chen") { Position = new(0, y++) });
-            credits.Children.Add(new Label("  Moral Support - Abdirahman Abdi") { Position = new(0, y++) });
-            credits.Children.Add(new Label(" Special Thanks - Andy De George") { Position = new(0, y++) });
-            credits.Children.Add(new Label(" Special Thanks - George Moromisato") { Position = new(0, y++) });
+            y++;
+            credits.Children.Add(new Label("     Developer: Alex Chen") { Position = new(0, y++) });
+            credits.Children.Add(new Label(" Moral Support: Abdirahman Abdi") { Position = new(0, y++) });
+            credits.Children.Add(new Label("Special Thanks: Andy De George") { Position = new(0, y++) });
+            credits.Children.Add(new Label("Special Thanks: George Moromisato") { Position = new(0, y++) });
 
             y++;
-            credits.Children.Add(new Label("Transcendence Rogue Frontier is an independent fangame") { Position = new(0, y++) });
-            credits.Children.Add(new Label("Transcendence is owned by Kronosaur Productions") { Position = new(0, y++) });
+            credits.Children.Add(new Label("Rogue Frontier is an independent project inspired by Transcendence") { Position = new(0, y++) });
+            credits.Children.Add(new Label("Transcendence is a trademark of Kronosaur Productions") { Position = new(0, y++) });
         }
         private void StartGame() {
             SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, World, settings, StartCrawl)) { IsFocused = true };
