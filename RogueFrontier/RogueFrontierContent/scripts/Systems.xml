@@ -19,7 +19,7 @@
 					 radius="300"
 					 angle="random">
 
-				<Station	codename="station_iron_pirates_hideout"/>
+				<Station	codename="station_orion_warlords_camp"/>
 			</Orbital>
 
 			<Orbital radius="600"
