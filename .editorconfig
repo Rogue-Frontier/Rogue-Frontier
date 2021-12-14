@@ -1,0 +1,3 @@
+csharp_style_namespace_declarations = file_scoped
+[*.cs]
+csharp_style_namespace_declarations=file_scoped:silent

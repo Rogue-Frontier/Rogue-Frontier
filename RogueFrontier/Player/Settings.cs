@@ -1,40 +1,39 @@
 ﻿using Newtonsoft.Json;
 using SadConsole.Input;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using static SadConsole.Input.Keys;
 using static RogueFrontier.ControlKeys;
-namespace RogueFrontier {
-    public class Settings {
-		//Remember to update whenever we load game
-		public Dictionary<ControlKeys, Keys> controls;
-		[JsonIgnore]
-		public static Settings standard => new Settings() {
-			controls = new Dictionary<ControlKeys, Keys>() {
-				{ Thrust, Up },
-				{ TurnRight, Right },
-				{ TurnLeft, Left },
-				{ Brake, Down },
-				{ Autopilot, A },
-				{ Dock, D },
-				{ TargetFriendly, F },
-				{ ClearTarget, R },
-				{Gate, G },
-				{ ShipMenu, S },
-				{ TargetEnemy, T },
-				{ Powers, P },
-				{ NextWeapon, W },
-				{ FirePrimary, X },
-				{ AutoAim, Z }
-			}
-		};
-        public Settings() {
-            controls = new Dictionary<ControlKeys, Keys>();
-        }
-		public string GetString() {
-			const int indent = -16;
-			return @$"[Controls]
+namespace RogueFrontier;
+
+public class Settings {
+    //Remember to update whenever we load game
+    public Dictionary<ControlKeys, Keys> controls;
+    [JsonIgnore]
+    public static Settings standard => new Settings() {
+        controls = new Dictionary<ControlKeys, Keys>() {
+                { Thrust, Up },
+                { TurnRight, Right },
+                { TurnLeft, Left },
+                { Brake, Down },
+                { Autopilot, A },
+                { Dock, D },
+                { TargetFriendly, F },
+                { ClearTarget, R },
+                {Gate, G },
+                { ShipMenu, S },
+                { TargetEnemy, T },
+                { Powers, P },
+                { NextWeapon, W },
+                { FirePrimary, X },
+                { AutoAim, Z }
+            }
+    };
+    public Settings() {
+        controls = new Dictionary<ControlKeys, Keys>();
+    }
+    public string GetString() {
+        const int indent = -16;
+        return @$"[Controls]
 
 {$"[Escape]",-16}Pause
 
@@ -64,7 +63,6 @@ namespace RogueFrontier {
 {$"[Right Click]",indent    }Thrust
 {$"[Middle Click]",indent   }Target nearest
 {$"[Mouse Wheel]",indent    }Select primary weapon".Replace("\r", null);
-		}
-
     }
+
 }

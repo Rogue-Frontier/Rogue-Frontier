@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace RogueFrontier {
-    public class Player {
-        public string file;
-        public Settings Settings;
+namespace RogueFrontier;
 
-        public string name;
-        public GenomeType Genome;
+public class Player {
+    public string file;
+    public Settings Settings;
 
-        public List<Epitaph> Epitaphs = new List<Epitaph>();
+    public string name;
+    public GenomeType Genome;
 
-        public int money;
-        public Player() { }
-        public Player(Settings settings) {
-            this.Settings = settings;
-        }
+    public List<Epitaph> Epitaphs = new List<Epitaph>();
+
+    public int money;
+    public Player() { }
+    public Player(Settings settings) {
+        this.Settings = settings;
     }
 }

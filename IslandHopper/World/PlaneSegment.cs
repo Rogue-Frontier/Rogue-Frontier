@@ -1,40 +1,36 @@
 ﻿using Common;
 using SadConsole;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace IslandHopper {
-    class PlaneSegment : Entity, Standable {
-        public Entity parent { get; }
+namespace IslandHopper;
 
-        public Island World => parent.World;
+class PlaneSegment : Entity, Standable {
+    public Entity parent { get; }
 
-        public XYZ Velocity { get => parent.Velocity; set => parent.Velocity = value; }
+    public Island World => parent.World;
 
-        public ColoredString Name => parent.Name;
+    public XYZ Velocity { get => parent.Velocity; set => parent.Velocity = value; }
 
-        public XYZ Position { get => parent.Position + offset; set => parent.Position = value - offset; }
+    public ColoredString Name => parent.Name;
 
-        public ColoredGlyph SymbolCenter => parent.SymbolCenter;
+    public XYZ Position { get => parent.Position + offset; set => parent.Position = value - offset; }
 
-        public bool Active => parent.Active;
+    public ColoredGlyph SymbolCenter => parent.SymbolCenter;
 
-        private XYZ offset;
-        public PlaneSegment(Entity parent, XYZ offset) {
-            this.parent = parent;
-            this.offset = offset;
-        }
+    public bool Active => parent.Active;
 
-        public void OnRemoved() {
-        }
+    private XYZ offset;
+    public PlaneSegment(Entity parent, XYZ offset) {
+        this.parent = parent;
+        this.offset = offset;
+    }
 
-        public void UpdateRealtime(TimeSpan delta) {
-        }
+    public void OnRemoved() {
+    }
 
-        public void UpdateStep() {
-        }
+    public void UpdateRealtime(TimeSpan delta) {
+    }
+
+    public void UpdateStep() {
     }
 }

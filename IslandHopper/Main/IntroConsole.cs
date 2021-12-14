@@ -1,31 +1,22 @@
-﻿using Common;
-using static SadConsole.Input.Keys;
-using SadRogue.Primitives;
+﻿using SadRogue.Primitives;
 using SadConsole;
-using SadConsole.UI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Resources;
-using System.Xml.Linq;
-using static IslandHopper.Constants;
-using SadConsole.Input;
-using System.IO;
 using Console = SadConsole.Console;
 
-namespace IslandHopper {
-    public class IntroConsole : Console {
+namespace IslandHopper;
 
-        public IntroConsole(int Width, int Height) : base(Width, Height) {
-            DefaultBackground = Color.Black;
-            DefaultForeground = Color.White;
-        }
+public class IntroConsole : Console {
 
-        public override void Render(TimeSpan delta) {
+    public IntroConsole(int Width, int Height) : base(Width, Height) {
+        DefaultBackground = Color.Black;
+        DefaultForeground = Color.White;
+    }
 
-            this.Clear();
+    public override void Render(TimeSpan delta) {
 
-            string[] lines = {
+        this.Clear();
+
+        string[] lines = {
                 "In the year 2040, climate change leaves half of the world uninhabitable.",
                 "War breaks out between the surviving nations over the control of land.",
                 "Some nations resort to nuclear force with nothing to lose. The mainlands are ruined.",
@@ -35,13 +26,12 @@ namespace IslandHopper {
                 "You are one of those civilians."
             };
 
-            int x = 16;
-            int y = 16;
-            foreach(var s in lines) {
-                this.Print(x, y++, s);
-            }
-
-            base.Render(delta);
+        int x = 16;
+        int y = 16;
+        foreach (var s in lines) {
+            this.Print(x, y++, s);
         }
+
+        base.Render(delta);
     }
 }

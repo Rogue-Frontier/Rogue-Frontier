@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace IslandHopper;
 
-namespace IslandHopper {
-    public class Equipment {
-        public IItem head;
-    }
+public class Equipment {
+    public IItem head;
 }

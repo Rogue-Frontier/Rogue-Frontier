@@ -1,15 +1,4 @@
-﻿using SadConsole.Input;
-using System;
-using SadRogue.Primitives;
-using SadConsole;
-using SadConsole.UI;
-using SadConsole.UI.Controls;
-using SadConsole.UI.Themes;
-using Console = SadConsole.Console;
-using System.Linq;
-using System.Collections.Generic;
-
-static class UI {
+﻿static class UI {
     public static char indexToLetter(int index) {
         if (index < 26) {
             return (char)('a' + index);

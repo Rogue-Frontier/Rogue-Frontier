@@ -1,77 +1,75 @@
 ﻿using ArchConsole;
-using SadConsole;
 using SadConsole.Input;
 using SadRogue.Primitives;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Console = SadConsole.Console;
 
-namespace RogueFrontier.Screens {
-    class ConfigMenu : Console {
-        Settings settings;
-        ControlKeys? currentSet;
-        Dictionary<ControlKeys, LabelButton> buttons;
+namespace RogueFrontier.Screens;
 
-        public ConfigMenu(int Width, int Height, Settings settings) : base(Width, Height) {
-            this.settings = settings;
+class ConfigMenu : Console {
+    Settings settings;
+    ControlKeys? currentSet;
+    Dictionary<ControlKeys, LabelButton> buttons;
 
-            UseKeyboard = true;
-            FocusOnMouseClick = true;
+    public ConfigMenu(int Width, int Height, Settings settings) : base(Width, Height) {
+        this.settings = settings;
 
-            currentSet = null;
-            buttons = new Dictionary<ControlKeys, LabelButton>();
+        UseKeyboard = true;
+        FocusOnMouseClick = true;
 
-            Init();
-        }
-        public void Reset() {
-            Children.Clear();
-            Init();
-        }
-        public void Init() {
-            int x = 2;
-            int y = 0;
+        currentSet = null;
+        buttons = new Dictionary<ControlKeys, LabelButton>();
 
-            var controls = settings.controls;
-            foreach (var control in controls.Keys) {
-                var c = control;
-                string label = GetLabel(c);
-                LabelButton b = null;
-                b = new LabelButton(label, () => {
+        Init();
+    }
+    public void Reset() {
+        Children.Clear();
+        Init();
+    }
+    public void Init() {
+        int x = 2;
+        int y = 0;
 
-                    if(currentSet.HasValue) {
-                        ResetLabel(currentSet.Value);
-                    }
+        var controls = settings.controls;
+        foreach (var control in controls.Keys) {
+            var c = control;
+            string label = GetLabel(c);
+            LabelButton b = null;
+            b = new LabelButton(label, () => {
 
-                    currentSet = c;
-                    b.text = $"{c,-16} {"[Press Key]",-12}";
-                    IsFocused = true;
-                }) { Position = new Point(x, y++), FontSize = FontSize };
-
-                buttons[control] = b;
-                Children.Add(b);
-            }
-        }
-        string GetLabel(ControlKeys control) => $"{control,-16} {settings.controls[control], -12}";
-        public void ResetLabel(ControlKeys k) => buttons[k].text = GetLabel(k);
-        public override bool ProcessKeyboard(Keyboard info) {
-            if (info.IsKeyPressed(Keys.Escape)) {
                 if (currentSet.HasValue) {
                     ResetLabel(currentSet.Value);
-                    currentSet = null;
-                } else {
-                    var p = Parent;
-                    p.Children.Remove(this);
-                    p.IsFocused = true;
                 }
-            } else if(info.KeysPressed.Any()) {
-                if(currentSet.HasValue) {
-                    settings.controls[currentSet.Value] = info.KeysPressed.First().Key;
-                    ResetLabel(currentSet.Value);
-                    currentSet = null;
-                }
-            }
-            return base.ProcessKeyboard(info);
+
+                currentSet = c;
+                b.text = $"{c,-16} {"[Press Key]",-12}";
+                IsFocused = true;
+            }) { Position = new Point(x, y++), FontSize = FontSize };
+
+            buttons[control] = b;
+            Children.Add(b);
         }
+    }
+    string GetLabel(ControlKeys control) => $"{control,-16} {settings.controls[control],-12}";
+    public void ResetLabel(ControlKeys k) => buttons[k].text = GetLabel(k);
+    public override bool ProcessKeyboard(Keyboard info) {
+        if (info.IsKeyPressed(Keys.Escape)) {
+            if (currentSet.HasValue) {
+                ResetLabel(currentSet.Value);
+                currentSet = null;
+            } else {
+                var p = Parent;
+                p.Children.Remove(this);
+                p.IsFocused = true;
+            }
+        } else if (info.KeysPressed.Any()) {
+            if (currentSet.HasValue) {
+                settings.controls[currentSet.Value] = info.KeysPressed.First().Key;
+                ResetLabel(currentSet.Value);
+                currentSet = null;
+            }
+        }
+        return base.ProcessKeyboard(info);
     }
 }
