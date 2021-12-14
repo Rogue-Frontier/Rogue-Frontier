@@ -167,7 +167,7 @@ namespace RogueFrontier {
             */
         }
     }
-    class TextScene : Console {
+    class Dialog : Console {
         public string desc;
         public bool charging;
         public int descIndex;
@@ -190,7 +190,7 @@ namespace RogueFrontier {
         int descY => 8;
 
         public static int maxCharge = 48;
-        public TextScene(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
+        public Dialog(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
             this.desc = desc.Replace("\r", null);
             navigation.RemoveAll(s => s == null);
             this.navigation = navigation;
@@ -207,6 +207,7 @@ namespace RogueFrontier {
             UseMouse = true;
             UseKeyboard = true;
         }
+
         public override void Update(TimeSpan delta) {
             bool f = IsFocused;
 
