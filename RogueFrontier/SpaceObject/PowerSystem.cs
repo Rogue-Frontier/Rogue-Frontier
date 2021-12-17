@@ -18,6 +18,7 @@ public class EnergySystem {
             return;
         }
 
+        var solars = devices.Solars;
         var generators = new List<Reactor>();
         var batteries = new List<Reactor>();
         foreach (var reactor in devices.Reactors) {
@@ -28,7 +29,10 @@ public class EnergySystem {
                 generators.Add(reactor);
             }
         }
-        var sources = generators.Concat(batteries).ToList();
+        List<PowerSource> sources = new();
+        sources.AddRange(solars);
+        sources.AddRange(generators);
+        sources.AddRange(batteries);
 
         totalMaxOutput = sources.Sum(r => r.maxOutput);
         int maxOutputLeft = totalMaxOutput;
@@ -50,8 +54,8 @@ public class EnergySystem {
         CheckReactor:
             var source = sources[sourceIndex];
 
-            if (source.desc.battery) {
-                source.chargeDelay = 60;
+            if (source is Reactor r && r.desc.battery) {
+                r.rechargeDelay = 60;
             }
             if (outputUsed > sourceOutput) {
                 outputUsed -= sourceOutput;
@@ -80,8 +84,8 @@ public class EnergySystem {
             if (maxReactorOutputLeft == 0) {
                 continue;
             }
-            if (battery.chargeDelay > 0) {
-                battery.chargeDelay--;
+            if (battery.rechargeDelay > 0) {
+                battery.rechargeDelay--;
                 continue;
             }
 

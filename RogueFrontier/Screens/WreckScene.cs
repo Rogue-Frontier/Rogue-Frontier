@@ -106,7 +106,7 @@ public class WreckScene : Console {
                     var ch = char.ToLower(key.Character);
                     if (ch >= 'a' && ch <= 'z') {
 
-                        int start = Math.Max(index.Value - 13, 0);
+                        int start = Math.Max((index ?? 0) - 13, 0);
                         var letterIndex = start + letterToIndex(ch);
                         if (letterIndex < from.Count) {
                             var item = from.ElementAt(letterIndex);
@@ -145,6 +145,10 @@ public class WreckScene : Console {
         }
         int end = Math.Min(playerItems.Count, start + 26);
 
+
+        void line(Point from, Point to, int glyph) {
+            this.DrawLine(from, to, '-', Color.White, null);
+        }
         if (playerItems.Any()) {
             int i = start;
             while (i < end) {
@@ -166,19 +170,19 @@ public class WreckScene : Console {
                     new ColoredGlyph(Color.White, Color.Black, '#');
                 this.SetCellAppearance(barX, 16 + i, cg);
             }
-            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
             barX += 33;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         } else {
             var highlightColor = playerSide ? Color.Yellow : Color.White;
             var name = new ColoredString("<Empty>", highlightColor, Color.Black);
             this.Print(x, y, name);
 
             int barX = x - 2;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
-            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
             barX += 33;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         }
 
         x += 32 + 4;
@@ -221,9 +225,9 @@ public class WreckScene : Console {
                     new ColoredGlyph(Color.White, Color.Black, '#');
                 this.SetCellAppearance(barX, 16 + i, cg);
             }
-            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-', Color.White, null);
             barX += 33;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), '|', Color.White, null);
         } else {
             var highlightColor = !playerSide ? Color.Yellow : Color.White;
             var name = new ColoredString("<Empty>", highlightColor, Color.Black);
@@ -231,10 +235,10 @@ public class WreckScene : Console {
 
 
             int barX = x - 2;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
-            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), '|', Color.White, null);
+            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-', Color.White, null);
             barX += 33;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), '|', Color.White, null);
         }
         base.Render(delta);
     }

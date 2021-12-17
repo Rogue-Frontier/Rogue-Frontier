@@ -12,16 +12,18 @@ public class Item {
     public ItemType type;
     public Weapon weapon;
     public Armor armor;
-    public Shields shields;
+    public Shield shield;
     public Reactor reactor;
+    public Solar solar;
     public MiscDevice misc;
     public Item() { }
     public Item(Item clone) {
         type = clone.type;
         weapon = clone.weapon != null ? new Weapon(this, clone.weapon.desc) : null;
         armor = clone.armor != null ? new Armor(this, clone.armor.desc) : null;
-        shields = clone.shields != null ? new Shields(this, clone.shields.desc) : null;
+        shield = clone.shield != null ? new Shield(this, clone.shield.desc) : null;
         reactor = clone.reactor != null ? new Reactor(this, clone.reactor.desc) : null;
+        solar = clone.solar != null ? new Solar(this, clone.solar.desc) : null;
         misc = clone.misc != null ? new MiscDevice(this, clone.misc.desc) : null;
     }
     public Item(ItemType type) {
@@ -29,38 +31,43 @@ public class Item {
         //These fields are to remain null while the item is not installed and to be populated upon installation
         weapon = null;
         armor = null;
-        shields = null;
+        shield = null;
         reactor = null;
+        solar = null;
+        misc = null;
     }
     public T GetDevice<T>() {
         var type = typeof(T);
         return (T)new Dictionary<Type, object>() {
-                { typeof(Weapon), weapon },
-                { typeof(Armor), armor },
-                { typeof(Shields), shields },
-                { typeof(Reactor), reactor },
-                { typeof(MiscDevice), misc }
-            }[type];
+                [typeof(Weapon)] = weapon,
+                [typeof(Armor)] = armor,
+                [typeof(Shield)] = shield,
+                [typeof(Reactor)] = reactor,
+                [typeof(Solar)] = solar,
+                [typeof(MiscDesc)]=misc,
+        }[type];
     }
     public Weapon InstallWeapon() => type.weapon != null ?
         weapon = new Weapon(this, type.weapon) : null;
     public Armor InstallArmor() => type.armor != null ?
         armor = new Armor(this, type.armor) : null;
-    public Shields InstallShields() => type.shield != null ?
-        shields = new Shields(this, type.shield) : null;
+    public Shield InstallShields() => type.shield != null ?
+        shield = new Shield(this, type.shield) : null;
     public Reactor InstallReactor() => type.reactor != null ?
         reactor = new Reactor(this, type.reactor) : null;
+    public Solar InstallSolar() => type.solar != null ?
+        solar = new Solar(this, type.solar) : null;
     public MiscDevice InstallMisc() => type.misc != null ?
         misc = new MiscDevice(this, type.misc) : null;
     public void RemoveAll() {
         weapon = null;
         armor = null;
-        shields = null;
+        shield = null;
         reactor = null;
     }
     public void RemoveWeapon() => weapon = null;
     public void RemoveArmor() => armor = null;
-    public void RemoveShields() => shields = null;
+    public void RemoveShields() => shield = null;
     public void RemoveReactor() => reactor = null;
 }
 public interface Device {
@@ -273,7 +280,7 @@ public class Weapon : Powered {
         return (user.position - target.position).magnitude < currentRange;
     }
     public bool AllowFire => ammo?.AllowFire ?? true;
-    public bool CanFire => fireTime == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
+    public bool ReadyToFire => fireTime == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
     public void Fire(SpaceObject source, double direction) {
         int damageHP = desc.damageHP;
         int missileSpeed = desc.shot.missileSpeed;
@@ -521,13 +528,13 @@ public class Armor {
 
     }
 }
-public class Shields : Device {
+public class Shield : Device {
     public Item source { get; set; }
     public ShieldDesc desc;
     public int hp;
     public int depletionTime;
     public double regenHP;
-    public Shields(Item source, ShieldDesc desc) {
+    public Shield(Item source, ShieldDesc desc) {
         this.source = source;
         this.desc = desc;
     }
@@ -536,19 +543,14 @@ public class Shields : Device {
             depletionTime--;
         } else if (hp < desc.maxHP) {
             regenHP += desc.hpPerSecond / 30;
-
-        Regen:
-            if (regenHP >= 1) {
+            while (regenHP >= 1) {
                 hp++;
-                regenHP--;
                 if (hp < desc.maxHP) {
-                    goto Regen;
+                    regenHP--;
                 } else {
                     regenHP = 0;
                 }
             }
-
-
         }
     }
     public void Absorb(int damage) {
@@ -558,12 +560,17 @@ public class Shields : Device {
         }
     }
 }
-public class Reactor : Device {
+
+public interface PowerSource {
+    double energyDelta { get; set; }
+    int maxOutput { get; }
+}
+public class Reactor : Device, PowerSource {
     public Item source { get; set; }
     public ReactorDesc desc;
     public double energy;
-    public double energyDelta;
-    public int chargeDelay;
+    public double energyDelta { get; set; }
+    public int rechargeDelay;
     public int maxOutput => energy > 0 ? desc.maxOutput : 0;
     public Reactor(Item source, ReactorDesc desc) {
         this.source = source;
@@ -572,7 +579,24 @@ public class Reactor : Device {
         energyDelta = 0;
     }
     public void Update(IShip owner) {
-        energy = Math.Max(0, Math.Min(energy + (energyDelta < 0 ? energyDelta / desc.efficiency : energyDelta) / 30, desc.capacity));
+        energy = Math.Max(0, Math.Min(
+            energy + (energyDelta < 0 ? energyDelta / desc.efficiency : energyDelta) / 30,
+            desc.capacity));
+    }
+}
+public class Solar : Device, PowerSource {
+    public Item source { get; set; }
+    public SolarDesc desc;
+    public int maxOutput { get; private set; }
+    public double energyDelta { get; set; }
+    public Solar(Item source, SolarDesc desc) {
+        this.source = source;
+        this.desc = desc;
+    }
+    public void Update(IShip owner) {
+        var t = owner.world.backdrop.starlight.GetTile(owner.position);
+        var b = t.Premultiply().GetBrightness();
+        maxOutput = (int)(b * desc.maxOutput);
     }
 }
 public class MiscDevice : Device {

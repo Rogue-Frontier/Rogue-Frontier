@@ -16,24 +16,26 @@ using static RogueFrontier.Station;
 using System.Threading.Tasks;
 
 namespace RogueFrontier;
-public class NotifyStationDestroyed : IContainer<StationDestroyed> {
+public class NotifyStationDestroyed : IContainer<Destroyed> {
     public PlayerShip playerShip;
     public Station source;
     [JsonIgnore]
-    public StationDestroyed Value =>
-        (s, d, w) => playerShip?.AddMessage(new Transmission(source, $"{source.name} destroyed by {d?.name ?? "unknown forces"}!"));
+    public Destroyed Value =>
+        (s, d, w) => playerShip?.AddMessage(new Transmission(source,
+            $"{source.name} destroyed by {d?.name ?? "unknown forces"}!"
+            ));
     public NotifyStationDestroyed(PlayerShip playerShip, Station source) {
         this.playerShip = playerShip;
         this.source = source;
     }
 }
-
 public class EndGamePlayerDestroyed : IContainer<PlayerDestroyed> {
     [JsonIgnore]
     private PlayerMain main;
     [JsonIgnore]
-    public PlayerDestroyed Value => main == null ? null :
-        (p, d, w) => main.EndGame($"Destroyed by {d?.name ?? "unknown forces"}", w);
+    public PlayerDestroyed Value => main is PlayerMain pm ?
+        (p, d, w) => pm.EndGame($"Destroyed by {d?.name ?? "unknown forces"}", w)
+        : null;
     public EndGamePlayerDestroyed(PlayerMain main) {
         this.main = main;
     }
@@ -214,20 +216,22 @@ public class PlayerMain : Console {
                 return back;
             }
         }
-        var epitaph = new Epitaph() {
+        var ep = new Epitaph() {
             desc = message,
             deathFrame = deathFrame,
             wreck = wreck
         };
-        playerShip.player.Epitaphs.Add(epitaph);
+        playerShip.player.Epitaphs.Add(ep);
+
+        playerShip.autopilot = false;
         //Bug: Background is not included because it is a separate console
-        var ds = new DeathScreen(this, epitaph);
+        var ds = new DeathScreen(this, ep);
         var dt = new DeathTransition(this, ds);
         var dp = new DeathPause(this, dt) { IsFocused = true };
         SadConsole.Game.Instance.Screen = dp;
         Task.Run(() => {
             lock (world) {
-                new DeadGame(world, playerShip.player, playerShip, epitaph).Save();
+                new DeadGame(world, playerShip, ep).Save();
             }
             dp.done = true;
         });
@@ -1096,88 +1100,118 @@ public class Readout : Console {
             int x = 3;
             int y = 3;
             var b = Color.Black;
+
+            var solars = player.ship.devices.Solars;
             var reactors = player.ship.devices.Reactors;
-            if (reactors.Any()) {
-                {
-                    double totalFuel = reactors.Sum(r => r.energy);
-                    double maxFuel = reactors.Sum(r => r.desc.capacity);
-                    double netDelta = reactors.Sum(r => r.energyDelta);
-                    ColoredString bar;
-                    if (totalFuel > 0) {
-                        Color f = Color.White;
-                        char arrow = '=';
-                        if (netDelta < 0) {
-                            f = Color.Yellow;
-                            arrow = '<';
-                        } else if (netDelta > 0) {
-                            arrow = '>';
-                            f = Color.Cyan;
-                        }
 
-                        int length = (int)Math.Ceiling(16 * totalFuel / maxFuel);
-                        bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
-                            + new ColoredString(new string('=', 16 - length), Color.Gray, b);
-                    } else {
-                        bar = new ColoredString(new string('=', 16), Color.Gray, b);
-                    }
+            void PrintTotalPower() {
+                double totalFuel = reactors.Sum(r => r.energy),
+                       maxFuel = reactors.Sum(r => r.desc.capacity),
+                       netDelta = reactors.Sum(r => r.energyDelta),
+                       totalSolar = solars.Sum(s => s.maxOutput);
+                ColoredString bar;
 
-                    {
-                        int length = (int)Math.Ceiling(16f * player.energy.totalUsedOutput / player.energy.totalMaxOutput);
-                        for (int i = 0; i < length; i++) {
-                            bar[i].Background = Color.DarkKhaki;
-                        }
+                if (totalFuel > 0) {
+                    Color f = Color.White;
+                    char arrow = '=';
+                    if (netDelta < 0) {
+                        f = Color.Yellow;
+                        arrow = '<';
+                    } else if (netDelta > 0) {
+                        arrow = '>';
+                        f = Color.Cyan;
                     }
-                    this.Print(x, y,
-                          new ColoredString("[", Color.White, b)
-                        + bar
-                        + new ColoredString("]", Color.White, b)
-                        + " "
-                        + new ColoredString($"[{player.energy.totalUsedOutput,3}/{player.energy.totalMaxOutput,3}] Total Power", Color.White, b)
-                        );
-                    y++;
+                    int length = (int)Math.Ceiling(16 * totalFuel / maxFuel);
+                    bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
+                        + new ColoredString(new string('=', 16 - length), Color.Gray, b);
+                } else {
+                    bar = new ColoredString(new string('=', 16), Color.Gray, b);
                 }
 
+                int totalUsed = player.energy.totalUsedOutput,
+                    totalMax = player.energy.totalMaxOutput;
+                int l;
 
-                foreach (var reactor in reactors) {
-
-                    ColoredString bar;
-                    if (reactor.energy > 0) {
-                        Color f = Color.White;
-                        char arrow = '=';
-                        if (reactor.energyDelta < 0) {
-                            f = Color.Yellow;
-                            arrow = '<';
-                        } else if (reactor.energyDelta > 0) {
-                            arrow = '>';
-                            f = Color.Cyan;
-                        }
-
-                        int length = (int)Math.Ceiling(16 * reactor.energy / reactor.desc.capacity);
-
-                        bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
-                            + new ColoredString(new string('=', 16 - length), Color.Gray, b);
-                    } else {
-                        bar = new ColoredString(new string('=', 16), Color.Gray, b);
-                    }
-
-                    {
-                        int length = (int)Math.Ceiling(-16f * reactor.energyDelta / reactor.maxOutput);
-                        for (int i = 0; i < length; i++) {
-                            bar[i].Background = Color.DarkKhaki;
-                        }
-                    }
-
-                    this.Print(x, y,
-                        new ColoredString("[", Color.White, b)
-                        + bar
-                        + new ColoredString("]", Color.White, b)
-                        + " "
-                        + new ColoredString($"[{Math.Abs(reactor.energyDelta),3}/{reactor.maxOutput,3}] {reactor.source.type.name}", Color.White, b)
-                        );
-                    y++;
+                l = (int)Math.Ceiling(16f * totalUsed / totalMax);
+                for (int i = 0; i < l; i++) {
+                    bar[i].Background = Color.DarkKhaki;
+                    bar[i].Foreground = Color.Yellow;
                 }
+                l = (int)Math.Ceiling(16f * totalSolar / totalMax);
+                for (int i = 0; i < l; i++) {
+                    bar[i].Background = Color.DarkCyan;
+                }
+
+                this.Print(x, y++,
+                      new ColoredString("[", Color.White, b)
+                    + bar
+                    + new ColoredString("]", Color.White, b)
+                    + " "
+                    + new ColoredString($"[{totalUsed,3}/{totalMax,3}] Total Power", Color.White, b)
+                    );
+            }
+
+            PrintTotalPower();
+
+            foreach (var s in solars) {
+                ColoredString bar;
+                var back = Color.Black;
+
+                int length = (int)Math.Ceiling(16d * s.maxOutput / s.desc.maxOutput);
+                int sublength = s.maxOutput > 0 ? (int)Math.Ceiling(length * (-s.energyDelta) / s.maxOutput) : 0;
+                bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
+                    + new ColoredString(new string('=', length - sublength), Color.Cyan, back)
+                    + new ColoredString(new string('=', 16 - length), Color.Gray, back);
+                /*
+                int l = (int)Math.Ceiling(-16f * s.maxOutput / s.desc.maxOutput);
+                for (int i = 0; i < l; i++) {
+                    bar[i].Background = Color.DarkKhaki;
+                    bar[i].Foreground = Color.Yellow;
+                }
+                */
+                this.Print(x, y,
+                    new ColoredString("[", Color.White, back)
+                    + bar
+                    + new ColoredString("]", Color.White, back)
+                    + " "
+                    + new ColoredString($"[{Math.Abs(s.energyDelta),3}/{s.maxOutput,3}] {s.source.type.name}", Color.White, back)
+                    );
                 y++;
             }
+            foreach (var reactor in reactors) {
+                ColoredString bar;
+                if (reactor.energy > 0) {
+                    Color f = Color.White;
+                    char arrow = '=';
+                    if (reactor.energyDelta < 0) {
+                        f = Color.Yellow;
+                        arrow = '<';
+                    } else if (reactor.energyDelta > 0) {
+                        arrow = '>';
+                        f = Color.Cyan;
+                    }
+                    int length = (int)Math.Ceiling(16 * reactor.energy / reactor.desc.capacity);
+                    bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
+                        + new ColoredString(new string('=', 16 - length), Color.Gray, b);
+                } else {
+                    bar = new ColoredString(new string('=', 16), Color.Gray, b);
+                }
+
+                int l = (int)Math.Ceiling(-16f * reactor.energyDelta / reactor.maxOutput);
+                for (int i = 0; i < l; i++) {
+                    bar[i].Background = Color.DarkKhaki;
+                }
+
+                this.Print(x, y,
+                    new ColoredString("[", Color.White, b)
+                    + bar
+                    + new ColoredString("]", Color.White, b)
+                    + " "
+                    + new ColoredString($"[{Math.Abs(reactor.energyDelta),3}/{reactor.maxOutput,3}] {reactor.source.type.name}", Color.White, b)
+                    );
+                y++;
+            }
+            y++;
             var weapons = player.ship.devices.Weapons;
             if (weapons.Any()) {
                 int i = 0;
@@ -1440,13 +1474,14 @@ public class CommunicationsMenu : Console {
         //this.Print(x, y++, "[Ship control locked]", foreground, back);
         this.Print(x, y++, "[ESC     -> cancel]", foreground, back);
         y++;
-
+        /*
         if (playerShip.wingmates.Count(w => w.active) == 0) {
             playerShip.wingmates.AddRange(playerShip.world.entities.all.OfType<AIShip>());
             foreach (var w in playerShip.wingmates) {
                 w.ship.sovereign = playerShip.sovereign;
             }
         }
+        */
 
         int index = 0;
         foreach (var w in playerShip.wingmates.Take(10)) {

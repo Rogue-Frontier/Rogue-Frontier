@@ -90,7 +90,6 @@ public interface StationBehavior {
 public class Station : DockableObject, ITrader {
     [JsonIgnore]
     public string name => type.name;
-
     [JsonProperty]
     public int Id { get; set; }
     [JsonProperty]
@@ -117,11 +116,8 @@ public class Station : DockableObject, ITrader {
     public List<Weapon> weapons;
     [JsonProperty]
     public List<AIShip> guards;
-
-
-    public delegate void StationDestroyed(Station station, SpaceObject destroyer, Wreck wreck);
-    public FuncSet<IContainer<StationDestroyed>> onDestroyed = new();
-
+    public delegate void Destroyed(Station station, SpaceObject destroyer, Wreck wreck);
+    public FuncSet<IContainer<Destroyed>> onDestroyed = new();
     public Station() { }
     public Station(System World, StationType Type, XY Position) {
         this.Id = World.nextId++;
@@ -303,4 +299,13 @@ public class Segment : SpaceObject {
     }
     [JsonIgnore]
     public ColoredGlyph tile => desc.tile.Original;
+}
+
+
+public class CommonStationBehavior : StationBehavior {
+    public CommonStationBehavior() {
+    }
+    public void Update(Station owner) {
+
+    }
 }

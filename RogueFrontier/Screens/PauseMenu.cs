@@ -76,7 +76,7 @@ public class PauseMenu : Console {
     }
     public void Save() {
         var ps = playerMain.playerShip;
-        new LiveGame(playerMain.world, ps.player, ps).Save();
+        new LiveGame(playerMain.world, ps).Save();
     }
     public void Delete() {
         File.Delete(playerMain.playerShip.player.file);

@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
@@ -7,14 +6,12 @@
 	<ApplicationManifest>app.manifest</ApplicationManifest>
 	<StartupObject>RogueFrontier.Program</StartupObject>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="CoreCLR-NCalc" Version="2.2.92" />
     <PackageReference Include="NetCoreServer" Version="5.1.0" />
     <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
-    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.0.0-beta1" />
+    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.1.1" />
   </ItemGroup>
-
   <ItemGroup>
     <Reference Include="ArchConsole">
       <HintPath>..\..\ArchConsole\ArchConsole\bin\Debug\netstandard2.1\ArchConsole.dll</HintPath>
@@ -23,7 +20,6 @@
       <HintPath>..\..\ASECII\ASECII\bin\Debug\netcoreapp3.1\ASECII.dll</HintPath>
     </Reference>
   </ItemGroup>
-
   <ItemGroup>
     <None Update="app.manifest">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -173,11 +169,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="RogueFrontierContent\text\" />
   </ItemGroup>
-
   <Import Project="..\Common\Common.projitems" Label="Shared" />
-
 </Project>

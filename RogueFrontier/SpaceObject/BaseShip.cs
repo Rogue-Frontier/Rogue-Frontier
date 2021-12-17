@@ -155,7 +155,7 @@ public class BaseShip : SpaceObject {
         active = false;
 
         onDestroyed.set.RemoveWhere(d => d.Value == null);
-        foreach (var on in onDestroyed.set) {
+        foreach (var on in onDestroyed) {
             on.Value.Invoke(this, source, wreck);
         }
     }
@@ -393,18 +393,7 @@ public struct BaseOnDestroyed : IContainer<Destroyed> {
         this.player = player;
     }
     [JsonIgnore]
-    public Destroyed Value {
-        get {
-            var player = this.player;
-            if (player == null) {
-                return null;
-            }
-            return (BaseShip s, SpaceObject source, Wreck wreck) => {
-                player.onDestroyed.set.RemoveWhere(d => d.Value == null);
-                foreach (var f in player.onDestroyed.set) f.Value.Invoke(player, source, wreck);
-            };
-        }
-    }
+    public Destroyed Value => player != null ? player.FireOnDestroyed : null;
     public override bool Equals(object obj) => obj is BaseOnDestroyed b && b.player == player;
 }
 public class PlayerShip : IShip {
@@ -487,7 +476,12 @@ public class PlayerShip : IShip {
         ship.onDestroyed -= new BaseOnDestroyed(this);
         //Ship.OnDestroyed.set.RemoveWhere(s => s is BaseOnDestroyed b && b.player == this);
     }
-    public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
+
+    public void FireOnDestroyed(BaseShip s, SpaceObject source, Wreck wreck) {
+        onDestroyed.set.RemoveWhere(d => d.Value == null);
+        foreach (var f in onDestroyed.set) f.Value.Invoke(this, source, wreck);
+    }
+public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
     public void SetDecelerating(bool decelerating = true) => ship.SetDecelerating(decelerating);
     public void SetFiringPrimary(bool firingPrimary = true) => this.firingPrimary = firingPrimary;

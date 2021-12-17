@@ -254,15 +254,23 @@ public class SListScreen {
                             result.Add(new($"- {t.name}"));
                         }
                         result.Add(new(""));
-                        result.Add(new($"Return to {dt.source.name}"));
+                        result.Add(new($"Source: {dt.source.name}"));
                     }
+                    result.Add(new(""));
+                    result.Add(new($"[Enter] Update targets", Color.Yellow, Color.Black));
                     break;
-
             }
             return result;
         }
         void Invoke(IPlayerInteraction item) {
             screen.UpdateIndex();
+            switch (item) {
+                case DestroyTarget dt:
+                    var a = dt.targets.Where(t => t.active);
+                    player.SetTargetList(a.Any() ? a.ToList() : new() { dt.source });
+                    player.AddMessage(new Message("Targeting updated"));
+                    break;
+            }
         }
         void Escape() {
             var p = screen.Parent;
@@ -716,11 +724,13 @@ public class ListScreen<T> : Console {
         int x = 16;
         int y = 16;
 
+        void line(Point from, Point to, int glyph) {
+            this.DrawLine(from, to, '-', Color.White, null);
+        }
+
         this.RenderBackground();
 
         //this.Fill(new Rectangle(x, y, 32, 26), Color.Gray, null, '.');
-
-
         this.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(Color.Yellow, Color.Black, '-'));
         this.Print(x, y - 2, player.name, Color.Yellow, Color.Black);
         int start = 0;
@@ -770,19 +780,19 @@ public class ListScreen<T> : Console {
                 this.SetCellAppearance(barX, 16 + i, cg);
             }
 
-            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
             barX += 33;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         } else {
             var highlightColor = Color.Yellow;
             var name = new ColoredString("<Empty>", highlightColor, Color.Black);
             this.Print(x, y, name);
 
             int barX = x - 2;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
-            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
             barX += 33;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         }
 
         //this.DrawLine(new Point(x, y));
@@ -798,9 +808,8 @@ public class ListScreen<T> : Console {
             var item = items.ElementAt(playerIndex.Value);
             this.Print(x, y - 2, getName(item), Color.Yellow, Color.Black);
             var desc = getDesc(item);
-            foreach (var line in desc) {
-                this.Print(x, y++, line);
-            }
+
+            desc.ForEach(l => this.Print(x, y++, l));
         }
 
         base.Render(delta);

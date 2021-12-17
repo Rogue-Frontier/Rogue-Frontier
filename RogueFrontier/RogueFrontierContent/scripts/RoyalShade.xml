@@ -4,9 +4,7 @@
 			name=		"Darkspeed cannon"
 			level=		"2"
 			mass=		"2000"
-
 			invoke=		"installWeapon"
-				
 			desc=		"."
 		>
 		<Weapon

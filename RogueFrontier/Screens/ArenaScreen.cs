@@ -23,14 +23,9 @@ class ArenaScreenReset : IContainer<PlayerDestroyed>, IConsoleHook {
     //[JsonIgnore]
     private ArenaScreen arena;
     [JsonIgnore]
-    public PlayerDestroyed Value {
-        get {
-            var t = this;
-            return (p, s, w) => {
-                t.arena.Reset(t.arena.playerMain.camera.position);
-            };
-        }
-    }
+    public PlayerDestroyed Value => arena is ArenaScreen a ?
+        (p, s, w) => a.Reset() : null;
+    
     public override bool Equals(object obj) => obj is ArenaScreenReset r && r.arena == arena;
 }
 class ArenaScreen : Console {
@@ -142,7 +137,7 @@ class ArenaScreen : Console {
                                     var source = new Item(d.source);
                                     return (Device)(d switch {
                                         Weapon w => source.weapon,
-                                        Shields s => source.shields,
+                                        Shield s => source.shield,
                                         Reactor r => source.reactor,
                                         MiscDevice m => source.misc
                                     });
@@ -281,6 +276,7 @@ class ArenaScreen : Console {
             c.IsVisible = !c.IsVisible;
         }
     }
+    public void Reset() => Reset(playerMain.camera.position);
     public void Reset(XY camera) {
 
         this.camera = camera;
@@ -412,7 +408,8 @@ class ArenaScreen : Console {
                 a.ship.active = false;
                 World.RemoveEntity(a);
 
-                var playerShip = new PlayerShip(new Player() { Settings = settings }, new BaseShip(a.ship));
+                var p = new Player() { Settings = settings, Genome = new GenomeType() { name = "Human" } };
+                var playerShip = new PlayerShip(p, new BaseShip(a.ship));
 
                 playerMain = new PlayerMain(Width, Height, null, playerShip) { IsFocused = true };
                 playerMain.camera.position = camera;

@@ -16,6 +16,7 @@
 			<Weapon codename="item_dynamite_cannon"/>
 			<Reactor codename="item_foundry_reactor"/>
 			<Reactor codename="item_foundry_battery"/>
+			<Solar codename="item_solar_panel"/>
         </Devices>
 		<Items>
 			<Item codename="item_dynamite_charge"/>

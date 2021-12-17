@@ -37,5 +37,8 @@ public class FuncSet<T> {
         f.set.Add(t);
         return f;
     }
+    public IEnumerator<T> GetEnumerator() {
+        return set.GetEnumerator();
+    }
     public static implicit operator HashSet<T>(FuncSet<T> f) => f.set;
 }

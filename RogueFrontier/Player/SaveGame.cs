@@ -133,9 +133,10 @@ public class LiveGame {
     public System world;
     public Player player { get; private set; }
     public PlayerShip playerShip;
-    public LiveGame(System world, Player player, PlayerShip playerShip) {
+    public LiveGame() { }
+    public LiveGame(System world, PlayerShip playerShip) {
         this.world = world;
-        this.player = player;
+        this.player = playerShip.player;
         this.playerShip = playerShip;
     }
     public void Save() {
@@ -148,9 +149,10 @@ public class DeadGame {
     public Player player { get; private set; }
     public PlayerShip playerShip;
     public Epitaph epitaph;
-    public DeadGame(System world, Player player, PlayerShip playerShip, Epitaph epitaph) {
+    public DeadGame() { }
+    public DeadGame(System world, PlayerShip playerShip, Epitaph epitaph) {
         this.world = world;
-        this.player = player;
+        this.player = playerShip.player;
         this.playerShip = playerShip;
         this.epitaph = epitaph;
     }

@@ -22,13 +22,13 @@ using static RogueFrontier.TellClient;
 namespace RogueFrontier;
 
 class FrontierSession : TcpSession {
-    private ScreenServer game;
+    private ServerMain game;
     private PlayerShip playerShip;
     private AIShip removed;
 
     private MemoryStream received;
     private int length;
-    public FrontierSession(TcpServer server, ScreenServer game) : base(server) {
+    public FrontierSession(TcpServer server, ServerMain game) : base(server) {
         this.game = game;
     }
     protected override void OnConnected() {
@@ -136,8 +136,8 @@ public interface TellServer {
     }
 }
 public class FrontierServer : TcpServer {
-    public ScreenServer game;
-    public FrontierServer(IPAddress address, int port, ScreenServer game) : base(address, port) {
+    public ServerMain game;
+    public FrontierServer(IPAddress address, int port, ServerMain game) : base(address, port) {
         this.game = game;
     }
     public void TellClients(TellClient c) {
@@ -152,7 +152,7 @@ public class FrontierServer : TcpServer {
 }
 
 
-public class ScreenServer : Console {
+public class ServerMain : Console {
     public TitleScreen prev { get; }
     public System World;
     public SpaceObject pov;
@@ -165,7 +165,7 @@ public class ScreenServer : Console {
     public int requests;
     public bool busy;
     private FrontierServer server;
-    public ScreenServer(int width, int height, TitleScreen prev) : base(width, height) {
+    public ServerMain(int width, int height, TitleScreen prev) : base(width, height) {
         this.prev = prev;
         this.World = prev.World;
         camera = prev.camera;
@@ -265,7 +265,6 @@ public class ScreenServer : Console {
     }
     public override void Render(TimeSpan drawTime) {
         this.Clear();
-
         for (int x = 0; x < Width; x++) {
             for (int y = 0; y < Height; y++) {
                 var g = this.GetGlyph(x, y);
@@ -302,7 +301,6 @@ public class ScreenServer : Console {
         }
 
         return base.ProcessMouse(state);
-
     }
     public override bool ProcessKeyboard(Keyboard info) {
         if (info.IsKeyPressed(Keys.K)) {

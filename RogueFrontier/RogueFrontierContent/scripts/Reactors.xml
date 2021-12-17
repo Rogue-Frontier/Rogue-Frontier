@@ -15,13 +15,22 @@
 	<ItemType	codename=	"item_foundry_battery"
 			name=		"Foundry-class battery"
 			level=		"1"
-			mass=		"1000"
+		mass=		"1000"
 		>
 		<Reactor
 			maxOutput=		"20"
 			capacity=		"500"
 			efficiency=		"1.0"
 			battery=		"true"
+			/>
+	</ItemType>
+	<ItemType	codename=	"item_solar_panel"
+			name=		"Solar panel"
+			level=		"1"
+			mass=		"1000"
+		>
+		<Solar
+			maxOutput=		"50"
 			/>
 	</ItemType>
 </Module>

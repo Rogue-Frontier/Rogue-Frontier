@@ -6,6 +6,8 @@ using Common;
 using SadRogue.Primitives;
 using ASECII;
 using static RogueFrontier.Program;
+using System;
+
 namespace RogueFrontier;
 
 public class Trailer {

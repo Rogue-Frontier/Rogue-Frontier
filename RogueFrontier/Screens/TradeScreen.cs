@@ -152,6 +152,10 @@ class TradeScene : Console {
         int x = 16;
         int y = 16;
 
+        void line(Point from, Point to, int glyph) {
+            this.DrawLine(from, to, '-', Color.White, null);
+        }
+
         this.RenderBackground();
         //this.Fill(new Rectangle(x - 2, y, 34, 26), Color.Gray, null, '.');
 
@@ -190,19 +194,19 @@ class TradeScene : Console {
                     new ColoredGlyph(Color.White, Color.Black, '#');
                 this.SetCellAppearance(barX, 16 + i, cg);
             }
-            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
             barX += 33;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         } else {
             var highlightColor = playerSide ? Color.Yellow : Color.White;
             var name = new ColoredString("<Empty>", highlightColor, Color.Black);
             this.Print(x, y, name);
 
             int barX = x - 2;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
-            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
             barX += 33;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         }
         y = 16 + 26 + 2;
         var f = Color.White;
@@ -245,6 +249,8 @@ class TradeScene : Console {
 
         }
 
+
+
         end = Math.Min(dockedItems.Count, start + 26);
         if (dockedItems.Any()) {
             int i = start;
@@ -267,19 +273,19 @@ class TradeScene : Console {
                     new ColoredGlyph(Color.White, Color.Black, '#');
                 this.SetCellAppearance(barX, 16 + i, cg);
             }
-            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
             barX += 33;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         } else {
             var highlightColor = !playerSide ? Color.Yellow : Color.White;
             var name = new ColoredString("<Empty>", highlightColor, Color.Black);
             this.Print(x, y, name);
 
             int barX = x - 2;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
-            this.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), Color.White, null, '-');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
             barX += 33;
-            this.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), Color.White, null, '|');
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         }
         base.Render(delta);
     }

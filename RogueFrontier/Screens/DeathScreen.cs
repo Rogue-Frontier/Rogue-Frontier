@@ -32,6 +32,8 @@ class DeathScreen : Console {
         //To do: Restore player HP
         playerShip.ship.damageSystem.Restore();
 
+        playerShip.powers.ForEach(p=>p.cooldownLeft=0);
+
         //Resurrect the player; remove wreck and restore ship + heading
         var wreck = epitaph.wreck;
         if (wreck != null) {

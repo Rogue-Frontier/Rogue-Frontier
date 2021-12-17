@@ -272,6 +272,9 @@ public class AttackOrder : IShipOrder {
     public AttackOrder(SpaceObject target) {
         this.target = target;
     }
+    public AttackOrder(SpaceObject target, AIShip owner) {
+        this.target = target;
+    }
     public bool CanTarget(SpaceObject other) => other == target;
     private void Set(Weapon w) => w.SetFiring(true, target);
     public void Update(AIShip owner) {
@@ -291,10 +294,12 @@ public class AttackOrder : IShipOrder {
                .Where(w => w.aiming != null)
                .Where(w => w != weapon)
                .ToList();
-        } else if (!weapon.CanFire && weapons.Count > 1) {
-            var w = weapons.Where(w => w.CanFire);
+        } else if (!weapon.ReadyToFire && weapons.Count > 1) {
+            var w = weapons.Where(w => w.ReadyToFire);
             weapon = w.FirstOrDefault(w => w.aiming == null) ?? weapon;
         }
+        
+        
         bool RangeCheck() => (owner.position - target.position).magnitude2 < weapon.currentRange2;
 
         //Remove dock
@@ -356,7 +361,7 @@ public class AttackOrder : IShipOrder {
             }
         }
     }
-    public bool Active => target?.active == true && weapon != null;
+    public bool Active => target?.active == true;
 }
 
 public class GateOrder : IShipOrder {
@@ -549,8 +554,8 @@ public class SnipeOrder : IShipOrder {
             if (weapon == null) {
                 return;
             }
-        } else if (!weapon.CanFire && weapons.Count > 1) {
-            weapon = weapons.FirstOrDefault(w => w.CanFire) ?? weapon;
+        } else if (!weapon.ReadyToFire && weapons.Count > 1) {
+            weapon = weapons.FirstOrDefault(w => w.ReadyToFire) ?? weapon;
         }
         //Aim at the target
         var aim = new AimOrder(target, weapon.missileSpeed);

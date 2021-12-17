@@ -69,11 +69,15 @@ public class HeroImageScene : Console {
         return base.ProcessKeyboard(keyboard);
     }
 }
-public class SceneOption {
-    public bool escape;
-    public char key;
-    public string name;
-    public Func<Console, Console> next;
+public enum NavFlags : long {
+    ESC = 0b1,
+    ENTER = 0b10
+}
+public record SceneOption(char key, string name, Func<Console, Console> next, NavFlags flags = 0) {
+    
+    public SceneOption() : this('\0', "", null, 0) { }
+    public SceneOption(string name) : this(name, null, 0) { }
+    public SceneOption(string name, Func<Console, Console> next, NavFlags flags = 0) : this(name.FirstOrDefault(char.IsLetterOrDigit), name, next, flags) { }
 }
 public static class SScene {
     public static Dictionary<(int, int), U> Normalize<U>(this Dictionary<(int, int), U> d) {
@@ -199,7 +203,8 @@ class Dialog : Console {
         descIndex = 0;
         ticks = 0;
 
-        escapeIndex = navigation.FindIndex(o => o.escape);
+        escapeIndex = navigation.FindIndex(o => (o.flags & NavFlags.ESC) != 0);
+        if (escapeIndex == -1) escapeIndex = navigation.Count-1;
 
         background = new Dictionary<(int, int), ColoredGlyph>();
 
@@ -244,16 +249,24 @@ class Dialog : Console {
         if (charging) {
             if (navIndex != -1) {
                 ref int c = ref charge[navIndex];
-                c++;
-                c++;
-                charging = false;
+                if (c < maxCharge + 30) {
+                    c++;
+                    c++;
+                    charging = false;
+                }
             }
         } else if (prevEnter && !enter) {
-            int c = charge[navIndex];
+            ref int c = ref charge[navIndex];
             if (c >= maxCharge) {
                 //Make sure we aren't sent back to the screen again
                 prevEnter = false;
                 Transition(navigation[navIndex].next?.Invoke(this));
+                c = maxCharge-1;
+                /*
+                for(int i = 0; i < charge.Length; i++) {
+                    charge[i] = 0;
+                }
+                */
             }
         }
         for (int i = 0; i < charge.Length; i++) {
@@ -311,17 +324,6 @@ class Dialog : Console {
             y = descY + desc.Count(c => c == '\n') + 3;
 
             var barLength = maxCharge / 3;
-            if (navIndex > -1) {
-                this.Print(x - 4, y + navIndex, new ColoredString("--->", Color.Yellow, Color.Black));
-
-                this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Gray, Color.Black));
-                if (charge[navIndex] < maxCharge) {
-                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', charge[navIndex] / 3), Color.Yellow, Color.Black));
-                } else {
-                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Red, Color.Black));
-                }
-            }
-
 
             for (int i = 0; i < charge.Length; i++) {
                 int c = charge[i];
@@ -331,11 +333,18 @@ class Dialog : Console {
                     this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', barLength), Color.White, Color.Black));
                 }
             }
+            if (navIndex > -1) {
+                this.Print(x - 4, y + navIndex, new ColoredString("--->", Color.Yellow, Color.Black));
+
+                this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Gray, Color.Black));
+                if (charge[navIndex] < maxCharge) {
+                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', charge[navIndex] / 3), Color.Yellow, Color.Black));
+                } else {
+                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Orange, Color.Black));
+                }
+            }
         }
-
-
         base.Render(delta);
-
     }
     public override bool ProcessKeyboard(Keyboard keyboard) {
         prevEnter = enter;
@@ -345,7 +354,6 @@ class Dialog : Console {
             navIndex = escapeIndex;
             charging = true;
             enter = true;
-
         } else {
 
 

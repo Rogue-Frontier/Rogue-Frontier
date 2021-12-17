@@ -196,24 +196,25 @@ public class ArmorEntry : ArmorGenerator {
     public ArmorEntry(XElement e) {
         this.codename = e.ExpectAttribute("codename");
     }
-    public List<Armor> Generate(TypeCollection tc) {
+    List<Armor> ArmorGenerator.Generate(TypeCollection tc) {
+        return new List<Armor> { Generate(tc) };
+    }
+    public Armor Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
         var item = new Item(type);
-        if (item.InstallArmor() != null) {
-            return new List<Armor> { item.armor };
-        } else {
-            throw new Exception($"Expected <ItemType> type with <Armor> desc: {codename}");
-        }
+
+        return item.InstallArmor()
+            ?? throw new Exception($"Expected <ItemType> type with <Armor> desc: {codename}");
     }
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
         var item = new Item(type);
-        if (item.InstallArmor() == null) {
-            throw new Exception($"Expected <ItemType> type with <Armor> desc: {codename}");
+        var a = item.InstallArmor()
+            ?? throw new Exception($"Expected <ItemType> type with <Armor> desc: {codename}");
+
         }
     }
-}
 /*
 public interface Generator<T> where T: Device {
     List<T> Generate(TypeCollection tc);
@@ -252,6 +253,9 @@ public class DeviceList : DeviceGenerator {
                 case "Reactor":
                     generators.Add(new ReactorEntry(element));
                     break;
+                case "Solar":
+                    generators.Add(new SolarEntry(element));
+                    break;
                 case "Misc":
                     generators.Add(new MiscEntry(element));
                     break;
@@ -285,19 +289,39 @@ class ReactorEntry : DeviceGenerator {
     Reactor Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
         var item = new Item(type);
-        if (item.InstallReactor() != null) {
-            return item.reactor;
-        } else {
-            throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
-        }
+        return item.InstallReactor()
+            ?? throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
     }
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
         var item = new Item(type);
-        if (item.InstallReactor() == null) {
-            throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
-        }
+        var r = item.InstallReactor() 
+            ?? throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
+    }
+}
+
+class SolarEntry : DeviceGenerator {
+    public string codename;
+    public SolarEntry() { }
+    public SolarEntry(XElement e) {
+        this.codename = e.ExpectAttribute("codename");
+    }
+    List<Device> DeviceGenerator.Generate(TypeCollection tc) {
+        return new List<Device> { Generate(tc) };
+    }
+    Solar Generate(TypeCollection tc) {
+        var type = tc.Lookup<ItemType>(codename);
+        var item = new Item(type);
+        return item.InstallSolar()
+            ?? throw new Exception($"Expected <ItemType> type with <Solar> desc: {codename}");
+    }
+    //In case we want to make sure immediately that the type is valid
+    public void ValidateEager(TypeCollection tc) {
+        var type = tc.Lookup<ItemType>(codename);
+        var item = new Item(type);
+        var r = item.InstallSolar()
+            ?? throw new Exception($"Expected <ItemType> type with <Solar> desc: {codename}");
     }
 }
 
@@ -335,11 +359,11 @@ class ShieldsEntry : DeviceGenerator {
         return new List<Device> { Generate(tc) };
     }
 
-    Shields Generate(TypeCollection tc) {
+    Shield Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
         var item = new Item(type);
         if (item.InstallShields() != null) {
-            return item.shields;
+            return item.shield;
         } else {
             throw new Exception($"Expected <ItemType> type with <Shields> desc: {codename}");
         }
@@ -400,9 +424,6 @@ class WeaponEntry : DeviceGenerator, WeaponGenerator {
         var type = tc.Lookup<ItemType>(codename);
         var item = new Item(type);
         if (item.InstallWeapon() != null) {
-            if (item.type.name == "Iron laser") {
-                int i = 0;
-            }
             if (omnidirectional) {
                 item.weapon.aiming = new Omnidirectional();
             }

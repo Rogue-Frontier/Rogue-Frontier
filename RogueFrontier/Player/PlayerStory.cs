@@ -33,17 +33,8 @@ orange light. Nevertheless, you can't help but think...
 
 You are a complete stranger here.".Replace("\r", null);
                 var sc = new Dialog(prev, t, new() {
-                    new() {
-                        escape = false,
-                        key = 'C', name = "Continue",
-                        next = Intro2
-                    },
-                    new() {
-                        escape = true,
-                        key = 'L', name = "Leave",
-                        next = Intro2b
-                    }
-
+                    new("Continue", Intro2),
+                    new("Leave", Intro2b, NavFlags.ESC)
                 }) { background = heroImage };
                 return sc;
             }
@@ -62,11 +53,7 @@ A stout man stands for reception duty near a wide door.
 You must be new here... May I help you with anything?""
 ".Replace("\r", null);
                 var sc = new Dialog(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'I', name = @"""I've been hearing a voice...""",
-                        next = Intro3
-                    }
+                    new(@"""I've been hearing a voice...""", Intro3)
                 }) { background = heroImage };
                 return sc;
             }
@@ -79,11 +66,7 @@ You must be new here... May I help you with anything?""
 much to the possible chagrin of some mysterious
 entity and several possibly preferred timelines.".Replace("\r", null);
                 var sc = new Dialog(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'U', name = @"Undock",
-                        next = null
-                    }
+                    new("Undock")
                 }) { background = heroImage };
                 return sc;
             }
@@ -100,11 +83,7 @@ entity and several possibly preferred timelines.".Replace("\r", null);
 Though you are the first guest we've had in a while.
 What did you hear?"" The man asked.".Replace("\r", null);
                 var sc = new Dialog(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'T', name = @"""The voice told me...""",
-                        next = Intro4
-                    }
+                    new(@"""The voice told me...""", Intro4)
                 }) { background = heroImage };
                 return sc;
             }
@@ -136,11 +115,7 @@ Wait, how are you saying all of this- Your mind blanks out.
 ""...And I... I witnessed all of this in a dream I had?""
 ".Replace("\r", null);
                 var sc = new Dialog(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'C', name = @"Continue",
-                        next = Intro5
-                    }
+                    new("Continue", Intro5)
                 }) { background = heroImage };
                 return sc;
             }
@@ -162,11 +137,7 @@ shining through the window, ""...far out there.""
 ";
                 t = t.Replace("\r", null);
                 var sc = new Dialog(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'I', name = @"""It does.""",
-                        next = Intro6
-                    }
+                    new(@"""It does.""", Intro6, NavFlags.ESC)
                 }) { background = heroImage };
                 return sc;
 
@@ -188,11 +159,7 @@ around here... Not since the last war.""
 ""You really intend to see what's out there.""";
                 t = t.Replace("\r", null);
                 return new(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'T', name = @"""That is correct.""",
-                        next = Intro7
-                    }
+                    new(@"""That is correct.""", Intro7, NavFlags.ESC)
                 }) { background = heroImage }; ;
             }
             Dialog Intro7(Con from) {
@@ -209,11 +176,7 @@ leave, and look for Them somewhere out there?""
 ";
                 t = t.Replace("\r", null);
                 return new(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'H', name = @"""Huh?!?!?!""",
-                        next = Intro8
-                    }
+                    new(@"""Huh?!?!?!""", Intro8)
                 }) { background = heroImage };
             }
             Dialog Intro8(Con from) {
@@ -231,35 +194,19 @@ someone identifies them as an unwitting traveler
 who got blown up in the middle of a war zone...""
 
 ""...So tell me, what do you intend to do?""";
-                t = t.Replace("\r", null);
                 return new Dialog(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'I',
-                        name = @"""I intend to reach the Galactic Core.""",
-                        next = Intro9a
-                    },
-                    new() {
-                        key = '\0',
-                        name = @"...",
-                        next = Intro9b
-                    }
+                    new(@"""I intend to reach the Galactic Core.""", Intro9a),
+                    new("...", Intro9b)
                 }) { background = heroImage }; ;
             }
-
             Dialog Intro9a(Con from) {
                 story.mainInteractions.Remove(this);
                 string t =
 @"""Okay, I see you've already made your mind then.
 I'll provide you with some combat training to start
 your journey. That is all. Let's hope you make it.""";
-                t = t.Replace("\r", null);
                 return new(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'C', name = @"Continue",
-                        next = Intro10
-                    }
+                    new("Continue", Intro10)
                 }) { background = heroImage }; ;
             }
 
@@ -270,18 +217,9 @@ your journey. That is all. Let's hope you make it.""";
 @"You pause for a moment.";
                 t = t.Replace("\r", null);
                 return new(prev, t, new() {
-                    new() {
-                        key = 'I', name = @"""I intend to reach the Galactic Core.""",
-                        next = Intro10a
-                    },
-                    new() {
-                        key = 'U', name = @"""I intend to destroy the United Constellation.""",
-                        next = Destroy1
-                    },
-                    new() {
-                        key = 'D', name = @"""I don't know anymore.""",
-                        next = Intro10c
-                    }
+                    new('I', @"""I intend to reach the Galactic Core.""", Intro10a),
+                    new('C', @"""I intend to destroy the United Constellation.""", Destroy1),
+                    new('D', @"""I don't know anymore.""", Intro10c)
                 }) { background = heroImage }; ;
             }
 
@@ -292,17 +230,8 @@ your journey. That is all. Let's hope you make it.""";
 Do you truly intend to do that?""";
                 t = t.Replace("\r", null);
                 return new(prev, t, new() {
-                    new() {
-                        escape = false,
-                        key = 'I', name = @"I intend to reach the Galactic Core.",
-                        next = Intro9a
-                    },
-                    new() {
-                        escape = true,
-                        key = '\0', name = @"...",
-                        next = Intro9b
-                    }
-
+                    new('I', @"I intend to reach the Galactic Core.", Intro9a),
+                    new('.', "...", Intro9b, NavFlags.ESC)
                 }) { background = heroImage };
             }
 
@@ -314,16 +243,8 @@ Do you truly intend to do that?""";
 ""What?!?!"" the man says out loud.";
                 t = t.Replace("\r", null);
                 return new(prev, t, new() {
-                    new() {
-                        escape = false,
-                        key = 'I', name = @"It's simple. I hate them a lot.",
-                        next = Destroy2
-                    },
-                    new() {
-                        escape = true,
-                        key = 'G', name = @"It's for their own good.",
-                        next = Destroy2
-                    }
+                    new('I', @"It's simple. I hate them a lot.", Destroy2),
+                    new('G', @"It's for their own good.", Destroy2)
                 }) { background = heroImage };
             }
             Dialog Destroy2(Con prev) {
@@ -344,11 +265,7 @@ a new era.""
 You state your intentions firmly.";
                 t = t.Replace("\r", null);
                 return new(prev, t, new() {
-                    new() {
-                        escape = false,
-                        key = 'C', name = @"Continue",
-                        next = Destroy3
-                    }
+                    new("Continue", Destroy3)
                 }) { background = heroImage };
             }
             //Placeholder dialogue
@@ -361,11 +278,7 @@ Allow me to join you on your mission.""
 ""My name is Benjamin, by the way""";
                 t = t.Replace("\r", null);
                 return new(prev, t, new() {
-                    new() {
-                        escape = false,
-                        key = 'C', name = @"Continue",
-                        next = BenjaminJoin
-                    }
+                    new("Continue", BenjaminJoin)
                 }) { background = heroImage };
             }
             Dialog BenjaminJoin(Con prev) {
@@ -377,21 +290,16 @@ Allow me to join you on your mission.""
                 w.AddEntity(wingmate);
                 w.AddEffect(new Heading(wingmate));
 
+                playerShip.wingmates.Add(wingmate);
+
                 return null;
             }
             Dialog Intro10c(Con prev) {
                 story.mainInteractions.Remove(this);
                 string t =
-@"""I don't know anymore,"" you say.
-
-";
-                t = t.Replace("\r", null);
+@"""I don't know anymore,"" you say.";
                 return new(prev, t, new() {
-                    new() {
-                        escape = false,
-                        key = 'C', name = @"Continue",
-                        next = null
-                    }
+                    new("Continue")
                 }) { background = heroImage };
             }
             Dialog Intro10(Con from) {
@@ -400,12 +308,8 @@ Allow me to join you on your mission.""
 @"""Let's start with some target practice.
 I've sent some drones outside the station.
 Destroy them as fast as you can""";
-                t = t.Replace("\r", null);
                 return new(prev, t, new() {
-                    new() {
-                        key = 'S', name = @"Start",
-                        next = StartTraining
-                    }
+                    new("Start", StartTraining)
                 }) { background = heroImage };
             }
             Con StartTraining(Con from) {
@@ -462,11 +366,7 @@ class IntroTraining : IPlayerInteraction {
 ""There's still {count} drones left.""
 ".Replace("\r", null);
                 return new(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'C', name = "Continue",
-                        next = null
-                    }
+                    new("Continue")
                 }) { background = heroImage };
             }
             Con Complete() {
@@ -476,14 +376,11 @@ class IntroTraining : IPlayerInteraction {
 
 ""You destroyed the drones in {sec} seconds.""
 
-{(sec < 60 ? @"""I figured you were ready for that.""" : @"""So now you should know how to aim.""")}
-".Replace("\r", null);
+{(sec < 60 ?
+    @"""I figured you were ready for that.""" :
+    @"""So now you should know how to aim.""")}";
                 var sc = new Dialog(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'C', name = "Continue",
-                        next = Explore
-                    }
+                    new("Continue", Explore)
                 }) { background = heroImage };
                 return sc;
             }
@@ -499,14 +396,9 @@ and services for money. Some might have jobs that you can take.""
 
 ""Only time will tell who is who.""
 
-""Take a look around this system and find out who can help you.""
-".Replace("\r", null);
+""Take a look around this system and find out who can help you.""";
                 var sc = new Dialog(prev, t, new() {
-                    new() {
-                        escape = true,
-                        key = 'U', name = "Undock",
-                        next = Undock
-                    }
+                    new("Undock", Undock)
                 }) { background = heroImage };
                 return sc;
             }
@@ -531,25 +423,29 @@ class IntroExploration : IPlayerInteraction {
             s => s.sovereign.IsFriend(playerShip)));
     }
     public Con GetScene(Con prev, Dockable d, PlayerShip playerShip) {
-        if (d == station) {
-            var s = station;
-            var heroImage = s.type.heroImage;
+        var s = station;
+        if (d != s) return null;
 
-            if (targets.IsSubsetOf(playerShip.known)) {
+        var heroImage = s.type.heroImage;
+        int c = targets.Count - targets.Intersect(playerShip.known).Count();
+        if (c > 0) {
+            return new Dialog(prev,
+@$"""You've found all but {c} friendly station{(c > 1 ? "s" : "")} in this system.
+Use your starship's megamap to look for them.""",
+                new() {
+                    new("Undock")
+                }) { background = heroImage };
+        } else {
 
-                return new Dialog(prev,
+            return new Dialog(prev,
 @$"""You've found all the friendly stations in the system. Now that
 you know what services each provide you can return to them when
 needed.""",
-                new() {
-                    new() {
-                        escape = true,
-                        key = 'C', name = "Continue",
-                        next = Continue
-                    }
-                }) { background = heroImage };
-                Con Continue(Con prev) {
-                    return new Dialog(prev,
+            new() {
+                new("Continue", Continue)
+            }) { background = heroImage };
+            Con Continue(Con prev) {
+                return new Dialog(prev,
 @$"""Now that you're learning to find what you need,
 let me give you another goal.""
 
@@ -563,52 +459,16 @@ inhumane experiments involving radiation.""
 ""Fight back at the Orion Warlords and Iron Pirates.
 And when you've gotten used to fighting warlords and pirates,
 go and start destroying Errorists.""",
-                    new() {
-                        new() {
-                            escape = true,
-                            key = 'C', name = "Continue",
-                            next = Undock
-                        }
-                    }) { background = heroImage };
-                }
-                Con Undock(Con prev) {
-                    story.mainInteractions.Remove(this);
-                    story.mainInteractions.Add(new IntroOuterEnemy(story, station, playerShip));
-                    return null;
-                }
-            } else {
-                int count = targets.Count - targets.Intersect(playerShip.known).Count();
-
-                if (count > 1) {
-                    return new Dialog(prev,
-@$"""You've found all but {count} friendly stations in this system.
-Use your starship's megamap to look for them.""",
                 new() {
-                    new() {
-                        escape = true,
-                        key = 'U', name = "Undock",
-                        next = null
-                    }
+                    new("Continue", Undock)
                 }) { background = heroImage };
-                } else {
-
-                    return new Dialog(prev,
-@$"""You've found all but one friendly station in this system.
-Use your starship's megamap to look for it.""",
-                new() {
-                    new() {
-                        escape = true,
-                        key = 'U', name = "Undock",
-                        next = null
-                    }
-                }) { background = heroImage };
-                }
             }
-        } else {
-
-
+            Con Undock(Con prev) {
+                story.mainInteractions.Remove(this);
+                story.mainInteractions.Add(new IntroOuterEnemy(story, station, playerShip));
+                return null;
+            }
         }
-        return null;
     }
 }
 class IntroOuterEnemy : IPlayerInteraction {
@@ -632,36 +492,24 @@ class IntroOuterEnemy : IPlayerInteraction {
         var s = station;
         var heroImage = s.type.heroImage;
 
-        if (!target.active) {
+        if (target.active) {
 
+            return new Dialog(prev,
+@$"""Go and destroy the Errorist compound when you're ready.""",
+                new() { new("Undock") }) { background = heroImage };
+        } else {
             var sc = new Dialog(prev,
 @$"""Well, congratulations. You've survived my final exam.
 That's all the training I have for you. Hopefully now you
 have at least a fighting chance when you leave this place.""
 
 ""Goodbye.""",
-            new() {
-                new() {
-                    escape = true,
-                    key = 'C', name = "Continue",
-                    next = Undock
-                }
-            }) { background = heroImage };
+                new() { new("Continue", Undock) }) { background = heroImage };
             Con Undock(Con prev) {
                 story.mainInteractions.Remove(this);
                 return null;
             }
             return sc;
-        } else {
-            return new Dialog(prev,
-@$"""Go and destroy the Errorist compound when you're ready.""",
-            new() {
-                new() {
-                    escape = true,
-                    key = 'U', name = "Undock",
-                    next = null
-                }
-            }) { background = heroImage };
         }
     }
 }
@@ -678,6 +526,7 @@ public class PlayerStory {
         secondaryInteractions = new HashSet<IPlayerInteraction>();
         completedInteractions = new HashSet<IPlayerInteraction>();
     }
+    delegate Con GetDockScreen(Con prev, Station source, PlayerShip playerShip);
     public Con GetScene(Con prev, Dockable d, PlayerShip playerShip) {
         Con sc;
         sc = mainInteractions.Select(m => m.GetScene(prev, d, playerShip)).FirstOrDefault(s => s != null);
@@ -686,8 +535,6 @@ public class PlayerStory {
         } else {
             if (d is Station source) {
                 string codename = source.type.codename;
-
-
                 Dictionary<string, GetDockScreen> funcMap = new Dictionary<string, GetDockScreen> {
                         {"station_constellation_astra", ConstellationAstra},
                         {"station_constellation_habitat", ConstellationHabitat },
@@ -703,9 +550,6 @@ public class PlayerStory {
         }
         return null;
     }
-
-    delegate Con GetDockScreen(Con prev, Station source, PlayerShip playerShip);
-
     public Con TradeStation(Con prev, Station source, PlayerShip playerShip) {
         return new TradeScene(prev, null, playerShip, source);
     }
@@ -716,16 +560,8 @@ public class PlayerStory {
 @"You are docked at a Constellation Habitat,
 a residential station of the United Constellation.",
                 new() {
-                    new() {
-                        escape = false,
-                        key = 'M', name = "Meeting Hall",
-                        next = MeetingHall
-                    },
-                    new() {
-                        escape = true,
-                        key = 'U', name = "Undock",
-                        next = null
-                    }
+                    new("Meeting Hall", MeetingHall),
+                    new("Undock")
                 });
         }
         Con MeetingHall(Con prev) {
@@ -737,16 +573,11 @@ a residential station of the United Constellation.",
                 other.type.codename == "station_orion_warlords_camp"
                 && (other.position - source.position).magnitude < 256
             );
-
             if (target == null) {
                 return new Dialog(prev,
 @"The meeting hall is empty.",
                 new() {
-                    new() {
-                        escape = true,
-                        key = 'L', name = "Leave",
-                        next = Intro
-                    }
+                    new("Leave", Intro)
                 });
             }
             if (mainInteractions.OfType<DestroyTarget>().Any(i => i.targets.Contains(target))) {
@@ -756,14 +587,9 @@ After 2 minutes, the station master approaches you.
 
 ""Hi, uh, we're currently dealing with a particularly annoying
 Orion Warlords camp but I've been told that you're going to
-destroy it for us. So, uh, thank you and good luck!""
-",
+destroy it for us. So, uh, thank you and good luck!""",
                 new() {
-                    new() {
-                        escape = true,
-                        key = 'C', name = "Continue",
-                        next = Intro
-                    }
+                    new("Continue", Intro)
                 });
             }
             return new Dialog(prev,
@@ -778,30 +604,17 @@ shut up. Even the health inspector is less asinine
 than these idiots.""
 
 ""I'll pay you 400 cons to shut them up indefinitely.
-What do you say?""
-",
+What do you say?""",
             new() {
-                new() {
-                    escape = false,
-                    key = 'A', name = "Accept",
-                    next = Accept
-                },
-                new() {
-                    escape = true,
-                    key = 'R', name = "Reject",
-                    next = Reject
-                },
+                new("Accept", Accept),
+                new("Decline", Reject)
             });
             Con Accept(Con prev) {
                 return new Dialog(prev,
 @"""Okay, thank you! Go destroy them and
 then I'll see you back here.""",
                     new() {
-                        new() {
-                            escape = false,
-                            key = 'U', name = "Undock",
-                            next = Accepted
-                        }
+                        new("Undock", Accepted)
                     });
             }
             Dialog Accepted(Con prev) {
@@ -813,11 +626,7 @@ then I'll see you back here.""",
                     return new(prev,
 @"""Hey, you're going to destroy that station, right?""",
                         new() {
-                            new() {
-                                escape = true,
-                                key = 'U', name = "Undock",
-                                next = null
-                            }
+                            new("Undock")
                         });
                 }
                 Dialog Debrief(Con prev) {
@@ -825,11 +634,7 @@ then I'll see you back here.""",
 @"""Thank you very much for destroying those warlords for us!
 As promised, here's your money - 400 cons""",
                         new() {
-                            new() {
-                                escape = false,
-                                key = 'U', name = "Undock",
-                                next = Debriefed
-                            }
+                            new("Undock", Debriefed)
                         });
                 }
                 Dialog Debriefed(Con prev) {
@@ -844,11 +649,7 @@ As promised, here's your money - 400 cons""",
 @"""Oh man, what the hell is it with you people?
 Okay, fine, I'll just find someone else to do it then.""",
                     new() {
-                        new() {
-                            escape = false,
-                            key = 'U', name = "Undock",
-                            next = null
-                        }
+                        new("Undock")
                     });
             }
         }
@@ -871,16 +672,8 @@ a spinning pinwheel.
 
 There is a modest degree of artificial gravity here.",
             new() {
-                new() {
-                    escape = false,
-                    key = 'T', name = "Trade",
-                    next = Trade
-                },
-                new() {
-                    escape = true,
-                    key = 'U', name = "Undock",
-                    next = null
-                }
+                new("Trade", Trade),
+                new("Undock")
             }) { background = source.type.heroImage };
         }
         Con Trade(Con from) => new TradeScene(from, playerShip, source);
@@ -898,27 +691,15 @@ There is a modest degree of artificial gravity here.",
 @"You are docked at Raisu station, though
 nobody attends to the docking bay right now.",
                 new() {
-                    new() {
-                        escape = true,
-                        key = 'U', name = "Undock",
-                        next = null
-                    }
+                    new("Undock")
                 });
             }
 
             return new(prev,
 @"You are docked at Raisu station.",
                 new() {
-                    new() {
-                        escape = true,
-                        key = 'M', name = "Meeting Hall",
-                        next = MeetingHall
-                    },
-                    new() {
-                        escape = true,
-                        key = 'U', name = "Undock",
-                        next = null
-                    }
+                    new("Meeting Hall", MeetingHall),
+                    new("Undock")
                 });
             Dialog MeetingHall(Con prev) {
                 var c = source.world.entities.all
@@ -930,22 +711,14 @@ nobody attends to the docking bay right now.",
 @"The station master glares at you.
 
 ""Please get out of here before you get us killed!""", new() {
-new() {
-    escape = true,
-    key = 'C', name = "Continue",
-    next = null
-}
+new("Continue")
 });
                 }
                 if (raisuLiberated) {
                     return new(prev,
 @"Not much is happening around the station right now.
 You feel a sense of relief.", new() {
-new() {
-    escape = true,
-    key = 'C', name = "Continue",
-    next = null
-}
+new("Continue")
 });
                 }
                 var target = playerShip.world.entities.all.OfType<AIShip>()
@@ -964,11 +737,7 @@ The station master brings out a modified warlord weapon.
 
 ""Take these missiles if you have to.""",
                     new() {
-                        new() {
-                            escape = true,
-                            key = 'C', name = "Continue",
-                            next = Accept
-                        }
+                        new("Accept", Accept)
                     });
                     Dialog Accept(Con prev) {
                         playerShip.cargo.Add(new Item(playerShip.world.types.Lookup<ItemType>("itTraitorLongbow")));
@@ -981,11 +750,7 @@ The station master brings out a modified warlord weapon.
                             return new(prev,
 @"""You made a promise. Destroy William Sulphin.""",
                                 new() {
-                                    new() {
-                                        escape = true,
-                                        key = 'U', name = "Undock",
-                                        next = null
-                                    }
+                                    new("Undock")
                                 });
                         }
                         Dialog Debrief(Con prev) {
@@ -994,11 +759,7 @@ The station master brings out a modified warlord weapon.
 
 ""Now the real fight begins""",
                                 new() {
-                                    new() {
-                                        escape = false,
-                                        key = 'U', name = "Undock",
-                                        next = Debriefed
-                                    }
+                                    new("Undock", Debriefed)
                                 });
                         }
                         Dialog Debriefed(Con prev) {
@@ -1010,11 +771,7 @@ The station master brings out a modified warlord weapon.
                 }
                 return new(prev,
 @"Not much is happening around the station right now.", new() {
-new() {
-    escape = true,
-    key = 'C', name = "Continue",
-    next = null
-}
+new("Continue")
 });
             }
         }
@@ -1032,19 +789,19 @@ of the station." :
 Your ship identifies a distress signal
 originating from this station.",
                 new() {
-                    new() {
-                        key = 'B', name = "Break in",
-                        next = BreakIn
-                    },
-                    new() {
-                        escape = true,
-                        key = 'U', name = "Undock",
-                        next = null
-                    }
+                    new("Break In", BreakIn),
+                    new("Undock")
                 });
         }
         Dialog BreakIn(Con prev) {
             if (source.damageSystem.GetHP() < 50) {
+
+                Wreck wreck = null;
+                Container<Station.Destroyed> hook = new((s, d, w) => wreck = w);
+                source.onDestroyed.set.Add(hook);
+                source.Destroy(playerShip);
+                source.onDestroyed.set.Remove(hook);
+
                 return new(prev,
 @"You break down the entry gate with your primary weapon.
 You make your way to the bridge and destroy the
@@ -1052,48 +809,21 @@ black box, shutting off the distress signal.
 
 You leave the station in ruins.",
                     new() {
-                        new() {
-                            escape = false,
-                            key = 'L',
-                            name = "Loot",
-                            next = Loot
-                        },
-                        new() {
-                            escape = true,
-                            key = 'U',
-                            name = "Undock",
-                            next = null
-                        }
-
+                        new("Scavenge", Scavenge),
+                        new("Undock")
                     });
+                Con Scavenge(Con prev) => wreck.GetDockScene(home, playerShip);
             }
             return new(prev,
 @"The entry gate refuses to budge...",
                 new() {
-                    new() {
-                        escape = true,
-                        key = 'C',
-                        name = "Continue",
-                        next = Intro
-                    }
+                    new("Continue", Intro)
                 });
-
-            Con Loot(Con prev) {
-                Wreck wreck = null;
-                var hook = new Container<Station.StationDestroyed>((s, d, w) => {
-                    wreck = w;
-                });
-                source.onDestroyed.set.Add(hook);
-                source.Destroy(playerShip);
-                source.onDestroyed.set.Remove(hook);
-
-                return wreck.GetDockScene(home, playerShip);
-            }
         }
         return Intro(home);
     }
 }
-class DestroyTarget : IPlayerInteraction, IContainer<BaseShip.Destroyed>, IContainer<Station.StationDestroyed> {
+class DestroyTarget : IPlayerInteraction, IContainer<BaseShip.Destroyed>, IContainer<Station.Destroyed> {
     public PlayerShip attacker;
     public Station source;
     public HashSet<SpaceObject> targets;
@@ -1123,7 +853,7 @@ class DestroyTarget : IPlayerInteraction, IContainer<BaseShip.Destroyed>, IConta
         }
     };
 
-    Station.StationDestroyed IContainer<Station.StationDestroyed>.Value => (s, d, w) => {
+    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => {
         if (targets.Remove(s) && targets.Count == 0) {
             attacker.AddMessage(new Message("Mission complete!"));
             s.onDestroyed -= this;

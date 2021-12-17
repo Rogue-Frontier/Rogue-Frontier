@@ -215,7 +215,7 @@ public class TitleScreen : Console {
         }
     }
     public void Server() =>
-        Game.Instance.Screen = new ScreenServer(Width, Height, this) {
+        Game.Instance.Screen = new ServerMain(Width, Height, this) {
             IsFocused = true
         };
     public void Client() =>

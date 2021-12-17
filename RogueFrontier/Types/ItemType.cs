@@ -106,6 +106,7 @@ public class ItemType : DesignType {
     public WeaponDesc weapon;
     public ShieldDesc shield;
     public ReactorDesc reactor;
+    public SolarDesc solar;
     public MiscDesc misc;
 
     public InvokeAction invoke;
@@ -148,6 +149,9 @@ public class ItemType : DesignType {
         }
         if (e.HasElement("Reactor", out var xmlReactor)) {
             reactor = new ReactorDesc(xmlReactor);
+        }
+        if (e.HasElement("Solar", out var xmlSolar)) {
+            solar = new SolarDesc(xmlSolar);
         }
         if (e.HasElement("Misc", out var xmlMisc)) {
             misc = new MiscDesc(xmlMisc);
@@ -332,7 +336,7 @@ public class ShieldDesc {
     public int maxHP;
     public int depletionDelay;
     public double hpPerSecond;
-    public Shields GetShields(Item i) => new Shields(i, this);
+    public Shield GetShields(Item i) => new Shield(i, this);
     public ShieldDesc() { }
     public ShieldDesc(XElement e) {
         maxHP = e.ExpectAttributeInt(nameof(maxHP));
@@ -353,6 +357,13 @@ public class ReactorDesc {
         capacity = e.ExpectAttributeInt(nameof(capacity));
         efficiency = e.TryAttributeDouble(nameof(efficiency), 1);
         battery = e.TryAttributeBool(nameof(battery), false);
+    }
+}
+public class SolarDesc {
+    public int maxOutput;
+    public SolarDesc() { }
+    public SolarDesc(XElement e) {
+        maxOutput = e.ExpectAttributeInt(nameof(maxOutput));
     }
 }
 public class MiscDesc {
