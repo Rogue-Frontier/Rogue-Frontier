@@ -269,6 +269,7 @@ public class AttackOrder : IShipOrder {
     public Weapon weapon;
     public List<Weapon> omni;
     public AimOrder aim;
+    public GateOrder gate;
     public AttackOrder(SpaceObject target) {
         this.target = target;
     }
@@ -281,6 +282,22 @@ public class AttackOrder : IShipOrder {
         if (target == null) {
             return;
         }
+
+        if (gate != null) {
+            var gateWorld = gate.gate.world;
+            if (gateWorld == owner.world && owner.world != target.world) {
+                gate.Update(owner);
+                return; 
+            } else {
+                gate = null;
+            }
+        }
+        if(owner.world != target.world) {
+            gate = new GateOrder(owner.world.FindGateTo(target.world));
+            gate.Update(owner);
+            return;
+        }
+
         var weapons = owner.devices.Weapons;
         if (weapon?.AllowFire != true) {
             var w = weapons.Where(w => w.AllowFire);
@@ -368,17 +385,18 @@ public class GateOrder : IShipOrder {
     public Stargate gate;
     public GateOrder(Stargate gate) {
         this.gate = gate;
+        Active = true;
     }
     public bool CanTarget(SpaceObject other) => false;
     public void Update(AIShip owner) {
         if ((owner.position - gate.position).magnitude2 > 10) {
             new ApproachOrbitOrder(gate).Update(owner);
         } else {
-            owner.world.RemoveEntity(owner);
+            gate.Gate(owner);
+            Active = false;
         }
     }
-    public bool Active => true;
-
+    public bool Active { get; private set; }
 }
 
 public class PatrolOrbitOrder : IShipOrder {

@@ -28,7 +28,14 @@ public class DeviceSystem {
         Weapons.AddRange(Devices.OfType<Weapon>());
         Shields.AddRange(Devices.OfType<Shield>());
     }
-    public void Install(params Device[] Devices) => Install(Devices);
+    public void Install(params Device[] Devices) {
+        Installed.AddRange(Devices);
+        Powered.AddRange(Devices.OfType<Powered>());
+        Reactors.AddRange(Devices.OfType<Reactor>());
+        Solars.AddRange(Devices.OfType<Solar>());
+        Weapons.AddRange(Devices.OfType<Weapon>());
+        Shields.AddRange(Devices.OfType<Shield>());
+    }
     public void Remove(params Device[] Devices) {
         Installed.RemoveAll(Devices.Contains);
         Powered.RemoveAll(Devices.OfType<Powered>().Contains);

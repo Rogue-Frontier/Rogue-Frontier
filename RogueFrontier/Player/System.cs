@@ -125,4 +125,5 @@ public class System {
             }
         }
     }
+    public Stargate FindGateTo(System to) => universe.FindGateTo(this, to);
 }

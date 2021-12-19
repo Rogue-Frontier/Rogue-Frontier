@@ -60,20 +60,16 @@ public class Camera {
     }
 }
 public class PlayerMain : Console {
-
     public System world => playerShip.world;
     public Camera camera { get; private set; }
     public Profile profile;
-    public PlayerStory story = new PlayerStory();
+    public PlayerStory story;
     public PlayerShip playerShip;
     public PlayerControls playerControls;
-    Point mouseScreenPos;
     XY mouseWorldPos;
-
-    Keyboard keyboard;
-    MouseScreenObjectState mouse;
-
-
+    Keyboard prevKeyboard=new();
+    MouseScreenObjectState prevMouse=new(null, new());
+    public bool sleepMouse = true;
     public BackdropConsole back;
     public Viewport viewport;
     public GateTransition transition;
@@ -83,29 +79,30 @@ public class PlayerMain : Console {
     public Readout uiMain;  //If this is visible, then all other ui Consoles are visible
     public Edgemap uiEdge;
     public Minimap uiMinimap;
-
     public CommunicationsMenu communicationsMenu;
     public PowerMenu powerMenu;
     public PauseMenu pauseMenu;
-
-    TargetingMarker crosshair;
-
-    double updateWait;
+    private TargetingMarker crosshair;
+    private double updateWait;
     public bool autopilotUpdate;
-
     //public bool frameRendered = true;
     public int updatesSinceRender = 0;
+
+    private ListIndex<System> systems;
 
     //EventWaitHandle smooth = new(true, EventResetMode.AutoReset);
 
     public PlayerMain(int Width, int Height, Profile profile, PlayerShip playerShip) : base(Width, Height) {
-        this.profile = profile;
         DefaultBackground = Color.Transparent;
         DefaultForeground = Color.Transparent;
         UseMouse = true;
         UseKeyboard = true;
         camera = new();
+        this.profile = profile;
+        this.story = new();
         this.playerShip = playerShip;
+        this.playerControls = new(playerShip, this);
+
 
         back = new(Width, Height, world.backdrop, camera);
         viewport = new(this, camera, world);
@@ -120,7 +117,10 @@ public class PlayerMain : Console {
         powerMenu = new(31, 12, playerShip) { IsVisible = false, Position = new(3, 32) };
         pauseMenu = new(this) { IsVisible = false };
         crosshair = new(playerShip, "Mouse Cursor", new XY());
-        playerControls = new(playerShip, this);
+
+        systems = new(new(playerShip.world.universe.systems.Values));
+
+
         //Don't allow anyone to get focus via mouse click
         FocusOnMouseClick = false;
     }
@@ -280,6 +280,7 @@ public class PlayerMain : Console {
                 uiMinimap.alpha = (byte)(255 - uiMegamap.alpha);
                 uiMinimap.Update(delta);
             } else {
+                uiMegamap.Update(delta);
                 vignette.Update(delta);
             }
             if (powerMenu.IsVisible) {
@@ -289,25 +290,34 @@ public class PlayerMain : Console {
                 communicationsMenu.Update(delta);
             }
         }
+
+        void UpdateUniverse() {
+            world.UpdateActive();
+            world.UpdatePresent();
+
+            systems.Next(1).ForEach(s => {
+                if (s != world) {
+                    s.UpdateActive();
+                    s.UpdatePresent();
+                }
+            });
+        }
+
         if (passTime) {
 
             back.Update(delta);
             lock (world) {
-                world.UpdateActive();
-                world.UpdatePresent();
-
+                UpdateUniverse();
                 if (playerShip.autopilot) {
                     autopilotUpdate = true;
 
-                    ProcessKeyboard(keyboard);
-                    ProcessMouse(mouse);
-                    world.UpdateActive();
-                    world.UpdatePresent();
+                    ProcessKeyboard(prevKeyboard);
+                    ProcessMouse(prevMouse);
+                    UpdateUniverse();
 
-                    ProcessKeyboard(keyboard);
-                    ProcessMouse(mouse);
-                    world.UpdateActive();
-                    world.UpdatePresent();
+                    ProcessKeyboard(prevKeyboard);
+                    ProcessMouse(prevMouse);
+                    UpdateUniverse();
 
                     autopilotUpdate = false;
                 }
@@ -379,6 +389,7 @@ public class PlayerMain : Console {
                     uiEdge.Render(drawTime);
                 }
             } else {
+                /*
                 if (transition != null) {
                     transition.Render(drawTime);
                 } else {
@@ -386,6 +397,25 @@ public class PlayerMain : Console {
                     viewport.Render(drawTime);
                 }
                 vignette.Render(drawTime);
+                */
+
+                //If the megamap is completely visible, then skip main render so we can fast travel
+                if (uiMegamap.alpha < 255) {
+
+                    if (transition != null) {
+                        transition.Render(drawTime);
+                    } else {
+                        back.Render(drawTime);
+                        viewport.Render(drawTime);
+                    }
+
+                    uiMegamap.Render(drawTime);
+
+                    vignette.Render(drawTime);
+                } else {
+                    uiMegamap.Render(drawTime);
+                    vignette.Render(drawTime);
+                }
             }
             if (powerMenu.IsVisible) {
                 powerMenu.Render(drawTime);
@@ -406,10 +436,13 @@ public class PlayerMain : Console {
             return base.ProcessKeyboard(info);
         }
 
+        uiMegamap.ProcessKeyboard(info);
+        /*
         if (uiMain.IsVisible) {
             uiMegamap.ProcessKeyboard(info);
         }
-        keyboard = info;
+        */
+        prevKeyboard = info;
 
         //Intercept the alphanumeric/Escape keys if the power menu is active
         if (pauseMenu.IsVisible) {
@@ -466,8 +499,12 @@ public class PlayerMain : Console {
             && new MouseScreenObjectState(powerMenu, state.Mouse).IsOnScreenObject) {
             powerMenu.ProcessMouseTree(state.Mouse);
         } else if (state.IsOnScreenObject) {
+            if(sleepMouse) {
+                sleepMouse = state.SurfacePixelPosition.Equals(prevMouse.SurfacePixelPosition);
+            }
+
             //bool moved = mouseScreenPos != state.SurfaceCellPosition;
-            mouseScreenPos = state.SurfaceCellPosition;
+            var mouseScreenPos = state.SurfaceCellPosition;
 
             //Placeholder for mouse wheel-based weapon selection
             if (state.Mouse.ScrollWheelValueChange > 100) {
@@ -485,7 +522,7 @@ public class PlayerMain : Console {
             }
 
 
-            bool enableMouseTurn = true;
+            bool enableMouseTurn = !sleepMouse;
             //Update the crosshair if we're aiming with it
             if (playerShip.GetTarget(out t) && t == crosshair) {
                 crosshair.position = mouseWorldPos;
@@ -535,7 +572,9 @@ public class PlayerMain : Console {
                 playerControls.input.Thrust = true;
             }
         }
-        mouse = state;
+
+        Done:
+        prevMouse = state;
         return base.ProcessMouse(state);
     }
 }

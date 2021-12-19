@@ -106,6 +106,8 @@
 				  foreground="White"
         >
 		<Items>
+			<Item codename="item_laser_drone"/>
+			<Item codename="item_laser_drone"/>
 			<Item codename="item_klaw_missile"/>
 			<Item codename="item_klaw_missile"/>
 			<Item codename="item_klaw_missile"/>

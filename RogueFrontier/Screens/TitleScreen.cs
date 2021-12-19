@@ -117,8 +117,8 @@ public class TitleScreen : Console {
 
                 //Name is seed
                 var seed = player.name.GetHashCode();
-                Universe u = new Universe(World.types, new Rand(seed));
-                System w = new System(u);
+                var u = new Universe(World.types, new(seed));
+                var w = new System(u);
                 w.types.Lookup<SystemType>("system_orion").Generate(w);
                 w.UpdatePresent();
 
@@ -126,7 +126,7 @@ public class TitleScreen : Console {
                 start.active = false;
                 var playerStart = start.position;
                 var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
-                var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerSovereign, playerStart));
+                var playerShip = new PlayerShip(player, new(w, playerClass, playerSovereign, playerStart));
                 playerShip.AddMessage(new Message("Welcome to the Rogue Frontier!"));
 
                 w.AddEffect(new Heading(playerShip));
@@ -146,7 +146,7 @@ public class TitleScreen : Console {
                 playerMain.HideUI();
                 playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
 
-                playerMain.Update(new TimeSpan());
+                playerMain.Update(new());
                 playerMain.PlaceTiles();
 
 
@@ -494,6 +494,9 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         <System id=""orion5"" name=""Orion's Star 5"" codename=""system_orion""/>
 
         <Link fromGateId=""orion:Outbound"" toGateId=""orion2:Outbound""/>
+        <Link fromGateId=""orion2:Outbound"" toGateId=""orion3:Outbound""/>
+        <Link fromGateId=""orion3:Outbound"" toGateId=""orion4:Outbound""/>
+        <Link fromGateId=""orion4:Outbound"" toGateId=""orion5:Outbound""/>
     </Topology>
 </Universe>
 "

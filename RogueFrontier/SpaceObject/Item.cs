@@ -327,7 +327,7 @@ public class Weapon : Powered {
         public void CheckFire(ref bool firing) => firing = firing && AllowFire;
         public bool AllowFire => desc.minChargeToFire <= charge;
         public void Update() {
-            charge = Math.Min(desc.maxCharge, charge + desc.chargePerTick);
+            charge = Math.Min(desc.maxCharge, charge + desc.rechargePerTick);
         }
         public void ModifyMissileSpeed(ref int missileSpeed) {
             missileSpeed += (int)(desc.bonusSpeedPerCharge * charge);
@@ -595,8 +595,8 @@ public class Solar : Device, PowerSource {
     }
     public void Update(IShip owner) {
         var t = owner.world.backdrop.starlight.GetTile(owner.position);
-        var b = t.Premultiply().GetBrightness();
-        maxOutput = (int)(b * desc.maxOutput);
+        var b = t.A;
+        maxOutput = (int)(b * desc.maxOutput / 255);
     }
 }
 public class MiscDevice : Device {

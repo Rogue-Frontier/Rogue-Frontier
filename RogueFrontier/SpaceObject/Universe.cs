@@ -78,6 +78,7 @@ public class Universe {
 
     public Dictionary<string, System> systems;
     public Dictionary<string, Stargate> stargates;
+    public Dictionary<System, HashSet<Stargate>> systemGates;
     public Universe(TypeCollection types = null, Rand karma = null) {
         this.types = types ?? new TypeCollection();
         this.karma = karma ?? new Rand();
@@ -86,6 +87,7 @@ public class Universe {
     public Universe(UniverseDesc desc, TypeCollection types = null, Rand karma = null) : this(types, karma) {
         systems = new();
         stargates = new();
+        systemGates = new();
         foreach (var s in desc.systems) {
             System sys = new System(this) { id = s.id, name = s.name };
             systems[s.id] = sys;
@@ -95,7 +97,10 @@ public class Universe {
             var sys = systems[s.id];
             types.Lookup<SystemType>(s.codename).Generate(sys);
             sys.UpdatePresent();
-            foreach (var g in sys.entities.all.OfType<Stargate>()) {
+
+            var gates = sys.entities.all.OfType<Stargate>();
+            systemGates[sys] = new(gates);
+            foreach (var g in gates) {
                 stargates[$"{s.id}:{g.gateId}"] = g;
             }
         }
@@ -126,5 +131,32 @@ public class Universe {
             fromGate.destGate = toGate;
             toGate.destGate = fromGate;
         }
+
+        var _ = FindGateTo(systems.Values.First(), systems.Values.Last());
+    }
+    public Stargate FindGateTo(System from, System to) {
+        Dictionary<System, Stargate> gateTo = new();
+        HashSet<System> visited = new();
+        visited.Add(from);
+        Queue<System> q = new();
+        q.Enqueue(from);
+        while (q.Any()) {
+            var top = q.Dequeue();
+
+            foreach (var g in systemGates[top].Where(g => g.destGate != null)) {
+                if (visited.Add(g.destGate.world)) {
+                    gateTo[g.destGate.world] = g;
+                    q.Enqueue(g.destGate.world);
+                }
+            }
+            if (top == to) {
+                var g = gateTo[to];
+                while (g.world != from) {
+                    g = gateTo[g.world];
+                }
+                return g;
+            }
+        }
+        return null;
     }
 }

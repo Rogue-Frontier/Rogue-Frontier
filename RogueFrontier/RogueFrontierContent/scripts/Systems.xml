@@ -3,7 +3,7 @@
 				name=		"Orion"
 		>
 		<SystemGroup>
-			<Star	 radius="50"/>
+			<Star	 radius="75"/>
 
 			
 			<Orbital radius="150" angle="random">

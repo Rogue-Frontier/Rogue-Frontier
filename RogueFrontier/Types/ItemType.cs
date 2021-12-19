@@ -14,22 +14,34 @@ public interface InvokeAction {
     string GetDesc(PlayerShip player, Item item);
     void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) { }
 }
-
-public class InstallWeapon : InvokeAction {
-    public string GetDesc(PlayerShip player, Item item) {
-        if (player.cargo.Contains(item)) {
-            return "Install this weapon";
-        } else {
-            return "Remove this weapon";
-        }
+public class DeployShip : InvokeAction {
+    ShipClass shipClass;
+    public DeployShip() { }
+    public DeployShip(TypeCollection tc, XElement e) {
+        shipClass = tc.Lookup<ShipClass>(e.ExpectAttribute(nameof(shipClass)));
     }
+    public string GetDesc(PlayerShip player, Item item) => $"Deploy {shipClass.name}";
+    public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+        var a = new AIShip(
+            new BaseShip(player.world, shipClass, player.sovereign, player.position),
+            new EscortOrder(player, new XY(10, 0))
+            ) { behavior = new Wingmate(player)};
+        player.world.AddEntity(a);
+        player.wingmates.Add(a);
+        player.AddMessage(new Transmission(a, $"Deployed {shipClass.name}"));
+        player.cargo.Remove(item);
+        callback?.Invoke();
+    }
+}
+public class InstallWeapon : InvokeAction {
+    public string GetDesc(PlayerShip player, Item item) =>
+        player.cargo.Contains(item) ? "Install this weapon" : "Remove this weapon";
     public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
         if (player.cargo.Contains(item)) {
             player.AddMessage(new Message($"Installed weapon {item.type.name}"));
 
             player.cargo.Remove(item);
-            item.InstallWeapon();
-            player.devices.Install(item.weapon);
+            player.devices.Install(item.InstallWeapon());
         } else {
             player.AddMessage(new Message($"Removed weapon {item.type.name}"));
 
@@ -42,9 +54,7 @@ public class InstallWeapon : InvokeAction {
 }
 public class RepairArmor : InvokeAction {
     public int repairHP;
-    public string GetDesc(PlayerShip player, Item item) {
-        return "Use this patch to repair armor";
-    }
+    public string GetDesc(PlayerShip player, Item item) => "Repair armor";
     public RepairArmor() { }
     public RepairArmor(XElement e) {
         this.repairHP = e.ExpectAttributeInt(nameof(repairHP));
@@ -64,7 +74,7 @@ public class InvokePower : InvokeAction {
         charges = e.ExpectAttributeInt("charges");
     }
     public string GetDesc(PlayerShip player, Item item) {
-        return "Invoke this charm";
+        return $"Invoke {powerType.name} ({charges} charges remaining)";
     }
     public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
         player.AddMessage(new Message($"Invoked the power of {item.type.name}"));
@@ -73,7 +83,7 @@ public class InvokePower : InvokeAction {
         if (charges == 0) {
             player.cargo.Remove(item);
         }
-        new Power(powerType).Effect.Invoke(player);
+        powerType.Effect.Invoke(player);
 
         callback?.Invoke();
     }
@@ -101,17 +111,13 @@ public class ItemType : DesignType {
     public int level;
     public int mass;
     public int value;
-
     public ArmorDesc armor;
     public WeaponDesc weapon;
     public ShieldDesc shield;
     public ReactorDesc reactor;
     public SolarDesc solar;
     public MiscDesc misc;
-
     public InvokeAction invoke;
-
-
     public void Initialize(TypeCollection tc, XElement e) {
         codename = e.ExpectAttribute(nameof(codename));
         name = e.ExpectAttribute(nameof(name));
@@ -119,25 +125,15 @@ public class ItemType : DesignType {
         level = e.ExpectAttributeInt(nameof(level));
         mass = e.ExpectAttributeInt(nameof(mass));
         value = e.TryAttributeInt(nameof(value), 0);
-
-        switch (e.TryAttribute(nameof(invoke), "none")) {
-            case "none":
-                invoke = null;
-                break;
-            case "installWeapon":
-                invoke = new InstallWeapon();
-                break;
-            case "repairArmor":
-                invoke = new RepairArmor(e);
-                break;
-            case "invokePower":
-                invoke = new InvokePower(tc, e);
-                break;
-            case "refuel":
-                invoke = new Refuel(tc, e);
-                break;
-        }
-
+        invoke = e.TryAttribute(nameof(invoke), "none") switch {
+            "none" => null,
+            "deployShip" => new DeployShip(tc, e),
+            "installWeapon" => new InstallWeapon(),
+            "repairArmor" => new RepairArmor(e),
+            "invokePower" => new InvokePower(tc, e),
+            "refuel" => new Refuel(tc, e),
+            _ => null
+        };
         if (e.HasElement("Weapon", out var xmlWeapon)) {
             weapon = new WeaponDesc(tc, xmlWeapon);
         }
@@ -172,13 +168,10 @@ public class WeaponDesc {
     public int recoil;
     public int repeat;
     public FragmentDesc shot;
-
     public int initialCharges;
     public ItemType ammoType;
-
     public bool targetProjectile;
     public bool autoFire;
-
     public int missileSpeed => shot.missileSpeed;
     public int damageType => shot.damageType;
     public int damageHP => shot.damageHP;
@@ -195,13 +188,10 @@ public class WeaponDesc {
         recoil = e.TryAttributeInt(nameof(recoil), 0);
         repeat = e.TryAttributeInt(nameof(repeat), 0);
         shot = new FragmentDesc(e);
-
-
         if (e.TryAttributeBool("pointDefense", false)) {
             targetProjectile = true;
             autoFire = true;
         }
-
         initialCharges = e.TryAttributeInt(nameof(initialCharges), -1);
         if (e.TryAttribute(nameof(ammoType), out string at)) {
             if (!types.itemType.TryGetValue(at, out ammoType)) {
@@ -316,16 +306,17 @@ public class DisruptorDesc {
 public class CapacitorDesc {
     public double minChargeToFire;
     public double dischargePerShot;
-    public double chargePerTick;
+    public double rechargePerTick;
     public double maxCharge;
     public double bonusSpeedPerCharge;
     public double bonusDamagePerCharge;
     public double bonusLifetimePerCharge;
+    
     public CapacitorDesc() { }
     public CapacitorDesc(XElement e) {
         minChargeToFire = e.TryAttributeDouble(nameof(minChargeToFire), 0);
         dischargePerShot = e.ExpectAttributeDouble(nameof(dischargePerShot));
-        chargePerTick = e.ExpectAttributeDouble(nameof(chargePerTick));
+        rechargePerTick = e.ExpectAttributeDouble(nameof(rechargePerTick));
         maxCharge = e.ExpectAttributeDouble(nameof(maxCharge));
         bonusSpeedPerCharge = e.TryAttributeDouble(nameof(bonusSpeedPerCharge));
         bonusDamagePerCharge = e.TryAttributeDouble(nameof(bonusDamagePerCharge));

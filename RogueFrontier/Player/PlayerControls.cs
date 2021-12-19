@@ -37,9 +37,11 @@ public class PlayerControls {
         }
         if (input.TurnLeft) {
             playerShip.SetRotating(Rotating.CCW);
+            playerMain.sleepMouse = true;
         }
         if (input.TurnRight) {
             playerShip.SetRotating(Rotating.CW);
+            playerMain.sleepMouse = true;
         }
         if (input.Brake) {
             playerShip.SetDecelerating();

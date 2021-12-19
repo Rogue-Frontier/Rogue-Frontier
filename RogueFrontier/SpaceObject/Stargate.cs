@@ -33,6 +33,7 @@ public class Stargate : SpaceObject {
     public string gateId;
     public string destGateId;
     public Stargate destGate;
+    public System destWorld => destGate.world;
     public Stargate() { }
     public Stargate(System World, XY Position) {
         this.Id = World.nextId++;
@@ -94,12 +95,13 @@ public class Stargate : SpaceObject {
     }
 
     public void Gate(AIShip ai) {
-        ai.world.entities.Remove(ai);
+        ai.world.RemoveEntity(ai);
         if (destGate != null) {
             var world = destGate.world;
             ai.ship.world = world;
-            ai.ship.position = destGate.position + (ai.ship.position - ai.position);
+            ai.ship.position = destGate.position + (ai.ship.position - position);
             world.AddEntity(ai);
+            world.AddEffect(new Heading(ai));
         }
     }
     public void Damage(SpaceObject source, int hp) {
