@@ -14,7 +14,7 @@ class AccuseBarrier : ProjectileBarrier {
     [JsonIgnore]
     public ColoredGlyph tile => new ColoredGlyph(Color.OrangeRed, Color.Black, '*');
 
-    public int Id { get; private set; }
+    public int id { get; private set; }
     public PlayerShip owner;
     public XY offset;
     public int lifetime;
@@ -22,7 +22,7 @@ class AccuseBarrier : ProjectileBarrier {
     public XY position { get; set; }
     public AccuseBarrier() { }
     public AccuseBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> cloned) {
-        this.Id = owner.world.nextId++;
+        this.id = owner.world.nextId++;
         this.owner = owner;
         this.offset = offset;
         this.lifetime = lifetime;

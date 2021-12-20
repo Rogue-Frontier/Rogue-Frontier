@@ -20,7 +20,7 @@ public class SimpleTrail : ITrail {
 }
 public class Projectile : MovingObject {
     [JsonProperty]
-    public int Id { get; set; }
+    public int id { get; set; }
     [JsonProperty]
     public System world { get; set; }
     [JsonProperty]
@@ -47,7 +47,7 @@ public class Projectile : MovingObject {
     public bool active => lifetime > 0;
     public Projectile() { }
     public Projectile(SpaceObject Source, System world, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
-        this.Id = world.nextId++;
+        this.id = world.nextId++;
         this.source = Source;
         this.world = world;
         this.tile = desc.effect.Original;

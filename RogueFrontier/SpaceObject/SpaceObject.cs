@@ -35,7 +35,9 @@ public static class SSpaceObject {
     }
 
     public static bool CanTarget(this SpaceObject owner, SpaceObject target) {
-
+        if(owner is TargetingMarker t) {
+            owner = t.Owner;
+        }
         return target.active && !IsEqual(owner, target) && owner.sovereign.IsEnemy(target) && !(target is Wreck);
     }
 }

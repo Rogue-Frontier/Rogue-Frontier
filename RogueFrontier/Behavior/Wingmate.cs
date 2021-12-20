@@ -1,41 +1,31 @@
-﻿namespace RogueFrontier;
+﻿using Common;
+using Newtonsoft.Json;
 
-public enum WingmateOrder {
+namespace RogueFrontier;
+
+public enum WingOrder {
     Escort,
     Wait,
     BreakAndAttack,
     Scout,
 }
-public class Wingmate : IShipBehavior {
-    PlayerShip player;
-    WingmateOrder order;
+public class Wingmate : IShipBehavior, IContainer<PlayerShip.Destroyed> {
+    public PlayerShip player;
+    public IShipOrder order;
+
+    [JsonIgnore]
+    public PlayerShip.Destroyed Value => (s, d, w) => {
+        order = new AttackOrder(d);
+    };
 
     //This class handles orders and communications
     public Wingmate(PlayerShip player) {
         this.player = player;
     }
-    public void Update(IShip owner) {
-        switch (order) {
-            case WingmateOrder.Escort:
-                break;
-            case WingmateOrder.Wait:
-                break;
-            case WingmateOrder.BreakAndAttack:
-                break;
-            case WingmateOrder.Scout:
-                break;
+    public void Update(AIShip owner) {
+        if(order?.Active != true) {
+            order = new EscortOrder(player, new());
         }
-    }
-    public void SetOrder(IShip owner, WingmateOrder order) {
-        switch (order) {
-            case WingmateOrder.Escort:
-                break;
-            case WingmateOrder.Wait:
-                break;
-            case WingmateOrder.BreakAndAttack:
-                break;
-            case WingmateOrder.Scout:
-                break;
-        }
+        order?.Update(owner);
     }
 }

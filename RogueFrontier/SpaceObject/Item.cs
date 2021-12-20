@@ -5,17 +5,18 @@ using System.Collections.Generic;
 using System.Linq;
 using Helper = Common.Main;
 using SadRogue.Primitives;
-
 namespace RogueFrontier;
-
 public class Item {
     public ItemType type;
+
+    //These fields are to remain null while the item is not installed and to be populated upon installation
     public Weapon weapon;
     public Armor armor;
     public Shield shield;
     public Reactor reactor;
     public Solar solar;
     public MiscDevice misc;
+
     public Item() { }
     public Item(Item clone) {
         type = clone.type;
@@ -28,7 +29,7 @@ public class Item {
     }
     public Item(ItemType type) {
         this.type = type;
-        //These fields are to remain null while the item is not installed and to be populated upon installation
+        
         weapon = null;
         armor = null;
         shield = null;
@@ -47,28 +48,36 @@ public class Item {
                 [typeof(MiscDesc)]=misc,
         }[type];
     }
-    public Weapon InstallWeapon() => type.weapon != null ?
-        weapon = new Weapon(this, type.weapon) : null;
-    public Armor InstallArmor() => type.armor != null ?
-        armor = new Armor(this, type.armor) : null;
-    public Shield InstallShields() => type.shield != null ?
-        shield = new Shield(this, type.shield) : null;
-    public Reactor InstallReactor() => type.reactor != null ?
-        reactor = new Reactor(this, type.reactor) : null;
-    public Solar InstallSolar() => type.solar != null ?
-        solar = new Solar(this, type.solar) : null;
-    public MiscDevice InstallMisc() => type.misc != null ?
-        misc = new MiscDevice(this, type.misc) : null;
+    public bool Install<T>(out T result) where T:class {
+        return (result = (new Dictionary<Type, Func<object>>() {
+            [typeof(Weapon)] = InstallWeapon,
+            [typeof(Armor)] = InstallArmor,
+            [typeof(Shield)] = InstallShields,
+            [typeof(Reactor)] = InstallReactor,
+            [typeof(Solar)] = InstallSolar,
+            [typeof(MiscDesc)] = InstallMisc,
+        }[typeof(T)]() as T)) != null;
+    }
+    public Weapon InstallWeapon() => weapon ??= type.weapon?.GetWeapon(this);
+    public Armor InstallArmor() => armor ??= type.armor?.GetArmor(this);
+    public Shield InstallShields() => shield ??= type.shield?.GetShield(this);
+    public Reactor InstallReactor() => reactor ??= type.reactor?.GetReactor(this);
+    public Solar InstallSolar() => solar ??= type.solar?.GetSolar(this);
+    public MiscDevice InstallMisc() => misc ??= type.misc?.GetMisc(this);
     public void RemoveAll() {
         weapon = null;
         armor = null;
         shield = null;
         reactor = null;
+        solar = null;
+        misc = null;
     }
     public void RemoveWeapon() => weapon = null;
     public void RemoveArmor() => armor = null;
     public void RemoveShields() => shield = null;
     public void RemoveReactor() => reactor = null;
+    public void RemoveSolar() => solar = null;
+    public void RemoveMisc() => misc = null;
 }
 public interface Device {
     Item source { get; }
@@ -79,12 +88,10 @@ public interface Powered : Device {
 }
 public static class SWeapon {
     public static void CreateShot(this FragmentDesc fragment, SpaceObject Source, double direction) {
-
         var world = Source.world;
         var position = Source.position;
         var velocity = Source.velocity;
         var angleInterval = fragment.spreadAngle / fragment.count;
-
         for (int i = 0; i < fragment.count; i++) {
             double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
             var p = new Projectile(Source, world,
@@ -158,7 +165,6 @@ public class Weapon : Powered {
         foreach (var cg in bar.Take(fireBar)) {
             cg.Foreground = Color.White;
         }
-
         if (capacitor != null) {
             var n = 16 * capacitor.charge / capacitor.desc.maxCharge;
             foreach (var cg in bar.Take((int)n + 1)) {
@@ -167,7 +173,6 @@ public class Weapon : Powered {
         }
         return bar;
     }
-
     public void Update(Station owner) {
         double? direction = null;
         if (aiming != null) {

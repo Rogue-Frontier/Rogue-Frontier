@@ -60,7 +60,7 @@ class FrontierClient : TcpClient {
                     game.World = sys;
 
                     AIShip ai = null;
-                    var playerId = game.playerMain?.playerShip?.Id;
+                    var playerId = game.playerMain?.playerShip?.id;
                     if (playerId.HasValue && game.entityLookup.TryGetValue(playerId.Value, out var en)) {
                         ai = en as AIShip;
                     }
@@ -72,7 +72,7 @@ class FrontierClient : TcpClient {
                         sys.AddEntity(playerShip);
                         game.SetPlayerMain(new PlayerMain(game.Width, game.Height,
                             new Profile(), playerShip));
-                        TellServer(new TellServer.AssumePlayerShip() { shipId = ai.Id });
+                        TellServer(new TellServer.AssumePlayerShip() { shipId = ai.id });
                     }
                     break;
                 case TellClient.SetCamera c:
@@ -80,7 +80,7 @@ class FrontierClient : TcpClient {
                     break;
                 case TellClient.SyncSharedState c:
                     foreach (var state in c.entities) {
-                        if (game.entityLookup.TryGetValue(state.Id, out Entity e)) {
+                        if (game.entityLookup.TryGetValue(state.id, out Entity e)) {
                             e.SetSharedState(state);
                         }
                     }

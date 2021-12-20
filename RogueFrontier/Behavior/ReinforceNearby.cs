@@ -35,7 +35,7 @@ public class ReinforceNearby : StationBehavior {
                     if (nearby.guards.Count < 3) {
                         if (owner.guards.Count > 3) {
                             var g = owner.guards.Last();
-                            g.order = new GuardOrder(nearby);
+                            ((GuardOrder)g.behavior.GetOrder()).SetTarget(nearby);
                             owner.guards.RemoveAt(owner.guards.Count - 1);
                             nearby.guards.Add(g);
                         }

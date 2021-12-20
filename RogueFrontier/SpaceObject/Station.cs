@@ -18,7 +18,7 @@ public class Wreck : DockableObject {
     public ColoredGlyph tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.tile.GlyphCharacter);
 
     [JsonProperty]
-    public int Id { get; private set; }
+    public int id { get; private set; }
     [JsonProperty]
     public SpaceObject creator { get; private set; }
     [JsonProperty]
@@ -39,7 +39,7 @@ public class Wreck : DockableObject {
     public XY gravity { get; private set; }
     public Wreck() { }
     public Wreck(SpaceObject creator, IEnumerable<Item> cargo = null) {
-        this.Id = creator.world.nextId++;
+        this.id = creator.world.nextId++;
         this.creator = creator;
 
 
@@ -91,7 +91,7 @@ public class Station : DockableObject, ITrader {
     [JsonIgnore]
     public string name => type.name;
     [JsonProperty]
-    public int Id { get; set; }
+    public int id { get; set; }
     [JsonProperty]
     public System world { get; set; }
     [JsonProperty]
@@ -120,7 +120,7 @@ public class Station : DockableObject, ITrader {
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
     public Station() { }
     public Station(System World, StationType Type, XY Position) {
-        this.Id = World.nextId++;
+        this.id = World.nextId++;
         this.world = World;
         this.type = Type;
         this.position = Position;
@@ -134,19 +134,13 @@ public class Station : DockableObject, ITrader {
         InitBehavior(Type.behavior);
     }
     public void InitBehavior(StationBehaviors behavior) {
-        switch (behavior) {
-            case StationBehaviors.raisu:
-                break;
-            case StationBehaviors.pirate:
-                this.behavior = new Pirate();
-                break;
-            case StationBehaviors.reinforceNearby:
-                this.behavior = new ReinforceNearby();
-                break;
-            case StationBehaviors.none:
-            default:
-                break;
-        }
+        this.behavior = behavior switch {
+            StationBehaviors.raisu => null,
+            StationBehaviors.pirate => new Pirate(),
+            StationBehaviors.reinforceNearby => new ReinforceNearby(),
+            StationBehaviors.none => null,
+            _ => null
+        };
     }
     public void CreateSegments() {
         segments = new List<Segment>();
@@ -176,12 +170,13 @@ public class Station : DockableObject, ITrader {
         return type.dockPoints.Except(GetDocked().Select(s => s.dock?.Offset)).FirstOrDefault() ?? XY.Zero;
     }
     public void UpdateGuardList() {
-        guards = new List<AIShip>(world.entities.all.OfType<AIShip>().Where(s => s.order switch {
-            GuardOrder g => g.GuardTarget == this,
-            PatrolOrbitOrder p => p.patrolTarget == this,
-            PatrolCircuitOrder p => p.patrolTarget == this,
-            _ => false
-        }));
+        guards = new List<AIShip>(world.entities.all.OfType<AIShip>()
+            .Where(s => ((s.behavior as BaseShipBehavior)?.current ?? s.behavior) switch {
+                GuardOrder g => g.GuardTarget == this,
+                PatrolOrbitOrder p => p.patrolTarget == this,
+                PatrolCircuitOrder p => p.patrolTarget == this,
+                _ => false
+            }));
     }
     /*
     public HashSet<SpaceObject> GetParts() {
@@ -195,10 +190,10 @@ public class Station : DockableObject, ITrader {
     public void Damage(SpaceObject source, int hp) {
         damageSystem.Damage(this, source, hp);
         if (source != null && source.sovereign != sovereign) {
-
-            var guards = from guard in world.entities.all.OfType<AIShip>()
-                         where guard.order is GuardOrder order && order.GuardTarget == this
-                         select (GuardOrder)guard.order;
+            var guards = world.entities.all.OfType<AIShip>()
+                .Select(s => s.behavior.GetOrder())
+                .OfType<GuardOrder>()
+                .Where(g => g.GuardTarget == this);
             foreach (var order in guards) {
                 order.Attack(source, 300);
             }
@@ -207,11 +202,12 @@ public class Station : DockableObject, ITrader {
     public void Destroy(SpaceObject source) {
         active = false;
         var wreck = new Wreck(this);
-
         if (source is PlayerShip ps) {
             ps.stationsDestroyed.Add(this);
+            if (type.crimeOnDestroy) {
+                ps.crimeRecord.Add(new Destruction(this));
+            }
         }
-
         var drop = weapons?.Select(w => w.source);
         if (drop != null) {
             foreach (var item in drop) {
@@ -219,7 +215,6 @@ public class Station : DockableObject, ITrader {
                 wreck.cargo.Add(item);
             }
         }
-
         world.AddEntity(wreck);
         if (segments != null) {
             foreach (var segment in segments) {
@@ -228,30 +223,29 @@ public class Station : DockableObject, ITrader {
                 world.AddEntity(new Segment(wreck, new SegmentDesc(offset, new StaticTile(tile))));
             }
         }
-
         var guards = world.entities.all.OfType<AIShip>().Where(
-            s => s.order is GuardOrder o && o.GuardTarget == this);
-
+            s => s.behavior is BaseShipBehavior b
+            && b.current is GuardOrder o
+            && o.GuardTarget == this);
         var gate = world.entities.all.OfType<Stargate>().FirstOrDefault();
-        var lastOrder = new CompoundOrder(new AttackOrder(source), new GateOrder(gate));
+        var lastOrder = new BaseShipBehavior(new AttackOrder(source), new GateOrder(gate));
         if (source != null && source.sovereign != sovereign) {
             foreach (var g in guards) {
-                g.order = lastOrder;
+                g.behavior = lastOrder;
             }
         } else {
             var next = world.entities.all.OfType<Station>().Where(s => s.type == type && s != this).OrderBy(p => (p.position - position).magnitude2).FirstOrDefault();
             if (next != null) {
                 foreach (var g in guards) {
-                    var o = (GuardOrder)g.order;
-                    o.GuardTarget = next;
+                    var o = (GuardOrder)(g.behavior as BaseShipBehavior).current;
+                    o.SetTarget(next);
                 }
             } else {
                 foreach (var g in guards) {
-                    g.order = new PatrolOrbitOrder(this, 20);
+                    g.behavior = new PatrolOrbitOrder(this, 20);
                 }
             }
         }
-
         onDestroyed.set.RemoveWhere(d => d.Value == null);
         foreach (var on in onDestroyed.set) {
             on.Value.Invoke(this, source, wreck);
@@ -261,11 +255,8 @@ public class Station : DockableObject, ITrader {
         weapons?.ForEach(w => w.Update(this));
         behavior?.Update(this);
     }
-
     public Console GetDockScene(Console prev, PlayerShip playerShip) => null;
-
     public ColoredGlyph tile => type.tile.Original;
-
 }
 public class Segment : SpaceObject {
     //The segment essentially impersonates its parent station but with a different tile
@@ -281,12 +272,12 @@ public class Segment : SpaceObject {
     public Sovereign sovereign => parent.sovereign;
 
     [JsonProperty]
-    public int Id { get; private set; }
+    public int id { get; private set; }
     public SpaceObject parent;
     public SegmentDesc desc;
     public Segment() { }
     public Segment(SpaceObject parent, SegmentDesc desc) {
-        this.Id = parent.world.nextId++;
+        this.id = parent.world.nextId++;
         this.parent = parent;
         this.desc = desc;
     }

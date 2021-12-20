@@ -11,14 +11,14 @@ class EchoBarrier : ProjectileBarrier {
     public ColoredGlyph tile => new ColoredGlyph(Color.Goldenrod, Color.Black, '*');
 
 
-    public int Id { get; private set; }
+    public int id { get; private set; }
     public PlayerShip owner;
     public XY offset;
     public int lifetime;
     public HashSet<Projectile> reflected;
     public XY position { get; set; }
     public EchoBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> reflected) {
-        this.Id = owner.world.nextId++;
+        this.id = owner.world.nextId++;
         this.owner = owner;
         this.offset = offset;
         this.lifetime = lifetime;

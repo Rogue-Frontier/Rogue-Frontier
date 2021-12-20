@@ -13,6 +13,7 @@ public class ListIndex<T> {
         this.list = list;
     }
     public List<T> Next(int count = 1) {
+        if (list.Count == 0) return list;
         var l = Enumerable.Range(index, count).Select(i => list[i%list.Count]).ToList();
         index += count;
         return l;

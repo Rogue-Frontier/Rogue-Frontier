@@ -17,6 +17,7 @@ public class StationType : DesignType {
     public string codename;
     public string name;
     public int hp;
+    public bool crimeOnDestroy;
     public StationBehaviors behavior;
     public Sovereign Sovereign;
     public StaticTile tile;
@@ -34,6 +35,7 @@ public class StationType : DesignType {
         codename = e.ExpectAttribute("codename");
         name = e.ExpectAttribute("name");
         hp = e.ExpectAttributeInt("hp");
+        crimeOnDestroy = e.TryAttributeBool(nameof(crimeOnDestroy));
         behavior = e.TryAttributeEnum(nameof(behavior), StationBehaviors.none);
         Sovereign = collection.Lookup<Sovereign>(e.ExpectAttribute("sovereign"));
         tile = new StaticTile(e);

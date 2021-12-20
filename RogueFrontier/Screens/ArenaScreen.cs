@@ -16,14 +16,14 @@ namespace RogueFrontier;
 public interface IConsoleHook {
 
 }
-class ArenaScreenReset : IContainer<PlayerDestroyed>, IConsoleHook {
+class ArenaScreenReset : IContainer<Destroyed>, IConsoleHook {
     public ArenaScreenReset(ArenaScreen arena) {
         this.arena = arena;
     }
     //[JsonIgnore]
     private ArenaScreen arena;
     [JsonIgnore]
-    public PlayerDestroyed Value => arena is ArenaScreen a ?
+    public Destroyed Value => arena is ArenaScreen a ?
         (p, s, w) => a.Reset() : null;
     
     public override bool Equals(object obj) => obj is ArenaScreenReset r && r.arena == arena;

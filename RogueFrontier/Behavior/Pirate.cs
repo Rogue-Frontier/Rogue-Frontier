@@ -10,8 +10,9 @@ public class Pirate : StationBehavior {
         if (ticks % 300 == 0) {
             //Clear any pirate attacks where the target has too many defenders
             foreach (var g in owner.guards) {
-                if (g.order is GuardOrder order
-                    && order.attackOrder?.Active == true
+                if (g.behavior is BaseShipBehavior b
+                    && b.current is GuardOrder order
+                    && order.attackOrder.Active == true
                     && CountDefenders(order.attackOrder.target, g) > 2) {
                     order.ClearAttack();
                 }
@@ -23,7 +24,7 @@ public class Pirate : StationBehavior {
                         .Where(s => (s.position - owner.position).magnitude < 500);
             //Handle all available guards
             foreach (var g in owner.guards) {
-                if (g.order is GuardOrder o && o.attackTime < 1) {
+                if (g.behavior is BaseShipBehavior b && b.current is GuardOrder o && o.attackTime < 1) {
                     var target = targets.FirstOrDefault(
                         s => CountAttackers(s) < 5 && CountDefenders(s, g) < 3);
                     if (target != null) {
@@ -45,7 +46,7 @@ public class Pirate : StationBehavior {
                 return target.world.entities.all
                         .OfType<AIShip>()
                         .Where(s => s.sovereign == owner.sovereign)
-                        .Where(s => s.order is GuardOrder o && o.attackOrder?.target == target)
+                        .Where(s => s.behavior is BaseShipBehavior b && b.current is GuardOrder o && o.attackOrder?.target == target)
                         .Count();
             }
         }

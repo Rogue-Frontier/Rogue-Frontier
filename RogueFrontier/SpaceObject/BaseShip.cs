@@ -77,7 +77,7 @@ public class BaseShip : SpaceObject {
     [JsonProperty]
     public XY position { get; set; }
     [JsonProperty]
-    public int Id { get; set; }
+    public int id { get; set; }
     [JsonProperty]
     public XY velocity { get; set; }
     public bool active { get; set; }
@@ -107,7 +107,7 @@ public class BaseShip : SpaceObject {
     public BaseShip() { }
     public BaseShip(System world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
         this.world = world;
-        this.Id = world.nextId++;
+        this.id = world.nextId++;
         this.shipClass = shipClass;
 
         this.sovereign = Sovereign;
@@ -144,12 +144,11 @@ public class BaseShip : SpaceObject {
     public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
     public void Damage(SpaceObject source, int hp) => damageSystem.Damage(this, source, hp);
     public void Destroy(SpaceObject source) {
-        var items = cargo.Concat(devices.Installed.Select(d => d.source)
-            .Where(i => i != null).Select(i => {
-                i.RemoveArmor();
-                return i;
-            }
-            ));
+        var items = cargo.Concat(
+            devices.Installed
+            .Select(d => d.source)
+            .Where(i => i != null)
+        );
         var wreck = new Wreck(this, items);
         world.AddEntity(wreck);
         active = false;
@@ -166,42 +165,27 @@ public class BaseShip : SpaceObject {
     }
     public void UpdateControls() {
         if (controlHijack != null) {
-            switch (controlHijack.thrustMode) {
-                case DisruptMode.FORCE_ON:
-                    thrusting = true;
-                    break;
-                case DisruptMode.FORCE_OFF:
-                    thrusting = false;
-                    break;
-            }
-            switch (controlHijack.turnMode) {
-                case DisruptMode.FORCE_ON:
-                    rotating = Rotating.CCW;
-                    break;
-                case DisruptMode.FORCE_OFF:
-                    rotating = Rotating.None;
-                    break;
-            }
-            switch (controlHijack.brakeMode) {
-                case DisruptMode.FORCE_ON:
-                    decelerating = true;
-                    break;
-                case DisruptMode.FORCE_OFF:
-                    decelerating = false;
-                    break;
-            }
-            switch (controlHijack.fireMode) {
-                case DisruptMode.FORCE_ON:
-                    foreach (var w in devices.Weapons) {
-                        w.firing = true;
-                    }
-                    break;
-                case DisruptMode.FORCE_OFF:
-                    foreach (var w in devices.Weapons) {
-                        w.firing = false;
-                    }
-                    break;
-            }
+            thrusting = controlHijack.thrustMode switch {
+                DisruptMode.FORCE_ON => true,
+                DisruptMode.FORCE_OFF => false,
+                _ => thrusting
+            };
+            rotating = controlHijack.turnMode switch {
+                DisruptMode.FORCE_ON => Rotating.CCW,
+                DisruptMode.FORCE_OFF => Rotating.None,
+                _ => rotating
+            };
+
+            decelerating = controlHijack.brakeMode switch {
+                DisruptMode.FORCE_ON => true,
+                DisruptMode.FORCE_OFF => false,
+                _ => decelerating
+            };
+            devices.Weapons.ForEach(a => a.firing = controlHijack.fireMode switch {
+                DisruptMode.FORCE_ON => true,
+                DisruptMode.FORCE_OFF => false,
+                _ => a.firing
+            });
             controlHijack.Update();
             if (controlHijack.active == false) {
                 controlHijack = null;
@@ -276,15 +260,49 @@ public class BaseShip : SpaceObject {
         position += velocity / Program.TICKS_PER_SECOND;
     }
 }
+public static class SShipBehavior {
+    public static bool CanTarget(this IShipBehavior behavior, SpaceObject other) {
+        switch (behavior) {
+            case BaseShipBehavior b:
+                return b.orders.Any(order => order.CanTarget(other));
+            case Wingmate w:
+                return w.order is ICombatOrder c && c.CanTarget(other);
+        }
+        return false;
+    }
+    public static IShipOrder GetOrder(this IShipBehavior behavior) {
+        switch (behavior) {
+            case BaseShipBehavior b:
+                return b.orders[0];
+            case Wingmate w:
+                return w.order;
+            case IShipOrder o:
+                return o;
+            case IShipBehavior b:
+                return null;
+            default:
+                throw new Exception("Unknown behavior type");
+        }
+    }
+    public static string GetOrderName(this IShipBehavior behavior) =>
+        behavior.GetOrder()?.GetType().Name ?? "Unknown";
+}
 public interface IShipBehavior {
     //We pass in the owner via update since ideally we'd like to allow
     //multiple ships run the same behavior
-    void Update(IShip owner);
+    void Update(AIShip owner);
+    public void OnDestroyed(SpaceObject destroyer) {}
 }
 public class Sulphin : IShipBehavior {
-    int ticks = 0;
-    HashSet<PlayerShip> playersMet = new();
-    public void Update(IShip owner) {
+    public int ticks = 0;
+    public HashSet<PlayerShip> playersMet = new();
+    public IShipBehavior order;
+    public Sulphin() {}
+    public Sulphin(IShipBehavior order) {
+        this.order = order;
+    }
+    public void Update(AIShip owner) {
+        order?.Update(owner);
         ticks++;
         if (ticks % 150 == 0) {
             var players = owner.world.entities.all
@@ -305,7 +323,7 @@ public class Sulphin : IShipBehavior {
 
 public class AIShip : IShip, DockableObject {
     [JsonIgnore]
-    public int Id => ship.Id;
+    public int id => ship.id;
     [JsonIgnore]
     public string name => ship.name;
     [JsonIgnore]
@@ -332,8 +350,9 @@ public class AIShip : IShip, DockableObject {
     public double stoppingRotation => ship.stoppingRotation;
     [JsonIgnore]
     public HashSet<SpaceObject> avoidHit => new HashSet<SpaceObject> {
-            dock?.Target, (order as GuardOrder)?.GuardTarget
-        };
+        dock?.Target,
+        (behavior as GuardOrder)?.GuardTarget
+    };
     public Docking dock { get; set; }
 
 
@@ -343,20 +362,14 @@ public class AIShip : IShip, DockableObject {
     //IShipBehavior and IShipOrder have the same interface but different purpose
     //The behavior sets the current order and does not affect ship controls
     public IShipBehavior behavior;
-    //The order represents a packaged action and affects the ship controls
-    public IShipOrder order;
     public AIShip() { }
-    public AIShip(BaseShip ship, IShipOrder order) {
+    public AIShip(BaseShip ship, IShipBehavior behavior) {
         this.ship = ship;
-        this.order = order;
-        InitBehavior(ship.shipClass.behavior);
-    }
-    public void InitBehavior(ShipBehaviors b) {
-        switch (b) {
-            case ShipBehaviors.sulphin:
-                behavior = new Sulphin();
-                break;
-        }
+        this.behavior = ship.shipClass.behavior switch {
+            ShipBehaviors.sulphin => new Sulphin(behavior),
+            ShipBehaviors.none => behavior,
+            _ => behavior
+        };
     }
     public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
@@ -370,7 +383,6 @@ public class AIShip : IShip, DockableObject {
     }
     public void Update() {
         behavior?.Update(this);
-        order.Update(this);
 
         dock?.Update(this);
 
@@ -400,7 +412,7 @@ public class PlayerShip : IShip {
     [JsonIgnore]
     public string name => ship.name;
     [JsonIgnore]
-    public int Id => ship.Id;
+    public int id => ship.id;
     [JsonIgnore]
     public System world => ship.world;
     [JsonIgnore]
@@ -432,7 +444,7 @@ public class PlayerShip : IShip {
 
     public int targetIndex = -1;
     public bool targetFriends = false;
-    public List<SpaceObject> TargetList = new();
+    public List<SpaceObject> targetList = new();
 
     public bool firingPrimary = false;
     public int selectedPrimary = 0;
@@ -447,12 +459,14 @@ public class PlayerShip : IShip {
     public HashSet<Entity> visible = new();
     public HashSet<Station> known = new();
     public HashSet<SpaceObject> missionTargets = new();
-    int ticks = 0;
+    private int ticks = 0;
     public HashSet<IShip> shipsDestroyed = new();
     public HashSet<Station> stationsDestroyed = new();
 
-    public delegate void PlayerDestroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);
-    public FuncSet<IContainer<PlayerDestroyed>> onDestroyed = new();
+    public List<ICrime> crimeRecord=new();
+
+    public delegate void Destroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);
+    public FuncSet<IContainer<Destroyed>> onDestroyed = new();
     public delegate void PlayerDamaged(PlayerShip playerShip, SpaceObject damager, int hp);
     public FuncSet<IContainer<PlayerDamaged>> onDamaged = new();
 
@@ -576,14 +590,14 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
         if (targetFriends) {
             Refresh();
             targetFriends = false;
-        } else if (targetIndex >= TargetList.Count - 1) {
+        } else if (targetIndex >= targetList.Count - 1) {
             Refresh();
         }
 
     CheckTarget:
         targetIndex++;
-        if (targetIndex < TargetList.Count) {
-            var target = TargetList[targetIndex];
+        if (targetIndex < targetList.Count) {
+            var target = targetList[targetIndex];
             if (!this.IsEnemy(target)) {
                 goto CheckTarget;
             } else if (!target.active) {
@@ -605,7 +619,7 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
         }
 
         void Refresh() {
-            TargetList =
+            targetList =
                 world.entities.all
                 .OfType<SpaceObject>()
                 .Where(e => this.IsEnemy(e))
@@ -622,14 +636,14 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
         if (!targetFriends) {
             Refresh();
             targetFriends = true;
-        } else if (targetIndex >= TargetList.Count - 1) {
+        } else if (targetIndex >= targetList.Count - 1) {
             Refresh();
         }
 
     CheckTarget:
         targetIndex++;
-        if (targetIndex < TargetList.Count) {
-            var target = TargetList[targetIndex];
+        if (targetIndex < targetList.Count) {
+            var target = targetList[targetIndex];
             if (!this.IsFriendly(target)) {
                 goto CheckTarget;
             } else if (!target.active) {
@@ -651,7 +665,7 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
         }
 
         void Refresh() {
-            TargetList = world.entities.all
+            targetList = world.entities.all
                 .OfType<SpaceObject>()
                 .Where(e => this.IsFriendly(e))
                 .OrderBy(e => (e.position - position).magnitude)
@@ -663,7 +677,7 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     }
     //Remember to call this before we set the targetIndex == -1
     public void ResetAutoAim() {
-        var target = TargetList[targetIndex];
+        var target = targetList[targetIndex];
         if (selectedPrimary < ship.devices.Weapons.Count) {
             var primary = ship.devices.Weapons[selectedPrimary];
             if (primary.target == target) {
@@ -673,7 +687,7 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     }
     //Remember to call this after we set the targetIndex > -1
     public void UpdateAutoAim() {
-        var target = TargetList[targetIndex];
+        var target = targetList[targetIndex];
         if (selectedPrimary < ship.devices.Weapons.Count) {
             var primary = ship.devices.Weapons[selectedPrimary];
             primary.OverrideTarget(target);
@@ -682,13 +696,13 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     //Stop targeting, but remember our remaining targets
     public void ForgetTarget() {
         ResetAutoAim();
-        TargetList = TargetList.GetRange(targetIndex, TargetList.Count - targetIndex);
+        targetList = targetList.GetRange(targetIndex, targetList.Count - targetIndex);
         targetIndex = -1;
     }
     //Stop targeting and clear our target list
     public void ClearTarget() {
         ResetAutoAim();
-        TargetList.Clear();
+        targetList.Clear();
         targetIndex = -1;
     }
 
@@ -696,7 +710,7 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
         if (targetIndex > -1) {
             ResetAutoAim();
         }
-        this.TargetList = targetList;
+        this.targetList = targetList;
         if (targetList.Count > 0) {
             targetIndex = 0;
             UpdateAutoAim();
@@ -707,7 +721,7 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     }
     public bool GetTarget(out SpaceObject target) {
         if (targetIndex != -1) {
-            target = TargetList[targetIndex];
+            target = targetList[targetIndex];
             if (target.active) {
                 return true;
             }

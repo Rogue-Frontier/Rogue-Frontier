@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
 using RogueFrontier.Types;
+using Newtonsoft.Json;
 
 namespace RogueFrontier;
 
@@ -22,15 +23,28 @@ public class DeployShip : InvokeAction {
     }
     public string GetDesc(PlayerShip player, Item item) => $"Deploy {shipClass.name}";
     public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+
+        var w = new Wingmate(player);
         var a = new AIShip(
             new BaseShip(player.world, shipClass, player.sovereign, player.position),
-            new EscortOrder(player, new XY(10, 0))
-            ) { behavior = new Wingmate(player)};
+            w
+            );
+        player.onDestroyed += w;
         player.world.AddEntity(a);
         player.wingmates.Add(a);
         player.AddMessage(new Transmission(a, $"Deployed {shipClass.name}"));
         player.cargo.Remove(item);
         callback?.Invoke();
+    }
+    class Avenge : IContainer<BaseShip.Destroyed> {
+        AIShip avenger;
+        public Avenge(AIShip avenger) {
+            this.avenger = avenger;
+        }
+        [JsonIgnore]
+        public BaseShip.Destroyed Value => (s, d, w) => {
+            avenger.behavior = new AttackOrder(d);
+        };
     }
 }
 public class InstallWeapon : InvokeAction {
@@ -153,10 +167,11 @@ public class ItemType : DesignType {
             misc = new MiscDesc(xmlMisc);
         }
     }
+
 }
 public class ArmorDesc {
     public int maxHP;
-    public Armor GetArmor(Item i) => new Armor(i, this);
+    public Armor GetArmor(Item i) => new(i, this);
     public ArmorDesc() { }
     public ArmorDesc(XElement e) {
         maxHP = e.ExpectAttributeInt("maxHP");
@@ -327,7 +342,7 @@ public class ShieldDesc {
     public int maxHP;
     public int depletionDelay;
     public double hpPerSecond;
-    public Shield GetShields(Item i) => new Shield(i, this);
+    public Shield GetShield(Item i) => new Shield(i, this);
     public ShieldDesc() { }
     public ShieldDesc(XElement e) {
         maxHP = e.ExpectAttributeInt(nameof(maxHP));
@@ -352,6 +367,7 @@ public class ReactorDesc {
 }
 public class SolarDesc {
     public int maxOutput;
+    public Solar GetSolar(Item i) => new(i, this);
     public SolarDesc() { }
     public SolarDesc(XElement e) {
         maxOutput = e.ExpectAttributeInt(nameof(maxOutput));
@@ -360,7 +376,7 @@ public class SolarDesc {
 public class MiscDesc {
     public bool missileJack;
     public int interval;
-    public MiscDevice GetMisc(Item i) => new MiscDevice(i, this);
+    public MiscDevice GetMisc(Item i) => new(i, this);
     public MiscDesc() { }
     public MiscDesc(XElement e) {
         missileJack = e.TryAttributeBool(nameof(missileJack), false);

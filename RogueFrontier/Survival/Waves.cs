@@ -24,7 +24,6 @@ class Waves : Event {
                 {"ship_hyperego", 240 },
                 {"ship_iron_embargo", 300 },
                 {"ship_iron_gunboat", 180 },
-                {"ship_iron_privateer", 240 },
                 {"ship_laser_drone", 30 },
                 {"ship_orion_raider", 90 },
                 {"ship_orion_huntsman", 150 },
@@ -64,13 +63,13 @@ class Waves : Event {
         shipList.OrderByDescending(s => map[s]).Select(world.types.Lookup<ShipClass>).ToList().ForEach(createShip);
         void createShip(ShipClass shipClass) {
 
-            IShipOrder order = new AttackOrder(playerShip);
+            BaseShipBehavior behavior = new(new AttackOrder(playerShip));
 
             AIShip create() =>
                 new AIShip(new BaseShip(world,
                     shipClass, Sovereign.Gladiator,
                     playerShip.position + XY.Polar(world.karma.NextDouble(0, 2 * Math.PI), 200)),
-                    order
+                    behavior
                     );
             AIShip ship;
 
@@ -79,9 +78,7 @@ class Waves : Event {
                 ship = create();
                 leader = ship;
             } else {
-                order = new CompoundOrder(
-                    new EscortOrder(leader, XY.Polar(world.karma.NextDouble(0, 2 * Math.PI), 10)),
-                    order);
+                behavior.orders.Add(new EscortOrder(leader, XY.Polar(world.karma.NextDouble(0, 2 * Math.PI), 10)));
                 ship = create();
             }
             i++;

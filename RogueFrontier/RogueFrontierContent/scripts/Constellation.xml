@@ -7,6 +7,8 @@
 					sovereign=	"sovereign_constellation"
 
 					hp=			"250"
+					
+					crimeOnDestroy="true"
 
 					char=		"U"
 					foreground="LightGray"
@@ -57,6 +59,7 @@
 					sovereign=	"sovereign_constellation"
 
 					hp=			"100"
+					crimeOnDestroy="true"
 
 					char=		"H"
 					foreground="BB6633FF"
@@ -87,6 +90,7 @@
 				sovereign=	"sovereign_constellation"
 
 				hp=			"200"
+				crimeOnDestroy="true"
 
 				char=		"H"
 				foreground="BB6633FF"
@@ -113,13 +117,14 @@
 	</StationType>
 
 	<StationType	codename="station_armor_shop"
-				name=		"Armor shop"
-				sovereign=	"sovereign_constellation"
+					name=		"Armor shop"
+					sovereign=	"sovereign_constellation"
 
-				hp=			"250"
+					hp=			"250"
+					crimeOnDestroy="true"
 
-				char=		"A"
-				foreground="LightGray"
+					char=		"A"
+					foreground="LightGray"
 		>
 		<Segments>
 			<Point offsetX="2" offsetY="0"
@@ -153,13 +158,14 @@
 	</StationType>
 
 	<StationType	codename="station_arms_dealer"
-				name=		"Arms dealer"
-				sovereign=	"sovereign_constellation"
+					name=		"Arms dealer"
+					sovereign=	"sovereign_constellation"
 
-				hp=			"250"
+					hp=			"250"
+					crimeOnDestroy="true"
 
-				char=		"A"
-				foreground="LightGray"
+					char=		"A"
+					foreground="LightGray"
 		>
 		<Segments>
 			<Point offsetX="2" offsetY="0"

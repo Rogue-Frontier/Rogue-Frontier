@@ -53,7 +53,7 @@ public static class SFrontierCommon {
             case PlayerShip ps:
                 return new PlayerShip() {
                     ship = new BaseShip() {
-                        Id = e.Id,
+                        id = e.id,
                         rotationDeg = ps.ship.rotationDeg
                     },
                     position = ps.position,
@@ -62,7 +62,7 @@ public static class SFrontierCommon {
             case AIShip ai:
                 return new AIShip() {
                     ship = new BaseShip() {
-                        Id = e.Id,
+                        id = e.id,
                         rotationDeg = ai.ship.rotationDeg
                     },
                     position = ai.position,
@@ -70,7 +70,7 @@ public static class SFrontierCommon {
                 };
             case Projectile p:
                 return new Projectile() {
-                    Id = p.Id,
+                    id = p.id,
                     position = p.position,
                     velocity = p.velocity,
                 };
@@ -86,7 +86,7 @@ public static class SFrontierCommon {
     public static void UpdateEntityLookup(this Dictionary<int, Entity> entityLookup, System World) {
         entityLookup.Clear();
         foreach (var e in World.entities.all) {
-            entityLookup[e.Id] = e;
+            entityLookup[e.id] = e;
         }
     }
 }

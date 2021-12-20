@@ -16,11 +16,11 @@ using static RogueFrontier.Station;
 using System.Threading.Tasks;
 
 namespace RogueFrontier;
-public class NotifyStationDestroyed : IContainer<Destroyed> {
+public class NotifyStationDestroyed : IContainer<Station.Destroyed> {
     public PlayerShip playerShip;
     public Station source;
     [JsonIgnore]
-    public Destroyed Value =>
+    public Station.Destroyed Value =>
         (s, d, w) => playerShip?.AddMessage(new Transmission(source,
             $"{source.name} destroyed by {d?.name ?? "unknown forces"}!"
             ));
@@ -29,11 +29,11 @@ public class NotifyStationDestroyed : IContainer<Destroyed> {
         this.source = source;
     }
 }
-public class EndGamePlayerDestroyed : IContainer<PlayerDestroyed> {
+public class EndGamePlayerDestroyed : IContainer<PlayerShip.Destroyed> {
     [JsonIgnore]
     private PlayerMain main;
     [JsonIgnore]
-    public PlayerDestroyed Value => main is PlayerMain pm ?
+    public PlayerShip.Destroyed Value => main is PlayerMain pm ?
         (p, d, w) => pm.EndGame($"Destroyed by {d?.name ?? "unknown forces"}", w)
         : null;
     public EndGamePlayerDestroyed(PlayerMain main) {
@@ -484,7 +484,7 @@ public class PlayerMain : Console {
                 playerShip.SetTargetList(new List<SpaceObject>() { crosshair });
             }
         } else {
-            playerShip.TargetList = targetList;
+            playerShip.targetList = targetList;
             playerShip.targetIndex = 0;
             playerShip.UpdateAutoAim();
         }
@@ -1295,13 +1295,13 @@ public class Readout : Console {
             }
             switch (player.ship.damageSystem) {
                 case LayeredArmorSystem las:
-                    foreach (var armor in las.layers) {
+                    las.layers.ForEach(armor => {
                         this.Print(x, y, "[", Color.White, Color.Black);
                         this.Print(x + 1, y, new string('>', 16), Color.Gray, Color.Black);
                         this.Print(x + 1, y, new string('>', 16 * armor.hp / armor.desc.maxHP), Color.White, Color.Black);
                         this.Print(x + 1 + 16, y, $"-[{armor.source.type.name}", Color.White, Color.Black);
                         y++;
-                    }
+                    });
                     break;
                 case HPSystem hp:
                     this.Print(x, y, $"HP: {hp.hp}", Color.White, Color.Black);
@@ -1356,47 +1356,33 @@ public class Edgemap : Console {
         this.Clear();
         var screenSize = new XY(Width - 2, Height - 2);
         var screenCenter = screenSize / 2;
-
         var halfWidth = Width / 2;
         var halfHeight = Height / 2;
-
         var range = 192;
-
         var nearby = player.world.entities.GetAll(((int, int) p) => (player.position - p).maxCoord < range);
         foreach (var entity in nearby) {
             var offset = (entity.position - player.position).Rotate(-camera.rotation);
-            var (x, y) = offset / viewScale;
-            (x, y) = (Math.Abs(x), Math.Abs(y));
-
+            var (x, y) = (offset / viewScale).abs;
             if (x > halfWidth || y > halfHeight) {
-
+                //Do not show Segments beyond edge
                 if (entity is Segment) {
                     continue;
                 }
-
-
                 (x, y) = Helper.GetBoundaryPoint(screenSize, offset.angleRad);
-
-                Color c = Color.Transparent;
-                if (entity is SpaceObject so) {
-                    c = so.tile.Foreground;
-                } else if (entity is Projectile p) {
-                    c = p.tile.Foreground;
-                }
-                this.Print(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
+                PrintTile(x, y, entity);
             } else if (x > halfWidth - 4 || y > halfHeight - 4) {
                 (x, y) = ((screenCenter + offset) + new XY(1, 1));
-
-                Color c = Color.Transparent;
-                if (entity is SpaceObject so) {
-                    c = so.tile.Foreground;
-                } else if (entity is Projectile p) {
-                    c = p.tile.Foreground;
-                }
+                PrintTile(x, y, entity);
+            }
+            void PrintTile(int x, int y, Entity e) {
+                Color c = e switch {
+                    SpaceObject so => so.tile.Foreground,
+                    Projectile p => p.tile.Foreground,
+                    _ => Color.Transparent
+                };
                 this.Print(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
             }
         }
-
         base.Render(drawTime);
     }
 }
@@ -1525,7 +1511,7 @@ public class CommunicationsMenu : Console {
         int index = 0;
         foreach (var w in playerShip.wingmates.Take(10)) {
             char key = indexToKey(index++);
-            this.Print(x, y++, $"[{key}] {w.name}: {w.order.GetType().Name}", Color.White, Color.Black);
+            this.Print(x, y++, $"[{key}] {w.name}: {w.behavior.GetOrderName()}", Color.White, Color.Black);
         }
 
         //this.SetCellAppearance(Width/2, Height/2, new ColoredGlyph(Color.White, Color.White, 'X'));
@@ -1552,22 +1538,42 @@ public class CommunicationsMenu : Console {
                 return new EscortOrder(player, XY.Polar(
                         -(Math.PI * index / range), root * 2));
             }
-            commands = new Dictionary<string, Action<int>> {
-                    {"Form Up", i => {
+            commands = new();
+            switch(subject?.behavior) {
+                case Wingmate w:
+                    commands["Form Up"] = i => {
+                        player.AddMessage(new Transmission(subject, $"Ordered {subject.name} to Form Up"));
+                        w.order = GetEscortOrder(i);
+                    };
 
-
+                    commands["Attack Target"] = i => {
+                        if (player.GetTarget(out SpaceObject target)) {
+                            w.order = new AttackOrder(target);
+                            player.AddMessage(new Transmission(subject, $"Ordered {subject.name} to Attack Target"));
+                        } else {
+                            player.AddMessage(new Transmission(subject, $"No target selected"));
+                        }
+                    };
+                    commands["Wait"] = i => {
+                        w.order = new GuardOrder(new TargetingMarker(player, "Wait", subject.position));
+                        player.AddMessage(new Transmission(subject, $"Ordered {subject.name} to Wait"));
+                    };
+                    break;
+                default:
+                    commands["Form Up"] = i => {
                         player.AddMessage(new Message($"Ordered {subject.name} to {commands.Keys.ElementAt(i)}"));
-                        subject.order = GetEscortOrder(i);
-                    }}, {"Attack Target", i => {
-
-                        if(player.GetTarget(out SpaceObject target)) {
-                            subject.order = new CompoundOrder(new AttackOrder(target), GetEscortOrder(i));
+                        subject.behavior = GetEscortOrder(i);
+                    };
+                    commands["Attack Target"] = i => {
+                        if (player.GetTarget(out SpaceObject target)) {
+                            subject.behavior = new BaseShipBehavior(new AttackOrder(target), GetEscortOrder(i));
                             player.AddMessage(new Message($"Ordered {subject.name} to {commands.Keys.ElementAt(i)}"));
                         } else {
                             player.AddMessage(new Message($"No target selected"));
                         }
-                    }}
-                };
+                    };
+                    break;
+            }
         }
         public override void Update(TimeSpan delta) {
             ticks++;
@@ -1577,7 +1583,7 @@ public class CommunicationsMenu : Console {
             foreach (var k in info.KeysPressed) {
                 int index = keyToIndex(k.Character);
                 if (index > -1 && index < commands.Count) {
-                    commands.Values.ElementAt(index)(index);
+                    commands.Values.ElementAt(index)(0);
                 }
             }
             if (info.IsKeyPressed(Keys.Escape)) {
@@ -1600,7 +1606,7 @@ public class CommunicationsMenu : Console {
             //this.Print(x, y++, "[Ship control locked]", foreground, back);
             this.Print(x, y++, "[ESC     -> cancel]", foreground, back);
             y++;
-            this.Print(x, y++, $"{subject.name}:{subject.order.GetType().Name}", Color.White, Color.Black);
+            this.Print(x, y++, $"{subject.name}:{subject.behavior.GetOrderName()}", Color.White, Color.Black);
             y++;
             int index = 0;
             foreach (var w in commands.Keys) {

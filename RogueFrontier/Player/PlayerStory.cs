@@ -286,7 +286,9 @@ Allow me to join you on your mission.""
 
                 var w = playerShip.world;
                 var wingmateClass = w.types.Lookup<ShipClass>("ship_beowulf");
-                var wingmate = new AIShip(new BaseShip(w, wingmateClass, playerShip.sovereign, s.position), new EscortOrder(playerShip, new XY(-5, 0)));
+                var wingmate = new AIShip(new BaseShip(w, wingmateClass, playerShip.sovereign, s.position),
+                    new Wingmate(playerShip) { order = new EscortOrder(playerShip, new XY(-5, 0)) }
+                    );
                 w.AddEntity(wingmate);
                 w.AddEffect(new Heading(wingmate));
 
@@ -513,7 +515,6 @@ have at least a fighting chance when you leave this place.""
         }
     }
 }
-
 public class PlayerStory {
     public HashSet<IPlayerInteraction> mainInteractions;
     public HashSet<IPlayerInteraction> secondaryInteractions;
@@ -553,7 +554,68 @@ public class PlayerStory {
     public Con TradeStation(Con prev, Station source, PlayerShip playerShip) {
         return new TradeScene(prev, null, playerShip, source);
     }
+    public Con ConstellationArrest(Con prev, Station source, PlayerShip playerShip, ICrime c) {
+        return new Dialog(prev,
+@"Constellation armed soldiers approach your ship
+as you dock.",
+            new() {
+                new("Continue docking", Arrest),
+                new("Undock", Undock)
+            });
+        Con Arrest(Con prev) {
+            return new Dialog(prev,
+@$"""You are under immediate arrest for {c.name}.""
+
+There will be no trial.",
+            new() { new("Continue", Continue) }
+            );
+        }
+        Con Undock(Con prev) {
+            source.guards.ForEach(s => (s.behavior.GetOrder() as GuardOrder)?.Attack(playerShip, 900));
+            return null;
+        }
+        Con Continue(Con prev) {
+            playerShip.Destroy(source);
+            return null;
+        }
+    }
+    public IEnumerable<ICrime> GetConstellationCrimes(Station source, PlayerShip p) {
+        return p.crimeRecord.Where(c => c is Destruction d
+            && object.ReferenceEquals(d.station.sovereign, source.sovereign)
+            && !d.resolved);
+    }
+    public Con ConstellationAstra(Con prev, Station source, PlayerShip playerShip) {
+        var c = GetConstellationCrimes(source, playerShip);
+        if (c.Any()) return ConstellationArrest(prev, source, playerShip, c.First());
+
+        return Intro();
+        Dialog Intro() {
+            return new(prev,
+@"You are docked at a Constellation Astra,
+a major residential and commercial station
+of the United Constellation.
+
+The station is a stack of housing units,
+utility-facilities, entertainment districts,
+business sectors, and trading rooms. The governing
+tower protrudes out the roofplate of the station.
+The rotator tower rests on the underside.
+From a distance, the place looks almost like
+a spinning pinwheel.
+
+There is a modest degree of artificial gravity here.",
+            new() {
+                new("Trade", Trade),
+                new("Undock")
+            }) { background = source.type.heroImage };
+        }
+        Con Trade(Con from) => new TradeScene(from, playerShip, source);
+
+    }
     public Con ConstellationHabitat(Con prev, Station source, PlayerShip playerShip) {
+        var c = GetConstellationCrimes(source, playerShip);
+        if (c.Any()) return ConstellationArrest(prev, source, playerShip, c.First());
+
         return Intro(prev);
         Con Intro(Con prev) {
             return new Dialog(prev,
@@ -654,37 +716,13 @@ Okay, fine, I'll just find someone else to do it then.""",
             }
         }
     }
-    public Con ConstellationAstra(Con prev, Station source, PlayerShip playerShip) {
-        return Intro();
-        Dialog Intro() {
-            return new(prev,
-@"You are docked at a Constellation Astra,
-a major residential and commercial station
-of the United Constellation.
-
-The station is a stack of housing units,
-utility-facilities, entertainment districts,
-business sectors, and trading rooms. The governing
-tower protrudes out the roofplate of the station.
-The rotator tower rests on the underside.
-From a distance, the place looks almost like
-a spinning pinwheel.
-
-There is a modest degree of artificial gravity here.",
-            new() {
-                new("Trade", Trade),
-                new("Undock")
-            }) { background = source.type.heroImage };
-        }
-        Con Trade(Con from) => new TradeScene(from, playerShip, source);
-
-    }
     public bool raisuLiberated;
     public Con Raisu(Con prev, Station source, PlayerShip playerShip) {
         Dialog Intro() {
             var nearby = source.world.entities.all
                 .OfType<AIShip>()
-                .Where(s => s.order is PatrolOrbitOrder p
+                .Where(s => s.behavior is BaseShipBehavior b
+                         && b.current is PatrolOrbitOrder p
                          && p.patrolTarget == source);
             if (nearby.Any()) {
                 return new(prev,

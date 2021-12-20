@@ -18,7 +18,7 @@ public class Stargate : SpaceObject {
     public ColoredGlyph tile => new ColoredGlyph(Color.Purple, Color.White, '*');
 
     [JsonProperty]
-    public int Id { get; private set; }
+    public int id { get; private set; }
     [JsonProperty]
     public System world { get; private set; }
     [JsonProperty]
@@ -33,10 +33,11 @@ public class Stargate : SpaceObject {
     public string gateId;
     public string destGateId;
     public Stargate destGate;
-    public System destWorld => destGate.world;
+    [JsonIgnore]
+    public System destWorld => destGate?.world;
     public Stargate() { }
     public Stargate(System World, XY Position) {
-        this.Id = World.nextId++;
+        this.id = World.nextId++;
         this.world = World;
         this.sovereign = Sovereign.Inanimate;
         this.position = Position;
