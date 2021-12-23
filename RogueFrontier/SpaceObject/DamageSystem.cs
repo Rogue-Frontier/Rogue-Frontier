@@ -51,26 +51,23 @@ public class LayeredArmorSystem : HullSystem {
         var tick = owner.world.tick;
         foreach (var i in Enumerable.Range(0, layers.Count).Reverse()) {
             var layer = layers[i];
-            if (layer == null) {
+            if (layer == null)
                 continue;
-            } else {
-                int absorbed = Math.Min(layer.hp, hp);
-                layer.hp -= absorbed;
-                hp -= absorbed;
-                layer.lastDamageTick = tick;
+            int absorbed = Math.Min(layer.hp, hp);
+            layer.hp -= absorbed;
+            hp -= absorbed;
+            layer.lastDamageTick = tick;
 
-                int depth = 2;
-                foreach(var j in Enumerable.Range(i - p.desc.shock, p.desc.shock).Reverse().Where(j => j > -1)) {
-                    var nextLayer = layers[j];
-                    int nextAbsorbed = Math.Min(nextLayer.hp, absorbed / depth);
-                    nextLayer.hp -= nextAbsorbed;
-                    nextLayer.lastDamageTick = tick;
-                    depth++;
-                }
-                if (hp == 0) {
-                    return;
-                }
+            int depth = 2;
+            foreach (var j in Enumerable.Range(i - p.desc.shock, p.desc.shock).Reverse().Where(j => j > -1)) {
+                var nextLayer = layers[j];
+                int nextAbsorbed = Math.Min(nextLayer.hp, absorbed / depth);
+                nextLayer.hp -= nextAbsorbed;
+                nextLayer.lastDamageTick = tick;
+                depth++;
             }
+            if (hp == 0)
+                return;
         }
         owner.Destroy(p.source);
     }

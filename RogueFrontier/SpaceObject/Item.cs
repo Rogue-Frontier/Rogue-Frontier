@@ -574,8 +574,11 @@ public class Shield : Powered {
     public double regenHP;
     public int delay;
     public double absorbFactor => desc.absorbFactor;
-    public int maxAbsorb => desc.maxAbsorb == -1 ?
-        hp : Math.Max(hp, (int)(desc.maxAbsorb * (1f - delay/desc.damageDelay)));
+    public int maxAbsorb => desc.absorbMaxHP == -1 ?
+        hp : Math.Max(hp, absorbHP);
+    public int absorbHP;
+
+
     public int powerUse => hp < desc.maxHP ? desc.powerUse : desc.idlePowerUse;
     public Shield() { }
     public Shield(Item source, ShieldDesc desc) {
@@ -592,27 +595,32 @@ public class Shield : Powered {
         if (delay > 0) {
             delay--;
         } else if (hp < desc.maxHP) {
-            regenHP += desc.regenRate;
+            regenHP += desc.regen;
             while (regenHP >= 1) {
-                hp++;
+                bool regenerated = false;
                 if (hp < desc.maxHP) {
+                    hp++;
+                    regenerated = true;
+                }
+                if(absorbHP < desc.absorbMaxHP) {
+                    absorbHP++;
+                    regenerated = true;
+                }
+                if (regenerated) {
                     regenHP--;
                 } else {
                     regenHP = 0;
                 }
             }
+
         }
     }
     public void Absorb(int damage) {
         hp = Math.Max(0, hp - damage);
-        if (hp == 0) {
-            delay = desc.depletionDelay;
-        } else {
-            delay = desc.damageDelay;
-        }
+        absorbHP = Math.Max(0, absorbHP - damage);
+        delay = (hp == 0 ? desc.depletionDelay : desc.damageDelay);
     }
 }
-
 public interface PowerSource {
     double energyDelta { get; set; }
     int maxOutput { get; }

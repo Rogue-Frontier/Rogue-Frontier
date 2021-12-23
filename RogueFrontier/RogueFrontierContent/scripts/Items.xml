@@ -144,12 +144,12 @@
 			desc=		"Basic shield generator"
 		>
 		<Shield
-			powerUse="10"
-			idlePowerUse="1"
-			maxHP=	"30"
-			damageDelay="15"
-			depletionDelay="30"
-			regenRate="30 / 90"
+			powerUse=		"10"
+			idlePowerUse=	"1"
+			maxHP=			"30"
+			damageDelay=	"15"
+			depletionDelay=	"30"
+			regen=			"30 / 90"
 			
 			>
 		</Shield>
@@ -164,14 +164,14 @@
 		desc=		"Basic shield generator"
 		>
 		<Shield
-			powerUse="10"
-			idlePowerUse="1"
-			maxHP=	"60"
-			damageDelay="30"
-			depletionDelay="90"
-			regenRate="60 / 150"
+			powerUse=		"10"
+			idlePowerUse=	"1"
+			maxHP=			"60"
+			damageDelay=	"30"
+			depletionDelay=	"90"
+			regen=			"60 / 150"
 			
-			maxAbsorb="12"
+			maxAbsorb=		"12"
 			>
 		</Shield>
 	</ItemType>

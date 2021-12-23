@@ -344,9 +344,10 @@ public record ShieldDesc {
     public int maxHP;
     public int damageDelay;
     public int depletionDelay;
-    public double regenRate;
+    public double regen;
     public double absorbFactor;
-    public int maxAbsorb;
+    public int absorbMaxHP;
+    public double absorbRegen;
     public Shield GetShield(Item i) => new Shield(i, this);
     public ShieldDesc() { }
     public ShieldDesc(XElement e) {
@@ -355,9 +356,10 @@ public record ShieldDesc {
         maxHP = e.ExpectAttributeInt(nameof(maxHP));
         damageDelay = e.ExpectAttributeInt(nameof(damageDelay));
         depletionDelay = e.ExpectAttributeInt(nameof(depletionDelay));
-        regenRate = e.ExpectAttributeDouble(nameof(regenRate));
+        regen = e.ExpectAttributeDouble(nameof(regen));
         absorbFactor = e.TryAttributeDouble(nameof(absorbFactor), 1);
-        maxAbsorb = e.TryAttributeInt(nameof(maxAbsorb), -1);
+        absorbMaxHP = e.TryAttributeInt(nameof(absorbMaxHP), -1);
+        absorbRegen = e.TryAttributeDouble(nameof(absorbRegen), -1);
     }
 }
 public record ReactorDesc {
