@@ -16,7 +16,7 @@ public interface HullSystem {
     void Restore();
     int GetHP();
     int GetMaxHP();
-    void Damage(SpaceObject owner, SpaceObject source, int hp);
+    void Damage(SpaceObject owner, Projectile p);
 }
 public class HPSystem : HullSystem {
     public int maxHP;
@@ -26,12 +26,12 @@ public class HPSystem : HullSystem {
         this.maxHP = maxHP;
         this.hp = maxHP;
     }
-    public void Damage(SpaceObject owner, SpaceObject source, int hp) {
-        this.React(owner, source);
-        this.hp -= hp;
+    public void Damage(SpaceObject owner, Projectile p) {
+        this.React(owner, p.source);
+        this.hp -= p.damageHP;
         lastDamageTick = owner.world.tick;
         if (this.hp < 1) {
-            owner.Destroy(source);
+            owner.Destroy(p.source);
         }
     }
     public int GetHP() => hp;
@@ -45,9 +45,11 @@ public class LayeredArmorSystem : HullSystem {
     public LayeredArmorSystem(List<Armor> layers) {
         this.layers = layers;
     }
-    public void Damage(SpaceObject owner, SpaceObject source, int hp) {
-        this.React(owner, source);
-        for (int i = layers.Count - 1; i > -1; i--) {
+    public void Damage(SpaceObject owner, Projectile p) {
+        this.React(owner, p.source);
+        ref int hp = ref p.damageHP;
+        var tick = owner.world.tick;
+        foreach (var i in Enumerable.Range(0, layers.Count).Reverse()) {
             var layer = layers[i];
             if (layer == null) {
                 continue;
@@ -55,13 +57,22 @@ public class LayeredArmorSystem : HullSystem {
                 int absorbed = Math.Min(layer.hp, hp);
                 layer.hp -= absorbed;
                 hp -= absorbed;
-                layer.lastDamageTick = owner.world.tick;
+                layer.lastDamageTick = tick;
+
+                int depth = 2;
+                foreach(var j in Enumerable.Range(i - p.desc.shock, p.desc.shock).Reverse().Where(j => j > -1)) {
+                    var nextLayer = layers[j];
+                    int nextAbsorbed = Math.Min(nextLayer.hp, absorbed / depth);
+                    nextLayer.hp -= nextAbsorbed;
+                    nextLayer.lastDamageTick = tick;
+                    depth++;
+                }
                 if (hp == 0) {
                     return;
                 }
             }
         }
-        owner.Destroy(source);
+        owner.Destroy(p.source);
     }
     public List<ColoredString> GetDesc() {
         return new List<ColoredString>(layers.GroupBy(l => l.source.type).Select(l => new ColoredString(l.First().source.type.name + $" (x{l.Count()})")));

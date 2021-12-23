@@ -18,7 +18,6 @@ public class SimpleTrail : ITrail {
     }
     public Effect GetTrail(XY Position) => new EffectParticle(Position, Tile, 3);
 }
-public record DamageDesc(int damageHP, int damageType) { }
 public class Projectile : MovingObject {
     [JsonProperty]
     public int id { get; set; }
@@ -40,12 +39,11 @@ public class Projectile : MovingObject {
     public FragmentDesc desc;
     [JsonProperty]
     public Maneuver maneuver;
-
-    [JsonProperty]
-    public DamageDesc damage;
     [JsonProperty]
     public bool hitProjectile;
 
+    [JsonProperty]
+    public int damageHP;
     [JsonIgnore]
     public bool active => lifetime > 0;
     public Projectile() { }
@@ -61,6 +59,7 @@ public class Projectile : MovingObject {
         this.trail = (ITrail)desc.trail ?? new SimpleTrail(desc.effect.Original);
         this.maneuver = maneuver;
         this.hitProjectile = false;
+        this.damageHP = desc.damageHP.Roll();
     }
     public Projectile(SpaceObject source, Weapon weapon, XY position, XY velocity) {
         var world = source.world;
@@ -77,6 +76,7 @@ public class Projectile : MovingObject {
         this.trail = (ITrail)f.trail ?? new SimpleTrail(f.effect.Original);
         this.maneuver = new Maneuver(weapon.aiming?.target, f.maneuver, f.maneuverRadius);
         this.hitProjectile = weapon.desc.targetProjectile;
+        this.damageHP = desc.damageHP.Roll();
     }
 
     public void Update() {
@@ -118,7 +118,7 @@ public class Projectile : MovingObject {
                             continue;
                         case SpaceObject hit when !destroyed:
                             lifetime = 0;
-                            hit.Damage(source, desc.damageHP.Roll());
+                            hit.Damage(this);
                             var angle = (hit.position - position).angleRad;
                             world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 10));
 

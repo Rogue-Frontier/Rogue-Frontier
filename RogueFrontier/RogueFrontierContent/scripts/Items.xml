@@ -207,6 +207,8 @@
 			missileSpeed=	"60"
 			damageType=		"1"
 			damageHP=		"6"
+			shock=			"2"
+			
 			lifetime=		"120"
 
 			char=			"m"

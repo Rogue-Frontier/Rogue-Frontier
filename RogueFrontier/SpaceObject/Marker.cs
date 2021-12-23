@@ -48,6 +48,6 @@ class TargetingMarker : SpaceObject {
     public void Update() {
         //Nearby = Owner.world.entities.all.OfType<SpaceObject>().Except(new SpaceObject[] { Owner }).OrderBy(e => (e.position - position).magnitude).ToList();
     }
-    public void Damage(SpaceObject source, int hp) { }
+    public void Damage(Projectile p) { }
     public void Destroy(SpaceObject source = null) { }
 }

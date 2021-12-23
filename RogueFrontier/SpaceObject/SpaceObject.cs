@@ -13,7 +13,7 @@ public interface SpaceObject : MovingObject {
     //World world { get; }
     Sovereign sovereign { get; }
     //XY velocity { get; }
-    void Damage(SpaceObject source, int hp);
+    void Damage(Projectile p);
     void Destroy(SpaceObject source = null);
 }
 public interface Dockable {

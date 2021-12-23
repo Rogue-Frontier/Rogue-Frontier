@@ -56,7 +56,7 @@ public class Wreck : DockableObject {
         gravity = new XY(0, 0);
     }
     public Console GetDockScene(Console prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
-    public void Damage(SpaceObject source, int hp) {
+    public void Damage(Projectile p) {
     }
 
     public void Destroy(SpaceObject source) {
@@ -187,8 +187,9 @@ public class Station : DockableObject, ITrader {
         return set;
     }
     */
-    public void Damage(SpaceObject source, int hp) {
-        damageSystem.Damage(this, source, hp);
+    public void Damage(Projectile p) {
+        damageSystem.Damage(this, p);
+        var source = p.source;
         if (source != null && source.sovereign != sovereign) {
             var guards = world.entities.all.OfType<AIShip>()
                 .Select(s => s.behavior.GetOrder())
@@ -288,7 +289,7 @@ public class Segment : ISegment {
     }
     [JsonIgnore]
     public bool active => parent.active;
-    public void Damage(SpaceObject source, int hp) => parent.Damage(source, hp);
+    public void Damage(Projectile p) => parent.Damage(p);
     public void Destroy(SpaceObject source) => parent.Destroy(source);
     public void Update() {}
     [JsonIgnore]
@@ -320,7 +321,7 @@ public class AngledSegment : ISegment {
     }
     [JsonIgnore]
     public bool active => parent.active;
-    public void Damage(SpaceObject source, int hp) => parent.Damage(source, hp);
+    public void Damage(Projectile p) => parent.Damage(p);
     public void Destroy(SpaceObject source) => parent.Destroy(source);
     public void Update() { }
     [JsonIgnore]

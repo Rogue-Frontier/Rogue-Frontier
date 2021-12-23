@@ -105,12 +105,9 @@ public class Stargate : SpaceObject {
             world.AddEffect(new Heading(ai));
         }
     }
-    public void Damage(SpaceObject source, int hp) {
-    }
+    public void Damage(Projectile p) {}
 
-    public void Destroy(SpaceObject source) {
-    }
+    public void Destroy(SpaceObject source) {}
 
-    public void Update() {
-    }
+    public void Update() {}
 }

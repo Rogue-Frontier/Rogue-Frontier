@@ -227,6 +227,7 @@ public record FragmentDesc {
     public int missileSpeed;
     public int damageType;
     public IDice damageHP;
+    public int shock;
     public int lifetime;
     public double maneuver;
     public double maneuverRadius;
@@ -248,6 +249,7 @@ public record FragmentDesc {
         missileSpeed = e.ExpectAttributeInt(nameof(missileSpeed));
         damageType = e.ExpectAttributeInt(nameof(damageType));
         damageHP = e.ExpectAttributeDice(nameof(damageHP));
+        shock = e.TryAttributeInt(nameof(shock), 0);
         lifetime = e.ExpectAttributeInt(nameof(lifetime));
         maneuver = e.TryAttributeDouble(nameof(maneuver), 0) * Math.PI / (180);
         maneuverRadius = e.TryAttributeDouble(nameof(maneuverRadius), 0);

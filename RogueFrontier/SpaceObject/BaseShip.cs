@@ -143,8 +143,8 @@ public class BaseShip : SpaceObject {
         this.rotating = rotating;
     }
     public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
-    public void Damage(SpaceObject source, int hp) {
-        var hpLeft = hp;
+    public void Damage(Projectile p) {
+        ref int hpLeft = ref p.damageHP;
         foreach(var s in devices.Shields) {
             if(hpLeft == 0) {
                 break;
@@ -155,7 +155,7 @@ public class BaseShip : SpaceObject {
                 hpLeft -= d;
             }
         }
-        damageSystem.Damage(this, source, hpLeft);
+        damageSystem.Damage(this, p);
     }
     public void Destroy(SpaceObject source) {
         var items = cargo.Concat(
@@ -388,7 +388,7 @@ public class AIShip : IShip, DockableObject {
     public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
     public void SetDecelerating(bool decelerating = true) => ship.SetDecelerating(decelerating);
-    public void Damage(SpaceObject source, int hp) => ship.damageSystem.Damage(this, source, hp);
+    public void Damage(Projectile p) => ship.damageSystem.Damage(this, p);
     public void Destroy(SpaceObject source) {
         if (source is PlayerShip ps) {
             ps.shipsDestroyed.Add(this);
@@ -486,7 +486,7 @@ public class PlayerShip : IShip {
 
     public delegate void Destroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
-    public delegate void PlayerDamaged(PlayerShip playerShip, SpaceObject damager, int hp);
+    public delegate void PlayerDamaged(PlayerShip playerShip, Projectile p);
     public FuncSet<IContainer<PlayerDamaged>> onDamaged = new();
 
     public List<AIShip> wingmates = new();
@@ -763,11 +763,14 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
         result = null;
         return false;
     }
-    public void Damage(SpaceObject source, int hp) {
+    public void Damage(Projectile p) {
         //Base ship can get destroyed without calling our own Destroy(), so we need to hook up an OnDestroyed event to this
-        ship.Damage(source, hp);
 
-        if (hp > ship.damageSystem.GetHP() / 3) {
+        int originalHP = ship.damageSystem.GetHP();
+        ship.Damage(p);
+
+        int delta = originalHP - ship.damageSystem.GetHP();
+        if (delta > ship.damageSystem.GetHP() / 3) {
             if (mortalTime <= 0) {
                 if (mortalChances > 0) {
                     AddMessage(new Message("Escape while you can!"));
@@ -778,7 +781,7 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
             }
         }
 
-        foreach (var f in onDamaged.set) f.Value.Invoke(this, source, hp);
+        foreach (var f in onDamaged.set) f.Value.Invoke(this, p);
     }
     public void Destroy(SpaceObject source) {
         ship.Destroy(source);

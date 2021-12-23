@@ -35,6 +35,8 @@
 		</Items>
         <LayeredArmorSystem>
 			<Armor  codename="item_crystalsteel_plate"/>
+			<Armor  codename="item_crystalsteel_plate"/>
+			<Armor  codename="item_crystalsteel_plate"/>
         </LayeredArmorSystem>
         <PlayerSettings
             startingClass="true"
