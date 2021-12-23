@@ -454,6 +454,11 @@ public class PlayerShip : IShip {
     public BaseShip ship;
     public EnergySystem energy;
     public List<Power> powers = new();
+
+    [JsonIgnore]
+    public HashSet<SpaceObject> avoidHit => new() {
+        dock?.Target
+    };
     public Docking dock { get; set; }
 
     public int targetIndex = -1;

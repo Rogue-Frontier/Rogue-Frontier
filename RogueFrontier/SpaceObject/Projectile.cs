@@ -18,6 +18,7 @@ public class SimpleTrail : ITrail {
     }
     public Effect GetTrail(XY Position) => new EffectParticle(Position, Tile, 3);
 }
+public record DamageDesc(int damageHP, int damageType) { }
 public class Projectile : MovingObject {
     [JsonProperty]
     public int id { get; set; }
@@ -41,23 +42,43 @@ public class Projectile : MovingObject {
     public Maneuver maneuver;
 
     [JsonProperty]
+    public DamageDesc damage;
+    [JsonProperty]
     public bool hitProjectile;
 
     [JsonIgnore]
     public bool active => lifetime > 0;
     public Projectile() { }
-    public Projectile(SpaceObject Source, System world, FragmentDesc desc, XY Position, XY Velocity, Maneuver maneuver = null) {
-        this.id = world.nextId++;
-        this.source = Source;
-        this.world = world;
+    public Projectile(SpaceObject source, FragmentDesc desc, XY position, XY velocity, Maneuver maneuver = null) {
+        this.id = source.world.nextId++;
+        this.source = source;
+        this.world = source.world;
         this.tile = desc.effect.Original;
-        this.position = Position;
-        this.velocity = Velocity;
+        this.position = position;
+        this.velocity = velocity;
         this.lifetime = desc.lifetime;
         this.desc = desc;
         this.trail = (ITrail)desc.trail ?? new SimpleTrail(desc.effect.Original);
         this.maneuver = maneuver;
+        this.hitProjectile = false;
     }
+    public Projectile(SpaceObject source, Weapon weapon, XY position, XY velocity) {
+        var world = source.world;
+        var f = weapon.GetFragmentDesc();
+
+        this.id = world.nextId++;
+        this.source = source;
+        this.world = world;
+        this.tile = f.effect.Original;
+        this.position = position;
+        this.velocity = velocity;
+        this.lifetime = f.lifetime;
+        this.desc = f;
+        this.trail = (ITrail)f.trail ?? new SimpleTrail(f.effect.Original);
+        this.maneuver = new Maneuver(weapon.aiming?.target, f.maneuver, f.maneuverRadius);
+        this.hitProjectile = weapon.desc.targetProjectile;
+    }
+
     public void Update() {
         if (lifetime > 1) {
             lifetime--;
@@ -76,12 +97,8 @@ public class Projectile : MovingObject {
 
         void UpdateMove() {
             HashSet<Entity> exclude = new HashSet<Entity> { null, source, this };
-            if (source is PlayerShip ps) {
-                exclude.Add(ps.dock?.Target);
-            }
-            if (source is AIShip s) {
-                exclude.UnionWith(s.avoidHit);
-            }
+            if (source is PlayerShip ps) exclude.UnionWith(ps.avoidHit);
+            else if (source is AIShip a) exclude.UnionWith(a.avoidHit);
 
             maneuver?.Update(this);
 
@@ -93,13 +110,15 @@ public class Projectile : MovingObject {
 
                 bool destroyed = false;
                 bool stop = false;
+
                 foreach (var other in world.entities[position].Except(exclude)) {
                     switch (other) {
+                        //Skip excluded segments
                         case Segment seg when exclude.Contains(seg.parent):
                             continue;
                         case SpaceObject hit when !destroyed:
                             lifetime = 0;
-                            hit.Damage(source, desc.damageHP);
+                            hit.Damage(source, desc.damageHP.Roll());
                             var angle = (hit.position - position).angleRad;
                             world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 10));
 
@@ -110,9 +129,7 @@ public class Projectile : MovingObject {
                                     ai.ship.controlHijack = desc.disruptor.GetHijack();
                                 }
                             }
-
                             Fragment();
-                            
                             destroyed = true;
                             break;
                         case Projectile p when hitProjectile && !destroyed:
@@ -133,7 +150,6 @@ public class Projectile : MovingObject {
             CollisionDone:
                 world.AddEffect(trail.GetTrail(position));
             }
-
             position = dest;
         }
     }
@@ -161,7 +177,7 @@ public class Projectile : MovingObject {
         }
         for (int i = 0; i < fragment.count; i++) {
             double angle = centerAngle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-            Projectile p = new Projectile(source, world, fragment, position + XY.Polar(angle, 0.5), velocity + XY.Polar(angle, fragment.missileSpeed));
+            Projectile p = new Projectile(source, fragment, position + XY.Polar(angle, 0.5), velocity + XY.Polar(angle, fragment.missileSpeed));
             world.AddEntity(p);
         }
     }

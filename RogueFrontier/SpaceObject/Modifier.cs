@@ -36,4 +36,18 @@ public record Modifier {
         missileSpeed += missileSpeedInc;
         lifetime += lifetimeInc;
     }
+    public FragmentDesc ModifyWeapon(FragmentDesc d) {
+        return d with {
+            damageHP = new DiceMod(d.damageHP, damageHPInc),
+            missileSpeed = d.missileSpeed + missileSpeedInc,
+            lifetime = d.lifetime + lifetimeInc
+        };
+    }
+    public void ModifyWeapon(ref FragmentDesc d) {
+        d = d with {
+            damageHP = new DiceMod(d.damageHP, damageHPInc),
+            missileSpeed = d.missileSpeed + missileSpeedInc,
+            lifetime = d.lifetime + lifetimeInc
+        };
+    }
 }

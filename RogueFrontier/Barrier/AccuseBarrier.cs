@@ -68,7 +68,7 @@ class AccuseBarrier : ProjectileBarrier {
 
         void Clone(double angle) {
             var velocity = other.velocity + XY.Polar(angle, other.velocity.magnitude / 2);
-            var p = new Projectile(other.source, other.world, other.desc, other.position, velocity, other.maneuver);
+            var p = new Projectile(other.source, other.desc, other.position, velocity, other.maneuver);
             cloned.Add(p);
             world.AddEntity(p);
         }

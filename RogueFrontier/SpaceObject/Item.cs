@@ -93,14 +93,14 @@ public interface Powered : Device {
     public void OnDisable() { }
 }
 public static class SWeapon {
-    public static void CreateShot(this FragmentDesc fragment, SpaceObject Source, double direction) {
-        var world = Source.world;
-        var position = Source.position;
-        var velocity = Source.velocity;
+    public static void CreateShot(this FragmentDesc fragment, SpaceObject source, double direction) {
+        var world = source.world;
+        var position = source.position;
+        var velocity = source.velocity;
         var angleInterval = fragment.spreadAngle / fragment.count;
         for (int i = 0; i < fragment.count; i++) {
             double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-            var p = new Projectile(Source, world,
+            var p = new Projectile(source,
                 fragment,
                 position + XY.Polar(angle, 0.5),
                 velocity + XY.Polar(angle, fragment.missileSpeed));
@@ -114,16 +114,23 @@ public class Weapon : Powered {
     public WeaponDesc desc;
     [JsonIgnore]
     public int powerUse => delay > 0 ? desc.powerUse : desc.powerUse / 10;
-    [JsonIgnore]
-    public int missileSpeed {
-        get {
-            int result = desc.shot.missileSpeed;
-            capacitor?.ModifyMissileSpeed(ref result);
-            return result;
-        }
+
+    public FragmentDesc GetFragmentDesc() {
+        var d = desc.shot;
+        capacitor?.Modify(ref d);
+        source.mod?.ModifyWeapon(ref d);
+        return d;
     }
     [JsonIgnore]
-    public int currentRange => missileSpeed * desc.shot.lifetime / Program.TICKS_PER_SECOND;
+    public int missileSpeed => GetFragmentDesc().missileSpeed;
+    [JsonIgnore]
+    public int currentRange { get {
+            var f = GetFragmentDesc();
+            var missileSpeed = f.missileSpeed;
+            var lifetime = f.lifetime / Program.TICKS_PER_SECOND;
+            return missileSpeed * lifetime;
+    }}
+    public int lifetime => GetFragmentDesc().lifetime;
     [JsonIgnore]
     public int currentRange2 => currentRange * currentRange;
     public Capacitor capacitor;
@@ -305,28 +312,24 @@ public class Weapon : Powered {
     public bool AllowFire => ammo?.AllowFire ?? true;
     public bool ReadyToFire => delay == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
     public void Fire(SpaceObject owner, double direction) {
-        int damageHP = desc.damageHP;
-        int missileSpeed = desc.shot.missileSpeed;
-        int lifetime = desc.lifetime;
-
+        /*
+        var damageHP = desc.shot.damageHP.Roll();
+        var missileSpeed = desc.shot.missileSpeed;
+        var lifetime = desc.shot.lifetime;
         capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);
-        capacitor?.OnFire();
-
         source.mod?.ModifyWeapon(ref damageHP, ref missileSpeed, ref lifetime);
-        
-
+        */
         var shotDesc = desc.shot;
         double angleInterval = shotDesc.spreadAngle / shotDesc.count;
         for (int i = 0; i < shotDesc.count; i++) {
             double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-            var maneuver = new Maneuver(aiming?.target, desc.shot.maneuver, desc.shot.maneuverRadius);
-            Projectile p = new Projectile(owner, owner.world,
-                shotDesc,
+            Projectile p = new Projectile(owner, this,
                 owner.position + XY.Polar(angle),
-                owner.velocity + XY.Polar(angle, missileSpeed),
-                maneuver) { hitProjectile = desc.targetProjectile };
+                owner.velocity + XY.Polar(angle, missileSpeed)
+                );
             owner.world.AddEntity(p);
         }
+        capacitor?.OnFire();
     }
 
     public SpaceObject target => aiming?.target;
@@ -355,14 +358,23 @@ public class Weapon : Powered {
         public void Update() {
             charge = Math.Min(desc.maxCharge, charge + desc.rechargePerTick);
         }
-        public void ModifyMissileSpeed(ref int missileSpeed) {
-            missileSpeed += (int)(desc.bonusSpeedPerCharge * charge);
+
+        public FragmentDesc Modify(FragmentDesc fd) {
+            return fd with {
+                damageHP = new DiceMod(fd.damageHP, (int)(desc.bonusDamagePerCharge * charge)),
+                missileSpeed = fd.missileSpeed + (int)(desc.bonusSpeedPerCharge * charge),
+                lifetime = fd.lifetime + (int)(desc.bonusLifetimePerCharge * charge)
+            };
         }
-        public void Modify(ref int damage, ref int missileSpeed, ref int lifetime) {
-            damage += (int)(desc.bonusDamagePerCharge * charge);
-            missileSpeed += (int)(desc.bonusSpeedPerCharge * charge);
-            lifetime += (int)(desc.bonusLifetimePerCharge * charge);
+        public void Modify(ref FragmentDesc fd) {
+            fd = fd with {
+                damageHP = new DiceMod(fd.damageHP, (int)(desc.bonusDamagePerCharge * charge)),
+                missileSpeed = fd.missileSpeed + (int)(desc.bonusSpeedPerCharge * charge),
+                lifetime = fd.lifetime + (int)(desc.bonusLifetimePerCharge * charge)
+            };
         }
+
+
         public void OnFire() {
             charge = Math.Max(0, charge - desc.dischargeOnFire);
         }

@@ -356,9 +356,18 @@ public static class Main {
         e.Attribute(attribute) is XAttribute a ?
             ExpectAttributeInt(a) :
             throw new Exception($"<{e.Name}> requires int attribute: {attribute} ### {e} ### {e.Parent}");
+
+    public static IDice ExpectAttributeDice(this XElement e, string attribute) =>
+    e.Attribute(attribute) is XAttribute a ?
+        ExpectAttributeDice(a) :
+        throw new Exception($"<{e.Name}> requires dice attribute: {attribute} ### {e} ### {e.Parent}");
     public static int ExpectAttributeInt(this XAttribute a) =>
         int.TryParse(a.Value, out int result) ? result :
         a.Value.Any() ? Convert.ToInt32(new Expression(a.Value).Evaluate()) :
+        throw new Exception($"int value / equation expected: {a.Name} = \"{a.Value}\"");
+
+    public static IDice ExpectAttributeDice(this XAttribute a) =>
+        IDice.Parse(a.Value) ?? 
         throw new Exception($"int value / equation expected: {a.Name} = \"{a.Value}\"");
 
     public static double ExpectAttributeDouble(this XElement e, string attribute) =>

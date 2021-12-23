@@ -188,7 +188,7 @@ public record WeaponDesc {
     public bool autoFire;
     public int missileSpeed => shot.missileSpeed;
     public int damageType => shot.damageType;
-    public int damageHP => shot.damageHP;
+    public IDice damageHP => shot.damageHP;
     public int lifetime => shot.lifetime;
 
     public int minRange => shot.missileSpeed * shot.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
@@ -226,7 +226,7 @@ public record FragmentDesc {
     public double spreadAngle;
     public int missileSpeed;
     public int damageType;
-    public int damageHP;
+    public IDice damageHP;
     public int lifetime;
     public double maneuver;
     public double maneuverRadius;
@@ -247,7 +247,7 @@ public record FragmentDesc {
         targetLocked = e.TryAttributeBoolOptional(nameof(targetLocked));
         missileSpeed = e.ExpectAttributeInt(nameof(missileSpeed));
         damageType = e.ExpectAttributeInt(nameof(damageType));
-        damageHP = e.ExpectAttributeInt(nameof(damageHP));
+        damageHP = e.ExpectAttributeDice(nameof(damageHP));
         lifetime = e.ExpectAttributeInt(nameof(lifetime));
         maneuver = e.TryAttributeDouble(nameof(maneuver), 0) * Math.PI / (180);
         maneuverRadius = e.TryAttributeDouble(nameof(maneuverRadius), 0);
