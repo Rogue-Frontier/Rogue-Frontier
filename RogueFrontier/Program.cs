@@ -8,6 +8,7 @@ using System.Linq;
 using ASECII;
 using SadConsole.Input;
 using static Common.Main;
+using System;
 
 namespace RogueFrontier;
 
@@ -36,6 +37,7 @@ partial class Program {
                     break;
             }
         }
+
         Game.Instance.Run();
         Game.Instance.Dispose();
     }

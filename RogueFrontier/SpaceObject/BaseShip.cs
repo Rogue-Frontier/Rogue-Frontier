@@ -40,6 +40,7 @@ public interface IShip : SpaceObject {
     DeviceSystem devices { get; }
     ShipClass shipClass { get; }
     double rotationDeg { get; }
+    double rotationRad => rotationDeg * Math.PI / 180;
     public double stoppingRotation { get; }
     Docking dock { get; set; }
 }
@@ -142,7 +143,20 @@ public class BaseShip : SpaceObject {
         this.rotating = rotating;
     }
     public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
-    public void Damage(SpaceObject source, int hp) => damageSystem.Damage(this, source, hp);
+    public void Damage(SpaceObject source, int hp) {
+        var hpLeft = hp;
+        foreach(var s in devices.Shields) {
+            if(hpLeft == 0) {
+                break;
+            }
+            var d = Math.Min(s.maxAbsorb, (int)(hpLeft * s.absorbFactor));
+            if (d > 0) {
+                s.Absorb(d);
+                hpLeft -= d;
+            }
+        }
+        damageSystem.Damage(this, source, hpLeft);
+    }
     public void Destroy(SpaceObject source) {
         var items = cargo.Concat(
             devices.Installed
@@ -273,7 +287,7 @@ public static class SShipBehavior {
     public static IShipOrder GetOrder(this IShipBehavior behavior) {
         switch (behavior) {
             case BaseShipBehavior b:
-                return b.orders[0];
+                return b.current;
             case Wingmate w:
                 return w.order;
             case IShipOrder o:

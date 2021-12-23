@@ -125,7 +125,7 @@ public class PlayerMain : Console {
         FocusOnMouseClick = false;
     }
 
-
+    public void SleepMouse() => sleepMouse = true;
     public void HideUI() {
         uiMain.IsVisible = false;
     }
@@ -1180,7 +1180,6 @@ public class Readout : Console {
                 for (int i = 0; i < l; i++) {
                     bar[i].Background = Color.DarkCyan;
                 }
-
                 this.Print(x, y++,
                       new ColoredString("[", Color.White, b)
                     + bar
@@ -1191,32 +1190,6 @@ public class Readout : Console {
             }
 
             PrintTotalPower();
-
-            foreach (var s in solars) {
-                ColoredString bar;
-                var back = Color.Black;
-
-                int length = (int)Math.Ceiling(16d * s.maxOutput / s.desc.maxOutput);
-                int sublength = s.maxOutput > 0 ? (int)Math.Ceiling(length * (-s.energyDelta) / s.maxOutput) : 0;
-                bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
-                    + new ColoredString(new string('=', length - sublength), Color.Cyan, back)
-                    + new ColoredString(new string('=', 16 - length), Color.Gray, back);
-                /*
-                int l = (int)Math.Ceiling(-16f * s.maxOutput / s.desc.maxOutput);
-                for (int i = 0; i < l; i++) {
-                    bar[i].Background = Color.DarkKhaki;
-                    bar[i].Foreground = Color.Yellow;
-                }
-                */
-                this.Print(x, y,
-                    new ColoredString("[", Color.White, back)
-                    + bar
-                    + new ColoredString("]", Color.White, back)
-                    + " "
-                    + new ColoredString($"[{Math.Abs(s.energyDelta),3}/{s.maxOutput,3}] {s.source.type.name}", Color.White, back)
-                    );
-                y++;
-            }
             foreach (var reactor in reactors) {
                 ColoredString bar;
                 if (reactor.energy > 0) {
@@ -1250,6 +1223,32 @@ public class Readout : Console {
                     );
                 y++;
             }
+            foreach (var s in solars) {
+                ColoredString bar;
+                var back = Color.Black;
+
+                int length = (int)Math.Ceiling(16d * s.maxOutput / s.desc.maxOutput);
+                int sublength = s.maxOutput > 0 ? (int)Math.Ceiling(length * (-s.energyDelta) / s.maxOutput) : 0;
+                bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
+                    + new ColoredString(new string('=', length - sublength), Color.Cyan, back)
+                    + new ColoredString(new string('=', 16 - length), Color.Gray, back);
+                /*
+                int l = (int)Math.Ceiling(-16f * s.maxOutput / s.desc.maxOutput);
+                for (int i = 0; i < l; i++) {
+                    bar[i].Background = Color.DarkKhaki;
+                    bar[i].Foreground = Color.Yellow;
+                }
+                */
+                this.Print(x, y,
+                    new ColoredString("[", Color.White, back)
+                    + bar
+                    + new ColoredString("]", Color.White, back)
+                    + " "
+                    + new ColoredString($"[{Math.Abs(s.energyDelta),3}/{s.maxOutput,3}] {s.source.type.name}", Color.White, back)
+                    );
+                y++;
+            }
+
             y++;
             var weapons = player.ship.devices.Weapons;
             if (weapons.Any()) {
@@ -1259,7 +1258,7 @@ public class Readout : Console {
                     Color foreground;
                     if (player.energy.disabled.Contains(w)) {
                         foreground = Color.Gray;
-                    } else if (w.firing || w.fireTime > 0) {
+                    } else if (w.firing || w.delay > 0) {
                         foreground = Color.Yellow;
                     } else {
                         foreground = Color.White;
@@ -1293,13 +1292,36 @@ public class Readout : Console {
 
                 y++;
             }
+            var shields = player.ship.devices.Shields;
+            if (shields.Any()) {
+                foreach (var s in shields) {
+                    string name = s.source.type.name;
+                    var f = player.energy.disabled.Contains(s) ? Color.Gray :
+                        s.hp == 0 ? Color.Yellow :
+                        s.delay > 0 ? Color.Yellow :
+                        s.hp < s.desc.maxHP ? Color.Cyan :
+                        Color.White;
+
+                    int l = 16 * s.hp / s.desc.maxHP;
+                    this.Print(x, y,
+                        new ColoredString("[", f, b)
+                        + new ColoredString(new('>', l), f, b)
+                        + new ColoredString(new('>', 16-l), Color.Gray, b)
+                        + new ColoredString("-[", f, b)
+                        + new ColoredString(name, f, b));
+                    y++;
+                }
+                y++;
+            }
             switch (player.ship.damageSystem) {
                 case LayeredArmorSystem las:
+                    var back = Color.Black;
                     las.layers.ForEach(armor => {
-                        this.Print(x, y, "[", Color.White, Color.Black);
-                        this.Print(x + 1, y, new string('>', 16), Color.Gray, Color.Black);
-                        this.Print(x + 1, y, new string('>', 16 * armor.hp / armor.desc.maxHP), Color.White, Color.Black);
-                        this.Print(x + 1 + 16, y, $"-[{armor.source.type.name}", Color.White, Color.Black);
+                        var fore = (player.world.tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
+                        this.Print(x, y, "[", fore, back);
+                        this.Print(x + 1, y, new string('>', 16), Color.Gray, back);
+                        this.Print(x + 1, y, new string('>', 16 * armor.hp / armor.desc.maxHP), fore, back);
+                        this.Print(x + 1 + 16, y, $"-[{armor.source.type.name}", fore, back);
                         y++;
                     });
                     break;

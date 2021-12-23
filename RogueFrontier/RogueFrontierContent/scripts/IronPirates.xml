@@ -24,7 +24,7 @@
 			>
 			<Capacitor
 					minChargeToFire=		"10"
-					dischargePerShot=		"10"
+					dischargeOnFire=		"10"
 					rechargePerTick=			"8/30"
 					maxCharge=				"100"
 				/>

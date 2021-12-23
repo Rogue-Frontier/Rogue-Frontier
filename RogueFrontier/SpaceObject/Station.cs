@@ -219,7 +219,7 @@ public class Station : DockableObject, ITrader {
         if (segments != null) {
             foreach (var segment in segments) {
                 var offset = segment.desc.offset;
-                var tile = new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, segment.desc.tile.Original.GlyphCharacter);
+                var tile = new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, segment.desc.tile.GlyphCharacter);
                 world.AddEntity(new Segment(wreck, new SegmentDesc(offset, new StaticTile(tile))));
             }
         }
@@ -258,7 +258,10 @@ public class Station : DockableObject, ITrader {
     public Console GetDockScene(Console prev, PlayerShip playerShip) => null;
     public ColoredGlyph tile => type.tile.Original;
 }
-public class Segment : SpaceObject {
+public interface ISegment : SpaceObject {
+    SpaceObject parent { get; }
+}
+public class Segment : ISegment {
     //The segment essentially impersonates its parent station but with a different tile
     [JsonIgnore]
     public string name => parent.name;
@@ -273,26 +276,58 @@ public class Segment : SpaceObject {
 
     [JsonProperty]
     public int id { get; private set; }
-    public SpaceObject parent;
-    public SegmentDesc desc;
+    [JsonProperty]
+    public SpaceObject parent { get; private set; }
+    [JsonProperty]
+    public SegmentDesc desc { get; private set; }
     public Segment() { }
     public Segment(SpaceObject parent, SegmentDesc desc) {
         this.id = parent.world.nextId++;
         this.parent = parent;
         this.desc = desc;
     }
-
     [JsonIgnore]
     public bool active => parent.active;
     public void Damage(SpaceObject source, int hp) => parent.Damage(source, hp);
     public void Destroy(SpaceObject source) => parent.Destroy(source);
-    public void Update() {
-    }
+    public void Update() {}
     [JsonIgnore]
     public ColoredGlyph tile => desc.tile.Original;
 }
-
-
+public class AngledSegment : ISegment {
+    //The segment essentially impersonates its parent station but with a different tile
+    [JsonIgnore]
+    public string name => parent.name;
+    [JsonIgnore]
+    public System world => parent.world;
+    [JsonIgnore]
+    public XY position => parent.position + desc.offset.Rotate(parent.rotationRad);
+    [JsonIgnore]
+    public XY velocity => parent.velocity;
+    [JsonIgnore]
+    public Sovereign sovereign => parent.sovereign;
+    [JsonProperty]
+    public int id { get; private set; }
+    [JsonProperty]
+    public IShip parent { get; private set; }
+    [JsonProperty]
+    public SegmentDesc desc { get; private set; }
+    public AngledSegment() { }
+    public AngledSegment(IShip parent, SegmentDesc desc) {
+        this.id = parent.world.nextId++;
+        this.parent = parent;
+        this.desc = desc;
+    }
+    [JsonIgnore]
+    public bool active => parent.active;
+    public void Damage(SpaceObject source, int hp) => parent.Damage(source, hp);
+    public void Destroy(SpaceObject source) => parent.Destroy(source);
+    public void Update() { }
+    [JsonIgnore]
+    public ColoredGlyph tile => desc.tile.Original;
+    [JsonIgnore]
+    SpaceObject ISegment.parent => parent;
+}
 public class CommonStationBehavior : StationBehavior {
     public CommonStationBehavior() {
     }

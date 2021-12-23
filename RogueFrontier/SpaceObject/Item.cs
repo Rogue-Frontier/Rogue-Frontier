@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Helper = Common.Main;
 using SadRogue.Primitives;
+using Newtonsoft.Json;
+
 namespace RogueFrontier;
 public class Item {
     public ItemType type;
@@ -17,6 +19,8 @@ public class Item {
     public Solar solar;
     public MiscDevice misc;
 
+    public Modifier mod;
+
     public Item() { }
     public Item(Item clone) {
         type = clone.type;
@@ -27,9 +31,10 @@ public class Item {
         solar = clone.solar != null ? new Solar(this, clone.solar.desc) : null;
         misc = clone.misc != null ? new MiscDevice(this, clone.misc.desc) : null;
     }
-    public Item(ItemType type) {
+    public Item(ItemType type, Modifier mod = null) {
         this.type = type;
-        
+        this.mod = mod;
+
         weapon = null;
         armor = null;
         shield = null;
@@ -85,6 +90,7 @@ public interface Device {
 }
 public interface Powered : Device {
     int powerUse { get; }
+    public void OnDisable() { }
 }
 public static class SWeapon {
     public static void CreateShot(this FragmentDesc fragment, SpaceObject Source, double direction) {
@@ -103,9 +109,12 @@ public static class SWeapon {
     }
 }
 public class Weapon : Powered {
+    [JsonProperty]
     public Item source { get; private set; }
     public WeaponDesc desc;
-    public int powerUse => fireTime > 0 ? desc.powerUse : desc.powerUse / 10;
+    [JsonIgnore]
+    public int powerUse => delay > 0 ? desc.powerUse : desc.powerUse / 10;
+    [JsonIgnore]
     public int missileSpeed {
         get {
             int result = desc.shot.missileSpeed;
@@ -113,18 +122,21 @@ public class Weapon : Powered {
             return result;
         }
     }
+    [JsonIgnore]
     public int currentRange => missileSpeed * desc.shot.lifetime / Program.TICKS_PER_SECOND;
+    [JsonIgnore]
     public int currentRange2 => currentRange * currentRange;
     public Capacitor capacitor;
     public Aiming aiming;
     public IAmmo ammo;
-    public int fireTime;
+    public int delay;
     public bool firing;
     public int repeatsLeft;
+    public Weapon() { }
     public Weapon(Item source, WeaponDesc desc) {
         this.source = source;
         this.desc = desc;
-        this.fireTime = 0;
+        this.delay = 0;
         firing = false;
         if (desc.capacitor != null) {
             capacitor = new Capacitor(desc.capacitor);
@@ -153,7 +165,7 @@ public class Weapon : Powered {
             return new ColoredString(new string(' ', 16), Color.Transparent, Color.Black);
         }
 
-        int fireBar = (int)(16f * (desc.fireCooldown - fireTime) / desc.fireCooldown);
+        int fireBar = (int)(16f * (desc.fireCooldown - delay) / desc.fireCooldown);
         ColoredString bar;
         if (capacitor != null && capacitor.desc.minChargeToFire > 0) {
             var chargeBar = (int)(16 * Math.Min(1, capacitor.charge / capacitor.desc.minChargeToFire));
@@ -187,8 +199,8 @@ public class Weapon : Powered {
         if (ammo != null) {
             ammo.Update(owner);
         }
-        if (fireTime > 0 && repeatsLeft == 0) {
-            fireTime--;
+        if (delay > 0 && repeatsLeft == 0) {
+            delay--;
         } else {
             //Stations always fire for now
             firing = true;
@@ -215,7 +227,7 @@ public class Weapon : Powered {
             if (firing && direction.HasValue) {
                 ammo?.OnFire();
                 Fire(owner, direction.Value);
-                fireTime = desc.fireCooldown;
+                delay = desc.fireCooldown;
                 if (beginRepeat) {
                     repeatsLeft = desc.repeat;
                 }
@@ -237,8 +249,8 @@ public class Weapon : Powered {
         if (ammo != null) {
             ammo.Update(owner);
         }
-        if (fireTime > 0 && repeatsLeft == 0) {
-            fireTime--;
+        if (delay > 0 && repeatsLeft == 0) {
+            delay--;
         } else {
             bool beginRepeat = true;
             if (repeatsLeft > 0) {
@@ -271,7 +283,7 @@ public class Weapon : Powered {
                     owner.velocity += XY.Polar(direction.Value + Math.PI, desc.recoil);
                 }
 
-                fireTime = desc.fireCooldown;
+                delay = desc.fireCooldown;
                 if (beginRepeat) {
                     repeatsLeft = desc.repeat;
                 }
@@ -281,30 +293,39 @@ public class Weapon : Powered {
         }
         firing = false;
     }
+
+    public void OnDisable() {
+        delay = desc.fireCooldown;
+        capacitor?.Clear();
+        aiming?.ClearTarget();
+    }
     public bool RangeCheck(SpaceObject user, SpaceObject target) {
         return (user.position - target.position).magnitude < currentRange;
     }
     public bool AllowFire => ammo?.AllowFire ?? true;
-    public bool ReadyToFire => fireTime == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
-    public void Fire(SpaceObject source, double direction) {
+    public bool ReadyToFire => delay == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
+    public void Fire(SpaceObject owner, double direction) {
         int damageHP = desc.damageHP;
         int missileSpeed = desc.shot.missileSpeed;
         int lifetime = desc.lifetime;
 
         capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);
-        capacitor?.Discharge();
+        capacitor?.OnFire();
+
+        source.mod?.ModifyWeapon(ref damageHP, ref missileSpeed, ref lifetime);
+        
 
         var shotDesc = desc.shot;
         double angleInterval = shotDesc.spreadAngle / shotDesc.count;
         for (int i = 0; i < shotDesc.count; i++) {
             double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
             var maneuver = new Maneuver(aiming?.target, desc.shot.maneuver, desc.shot.maneuverRadius);
-            Projectile p = new Projectile(source, source.world,
+            Projectile p = new Projectile(owner, owner.world,
                 shotDesc,
-                source.position + XY.Polar(angle),
-                source.velocity + XY.Polar(angle, missileSpeed),
+                owner.position + XY.Polar(angle),
+                owner.velocity + XY.Polar(angle, missileSpeed),
                 maneuver) { hitProjectile = desc.targetProjectile };
-            source.world.AddEntity(p);
+            owner.world.AddEntity(p);
         }
     }
 
@@ -312,7 +333,7 @@ public class Weapon : Powered {
     public void OverrideTarget(SpaceObject target) {
 
         if (aiming != null) {
-            aiming.ResetTarget();
+            aiming.ClearTarget();
             aiming.UpdateTarget(target);
         }
     }
@@ -342,10 +363,10 @@ public class Weapon : Powered {
             missileSpeed += (int)(desc.bonusSpeedPerCharge * charge);
             lifetime += (int)(desc.bonusLifetimePerCharge * charge);
         }
-        public void Discharge() {
-            charge = Math.Max(0, charge - desc.dischargePerShot);
+        public void OnFire() {
+            charge = Math.Max(0, charge - desc.dischargeOnFire);
         }
-
+        public void Clear() => charge = 0;
     }
     public interface Aiming {
         public SpaceObject target { get; }
@@ -354,7 +375,7 @@ public class Weapon : Powered {
         bool GetFireAngle(ref double? direction) {
             return false;
         }
-        void ResetTarget() { }
+        void ClearTarget() { }
         void UpdateTarget(SpaceObject target = null) { }
 
         static bool CalcFireAngle(MovingObject owner, MovingObject target, Weapon weapon, out double? result) {
@@ -418,7 +439,7 @@ public class Weapon : Powered {
         public void Update(IShip owner, Weapon weapon) {
             Update(owner, weapon, s => SShip.IsEnemy(owner, s));
         }
-        public void ResetTarget() => target = null;
+        public void ClearTarget() => target = null;
         public void UpdateTarget(SpaceObject target = null) {
             this.target = target ?? this.target;
         }
@@ -459,7 +480,7 @@ public class Weapon : Powered {
             }
             return false;
         }
-        public void ResetTarget() => target = null;
+        public void ClearTarget() => target = null;
         public void UpdateTarget(SpaceObject target = null) {
             this.target = target ?? this.target;
         }
@@ -523,6 +544,7 @@ public class Armor {
     public Item source;
     public ArmorDesc desc;
     public int hp;
+    public int lastDamageTick;
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
         this.source = source;
@@ -533,21 +555,32 @@ public class Armor {
 
     }
 }
-public class Shield : Device {
+public class Shield : Powered {
     public Item source { get; set; }
     public ShieldDesc desc;
     public int hp;
-    public int depletionTime;
     public double regenHP;
+    public int delay;
+    public double absorbFactor => desc.absorbFactor;
+    public int maxAbsorb => desc.maxAbsorb == -1 ?
+        hp : Math.Max(hp, (int)(desc.maxAbsorb * (1f - delay/desc.damageDelay)));
+    public int powerUse => hp < desc.maxHP ? desc.powerUse : desc.idlePowerUse;
+    public Shield() { }
     public Shield(Item source, ShieldDesc desc) {
         this.source = source;
         this.desc = desc;
     }
+
+    public void OnDisable() {
+        hp = 0;
+        regenHP = 0;
+        delay = desc.depletionDelay;
+    }
     public void Update(IShip owner) {
-        if (depletionTime > 0) {
-            depletionTime--;
+        if (delay > 0) {
+            delay--;
         } else if (hp < desc.maxHP) {
-            regenHP += desc.hpPerSecond / 30;
+            regenHP += desc.regenRate;
             while (regenHP >= 1) {
                 hp++;
                 if (hp < desc.maxHP) {
@@ -561,7 +594,9 @@ public class Shield : Device {
     public void Absorb(int damage) {
         hp = Math.Max(0, hp - damage);
         if (hp == 0) {
-            depletionTime = desc.depletionDelay;
+            delay = desc.depletionDelay;
+        } else {
+            delay = desc.damageDelay;
         }
     }
 }
@@ -577,6 +612,7 @@ public class Reactor : Device, PowerSource {
     public double energyDelta { get; set; }
     public int rechargeDelay;
     public int maxOutput => energy > 0 ? desc.maxOutput : 0;
+    public Reactor() { }
     public Reactor(Item source, ReactorDesc desc) {
         this.source = source;
         this.desc = desc;
@@ -594,6 +630,7 @@ public class Solar : Device, PowerSource {
     public SolarDesc desc;
     public int maxOutput { get; private set; }
     public double energyDelta { get; set; }
+    public Solar() { }
     public Solar(Item source, SolarDesc desc) {
         this.source = source;
         this.desc = desc;
@@ -608,6 +645,7 @@ public class MiscDevice : Device {
     public Item source { get; set; }
     public MiscDesc desc;
     public int ticks;
+    public MiscDevice() { }
     public MiscDevice(Item source, MiscDesc desc) {
         this.source = source;
         this.desc = desc;

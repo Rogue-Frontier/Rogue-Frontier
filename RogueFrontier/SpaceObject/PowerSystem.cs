@@ -71,7 +71,10 @@ public class EnergySystem {
 
 
         if (deactivated.Any()) {
-            disabled.UnionWith(deactivated);
+            foreach(var d in deactivated) {
+                d.OnDisable();
+                disabled.Add(d);
+            }
             player.AddMessage(new Message("Reactor output overload!"));
             foreach (var d in deactivated) {
                 player.AddMessage(new Message($"{d.source.type.name} deactivated!"));

@@ -60,8 +60,6 @@ class FrontierSession : TcpSession {
         RemovePlayer();
     }
     protected override void OnReceived(byte[] buffer, long offset, long size) {
-
-
         var s = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
         var m = Regex.Match(s, "^(?<length>[0-9]+)");
         if (m.Success) {
@@ -127,11 +125,11 @@ class FrontierSession : TcpSession {
         Debug.WriteLine($"Chat TCP session caught an error with code {error}");
 }
 public interface TellServer {
-    public class AssumePlayerShip : TellServer {
+    public record AssumePlayerShip : TellServer {
         public int shipId;
     }
-    public class LeavePlayerShip : TellServer { }
-    public class ControlPlayerShip : TellServer {
+    public record LeavePlayerShip : TellServer { }
+    public record ControlPlayerShip : TellServer {
         public PlayerInput input;
     }
 }

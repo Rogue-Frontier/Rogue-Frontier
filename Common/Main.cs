@@ -295,6 +295,8 @@ public static class Main {
     
     public static string TryAttribute(this XElement e, string attribute, string fallback = "") =>
         e.Attribute(attribute)?.Value ?? fallback;
+    public static string TryAttributeOptional(this XElement e, string attribute) =>
+    e.Attribute(attribute)?.Value;
     public static char TryAttributeChar(this XElement e, string attribute, char fallback) =>
         e.TryAttribute("char", out string s) ?
             (s.Length == 1 ?

@@ -100,6 +100,8 @@ public class Projectile : MovingObject {
                         case SpaceObject hit when !destroyed:
                             lifetime = 0;
                             hit.Damage(source, desc.damageHP);
+                            var angle = (hit.position - position).angleRad;
+                            world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 10));
 
                             if (desc.disruptor != null) {
                                 if (hit is PlayerShip sh) {
@@ -110,8 +112,7 @@ public class Projectile : MovingObject {
                             }
 
                             Fragment();
-                            var angle = (hit.position - position).angleRad;
-                            world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 5));
+                            
                             destroyed = true;
                             break;
                         case Projectile p when hitProjectile && !destroyed:

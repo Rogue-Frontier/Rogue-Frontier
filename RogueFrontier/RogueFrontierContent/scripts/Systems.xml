@@ -8,10 +8,12 @@
 			
 			<Orbital radius="150" angle="random">
 				<Group>
-					<Stargate gateId="Outbound"/>
+					<Stargate gateId="Next"/>
+					<!--
 					<Sibling angleInc="135" radiusInc="100">
-						<Stargate gateId="Inbound"/>
+						<Stargate gateId="Prev"/>
 					</Sibling>
+					-->
 				</Group>
 			</Orbital>
 
@@ -32,7 +34,6 @@
 					</Sibling>
 				</Group>
 			</Orbital>
-
 			<Orbital radius="400"
 					 angle="random">
 
@@ -97,6 +98,31 @@
 					</Group>
 
 				</Orbital>
+			</Orbital>
+		</SystemGroup>
+	</SystemType>
+
+	<SystemType	codename=	"system_2"
+				name=		"Orion"
+		>
+		<SystemGroup>
+			<Star	 radius="50"/>
+
+
+			<Orbital radius="150" angle="random">
+				<Group>
+					<Stargate gateId="Next"/>
+					<Sibling angleInc="135" radiusInc="100">
+						<Stargate gateId="Prev"/>
+					</Sibling>
+				</Group>
+			</Orbital>
+
+			<Orbital count="5"
+					 radius="300"
+					 angle="random">
+
+				<Station	codename="station_orion_warlords_camp"/>
 			</Orbital>
 		</SystemGroup>
 	</SystemType>

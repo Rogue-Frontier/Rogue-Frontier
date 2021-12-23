@@ -25,7 +25,7 @@ public class TypeCollection {
     public Dictionary<string, SystemType> systemType;
 
     enum InitState {
-        Uninitialized,
+        InitializePending,
         Initializing,
         Initialized
     }
@@ -44,7 +44,7 @@ public class TypeCollection {
         stationType = new Dictionary<string, StationType>();
         sovereign = new Dictionary<string, Sovereign>();
         systemType = new Dictionary<string, SystemType>();
-        state = InitState.Uninitialized;
+        state = InitState.InitializePending;
 
         Debug.Print("TypeCollection created");
 
@@ -77,7 +77,7 @@ public class TypeCollection {
         foreach (var m in modules) {
             ProcessRoot(m, XElement.Parse(File.ReadAllText(m)));
         }
-        if (state == InitState.Uninitialized) {
+        if (state == InitState.InitializePending) {
             //We do two passes
             //The first pass creates DesignType references for each type and stores the source code
 
@@ -148,64 +148,59 @@ public class TypeCollection {
     void AddSource(XElement element) {
         if (!element.TryAttribute("codename", out string type)) {
             throw new Exception("DesignType requires codename attribute");
-        }
-
-        if (sources.ContainsKey(type)) {
+        } else if (sources.ContainsKey(type)) {
             throw new Exception($"DesignType type conflict: {type}");
-        } else {
-            Debug.Print($"Created Source <{element.Name}> of type {type}");
-            sources[type] = element;
         }
+        Debug.Print($"Created Source <{element.Name}> of type {type}");
+        sources[type] = element;
     }
     void AddType<T>(XElement element) where T : DesignType, new() {
         if (!element.TryAttribute("codename", out string type)) {
             throw new Exception("DesignType requires codename attribute");
+        } else if (sources.ContainsKey(type)) {
+            throw new Exception($"DesignType type conflict: {type}");
+        }
+        Debug.Print($"Created <{element.Name}> of type {type}");
+        sources[type] = element;
+        T t = new T();
+        all[type] = t;
+        switch (t) {
+            case GenomeType gn:
+                genomeType[type] = gn;
+                break;
+            case ImageType im:
+                imageType[type] = im;
+                break;
+            case ItemType it:
+                itemType[type] = it;
+                break;
+            case PowerType pt:
+                powerType[type] = pt;
+                break;
+            case SceneType st:
+                sceneType[type] = st;
+                break;
+            case StationType st:
+                stationType[type] = st;
+                break;
+            case ShipClass sc:
+                shipClass[type] = sc;
+                break;
+            case Sovereign sv:
+                sovereign[type] = sv;
+                break;
+            case SystemType ss:
+                systemType[type] = ss;
+                break;
+            default:
+                throw new Exception($"Unrecorded {element.Name} of type {type}");
         }
 
-        if (sources.ContainsKey(type)) {
-            throw new Exception($"DesignType type conflict: {type}");
-        } else {
-            Debug.Print($"Created <{element.Name}> of type {type}");
-            sources[type] = element;
-            T t = new T();
-            all[type] = t;
-            switch (t) {
-                case GenomeType gn:
-                    genomeType[type] = gn;
-                    break;
-                case ImageType im:
-                    imageType[type] = im;
-                    break;
-                case ItemType it:
-                    itemType[type] = it;
-                    break;
-                case PowerType pt:
-                    powerType[type] = pt;
-                    break;
-                case SceneType st:
-                    sceneType[type] = st;
-                    break;
-                case StationType st:
-                    stationType[type] = st;
-                    break;
-                case ShipClass sc:
-                    shipClass[type] = sc;
-                    break;
-                case Sovereign sv:
-                    sovereign[type] = sv;
-                    break;
-                case SystemType ss:
-                    systemType[type] = ss;
-                    break;
-                default:
-                    throw new Exception($"Unrecorded {element.Name} of type {type}");
-            }
-
-            //If we're uninitialized, then we will definitely initialize later
-            if (state != InitState.Uninitialized) {
-                //Otherwise, initialize now
-                all[type].Initialize(this, sources[type]);
-            }
+        Init:
+        //If we're uninitialized, then we will definitely initialize later
+        if (state != InitState.InitializePending) {
+            //Otherwise, initialize now
+            all[type].Initialize(this, sources[type]);
         }
     }
     public bool Lookup(string type, out DesignType result) {
@@ -247,6 +242,12 @@ public interface ITile {
 public class StaticTile : ITile {
     [JsonProperty]
     public ColoredGlyph Original { get; set; }
+    [JsonIgnore]
+    public Color foreground => Original.Foreground;
+    [JsonIgnore]
+    public Color Background => Original.Background;
+    [JsonIgnore]
+    public int GlyphCharacter => Original.GlyphCharacter;
     public StaticTile() {
     }
     public StaticTile(XElement e) {
@@ -272,6 +273,7 @@ public class StaticTile : ITile {
 public class AlphaTile : ITile {
     [JsonProperty]
     public ColoredGlyph Original { get; set; }
+    [JsonIgnore]
     public ColoredGlyph Glyph => new ColoredGlyph(
         Original.Foreground.SetAlpha((byte)(
             Original.Foreground.A + alphaRange * Math.Sin(ticks * 2 * Math.PI / cycle))),

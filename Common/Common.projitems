@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ColorImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConsoleComposite.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Debug.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiceGen.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DictCounter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GeneratedGrid.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Grid.cs" />

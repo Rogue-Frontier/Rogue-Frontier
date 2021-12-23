@@ -21,6 +21,7 @@ public interface HullSystem {
 public class HPSystem : HullSystem {
     public int maxHP;
     public int hp;
+    public int lastDamageTick;
     public HPSystem(int maxHP) {
         this.maxHP = maxHP;
         this.hp = maxHP;
@@ -28,6 +29,7 @@ public class HPSystem : HullSystem {
     public void Damage(SpaceObject owner, SpaceObject source, int hp) {
         this.React(owner, source);
         this.hp -= hp;
+        lastDamageTick = owner.world.tick;
         if (this.hp < 1) {
             owner.Destroy(source);
         }
@@ -39,10 +41,12 @@ public class HPSystem : HullSystem {
 //WMD would allow the attacker to hit multiple layers at a time, multiplying the damage
 public class LayeredArmorSystem : HullSystem {
     public List<Armor> layers;
+    public int tick;
     public LayeredArmorSystem(List<Armor> layers) {
         this.layers = layers;
     }
     public void Damage(SpaceObject owner, SpaceObject source, int hp) {
+        this.React(owner, source);
         for (int i = layers.Count - 1; i > -1; i--) {
             var layer = layers[i];
             if (layer == null) {
@@ -51,6 +55,7 @@ public class LayeredArmorSystem : HullSystem {
                 int absorbed = Math.Min(layer.hp, hp);
                 layer.hp -= absorbed;
                 hp -= absorbed;
+                layer.lastDamageTick = owner.world.tick;
                 if (hp == 0) {
                     return;
                 }

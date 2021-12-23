@@ -16,7 +16,7 @@ public interface ICombatOrder {
 }
 public class BaseShipBehavior : IShipBehavior {
     public List<IShipOrder> orders;
-    public IShipOrder current => orders[0];
+    public IShipOrder current => orders.Any() ? orders[0] : null;
     public BaseShipBehavior() { }
     public BaseShipBehavior(params IShipOrder[] orders) {
         this.orders = new List<IShipOrder>(orders);

@@ -28,7 +28,7 @@
 			>
 			<Capacitor
 				minChargeToFire=		"35"
-				dischargePerShot=		"35"
+				dischargeOnFire=		"35"
 				rechargePerTick=			"35/90"
 				maxCharge=				"100"
 				bonusSpeedPerCharge=	"30/100"
@@ -84,7 +84,7 @@
 			</Fragment>
 			<Capacitor
 				minChargeToFire=		"35"
-				dischargePerShot=		"35"
+				dischargeOnFire=		"35"
 				rechargePerTick=			"35/180"
 				maxCharge=				"100"
 				bonusSpeedPerCharge=	"1/3"

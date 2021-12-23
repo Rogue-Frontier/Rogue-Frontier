@@ -58,7 +58,7 @@
 			>
 			<Capacitor
 				minChargeToFire=		"40"
-				dischargePerShot=		"40"
+				dischargeOnFire=		"40"
 				rechargePerTick=			"0.08388885"
 				maxCharge=				"100"
 				bonusSpeedPerCharge=	"0.30"
@@ -134,6 +134,46 @@
 			foreground=		"Red"
 			>
 		</Weapon>
+	</ItemType>
+	<ItemType	codename=	"item_buckler_shield"
+			name=		"Buckler shield"
+			level=		"2"
+			mass=		"200"
+			value=		"400"
+				
+			desc=		"Basic shield generator"
+		>
+		<Shield
+			powerUse="10"
+			idlePowerUse="1"
+			maxHP=	"30"
+			damageDelay="15"
+			depletionDelay="30"
+			regenRate="30 / 90"
+			
+			>
+		</Shield>
+	</ItemType>
+
+	<ItemType	codename=	"item_shimmer_shield"
+		name=		"Shimmer shield"
+		level=		"2"
+		mass=		"200"
+		value=		"400"
+				
+		desc=		"Basic shield generator"
+		>
+		<Shield
+			powerUse="10"
+			idlePowerUse="1"
+			maxHP=	"60"
+			damageDelay="30"
+			depletionDelay="90"
+			regenRate="60 / 150"
+			
+			maxAbsorb="12"
+			>
+		</Shield>
 	</ItemType>
 
 	<ItemType	codename=	"item_klaw_missile"

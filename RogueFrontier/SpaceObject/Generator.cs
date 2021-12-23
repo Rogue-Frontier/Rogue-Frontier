@@ -9,6 +9,13 @@ namespace RogueFrontier;
 
 public interface ShipGenerator {
     List<AIShip> Generate(TypeCollection tc, SpaceObject owner);
+    public void GenerateAndPlace(TypeCollection tc, SpaceObject owner) {
+        var w = owner.world;
+        Generate(tc, owner)?.ForEach(s => {
+            w.AddEntity(s);
+            w.AddEffect(new Heading(s));
+        });
+    }
 }
 public class ShipList : ShipGenerator {
     public List<ShipGenerator> generators;
@@ -31,6 +38,10 @@ public class ShipList : ShipGenerator {
         return result;
     }
 }
+public enum ShipOrder {
+    attack, guard, patrol, patrolCircuit, 
+
+}
 public class ShipEntry : ShipGenerator {
     public int count;
     public string codename;
@@ -40,51 +51,37 @@ public class ShipEntry : ShipGenerator {
     public ShipEntry(XElement e) {
         this.count = e.TryAttributeInt(nameof(count), 1);
         this.codename = e.ExpectAttribute(nameof(codename));
-        switch (e.TryAttribute("order", "guard")) {
-            case "guard":
-                orderDesc = new GuardDesc();
-                break;
-            case "patrol":
-                orderDesc = new PatrolOrbitDesc(e);
-                break;
-            case "patrolCircuit":
-                orderDesc = new PatrolCircuitDesc(e);
-                break;
-        }
+
+        orderDesc = Enum.Parse<ShipOrder>(e.TryAttribute("order", "guard")) switch {
+            ShipOrder.attack => new AttackDesc(),
+            ShipOrder.guard => new GuardDesc(),
+            ShipOrder.patrol => new PatrolOrbitDesc(e),
+            ShipOrder.patrolCircuit => new PatrolCircuitDesc(e)
+        };
         this.sovereign = e.TryAttribute(nameof(sovereign), "");
     }
     public List<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
         if (tc.Lookup<ShipClass>(codename, out var shipClass)) {
-            Sovereign sov = owner.sovereign;
-            if (sovereign.Any()) {
-                tc.Lookup(sovereign, out sov);
-            }
-
-            Func<int, XY> GetPos;
-            switch (orderDesc) {
-                case PatrolOrbitDesc pod:
-                    GetPos = i => owner.position + XY.Polar(
-                                Math.PI * 2 * i / count,
-                                pod.patrolRadius);
-                    break;
-                default:
-                    GetPos = i => owner.position;
-                    break;
-            }
+            Sovereign s = sovereign.Any() ? tc.Lookup<Sovereign>(sovereign) : owner.sovereign;
+            Func<int, XY> GetPos = orderDesc switch {
+                PatrolOrbitDesc pod => i => owner.position + XY.Polar(
+                                            Math.PI * 2 * i / count,
+                                            pod.patrolRadius),
+                _ => i => owner.position
+            };
             return new List<AIShip>(
                 Enumerable.Range(0, count)
                 .Select(i => new AIShip(new BaseShip(
                         owner.world,
                         shipClass,
-                        sov,
+                        s,
                         GetPos(i)
                     ),
                     orderDesc.CreateOrder(owner)
                     ))
                 );
-        } else {
-            throw new Exception($"Invalid ShipClass type {codename}");
         }
+        throw new Exception($"Invalid ShipClass type {codename}");
     }
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
@@ -98,6 +95,9 @@ public class ShipEntry : ShipGenerator {
 
     public interface IOrderDesc {
         IShipOrder CreateOrder(SpaceObject owner);
+    }
+    public class AttackDesc : IOrderDesc {
+        public IShipOrder CreateOrder(SpaceObject owner) => new AttackOrder(owner);
     }
     public class GuardDesc : IOrderDesc {
         public IShipOrder CreateOrder(SpaceObject owner) => new GuardOrder(owner);
@@ -121,7 +121,24 @@ public class ShipEntry : ShipGenerator {
     }
 }
 
-
+public class ModRoll {
+    public double modifierChance;
+    public Modifier modifier;
+    public ModRoll() { }
+    public ModRoll(XElement e) {
+        modifierChance = e.TryAttributeDouble(nameof(modifierChance), 1);
+        modifier = new Modifier(e);
+        if (modifier.empty) {
+            modifier = null;
+        }
+    }
+    public Modifier Generate() {
+        if (modifier == null) {
+            return null;
+        }
+        return new Rand().NextDouble() <= modifierChance ? modifier : null;
+    }
+}
 public interface ItemGenerator {
     List<Item> Generate(TypeCollection tc);
 }
@@ -151,14 +168,17 @@ public class ItemList : ItemGenerator {
 public class ItemEntry : ItemGenerator {
     public string codename;
     public int count;
+    public ModRoll mod;
     public ItemEntry() { }
     public ItemEntry(XElement e) {
-        this.codename = e.ExpectAttribute("codename");
-        this.count = e.TryAttributeInt("count", 1);
+        codename = e.ExpectAttribute("codename");
+        count = e.TryAttributeInt("count", 1);
+        mod = new(e);
+
     }
     public List<Item> Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var result = new List<Item>(Enumerable.Range(0, count).Select(_ => new Item(type)));
+        var result = new List<Item>(Enumerable.Range(0, count).Select(_ => new Item(type, mod.Generate())));
         return result;
     }
     //In case we want to make sure immediately that the type is valid
@@ -192,16 +212,18 @@ public class ArmorList : ArmorGenerator {
 }
 public class ArmorEntry : ArmorGenerator {
     public string codename;
+    public ModRoll mod;
     public ArmorEntry() { }
     public ArmorEntry(XElement e) {
         this.codename = e.ExpectAttribute("codename");
+        this.mod = new(e);
     }
     List<Armor> ArmorGenerator.Generate(TypeCollection tc) {
         return new List<Armor> { Generate(tc) };
     }
     public Armor Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
+        var item = new Item(type, mod.Generate());
 
         return item.InstallArmor()
             ?? throw new Exception($"Expected <ItemType> type with <Armor> desc: {codename}");
@@ -209,7 +231,7 @@ public class ArmorEntry : ArmorGenerator {
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
+        var item = new Item(type, mod.Generate());
         var a = item.InstallArmor()
             ?? throw new Exception($"Expected <ItemType> type with <Armor> desc: {codename}");
 
@@ -247,8 +269,8 @@ public class DeviceList : DeviceGenerator {
                 case "Weapon":
                     generators.Add(new WeaponEntry(element));
                     break;
-                case "Shields":
-                    generators.Add(new ShieldsEntry(element));
+                case "Shield":
+                    generators.Add(new ShieldEntry(element));
                     break;
                 case "Reactor":
                     generators.Add(new ReactorEntry(element));
@@ -279,23 +301,25 @@ public class DeviceList : DeviceGenerator {
 
 class ReactorEntry : DeviceGenerator {
     public string codename;
+    public ModRoll mod;
     public ReactorEntry() { }
     public ReactorEntry(XElement e) {
         this.codename = e.ExpectAttribute("codename");
+        this.mod = new(e);
     }
     List<Device> DeviceGenerator.Generate(TypeCollection tc) {
         return new List<Device> { Generate(tc) };
     }
     Reactor Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
+        var item = new Item(type, mod.Generate());
         return item.InstallReactor()
             ?? throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
     }
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
+        var item = new Item(type, mod.Generate());
         var r = item.InstallReactor() 
             ?? throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
     }
@@ -303,23 +327,25 @@ class ReactorEntry : DeviceGenerator {
 
 class SolarEntry : DeviceGenerator {
     public string codename;
+    public ModRoll mod;
     public SolarEntry() { }
     public SolarEntry(XElement e) {
         this.codename = e.ExpectAttribute("codename");
+        this.mod = new(e);
     }
     List<Device> DeviceGenerator.Generate(TypeCollection tc) {
         return new List<Device> { Generate(tc) };
     }
     Solar Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
+        var item = new Item(type, mod.Generate());
         return item.InstallSolar()
             ?? throw new Exception($"Expected <ItemType> type with <Solar> desc: {codename}");
     }
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
+        var item = new Item(type, mod.Generate());
         var r = item.InstallSolar()
             ?? throw new Exception($"Expected <ItemType> type with <Solar> desc: {codename}");
     }
@@ -327,33 +353,39 @@ class SolarEntry : DeviceGenerator {
 
 class MiscEntry : DeviceGenerator {
     public string codename;
+
+    public ModRoll mod;
     public MiscEntry() { }
     public MiscEntry(XElement e) {
         this.codename = e.ExpectAttribute("codename");
+        this.mod = new(e);
     }
     List<Device> DeviceGenerator.Generate(TypeCollection tc) {
         return new List<Device> { Generate(tc) };
     }
     MiscDevice Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
+        var item = new Item(type, mod.Generate());
         return item.InstallMisc() ?? throw new Exception($"Expected <ItemType> type with <Misc> desc: {codename}");
     }
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
-        if (item.InstallReactor() == null) {
+        var item = new Item(type, mod.Generate());
+        if (item.InstallMisc() == null) {
             throw new Exception($"Expected <ItemType> type with <Misc> desc: {codename}");
         }
     }
 }
 
-class ShieldsEntry : DeviceGenerator {
+class ShieldEntry : DeviceGenerator {
     public string codename;
-    public ShieldsEntry() { }
-    public ShieldsEntry(XElement e) {
+
+    public ModRoll mod;
+    public ShieldEntry() { }
+    public ShieldEntry(XElement e) {
         this.codename = e.ExpectAttribute("codename");
+        this.mod = new(e);
     }
     List<Device> DeviceGenerator.Generate(TypeCollection tc) {
         return new List<Device> { Generate(tc) };
@@ -361,7 +393,7 @@ class ShieldsEntry : DeviceGenerator {
 
     Shield Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
+        var item = new Item(type, mod.Generate());
         if (item.InstallShields() != null) {
             return item.shield;
         } else {
@@ -371,7 +403,7 @@ class ShieldsEntry : DeviceGenerator {
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
+        var item = new Item(type, mod.Generate());
         if (item.InstallShields() == null) {
             throw new Exception($"Expected <ItemType> type with <Shields> desc: {codename}");
         }
@@ -407,10 +439,12 @@ public class WeaponList : WeaponGenerator {
 class WeaponEntry : DeviceGenerator, WeaponGenerator {
     public string codename;
     public bool omnidirectional;
+    public ModRoll mod;
     public WeaponEntry() { }
     public WeaponEntry(XElement e) {
         codename = e.ExpectAttribute("codename");
         omnidirectional = e.TryAttributeBool("omnidirectional", false);
+        mod = new(e);
     }
 
     List<Weapon> WeaponGenerator.Generate(TypeCollection tc) {
@@ -422,7 +456,7 @@ class WeaponEntry : DeviceGenerator, WeaponGenerator {
 
     Weapon Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
+        var item = new Item(type, mod.Generate());
         if (item.InstallWeapon() != null) {
             if (omnidirectional) {
                 item.weapon.aiming = new Omnidirectional();
@@ -435,7 +469,7 @@ class WeaponEntry : DeviceGenerator, WeaponGenerator {
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type);
+        var item = new Item(type, mod.Generate());
         if (item.InstallWeapon() == null) {
             throw new Exception($"Expected <ItemType> type with <Weapon> desc: {codename}");
         }

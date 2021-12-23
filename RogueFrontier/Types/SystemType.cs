@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace RogueFrontier;
 
-public class SystemType : DesignType {
+public record SystemType : DesignType {
     public string codename;
     public SystemGroup systemGroup;
     public SystemType() {
@@ -33,7 +33,7 @@ public class SystemType : DesignType {
         }, world.types);
     }
 }
-public struct LocationContext {
+public record LocationContext {
     public System world;
     public XY pos;
     public double angle;
@@ -42,6 +42,28 @@ public struct LocationContext {
     public XY focus;
     public int index;
 }
+
+public record LocationMod {
+    public int? radius;
+    public int radiusInc;
+
+    public double? angle;
+    public double angleInc;
+
+    public LocationMod(XElement e) {
+        radius = e.TryAttributeIntOptional(nameof(radius));
+        radiusInc = e.TryAttributeInt(nameof(radiusInc));
+        angle = e.TryAttributeIntOptional(nameof(angle));
+        angleInc = e.TryAttributeInt(nameof(angleInc));
+    }
+    public LocationContext Adjust(LocationContext lc) {
+        var r = radius ?? lc.radius + radiusInc;
+        var a = angle ?? lc.angle + angleInc;
+        var p = lc.focus + XY.Polar(a * Math.PI / 180, r);
+        return lc with { radius = r, angle = a, pos = p };
+    }
+}
+
 public interface SystemElement {
     void Generate(LocationContext lc, TypeCollection tc);
 }
@@ -76,30 +98,23 @@ public static class SSystemElement {
         }
     }
 }
-public class SystemGroup : SystemElement {
-    public int? radius;
+public record SystemGroup : SystemElement {
+    public LocationMod loc;
     public List<SystemElement> subelements;
     public SystemGroup() { }
     public SystemGroup(XElement e) {
-        radius = e.TryAttributeIntOptional(nameof(radius));
+        loc = new(e);
         subelements = e.Elements()
             .Select(sub => SSystemElement.Create(sub))
             .ToList();
     }
     public void Generate(LocationContext lc, TypeCollection tc) {
-        var sub_lc = new LocationContext() {
-            world = lc.world,
-            focus = lc.focus,
-            angle = lc.angle,
-            radius = radius ?? lc.radius,
-            pos = lc.focus + XY.Polar(lc.angleRad, radius ?? lc.radius),
-            index = lc.index
-        };
+        var sub_lc = loc.Adjust(lc);
         subelements.ForEach(g => g.Generate(sub_lc, tc));
     }
 }
 
-public class SystemAt : SystemElement {
+public record SystemAt : SystemElement {
     public List<SystemElement> subelements;
     public int index = -1;
     public SystemAt() { }
@@ -114,7 +129,7 @@ public class SystemAt : SystemElement {
     }
 }
 
-public class SystemOrbital : SystemElement {
+public record SystemOrbital : SystemElement {
     public List<SystemElement> subelements;
 
     public int count;
@@ -133,7 +148,6 @@ public class SystemOrbital : SystemElement {
         count = e.TryAttributeInt(nameof(count), 1);
         switch (e.ExpectAttribute(nameof(angle))) {
             case "random":
-                angle = 0;
                 randomAngle = true;
                 //Default to random increment
                 randomInc = true;
@@ -144,24 +158,22 @@ public class SystemOrbital : SystemElement {
             case var unknown:
                 throw new Exception($"Invalid angle {unknown}");
         }
-        if (e.TryAttribute(nameof(increment), out string si)) {
-            switch (si) {
-                case "random":
-                    increment = 0;
-                    randomInc = true;
-                    break;
-                case "equidistant":
-                    increment = 0;
-                    equidistant = true;
-                    break;
-                case var i when int.TryParse(i, out var inc):
-                    increment = inc;
-                    break;
-                case var unknown:
-                    throw new Exception($"Invalid increment {unknown}");
-            }
-        }
 
+        switch (e.TryAttributeOptional(nameof(increment))) {
+            case null:
+                break;
+            case "random":
+                randomInc = true;
+                break;
+            case "equidistant":
+                equidistant = true;
+                break;
+            case var i when int.TryParse(i, out var inc):
+                increment = inc;
+                break;
+            case var unknown:
+                throw new Exception($"Invalid increment {unknown}");
+        }
         radius = e.ExpectAttributeInt(nameof(radius));
     }
     public void Generate(LocationContext lc, TypeCollection tc) {
@@ -175,14 +187,14 @@ public class SystemOrbital : SystemElement {
 
         for (int i = 0; i < count; i++) {
             foreach (var sub in subelements) {
-                var loc = new LocationContext() {
-                    world = lc.world,
-                    focus = lc.pos,
+                var loc = lc with {
                     angle = angle,
                     radius = radius,
+                    focus = lc.pos,
                     pos = lc.pos + XY.Polar(angle * Math.PI / 180, radius),
                     index = i
                 };
+
                 sub.Generate(loc, tc);
 
                 if (increment > 0) {
@@ -197,7 +209,7 @@ public class SystemOrbital : SystemElement {
 
     }
 }
-public class SystemMarker : SystemElement {
+public record SystemMarker : SystemElement {
     public string name;
     public SystemMarker() { }
     public SystemMarker(XElement e) {
@@ -207,7 +219,7 @@ public class SystemMarker : SystemElement {
         lc.world.AddEntity(new Marker(name, lc.pos));
     }
 }
-public class SystemPlanet : SystemElement {
+public record SystemPlanet : SystemElement {
     public int radius;
     public bool showOrbit;
     public SystemPlanet() { }
@@ -267,7 +279,7 @@ public class SystemPlanet : SystemElement {
 }
 
 
-public class SystemAsteroids : SystemElement {
+public record SystemAsteroids : SystemElement {
     public double angle;
     public int size;
     public SystemAsteroids() { }
@@ -295,7 +307,7 @@ public class SystemAsteroids : SystemElement {
         }
     }
 }
-public class SystemNebula : SystemElement {
+public record SystemNebula : SystemElement {
     public double angle;
     public int size;
     public SystemNebula() { }
@@ -322,7 +334,7 @@ public class SystemNebula : SystemElement {
     }
 }
 
-public class SystemSibling : SystemElement {
+public record SystemSibling : SystemElement {
     public int arcInc;
     public int angleInc;
     public int radiusInc;
@@ -339,9 +351,7 @@ public class SystemSibling : SystemElement {
     public void Generate(LocationContext lc, TypeCollection tc) {
         var angle = lc.angle + angleInc + arcInc / lc.radius;
         var radius = lc.radius + radiusInc;
-        var sub_lc = new LocationContext() {
-            world = lc.world,
-            focus = lc.focus,
+        var sub_lc = lc with {
             angle = angle,
             radius = radius,
             pos = lc.focus + XY.Polar(angle * Math.PI / 180, radius)
@@ -349,7 +359,7 @@ public class SystemSibling : SystemElement {
         subelements.ForEach(s => s.Generate(sub_lc, tc));
     }
 }
-public class LightGenerator : IGridGenerator<Color> {
+public record LightGenerator : IGridGenerator<Color> {
     public LocationContext lc;
     public int radius;
     public LightGenerator() { }
@@ -362,7 +372,7 @@ public class LightGenerator : IGridGenerator<Color> {
         return new Color(255, 255, 204, Math.Min(255, (int)(radius * 255 / ((lc.pos - p).magnitude + 1))));
     }
 }
-public class SystemStar : SystemElement {
+public record SystemStar : SystemElement {
     public int radius;
     public SystemStar() { }
     public SystemStar(XElement e) {
@@ -389,32 +399,46 @@ public class SystemStar : SystemElement {
         lc.world.stars.Add(new Star(lc.pos, radius));
     }
 }
-public class SystemStation : SystemElement {
+public record SystemStation : SystemElement {
     public string codename;
+    public ShipGenerator ships;
     public SystemStation() { }
     public SystemStation(XElement e) {
         codename = e.ExpectAttribute("codename");
+
+        if(e.HasElement("Ships", out XElement xmlShips)) {
+            ships = new ShipList(xmlShips);
+        }
     }
     public void Generate(LocationContext lc, TypeCollection tc) {
         var stationtype = tc.Lookup<StationType>(codename);
-        var s = new Station(lc.world, stationtype, lc.pos);
-        lc.world.AddEntity(s);
+        var w = lc.world;
+        var s = new Station(w, stationtype, lc.pos);
+        w.AddEntity(s);
         s.CreateSegments();
         s.CreateGuards();
+
+        ships?.GenerateAndPlace(tc, s);
     }
 }
-
-public class SystemStargate : SystemElement {
+public record SystemStargate : SystemElement {
     public string gateId;
     public string destGateId;
+    public ShipGenerator ships;
     public SystemStargate() { }
     public SystemStargate(XElement e) {
         gateId = e.ExpectAttribute(nameof(gateId));
         destGateId = e.TryAttribute(nameof(destGateId));
+
+        if (e.HasElement("Ships", out XElement xmlShips)) {
+            ships = new ShipList(xmlShips);
+        }
     }
     public void Generate(LocationContext lc, TypeCollection tc) {
         var s = new Stargate(lc.world, lc.pos) { gateId = gateId, destGateId = destGateId };
         lc.world.AddEntity(s);
         s.CreateSegments();
+
+        ships?.GenerateAndPlace(tc, s);
     }
 }

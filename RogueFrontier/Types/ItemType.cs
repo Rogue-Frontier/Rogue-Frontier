@@ -15,7 +15,7 @@ public interface InvokeAction {
     string GetDesc(PlayerShip player, Item item);
     void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) { }
 }
-public class DeployShip : InvokeAction {
+public record DeployShip : InvokeAction {
     ShipClass shipClass;
     public DeployShip() { }
     public DeployShip(TypeCollection tc, XElement e) {
@@ -47,7 +47,7 @@ public class DeployShip : InvokeAction {
         };
     }
 }
-public class InstallWeapon : InvokeAction {
+public record InstallWeapon : InvokeAction {
     public string GetDesc(PlayerShip player, Item item) =>
         player.cargo.Contains(item) ? "Install this weapon" : "Remove this weapon";
     public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
@@ -66,7 +66,7 @@ public class InstallWeapon : InvokeAction {
         callback?.Invoke();
     }
 }
-public class RepairArmor : InvokeAction {
+public record RepairArmor : InvokeAction {
     public int repairHP;
     public string GetDesc(PlayerShip player, Item item) => "Repair armor";
     public RepairArmor() { }
@@ -79,7 +79,7 @@ public class RepairArmor : InvokeAction {
         p.Children.Add(SListScreen.RepairArmorScreen(prev, player, item, this, callback));
     }
 }
-public class InvokePower : InvokeAction {
+public record InvokePower : InvokeAction {
     PowerType powerType;
     int charges;
     public InvokePower() { }
@@ -102,7 +102,7 @@ public class InvokePower : InvokeAction {
         callback?.Invoke();
     }
 }
-public class Refuel : InvokeAction {
+public record Refuel : InvokeAction {
     public int energy;
     public Refuel() { }
     public Refuel(TypeCollection tc, XElement e) {
@@ -117,8 +117,7 @@ public class Refuel : InvokeAction {
         p.Children.Add(SListScreen.RefuelReactor(prev, player, item, this, callback));
     }
 }
-
-public class ItemType : DesignType {
+public record ItemType : DesignType {
     public string codename;
     public string name;
     public string desc;
@@ -169,7 +168,7 @@ public class ItemType : DesignType {
     }
 
 }
-public class ArmorDesc {
+public record ArmorDesc {
     public int maxHP;
     public Armor GetArmor(Item i) => new(i, this);
     public ArmorDesc() { }
@@ -177,7 +176,7 @@ public class ArmorDesc {
         maxHP = e.ExpectAttributeInt("maxHP");
     }
 }
-public class WeaponDesc {
+public record WeaponDesc {
     public int powerUse;
     public int fireCooldown;
     public int recoil;
@@ -220,7 +219,7 @@ public class WeaponDesc {
         }
     }
 }
-public class FragmentDesc {
+public record FragmentDesc {
     public int count;
     public bool omnidirectional;
     public bool? targetLocked;
@@ -268,7 +267,7 @@ public class FragmentDesc {
         effect = new StaticTile(e);
     }
 }
-public class TrailDesc : ITrail {
+public record TrailDesc : ITrail {
     public int lifetime;
 
 
@@ -285,7 +284,7 @@ public class TrailDesc : ITrail {
     }
     public Effect GetTrail(XY Position) => new FadingTile(Position, new ColoredGlyph(foreground, background, glyph), lifetime);
 }
-public class DisruptorDesc {
+public record DisruptorDesc {
     DisruptMode thrustMode, turnMode, brakeMode, fireMode;
     public int lifetime;
     public DisruptorDesc() { }
@@ -318,9 +317,9 @@ public class DisruptorDesc {
         }
     }
 }
-public class CapacitorDesc {
+public record CapacitorDesc {
     public double minChargeToFire;
-    public double dischargePerShot;
+    public double dischargeOnFire;
     public double rechargePerTick;
     public double maxCharge;
     public double bonusSpeedPerCharge;
@@ -330,7 +329,7 @@ public class CapacitorDesc {
     public CapacitorDesc() { }
     public CapacitorDesc(XElement e) {
         minChargeToFire = e.TryAttributeDouble(nameof(minChargeToFire), 0);
-        dischargePerShot = e.ExpectAttributeDouble(nameof(dischargePerShot));
+        dischargeOnFire = e.ExpectAttributeDouble(nameof(dischargeOnFire));
         rechargePerTick = e.ExpectAttributeDouble(nameof(rechargePerTick));
         maxCharge = e.ExpectAttributeDouble(nameof(maxCharge));
         bonusSpeedPerCharge = e.TryAttributeDouble(nameof(bonusSpeedPerCharge));
@@ -338,19 +337,28 @@ public class CapacitorDesc {
         bonusLifetimePerCharge = e.TryAttributeDouble(nameof(bonusLifetimePerCharge));
     }
 }
-public class ShieldDesc {
+public record ShieldDesc {
+    public int powerUse, idlePowerUse;
     public int maxHP;
+    public int damageDelay;
     public int depletionDelay;
-    public double hpPerSecond;
+    public double regenRate;
+    public double absorbFactor;
+    public int maxAbsorb;
     public Shield GetShield(Item i) => new Shield(i, this);
     public ShieldDesc() { }
     public ShieldDesc(XElement e) {
+        powerUse = e.ExpectAttributeInt(nameof(powerUse));
+        idlePowerUse = e.ExpectAttributeInt(nameof(idlePowerUse));
         maxHP = e.ExpectAttributeInt(nameof(maxHP));
+        damageDelay = e.ExpectAttributeInt(nameof(damageDelay));
         depletionDelay = e.ExpectAttributeInt(nameof(depletionDelay));
-        hpPerSecond = e.ExpectAttributeDouble(nameof(hpPerSecond));
+        regenRate = e.ExpectAttributeDouble(nameof(regenRate));
+        absorbFactor = e.TryAttributeDouble(nameof(absorbFactor), 1);
+        maxAbsorb = e.TryAttributeInt(nameof(maxAbsorb), -1);
     }
 }
-public class ReactorDesc {
+public record ReactorDesc {
     public int maxOutput;
     public int capacity;
     public double efficiency;
@@ -365,7 +373,7 @@ public class ReactorDesc {
         battery = e.TryAttributeBool(nameof(battery), false);
     }
 }
-public class SolarDesc {
+public record SolarDesc {
     public int maxOutput;
     public Solar GetSolar(Item i) => new(i, this);
     public SolarDesc() { }
@@ -373,7 +381,7 @@ public class SolarDesc {
         maxOutput = e.ExpectAttributeInt(nameof(maxOutput));
     }
 }
-public class MiscDesc {
+public record MiscDesc {
     public bool missileJack;
     public int interval;
     public MiscDevice GetMisc(Item i) => new(i, this);

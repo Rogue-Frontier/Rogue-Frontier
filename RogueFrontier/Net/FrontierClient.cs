@@ -19,11 +19,11 @@ using System.Threading.Tasks;
 namespace RogueFrontier;
 
 class FrontierClient : TcpClient {
-    private ScreenClient game;
+    private ScreenClient client;
     private MemoryStream received;
     private int length;
     public FrontierClient(string address, int port, ScreenClient game) : base(address, port) {
-        this.game = game;
+        this.client = game;
     }
     protected override void OnConnected() { }
     protected override void OnDisconnected() { }
@@ -57,30 +57,31 @@ class FrontierClient : TcpClient {
             switch (command) {
                 case TellClient.SetWorld c:
                     var sys = c.sys;
-                    game.World = sys;
+                    client.World = sys;
 
                     AIShip ai = null;
-                    var playerId = game.playerMain?.playerShip?.id;
-                    if (playerId.HasValue && game.entityLookup.TryGetValue(playerId.Value, out var en)) {
+                    var playerId = client.playerMain?.playerShip?.id;
+                    if (playerId.HasValue && client.entityLookup.TryGetValue(playerId.Value, out var en)) {
                         ai = en as AIShip;
                     }
                     ai ??= sys.entities.all.OfType<AIShip>().FirstOrDefault();
                     if (ai != null) {
-                        game.removed = ai;
+                        client.removed = ai;
                         sys.RemoveEntity(ai);
-                        var playerShip = new PlayerShip(new Player(game.prev.settings), ai.ship);
+                        var playerShip = new PlayerShip(new Player(client.prev.settings), ai.ship);
                         sys.AddEntity(playerShip);
-                        game.SetPlayerMain(new PlayerMain(game.Width, game.Height,
+                        sys.UpdatePresent();
+                        client.SetPlayerMain(new PlayerMain(client.Width, client.Height,
                             new Profile(), playerShip));
                         TellServer(new TellServer.AssumePlayerShip() { shipId = ai.id });
                     }
                     break;
                 case TellClient.SetCamera c:
-                    game.camera = c.pos;
+                    client.camera = c.pos;
                     break;
                 case TellClient.SyncSharedState c:
                     foreach (var state in c.entities) {
-                        if (game.entityLookup.TryGetValue(state.id, out Entity e)) {
+                        if (client.entityLookup.TryGetValue(state.id, out Entity e)) {
                             e.SetSharedState(state);
                         }
                     }
@@ -99,13 +100,13 @@ class FrontierClient : TcpClient {
         Debug.WriteLine($"Chat TCP client caught an error with code {error}");
 }
 public interface TellClient {
-    public struct SetWorld : TellClient {
+    public record SetWorld : TellClient {
         public System sys;
     }
-    public struct SetCamera : TellClient {
+    public record SetCamera : TellClient {
         public XY pos;
     }
-    public struct SyncSharedState : TellClient {
+    public record SyncSharedState : TellClient {
         public List<Entity> entities;
     }
 }
@@ -133,6 +134,7 @@ public class ScreenClient : Console {
         this.playerMain = null;
         this.removed = null;
         this.client = new FrontierClient("127.0.0.1", 1111, this);
+        client.ConnectAsync();
 
         UseKeyboard = true;
 

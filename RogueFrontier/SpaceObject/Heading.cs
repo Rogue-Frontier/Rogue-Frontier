@@ -11,7 +11,7 @@ class Heading : Effect {
         this.parent = parent;
     }
 
-    public XY position => parent.position;
+    public XY position => parent?.position ?? new();
 
     public bool active => parent.active;
 

@@ -450,6 +450,7 @@ public class SListScreen {
                 player.AddMessage(new Message($"Enabled {p.source.type.name}"));
             } else {
                 disabled.Add(p);
+                p.OnDisable();
                 player.AddMessage(new Message($"Disabled {p.source.type.name}"));
             }
             screen.UpdateIndex();
