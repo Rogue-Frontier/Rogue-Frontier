@@ -702,8 +702,13 @@ public class SListScreen {
 public class ListScreen<T> : Console {
     Console prev;
     PlayerShip player;
+
+    public bool groupMode = true;
     public IEnumerable<T> items;
-    int? playerIndex;
+    public IEnumerable<(T item, int count)> groups;
+    public int count => groupMode ? groups.Count() : items.Count();
+    public T currentItem => index.HasValue ? (groupMode ? groups.ElementAt(index.Value).item : items.ElementAt(index.Value)) : default;
+    int? index;
     GetName getName;
     GetDesc getDesc;
     Invoke invoke;
@@ -721,56 +726,61 @@ public class ListScreen<T> : Console {
         this.getDesc = getDesc;
         this.invoke = invoke;
         this.escape = escape;
+        UpdateIndex();
+    }
+    public void UpdateGroups() {
+        var l = items.ToList();
+        groups = items.GroupBy(i => getName(i))
+            .OrderBy(g => l.IndexOf(g.First()))
+            .Select(g => (g.Last(), g.Count()))
+            .ToHashSet();
+
     }
     public void UpdateIndex() {
-        if (items.Any()) {
-            playerIndex = Math.Min(playerIndex ?? 0, items.Count() - 1);
-        } else {
-            playerIndex = null;
-        }
+        if (groupMode) UpdateGroups();
+        index = count > 0 ? Math.Min(index ?? 0, count - 1) : null;
     }
 
     public override bool ProcessKeyboard(Keyboard keyboard) {
         foreach (var key in keyboard.KeysPressed) {
             switch (key.Key) {
                 case Keys.Up:
-                    playerIndex = items.Any() ?
-                        (playerIndex == null ? (items.Count() - 1) :
-                            playerIndex == 0 ? null :
-                            Math.Max(playerIndex.Value - 1, 0))
+                    index = count > 0 ?
+                        (index == null ? (count - 1) :
+                            index == 0 ? null :
+                            Math.Max(index.Value - 1, 0))
                         : null;
                     tick = 0;
                     break;
                 case Keys.PageUp:
-                    playerIndex = items.Any() ?
-                        (playerIndex == null ? (items.Count() - 1) :
-                            playerIndex == 0 ? null :
-                            Math.Max(playerIndex.Value - 26, 0))
+                    index = count > 0 ?
+                        (index == null ? (count - 1) :
+                            index == 0 ? null :
+                            Math.Max(index.Value - 26, 0))
                         : null;
                     tick = 0;
                     break;
                 case Keys.Down:
-                    playerIndex = items.Any() ?
-                        (playerIndex == null ? 0 :
-                            playerIndex == items.Count() - 1 ? null :
-                            Math.Min(playerIndex.Value + 1, items.Count() - 1))
+                    index = count > 0 ?
+                        (index == null ? 0 :
+                            index == count - 1 ? null :
+                            Math.Min(index.Value + 1, count - 1))
                         : null;
                     tick = 0;
                     break;
                 case Keys.PageDown:
-                    playerIndex = items.Any() ?
-                        (playerIndex == null ? 0 :
-                            playerIndex == items.Count() - 1 ? null :
-                            Math.Min(playerIndex.Value + 26, items.Count() - 1))
+                    index = count > 0 ?
+                        (index == null ? 0 :
+                            index == count - 1 ? null :
+                            Math.Min(index.Value + 26, count - 1))
                         : null;
                     tick = 0;
                     break;
                 case Keys.Enter:
-                    if (playerIndex != null) {
-                        var item = items.ElementAt(playerIndex.Value);
-                        invoke(item);
-
-                        playerIndex = items.Any() ? Math.Clamp(playerIndex.Value, 0, items.Count() - 1) : null;
+                    var i = currentItem;
+                    if (i != null) {
+                        invoke(i);
+                        UpdateIndex();
                     }
                     break;
                 case Keys.Escape:
@@ -784,14 +794,14 @@ public class ListScreen<T> : Console {
                 default:
                     var ch = char.ToLower(key.Character);
                     if (ch >= 'a' && ch <= 'z') {
-                        int start = Math.Max((playerIndex ?? 0) - 13, 0);
+                        int start = Math.Max((index ?? 0) - 13, 0);
                         var letterIndex = start + letterToIndex(ch);
-                        if (letterIndex == playerIndex) {
-                            var item = items.ElementAt(playerIndex.Value);
-                            invoke(item);
-                        } else if (letterIndex < items.Count()) {
+                        if (letterIndex == index) {
+                            invoke(currentItem);
+                            UpdateIndex();
+                        } else if (letterIndex < count) {
                             //var item = items.ElementAt(letterIndex);
-                            playerIndex = letterIndex;
+                            index = letterIndex;
                         }
                     }
                     break;
@@ -818,16 +828,22 @@ public class ListScreen<T> : Console {
         this.Print(x, y - 2, player.name, Color.Yellow, Color.Black);
         int start = 0;
         int? highlight = null;
-        if (playerIndex != null) {
-            start = Math.Max(playerIndex.Value - 16, 0);
-            highlight = playerIndex;
+        if (index.HasValue) {
+            start = Math.Max(index.Value - 16, 0);
+            highlight = index;
         }
-        int end = Math.Min(items.Count(), start + 26);
-        if (items.Any()) {
+
+        Func<int, string> GetName = groupMode ? i => {
+            var g = groups.ElementAt(i);
+            return $"{g.count}x {getName(g.item)}";
+        } : i => getName(items.ElementAt(i));
+
+        int end = Math.Min(count, start + 26);
+        if (count > 0) {
             int i = start;
             while (i < end) {
                 var highlightColor = i == highlight ? Color.Yellow : Color.White;
-                var n = getName(items.ElementAt(i));
+                var n = GetName(i);
                 if (n.Length > 26) {
                     if (i == highlight) {
                         //((tick / 15) % (n.Length - 25));
@@ -852,8 +868,8 @@ public class ListScreen<T> : Console {
 
 
             int height = 26;
-            int barStart = (height * (start)) / items.Count();
-            int barEnd = (height * (end)) / items.Count();
+            int barStart = (height * (start)) / count;
+            int barEnd = (height * (end)) / count;
             int barX = x - 2;
 
             for (i = 0; i < height; i++) {
@@ -886,13 +902,14 @@ public class ListScreen<T> : Console {
         }
 
         x += 32 + 2;
-        y = 16;
-        if (playerIndex.HasValue && playerIndex.Value < items.Count()) {
-            var item = items.ElementAt(playerIndex.Value);
-            this.Print(x, y - 2, getName(item), Color.Yellow, Color.Black);
-            var desc = getDesc(item);
-
-            desc.ForEach(l => this.Print(x, y++, l));
+        y = 14;
+        var item = currentItem;
+        if (item != null) {
+            this.Print(x, y, getName(item), Color.Yellow, Color.Black);
+            y += 2;
+            foreach (var l in getDesc(item)) {
+                this.Print(x, y++, l);
+            }
         }
 
         base.Render(delta);

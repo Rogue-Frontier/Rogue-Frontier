@@ -197,7 +197,7 @@
 			<Item count="8" codename="item_klaw_missile_launcher"/>
 			<Item count="250" codename="item_klaw_missile"/>
 			<Item count="4"	codename="item_musket_cannon"/>
-			<Item count="8" codename="item_sharpshooter_defender"/>
+			<Item count="8" codename="item_missile_defender"/>
 		</Cargo>
 		<Weapons>
 		</Weapons>

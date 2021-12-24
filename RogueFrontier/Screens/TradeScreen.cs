@@ -12,6 +12,8 @@ namespace RogueFrontier;
 interface ITrader {
     string name { get; }
     HashSet<Item> cargo { get; }
+
+    //public static implicit operator Dealer(ITrader r) => new(r.name, r.cargo);
 }
 class TradeScene : Console {
     Console next;
@@ -30,9 +32,9 @@ class TradeScene : Console {
     }
     public void Transact() {
         var item = model.currentItem;
-        if (model.dealerIndex == 0) {
+        if (model.traderIndex == 0) {
             player.money += item.type.value;
-        } else if (player.money > item.type.value) {
+        } else if (player.money >= item.type.value) {
             player.money -= item.type.value;
         } else {
             return;
@@ -67,9 +69,9 @@ class TradeScene : Console {
         if (item != null) {
             f = Color.Yellow;
 
-            int d = model.dealerIndex == 0 ? item.type.value : -item.type.value;
+            int d = model.traderIndex == 0 ? item.type.value : -item.type.value;
 
-            this.Print(x, y++, $"       {$"{item.type.value}".PadLeft(8)}{(model.dealerIndex == 0 ? '+' : '-')}", f, b);
+            this.Print(x, y++, $"       {$"{item.type.value}".PadLeft(8)}{(model.traderIndex == 0 ? '+' : '-')}", f, b);
             //y++;
             //this.Print(x, y++, $"       {$"{player.money + d}".PadLeft(8)}", f, b);
         }

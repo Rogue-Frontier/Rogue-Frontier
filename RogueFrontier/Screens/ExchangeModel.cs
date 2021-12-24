@@ -10,82 +10,92 @@ using Console = SadConsole.Console;
 
 namespace RogueFrontier;
 
-public class Dealer {
+public class Trader {
     public string name;
     public int? index;
     public HashSet<Item> items;
-    public List<(Item item, int count)> grouped;
-
+    public HashSet<(Item item, int count)> groups;
+    public int count => groupMode ? groups.Count : items.Count;
+    public bool groupMode = true;
     public Item currentItem => index.HasValue ? items.ElementAt(index.Value) : null;
-    public (Item item, int count) currentGroup => index.HasValue ? grouped[index.Value] : default;
-    public Dealer(string name, HashSet<Item> items) {
+    public (Item item, int count) currentGroup => index.HasValue ? groups.ElementAt(index.Value) : default;
+    public Trader(string name, HashSet<Item> items) {
         this.name = name;
         this.items = items;
-        this.grouped = items.GroupBy(i => i).Select(g => (g.Key, g.Count())).ToList();
-        index = items.Any() ? 0 : null;
+        UpdateIndex();
+    }
+    public void UpdateGroup() {
+        var l = items.ToList();
+        groups = items.GroupBy(i => i.type)
+            .OrderBy(g => l.IndexOf(g.First()))
+            .Select(g => (g.Last(), g.Count()))
+            .ToHashSet();
+    }
+    public void UpdateIndex() {
+        if (groupMode) UpdateGroup();
+        index = count > 0 ? index = Math.Min(index ?? 0, count - 1) : null;
     }
 }
 public class ExchangeModel {
-    public int dealerIndex;
-    public List<Dealer> dealers;
-    public Dealer currentDealer => dealers[dealerIndex];
-    public Item currentItem => currentDealer.currentItem;
-    public (Item item, int count) currentGroup => currentDealer.currentGroup;
-    public Dealer from => dealers[dealerIndex];
-    public Dealer to => dealers[(dealerIndex + 1)%dealers.Count];
+    public int traderIndex;
+    public List<Trader> traders;
+    public Trader currentTrader => traders[traderIndex];
+    public Item currentItem => currentTrader.groupMode ? currentGroup.item : currentTrader.currentItem;
+    public (Item item, int count) currentGroup => currentTrader.currentGroup;
+    public Trader from => traders[traderIndex];
+    public Trader to => traders[(traderIndex + 1)%traders.Count];
     public ref int? fromIndex => ref from.index;
 
-    public void NextDealer() => dealerIndex = (dealerIndex + 1) % dealers.Count;
+    public void NextDealer() => traderIndex = (traderIndex + 1) % traders.Count;
 
     Action enter;
     Action exit;
 
-    public ExchangeModel(Dealer player, Dealer station, Action enter, Action exit) {
-        dealers = new() { player, station };
+    public ExchangeModel(Trader player, Trader station, Action enter, Action exit) {
+        traders = new() { player, station };
         this.enter = enter;
         this.exit = exit;
     }
     public void ProcessKeyboard(Keyboard keyboard) {
-        var from = this.from.items;
-        var to = this.to.items;
+        var fromCount = from.count;
         ref int? index = ref fromIndex;
 
         foreach (var key in keyboard.KeysPressed) {
             switch (key.Key) {
                 case Keys.PageUp:
-                    index = from.Any() ?
-                        (index == null ? (from.Count() - 1) :
+                    index = fromCount > 0 ?
+                        (index == null ? (fromCount - 1) :
                             index == 0 ? null :
                             Math.Max(index.Value - 26, 0))
                         : null;
                     break;
                 case Keys.Up:
-                    index = from.Any() ?
+                    index = fromCount>0 ?
                         (index == null ?
-                            from.Count - 1 :
+                            fromCount - 1 :
                             Math.Max(index.Value - 1, 0)) :
                         null;
                     break;
                 case Keys.Down:
-                    index = from.Any() ?
+                    index = fromCount>0 ?
                         (index == null ?
                             0 :
-                            Math.Min(index.Value + 1, from.Count - 1)) :
+                            Math.Min(index.Value + 1, fromCount - 1)) :
                         null;
                     break;
                 case Keys.PageDown:
-                    index = from.Any() ?
+                    index = fromCount>0 ?
                         (index == null ? 0 :
-                            index == from.Count() - 1 ? null :
-                            Math.Min(index.Value + 26, from.Count() - 1))
+                            index == fromCount - 1 ? null :
+                            Math.Min(index.Value + 26, fromCount - 1))
                         : null;
                     break;
                 case Keys.Left:
-                    dealerIndex = 0;
+                    traderIndex = 0;
                     UpdateIndex();
                     break;
                 case Keys.Right:
-                    dealerIndex = 1;
+                    traderIndex = 1;
                     UpdateIndex();
                     break;
                 case Keys.Enter:
@@ -102,10 +112,11 @@ public class ExchangeModel {
                     if (ch >= 'a' && ch <= 'z') {
                         int start = Math.Max((index ?? 0) - 13, 0);
                         var letterIndex = start + UI.letterToIndex(ch);
-                        if (letterIndex < from.Count) {
-                            index = letterIndex;
+                        if(letterIndex == index) {
                             enter();
                             UpdateIndex();
+                        } else if (letterIndex < fromCount) {
+                            index = letterIndex;
                         }
                     }
                     break;
@@ -113,9 +124,7 @@ public class ExchangeModel {
         }
     }
     public void UpdateIndex() {
-        var items = from.items;
-        ref var index = ref from.index;
-        index = items.Any() ? index = Math.Min(index ?? 0, items.Count - 1) : null;
+        traders.ForEach(d => d.UpdateIndex());
     }
 
     public void Render(Console con) {
@@ -124,43 +133,51 @@ public class ExchangeModel {
 
         con.RenderBackground();
 
-        var player = dealers[0];
-        var playerSide = dealerIndex == 0;
-        var playerItems = player.items;
+        var player = traders[0];
+        var playerSide = traderIndex == 0;
+        var playerCount = player.count;
+
+
+        Func<int, string> NameAt = player.groupMode ?
+            (i => { var g = player.groups.ElementAt(i);
+                return $"{g.count}x {g.item.type.name}";
+            }) :
+            (i => player.items.ElementAt(i).type.name);
+
 
         Color c = playerSide ? Color.Yellow : Color.White;
         con.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(c, Color.Black, '-'));
-        con.Print(x, y - 2, dealers[0].name, c, Color.Black);
+        con.Print(x, y - 2, traders[0].name, c, Color.Black);
         int start = 0;
         int? highlight = null;
 
-        var playerIndex = dealers[0].index;
+        var playerIndex = traders[0].index;
         if (playerIndex.HasValue) {
             start = Math.Max(playerIndex.Value - 13, 0);
             if (playerSide) {
                 highlight = playerIndex;
             }
         }
-        int end = Math.Min(playerItems.Count, start + 26);
+        int end = Math.Min(playerCount, start + 26);
 
 
         void line(Point from, Point to, int glyph) {
             con.DrawLine(from, to, '-', Color.White, null);
         }
-        if (playerItems.Any()) {
+        if (playerCount > 0) {
             int i = start;
             while (i < end) {
                 var highlightColor = i == highlight ? Color.Yellow : Color.White;
                 var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
-                         + new ColoredString(playerItems.ElementAt(i).type.name, highlightColor, Color.Black);
+                         + new ColoredString(NameAt(i), highlightColor, Color.Black);
                 con.Print(x, y, name);
                 i++;
                 y++;
             }
 
             int height = 26;
-            int barStart = (height * (start)) / playerItems.Count;
-            int barEnd = (height * (end)) / playerItems.Count;
+            int barStart = (height * (start)) / playerCount;
+            int barEnd = (height * (end)) / playerCount;
             int barX = x - 2;
             for (i = 0; i < height; i++) {
                 ColoredGlyph cg = i < barStart || i > barEnd ?
@@ -186,9 +203,17 @@ public class ExchangeModel {
         x += 32 + 4;
         y = 16;
 
-        var docked = dealers[1];
+        var docked = traders[1];
         var dockedIndex = docked.index;
-        var dockedItems = docked.items;
+        var dockedCount = docked.count;
+
+
+        NameAt = docked.groupMode ?
+            (i => {
+                var g = docked.groups.ElementAt(i);
+                return $"{g.count}x {g.item.type.name}";
+            }) :
+            (i => docked.items.ElementAt(i).type.name);
 
         c = !playerSide ? Color.Yellow : Color.White;
         con.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(c, Color.Black, '-'));
@@ -198,28 +223,27 @@ public class ExchangeModel {
         highlight = null;
         if (dockedIndex.HasValue) {
             start = Math.Max(dockedIndex.Value - 13, 0);
-
             if (!playerSide) {
                 highlight = dockedIndex;
             }
-
         }
 
-        end = Math.Min(dockedItems.Count, start + 26);
-        if (dockedItems.Any()) {
+
+        end = Math.Min(dockedCount, start + 26);
+        if (dockedCount > 0) {
             int i = start;
             while (i < end) {
                 var highlightColor = (i == highlight ? Color.Yellow : Color.White);
                 var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", !playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
-                         + new ColoredString(dockedItems.ElementAt(i).type.name, highlightColor, Color.Black);
+                         + new ColoredString(NameAt(i), highlightColor, Color.Black);
                 con.Print(x, y, name);
                 i++;
                 y++;
             }
 
             int height = 26;
-            int barStart = (height * (start)) / dockedItems.Count;
-            int barEnd = (height * (end)) / dockedItems.Count;
+            int barStart = (height * (start)) / dockedCount;
+            int barEnd = (height * (end)) / dockedCount;
             int barX = x - 2;
             for (i = 0; i < height; i++) {
                 ColoredGlyph cg = i < barStart || i > barEnd ?

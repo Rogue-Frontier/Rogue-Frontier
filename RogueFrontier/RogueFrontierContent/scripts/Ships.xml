@@ -169,7 +169,7 @@
 		</Items>
         <Devices>
 			<Weapon codename="item_musket_cannon"/>
-			<Weapon codename="item_sharpshooter_defender"/>
+			<Weapon codename="item_missile_defender"/>
 			<Reactor codename="item_foundry_reactor"/>
 			<Reactor codename="item_foundry_battery"/>
 		</Devices>

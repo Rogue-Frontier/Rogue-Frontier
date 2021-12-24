@@ -247,8 +247,8 @@
 		</Weapon>
 	</ItemType>
 
-	<ItemType	codename=	"item_sharpshooter_defender"
-				name=		"Sharpshooter anti-missile defender"
+	<ItemType	codename=	"item_missile_defender"
+				name=		"Anti-missile defender"
 				level=		"3"
 				mass=		"1000"
 				value=		"4000"
