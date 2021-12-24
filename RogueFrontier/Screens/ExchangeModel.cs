@@ -50,6 +50,7 @@ public class ExchangeModel {
 
     Action enter;
     Action exit;
+    int tick;
 
     public ExchangeModel(Trader player, Trader station, Action enter, Action exit) {
         traders = new() { player, station };
@@ -68,6 +69,7 @@ public class ExchangeModel {
                             index == 0 ? null :
                             Math.Max(index.Value - 26, 0))
                         : null;
+                    tick = 0;
                     break;
                 case Keys.Up:
                     index = fromCount>0 ?
@@ -75,6 +77,7 @@ public class ExchangeModel {
                             fromCount - 1 :
                             Math.Max(index.Value - 1, 0)) :
                         null;
+                    tick = 0;
                     break;
                 case Keys.Down:
                     index = fromCount>0 ?
@@ -82,6 +85,7 @@ public class ExchangeModel {
                             0 :
                             Math.Min(index.Value + 1, fromCount - 1)) :
                         null;
+                    tick = 0;
                     break;
                 case Keys.PageDown:
                     index = fromCount>0 ?
@@ -89,6 +93,7 @@ public class ExchangeModel {
                             index == fromCount - 1 ? null :
                             Math.Min(index.Value + 26, fromCount - 1))
                         : null;
+                    tick = 0;
                     break;
                 case Keys.Left:
                     traderIndex = 0;
@@ -117,6 +122,7 @@ public class ExchangeModel {
                             UpdateIndex();
                         } else if (letterIndex < fromCount) {
                             index = letterIndex;
+                            tick = 0;
                         }
                     }
                     break;
@@ -125,8 +131,11 @@ public class ExchangeModel {
     }
     public void UpdateIndex() {
         traders.ForEach(d => d.UpdateIndex());
+        tick = 0;
     }
-
+    public void Update() {
+        tick++;
+    }
     public void Render(Console con) {
         int x = 16;
         int y = 16;
@@ -168,8 +177,24 @@ public class ExchangeModel {
             int i = start;
             while (i < end) {
                 var highlightColor = i == highlight ? Color.Yellow : Color.White;
+                var n = NameAt(i);
+                if (n.Length > 26) {
+                    if (i == highlight) {
+                        //((tick / 15) % (n.Length - 25));
+                        int initialDelay = 60;
+                        int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - 26);
+
+                        n = n.Substring(index);
+                        if (n.Length > 26) {
+                            n = $"{n.Substring(0, 23)}...";
+                        }
+                    } else {
+                        n = $"{n.Substring(0, 23)}...";
+                    }
+                }
+                
                 var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
-                         + new ColoredString(NameAt(i), highlightColor, Color.Black);
+                         + new ColoredString(n, highlightColor, Color.Black);
                 con.Print(x, y, name);
                 i++;
                 y++;
@@ -233,9 +258,25 @@ public class ExchangeModel {
         if (dockedCount > 0) {
             int i = start;
             while (i < end) {
-                var highlightColor = (i == highlight ? Color.Yellow : Color.White);
+                var highlightColor = i == highlight ? Color.Yellow : Color.White;
+                var n = NameAt(i);
+                if (n.Length > 26) {
+                    if (i == highlight) {
+                        //((tick / 15) % (n.Length - 25));
+                        int initialDelay = 60;
+                        int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - 26);
+
+                        n = n.Substring(index);
+                        if (n.Length > 26) {
+                            n = $"{n.Substring(0, 23)}...";
+                        }
+                    } else {
+                        n = $"{n.Substring(0, 23)}...";
+                    }
+                }
+
                 var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", !playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
-                         + new ColoredString(NameAt(i), highlightColor, Color.Black);
+                         + new ColoredString(n, highlightColor, Color.Black);
                 con.Print(x, y, name);
                 i++;
                 y++;

@@ -56,6 +56,10 @@ class TradeScene : Console {
         model.ProcessKeyboard(keyboard);
         return base.ProcessKeyboard(keyboard);
     }
+    public override void Update(TimeSpan delta) {
+        model.Update();
+        base.Update(delta);
+    }
     public override void Render(TimeSpan delta) {
         
         model.Render(this);

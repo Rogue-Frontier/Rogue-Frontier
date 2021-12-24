@@ -431,7 +431,7 @@ public class SListScreen {
             Escape
             );
 
-        string GetName(Powered i) => $"{(disabled.Contains(i) ? "Disabled" : "Enabled")}> {i.source.type.name}";
+        string GetName(Powered i) => $"{(disabled.Contains(i) ? " " : "*")} {i.source.type.name}";
         List<ColoredString> GetDesc(Powered p) {
             var result = new List<ColoredString>();
             var desc = p.source.type.desc.SplitLine(32);
@@ -739,6 +739,7 @@ public class ListScreen<T> : Console {
     public void UpdateIndex() {
         if (groupMode) UpdateGroups();
         index = count > 0 ? Math.Min(index ?? 0, count - 1) : null;
+        tick = 0;
     }
 
     public override bool ProcessKeyboard(Keyboard keyboard) {
@@ -802,6 +803,7 @@ public class ListScreen<T> : Console {
                         } else if (letterIndex < count) {
                             //var item = items.ElementAt(letterIndex);
                             index = letterIndex;
+                            tick = 0;
                         }
                     }
                     break;
@@ -833,7 +835,7 @@ public class ListScreen<T> : Console {
             highlight = index;
         }
 
-        Func<int, string> GetName = groupMode ? i => {
+        Func<int, string> NameAt = groupMode ? i => {
             var g = groups.ElementAt(i);
             return $"{g.count}x {getName(g.item)}";
         } : i => getName(items.ElementAt(i));
@@ -843,7 +845,7 @@ public class ListScreen<T> : Console {
             int i = start;
             while (i < end) {
                 var highlightColor = i == highlight ? Color.Yellow : Color.White;
-                var n = GetName(i);
+                var n = NameAt(i);
                 if (n.Length > 26) {
                     if (i == highlight) {
                         //((tick / 15) % (n.Length - 25));
