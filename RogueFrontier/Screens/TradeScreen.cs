@@ -18,11 +18,7 @@ class TradeScene : Console {
     Player player;
     PlayerShip playerShip;
     ITrader docked;
-    HashSet<Item> playerItems => playerShip.cargo;
-    HashSet<Item> dockedItems => docked.cargo;
-    bool playerSide;
-    int? playerIndex;
-    int? dockedIndex;
+    ExchangeModel model;
 
     public TradeScene(Console next, PlayerShip playerShip, ITrader docked) : this(next, next, playerShip, docked) { }
     public TradeScene(Console prev, Console next, PlayerShip playerShip, ITrader docked) : base(prev.Width, prev.Height) {
@@ -30,262 +26,52 @@ class TradeScene : Console {
         this.player = playerShip.player;
         this.playerShip = playerShip;
         this.docked = docked;
-        this.playerSide = false;
-
-        if (playerShip.cargo.Any()) {
-            playerIndex = 0;
+        model = new(new(playerShip.name, playerShip.cargo), new(docked.name, docked.cargo), Transact, Transition);
+    }
+    public void Transact() {
+        var item = model.currentItem;
+        if (model.dealerIndex == 0) {
+            player.money += item.type.value;
+        } else if (player.money > item.type.value) {
+            player.money -= item.type.value;
+        } else {
+            return;
         }
-        if (this.docked.cargo.Any()) {
-            dockedIndex = 0;
+        model.from.items.Remove(item);
+        model.to.items.Add(item);
+    }
+    public void Transition() {
+        var p = Parent;
+        p.Children.Remove(this);
+        if (next != null) {
+            p.Children.Add(next);
+            next.IsFocused = true;
+        } else {
+            p.IsFocused = true;
         }
     }
     public override bool ProcessKeyboard(Keyboard keyboard) {
-        var from = playerSide ? playerItems : dockedItems;
-        var to = playerSide ? dockedItems : playerItems;
-        ref int? index = ref (playerSide ? ref playerIndex : ref dockedIndex);
-
-        foreach (var key in keyboard.KeysPressed) {
-            switch (key.Key) {
-                case Keys.Up:
-                    index = from.Any() ?
-                        (index == null ? (from.Count() - 1) :
-                            index == 0 ? null :
-                            Math.Max(index.Value - 1, 0))
-                        : null;
-                    break;
-                case Keys.PageUp:
-                    index = from.Any() ?
-                        (index == null ? (from.Count() - 1) :
-                            index == 0 ? null :
-                            Math.Max(index.Value - 26, 0))
-                        : null;
-                    break;
-                case Keys.Down:
-                    index = from.Any() ?
-                        (index == null ? 0 :
-                            index == from.Count() - 1 ? null :
-                            Math.Min(index.Value + 1, from.Count() - 1))
-                        : null;
-                    break;
-                case Keys.PageDown:
-                    index = from.Any() ?
-                        (index == null ? 0 :
-                            index == from.Count() - 1 ? null :
-                            Math.Min(index.Value + 26, from.Count() - 1))
-                        : null;
-                    break;
-                case Keys.Left:
-                    playerSide = true;
-
-                    from = playerItems;
-                    index = ref playerIndex;
-
-                    if (from.Any()) {
-                        index = Math.Min(index ?? 0, from.Count - 1);
-                    } else {
-                        index = null;
-                    }
-                    break;
-                case Keys.Right:
-                    playerSide = false;
-
-                    from = dockedItems;
-                    index = ref dockedIndex;
-
-                    if (from.Any()) {
-                        index = Math.Min(index ?? 0, from.Count - 1);
-                    } else {
-                        index = null;
-                    }
-                    break;
-                case Keys.Enter:
-                    Transact();
-                    break;
-                case Keys.Escape:
-                    var p = Parent;
-                    p.Children.Remove(this);
-                    if (next != null) {
-                        p.Children.Add(next);
-                        next.IsFocused = true;
-                    } else {
-                        p.IsFocused = true;
-                    }
-                    break;
-                default:
-                    var ch = char.ToLower(key.Character);
-                    if (ch >= 'a' && ch <= 'z') {
-                        int start = Math.Max(index.Value - 13, 0);
-                        var letterIndex = start + letterToIndex(ch);
-                        if (letterIndex < from.Count) {
-                            index = letterIndex;
-                            Transact();
-                        }
-                    }
-                    break;
-            }
-        }
-        void Transact() {
-
-            ref int? index = ref (playerSide ? ref playerIndex : ref dockedIndex);
-            if (index != null) {
-                var item = from.ElementAt(index.Value);
-                if (playerSide) {
-                    player.money += item.type.value;
-                } else {
-                    if (player.money < item.type.value) {
-                        return;
-                    }
-                    player.money -= item.type.value;
-                }
-                from.Remove(item);
-                to.Add(item);
-                if (from.Any()) {
-                    index = Math.Min(index ?? 0, from.Count - 1);
-                } else {
-                    index = null;
-                }
-            }
-        }
+        model.ProcessKeyboard(keyboard);
         return base.ProcessKeyboard(keyboard);
     }
     public override void Render(TimeSpan delta) {
+        
+        model.Render(this);
+        
         int x = 16;
-        int y = 16;
-
-        void line(Point from, Point to, int glyph) {
-            this.DrawLine(from, to, '-', Color.White, null);
-        }
-
-        this.RenderBackground();
-        //this.Fill(new Rectangle(x - 2, y, 34, 26), Color.Gray, null, '.');
-
-        Color c = playerSide ? Color.Yellow : Color.White;
-        this.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(c, Color.Black, '-'));
-        this.Print(x, y - 2, playerShip.name, c, Color.Black);
-        int start = 0;
-        int? highlight = null;
-
-        if (playerIndex != null) {
-            start = Math.Max(playerIndex.Value - 13, 0);
-            if (playerSide) {
-                highlight = playerIndex;
-            }
-        }
-        int end = Math.Min(playerItems.Count, start + 26);
-
-        if (playerItems.Any()) {
-            int i = start;
-            while (i < end) {
-                var highlightColor = i == highlight ? Color.Yellow : Color.White;
-                var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
-                         + new ColoredString(playerItems.ElementAt(i).type.name, highlightColor, Color.Black);
-                this.Print(x, y, name);
-                i++;
-                y++;
-            }
-
-            int height = 26;
-            int barStart = (height * (start)) / playerItems.Count;
-            int barEnd = (height * (end)) / playerItems.Count;
-            int barX = x - 2;
-            for (i = 0; i < height; i++) {
-                ColoredGlyph cg = i < barStart || i > barEnd ?
-                    new ColoredGlyph(Color.LightGray, Color.Black, '|') :
-                    new ColoredGlyph(Color.White, Color.Black, '#');
-                this.SetCellAppearance(barX, 16 + i, cg);
-            }
-            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
-            barX += 33;
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
-        } else {
-            var highlightColor = playerSide ? Color.Yellow : Color.White;
-            var name = new ColoredString("<Empty>", highlightColor, Color.Black);
-            this.Print(x, y, name);
-
-            int barX = x - 2;
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
-            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
-            barX += 33;
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
-        }
-        y = 16 + 26 + 2;
+        int y = 16 + 26 + 2;
         var f = Color.White;
         var b = Color.Black;
         this.Print(x, y++, $"Money: {$"{player.money}".PadLeft(8)}", f, b);
-        ref int? index = ref (playerSide ? ref playerIndex : ref dockedIndex);
-        if (index != null) {
+        var item = model.currentItem;
+        if (item != null) {
             f = Color.Yellow;
-            if (playerSide) {
-                var item = playerItems.ElementAt(index.Value);
-                this.Print(x, y++, $"      +{$"{item.type.value}".PadLeft(8)}", f, b);
-            } else {
-                var item = dockedItems.ElementAt(index.Value);
-                this.Print(x, y++, $"      -{$"{item.type.value}".PadLeft(8)}", f, b);
-            }
-        }
 
-        y = Height - 12;
-        foreach (var m in playerShip.messages) {
-            var cs = m.Draw();
-            cs.SetBackground(Color.Black);
-            this.Print(x, y++, cs);
-        }
+            int d = model.dealerIndex == 0 ? item.type.value : -item.type.value;
 
-        x += 32 + 4;
-        y = 16;
-
-        c = !playerSide ? Color.Yellow : Color.White;
-        this.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(c, Color.Black, '-'));
-        this.Print(x, y - 2, docked.name, c, Color.Black);
-
-        start = 0;
-        highlight = null;
-        if (dockedIndex != null) {
-            start = Math.Max(dockedIndex.Value - 13, 0);
-
-            if (!playerSide) {
-                highlight = dockedIndex;
-            }
-
-        }
-
-
-
-        end = Math.Min(dockedItems.Count, start + 26);
-        if (dockedItems.Any()) {
-            int i = start;
-            while (i < end) {
-                var highlightColor = (i == highlight ? Color.Yellow : Color.White);
-                var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", !playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
-                         + new ColoredString(dockedItems.ElementAt(i).type.name, highlightColor, Color.Black);
-                this.Print(x, y, name);
-                i++;
-                y++;
-            }
-
-            int height = 26;
-            int barStart = (height * (start)) / dockedItems.Count;
-            int barEnd = (height * (end)) / dockedItems.Count;
-            int barX = x - 2;
-            for (i = 0; i < height; i++) {
-                ColoredGlyph cg = i < barStart || i > barEnd ?
-                    new ColoredGlyph(Color.LightGray, Color.Black, '|') :
-                    new ColoredGlyph(Color.White, Color.Black, '#');
-                this.SetCellAppearance(barX, 16 + i, cg);
-            }
-            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
-            barX += 33;
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
-        } else {
-            var highlightColor = !playerSide ? Color.Yellow : Color.White;
-            var name = new ColoredString("<Empty>", highlightColor, Color.Black);
-            this.Print(x, y, name);
-
-            int barX = x - 2;
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
-            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
-            barX += 33;
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+            this.Print(x, y++, $"       {$"{item.type.value}".PadLeft(8)}{(model.dealerIndex == 0 ? '+' : '-')}", f, b);
+            //y++;
+            //this.Print(x, y++, $"       {$"{player.money + d}".PadLeft(8)}", f, b);
         }
         base.Render(delta);
     }
