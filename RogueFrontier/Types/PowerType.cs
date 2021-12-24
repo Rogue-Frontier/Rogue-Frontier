@@ -49,9 +49,10 @@ public class PowerHeal : PowerEffect {
     public PowerHeal(XElement e) {
 
     }
-    public void Invoke(PlayerShip invoker) {
-        invoker.hull.Restore();
-        invoker.devices.Reactors.ForEach(r => r.energy = r.desc.capacity);
+    public void Invoke(PlayerShip player) {
+        player.hull.Restore();
+        player.devices.Shields.ForEach(s => s.hp = s.desc.maxHP);
+        player.devices.Reactors.ForEach(r => r.energy = r.desc.capacity);
     }
 }
 public class PowerProjectileBarrier : PowerEffect {

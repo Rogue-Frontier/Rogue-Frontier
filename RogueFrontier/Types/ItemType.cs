@@ -359,7 +359,7 @@ public record ShieldDesc {
         regen = e.ExpectAttributeDouble(nameof(regen));
         absorbFactor = e.TryAttributeDouble(nameof(absorbFactor), 1);
         absorbMaxHP = e.TryAttributeInt(nameof(absorbMaxHP), -1);
-        absorbRegen = e.TryAttributeDouble(nameof(absorbRegen), -1);
+        absorbRegen = e.TryAttributeDouble(nameof(absorbRegen), regen);
     }
 }
 public record ReactorDesc {

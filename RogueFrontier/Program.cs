@@ -9,6 +9,9 @@ using ASECII;
 using SadConsole.Input;
 using static Common.Main;
 using System;
+using CsvHelper;
+using CsvHelper.Configuration;
+using System.Globalization;
 
 namespace RogueFrontier;
 
@@ -24,20 +27,30 @@ partial class Program {
     public static string cover = ExpectFile("RogueFrontierContent/sprites/RogueFrontierPosterV2.asc.cg");
     public static string splash = ExpectFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
     static void Main(string[] args) {
-        Directory.CreateDirectory("save");
-        Game.Create(Width, Height, font);
-        Game.Instance.OnStart = Start;
         if (args.Any()) {
             switch (args[0]) {
-                case "server":
-                    Game.Instance.OnStart = StartServer;
-                    break;
-                case "client":
-                    Game.Instance.OnStart = StartClient;
-                    break;
+                case "server": StartGame(StartServer); break;
+                case "client": StartGame(StartClient); break;
+                case "data": StartData(); break;
             }
+        } else {
+            //StartData();
+            StartGame(StartRegular);
         }
+    }
 
+    public static void StartData() {
+        using (var s = new StreamWriter("data.csv"))
+        using (var c = new CsvWriter(s, new(CultureInfo.InvariantCulture))) {
+            var tc = new TypeCollection(main);
+            c.WriteRecords(tc.itemType.Values);
+        }
+    }
+    public static void StartGame(Action OnStart) {
+        if (!Directory.Exists("save"))
+            Directory.CreateDirectory("save");
+        Game.Create(Width, Height, font);
+        Game.Instance.OnStart = OnStart;
         Game.Instance.Run();
         Game.Instance.Dispose();
     }
@@ -51,7 +64,7 @@ partial class Program {
         w.types.LoadFile(main);
         new TitleScreen(Width, Height, w).Client();
     }
-    public static void Start() {
+    public static void StartRegular() {
         var w = new System();
         w.types.LoadFile(main);
 #if false

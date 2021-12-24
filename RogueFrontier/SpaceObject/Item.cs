@@ -574,10 +574,13 @@ public class Shield : Powered {
     public double regenHP;
     public int delay;
     public double absorbFactor => desc.absorbFactor;
+    public int maxAbsorb => hp;
+    /*
     public int maxAbsorb => desc.absorbMaxHP == -1 ?
-        hp : Math.Max(hp, absorbHP);
+        hp : Math.Min(hp, absorbHP);
     public int absorbHP;
-
+    public double absorbRegenHP;
+    */
 
     public int powerUse => hp < desc.maxHP ? desc.powerUse : desc.idlePowerUse;
     public Shield() { }
@@ -594,30 +597,32 @@ public class Shield : Powered {
     public void Update(IShip owner) {
         if (delay > 0) {
             delay--;
-        } else if (hp < desc.maxHP) {
+        } else {
             regenHP += desc.regen;
             while (regenHP >= 1) {
-                bool regenerated = false;
                 if (hp < desc.maxHP) {
                     hp++;
-                    regenerated = true;
-                }
-                if(absorbHP < desc.absorbMaxHP) {
-                    absorbHP++;
-                    regenerated = true;
-                }
-                if (regenerated) {
                     regenHP--;
                 } else {
                     regenHP = 0;
                 }
             }
-
+            /*
+            absorbRegenHP += desc.absorbRegen;
+            while(absorbRegenHP >= 1) {
+                if(absorbHP < desc.absorbMaxHP) {
+                    absorbHP++;
+                    absorbRegenHP--;
+                } else {
+                    absorbRegenHP = 0;
+                }
+            }
+            */
         }
     }
     public void Absorb(int damage) {
         hp = Math.Max(0, hp - damage);
-        absorbHP = Math.Max(0, absorbHP - damage);
+        //absorbHP = Math.Max(0, absorbHP - damage);
         delay = (hp == 0 ? desc.depletionDelay : desc.damageDelay);
     }
 }

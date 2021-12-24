@@ -170,8 +170,6 @@
 			damageDelay=	"30"
 			depletionDelay=	"90"
 			regen=			"60 / 150"
-			
-			maxAbsorb=		"12"
 			>
 		</Shield>
 	</ItemType>

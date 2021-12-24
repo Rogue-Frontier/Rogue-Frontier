@@ -433,7 +433,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             } else if (Children.Contains(config)) {
                 Children.Remove(config);
             } else {
-                Program.Start();
+                Program.StartRegular();
             }
         }
         if (info.IsKeyDown(LeftShift)) {
