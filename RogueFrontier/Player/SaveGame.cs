@@ -131,13 +131,16 @@ public static class SaveGame {
 }
 public class LiveGame {
     public System world;
-    public Player player { get; private set; }
+    public Player player => playerShip.player;
     public PlayerShip playerShip;
+    public IContainer<OnLoad> onLoad;
+
+    public delegate void OnLoad(PlayerMain main);
     public LiveGame() { }
-    public LiveGame(System world, PlayerShip playerShip) {
+    public LiveGame(System world, PlayerShip playerShip, IContainer<OnLoad> scene = null) {
         this.world = world;
-        this.player = playerShip.player;
         this.playerShip = playerShip;
+        this.onLoad = scene;
     }
     public void Save() {
         var s = SaveGame.Serialize(this);

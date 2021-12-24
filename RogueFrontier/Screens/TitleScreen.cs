@@ -32,7 +32,7 @@ public class TitleScreen : Console {
     public int povTimer;
     public List<Message> povDesc;
 
-    XY screenCenter;
+    //XY screenCenter;
 
     public XY camera;
     public Dictionary<(int, int), ColoredGlyph> tiles;
@@ -41,10 +41,11 @@ public class TitleScreen : Console {
         this.World = World;
 
         profile = Profile.Load(out var p) ? p : new Profile();
+        profile.Save();
 
         UseKeyboard = true;
 
-        screenCenter = new XY(Width / 2, Height / 2);
+        //screenCenter = new XY(Width / 2, Height / 2);
 
         camera = new XY(0, 0);
         tiles = new Dictionary<(int, int), ColoredGlyph>();

@@ -51,7 +51,7 @@ public class TypeCollection {
     public void ProcessElement(XElement element) {
         switch (element.Name.LocalName) {
             case "Module":
-                XElement module = XDocument.Load(element.ExpectAttribute("file")).Root.ExpectElement("IslandHopperModule");
+                XElement module = XDocument.Load(element.ExpectAtt("file")).Root.ExpectElement("IslandHopperModule");
                 ProcessRoot(module);
                 break;
             case "Source":
@@ -144,10 +144,10 @@ public class ItemType : DesignType {
 
 
     public void Initialize(TypeCollection collection, XElement e) {
-        name = e.ExpectAttribute("name");
-        desc = e.ExpectAttribute("desc");
-        mass = e.TryAttributeDouble("mass", 0);
-        var imageSource = e.TryAttribute("image");
+        name = e.ExpectAtt("name");
+        desc = e.ExpectAtt("desc");
+        mass = e.TryAttDouble("mass", 0);
+        var imageSource = e.TryAtt("image");
         if (imageSource.Length > 0) {
             image = ColorImage.FromFile(imageSource);
         }
@@ -172,7 +172,7 @@ public class ItemType : DesignType {
                 knownChance = 0;
                 break;
         }
-        string unknownType = e.TryAttribute("unknownType");
+        string unknownType = e.TryAtt("unknownType");
         if (!string.IsNullOrWhiteSpace(unknownType)) {
             if (collection.Lookup(unknownType, out DesignType d) && d is ItemType it) {
                 this.unknownType = it;
@@ -214,19 +214,19 @@ public class ItemType : DesignType {
 
         public GrenadeType() { }
         public GrenadeType(TypeCollection collection, XElement e) {
-            inherit = e.TryAttribute(nameof(inherit), null);
+            inherit = e.TryAtt(nameof(inherit), null);
             if (inherit != null) {
                 var source = collection.sources[inherit].Element(Tag);
                 e.InheritAttributes(source);
             }
 
-            detonateOnDamage = e.TryAttributeBool(nameof(detonateOnDamage), true);
-            detonateOnImpact = e.TryAttributeBool(nameof(detonateOnImpact), false);
-            canArm = e.TryAttributeBool(nameof(canArm), true);
-            fuseTime = e.TryAttributeInt(nameof(fuseTime), 5);
-            explosionDamage = e.TryAttributeInt(nameof(explosionDamage), 5);
-            explosionForce = e.TryAttributeInt(nameof(explosionForce), 5);
-            explosionRadius = e.TryAttributeInt(nameof(explosionRadius), 5);
+            detonateOnDamage = e.TryAttBool(nameof(detonateOnDamage), true);
+            detonateOnImpact = e.TryAttBool(nameof(detonateOnImpact), false);
+            canArm = e.TryAttBool(nameof(canArm), true);
+            fuseTime = e.TryAttInt(nameof(fuseTime), 5);
+            explosionDamage = e.TryAttInt(nameof(explosionDamage), 5);
+            explosionForce = e.TryAttInt(nameof(explosionForce), 5);
+            explosionRadius = e.TryAttInt(nameof(explosionRadius), 5);
         }
     }
     public class HeadDesc {
@@ -234,8 +234,8 @@ public class ItemType : DesignType {
         public int defense, durability;
         public HeadDesc() { }
         public HeadDesc(XElement e) {
-            defense = e.ExpectAttributeInt(nameof(defense));
-            durability = e.ExpectAttributeInt(nameof(durability));
+            defense = e.ExpectAttInt(nameof(defense));
+            durability = e.ExpectAttInt(nameof(durability));
         }
     }
     public class GunDesc {
@@ -259,7 +259,7 @@ public class ItemType : DesignType {
             public int range => speed * grenadeType.fuseTime / 30;
             public GrenadeDesc() { }
             public GrenadeDesc(XElement e) {
-                speed = e.ExpectAttributeInt(nameof(speed));
+                speed = e.ExpectAttInt(nameof(speed));
             }
         }
         public class FlameDesc : ProjectileDesc {
@@ -270,9 +270,9 @@ public class ItemType : DesignType {
             public int range => speed * lifetime / 30;
             public FlameDesc() { }
             public FlameDesc(XElement e) {
-                damage = e.ExpectAttributeInt(nameof(damage));
-                speed = e.ExpectAttributeInt(nameof(speed));
-                lifetime = e.ExpectAttributeInt(nameof(lifetime));
+                damage = e.ExpectAttInt(nameof(damage));
+                speed = e.ExpectAttInt(nameof(speed));
+                lifetime = e.ExpectAttInt(nameof(lifetime));
             }
         }
         public class BulletDesc : ProjectileDesc {
@@ -284,7 +284,7 @@ public class ItemType : DesignType {
             public int range => speed * lifetime / 30;
             public BulletDesc() { }
             public BulletDesc(XElement e) {
-                damage = e.ExpectAttributeInt(nameof(damage));
+                damage = e.ExpectAttInt(nameof(damage));
             }
         }
 
@@ -313,7 +313,7 @@ public class ItemType : DesignType {
         public GunDesc(TypeCollection collection, XElement e) {
             //Don't modify the original source when we inherit
             e = new XElement(e);
-            inherit = e.TryAttribute(nameof(inherit), null);
+            inherit = e.TryAtt(nameof(inherit), null);
             if (inherit != null) {
                 var source = collection.sources[inherit].Element(Tag);
                 e.InheritAttributes(source);
@@ -327,27 +327,27 @@ public class ItemType : DesignType {
                     { "expert", 80 },
                     { "master", 100 },
                 };
-            if (Enum.TryParse<WeaponDifficulty>(e.TryAttribute(nameof(difficulty)), out var r)) {
+            if (Enum.TryParse<WeaponDifficulty>(e.TryAtt(nameof(difficulty)), out var r)) {
                 difficulty = (int)r;
             } else {
                 throw new Exception("Difficulty expected");
             }
-            recoil = e.TryAttributeInt(nameof(recoil), 0);
-            noiseRange = e.TryAttributeInt(nameof(noiseRange), 0);
+            recoil = e.TryAttInt(nameof(recoil), 0);
+            noiseRange = e.TryAttInt(nameof(noiseRange), 0);
 
-            projectileCount = e.TryAttributeInt(nameof(projectileCount), 1);
-            knockback = e.TryAttributeInt(nameof(knockback), 0);
-            spread = e.TryAttributeInt(nameof(spread), 0);
-            fireTime = e.TryAttributeInt(nameof(fireTime), 0);
-            reloadTime = e.TryAttributeInt(nameof(reloadTime), 0);
+            projectileCount = e.TryAttInt(nameof(projectileCount), 1);
+            knockback = e.TryAttInt(nameof(knockback), 0);
+            spread = e.TryAttInt(nameof(spread), 0);
+            fireTime = e.TryAttInt(nameof(fireTime), 0);
+            reloadTime = e.TryAttInt(nameof(reloadTime), 0);
 
-            critOnLastShot = e.TryAttributeBool(nameof(critOnLastShot), false);
+            critOnLastShot = e.TryAttBool(nameof(critOnLastShot), false);
 
-            clipSize = e.TryAttributeInt(nameof(clipSize), 0);
-            maxAmmo = e.TryAttributeInt(nameof(maxAmmo), 0);
+            clipSize = e.TryAttInt(nameof(clipSize), 0);
+            maxAmmo = e.TryAttInt(nameof(maxAmmo), 0);
 
-            initialClip = e.TryAttributeInt(nameof(initialClip), clipSize);
-            initialAmmo = e.TryAttributeInt(nameof(initialAmmo), maxAmmo);
+            initialClip = e.TryAttInt(nameof(initialClip), clipSize);
+            initialAmmo = e.TryAttInt(nameof(initialAmmo), maxAmmo);
 
             if (e.HasElement("Bullet", out var bulletXml)) {
                 projectile = new BulletDesc(bulletXml);
@@ -363,16 +363,16 @@ public class ItemType : DesignType {
         public int amount;
         public AmmoDesc() { }
         public AmmoDesc(XElement e) {
-            amount = e.ExpectAttributeInt(nameof(amount));
+            amount = e.ExpectAttInt(nameof(amount));
         }
     }
     class Symbol {
         private char c;
         private Color background, foreground;
         public Symbol(XElement e) {
-            c = e.TryAttribute("char", "?")[0];
-            background = (Color)typeof(Color).GetProperty(e.TryAttribute("background", "black")).GetValue(null, null);
-            foreground = (Color)typeof(Color).GetProperty(e.TryAttribute("foreground", "red")).GetValue(null, null);
+            c = e.TryAtt("char", "?")[0];
+            background = (Color)typeof(Color).GetProperty(e.TryAtt("background", "black")).GetValue(null, null);
+            foreground = (Color)typeof(Color).GetProperty(e.TryAtt("foreground", "red")).GetValue(null, null);
         }
         public ColoredGlyph String => new ColoredGlyph(background, foreground, c);
     }

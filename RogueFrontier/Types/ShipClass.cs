@@ -30,14 +30,14 @@ public class ShipClass : DesignType {
     }
     public ShipClass() { }
     public void Initialize(TypeCollection collection, XElement e) {
-        codename = e.ExpectAttribute("codename");
-        name = e.ExpectAttribute("name");
-        thrust = e.ExpectAttributeDouble("thrust");
-        maxSpeed = e.ExpectAttributeDouble("maxSpeed");
-        rotationMaxSpeed = e.ExpectAttributeDouble("rotationMaxSpeed");
-        rotationDecel = e.ExpectAttributeDouble("rotationDecel");
-        rotationAccel = e.ExpectAttributeDouble("rotationAccel");
-        behavior = e.TryAttributeEnum(nameof(behavior), ShipBehaviors.none);
+        codename = e.ExpectAtt("codename");
+        name = e.ExpectAtt("name");
+        thrust = e.ExpectAttDouble("thrust");
+        maxSpeed = e.ExpectAttDouble("maxSpeed");
+        rotationMaxSpeed = e.ExpectAttDouble("rotationMaxSpeed");
+        rotationDecel = e.ExpectAttDouble("rotationDecel");
+        rotationAccel = e.ExpectAttDouble("rotationAccel");
+        behavior = e.TryAttEnum(nameof(behavior), ShipBehaviors.none);
         tile = new StaticTile(e);
         if (e.HasElement("HPSystem", out XElement xmlHPSystem)) {
             damageDesc = new HPSystemDesc(xmlHPSystem);
@@ -64,7 +64,7 @@ public class HPSystemDesc : HullSystemDesc {
     public int maxHP;
     public HPSystemDesc() { }
     public HPSystemDesc(XElement e) {
-        maxHP = e.ExpectAttributeInt("maxHP");
+        maxHP = e.ExpectAttInt("maxHP");
     }
     public HullSystem Create(SpaceObject owner) {
         return new HPSystem(maxHP);
@@ -86,8 +86,8 @@ public class PlayerSettings {
     public string[] map;
     public PlayerSettings() { }
     public PlayerSettings(XElement e) {
-        startingClass = e.ExpectAttributeBool("startingClass");
-        description = e.ExpectAttribute("description");
+        startingClass = e.ExpectAttBool("startingClass");
+        description = e.ExpectAtt("description");
         if (e.HasElement("Map", out var xmlMap)) {
             map = xmlMap.Value.Replace("\r", "").Split('\n');
         }

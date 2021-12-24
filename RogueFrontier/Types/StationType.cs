@@ -32,12 +32,12 @@ public class StationType : DesignType {
     public Dictionary<(int, int), ColoredGlyph> heroImage;
 
     public void Initialize(TypeCollection collection, XElement e) {
-        codename = e.ExpectAttribute("codename");
-        name = e.ExpectAttribute("name");
-        hp = e.ExpectAttributeInt("hp");
-        crimeOnDestroy = e.TryAttributeBool(nameof(crimeOnDestroy));
-        behavior = e.TryAttributeEnum(nameof(behavior), StationBehaviors.none);
-        Sovereign = collection.Lookup<Sovereign>(e.ExpectAttribute("sovereign"));
+        codename = e.ExpectAtt("codename");
+        name = e.ExpectAtt("name");
+        hp = e.ExpectAttInt("hp");
+        crimeOnDestroy = e.TryAttBool(nameof(crimeOnDestroy));
+        behavior = e.TryAttEnum(nameof(behavior), StationBehaviors.none);
+        Sovereign = collection.Lookup<Sovereign>(e.ExpectAtt("sovereign"));
         tile = new StaticTile(e);
         segments = new();
         dockPoints = new();
@@ -47,9 +47,9 @@ public class StationType : DesignType {
                 switch (xmlSegment.Name.LocalName) {
                     case "MultiPoint":
                         var t = new StaticTile(xmlSegment);
-                        int angleInc = xmlSegment.ExpectAttributeInt("angleInc");
-                        var x = xmlSegment.ExpectAttributeDouble("offsetX");
-                        var y = xmlSegment.ExpectAttributeDouble("offsetY");
+                        int angleInc = xmlSegment.ExpectAttInt("angleInc");
+                        var x = xmlSegment.ExpectAttDouble("offsetX");
+                        var y = xmlSegment.ExpectAttDouble("offsetY");
                         XY offset = new XY(x, y);
 
 
@@ -58,8 +58,8 @@ public class StationType : DesignType {
                         }
                         break;
                     case "Ring":
-                        string foreground = xmlSegment.TryAttribute("foreground", "White");
-                        string background = xmlSegment.TryAttribute("background", "Transparent");
+                        string foreground = xmlSegment.TryAtt("foreground", "White");
+                        string background = xmlSegment.TryAtt("background", "Transparent");
                         segments.AddRange(CreateRing(foreground, background));
                         break;
                     case "Point":
@@ -72,9 +72,9 @@ public class StationType : DesignType {
             foreach (var xmlPart in xmlDock.Elements()) {
                 switch (xmlPart.Name.LocalName) {
                     case "MultiPoint": {
-                            int angleInc = xmlPart.ExpectAttributeInt("angleInc");
-                            var x = xmlPart.ExpectAttributeDouble("offsetX");
-                            var y = xmlPart.ExpectAttributeDouble("offsetY");
+                            int angleInc = xmlPart.ExpectAttInt("angleInc");
+                            var x = xmlPart.ExpectAttDouble("offsetX");
+                            var y = xmlPart.ExpectAttDouble("offsetY");
                             XY offset = new XY(x, y);
                             for (int angle = 0; angle < 360; angle += angleInc) {
                                 dockPoints.Add(offset.Rotate(angle * Math.PI / 180));
@@ -86,8 +86,8 @@ public class StationType : DesignType {
                             break;
                         }
                     case "Point": {
-                            var x = xmlPart.ExpectAttributeDouble("offsetX");
-                            var y = xmlPart.ExpectAttributeDouble("offsetY");
+                            var x = xmlPart.ExpectAttDouble("offsetX");
+                            var y = xmlPart.ExpectAttDouble("offsetY");
                             dockPoints.Add(new XY(x, y));
                             break;
                         }
@@ -108,7 +108,7 @@ public class StationType : DesignType {
                 this.heroImage = ColorImage.FromFile(path).Sprite;
             } else {
                 var heroImageText = heroImage.Value.Trim('\n').Replace("\r\n", "\n").Split('\n');
-                var heroImageTint = heroImage.TryAttributeColor("tint", Color.White);
+                var heroImageTint = heroImage.TryAttColor("tint", Color.White);
                 this.heroImage = heroImageText.ToImage(heroImageTint);
             }
         }
@@ -154,8 +154,8 @@ public class StationType : DesignType {
             this.tile = tile;
         }
         public SegmentDesc(XElement e) {
-            var x = e.ExpectAttributeDouble("offsetX");
-            var y = e.ExpectAttributeDouble("offsetY");
+            var x = e.ExpectAttDouble("offsetX");
+            var y = e.ExpectAttDouble("offsetY");
             offset = new XY(x, y);
             tile = new StaticTile(e);
         }

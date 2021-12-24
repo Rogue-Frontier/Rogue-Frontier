@@ -8,22 +8,24 @@ using System.Xml.Linq;
 
 namespace RogueFrontier;
 public record Modifier {
+    [Opt]
     public bool curse = false;
-
-    public int damageHPInc = 0;
-    public int missileSpeedInc = 0;
-    public int lifetimeInc = 0;
+    [Opt]
+    public int damageHPInc = 0,
+        missileSpeedInc = 0,
+        lifetimeInc = 0;
+    [Opt<double>(1)]
+    public double damageHPFactor = 1,
+        missileSpeedFactor = 1,
+        lifetimeFactor = 1;
     public Modifier() { }
     public Modifier(XElement e) {
-        curse = e.TryAttributeBool(nameof(curse));
-        damageHPInc=e.TryAttributeInt(nameof(damageHPInc));
-        missileSpeedInc = e.TryAttributeInt(nameof(missileSpeedInc));
-        lifetimeInc = e.TryAttributeInt(nameof(lifetimeInc));
+        e.Initialize(this);
     }
-
     public bool empty => this is Modifier {
         curse: false,
-        damageHPInc: 0, missileSpeedInc:0, lifetimeInc: 0
+        damageHPInc: 0, missileSpeedInc: 0, lifetimeInc: 0,
+        damageHPFactor: 1, missileSpeedFactor: 1, lifetimeFactor: 1
     };
     
     public void ModifyRemoval(ref bool removable) {
@@ -31,23 +33,19 @@ public record Modifier {
             removable = false;
         }
     }
-    public void ModifyWeapon(ref int damageHP, ref int missileSpeed, ref int lifetime) {
-        damageHP += damageHPInc;
-        missileSpeed += missileSpeedInc;
-        lifetime += lifetimeInc;
-    }
     public FragmentDesc ModifyWeapon(FragmentDesc d) {
+        var damageHP = d.damageHP;
+        if (damageHPFactor != 1)
+            damageHP = new DiceFactor(damageHP, damageHPFactor);
+        if (damageHPInc != 0)
+            damageHP = new DiceInc(damageHP, damageHPInc);
         return d with {
-            damageHP = new DiceMod(d.damageHP, damageHPInc),
-            missileSpeed = d.missileSpeed + missileSpeedInc,
-            lifetime = d.lifetime + lifetimeInc
+            damageHP = damageHP,
+            missileSpeed = (int) (d.missileSpeed * missileSpeedFactor + missileSpeedInc),
+            lifetime = (int) (d.lifetime * lifetimeFactor + lifetimeInc)
         };
     }
     public void ModifyWeapon(ref FragmentDesc d) {
-        d = d with {
-            damageHP = new DiceMod(d.damageHP, damageHPInc),
-            missileSpeed = d.missileSpeed + missileSpeedInc,
-            lifetime = d.lifetime + lifetimeInc
-        };
+        d = ModifyWeapon(d);
     }
 }

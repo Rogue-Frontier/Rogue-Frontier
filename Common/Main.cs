@@ -284,7 +284,7 @@ public static class Main {
         (result = e.Element(key)) != null;
     public static bool HasElements(this XElement e, string key, out IEnumerable<XElement> result) =>
         (result = e.Elements(key)) != null;
-    public static string ExpectAttribute(this XElement e, string attribute) =>
+    public static string ExpectAtt(this XElement e, string attribute) =>
         e.Attribute(attribute)?.Value
             ?? throw new Exception($"<{e.Name}> requires {attribute} attribute ### {e.Name}");
     public static XElement ExpectElement(this XElement e, string name) =>
@@ -293,11 +293,11 @@ public static class Main {
     public static bool TryAttribute(this XElement e, string attribute, out string result) =>
         (result = e.Attribute(attribute)?.Value) != null;
     
-    public static string TryAttribute(this XElement e, string attribute, string fallback = "") =>
+    public static string TryAtt(this XElement e, string attribute, string fallback = "") =>
         e.Attribute(attribute)?.Value ?? fallback;
-    public static string TryAttributeOptional(this XElement e, string attribute) =>
+    public static string TryAttNullable(this XElement e, string attribute) =>
     e.Attribute(attribute)?.Value;
-    public static char TryAttributeChar(this XElement e, string attribute, char fallback) =>
+    public static char TryAttChar(this XElement e, string attribute, char fallback) =>
         e.TryAttribute("char", out string s) ?
             (s.Length == 1 ?
                 s.First() :
@@ -305,7 +305,16 @@ public static class Main {
                 (char)result :
             throw new Exception($"Char value expected:{attribute}=\"{s}\" ### {e.Name}")
             ) : fallback;
-    public static Color TryAttributeColor(this XElement e, string attribute, Color fallback) {
+
+    public static char ExpectAttChar(this XElement e, string attribute) =>
+        e.TryAttribute("char", out string s) ?
+            (s.Length == 1 ?
+                s.First() :
+            s.StartsWith("\\") && int.TryParse(s.Substring(1), out var result) ?
+                (char)result :
+            throw new Exception($"Char value expected:{attribute}=\"{s}\" ### {e.Name}")
+            ) : throw new Exception($"Char value expected:{attribute}=\"{s}\" ### {e.Name}");
+    public static Color TryAttColor(this XElement e, string attribute, Color fallback) {
         if (e.TryAttribute(attribute, out string s)) {
             if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
                 return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
@@ -319,9 +328,9 @@ public static class Main {
             return fallback;
         }
     }
-    public static int TryAttributeInt(this XElement e, string attribute, int fallback = 0) => TryAttributeInt(e.Attribute(attribute), fallback);
+    public static int TryAttInt(this XElement e, string attribute, int fallback = 0) => TryAttributeInt(e.Attribute(attribute), fallback);
 
-    public static int? TryAttributeIntOptional(this XElement e, string attribute) => TryAttributeIntOptional(e.Attribute(attribute));
+    public static int? TryAttIntNullable(this XElement e, string attribute, int? fallback=null) => TryAttributeIntOptional(e.Attribute(attribute)) ?? fallback;
     //We expect either no value or a valid value; an invalid value gets an exception
     public static int TryAttributeInt(this XAttribute a, int fallback = 0) =>
         a == null ?
@@ -331,15 +340,15 @@ public static class Main {
         a.Value.Any() ?
             Convert.ToInt32(new Expression(a.Value).Evaluate()) :
         throw new Exception($"int value expected: {a.Name}=\"{a.Value}\" ### {a.Parent.Name}");
-    public static int? TryAttributeIntOptional(this XAttribute a) =>
+    public static int? TryAttributeIntOptional(this XAttribute a, int? fallback = null) =>
         a == null ?
-            null :
+            fallback :
         int.TryParse(a.Value, out int result) ? 
             result :
         a.Value.Any() ? 
             Convert.ToInt32(new Expression(a.Value).Evaluate()):
         throw new Exception($"int value expected: {a.Name}=\"{a.Value}\" ### {a.Parent.Name}");
-    public static Color ExpectAttributeColor(this XElement e, string attribute) {
+    public static Color ExpectAttColor(this XElement e, string attribute) {
         if (e.TryAttribute(attribute, out string s)) {
             if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
                 return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
@@ -352,12 +361,12 @@ public static class Main {
             throw new Exception($"{e.Name} requires color attribute {attribute} ### {e.Name}");
         }
     }
-    public static int ExpectAttributeInt(this XElement e, string attribute) =>
+    public static int ExpectAttInt(this XElement e, string attribute) =>
         e.Attribute(attribute) is XAttribute a ?
             ExpectAttributeInt(a) :
             throw new Exception($"<{e.Name}> requires int attribute: {attribute} ### {e} ### {e.Parent}");
 
-    public static IDice ExpectAttributeDice(this XElement e, string attribute) =>
+    public static IDice ExpectAttDice(this XElement e, string attribute) =>
     e.Attribute(attribute) is XAttribute a ?
         ExpectAttributeDice(a) :
         throw new Exception($"<{e.Name}> requires dice attribute: {attribute} ### {e} ### {e.Parent}");
@@ -370,21 +379,21 @@ public static class Main {
         IDice.Parse(a.Value) ?? 
         throw new Exception($"int value / equation expected: {a.Name} = \"{a.Value}\"");
 
-    public static double ExpectAttributeDouble(this XElement e, string attribute) =>
+    public static double ExpectAttDouble(this XElement e, string attribute) =>
         e.Attribute(attribute) is XAttribute a ? ExpectAttributeDouble(a) :
         throw new Exception($"<{e.Name}> requires double attribute: {attribute} ### {e} ### {e.Parent}");
     public static double ExpectAttributeDouble(this XAttribute a) =>
         double.TryParse(a.Value, out double result) ? result :
         a.Value.Any() ? Convert.ToDouble(new Expression(a.Value).Evaluate()) :
         throw new Exception($"double value expected: {a.Name} = \"{a.Value}\"");
-    public static bool ExpectAttributeBool(this XElement e, string attribute) =>
+    public static bool ExpectAttBool(this XElement e, string attribute) =>
         e.Attribute(attribute) is XAttribute a ?
         ExpectAttributeBool(a) :
         throw new Exception($"<{e.Name}> requires bool attribute: {attribute} ### {e.Name}");
     public static bool ExpectAttributeBool(this XAttribute a) =>
         bool.TryParse(a.Value, out bool result) ? result :
         throw new Exception($"bool value expected: {a.Name} = \"{a.Value}\"");
-    public static double TryAttributeDouble(this XElement e, string attribute, double fallback = 0) => TryAttributeDouble(e.Attribute(attribute), fallback);
+    public static double TryAttDouble(this XElement e, string attribute, double fallback = 0) => TryAttributeDouble(e.Attribute(attribute), fallback);
     public static double TryAttributeDouble(this XAttribute a, double fallback = 0) =>
         a == null ? fallback :
         double.TryParse(a.Value, out double result) ? result :
@@ -520,6 +529,8 @@ public static class Main {
             false : fallback);
     }
     //We expect either no value or a valid value; an invalid value gets an exception
+    public static bool TryAttBool(this XElement e, string attribute, bool fallback = false) =>
+        e.TryAtt(attribute).ParseBool(fallback);
     public static bool TryAttributeBool(XAttribute a, bool fallback = false) {
         if (a == null) {
             return fallback;
@@ -529,12 +540,9 @@ public static class Main {
             throw new Exception($"Bool value expected: {a.Name}=\"{a.Value}\"");
         }
     }
-    public static bool TryAttributeBool(this XElement e, string attribute, bool fallback = false) {
-        return e.TryAttribute(attribute).ParseBool(fallback);
-    }
-    public static bool? TryAttributeBoolOptional(this XElement e, string name, bool? fallback = null) {
-        return e.Attribute(name)?.TryAttributeBoolOptional(fallback);
-    }
+    public static bool? TryAttBoolNullable(this XElement e, string name, bool? fallback = null) =>
+        e.Attribute(name)?.TryAttributeBoolOptional(fallback);
+    
     public static bool? TryAttributeBoolOptional(this XAttribute a, bool? fallback = null) {
         if (a == null) {
             return fallback;
@@ -561,12 +569,15 @@ public static class Main {
 
     }
     */
-    public static TEnum TryAttributeEnum<TEnum>(this XElement e, string attribute, TEnum fallback = default) where TEnum : struct {
-        return e.Attribute(attribute)?.ParseEnum<TEnum>(fallback) ?? fallback;
+    public static TEnum TryAttEnum<TEnum>(this XElement e, string attribute, TEnum fallback = default) where TEnum : struct {
+        return e.Attribute(attribute)?.ParseEnum(fallback) ?? fallback;
     }
-    public static TEnum ExpectAttributeEnum<TEnum>(this XElement e, string attribute) where TEnum : struct {
-        string value = e.ExpectAttribute(attribute);
-        if (Enum.TryParse<TEnum>(value, out TEnum result)) {
+    public static object TryAttEnum(this XElement e, Type t, string attribute, object fallback) {
+        return Convert.ChangeType(e.Attribute(attribute)?.ParseEnum(t, fallback), t) ?? fallback;
+    }
+    public static TEnum ExpectAttEnum<TEnum>(this XElement e, string attribute) where TEnum : struct {
+        string value = e.ExpectAtt(attribute);
+        if (Enum.TryParse(value, out TEnum result)) {
             return result;
         } else {
             throw new Exception($"Enum value of {typeof(TEnum).Name} expected: {attribute}=\"{value}\"");
@@ -576,12 +587,70 @@ public static class Main {
     public static TEnum ParseEnum<TEnum>(this XAttribute a, TEnum fallback = default) where TEnum : struct {
         if (a == null) {
             return fallback;
-        } else if (Enum.TryParse<TEnum>(a.Value, out TEnum result)) {
+        } else if (Enum.TryParse(a.Value, out TEnum result)) {
             return result;
         } else {
             throw new Exception($"Enum value of {fallback.GetType().Name} expected: {a.Name}=\"{a.Value}\"");
         }
     }
+    public static object ParseEnum(this XAttribute a, Type t, object fallback) {
+        if (a == null) {
+            return fallback;
+        } else if (Enum.TryParse(t, a.Value, out var result)) {
+            return Convert.ChangeType(result, t);
+        } else {
+            throw new Exception($"Enum value of {fallback.GetType().Name} expected: {a.Name}=\"{a.Value}\"");
+        }
+    }
+    //Remember to call this to initialize XML properties
+    public static void Initialize(this XElement e, object obj) {
+        var props = obj.GetType().GetFields();
+        foreach (var p in props) {
+            var a = p.GetCustomAttributes(true).OfType<IAtt>().FirstOrDefault();
+            if(a != null) {
+                var name = p.Name;
+                Dictionary<Type, Func<object>> d;
+
+                object value = a switch {
+                    Req r => new Dictionary<Type, Func<object>>() {
+                        [typeof(string)] = () => e.ExpectAtt(name),
+
+                        [typeof(bool)] = () => e.ExpectAttBool(name),
+                        [typeof(int)] = () => e.ExpectAttInt(name),
+                        [typeof(char)] = () => e.ExpectAttChar(name),
+                        [typeof(double)] = () => e.ExpectAttDouble(name),
+
+                        [typeof(IDice)] = () => e.ExpectAttDice(name),
+                        [typeof(Color)] = () => e.ExpectAttColor(name)
+                    }[p.FieldType](),
+
+                    Opt o => new Dictionary<Type, Func<object>>() {
+                        [typeof(string)] = () => e.TryAtt(name),
+
+                        [typeof(bool?)] = () => e.TryAttBoolNullable(name),
+                        [typeof(int?)] = () => e.TryAttIntNullable(name),
+                        
+
+                        [typeof(bool)] = () => e.TryAttBool(name),
+                        [typeof(int)] = () => e.TryAttInt(name),
+                        [typeof(double)] = () => e.TryAttDouble(name),
+                    }[p.FieldType](),
+
+                    Opt<string> o => e.TryAtt(name, o.fallback),
+                    Opt<int> o => e.TryAttInt(name, o.fallback),
+                    Opt<int?> o => e.TryAttIntNullable(name, o.fallback),
+                    Opt<bool> o => e.TryAttBool(name, o.fallback),
+                    Opt<bool?> o => e.TryAttBoolNullable(name, o.fallback),
+                    Opt<char> o => e.TryAttChar(name, o.fallback),
+                    _ => throw new Exception($"Unsupported attribute type {a.GetType().Name}")
+                };
+
+                p.SetValue(obj, value);
+            }
+            
+        }
+    }
+
     public static TValue TryLookup<TKey, TValue>(this Dictionary<TKey, TValue> d, TKey key, TValue fallback = default) {
         if (d.ContainsKey(key)) {
             return d[key];

@@ -49,39 +49,36 @@ public class ShipEntry : ShipGenerator {
     public string sovereign;
     public ShipEntry() { }
     public ShipEntry(XElement e) {
-        this.count = e.TryAttributeInt(nameof(count), 1);
-        this.codename = e.ExpectAttribute(nameof(codename));
-
-        orderDesc = Enum.Parse<ShipOrder>(e.TryAttribute("order", "guard")) switch {
+        count = e.TryAttInt(nameof(count), 1);
+        codename = e.ExpectAtt(nameof(codename));
+        orderDesc = e.TryAttEnum("order", ShipOrder.guard) switch {
             ShipOrder.attack => new AttackDesc(),
             ShipOrder.guard => new GuardDesc(),
             ShipOrder.patrol => new PatrolOrbitDesc(e),
             ShipOrder.patrolCircuit => new PatrolCircuitDesc(e)
         };
-        this.sovereign = e.TryAttribute(nameof(sovereign), "");
+        sovereign = e.TryAtt(nameof(sovereign));
     }
     public List<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
-        if (tc.Lookup<ShipClass>(codename, out var shipClass)) {
-            Sovereign s = sovereign.Any() ? tc.Lookup<Sovereign>(sovereign) : owner.sovereign;
-            Func<int, XY> GetPos = orderDesc switch {
-                PatrolOrbitDesc pod => i => owner.position + XY.Polar(
-                                            Math.PI * 2 * i / count,
-                                            pod.patrolRadius),
-                _ => i => owner.position
-            };
-            return new List<AIShip>(
-                Enumerable.Range(0, count)
-                .Select(i => new AIShip(new BaseShip(
-                        owner.world,
-                        shipClass,
-                        s,
-                        GetPos(i)
-                    ),
-                    orderDesc.CreateOrder(owner)
-                    ))
-                );
-        }
-        throw new Exception($"Invalid ShipClass type {codename}");
+        var shipClass = tc.Lookup<ShipClass>(codename);
+        Sovereign s = sovereign.Any() ? tc.Lookup<Sovereign>(sovereign) : owner.sovereign;
+        Func<int, XY> GetPos = orderDesc switch {
+            PatrolOrbitDesc pod => i => owner.position + XY.Polar(
+                                        Math.PI * 2 * i / count,
+                                        pod.patrolRadius),
+            _ => i => owner.position
+        };
+        return new List<AIShip>(
+            Enumerable.Range(0, count)
+            .Select(i => new AIShip(new BaseShip(
+                    owner.world,
+                    shipClass,
+                    s,
+                    GetPos(i)
+                ),
+                orderDesc.CreateOrder(owner)
+                ))
+            );
     }
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
@@ -106,7 +103,7 @@ public class ShipEntry : ShipGenerator {
         public int patrolRadius;
         public PatrolOrbitDesc() { }
         public PatrolOrbitDesc(XElement e) {
-            patrolRadius = e.ExpectAttributeInt("patrolRadius");
+            patrolRadius = e.ExpectAttInt("patrolRadius");
         }
         public IShipOrder CreateOrder(SpaceObject owner) => new PatrolOrbitOrder(owner, patrolRadius);
     }
@@ -115,7 +112,7 @@ public class ShipEntry : ShipGenerator {
         public int patrolRadius;
         public PatrolCircuitDesc() { }
         public PatrolCircuitDesc(XElement e) {
-            patrolRadius = e.ExpectAttributeInt("patrolRadius");
+            patrolRadius = e.ExpectAttInt("patrolRadius");
         }
         public IShipOrder CreateOrder(SpaceObject owner) => new PatrolCircuitOrder(owner, patrolRadius);
     }
@@ -126,7 +123,7 @@ public class ModRoll {
     public Modifier modifier;
     public ModRoll() { }
     public ModRoll(XElement e) {
-        modifierChance = e.TryAttributeDouble(nameof(modifierChance), 1);
+        modifierChance = e.TryAttDouble(nameof(modifierChance), 1);
         modifier = new Modifier(e);
         if (modifier.empty) {
             modifier = null;
@@ -171,8 +168,8 @@ public class ItemEntry : ItemGenerator {
     public ModRoll mod;
     public ItemEntry() { }
     public ItemEntry(XElement e) {
-        codename = e.ExpectAttribute("codename");
-        count = e.TryAttributeInt("count", 1);
+        codename = e.ExpectAtt("codename");
+        count = e.TryAttInt("count", 1);
         mod = new(e);
 
     }
@@ -215,7 +212,7 @@ public class ArmorEntry : ArmorGenerator {
     public ModRoll mod;
     public ArmorEntry() { }
     public ArmorEntry(XElement e) {
-        this.codename = e.ExpectAttribute("codename");
+        this.codename = e.ExpectAtt("codename");
         this.mod = new(e);
     }
     List<Armor> ArmorGenerator.Generate(TypeCollection tc) {
@@ -304,7 +301,7 @@ class ReactorEntry : DeviceGenerator {
     public ModRoll mod;
     public ReactorEntry() { }
     public ReactorEntry(XElement e) {
-        this.codename = e.ExpectAttribute("codename");
+        this.codename = e.ExpectAtt("codename");
         this.mod = new(e);
     }
     List<Device> DeviceGenerator.Generate(TypeCollection tc) {
@@ -330,7 +327,7 @@ class SolarEntry : DeviceGenerator {
     public ModRoll mod;
     public SolarEntry() { }
     public SolarEntry(XElement e) {
-        this.codename = e.ExpectAttribute("codename");
+        this.codename = e.ExpectAtt("codename");
         this.mod = new(e);
     }
     List<Device> DeviceGenerator.Generate(TypeCollection tc) {
@@ -357,7 +354,7 @@ class MiscEntry : DeviceGenerator {
     public ModRoll mod;
     public MiscEntry() { }
     public MiscEntry(XElement e) {
-        this.codename = e.ExpectAttribute("codename");
+        this.codename = e.ExpectAtt("codename");
         this.mod = new(e);
     }
     List<Device> DeviceGenerator.Generate(TypeCollection tc) {
@@ -384,7 +381,7 @@ class ShieldEntry : DeviceGenerator {
     public ModRoll mod;
     public ShieldEntry() { }
     public ShieldEntry(XElement e) {
-        this.codename = e.ExpectAttribute("codename");
+        this.codename = e.ExpectAtt("codename");
         this.mod = new(e);
     }
     List<Device> DeviceGenerator.Generate(TypeCollection tc) {
@@ -442,8 +439,8 @@ class WeaponEntry : DeviceGenerator, WeaponGenerator {
     public ModRoll mod;
     public WeaponEntry() { }
     public WeaponEntry(XElement e) {
-        codename = e.ExpectAttribute("codename");
-        omnidirectional = e.TryAttributeBool("omnidirectional", false);
+        codename = e.ExpectAtt("codename");
+        omnidirectional = e.TryAttBool("omnidirectional", false);
         mod = new(e);
     }
 

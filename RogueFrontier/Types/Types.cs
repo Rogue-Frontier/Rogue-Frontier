@@ -94,7 +94,7 @@ public class TypeCollection {
     public void ProcessElement(string file, XElement element) {
         switch (element.Name.LocalName) {
             case "Module":
-                var subfile = Path.Combine(Directory.GetParent(file).FullName, element.ExpectAttribute("file"));
+                var subfile = Path.Combine(Directory.GetParent(file).FullName, element.ExpectAtt("file"));
                 XElement module = XDocument.Load(subfile).Root;
                 ProcessRoot(file, module);
                 break;
@@ -251,9 +251,9 @@ public class StaticTile : ITile {
     public StaticTile() {
     }
     public StaticTile(XElement e) {
-        char c = e.TryAttributeChar("char", '?');
-        Color foreground = e.TryAttributeColor("foreground", Color.White);
-        Color background = e.TryAttributeColor("background", Color.Transparent);
+        char c = e.TryAttChar("char", '?');
+        Color foreground = e.TryAttColor("foreground", Color.White);
+        Color background = e.TryAttColor("background", Color.Transparent);
 
         Original = new ColoredGlyph(foreground, background, c);
     }

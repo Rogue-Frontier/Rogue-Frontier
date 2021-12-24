@@ -17,9 +17,11 @@ public static class SAchievements {
     }
 }
 public class Profile {
-
     public static string file = "Profile.json";
-    public HashSet<Achievement> achievements = new HashSet<Achievement>();
+
+    public bool allowDictator = false;
+    public HashSet<Achievement> achievements = new();
+    
     public static bool Load(out Profile p) {
         if (File.Exists(file)) {
             p = (Profile)SaveGame.Deserialize(File.ReadAllText(file));

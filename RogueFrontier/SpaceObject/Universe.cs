@@ -41,12 +41,12 @@ public class UniverseDesc {
 
         public SystemDesc() { }
         public SystemDesc(XElement e) {
-            id = e.ExpectAttribute(nameof(id));
-            name = e.ExpectAttribute(nameof(name));
+            id = e.ExpectAtt(nameof(id));
+            name = e.ExpectAtt(nameof(name));
             if (e.HasElement("SystemGroup", out var xmlSystemGroup)) {
                 systemGroup = new SystemGroup(xmlSystemGroup);
             }
-            codename = e.TryAttribute(nameof(codename));
+            codename = e.TryAtt(nameof(codename));
             globalStargates = new();
             foreach (var g in e.Elements("GlobalStargate")) {
                 globalStargates.Add(new GlobalStargateDesc(g));
@@ -58,8 +58,8 @@ public class UniverseDesc {
         public string gateId;
         public GlobalStargateDesc() { }
         public GlobalStargateDesc(XElement e) {
-            globalId = e.ExpectAttribute(nameof(globalId));
-            gateId = e.ExpectAttribute(nameof(gateId));
+            globalId = e.ExpectAtt(nameof(globalId));
+            gateId = e.ExpectAtt(nameof(gateId));
         }
     }
     public class LinkDesc {
@@ -67,8 +67,8 @@ public class UniverseDesc {
         public string toGateId;
         public LinkDesc() { }
         public LinkDesc(XElement e) {
-            fromGateId = e.ExpectAttribute(nameof(fromGateId));
-            toGateId = e.ExpectAttribute(nameof(toGateId));
+            fromGateId = e.ExpectAtt(nameof(fromGateId));
+            toGateId = e.ExpectAtt(nameof(toGateId));
         }
     }
 }

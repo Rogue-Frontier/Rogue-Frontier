@@ -172,7 +172,7 @@ public static class SScene {
         */
     }
 }
-class Dialog : Console {
+public class Dialog : Console {
     public string desc;
     public bool charging;
     public int descIndex;

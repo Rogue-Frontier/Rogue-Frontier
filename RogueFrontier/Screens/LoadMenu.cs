@@ -41,8 +41,12 @@ class LoadMenu : Console {
                     switch (loaded) {
                         case LiveGame live: {
                                 var playerMain = new PlayerMain(Width, Height, profile, live.playerShip) { IsFocused = true };
+                                //live.playerShip.player.Settings;
+
                                 live.playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
                                 GameHost.Instance.Screen = playerMain;
+                                //If we have any load hooks, trigger them now
+                                live.onLoad?.Value(playerMain);
                                 break;
                             }
                         case DeadGame dead: {

@@ -361,14 +361,14 @@ public class Weapon : Powered {
 
         public FragmentDesc Modify(FragmentDesc fd) {
             return fd with {
-                damageHP = new DiceMod(fd.damageHP, (int)(desc.bonusDamagePerCharge * charge)),
+                damageHP = new DiceInc(fd.damageHP, (int)(desc.bonusDamagePerCharge * charge)),
                 missileSpeed = fd.missileSpeed + (int)(desc.bonusSpeedPerCharge * charge),
                 lifetime = fd.lifetime + (int)(desc.bonusLifetimePerCharge * charge)
             };
         }
         public void Modify(ref FragmentDesc fd) {
             fd = fd with {
-                damageHP = new DiceMod(fd.damageHP, (int)(desc.bonusDamagePerCharge * charge)),
+                damageHP = new DiceInc(fd.damageHP, (int)(desc.bonusDamagePerCharge * charge)),
                 missileSpeed = fd.missileSpeed + (int)(desc.bonusSpeedPerCharge * charge),
                 lifetime = fd.lifetime + (int)(desc.bonusLifetimePerCharge * charge)
             };

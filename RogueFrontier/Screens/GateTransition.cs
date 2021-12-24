@@ -42,11 +42,10 @@ public class GateTransition : Console {
         amount += delta.TotalSeconds * 1.2;
 
         if (amount < 1) {
+            rect = new Rectangle(new(Width / 2, Height / 2), (int)(amount * Width / 2), (int)(amount * Height / 2));
             particles.AddRange(rect.PerimeterPositions().Select(p => new Particle(15, p)));
             particles.ForEach(p => p.lifetime--);
             particles.RemoveAll(p => p.lifetime < 1);
-
-            rect = new Rectangle(new(Width / 2, Height / 2), (int)(amount * Width / 2), (int)(amount * Height / 2));
         } else {
             Transition();
         }

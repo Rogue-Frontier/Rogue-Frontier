@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Grid.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RNG.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SparkleFilter.cs" />
+    <Compile Include="..\Common\Req.cs" />
     <Compile Include="..\Common\IContainer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QTree.cs" />
     <Compile Include="..\Common\Main.cs" />

@@ -27,9 +27,14 @@ public interface IDice {
     string str { get; }
 }
 
-public record DiceMod(IDice sub, int bonus) : IDice {
+public record DiceInc(IDice sub, int bonus) : IDice {
     public int Roll() => sub.Roll() + bonus;
-    public string str => $"{sub.str}{IDice.strBonus(bonus)}";
+    public string str => $"({sub.str}){IDice.strBonus(bonus)}";
+}
+public record DiceFactor(IDice sub, double factor) : IDice {
+
+    public int Roll() => (int)(sub.Roll() * factor);
+    public string str => $"({sub.str})*{factor}";
 }
 public record Constant(int Value) : IDice {
     public int Roll() => Value;

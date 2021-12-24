@@ -98,18 +98,18 @@ public class Sovereign : DesignType {
         entityDispositions = new Dict<Entity, Disposition>();
     }
     public void Initialize(TypeCollection tc, XElement e) {
-        codename = e.ExpectAttribute("codename");
-        if (Enum.TryParse<Alignment>(e.ExpectAttribute("alignment"), out Alignment alignment)) {
+        codename = e.ExpectAtt("codename");
+        if (Enum.TryParse<Alignment>(e.ExpectAtt("alignment"), out Alignment alignment)) {
             this.alignment = alignment;
         } else {
-            throw new Exception($"Invalid alignment value {e.ExpectAttribute("alignment")}");
+            throw new Exception($"Invalid alignment value {e.ExpectAtt("alignment")}");
         }
 
         if (e.HasElement("Relations", out var xmlRelations)) {
             foreach (var xmlRel in xmlRelations.Elements()) {
-                var other = xmlRel.ExpectAttribute("target");
-                var disposition = Enum.Parse<Disposition>(xmlRel.ExpectAttribute("disposition"));
-                var mutual = xmlRel.ExpectAttributeBool("mutual");
+                var other = xmlRel.ExpectAtt("target");
+                var disposition = xmlRel.ExpectAttEnum<Disposition>("disposition");
+                var mutual = xmlRel.ExpectAttBool("mutual");
 
                 var sov = tc.sovereign[other];
                 sovDispositions[sov.codename] = disposition;

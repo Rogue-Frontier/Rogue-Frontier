@@ -14,11 +14,11 @@ public class PowerType : DesignType {
 
     public PowerEffect Effect;
     public void Initialize(TypeCollection collection, XElement e) {
-        codename = e.ExpectAttribute(nameof(codename));
-        name = e.ExpectAttribute(nameof(name));
-        cooldownTime = e.ExpectAttributeInt(nameof(cooldownTime));
-        invokeDelay = e.ExpectAttributeInt(nameof(invokeDelay));
-        message = e.TryAttribute(nameof(message), null);
+        codename = e.ExpectAtt(nameof(codename));
+        name = e.ExpectAtt(nameof(name));
+        cooldownTime = e.ExpectAttInt(nameof(cooldownTime));
+        invokeDelay = e.ExpectAttInt(nameof(invokeDelay));
+        message = e.TryAtt(nameof(message), null);
 
         if (e.HasElement("Weapon", out var xmlWeapon)) {
             Effect = new PowerWeapon(xmlWeapon);
@@ -64,9 +64,9 @@ public class PowerProjectileBarrier : PowerEffect {
     public int lifetime;
     public PowerProjectileBarrier() { }
     public PowerProjectileBarrier(XElement e) {
-        barrierType = e.ExpectAttributeEnum<BarrierType>(nameof(barrierType));
-        lifetime = e.ExpectAttributeInt(nameof(lifetime));
-        radius = e.ExpectAttributeInt(nameof(radius));
+        barrierType = e.ExpectAttEnum<BarrierType>(nameof(barrierType));
+        lifetime = e.ExpectAttInt(nameof(lifetime));
+        radius = e.ExpectAttInt(nameof(radius));
     }
     public void Invoke(PlayerShip invoker) {
         var world = invoker.world;
