@@ -1,0 +1,2 @@
+﻿Quietus
+- Attack: "No bars held!"

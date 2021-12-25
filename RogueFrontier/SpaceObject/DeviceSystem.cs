@@ -5,9 +5,7 @@ namespace RogueFrontier;
 
 public class DeviceSystem {
     public List<Device> Installed;
-
     public List<Powered> Powered;
-    
     public List<Reactor> Reactors;
     public List<Solar> Solars;
     public List<Weapon> Weapons;
