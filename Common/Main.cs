@@ -450,30 +450,30 @@ public static class Main {
         }
     }
 
-    public static XY GetBoundaryPoint(XY dimensions, double angle) {
-        while (angle < 0) {
-            angle += 2 * Math.PI;
+    public static XY GetBoundaryPoint(XY dimensions, double angleRad) {
+        while (angleRad < 0) {
+            angleRad += 2 * Math.PI;
         }
-        while (angle > 2 * Math.PI) {
-            angle -= 2 * Math.PI;
+        while (angleRad > 2 * Math.PI) {
+            angleRad -= 2 * Math.PI;
         }
         var center = dimensions / 2;
         var halfWidth = dimensions.x / 2;
         var halfHeight = dimensions.y / 2;
         var diagonalAngle = dimensions.angleRad;
-        if ((angle < diagonalAngle || angle > Math.PI * 2 - diagonalAngle)  //Right side
-            || (angle < Math.PI + diagonalAngle && angle > Math.PI - diagonalAngle) //Left side
+        if ((angleRad < diagonalAngle || angleRad > Math.PI * 2 - diagonalAngle)  //Right side
+            || (angleRad < Math.PI + diagonalAngle && angleRad > Math.PI - diagonalAngle) //Left side
             ) {
-            var cos = Math.Cos(angle);
-            var sin = Math.Sin(angle);
+            var cos = Math.Cos(angleRad);
+            var sin = Math.Sin(angleRad);
 
             var factor = Math.Abs(halfWidth / cos);
             return center + new XY(cos * factor, sin * factor);
         } else /* if((angle < Math.PI - diagonalAngle && angle > diagonalAngle)	//Top side
 				|| (angle < 2 * Math.PI - diagonalAngle && angle > Math.PI + diagonalAngle)
 				) */ {
-            var cos = Math.Cos(angle);
-            var sin = Math.Sin(angle);
+            var cos = Math.Cos(angleRad);
+            var sin = Math.Sin(angleRad);
             var factor = Math.Abs(halfHeight / sin);
             return center + new XY(cos * factor, sin * factor);
         } /* else if(angle == diagonalAngle) {
@@ -609,8 +609,6 @@ public static class Main {
             var a = p.GetCustomAttributes(true).OfType<IAtt>().FirstOrDefault();
             if(a != null) {
                 var name = p.Name;
-                Dictionary<Type, Func<object>> d;
-
                 object value = a switch {
                     Req r => new Dictionary<Type, Func<object>>() {
                         [typeof(string)] = () => e.ExpectAtt(name),
@@ -623,31 +621,27 @@ public static class Main {
                         [typeof(IDice)] = () => e.ExpectAttDice(name),
                         [typeof(Color)] = () => e.ExpectAttColor(name)
                     }[p.FieldType](),
-
                     Opt o => new Dictionary<Type, Func<object>>() {
                         [typeof(string)] = () => e.TryAtt(name),
 
                         [typeof(bool?)] = () => e.TryAttBoolNullable(name),
                         [typeof(int?)] = () => e.TryAttIntNullable(name),
                         
-
                         [typeof(bool)] = () => e.TryAttBool(name),
                         [typeof(int)] = () => e.TryAttInt(name),
                         [typeof(double)] = () => e.TryAttDouble(name),
                     }[p.FieldType](),
-
                     Opt<string> o => e.TryAtt(name, o.fallback),
                     Opt<int> o => e.TryAttInt(name, o.fallback),
                     Opt<int?> o => e.TryAttIntNullable(name, o.fallback),
                     Opt<bool> o => e.TryAttBool(name, o.fallback),
                     Opt<bool?> o => e.TryAttBoolNullable(name, o.fallback),
                     Opt<char> o => e.TryAttChar(name, o.fallback),
+                    Opt<double> o => e.TryAttDouble(name, o.fallback),
                     _ => throw new Exception($"Unsupported attribute type {a.GetType().Name}")
                 };
-
                 p.SetValue(obj, value);
             }
-            
         }
     }
 

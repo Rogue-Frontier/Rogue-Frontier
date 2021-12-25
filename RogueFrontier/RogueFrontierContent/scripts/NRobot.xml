@@ -8,7 +8,7 @@
 		mass=		"4000"
 		desc=		"."
 		>
-		<Misc interval="10" missileJack="true"/>
+		<Service interval="10" type="missileJack"/>
 	</ItemType>
 	<ItemType	codename=	"item_shutdown_cannon"
 		name=		"SHUTDOWN cannon"
@@ -107,7 +107,7 @@
 		foreground=			"LightBlue"
 		>
 		<Devices>
-			<Misc codename="item_deflect_device"/>
+			<Service codename="item_deflect_device"/>
 			<Weapon codename="item_shutdown_cannon"/>
 			<Weapon codename="item_breakdown_cannon"/>
 			<Reactor codename="item_foundry_reactor"/>

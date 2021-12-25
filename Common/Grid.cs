@@ -35,6 +35,7 @@ public class XY {
         this.y = y;
     }
     public static XY operator +(XY p, XY other) => new XY(p.x + other.x, p.y + other.y);
+    public static XY operator +(XY p, Point other) => new XY(p.x + other.X, p.y + other.Y);
     public static XY operator +(XY p, (int x, int y) other) => new XY(p.x + other.x, p.y + other.y);
     public static XY operator -(XY p) => new XY(-p.x, -p.y);
     public static XY operator -(XY p, XY other) => new XY(p.x - other.x, p.y - other.y);
@@ -89,7 +90,7 @@ public class XY {
     [JsonIgnore]
     public bool isZero => magnitude < 0.1;
     public XY Scale(XY origin, double scale) => (this - origin) * scale + origin;
-
+    public XY IncMagnitude(double inc) => WithMagnitude(magnitude + inc);
     public XY WithMagnitude(double magnitude) {
         var a = angleRad;
         return new XY(Math.Cos(a) * magnitude, Math.Sin(a) * magnitude);

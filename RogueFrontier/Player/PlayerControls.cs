@@ -4,7 +4,6 @@ using System.Linq;
 using static SadConsole.Input.Keys;
 using Helper = Common.Main;
 namespace RogueFrontier;
-
 public enum ControlKeys {
     Thrust,
     TurnRight,
@@ -87,7 +86,6 @@ public class PlayerControls {
             playerShip.autopilot = !playerShip.autopilot;
             playerShip.AddMessage(new Message($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
         }
-
         if (input.Dock) {
             if (playerShip.dock != null) {
                 if (playerShip.dock.docked) {
@@ -95,14 +93,11 @@ public class PlayerControls {
                 } else {
                     playerShip.AddMessage(new Message("Docking sequence canceled"));
                 }
-
                 playerShip.dock = null;
             } else {
-                if (playerShip.GetTarget(out var t)) {
-                    if (!(t is DockableObject d)) {
+                if (playerShip.GetTarget(out var t) && (playerShip.position - t.position).magnitude < 24) {
+                    if (t is not DockableObject d) {
                         playerShip.AddMessage(new Transmission(t, "Target is not dockable"));
-                    } else if (!((playerShip.position - t.position).magnitude < 24)) {
-                        playerShip.AddMessage(new Transmission(t, "Target is out of docking range"));
                     } else {
                         Dock(d);
                     }

@@ -139,7 +139,7 @@ class ArenaScreen : Console {
                                         Weapon w => source.weapon,
                                         Shield s => source.shield,
                                         Reactor r => source.reactor,
-                                        MiscDevice m => source.misc
+                                        ServiceDevice m => source.misc
                                     });
                                 }));
                             }

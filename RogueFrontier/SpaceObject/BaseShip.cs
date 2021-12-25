@@ -4,7 +4,6 @@ using SadConsole;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RogueFrontier.Types;
 using static RogueFrontier.BaseShip;
 using Newtonsoft.Json;
 
@@ -805,7 +804,7 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
         });
 
         if (firingPrimary && selectedPrimary < ship.devices.Weapons.Count) {
-            if (!energy.disabled.Contains(ship.devices.Weapons[selectedPrimary])) {
+            if (!energy.off.Contains(ship.devices.Weapons[selectedPrimary])) {
                 ship.devices.Weapons[selectedPrimary].SetFiring(true, target);
             }
             firingPrimary = false;
@@ -827,7 +826,7 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
 
         //We update the ship's devices as ourselves because they need to know who the exact owner is
         //In case someone other than us needs to know who we are through our devices
-        foreach (var enabled in ship.devices.Installed.Except(energy.disabled)) {
+        foreach (var enabled in ship.devices.Installed.Except(energy.off)) {
             enabled.Update(this);
         }
         energy.Update(this);

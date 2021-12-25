@@ -114,7 +114,7 @@ public class PlayerMain : Console {
         uiEdge = new(camera, playerShip, Width, Height);
         uiMinimap = new(this, playerShip, 16);
         communicationsMenu = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
-        powerMenu = new(31, 12, playerShip) { IsVisible = false, Position = new(3, 32) };
+        powerMenu = new(31, 12, this) { IsVisible = false, Position = new(3, 32) };
         pauseMenu = new(this) { IsVisible = false };
         crosshair = new(playerShip, "Mouse Cursor", new XY());
 
@@ -141,6 +141,20 @@ public class PlayerMain : Console {
         //Pretty sure this can't happen but make sure
         pauseMenu.IsVisible = false;
         uiMain.IsVisible = false;
+    }
+
+    public void Jump() {
+        var prevViewport = new Viewport(this, new Camera(playerShip.position), world);
+        var nextViewport = new Viewport(this, this.camera, world);
+
+        back = new(nextViewport);
+        viewport = nextViewport;
+        transition = new GateTransition(prevViewport, nextViewport, () => {
+            transition = null;
+            if (playerShip.mortalTime <= 0) {
+                vignette.powerAlpha = 0f;
+            }
+        });
     }
     public void Gate() {
         if (!playerShip.CheckGate(out Stargate gate)) {
@@ -916,12 +930,15 @@ public class Readout : Console {
     public int arrowDistance;
     public int ticks;
 
+    XY screenSize => new XY(Width, Height);
+    XY screenCenter => screenSize / 2;
+
     public Readout(Camera camera, PlayerShip player, int width, int height) : base(width, height) {
         this.camera = camera;
         this.player = player;
 
         //arrowDistance = Math.Min(Width, Height)/2 - 6;
-        arrowDistance = 32;
+        arrowDistance = 24;
         /*
         char[] particles = {
             '%', '&', '?', '~'
@@ -944,21 +961,20 @@ public class Readout : Console {
     }
     public override void Render(TimeSpan drawTime) {
         this.Clear();
-        XY screenSize = new XY(Width, Height);
-        XY screenCenter = screenSize / 2;
         var messageY = Height * 3 / 5;
         int targetX = 48, targetY = 1;
 
         void DrawTargetArrow(SpaceObject target) {
             var offset = (target.position - player.position) / viewScale;
-            if (Math.Abs(offset.x) > Width / 2 || Math.Abs(offset.y) > Height / 2) {
+            if (Math.Abs(offset.x) > Width / 2 - 6 || Math.Abs(offset.y) > Height / 2 - 6) {
 
                 var offsetNormal = offset.normal.flipY;
-                var p = screenCenter + offsetNormal * arrowDistance;
+                //var p = screenCenter + offsetNormal * arrowDistance;
+                var p = Main.GetBoundaryPoint(screenSize - (20, 20), offsetNormal.angleRad) + (10, 10);
 
                 this.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '+'));
 
-                var trailLength = Math.Min(3, offset.magnitude / 4) + 1;
+                var trailLength = 4;
                 for (int i = 1; i < trailLength; i++) {
                     p -= offsetNormal;
                     this.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '.'));
@@ -1256,7 +1272,7 @@ public class Readout : Console {
                 foreach (var w in weapons) {
                     string tag = $"{(i == player.selectedPrimary ? "->" : "  ")}{w.GetReadoutName()}";
                     Color foreground;
-                    if (player.energy.disabled.Contains(w)) {
+                    if (player.energy.off.Contains(w)) {
                         foreground = Color.Gray;
                     } else if (w.firing || w.delay > 0) {
                         foreground = Color.Yellow;
@@ -1274,7 +1290,7 @@ public class Readout : Console {
 
                 y++;
             }
-            var misc = player.ship.devices.Installed.OfType<MiscDevice>();
+            var misc = player.ship.devices.Installed.OfType<ServiceDevice>();
             if (misc.Any()) {
                 int i = 0;
                 foreach (var m in misc) {
@@ -1296,7 +1312,7 @@ public class Readout : Console {
             if (shields.Any()) {
                 foreach (var s in shields) {
                     string name = s.source.type.name;
-                    var f = player.energy.disabled.Contains(s) ? Color.Gray :
+                    var f = player.energy.off.Contains(s) ? Color.Gray :
                         s.hp == 0 ? Color.Yellow :
                         s.delay > 0 ? Color.Yellow :
                         s.hp < s.desc.maxHP ? Color.Cyan :
@@ -1642,6 +1658,7 @@ public class CommunicationsMenu : Console {
 }
 public class PowerMenu : Console {
     PlayerShip playerShip;
+    PlayerMain main;
     int ticks;
     private bool _blockMouse;
     public bool blockMouse {
@@ -1651,8 +1668,9 @@ public class PowerMenu : Console {
         }
         get => _blockMouse;
     }
-    public PowerMenu(int width, int height, PlayerShip playerShip) : base(width, height) {
-        this.playerShip = playerShip;
+    public PowerMenu(int width, int height, PlayerMain main) : base(width, height) {
+        this.playerShip = main.playerShip;
+        this.main = main;
         FocusOnMouseClick = false;
         InitButtons();
     }
@@ -1695,7 +1713,13 @@ public class PowerMenu : Console {
                 } else {
                     //Invoke now!
                     p.cooldownLeft = p.cooldownPeriod;
-                    p.type.Effect.Invoke(playerShip);
+
+                    var ef = p.type.Effect;
+                    if (ef is PowerJump j) {
+                        j.Invoke(main);
+                    } else {
+                        ef.Invoke(playerShip);
+                    }
                     if (p.type.message != null) {
                         playerShip.AddMessage(new Message(p.type.message));
                     }

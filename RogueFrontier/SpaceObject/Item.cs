@@ -17,7 +17,7 @@ public class Item {
     public Shield shield;
     public Reactor reactor;
     public Solar solar;
-    public MiscDevice misc;
+    public ServiceDevice misc;
 
     public Modifier mod;
 
@@ -29,7 +29,7 @@ public class Item {
         shield = clone.shield != null ? new Shield(this, clone.shield.desc) : null;
         reactor = clone.reactor != null ? new Reactor(this, clone.reactor.desc) : null;
         solar = clone.solar != null ? new Solar(this, clone.solar.desc) : null;
-        misc = clone.misc != null ? new MiscDevice(this, clone.misc.desc) : null;
+        misc = clone.misc != null ? new ServiceDevice(this, clone.misc.desc) : null;
     }
     public Item(ItemType type, Modifier mod = null) {
         this.type = type;
@@ -50,7 +50,7 @@ public class Item {
                 [typeof(Shield)] = shield,
                 [typeof(Reactor)] = reactor,
                 [typeof(Solar)] = solar,
-                [typeof(MiscDesc)]=misc,
+                [typeof(ServiceDesc)]=misc,
         }[type];
     }
     public bool Install<T>(out T result) where T:class {
@@ -60,7 +60,7 @@ public class Item {
             [typeof(Shield)] = InstallShields,
             [typeof(Reactor)] = InstallReactor,
             [typeof(Solar)] = InstallSolar,
-            [typeof(MiscDesc)] = InstallMisc,
+            [typeof(ServiceDesc)] = InstallMisc,
         }[typeof(T)]() as T)) != null;
     }
     public Weapon InstallWeapon() => weapon ??= type.weapon?.GetWeapon(this);
@@ -68,7 +68,7 @@ public class Item {
     public Shield InstallShields() => shield ??= type.shield?.GetShield(this);
     public Reactor InstallReactor() => reactor ??= type.reactor?.GetReactor(this);
     public Solar InstallSolar() => solar ??= type.solar?.GetSolar(this);
-    public MiscDevice InstallMisc() => misc ??= type.misc?.GetMisc(this);
+    public ServiceDevice InstallMisc() => misc ??= type.misc?.GetMisc(this);
     public void RemoveAll() {
         weapon = null;
         armor = null;
@@ -87,9 +87,7 @@ public class Item {
 public interface Device {
     Item source { get; }
     void Update(IShip owner);
-}
-public interface Powered : Device {
-    int powerUse { get; }
+    int powerUse => 0;
     public void OnDisable() { }
 }
 public static class SWeapon {
@@ -108,12 +106,12 @@ public static class SWeapon {
         }
     }
 }
-public class Weapon : Powered {
+public class Weapon : Device {
     [JsonProperty]
     public Item source { get; private set; }
     public WeaponDesc desc;
     [JsonIgnore]
-    public int powerUse => delay > 0 ? desc.powerUse : desc.powerUse / 10;
+    int Device.powerUse => delay > 0 ? desc.powerUse : desc.powerUse / 10;
 
     public FragmentDesc GetFragmentDesc() {
         var d = desc.shot;
@@ -552,8 +550,8 @@ public class Weapon : Powered {
     }
 
 }
-public class Armor {
-    public Item source;
+public class Armor : Device {
+    public Item source { get; private set; }
     public ArmorDesc desc;
     public int hp;
     public int lastDamageTick;
@@ -563,11 +561,9 @@ public class Armor {
         this.desc = desc;
         this.hp = desc.maxHP;
     }
-    public void Update(IShip owner) {
-
-    }
+    public void Update(IShip owner) { }
 }
-public class Shield : Powered {
+public class Shield : Device {
     public Item source { get; set; }
     public ShieldDesc desc;
     public int hp;
@@ -582,7 +578,7 @@ public class Shield : Powered {
     public double absorbRegenHP;
     */
 
-    public int powerUse => hp < desc.maxHP ? desc.powerUse : desc.idlePowerUse;
+    int Device.powerUse => hp < desc.maxHP ? desc.powerUse : desc.idlePowerUse;
     public Shield() { }
     public Shield(Item source, ShieldDesc desc) {
         this.source = source;
@@ -651,7 +647,7 @@ public class Reactor : Device, PowerSource {
     }
 }
 public class Solar : Device, PowerSource {
-    public Item source { get; set; }
+    public Item source { get; private set; }
     public SolarDesc desc;
     public int maxOutput { get; private set; }
     public double energyDelta { get; set; }
@@ -666,51 +662,46 @@ public class Solar : Device, PowerSource {
         maxOutput = (int)(b * desc.maxOutput / 255);
     }
 }
-public class MiscDevice : Device {
+public class ServiceDevice : Device {
     public Item source { get; set; }
-    public MiscDesc desc;
+    public ServiceDesc desc;
     public int ticks;
-    public MiscDevice() { }
-    public MiscDevice(Item source, MiscDesc desc) {
+    public ServiceDevice() { }
+    public ServiceDevice(Item source, ServiceDesc desc) {
         this.source = source;
         this.desc = desc;
     }
     public void Update(IShip owner) {
         ticks++;
         if (ticks % desc.interval == 0) {
-            if (desc.missileJack) {
-                //May not work in Arena mode if we assume control
-                //bc weapon locks are focused on the old AI ship
-                var missile = owner.world.entities.all
-                    .OfType<Projectile>()
-                    .FirstOrDefault(
-                        p => (owner.position - p.position).magnitude < 24
-                          && p.maneuver != null
-                          && p.maneuver.maneuver > 0
-                          && SSpaceObject.Equals(p.maneuver.target, owner)
-                        );
-                if (missile != null) {
-
-                    if (owner is PlayerShip) {
-                        int i = 0;
+            switch (desc.type) {
+                case Service.missileJack: {
+                        //May not work in Arena mode if we assume control
+                        //bc weapon locks are focused on the old AI ship
+                        var missile = owner.world.entities.all
+                            .OfType<Projectile>()
+                            .FirstOrDefault(
+                                p => (owner.position - p.position).magnitude < 24
+                                  && p.maneuver != null
+                                  && p.maneuver.maneuver > 0
+                                  && Equals(p.maneuver.target, owner)
+                                );
+                        if (missile != null) {
+                            missile.maneuver.target = missile.source;
+                            missile.source = owner;
+                            var offset = (missile.position - owner.position);
+                            var dist = offset.magnitude;
+                            var inc = offset.normal;
+                            for (var i = 0; i < dist; i++) {
+                                var p = owner.position + inc * i;
+                                owner.world.AddEffect(new EffectParticle(p, new ColoredGlyph(Color.Orange, Color.Transparent, '-'), 10));
+                            }
+                        }
+                        break;
                     }
-
-                    missile.maneuver.target = missile.source;
-                    missile.source = owner;
-
-                    var offset = (missile.position - owner.position);
-                    var dist = offset.magnitude;
-                    var inc = offset.normal;
-                    for (var i = 0; i < dist; i++) {
-                        var p = owner.position + inc * i;
-                        owner.world.AddEffect(new EffectParticle(p, new ColoredGlyph(Color.Orange, Color.Transparent, '-'), 10));
+                case Service.armorRepair: {
+                        break;
                     }
-
-                } else {
-                    if (owner is PlayerShip && owner.world.entities.all.OfType<Projectile>().Any()) {
-                        int i = 0;
-                    }
-                }
             }
         }
     }

@@ -126,7 +126,7 @@ class ShipScreen : Console {
             }
         }
 
-        var misc = playerShip.ship.devices.Installed.OfType<MiscDevice>();
+        var misc = playerShip.ship.devices.Installed.OfType<ServiceDevice>();
         if (misc.Any()) {
             Print(x, y++, "[Misc]");
             foreach (var m in misc) {
@@ -418,9 +418,9 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Powered> PowerScreen(Console prev, PlayerShip player) {
-        ListScreen<Powered> screen = null;
-        var disabled = player.energy.disabled;
+    public static ListScreen<Device> PowerScreen(Console prev, PlayerShip player) {
+        ListScreen<Device> screen = null;
+        var disabled = player.energy.off;
         var powered = player.devices.Powered;
         return screen = new(prev,
             player,
@@ -431,8 +431,8 @@ public class SListScreen {
             Escape
             );
 
-        string GetName(Powered i) => $"{(disabled.Contains(i) ? " " : "*")} {i.source.type.name}";
-        List<ColoredString> GetDesc(Powered p) {
+        string GetName(Device i) => $"{(disabled.Contains(i) ? " " : "*")} {i.source.type.name}";
+        List<ColoredString> GetDesc(Device p) {
             var result = new List<ColoredString>();
             var desc = p.source.type.desc.SplitLine(32);
             if (desc.Any()) {
@@ -444,7 +444,7 @@ public class SListScreen {
             result.Add(new($"[Enter] {word} this device", Color.Yellow, Color.Black));
             return result;
         }
-        void InvokeItem(Powered p) {
+        void InvokeItem(Device p) {
             if (disabled.Contains(p)) {
                 disabled.Remove(p);
                 player.AddMessage(new Message($"Enabled {p.source.type.name}"));

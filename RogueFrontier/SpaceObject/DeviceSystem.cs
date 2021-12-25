@@ -5,7 +5,7 @@ namespace RogueFrontier;
 
 public class DeviceSystem {
     public List<Device> Installed;
-    public List<Powered> Powered;
+    public List<Device> Powered;
     public List<Reactor> Reactors;
     public List<Solar> Solars;
     public List<Weapon> Weapons;
@@ -20,7 +20,7 @@ public class DeviceSystem {
     }
     public void Install(IEnumerable<Device> Devices) {
         Installed.AddRange(Devices);
-        Powered.AddRange(Devices.OfType<Powered>());
+        Powered.AddRange(Devices.Where(d=>d.powerUse>0));
         Reactors.AddRange(Devices.OfType<Reactor>());
         Solars.AddRange(Devices.OfType<Solar>());
         Weapons.AddRange(Devices.OfType<Weapon>());
@@ -28,7 +28,7 @@ public class DeviceSystem {
     }
     public void Install(params Device[] Devices) {
         Installed.AddRange(Devices);
-        Powered.AddRange(Devices.OfType<Powered>());
+        Powered.AddRange(Devices.Where(d=>d.powerUse>0));
         Reactors.AddRange(Devices.OfType<Reactor>());
         Solars.AddRange(Devices.OfType<Solar>());
         Weapons.AddRange(Devices.OfType<Weapon>());
@@ -36,7 +36,7 @@ public class DeviceSystem {
     }
     public void Remove(params Device[] Devices) {
         Installed.RemoveAll(Devices.Contains);
-        Powered.RemoveAll(Devices.OfType<Powered>().Contains);
+        Powered.RemoveAll(Devices.Where(d=>d.powerUse>0).Contains);
         Reactors.RemoveAll(Devices.OfType<Reactor>().Contains);
         Solars.RemoveAll(Devices.OfType<Solar>().Contains);
         Weapons.RemoveAll(Devices.OfType<Weapon>().Contains);
@@ -51,7 +51,7 @@ public class DeviceSystem {
         Shields.Clear();
     }
     public void UpdateDevices() {
-        Powered = Installed.OfType<Powered>().ToList();
+        Powered = Installed.Where(d=>d.powerUse>0).ToList();
         Reactors = Installed.OfType<Reactor>().ToList();
         Solars = Installed.OfType<Solar>().ToList();
         Weapons = Installed.OfType<Weapon>().ToList();

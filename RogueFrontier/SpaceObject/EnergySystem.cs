@@ -6,12 +6,12 @@ namespace RogueFrontier;
 
 public class EnergySystem {
     public DeviceSystem devices;
-    public HashSet<Powered> disabled;
+    public HashSet<Device> on => devices.Installed.Except(off).ToHashSet();
+    public HashSet<Device> off = new();
     public int totalMaxOutput;
     public int totalUsedOutput;
     public EnergySystem(DeviceSystem devices) {
         this.devices = devices;
-        this.disabled = new HashSet<Powered>();
     }
     public void Update(PlayerShip player) {
         if (!devices.Reactors.Any()) {
@@ -38,10 +38,10 @@ public class EnergySystem {
         int maxOutputLeft = totalMaxOutput;
         int sourceIndex = 0;
         int sourceOutput = sources[sourceIndex].maxOutput;
-        HashSet<Powered> deactivated = new HashSet<Powered>();
+        HashSet<Device> deactivated = new HashSet<Device>();
         //Devices consume power
         int outputUsed = 0;
-        foreach (var powered in devices.Powered.Where(p => !disabled.Contains(p))) {
+        foreach (var powered in devices.Powered.Where(p => !off.Contains(p))) {
             var powerUse = powered.powerUse;
             if (powerUse <= 0) { continue; }
             if (powerUse > maxOutputLeft) {
@@ -73,7 +73,7 @@ public class EnergySystem {
         if (deactivated.Any()) {
             foreach(var d in deactivated) {
                 d.OnDisable();
-                disabled.Add(d);
+                off.Add(d);
             }
             player.AddMessage(new Message("Reactor output overload!"));
             foreach (var d in deactivated) {

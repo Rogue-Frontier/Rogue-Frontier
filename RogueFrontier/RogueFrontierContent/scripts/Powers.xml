@@ -4,7 +4,7 @@
 		name=			"DECLARE"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
-		message=		"You DECLARE the divinity of The Orator"
+		message=		"You DECLARE your mission"
 		>
 		<Weapon
 			count=			"90"
@@ -27,7 +27,7 @@
 		name=			"SWEAR"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
-		message=		"You SWEAR by your devotion to The Orator"
+		message=		"You SWEAR by your devotion"
 		>
 		<Heal/>
 	</PowerType>
@@ -44,9 +44,18 @@
 		name=			"DECRY"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
-		message=		"You DECRY those who oppose The Orator"
+		message=		"You DECRY those who oppose you"
 		>
 		<ProjectileBarrier barrierType="accuse" lifetime="900" radius="4"/>
+	</PowerType>
+
+	<PowerType codename="power_jump"
+		name=			"JUMP"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		message=		""
+		>
+		<Jump/>
 	</PowerType>
 
 	<Unused>

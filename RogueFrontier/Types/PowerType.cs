@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 
-namespace RogueFrontier.Types;
+namespace RogueFrontier;
 
 public class PowerType : DesignType {
     public string codename;
@@ -25,7 +25,9 @@ public class PowerType : DesignType {
         } else if (e.HasElement("Heal", out var xmlHeal)) {
             Effect = new PowerHeal();
         } else if (e.HasElement("ProjectileBarrier", out var xmlProjectileBarrier)) {
-            Effect = new PowerProjectileBarrier(xmlProjectileBarrier);
+            Effect = new PowerBarrier(xmlProjectileBarrier);
+        } else if (e.HasElement("Jump", out var xmlJump)) {
+            Effect = new PowerJump();
         } else {
             throw new Exception($"Power must have effect: {codename} ### {e} ### {e.Parent}");
         }
@@ -33,60 +35,72 @@ public class PowerType : DesignType {
 }
 //Interface for invokable powers
 public interface PowerEffect {
-    void Invoke(PlayerShip invoker);
+    //void Invoke(PlayerMain main);
+    void Invoke(PlayerShip player);
+}
+public class PowerJump : PowerEffect {
+    public PowerJump() { }
+    public void Invoke(PlayerMain main) {
+        main.Jump();
+        Invoke(main.playerShip);
+    }
+    public void Invoke(PlayerShip player) =>
+        player.position += XY.Polar(player.rotationRad, 100);
 }
 //Power that generates a weapon effect
 public class PowerWeapon : PowerEffect {
     public FragmentDesc desc;
     public PowerWeapon() { }
     public PowerWeapon(XElement e) {
-        this.desc = new FragmentDesc(e);
+        desc = new FragmentDesc(e);
     }
-    public void Invoke(PlayerShip invoker) => SWeapon.CreateShot(desc, invoker, invoker.rotationDeg * Math.PI / 180);
+    //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
+    public void Invoke(PlayerShip player) =>
+        SWeapon.CreateShot(desc, player, player.rotationDeg * Math.PI / 180);
 }
 public class PowerHeal : PowerEffect {
     public PowerHeal() { }
-    public PowerHeal(XElement e) {
-
-    }
+    public PowerHeal(XElement e) {}
+    //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
     public void Invoke(PlayerShip player) {
         player.hull.Restore();
         player.devices.Shields.ForEach(s => s.hp = s.desc.maxHP);
         player.devices.Reactors.ForEach(r => r.energy = r.desc.capacity);
     }
 }
-public class PowerProjectileBarrier : PowerEffect {
+public class PowerBarrier : PowerEffect {
     public enum BarrierType {
         echo, accuse
     }
     public BarrierType barrierType;
     public int radius;
     public int lifetime;
-    public PowerProjectileBarrier() { }
-    public PowerProjectileBarrier(XElement e) {
+    public PowerBarrier() { }
+    public PowerBarrier(XElement e) {
         barrierType = e.ExpectAttEnum<BarrierType>(nameof(barrierType));
         lifetime = e.ExpectAttInt(nameof(lifetime));
         radius = e.ExpectAttInt(nameof(radius));
     }
-    public void Invoke(PlayerShip invoker) {
-        var world = invoker.world;
+    //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
+    public void Invoke(PlayerShip player) {
+        var world = player.world;
         var end = 2 * Math.PI;
 
         Func<XY, int, ProjectileBarrier> construct = null;
         switch (barrierType) {
             case BarrierType.accuse: {
                     HashSet<Projectile> cloned = new HashSet<Projectile>();
-                    construct = (position, lifetime) => new AccuseBarrier(invoker, position, lifetime, cloned);
+                    construct = (position, lifetime) => new AccuseBarrier(player, position, lifetime, cloned);
                 }
                 break;
             case BarrierType.echo: {
                     HashSet<Projectile> reflected = new HashSet<Projectile>();
-                    construct = (position, lifetime) => new EchoBarrier(invoker, position, lifetime, reflected);
+                    construct = (position, lifetime) => new EchoBarrier(player, position, lifetime, reflected);
                     break;
                 }
         }
 
-        HashSet<(int, int)> covered = new();
+        //HashSet<(int, int)> covered = new();
         for (double r = radius; r < radius + 2; r++) {
             double step = 1f / (r * 2);
             for (double angle = 0; angle < end; angle += step) {

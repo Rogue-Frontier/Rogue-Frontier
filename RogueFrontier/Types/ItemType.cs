@@ -6,7 +6,6 @@ using System.Linq;
 using System.Xml.Linq;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
-using RogueFrontier.Types;
 using Newtonsoft.Json;
 
 namespace RogueFrontier;
@@ -135,7 +134,7 @@ public record ItemType : DesignType {
     public ShieldDesc shield;
     public ReactorDesc reactor;
     public SolarDesc solar;
-    public MiscDesc misc;
+    public ServiceDesc misc;
     public IInvokeAction invoke;
     public void Initialize(TypeCollection tc, XElement e) {
         e.Initialize(this);
@@ -163,8 +162,8 @@ public record ItemType : DesignType {
         if (e.HasElement("Solar", out var xmlSolar)) {
             solar = new SolarDesc(xmlSolar);
         }
-        if (e.HasElement("Misc", out var xmlMisc)) {
-            misc = new MiscDesc(xmlMisc);
+        if (e.HasElement("Service", out var xmlService)) {
+            misc = new ServiceDesc(xmlService);
         }
     }
 
@@ -257,19 +256,13 @@ public record FragmentDesc {
     }
 }
 public record TrailDesc : ITrail {
-    public int lifetime;
-
-
-    public char glyph;
-    public Color foreground;
-    public Color background;
+    [Req] public int lifetime;
+    [Req] public char glyph;
+    [Req] public Color foreground;
+    [Req] public Color background;
     public TrailDesc() { }
     public TrailDesc(XElement e) {
-        lifetime = e.ExpectAttInt(nameof(lifetime));
-
-        foreground = e.ExpectAttColor("foreground");
-        background = e.ExpectAttColor("background");
-        glyph = e.ExpectAtt("char")[0];
+        e.Initialize(this);
     }
     public Effect GetTrail(XY Position) => new FadingTile(Position, new ColoredGlyph(foreground, background, glyph), lifetime);
 }
@@ -307,78 +300,62 @@ public record DisruptorDesc {
     }
 }
 public record CapacitorDesc {
-    public double minChargeToFire;
-    public double dischargeOnFire;
-    public double rechargePerTick;
-    public double maxCharge;
-    public double bonusSpeedPerCharge;
-    public double bonusDamagePerCharge;
-    public double bonusLifetimePerCharge;
+    [Opt<double>(0)] public double minChargeToFire;
+    [Req] public double dischargeOnFire,
+                        rechargePerTick,
+                        maxCharge;
+    [Opt] public double bonusSpeedPerCharge,
+                        bonusDamagePerCharge,
+                        bonusLifetimePerCharge;
     
     public CapacitorDesc() { }
     public CapacitorDesc(XElement e) {
-        minChargeToFire = e.TryAttDouble(nameof(minChargeToFire), 0);
-        dischargeOnFire = e.ExpectAttDouble(nameof(dischargeOnFire));
-        rechargePerTick = e.ExpectAttDouble(nameof(rechargePerTick));
-        maxCharge = e.ExpectAttDouble(nameof(maxCharge));
-        bonusSpeedPerCharge = e.TryAttDouble(nameof(bonusSpeedPerCharge));
-        bonusDamagePerCharge = e.TryAttDouble(nameof(bonusDamagePerCharge));
-        bonusLifetimePerCharge = e.TryAttDouble(nameof(bonusLifetimePerCharge));
+        e.Initialize(this);
     }
 }
 public record ShieldDesc {
-    public int powerUse, idlePowerUse;
-    public int maxHP;
-    public int damageDelay;
-    public int depletionDelay;
-    public double regen;
-    public double absorbFactor;
-    public int absorbMaxHP;
-    public double absorbRegen;
+    [Req]            public int powerUse, idlePowerUse;
+    [Req]            public int maxHP;
+    [Req]            public int damageDelay, depletionDelay;
+    [Req]            public double regen;
+    [Opt<double>(1)] public double absorbFactor;
     public Shield GetShield(Item i) => new Shield(i, this);
     public ShieldDesc() { }
     public ShieldDesc(XElement e) {
-        powerUse = e.ExpectAttInt(nameof(powerUse));
-        idlePowerUse = e.ExpectAttInt(nameof(idlePowerUse));
-        maxHP = e.ExpectAttInt(nameof(maxHP));
-        damageDelay = e.ExpectAttInt(nameof(damageDelay));
-        depletionDelay = e.ExpectAttInt(nameof(depletionDelay));
-        regen = e.ExpectAttDouble(nameof(regen));
-        absorbFactor = e.TryAttDouble(nameof(absorbFactor), 1);
-        absorbMaxHP = e.TryAttInt(nameof(absorbMaxHP), -1);
-        absorbRegen = e.TryAttDouble(nameof(absorbRegen), regen);
+        e.Initialize(this);
     }
 }
 public record ReactorDesc {
-    public int maxOutput;
-    public int capacity;
-    public double efficiency;
-    public bool battery;        //If true, then we recharge using power from other reactors when available
+    [Req]               public int maxOutput;
+    [Req]               public int capacity;
+    [Opt<double>(1)]    public double efficiency;
+    [Opt<bool>(false)]  public bool battery;        //If true, then we recharge using power from other reactors when available
 
     public Reactor GetReactor(Item i) => new Reactor(i, this);
     public ReactorDesc() { }
     public ReactorDesc(XElement e) {
-        maxOutput = e.ExpectAttInt(nameof(maxOutput));
-        capacity = e.ExpectAttInt(nameof(capacity));
-        efficiency = e.TryAttDouble(nameof(efficiency), 1);
-        battery = e.TryAttBool(nameof(battery), false);
+        e.Initialize(this);
     }
 }
 public record SolarDesc {
-    public int maxOutput;
+    [Req] public int maxOutput;
     public Solar GetSolar(Item i) => new(i, this);
     public SolarDesc() { }
     public SolarDesc(XElement e) {
-        maxOutput = e.ExpectAttInt(nameof(maxOutput));
+        e.Initialize(this);
     }
 }
-public record MiscDesc {
-    public bool missileJack;
-    public int interval;
-    public MiscDevice GetMisc(Item i) => new(i, this);
-    public MiscDesc() { }
-    public MiscDesc(XElement e) {
-        missileJack = e.TryAttBool(nameof(missileJack), false);
-        interval = e.ExpectAttInt(nameof(interval));
+public enum Service {
+    missileJack,
+    armorRepair
+}
+public record ServiceDesc {
+    public Service type;
+    [Req] public int interval;
+    public ServiceDevice GetMisc(Item i) => new(i, this);
+    public ServiceDesc() { }
+    public ServiceDesc(XElement e) {
+        e.Initialize(this);
+        type = e.ExpectAttEnum<Service>(nameof(type));
     }
 }

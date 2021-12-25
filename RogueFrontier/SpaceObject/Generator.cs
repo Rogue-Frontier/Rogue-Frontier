@@ -43,21 +43,19 @@ public enum ShipOrder {
 
 }
 public class ShipEntry : ShipGenerator {
-    public int count;
-    public string codename;
+    [Opt<int>(1)] public int count;
+    [Req]         public string codename;
+    [Opt]         public string sovereign;
     public IOrderDesc orderDesc;
-    public string sovereign;
     public ShipEntry() { }
     public ShipEntry(XElement e) {
-        count = e.TryAttInt(nameof(count), 1);
-        codename = e.ExpectAtt(nameof(codename));
+        e.Initialize(this);
         orderDesc = e.TryAttEnum("order", ShipOrder.guard) switch {
             ShipOrder.attack => new AttackDesc(),
             ShipOrder.guard => new GuardDesc(),
             ShipOrder.patrol => new PatrolOrbitDesc(e),
             ShipOrder.patrolCircuit => new PatrolCircuitDesc(e)
         };
-        sovereign = e.TryAtt(nameof(sovereign));
     }
     public List<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
         var shipClass = tc.Lookup<ShipClass>(codename);
@@ -93,26 +91,26 @@ public class ShipEntry : ShipGenerator {
     public interface IOrderDesc {
         IShipOrder CreateOrder(SpaceObject owner);
     }
-    public class AttackDesc : IOrderDesc {
+    public record AttackDesc : IOrderDesc {
         public IShipOrder CreateOrder(SpaceObject owner) => new AttackOrder(owner);
     }
-    public class GuardDesc : IOrderDesc {
+    public record GuardDesc : IOrderDesc {
         public IShipOrder CreateOrder(SpaceObject owner) => new GuardOrder(owner);
     }
-    public class PatrolOrbitDesc : IOrderDesc {
-        public int patrolRadius;
+    public record PatrolOrbitDesc : IOrderDesc {
+        [Req] public int patrolRadius;
         public PatrolOrbitDesc() { }
         public PatrolOrbitDesc(XElement e) {
-            patrolRadius = e.ExpectAttInt("patrolRadius");
+            e.Initialize(this);
         }
         public IShipOrder CreateOrder(SpaceObject owner) => new PatrolOrbitOrder(owner, patrolRadius);
     }
     //Patrol an entire cluster of stations (moving out to 50 ls + radius of nearest station)
-    public class PatrolCircuitDesc : IOrderDesc {
+    public record PatrolCircuitDesc : IOrderDesc {
         public int patrolRadius;
         public PatrolCircuitDesc() { }
         public PatrolCircuitDesc(XElement e) {
-            patrolRadius = e.ExpectAttInt("patrolRadius");
+            e.Initialize(this);
         }
         public IShipOrder CreateOrder(SpaceObject owner) => new PatrolCircuitOrder(owner, patrolRadius);
     }
@@ -163,13 +161,12 @@ public class ItemList : ItemGenerator {
     }
 }
 public class ItemEntry : ItemGenerator {
-    public string codename;
-    public int count;
+    [Req]         public string codename;
+    [Opt<int>(1)] public int count;
     public ModRoll mod;
     public ItemEntry() { }
     public ItemEntry(XElement e) {
-        codename = e.ExpectAtt("codename");
-        count = e.TryAttInt("count", 1);
+        e.Initialize(this);
         mod = new(e);
 
     }
@@ -208,12 +205,12 @@ public class ArmorList : ArmorGenerator {
     }
 }
 public class ArmorEntry : ArmorGenerator {
-    public string codename;
+    [Req] public string codename;
     public ModRoll mod;
     public ArmorEntry() { }
     public ArmorEntry(XElement e) {
-        this.codename = e.ExpectAtt("codename");
-        this.mod = new(e);
+        e.Initialize(this);
+        mod = new(e);
     }
     List<Armor> ArmorGenerator.Generate(TypeCollection tc) {
         return new List<Armor> { Generate(tc) };
@@ -275,11 +272,11 @@ public class DeviceList : DeviceGenerator {
                 case "Solar":
                     generators.Add(new SolarEntry(element));
                     break;
-                case "Misc":
-                    generators.Add(new MiscEntry(element));
+                case "Service":
+                    generators.Add(new ServiceEntry(element));
                     break;
                 default:
-                    throw new Exception($"Unknown <Devices> subelement {element.Name}");
+                    throw new Exception($"Unknown <Devices> subelement <{element.Name}>");
             }
         }
     }
@@ -297,12 +294,12 @@ public class DeviceList : DeviceGenerator {
 }
 
 class ReactorEntry : DeviceGenerator {
-    public string codename;
+    [Req] public string codename;
     public ModRoll mod;
     public ReactorEntry() { }
     public ReactorEntry(XElement e) {
-        this.codename = e.ExpectAtt("codename");
-        this.mod = new(e);
+        e.Initialize(this);
+        mod = new(e);
     }
     List<Device> DeviceGenerator.Generate(TypeCollection tc) {
         return new List<Device> { Generate(tc) };
@@ -323,12 +320,12 @@ class ReactorEntry : DeviceGenerator {
 }
 
 class SolarEntry : DeviceGenerator {
-    public string codename;
+    [Req] public string codename;
     public ModRoll mod;
     public SolarEntry() { }
     public SolarEntry(XElement e) {
-        this.codename = e.ExpectAtt("codename");
-        this.mod = new(e);
+        e.Initialize(this);
+        mod = new(e);
     }
     List<Device> DeviceGenerator.Generate(TypeCollection tc) {
         return new List<Device> { Generate(tc) };
@@ -348,29 +345,29 @@ class SolarEntry : DeviceGenerator {
     }
 }
 
-class MiscEntry : DeviceGenerator {
-    public string codename;
+class ServiceEntry : DeviceGenerator {
+    [Req] public string codename;
 
     public ModRoll mod;
-    public MiscEntry() { }
-    public MiscEntry(XElement e) {
-        this.codename = e.ExpectAtt("codename");
-        this.mod = new(e);
+    public ServiceEntry() { }
+    public ServiceEntry(XElement e) {
+        e.Initialize(this);
+        mod = new(e);
     }
     List<Device> DeviceGenerator.Generate(TypeCollection tc) {
         return new List<Device> { Generate(tc) };
     }
-    MiscDevice Generate(TypeCollection tc) {
+    ServiceDevice Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
         var item = new Item(type, mod.Generate());
-        return item.InstallMisc() ?? throw new Exception($"Expected <ItemType> type with <Misc> desc: {codename}");
+        return item.InstallMisc() ?? throw new Exception($"Expected <ItemType> type with <Service> desc: {codename}");
     }
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
         var item = new Item(type, mod.Generate());
         if (item.InstallMisc() == null) {
-            throw new Exception($"Expected <ItemType> type with <Misc> desc: {codename}");
+            throw new Exception($"Expected <ItemType> type with <Service> desc: {codename}");
         }
     }
 }

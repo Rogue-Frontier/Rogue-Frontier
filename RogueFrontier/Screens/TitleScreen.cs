@@ -8,7 +8,6 @@ using static SadConsole.Input.Keys;
 using Common;
 using System.IO;
 using Console = SadConsole.Console;
-using RogueFrontier.Types;
 using RogueFrontier.Screens;
 using ArchConsole;
 using System.Threading.Tasks;
