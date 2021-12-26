@@ -2,13 +2,21 @@
 	<Sovereign	codename=	"sovereign_nrobot"
 				alignment=	"DestructiveOrder"
 	/>
+	<ItemType codename=		"item_grinder"
+			  name=			"Grinder device"
+			  level=		"3"
+			  mass=			"2000"
+			  desc=			""
+			  >
+		<Service interval="30" type="grind" powerUse="5"/>
+	</ItemType>
 	<ItemType	codename=	"item_deflect_device"
 		name=		"DEFLECT device"
 		level=		"3"
 		mass=		"4000"
 		desc=		"."
 		>
-		<Service interval="10" type="missileJack"/>
+		<Service interval="10" type="missileJack" powerUse="5"/>
 	</ItemType>
 	<ItemType	codename=	"item_shutdown_cannon"
 		name=		"SHUTDOWN cannon"

@@ -20,7 +20,7 @@ public class DeviceSystem {
     }
     public void Install(IEnumerable<Device> Devices) {
         Installed.AddRange(Devices);
-        Powered.AddRange(Devices.Where(d=>d.powerUse>0));
+        Powered.AddRange(Devices.Where(d=>d.powerUse.HasValue));
         Reactors.AddRange(Devices.OfType<Reactor>());
         Solars.AddRange(Devices.OfType<Solar>());
         Weapons.AddRange(Devices.OfType<Weapon>());
@@ -28,7 +28,7 @@ public class DeviceSystem {
     }
     public void Install(params Device[] Devices) {
         Installed.AddRange(Devices);
-        Powered.AddRange(Devices.Where(d=>d.powerUse>0));
+        Powered.AddRange(Devices.Where(d=>d.powerUse.HasValue));
         Reactors.AddRange(Devices.OfType<Reactor>());
         Solars.AddRange(Devices.OfType<Solar>());
         Weapons.AddRange(Devices.OfType<Weapon>());
@@ -36,7 +36,7 @@ public class DeviceSystem {
     }
     public void Remove(params Device[] Devices) {
         Installed.RemoveAll(Devices.Contains);
-        Powered.RemoveAll(Devices.Where(d=>d.powerUse>0).Contains);
+        Powered.RemoveAll(Devices.Where(d=>d.powerUse.HasValue).Contains);
         Reactors.RemoveAll(Devices.OfType<Reactor>().Contains);
         Solars.RemoveAll(Devices.OfType<Solar>().Contains);
         Weapons.RemoveAll(Devices.OfType<Weapon>().Contains);
@@ -51,7 +51,7 @@ public class DeviceSystem {
         Shields.Clear();
     }
     public void UpdateDevices() {
-        Powered = Installed.Where(d=>d.powerUse>0).ToList();
+        Powered = Installed.Where(d=>d.powerUse.HasValue).ToList();
         Reactors = Installed.OfType<Reactor>().ToList();
         Solars = Installed.OfType<Solar>().ToList();
         Weapons = Installed.OfType<Weapon>().ToList();

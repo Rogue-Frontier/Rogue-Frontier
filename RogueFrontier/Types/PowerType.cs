@@ -70,32 +70,35 @@ public class PowerHeal : PowerEffect {
 }
 public class PowerBarrier : PowerEffect {
     public enum BarrierType {
-        echo, accuse
+        block, echo, accuse
     }
     public BarrierType barrierType;
-    public int radius;
-    public int lifetime;
+    [Req] public int radius;
+    [Req] public int lifetime;
     public PowerBarrier() { }
     public PowerBarrier(XElement e) {
+        e.Initialize(this);
         barrierType = e.ExpectAttEnum<BarrierType>(nameof(barrierType));
-        lifetime = e.ExpectAttInt(nameof(lifetime));
-        radius = e.ExpectAttInt(nameof(radius));
     }
     //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
     public void Invoke(PlayerShip player) {
         var world = player.world;
         var end = 2 * Math.PI;
-
         Func<XY, int, ProjectileBarrier> construct = null;
         switch (barrierType) {
+            case BarrierType.block: {
+                    HashSet<Projectile> blocked = new HashSet<Projectile>();
+                    construct = (position, lifetime) => new BlockBarrier(player, position, lifetime, blocked);
+                    break;
+                }
             case BarrierType.accuse: {
                     HashSet<Projectile> cloned = new HashSet<Projectile>();
-                    construct = (position, lifetime) => new AccuseBarrier(player, position, lifetime, cloned);
+                    construct = (position, lifetime) => new CloneBarrier(player, position, lifetime, cloned);
+                    break;
                 }
-                break;
             case BarrierType.echo: {
                     HashSet<Projectile> reflected = new HashSet<Projectile>();
-                    construct = (position, lifetime) => new EchoBarrier(player, position, lifetime, reflected);
+                    construct = (position, lifetime) => new ReflectBarrier(player, position, lifetime, reflected);
                     break;
                 }
         }

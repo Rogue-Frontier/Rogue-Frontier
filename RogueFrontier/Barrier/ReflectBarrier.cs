@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace RogueFrontier;
 
 //Surrounds the playership, reflects their projectiles back so that they bounce around
-class EchoBarrier : ProjectileBarrier {
+class ReflectBarrier : ProjectileBarrier {
     public bool active => lifetime > 0;
     public ColoredGlyph tile => new ColoredGlyph(Color.Goldenrod, Color.Black, '*');
 
@@ -17,7 +17,7 @@ class EchoBarrier : ProjectileBarrier {
     public int lifetime;
     public HashSet<Projectile> reflected;
     public XY position { get; set; }
-    public EchoBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> reflected) {
+    public ReflectBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> reflected) {
         this.id = owner.world.nextId++;
         this.owner = owner;
         this.offset = offset;

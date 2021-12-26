@@ -17,6 +17,7 @@
 			<Reactor codename="item_foundry_reactor"/>
 			<Reactor codename="item_foundry_battery"/>
 			<Solar codename="item_solar_panel"/>
+			<Service codename="item_grinder"/>
         </Devices>
 		<Items>
 		</Items>

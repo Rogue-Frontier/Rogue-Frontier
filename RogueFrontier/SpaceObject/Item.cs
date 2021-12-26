@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 
 namespace RogueFrontier;
 public class Item {
+    public string name => type.name;
     public ItemType type;
 
     //These fields are to remain null while the item is not installed and to be populated upon installation
@@ -87,7 +88,8 @@ public class Item {
 public interface Device {
     Item source { get; }
     void Update(IShip owner);
-    int powerUse => 0;
+    int? powerUse => null;
+    public void OnOverload() { }
     public void OnDisable() { }
 }
 public static class SWeapon {
@@ -111,7 +113,7 @@ public class Weapon : Device {
     public Item source { get; private set; }
     public WeaponDesc desc;
     [JsonIgnore]
-    int Device.powerUse => delay > 0 ? desc.powerUse : desc.powerUse / 10;
+    int? Device.powerUse => delay > 0 ? desc.powerUse : desc.powerUse / 10;
 
     public FragmentDesc GetFragmentDesc() {
         var d = desc.shot;
@@ -578,7 +580,7 @@ public class Shield : Device {
     public double absorbRegenHP;
     */
 
-    int Device.powerUse => hp < desc.maxHP ? desc.powerUse : desc.idlePowerUse;
+    int? Device.powerUse => hp < desc.maxHP ? desc.powerUse : desc.idlePowerUse;
     public Shield() { }
     public Shield(Item source, ShieldDesc desc) {
         this.source = source;
@@ -649,31 +651,60 @@ public class Reactor : Device, PowerSource {
 public class Solar : Device, PowerSource {
     public Item source { get; private set; }
     public SolarDesc desc;
+    public int lifetimeOutput;
+    public bool dead;
     public int maxOutput { get; private set; }
     public double energyDelta { get; set; }
     public Solar() { }
     public Solar(Item source, SolarDesc desc) {
         this.source = source;
         this.desc = desc;
+        lifetimeOutput = desc.lifetimeOutput;
     }
     public void Update(IShip owner) {
-        var t = owner.world.backdrop.starlight.GetTile(owner.position);
-        var b = t.A;
-        maxOutput = (int)(b * desc.maxOutput / 255);
+        void Update() {
+            var t = owner.world.backdrop.starlight.GetTile(owner.position);
+            var b = t.A;
+            maxOutput = (b * desc.maxOutput / 255);
+        }
+        switch (lifetimeOutput) {
+            case -1: 
+                Update();
+                break;
+            case 0: 
+                break;
+            case 1:
+                lifetimeOutput = 0;
+                maxOutput = 0;
+                if (owner is PlayerShip ps) {
+                    ps.AddMessage(new Message($"{source.name} has stopped functioning"));
+                }
+                break;
+            default:
+                lifetimeOutput = (int)Math.Max(1, lifetimeOutput + energyDelta);
+                Update();
+                break;
+
+        }
+
     }
 }
 public class ServiceDevice : Device {
     public Item source { get; set; }
     public ServiceDesc desc;
     public int ticks;
+    public int powerUse { get; private set; }
+    int? Device.powerUse => powerUse;
     public ServiceDevice() { }
     public ServiceDevice(Item source, ServiceDesc desc) {
         this.source = source;
         this.desc = desc;
+        powerUse = 0;
     }
     public void Update(IShip owner) {
         ticks++;
         if (ticks % desc.interval == 0) {
+            var powerUse = 0;
             switch (desc.type) {
                 case Service.missileJack: {
                         //May not work in Arena mode if we assume control
@@ -696,13 +727,23 @@ public class ServiceDevice : Device {
                                 var p = owner.position + inc * i;
                                 owner.world.AddEffect(new EffectParticle(p, new ColoredGlyph(Color.Orange, Color.Transparent, '-'), 10));
                             }
+                            powerUse = desc.powerUse;
                         }
                         break;
                     }
                 case Service.armorRepair: {
                         break;
                     }
+                case Service.grind:
+                    if(owner is PlayerShip player) {
+                        powerUse = this.powerUse + (player.energy.totalMaxOutput - player.energy.totalUsedOutput);
+                    }
+                    break;
             }
+            this.powerUse = powerUse;
         }
+    }
+    public void OnOverload() {
+        powerUse = 0;
     }
 }

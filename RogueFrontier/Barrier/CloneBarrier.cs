@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace RogueFrontier;
 
 //Surrounds the playership, any projectile that hits this barrier accelerates to extreme speed
-class AccuseBarrier : ProjectileBarrier {
+class CloneBarrier : ProjectileBarrier {
     [JsonIgnore]
     public bool active => lifetime > 0;
     [JsonIgnore]
@@ -20,8 +20,8 @@ class AccuseBarrier : ProjectileBarrier {
     public int lifetime;
     public HashSet<Projectile> cloned;
     public XY position { get; set; }
-    public AccuseBarrier() { }
-    public AccuseBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> cloned) {
+    public CloneBarrier() { }
+    public CloneBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> cloned) {
         this.id = owner.world.nextId++;
         this.owner = owner;
         this.offset = offset;

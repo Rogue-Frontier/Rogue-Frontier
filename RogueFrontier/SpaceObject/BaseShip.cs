@@ -88,7 +88,7 @@ public class BaseShip : SpaceObject {
     [JsonProperty]
     public HullSystem damageSystem { get; private set; }
     [JsonProperty]
-    public Disrupt controlHijack;
+    public Disrupt disruption;
     [JsonProperty]
     public Rand destiny;
     [JsonProperty]
@@ -143,16 +143,22 @@ public class BaseShip : SpaceObject {
     }
     public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
     public void Damage(Projectile p) {
-        ref int hpLeft = ref p.damageHP;
+        int dmgFull = p.damageHP;
+        ref int dmgLeft = ref p.damageHP;
         foreach(var s in devices.Shields) {
-            if(hpLeft == 0) {
+            if(dmgLeft == 0) {
                 break;
             }
-            var d = Math.Min(s.maxAbsorb, (int)(hpLeft * s.absorbFactor));
+            var d = Math.Min(s.maxAbsorb, (int)(dmgLeft * s.absorbFactor));
             if (d > 0) {
                 s.Absorb(d);
-                hpLeft -= d;
+                dmgLeft -= d;
             }
+        }
+        if(dmgLeft > 0) {
+            int knockback = p.desc.knockback * dmgLeft / dmgFull;
+            velocity += (p.velocity - velocity).WithMagnitude(knockback);
+            disruption = p.desc.disruptor?.GetHijack() ?? disruption;
         }
         damageSystem.Damage(this, p);
     }
@@ -177,31 +183,31 @@ public class BaseShip : SpaceObject {
         //Devices.Update(this);
     }
     public void UpdateControls() {
-        if (controlHijack != null) {
-            thrusting = controlHijack.thrustMode switch {
+        if (disruption != null) {
+            thrusting = disruption.thrustMode switch {
                 DisruptMode.FORCE_ON => true,
                 DisruptMode.FORCE_OFF => false,
                 _ => thrusting
             };
-            rotating = controlHijack.turnMode switch {
+            rotating = disruption.turnMode switch {
                 DisruptMode.FORCE_ON => Rotating.CCW,
                 DisruptMode.FORCE_OFF => Rotating.None,
                 _ => rotating
             };
 
-            decelerating = controlHijack.brakeMode switch {
+            decelerating = disruption.brakeMode switch {
                 DisruptMode.FORCE_ON => true,
                 DisruptMode.FORCE_OFF => false,
                 _ => decelerating
             };
-            devices.Weapons.ForEach(a => a.firing = controlHijack.fireMode switch {
+            devices.Weapons.ForEach(a => a.firing = disruption.fireMode switch {
                 DisruptMode.FORCE_ON => true,
                 DisruptMode.FORCE_OFF => false,
                 _ => a.firing
             });
-            controlHijack.Update();
-            if (controlHijack.active == false) {
-                controlHijack = null;
+            disruption.Update();
+            if (disruption.active == false) {
+                disruption = null;
             }
         }
         UpdateThrust();

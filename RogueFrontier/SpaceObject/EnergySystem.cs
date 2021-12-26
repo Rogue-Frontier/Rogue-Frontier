@@ -14,19 +14,23 @@ public class EnergySystem {
         this.devices = devices;
     }
     public void Update(PlayerShip player) {
-        if (!devices.Reactors.Any()) {
+        var reactors = devices.Reactors;
+        if (!reactors.Any()) {
             return;
         }
 
         var solars = devices.Solars;
         var generators = new List<Reactor>();
         var batteries = new List<Reactor>();
-        foreach (var reactor in devices.Reactors) {
-            reactor.energyDelta = 0;
-            if (reactor.desc.battery) {
-                batteries.Add(reactor);
+        foreach(var s in solars) {
+            s.energyDelta = 0;
+        }
+        foreach (var r in reactors) {
+            r.energyDelta = 0;
+            if (r.desc.battery) {
+                batteries.Add(r);
             } else {
-                generators.Add(reactor);
+                generators.Add(r);
             }
         }
         List<PowerSource> sources = new();
@@ -42,11 +46,16 @@ public class EnergySystem {
         //Devices consume power
         int outputUsed = 0;
         foreach (var powered in devices.Powered.Where(p => !off.Contains(p))) {
-            var powerUse = powered.powerUse;
+            var powerUse = powered.powerUse.Value;
             if (powerUse <= 0) { continue; }
             if (powerUse > maxOutputLeft) {
-                deactivated.Add(powered);
-                continue;
+                powered.OnOverload();
+                powerUse = powered.powerUse.Value;
+                if (powerUse <= 0) { continue; }
+                if (powerUse > maxOutputLeft) {
+                    deactivated.Add(powered);
+                    continue;
+                }
             }
             outputUsed += powerUse;
             maxOutputLeft -= powerUse;

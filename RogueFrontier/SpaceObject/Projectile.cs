@@ -117,19 +117,12 @@ public class Projectile : MovingObject {
                         case Segment seg when exclude.Contains(seg.parent):
                             continue;
                         case SpaceObject hit when !destroyed:
-                            lifetime = 0;
                             hit.Damage(this);
                             var angle = (hit.position - position).angleRad;
                             world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 10));
 
-                            if (desc.disruptor != null) {
-                                if (hit is PlayerShip sh) {
-                                    sh.ship.controlHijack = desc.disruptor.GetHijack();
-                                } else if (hit is AIShip ai) {
-                                    ai.ship.controlHijack = desc.disruptor.GetHijack();
-                                }
-                            }
                             Fragment();
+                            lifetime = 0;
                             destroyed = true;
                             break;
                         case Projectile p when hitProjectile && !destroyed:

@@ -1,7 +1,7 @@
 ﻿namespace RogueFrontier;
 
 public enum DisruptMode {
-    NONE, FORCE_ON, FORCE_OFF
+    NONE = 0, FORCE_OFF, FORCE_ON, //FORCE_CCW, FORCE_CW
 }
 public class Disrupt {
     public int ticksLeft;

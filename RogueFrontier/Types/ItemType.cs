@@ -183,6 +183,9 @@ public record WeaponDesc {
     [Opt<int>(0)] public int repeat;
     public FragmentDesc shot;
     [Opt<int>(-1)] public int initialCharges;
+
+    public StaticTile effect;
+    public CapacitorDesc capacitor;
     public ItemType ammoType;
     public bool targetProjectile;
     public bool autoFire;
@@ -192,42 +195,45 @@ public record WeaponDesc {
     public int lifetime => shot.lifetime;
 
     public int minRange => shot.missileSpeed * shot.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
-    public StaticTile effect;
-    public CapacitorDesc capacitor;
+    
     public Weapon GetWeapon(Item i) => new Weapon(i, this);
     public WeaponDesc() { }
     public WeaponDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
         shot = new FragmentDesc(e);
-        if (e.TryAttBool("pointDefense")) {
-            targetProjectile = true;
-            autoFire = true;
+
+        effect = new StaticTile(e);
+        if (e.HasElement("Capacitor", out var xmlCapacitor)) {
+            capacitor = new CapacitorDesc(xmlCapacitor);
         }
         if (e.TryAttribute(nameof(ammoType), out string at)) {
             if (!types.itemType.TryGetValue(at, out ammoType)) {
                 throw new Exception($"ItemType codename expected: ammoType=\"{at}\" ### {e} ### {e.Parent}");
             }
         }
-
-        effect = new StaticTile(e);
-        if (e.HasElement("Capacitor", out var xmlCapacitor)) {
-            capacitor = new CapacitorDesc(xmlCapacitor);
+        if (e.TryAttBool("pointDefense")) {
+            targetProjectile = true;
+            autoFire = true;
         }
+        
+
     }
 }
 public record FragmentDesc {
-    [Opt<int>(1)] public int count;
-    [Opt] public bool omnidirectional;
-    [Opt] public bool? targetLocked;
-    [Opt] public double spreadAngle;
-    [Req] public int missileSpeed;
-    [Req] public int damageType;
-    [Req] public IDice damageHP;
-    [Opt<int>(0)] public int shock;
-    [Req] public int lifetime;
-    [Opt] public double maneuver;
-    [Opt<int>(0)] public double maneuverRadius;
-    [Opt<int>(0)] public int fragmentInterval;
+    [Opt<int>(1)]   public int count;
+    [Opt]           public bool omnidirectional;
+    [Opt]           public bool? targetLocked;
+    [Opt]           public double spreadAngle;
+    [Req]           public int missileSpeed;
+    [Req]           public int damageType;
+    [Req]           public IDice damageHP;
+    [Opt]           public int knockback;
+    [Opt]           public int shock;
+    [Req]           public int lifetime;
+    [Opt]           public bool passthrough;
+    [Opt]           public double maneuver;
+    [Opt]           public double maneuverRadius;
+    [Opt]           public int fragmentInterval;
     public DisruptorDesc disruptor;
     public HashSet<FragmentDesc> fragments;
     public StaticTile effect;
@@ -242,12 +248,11 @@ public record FragmentDesc {
         }
         maneuver *= Math.PI / (180);
         fragments = new HashSet<FragmentDesc>();
-        if (e.HasElement("Disruptor", out var xmlDisruptor)) {
-            disruptor = new DisruptorDesc(xmlDisruptor);
-        }
-
         if (e.HasElements("Fragment", out var fragmentsList)) {
             fragments.UnionWith(fragmentsList.Select(f => new FragmentDesc(f)));
+        }
+        if (e.HasElement("Disruptor", out var xmlDisruptor)) {
+            disruptor = new DisruptorDesc(xmlDisruptor);
         }
         if (e.HasElement("Trail", out var trail)) {
             this.trail = new TrailDesc(trail);
@@ -339,6 +344,7 @@ public record ReactorDesc {
 }
 public record SolarDesc {
     [Req] public int maxOutput;
+    [Opt<int>(-1 + 0 * 360000)] public int lifetimeOutput;
     public Solar GetSolar(Item i) => new(i, this);
     public SolarDesc() { }
     public SolarDesc(XElement e) {
@@ -347,10 +353,12 @@ public record SolarDesc {
 }
 public enum Service {
     missileJack,
-    armorRepair
+    armorRepair,
+    grind
 }
 public record ServiceDesc {
     public Service type;
+    [Req] public int powerUse;
     [Req] public int interval;
     public ServiceDevice GetMisc(Item i) => new(i, this);
     public ServiceDesc() { }

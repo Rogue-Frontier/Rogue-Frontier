@@ -803,7 +803,7 @@ public class Vignette : Console {
             }
         }
         ticks++;
-        if (ticks % 5 == 0 && player.ship.controlHijack?.ticksLeft > 30) {
+        if (ticks % 5 == 0 && player.ship.disruption?.ticksLeft > 30) {
             int i = 0;
             var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
             foreach (var p in screenPerimeter.PerimeterPositions().Select(p => new XY(p))) {
@@ -879,8 +879,8 @@ public class Vignette : Console {
             }
         }
 
-        if (player.ship.controlHijack?.ticksLeft > 0) {
-            var ticks = player.ship.controlHijack.ticksLeft;
+        if (player.ship.disruption?.ticksLeft > 0) {
+            var ticks = player.ship.disruption.ticksLeft;
             var strength = Math.Min(ticks / 60f, 1);
             borderSize += (int)(5 * strength);
             borderColor = borderColor.Blend(Color.Cyan.SetAlpha(
