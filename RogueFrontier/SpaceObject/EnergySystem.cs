@@ -8,8 +8,9 @@ public class EnergySystem {
     public DeviceSystem devices;
     public HashSet<Device> on => devices.Installed.Except(off).ToHashSet();
     public HashSet<Device> off = new();
-    public int totalMaxOutput;
-    public int totalUsedOutput;
+    public int totalOutputMax;
+    public int totalOutputUsed;
+    public int totalOutputLeft => totalOutputMax - totalOutputUsed;
     public EnergySystem(DeviceSystem devices) {
         this.devices = devices;
     }
@@ -20,7 +21,7 @@ public class EnergySystem {
         }
 
         var solars = devices.Solars;
-        var generators = new List<Reactor>();
+        var burners = new List<Reactor>();
         var batteries = new List<Reactor>();
         foreach(var s in solars) {
             s.energyDelta = 0;
@@ -30,35 +31,44 @@ public class EnergySystem {
             if (r.desc.battery) {
                 batteries.Add(r);
             } else {
-                generators.Add(r);
+                burners.Add(r);
             }
         }
         List<PowerSource> sources = new();
         sources.AddRange(solars);
-        sources.AddRange(generators);
+        sources.AddRange(burners);
         sources.AddRange(batteries);
 
-        totalMaxOutput = sources.Sum(r => r.maxOutput);
-        int maxOutputLeft = totalMaxOutput;
+        totalOutputMax = sources.Sum(r => r.maxOutput);
+        totalOutputUsed = 0;
         int sourceIndex = 0;
         int sourceOutput = sources[sourceIndex].maxOutput;
-        HashSet<Device> deactivated = new HashSet<Device>();
+        var overloaded = new HashSet<Device>();
+        var deactivated = new HashSet<Device>();
         //Devices consume power
         int outputUsed = 0;
         foreach (var powered in devices.Powered.Where(p => !off.Contains(p))) {
-            var powerUse = powered.powerUse.Value;
-            if (powerUse <= 0) { continue; }
-            if (powerUse > maxOutputLeft) {
-                powered.OnOverload();
-                powerUse = powered.powerUse.Value;
-                if (powerUse <= 0) { continue; }
-                if (powerUse > maxOutputLeft) {
-                    deactivated.Add(powered);
-                    continue;
-                }
+            Handle(powered, overloaded);
+        }
+        foreach (var powered in overloaded) {
+            powered.OnOverload(player);
+            Handle(powered, deactivated);
+        }
+
+        void Handle(Device powered, HashSet<Device> overflow) {
+
+            if(powered is Service s && s.desc.type == ServiceType.grind) {
+                int i = 0;
             }
+
+            var powerUse = powered.powerUse.Value;
+            if (powerUse <= 0) { return; }
+            if (powerUse > totalOutputLeft) {
+                overflow.Add(powered);
+                return;
+            }
+            totalOutputUsed += powerUse;
             outputUsed += powerUse;
-            maxOutputLeft -= powerUse;
 
         CheckReactor:
             var source = sources[sourceIndex];
@@ -90,22 +100,34 @@ public class EnergySystem {
             }
         }
 
+        bool solarRechargeOnly = true;
+        /*
+        if(sources[sourceIndex] is Reactor reactor && (reactor.desc.battery || solarRechargeOnly)) {
+            return;
+        }
+        */
         //Batteries recharge from reactor
-        int maxReactorOutputLeft = maxOutputLeft - batteries.Sum(b => b.maxOutput);
+        int maxGeneratorOutputLeft = totalOutputLeft - batteries.Sum(b => b.maxOutput);
+        /*
+        if (solarRechargeOnly) {
+            maxGeneratorOutputLeft -= burners.Sum(b => b.maxOutput + (int)b.energyDelta);
+        }
+        */
+        if (maxGeneratorOutputLeft <= 0) {
+            return;
+        }
         foreach (var battery in batteries.Where(b => b.energy < b.desc.capacity)) {
-            if (maxReactorOutputLeft == 0) {
-                continue;
-            }
             if (battery.rechargeDelay > 0) {
                 battery.rechargeDelay--;
                 continue;
             }
 
-            int delta = Math.Min(battery.maxOutput, maxReactorOutputLeft);
+            int delta = Math.Min(battery.desc.maxOutput, maxGeneratorOutputLeft);
             battery.energyDelta = delta;
 
+            totalOutputUsed += delta;
             outputUsed += delta;
-            maxReactorOutputLeft -= delta;
+            maxGeneratorOutputLeft -= delta;
 
         CheckReactor:
             if (outputUsed > sourceOutput) {
@@ -119,8 +141,10 @@ public class EnergySystem {
             } else {
                 sources[sourceIndex].energyDelta = -outputUsed;
             }
-        }
 
-        totalUsedOutput = totalMaxOutput - maxOutputLeft;
+            if (maxGeneratorOutputLeft == 0) {
+                break;
+            }
+        }
     }
 }

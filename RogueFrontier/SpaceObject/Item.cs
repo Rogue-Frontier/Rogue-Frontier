@@ -18,7 +18,7 @@ public class Item {
     public Shield shield;
     public Reactor reactor;
     public Solar solar;
-    public ServiceDevice misc;
+    public Service service;
 
     public Modifier mod;
 
@@ -30,7 +30,7 @@ public class Item {
         shield = clone.shield != null ? new Shield(this, clone.shield.desc) : null;
         reactor = clone.reactor != null ? new Reactor(this, clone.reactor.desc) : null;
         solar = clone.solar != null ? new Solar(this, clone.solar.desc) : null;
-        misc = clone.misc != null ? new ServiceDevice(this, clone.misc.desc) : null;
+        service = clone.service != null ? new Service(this, clone.service.desc) : null;
     }
     public Item(ItemType type, Modifier mod = null) {
         this.type = type;
@@ -41,55 +41,57 @@ public class Item {
         shield = null;
         reactor = null;
         solar = null;
-        misc = null;
+        service = null;
     }
-    public T GetDevice<T>() {
-        var type = typeof(T);
-        return (T)new Dictionary<Type, object>() {
+    public T Get<T>() where T:class, Device{
+        return (T)new Dictionary<Type, Device>() {
                 [typeof(Weapon)] = weapon,
                 [typeof(Armor)] = armor,
                 [typeof(Shield)] = shield,
                 [typeof(Reactor)] = reactor,
                 [typeof(Solar)] = solar,
-                [typeof(ServiceDesc)]=misc,
-        }[type];
+                [typeof(Service)]=service,
+        }[typeof(T)];
     }
-    public bool Install<T>(out T result) where T:class {
-        return (result = (new Dictionary<Type, Func<object>>() {
-            [typeof(Weapon)] = InstallWeapon,
-            [typeof(Armor)] = InstallArmor,
-            [typeof(Shield)] = InstallShields,
-            [typeof(Reactor)] = InstallReactor,
-            [typeof(Solar)] = InstallSolar,
-            [typeof(ServiceDesc)] = InstallMisc,
-        }[typeof(T)]() as T)) != null;
+    public bool Get<T>(out T result) where T : class, Device => (result = Get<T>()) != null;
+    public bool Has<T>() where T : class, Device => Get<T>() != null;
+    public void Remove<T>() where T : class, Device {
+        new Dictionary<Type, Func<Device>>() {
+            [typeof(Weapon)] = () => weapon = null,
+            [typeof(Armor)] = () => armor = null,
+            [typeof(Shield)] = () => shield = null,
+            [typeof(Reactor)] = () => reactor = null,
+            [typeof(Solar)] = () => solar = null,
+            [typeof(Service)] = () => service = null,
+        }[typeof(T)]();
     }
-    public Weapon InstallWeapon() => weapon ??= type.weapon?.GetWeapon(this);
-    public Armor InstallArmor() => armor ??= type.armor?.GetArmor(this);
-    public Shield InstallShields() => shield ??= type.shield?.GetShield(this);
-    public Reactor InstallReactor() => reactor ??= type.reactor?.GetReactor(this);
-    public Solar InstallSolar() => solar ??= type.solar?.GetSolar(this);
-    public ServiceDevice InstallMisc() => misc ??= type.misc?.GetMisc(this);
+    public T Install<T>() where T:class, Device {
+        return (T) (new Dictionary<Type, Func<Device>>() {
+            [typeof(Weapon)] = () => weapon ??= type.weapon?.GetWeapon(this),
+            [typeof(Armor)] = () => armor ??= type.armor?.GetArmor(this),
+            [typeof(Shield)] = () => shield ??= type.shield?.GetShield(this),
+            [typeof(Reactor)] = () => reactor ??= type.reactor?.GetReactor(this),
+            [typeof(Solar)] = () => solar ??= type.solar?.GetSolar(this),
+            [typeof(Service)] = () => service ??= type.misc?.GetMisc(this),
+        }[typeof(T)]());
+    }
+    public bool Install<T>(out T result) where T:class, Device {
+        return (result = Install<T>()) != null;
+    }
     public void RemoveAll() {
         weapon = null;
         armor = null;
         shield = null;
         reactor = null;
         solar = null;
-        misc = null;
+        service = null;
     }
-    public void RemoveWeapon() => weapon = null;
-    public void RemoveArmor() => armor = null;
-    public void RemoveShields() => shield = null;
-    public void RemoveReactor() => reactor = null;
-    public void RemoveSolar() => solar = null;
-    public void RemoveMisc() => misc = null;
 }
 public interface Device {
     Item source { get; }
     void Update(IShip owner);
     int? powerUse => null;
-    public void OnOverload() { }
+    public void OnOverload(PlayerShip owner) { }
     public void OnDisable() { }
 }
 public static class SWeapon {
@@ -113,7 +115,7 @@ public class Weapon : Device {
     public Item source { get; private set; }
     public WeaponDesc desc;
     [JsonIgnore]
-    int? Device.powerUse => delay > 0 ? desc.powerUse : desc.powerUse / 10;
+    int? Device.powerUse => (firing || delay > 0) ? desc.powerUse : desc.powerUse / 10;
 
     public FragmentDesc GetFragmentDesc() {
         var d = desc.shot;
@@ -689,14 +691,14 @@ public class Solar : Device, PowerSource {
 
     }
 }
-public class ServiceDevice : Device {
+public class Service : Device {
     public Item source { get; set; }
     public ServiceDesc desc;
     public int ticks;
     public int powerUse { get; private set; }
     int? Device.powerUse => powerUse;
-    public ServiceDevice() { }
-    public ServiceDevice(Item source, ServiceDesc desc) {
+    public Service() { }
+    public Service(Item source, ServiceDesc desc) {
         this.source = source;
         this.desc = desc;
         powerUse = 0;
@@ -706,7 +708,7 @@ public class ServiceDevice : Device {
         if (ticks % desc.interval == 0) {
             var powerUse = 0;
             switch (desc.type) {
-                case Service.missileJack: {
+                case ServiceType.missileJack: {
                         //May not work in Arena mode if we assume control
                         //bc weapon locks are focused on the old AI ship
                         var missile = owner.world.entities.all
@@ -731,19 +733,19 @@ public class ServiceDevice : Device {
                         }
                         break;
                     }
-                case Service.armorRepair: {
+                case ServiceType.armorRepair: {
                         break;
                     }
-                case Service.grind:
+                case ServiceType.grind:
                     if(owner is PlayerShip player) {
-                        powerUse = this.powerUse + (player.energy.totalMaxOutput - player.energy.totalUsedOutput);
+                        powerUse = this.powerUse + (player.energy.totalOutputMax - player.energy.totalOutputUsed);
                     }
                     break;
             }
             this.powerUse = powerUse;
         }
     }
-    public void OnOverload() {
-        powerUse = 0;
+    void Device.OnOverload(PlayerShip owner) {
+        powerUse = owner.energy.totalOutputLeft;
     }
 }

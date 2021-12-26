@@ -59,12 +59,12 @@ public record InstallWeapon : IInvokeAction {
             player.AddMessage(new Message($"Installed weapon {item.type.name}"));
 
             player.cargo.Remove(item);
-            player.devices.Install(item.InstallWeapon());
+            player.devices.Install(item.Install<Weapon>());
         } else {
             player.AddMessage(new Message($"Removed weapon {item.type.name}"));
 
             player.devices.Remove(item.weapon);
-            item.RemoveWeapon();
+            item.Remove<Weapon>();
             player.cargo.Add(item);
         }
         callback?.Invoke();
@@ -351,19 +351,19 @@ public record SolarDesc {
         e.Initialize(this);
     }
 }
-public enum Service {
+public enum ServiceType {
     missileJack,
     armorRepair,
     grind
 }
 public record ServiceDesc {
-    public Service type;
+    public ServiceType type;
     [Req] public int powerUse;
     [Req] public int interval;
-    public ServiceDevice GetMisc(Item i) => new(i, this);
+    public Service GetMisc(Item i) => new(i, this);
     public ServiceDesc() { }
     public ServiceDesc(XElement e) {
         e.Initialize(this);
-        type = e.ExpectAttEnum<Service>(nameof(type));
+        type = e.ExpectAttEnum<ServiceType>(nameof(type));
     }
 }

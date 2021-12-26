@@ -212,7 +212,7 @@ public class Station : DockableObject, ITrader {
         var drop = weapons?.Select(w => w.source);
         if (drop != null) {
             foreach (var item in drop) {
-                item.RemoveWeapon();
+                item.Remove<Weapon>();
                 wreck.cargo.Add(item);
             }
         }

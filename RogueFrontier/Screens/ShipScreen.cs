@@ -126,7 +126,7 @@ class ShipScreen : Console {
             }
         }
 
-        var misc = playerShip.ship.devices.Installed.OfType<ServiceDevice>();
+        var misc = playerShip.ship.devices.Installed.OfType<Service>();
         if (misc.Any()) {
             Print(x, y++, "[Misc]");
             foreach (var m in misc) {

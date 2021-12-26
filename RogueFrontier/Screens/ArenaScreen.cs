@@ -139,7 +139,7 @@ class ArenaScreen : Console {
                                         Weapon w => source.weapon,
                                         Shield s => source.shield,
                                         Reactor r => source.reactor,
-                                        ServiceDevice m => source.misc
+                                        Service m => source.service
                                     });
                                 }));
                             }
@@ -235,7 +235,7 @@ class ArenaScreen : Console {
                     int i = 0;
                     foreach (var type in keys) {
                         var item = new Item(itemDict[type]);
-                        var device = (Device)item.InstallReactor() ?? (Device)item.InstallShields() ?? (Device)item.InstallWeapon() ?? (Device)item.InstallMisc();
+                        var device = (Device)item.Install<Reactor>() ?? (Device)item.Install<Shield>() ?? (Device)item.Install<Weapon>() ?? (Device)item.Install<Service>();
 
                         if (device == null) {
                             continue;

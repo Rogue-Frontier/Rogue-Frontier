@@ -113,7 +113,7 @@ public class PauseMenu : Console {
         var p = playerMain.playerShip;
         var items = p.cargo.Concat(p.devices.Installed.Select(d => d.source)
             .Where(i => i != null).Select(i => {
-                i.RemoveArmor();
+                i.Remove<Armor>();
                 return i;
             }));
         Wreck w = new Wreck(p, items);

@@ -1183,14 +1183,14 @@ public class Readout : Console {
                     bar = new ColoredString(new string('=', 16), Color.Gray, b);
                 }
 
-                int totalUsed = player.energy.totalUsedOutput,
-                    totalMax = player.energy.totalMaxOutput;
+                int totalUsed = player.energy.totalOutputUsed,
+                    totalMax = player.energy.totalOutputMax;
                 int l;
 
                 l = (int)Math.Ceiling(16f * totalUsed / totalMax);
                 for (int i = 0; i < l; i++) {
                     bar[i].Background = Color.DarkKhaki;
-                    bar[i].Foreground = Color.Yellow;
+                    //bar[i].Foreground = Color.Yellow;
                 }
                 l = (int)Math.Ceiling(16f * totalSolar / totalMax);
                 for (int i = 0; i < l; i++) {
@@ -1290,7 +1290,7 @@ public class Readout : Console {
 
                 y++;
             }
-            var misc = player.ship.devices.Installed.OfType<ServiceDevice>();
+            var misc = player.ship.devices.Installed.OfType<Service>();
             if (misc.Any()) {
                 int i = 0;
                 foreach (var m in misc) {
