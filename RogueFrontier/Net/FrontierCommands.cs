@@ -1,5 +1,8 @@
 ﻿using Common;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RogueFrontier;
 
@@ -13,6 +16,29 @@ public enum CommandClient {
     SET_CAMERA,
     ENTITY_ENFORCE_CERTAINTY
 }
+public interface ITell {
+    public (string length, byte[] data) ToBytes() {
+        var str = SaveGame.Serialize(this);
+        //var s = Space.Zip(str);
+        var s = Encoding.UTF8.GetBytes(str);
+        return ($"Tell{s.Length}", s);
+    }
+    public static object FromStream(MemoryStream received, int length) {
+        var b = new byte[length];
+        received.Position = received.Length - length;
+        received.Read(b, 0, length);
+        return FromBytes(b);
+    }
+    public static object FromBytes(byte[] b) {
+        //var data = Space.Unzip(b);
+        var data = Encoding.UTF8.GetString(b);
+        return SaveGame.Deserialize(data);
+    }
+
+    public static Match Prefix(string s) =>
+        new Regex("^Tell(?<length>[0-9]+)").Match(s);
+}
+
 
 public class EntityLocation {
     public int id;

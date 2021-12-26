@@ -250,6 +250,61 @@ public class PlayerMain : Console {
             dp.done = true;
         });
     }
+
+
+    public void UpdateClient(TimeSpan delta) {
+        //if(!frameRendered) return;
+        if (updatesSinceRender > 2) return;
+        updatesSinceRender++;
+
+        void UpdateUniverse() {
+            world.UpdateActive();
+            world.UpdatePresent();
+        }
+
+        if (true) {
+
+            back.Update(delta);
+            lock (world) {
+                UpdateUniverse();
+                if (playerShip.autopilot) {
+                    autopilotUpdate = true;
+
+                    ProcessKeyboard(prevKeyboard);
+                    ProcessMouse(prevMouse);
+                    UpdateUniverse();
+
+                    ProcessKeyboard(prevKeyboard);
+                    ProcessMouse(prevMouse);
+                    UpdateUniverse();
+
+                    autopilotUpdate = false;
+                }
+
+                viewport.Update(delta);
+                transition?.Update(delta);
+            }
+
+            var dock = playerShip.dock;
+            if (dock?.justDocked == true && dock.Target is DockableObject d) {
+                Console scene = story.GetScene(this, d, playerShip) ?? d.GetDockScene(this, playerShip);
+                if (scene != null) {
+                    playerShip.DisengageAutopilot();
+                    playerShip.dock = null;
+                    sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
+                } else {
+                    playerShip.AddMessage(new Message($"Stationed on {d.name}"));
+                }
+            }
+        }
+        camera.position = playerShip.position;
+        //frameRendered = false;
+
+        //Required to update children
+        base.Update(delta);
+    }
+
+
     public override void Update(TimeSpan delta) {
         //if(!frameRendered) return;
         if (updatesSinceRender > 2) return;
@@ -276,34 +331,7 @@ public class PlayerMain : Console {
             playerShip.mortalTime -= timePassed;
         }
 
-
-        if (sceneContainer.Children.Any()) {
-            sceneContainer.Update(delta);
-        } else {
-            if (uiMain.IsVisible) {
-                uiMegamap.Update(delta);
-
-                vignette.Update(delta);
-
-                uiMain.viewScale = uiMegamap.viewScale;
-                uiMain.Update(delta);
-
-                uiEdge.viewScale = uiMegamap.viewScale;
-                uiEdge.Update(delta);
-
-                uiMinimap.alpha = (byte)(255 - uiMegamap.alpha);
-                uiMinimap.Update(delta);
-            } else {
-                uiMegamap.Update(delta);
-                vignette.Update(delta);
-            }
-            if (powerMenu.IsVisible) {
-                powerMenu.Update(delta);
-            }
-            if (communicationsMenu.IsVisible) {
-                communicationsMenu.Update(delta);
-            }
-        }
+        UpdateUI(delta);
 
         void UpdateUniverse() {
             world.UpdateActive();
@@ -357,6 +385,36 @@ public class PlayerMain : Console {
 
         //Required to update children
         base.Update(delta);
+    }
+
+    public void UpdateUI(TimeSpan delta) {
+        if (sceneContainer.Children.Any()) {
+            sceneContainer.Update(delta);
+        } else {
+            if (uiMain.IsVisible) {
+                uiMegamap.Update(delta);
+
+                vignette.Update(delta);
+
+                uiMain.viewScale = uiMegamap.viewScale;
+                uiMain.Update(delta);
+
+                uiEdge.viewScale = uiMegamap.viewScale;
+                uiEdge.Update(delta);
+
+                uiMinimap.alpha = (byte)(255 - uiMegamap.alpha);
+                uiMinimap.Update(delta);
+            } else {
+                uiMegamap.Update(delta);
+                vignette.Update(delta);
+            }
+            if (powerMenu.IsVisible) {
+                powerMenu.Update(delta);
+            }
+            if (communicationsMenu.IsVisible) {
+                communicationsMenu.Update(delta);
+            }
+        }
     }
 
     public void PlaceTiles() {

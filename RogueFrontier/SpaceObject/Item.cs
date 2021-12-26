@@ -629,6 +629,7 @@ public class MultiItemAmmo : IAmmo {
 */
 
 public class Armor : Device {
+    [JsonProperty]
     public Item source { get; private set; }
     public ArmorDesc desc;
     public int hp;
@@ -642,7 +643,8 @@ public class Armor : Device {
     public void Update(IShip owner) { }
 }
 public class Shield : Device {
-    public Item source { get; set; }
+    [JsonProperty]
+    public Item source { get; private set; }
     public ShieldDesc desc;
     public int hp;
     public double regenHP;
@@ -705,9 +707,11 @@ public interface PowerSource {
     int maxOutput { get; }
 }
 public class Reactor : Device, PowerSource {
+    [JsonProperty]
     public Item source { get; set; }
     public ReactorDesc desc;
     public double energy;
+    [JsonProperty]
     public double energyDelta { get; set; }
     public int rechargeDelay;
     public int maxOutput => energy > 0 ? desc.maxOutput : 0;
@@ -725,11 +729,14 @@ public class Reactor : Device, PowerSource {
     }
 }
 public class Solar : Device, PowerSource {
+    [JsonProperty]
     public Item source { get; private set; }
     public SolarDesc desc;
     public int lifetimeOutput;
     public bool dead;
+    [JsonProperty]
     public int maxOutput { get; private set; }
+    [JsonProperty]
     public double energyDelta { get; set; }
     public Solar() { }
     public Solar(Item source, SolarDesc desc) {
@@ -766,9 +773,11 @@ public class Solar : Device, PowerSource {
     }
 }
 public class Service : Device {
-    public Item source { get; set; }
+    [JsonProperty]
+    public Item source { get; private set; }
     public ServiceDesc desc;
     public int ticks;
+    [JsonProperty]
     public int powerUse { get; private set; }
     int? Device.powerUse => powerUse;
     public Service() { }

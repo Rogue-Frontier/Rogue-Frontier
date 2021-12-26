@@ -32,20 +32,14 @@ class FrontierSession : TcpSession {
         this.game = game;
     }
     protected override void OnConnected() {
-
-        while (game.busy) {
-            Thread.Yield();
+        lock (game.World) {
+            TellClient(new SetWorld() { sys = game.World });
         }
-        game.requests++;
-        //var s = Common.Space.Zip(SaveGame.Serialize(game.World));
-        var s = (SaveGame.Serialize(game.World));
-        game.requests--;
-        TellClient(new SetWorld() { sys = game.World });
     }
     public void TellClient(TellClient c) {
-        var s = Common.Space.Zip(SaveGame.Serialize(c));
-        Send($"{s.Length}");
-        Send(s);
+        (var length, var data) = c.ToBytes();
+        Send(length);
+        Send(data);
     }
     private void RemovePlayer() {
         if (playerShip != null) {
@@ -61,7 +55,7 @@ class FrontierSession : TcpSession {
     }
     protected override void OnReceived(byte[] buffer, long offset, long size) {
         var s = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-        var m = Regex.Match(s, "^(?<length>[0-9]+)");
+        var m = ITell.Prefix(s);
         if (m.Success) {
             received = new MemoryStream();
             var l = m.Groups["length"].Value;
@@ -70,7 +64,7 @@ class FrontierSession : TcpSession {
                 var b = Encoding.UTF8.GetBytes(l);
                 OnReceived(buffer, offset + b.LongLength, size - b.LongLength);
             }
-        } else {
+        } else if(received != null) {
             received.Write(buffer, (int)offset, (int)size);
             CheckReceived();
         }
@@ -78,16 +72,7 @@ class FrontierSession : TcpSession {
 
     public void CheckReceived() {
         if (received.Length >= length) {
-            var b = new byte[length];
-            received.Position = 0;
-            received.Read(b, 0, length);
-
-            //var str = Space.Unzip(received);
-            //var command = SaveGame.Deserialize(Encoding.UTF8.GetString(received.ToArray()));
-
-            var r = Common.Space.Unzip(b);
-            var command = SaveGame.Deserialize(r);
-
+            var command = ITell.FromStream(received, length);
             switch (command) {
                 case TellServer.AssumePlayerShip c:
                     Handle(c);
@@ -124,7 +109,7 @@ class FrontierSession : TcpSession {
     protected override void OnError(SocketError error) =>
         Debug.WriteLine($"Chat TCP session caught an error with code {error}");
 }
-public interface TellServer {
+public interface TellServer : ITell {
     public record AssumePlayerShip : TellServer {
         public int shipId;
     }
@@ -139,10 +124,9 @@ public class FrontierServer : TcpServer {
         this.game = game;
     }
     public void TellClients(TellClient c) {
-
-        var s = Common.Space.Zip(SaveGame.Serialize(c));
-        Multicast($"{s.Length}");
-        Multicast(s);
+        (var length, var data) = c.ToBytes();
+        Multicast(length);
+        Multicast(data);
     }
     protected override TcpSession CreateSession() => new FrontierSession(this, game);
     protected override void OnError(SocketError error) =>
@@ -222,15 +206,11 @@ public class ServerMain : Console {
         if (requests > 0) {
             return;
         }
-
         playerControls.UpdatePlayerControls();
-
-        busy = true;
-        World.UpdateAdded();
-        World.UpdateActive();
-        World.UpdateRemoved();
-        busy = false;
-
+        lock (World) {
+            World.UpdateActive();
+            World.UpdatePresent();
+        }
         entityLookup.UpdateEntityLookup(World);
         if (World.tick % 90 == 0) {
             List<Entity> entityAtlas = new List<Entity>();

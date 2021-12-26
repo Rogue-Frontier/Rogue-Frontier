@@ -57,7 +57,9 @@ partial class Program {
     public static void StartServer() {
         var w = new System();
         w.types.LoadFile(main);
-        new TitleScreen(Width, Height, w).Server();
+        var t = new TitleScreen(Width, Height, w);
+        for(int i = 0; i < 100; i++) t.Update(new());
+        t.Server();
     }
     public static void StartClient() {
         var w = new System();

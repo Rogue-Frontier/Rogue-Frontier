@@ -49,7 +49,7 @@ public record LocationMod {
 
     public double? angle;
     public double angleInc;
-
+    public LocationMod() { }
     public LocationMod(XElement e) {
         radius = e.TryAttIntNullable(nameof(radius));
         radiusInc = e.TryAttInt(nameof(radiusInc));

@@ -20,7 +20,7 @@ public class Wreck : DockableObject {
     [JsonProperty]
     public int id { get; private set; }
     [JsonProperty]
-    public SpaceObject creator { get; private set; }
+    public SpaceObject creator { get; set; }
     [JsonProperty]
     public System world { get; private set; }
     [JsonProperty]

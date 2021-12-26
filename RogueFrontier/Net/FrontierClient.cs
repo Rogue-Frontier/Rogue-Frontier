@@ -29,7 +29,7 @@ class FrontierClient : TcpClient {
     protected override void OnDisconnected() { }
     protected override void OnReceived(byte[] buffer, long offset, long size) {
         var s = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-        var m = Regex.Match(s, "^(?<length>[0-9]+)");
+        var m = ITell.Prefix(s);
         if (m.Success) {
             received = new MemoryStream();
             var l = m.Groups["length"].Value;
@@ -38,26 +38,17 @@ class FrontierClient : TcpClient {
                 var b = Encoding.UTF8.GetBytes(l);
                 OnReceived(buffer, offset + b.LongLength, size - b.LongLength);
             }
-        } else {
+        } else if(received != null){
             received.Write(buffer, (int)offset, (int)size);
             CheckReceived();
         }
     }
     public void CheckReceived() {
         if (received.Length >= length) {
-            var b = new byte[length];
-            received.Position = 0;
-            received.Read(b, 0, length);
-
-            //var str = Space.Unzip(received);
-            //var command = SaveGame.Deserialize(Encoding.UTF8.GetString(received.ToArray()));
-
-            var r = Space.Unzip(b);
-            var command = SaveGame.Deserialize(r);
+            var command = ITell.FromStream(received, length);
             switch (command) {
                 case TellClient.SetWorld c:
                     var sys = c.sys;
-                    client.World = sys;
 
                     AIShip ai = null;
                     var playerId = client.playerMain?.playerShip?.id;
@@ -66,9 +57,13 @@ class FrontierClient : TcpClient {
                     }
                     ai ??= sys.entities.all.OfType<AIShip>().FirstOrDefault();
                     if (ai != null) {
+                        lock (client.World) {
+                            client.World = sys;
+                        }
                         client.removed = ai;
                         sys.RemoveEntity(ai);
                         var playerShip = new PlayerShip(new Player(client.prev.settings), ai.ship);
+                        playerShip.mortalChances = 0;
                         sys.AddEntity(playerShip);
                         sys.UpdatePresent();
                         client.SetPlayerMain(new PlayerMain(client.Width, client.Height,
@@ -92,14 +87,14 @@ class FrontierClient : TcpClient {
         }
     }
     public void TellServer(TellServer c) {
-        var s = Space.Zip(SaveGame.Serialize(c));
-        SendAsync($"{s.Length}");
-        SendAsync(s);
+        (var length, var data) = c.ToBytes();
+        SendAsync(length);
+        SendAsync(data);
     }
     protected override void OnError(SocketError error) =>
         Debug.WriteLine($"Chat TCP client caught an error with code {error}");
 }
-public interface TellClient {
+public interface TellClient : ITell {
     public record SetWorld : TellClient {
         public System sys;
     }
@@ -136,12 +131,6 @@ public class ScreenClient : Console {
         this.client = new FrontierClient("127.0.0.1", 1111, this);
         client.ConnectAsync();
 
-        UseKeyboard = true;
-
-        UpdateUI();
-    }
-    public void SetPlayerMain(PlayerMain playerMain) {
-        this.playerMain = playerMain;
 
         var fs = FontSize * 3;
         this.PauseMenu = new Console(Width, Height);
@@ -149,6 +138,13 @@ public class ScreenClient : Console {
         this.PauseMenu.Children.Add(new LabelButton("Disconnect", Disconnect) { Position = new Point(2, 4), FontSize = fs });
 
         this.PauseMenu.IsVisible = false;
+
+        UseKeyboard = true;
+
+        UpdateUI();
+    }
+    public void SetPlayerMain(PlayerMain playerMain) {
+        this.playerMain = playerMain;
     }
     public void UpdateUI() {
         var fs = FontSize * 2;
@@ -201,7 +197,7 @@ public class ScreenClient : Console {
             } else {
                 playerControls.UpdatePlayerControls();
                 playerMain.IsFocused = true;
-                playerMain.Update(timeSpan);
+                playerMain.UpdateClient(timeSpan);
                 entityLookup.UpdateEntityLookup(World);
 
                 IsFocused = true;
@@ -212,10 +208,10 @@ public class ScreenClient : Console {
         } else {
             playerControls.UpdatePlayerControls();
 
-            World.UpdateAdded();
-            World.UpdateActive();
-            World.UpdateRemoved();
-
+            lock (World) {
+                World.UpdateActive();
+                World.UpdatePresent();
+            }
             entityLookup.UpdateEntityLookup(World);
 
             tiles.Clear();
