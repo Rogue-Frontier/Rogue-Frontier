@@ -309,7 +309,7 @@ public class PlayerMain : Console {
             world.UpdateActive();
             world.UpdatePresent();
 
-            systems.Next(1).ForEach(s => {
+            systems.GetNext(1).ForEach(s => {
                 if (s != world) {
                     s.UpdateActive();
                     s.UpdatePresent();
@@ -522,9 +522,9 @@ public class PlayerMain : Console {
 
             //Placeholder for mouse wheel-based weapon selection
             if (state.Mouse.ScrollWheelValueChange > 100) {
-                playerShip.NextWeapon();
+                playerShip.NextPrimary();
             } else if (state.Mouse.ScrollWheelValueChange < -100) {
-                playerShip.PrevWeapon();
+                playerShip.PrevPrimary();
             }
 
             var centerOffset = new XY(mouseScreenPos.X, Height - mouseScreenPos.Y) - new XY(Width / 2, Height / 2);
@@ -1270,7 +1270,7 @@ public class Readout : Console {
             if (weapons.Any()) {
                 int i = 0;
                 foreach (var w in weapons) {
-                    string tag = $"{(i == player.selectedPrimary ? "->" : "  ")}{w.GetReadoutName()}";
+                    string tag = $"{(i == player.primary.index ? "->" : i == player.secondary.index ? "=>" : "  ")}{w.GetReadoutName()}";
                     Color foreground;
                     if (player.energy.off.Contains(w)) {
                         foreground = Color.Gray;
@@ -1279,7 +1279,6 @@ public class Readout : Console {
                     } else {
                         foreground = Color.White;
                     }
-
                     this.Print(x, y,
                         new ColoredString("[", Color.White, b)
                         + w.GetBar()
@@ -1287,7 +1286,6 @@ public class Readout : Console {
                     y++;
                     i++;
                 }
-
                 y++;
             }
             var misc = player.ship.devices.Installed.OfType<Service>();

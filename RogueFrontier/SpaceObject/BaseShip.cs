@@ -471,10 +471,10 @@ public class PlayerShip : IShip {
     public List<SpaceObject> targetList = new();
 
     public bool firingPrimary = false;
-    public int selectedPrimary = 0;
-
     public bool firingSecondary = false;
-    public int selectedSecondary = 0;
+
+    public ListIndex<Weapon> primary;
+    public ListIndex<Weapon> secondary;
 
     public int mortalChances = 3;
     public double mortalTime = 0;
@@ -503,8 +503,10 @@ public class PlayerShip : IShip {
     public PlayerShip(Player player, BaseShip ship) {
         this.player = player;
         this.ship = ship;
+        this.energy = new EnergySystem(ship.devices);
 
-        energy = new EnergySystem(ship.devices);
+        primary = new(ship.devices.Weapons);
+        secondary = new(ship.devices.Weapons);
 
         //Remember to create the Heading when you add or replace this ship in the World
         Attach();
@@ -560,10 +562,10 @@ public class PlayerShip : IShip {
         gate = null;
         return false;
     }
-    public void NextWeapon() =>
-        selectedPrimary = (selectedPrimary+1)%ship.devices.Weapons.Count;
-    public void PrevWeapon() =>
-        selectedPrimary = (selectedPrimary - 1 + ship.devices.Weapons.Count) % ship.devices.Weapons.Count;
+    public void NextPrimary() => primary.index++;
+    public void PrevPrimary() => primary.index--;
+    public void NextSecondary() => secondary.index++;
+    public void PrevSecondary() => secondary.index--;
     /*
     //No, let the player always choose the closest target to cursor. No iteration.
     public void NextTargetSet(SpaceObject next) {
@@ -708,12 +710,18 @@ public class PlayerShip : IShip {
     }
     //Stop targeting, but remember our remaining targets
     public void ForgetTarget() {
+        if (targetIndex == -1) {
+            return;
+        }
         ResetAutoAim();
         targetList = targetList.GetRange(targetIndex, targetList.Count - targetIndex);
         targetIndex = -1;
     }
     //Stop targeting and clear our target list
     public void ClearTarget() {
+        if (targetIndex == -1) {
+            return;
+        }
         ResetAutoAim();
         targetList.Clear();
         targetIndex = -1;
@@ -743,11 +751,9 @@ public class PlayerShip : IShip {
         target = null;
         return false;
     }
-    public Weapon GetPrimary() => selectedPrimary < ship.devices.Weapons.Count ?
-        ship.devices.Weapons[selectedPrimary] : null;
+    public Weapon GetPrimary() => primary.item;
     public bool GetPrimary(out Weapon result) => (result = GetPrimary()) != null;
-    public Weapon GetSecondary() => selectedSecondary < ship.devices.Weapons.Count ?
-    ship.devices.Weapons[selectedSecondary] : null;
+    public Weapon GetSecondary() => secondary.item;
     public bool GetSecondary(out Weapon result) => (result = GetSecondary()) != null;
     public void Damage(Projectile p) {
         //Base ship can get destroyed without calling our own Destroy(), so we need to hook up an OnDestroyed event to this
@@ -790,11 +796,16 @@ public class PlayerShip : IShip {
             }
         });
 
-        if (firingPrimary && selectedPrimary < ship.devices.Weapons.Count) {
-            if (!energy.off.Contains(ship.devices.Weapons[selectedPrimary])) {
-                ship.devices.Weapons[selectedPrimary].SetFiring(true, target);
-            }
+        if (firingPrimary && primary.Has(out var w)) {
+            if (!energy.off.Contains(w))
+                w.SetFiring(true, target);
             firingPrimary = false;
+        }
+
+        if (firingSecondary && secondary.Has(out w)) {
+            if (!energy.off.Contains(w))
+                w.SetFiring(true, target);
+            firingSecondary = false;
         }
 
         ticks++;

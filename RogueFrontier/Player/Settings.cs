@@ -2,34 +2,18 @@
 using SadConsole.Input;
 using System.Collections.Generic;
 using static SadConsole.Input.Keys;
-using static RogueFrontier.ControlKeys;
+using static RogueFrontier.Control;
 namespace RogueFrontier;
 
 public class Settings {
     //Remember to update whenever we load game
-    public Dictionary<ControlKeys, Keys> controls;
+    public Dictionary<Control, Keys> controls;
     [JsonIgnore]
     public static Settings standard => new Settings() {
-        controls = new Dictionary<ControlKeys, Keys>() {
-                { Thrust, Up },
-                { TurnRight, Right },
-                { TurnLeft, Left },
-                { Brake, Down },
-                { Autopilot, A },
-                { Dock, D },
-                { TargetFriendly, F },
-                { ClearTarget, R },
-                {Gate, G },
-                { ShipMenu, S },
-                { TargetEnemy, T },
-                { Powers, P },
-                { NextWeapon, W },
-                { FirePrimary, X },
-                { AutoAim, Z }
-            }
+        controls = PlayerControls.standard
     };
     public Settings() {
-        controls = new Dictionary<ControlKeys, Keys>();
+        controls = new Dictionary<Control, Keys>();
     }
     public string GetString() {
         const int indent = -16;
@@ -55,7 +39,7 @@ public class Settings {
 {$"[{controls[TargetEnemy]}]",indent}Target next enemy
 {$"[{controls[TargetFriendly]}]",indent}Target next friendly
 
-{$"[{controls[NextWeapon]}]",indent }Next primary weapon
+{$"[{controls[NextPrimary]}]",indent }Next primary weapon
 {$"[{controls[AutoAim]}]",indent    }Turn to aim target
 {$"[{controls[FirePrimary]}]",indent}Fire primary weapon
 

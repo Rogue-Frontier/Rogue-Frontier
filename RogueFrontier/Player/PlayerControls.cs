@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using static SadConsole.Input.Keys;
+using static RogueFrontier.Control;
 using Helper = Common.Main;
+
 namespace RogueFrontier;
-public enum ControlKeys {
+
+public enum Control {
     Thrust,
     TurnRight,
     TurnLeft,
@@ -17,8 +20,9 @@ public enum ControlKeys {
     Gate,
     TargetEnemy,
     Powers,
-    NextWeapon,
+    NextPrimary,
     FirePrimary,
+    FireSecondary,
     AutoAim
 }
 public class PlayerControls {
@@ -54,18 +58,22 @@ public class PlayerControls {
             playerMain.TargetMouse();
         }
         if (input.ClearTarget) {
-            if (playerShip.targetIndex > -1) {
-                playerShip.ClearTarget();
-            }
+            playerShip.ClearTarget();
         }
         if (input.TargetEnemy) {
             playerShip.NextTargetEnemy();
         }
-        if (input.NextWeapon) {
-            playerShip.NextWeapon();
+        if (input.NextPrimary) {
+            playerShip.NextPrimary();
+        }
+        if (input.NextSecondary) {
+            playerShip.NextSecondary();
         }
         if (input.FirePrimary) {
             playerShip.SetFiringPrimary();
+        }
+        if (input.FireSecondary) {
+            playerShip.SetFiringSecondary();
         }
         if (input.AutoAim) {
             if (playerShip.GetTarget(out SpaceObject target) && playerShip.GetPrimary(out Weapon w)) {
@@ -179,41 +187,65 @@ public class PlayerControls {
         */
 #endif
     }
+
+
+    public static Dictionary<Control, Keys> standard => new() {
+        { Thrust, Up },
+        { TurnRight, Right },
+        { TurnLeft, Left },
+        { Brake, Down },
+        { Autopilot, A },
+        { Dock, D },
+        { TargetFriendly, F },
+        { ClearTarget, R },
+        { Gate, G },
+        { ShipMenu, S },
+        { TargetEnemy, T },
+        { Powers, P },
+        { NextPrimary, W },
+        { FirePrimary, X },
+        { FireSecondary, LeftControl },
+        { AutoAim, Z }
+    };
 }
 
 public class PlayerInput {
     public bool Thrust, TurnLeft, TurnRight, Brake;
-    public bool TargetFriendly, TargetMouse, TargetEnemy, ClearTarget, NextWeapon, FirePrimary, AutoAim;
+    public bool TargetFriendly, TargetMouse, TargetEnemy, ClearTarget, NextPrimary, NextSecondary, FirePrimary, FireSecondary, AutoAim;
     public bool ToggleUI, Gate, Autopilot, Dock, ShipMenu;
     public bool Escape, Powers;
     public PlayerInput() { }
-    public PlayerInput(Dictionary<ControlKeys, Keys> controls, Keyboard info) {
-        Thrust = info.IsKeyDown(controls[ControlKeys.Thrust]);
-        TurnLeft = info.IsKeyDown(controls[ControlKeys.TurnLeft]);
-        TurnRight = info.IsKeyDown(controls[ControlKeys.TurnRight]);
-        Brake = info.IsKeyDown(controls[ControlKeys.Brake]);
+    public PlayerInput(Dictionary<Control, Keys> controls, Keyboard info) {
+        Thrust = info.IsKeyDown(controls[Control.Thrust]);
+        TurnLeft = info.IsKeyDown(controls[Control.TurnLeft]);
+        TurnRight = info.IsKeyDown(controls[Control.TurnRight]);
+        Brake = info.IsKeyDown(controls[Control.Brake]);
 
-        TargetFriendly = info.IsKeyPressed(controls[ControlKeys.TargetFriendly])
+        TargetFriendly = info.IsKeyPressed(controls[Control.TargetFriendly])
                         && !info.IsKeyDown(LeftShift);
-        TargetMouse = info.IsKeyPressed(controls[ControlKeys.TargetFriendly])
+        TargetMouse = info.IsKeyPressed(controls[Control.TargetFriendly])
                         && info.IsKeyDown(LeftShift);
-        ClearTarget = info.IsKeyPressed(controls[ControlKeys.ClearTarget]);
-        TargetEnemy = info.IsKeyPressed(controls[ControlKeys.TargetEnemy])
+        ClearTarget = info.IsKeyPressed(controls[Control.ClearTarget]);
+        TargetEnemy = info.IsKeyPressed(controls[Control.TargetEnemy])
                         && !info.IsKeyDown(LeftShift);
-        TargetMouse = info.IsKeyPressed(controls[ControlKeys.TargetEnemy])
+        TargetMouse = info.IsKeyPressed(controls[Control.TargetEnemy])
                         && info.IsKeyDown(LeftShift);
-        NextWeapon = info.IsKeyPressed(controls[ControlKeys.NextWeapon]);
-        FirePrimary = info.IsKeyDown(controls[ControlKeys.FirePrimary]);
-        AutoAim = info.IsKeyDown(controls[ControlKeys.AutoAim]);
+        NextPrimary = info.IsKeyPressed(controls[Control.NextPrimary])
+                        && !info.IsKeyDown(LeftShift);
+        NextSecondary = info.IsKeyPressed(controls[Control.NextPrimary])
+                        && info.IsKeyDown(LeftShift);
+        FirePrimary = info.IsKeyDown(controls[Control.FirePrimary]);
+        FireSecondary = info.IsKeyDown(controls[Control.FireSecondary]);
+        AutoAim = info.IsKeyDown(controls[Control.AutoAim]);
 
         ToggleUI = info.IsKeyPressed(Tab);
-        Gate = info.IsKeyPressed(controls[ControlKeys.Gate]);
-        Autopilot = info.IsKeyPressed(controls[ControlKeys.Autopilot]);
-        Dock = info.IsKeyPressed(controls[ControlKeys.Dock]);
-        ShipMenu = info.IsKeyPressed(controls[ControlKeys.ShipMenu]);
+        Gate = info.IsKeyPressed(controls[Control.Gate]);
+        Autopilot = info.IsKeyPressed(controls[Control.Autopilot]);
+        Dock = info.IsKeyPressed(controls[Control.Dock]);
+        ShipMenu = info.IsKeyPressed(controls[Control.ShipMenu]);
 
         Escape = info.IsKeyPressed(Keys.Escape);
-        Powers = info.IsKeyPressed(controls[ControlKeys.Powers]);
+        Powers = info.IsKeyPressed(controls[Control.Powers]);
     }
     public void ClientOnly() {
         Autopilot = false;

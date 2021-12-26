@@ -9,8 +9,8 @@ namespace RogueFrontier.Screens;
 
 class ConfigMenu : Console {
     Settings settings;
-    ControlKeys? currentSet;
-    Dictionary<ControlKeys, LabelButton> buttons;
+    Control? currentSet;
+    Dictionary<Control, LabelButton> buttons;
 
     public ConfigMenu(int Width, int Height, Settings settings) : base(Width, Height) {
         this.settings = settings;
@@ -19,7 +19,7 @@ class ConfigMenu : Console {
         FocusOnMouseClick = true;
 
         currentSet = null;
-        buttons = new Dictionary<ControlKeys, LabelButton>();
+        buttons = new Dictionary<Control, LabelButton>();
 
         Init();
     }
@@ -51,8 +51,8 @@ class ConfigMenu : Console {
             Children.Add(b);
         }
     }
-    string GetLabel(ControlKeys control) => $"{control,-16} {settings.controls[control],-12}";
-    public void ResetLabel(ControlKeys k) => buttons[k].text = GetLabel(k);
+    string GetLabel(Control control) => $"{control,-16} {settings.controls[control],-12}";
+    public void ResetLabel(Control k) => buttons[k].text = GetLabel(k);
     public override bool ProcessKeyboard(Keyboard info) {
         if (info.IsKeyPressed(Keys.Escape)) {
             if (currentSet.HasValue) {
