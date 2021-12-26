@@ -118,7 +118,7 @@ class ShipScreen : Console {
                 Print(x, y++, $"Projectile speed:       {w.desc.missileSpeed}");
                 Print(x, y++, $"Shots per second: {60f / w.desc.fireCooldown}");
 
-                if (w.ammo is Weapon.ChargeAmmo c) {
+                if (w.ammo is ChargeAmmo c) {
                     Print(x, y++, $"Ammo: ${c.charges}");
                 }
 

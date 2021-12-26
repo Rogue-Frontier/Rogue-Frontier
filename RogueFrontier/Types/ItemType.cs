@@ -129,6 +129,7 @@ public record ItemType : DesignType {
     [Req] public int level;
     [Req] public int mass;
     [Opt<int>(0)] public int value;
+    public FragmentDesc ammo;
     public ArmorDesc armor;
     public WeaponDesc weapon;
     public ShieldDesc shield;
@@ -149,6 +150,10 @@ public record ItemType : DesignType {
         };
         if (e.HasElement("Weapon", out var xmlWeapon)) {
             weapon = new WeaponDesc(tc, xmlWeapon);
+        }
+
+        if (e.HasElement("Ammo", out var xmlAmmo)) {
+            ammo = new FragmentDesc(xmlAmmo);
         }
         if (e.HasElement("Armor", out var xmlArmor)) {
             armor = new ArmorDesc(xmlArmor);
@@ -176,6 +181,51 @@ public record ArmorDesc {
         e.Initialize(this);
     }
 }
+public record LaunchDesc {
+    public FragmentDesc shot;
+    public ItemType ammoType;
+    public LaunchDesc() {}
+    public LaunchDesc(TypeCollection types, XElement e) {
+        ammoType = types.Lookup<ItemType>(e.ExpectAtt(nameof(ammoType)));
+        shot = ammoType.ammo ?? new(e);
+    }
+}
+public record LauncherDesc {
+    [Req] public int powerUse;
+    [Req] public int fireCooldown;
+    [Opt<int>(0)] public int recoil;
+    [Opt<int>(0)] public int repeat;
+    public CapacitorDesc capacitor;
+    public List<LaunchDesc> missiles;
+    public Launcher GetLauncher(Item i) => new Launcher(i, this);
+    public Weapon GetWeapon(Item i) => new Weapon(i, weapon);
+    public LauncherDesc() { }
+    public LauncherDesc(TypeCollection types, XElement e) {
+        e.Initialize(this);
+
+        if (e.HasElement("Capacitor", out var xmlCapacitor)) {
+            capacitor = new CapacitorDesc(xmlCapacitor);
+        }
+        missiles = new();
+        if(e.HasElements("Missile", out var xmlMissileArr)) {
+            missiles.AddRange(xmlMissileArr.Select(m => new LaunchDesc(types, m)));
+        }
+    }
+
+    public WeaponDesc weapon => new() {
+        powerUse = powerUse,
+        fireCooldown = fireCooldown,
+        recoil = recoil,
+        repeat = repeat,
+        shot = missiles.First().shot,
+        initialCharges = -1,
+        capacitor = capacitor,
+        ammoType = missiles.First().ammoType,
+        targetProjectile = false,
+        autoFire = false
+    };
+}
+
 public record WeaponDesc {
     [Req] public int powerUse;
     [Req] public int fireCooldown;
@@ -183,8 +233,6 @@ public record WeaponDesc {
     [Opt<int>(0)] public int repeat;
     public FragmentDesc shot;
     [Opt<int>(-1)] public int initialCharges;
-
-    public StaticTile effect;
     public CapacitorDesc capacitor;
     public ItemType ammoType;
     public bool targetProjectile;
@@ -193,23 +241,19 @@ public record WeaponDesc {
     public int damageType => shot.damageType;
     public IDice damageHP => shot.damageHP;
     public int lifetime => shot.lifetime;
-
     public int minRange => shot.missileSpeed * shot.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
-    
     public Weapon GetWeapon(Item i) => new Weapon(i, this);
     public WeaponDesc() { }
     public WeaponDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
         shot = new FragmentDesc(e);
 
-        effect = new StaticTile(e);
         if (e.HasElement("Capacitor", out var xmlCapacitor)) {
             capacitor = new CapacitorDesc(xmlCapacitor);
         }
+
         if (e.TryAttribute(nameof(ammoType), out string at)) {
-            if (!types.itemType.TryGetValue(at, out ammoType)) {
-                throw new Exception($"ItemType codename expected: ammoType=\"{at}\" ### {e} ### {e.Parent}");
-            }
+            ammoType = types.Lookup<ItemType>(at);
         }
         if (e.TryAttBool("pointDefense")) {
             targetProjectile = true;
@@ -234,12 +278,18 @@ public record FragmentDesc {
     [Opt]           public double maneuver;
     [Opt]           public double maneuverRadius;
     [Opt]           public int fragmentInterval;
+
+    public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
     public DisruptorDesc disruptor;
     public HashSet<FragmentDesc> fragments;
     public StaticTile effect;
     public TrailDesc trail;
     public FragmentDesc() { }
     public FragmentDesc(XElement e) {
+        Initialize(e);
+    }
+
+    public void Initialize(XElement e) {
         e.Initialize(this);
         if (e.TryAttBool("spreadOmni")) {
             spreadAngle = (2 * Math.PI) / count;

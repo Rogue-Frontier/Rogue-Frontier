@@ -473,6 +473,9 @@ public class PlayerShip : IShip {
     public bool firingPrimary = false;
     public int selectedPrimary = 0;
 
+    public bool firingSecondary = false;
+    public int selectedSecondary = 0;
+
     public int mortalChances = 3;
     public double mortalTime = 0;
 
@@ -519,10 +522,11 @@ public class PlayerShip : IShip {
         onDestroyed.set.RemoveWhere(d => d.Value == null);
         foreach (var f in onDestroyed.set) f.Value.Invoke(this, source, wreck);
     }
-public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
+    public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
     public void SetDecelerating(bool decelerating = true) => ship.SetDecelerating(decelerating);
     public void SetFiringPrimary(bool firingPrimary = true) => this.firingPrimary = firingPrimary;
+    public void SetFiringSecondary(bool firingSecondary = true) => this.firingSecondary = firingSecondary;
     public void SetRotatingToFace(double targetRads) {
         var facingRads = ship.stoppingRotationWithCounterTurn * Math.PI / 180;
 
@@ -556,18 +560,10 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
         gate = null;
         return false;
     }
-    public void NextWeapon() {
-        selectedPrimary++;
-        if (selectedPrimary >= ship.devices.Weapons.Count) {
-            selectedPrimary = 0;
-        }
-    }
-    public void PrevWeapon() {
-        selectedPrimary--;
-        if (selectedPrimary < 0) {
-            selectedPrimary = 0;
-        }
-    }
+    public void NextWeapon() =>
+        selectedPrimary = (selectedPrimary+1)%ship.devices.Weapons.Count;
+    public void PrevWeapon() =>
+        selectedPrimary = (selectedPrimary - 1 + ship.devices.Weapons.Count) % ship.devices.Weapons.Count;
     /*
     //No, let the player always choose the closest target to cursor. No iteration.
     public void NextTargetSet(SpaceObject next) {
@@ -701,21 +697,14 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     }
     //Remember to call this before we set the targetIndex == -1
     public void ResetAutoAim() {
-        var target = targetList[targetIndex];
-        if (selectedPrimary < ship.devices.Weapons.Count) {
-            var primary = ship.devices.Weapons[selectedPrimary];
-            if (primary.target == target) {
-                primary.OverrideTarget(null);
-            }
+        var primary = GetPrimary();
+        if(primary?.target == targetList[targetIndex]) {
+            primary.OverrideTarget(null);
         }
     }
     //Remember to call this after we set the targetIndex > -1
     public void UpdateAutoAim() {
-        var target = targetList[targetIndex];
-        if (selectedPrimary < ship.devices.Weapons.Count) {
-            var primary = ship.devices.Weapons[selectedPrimary];
-            primary.OverrideTarget(target);
-        }
+        GetPrimary()?.OverrideTarget(targetList[targetIndex]);
     }
     //Stop targeting, but remember our remaining targets
     public void ForgetTarget() {
@@ -754,20 +743,12 @@ public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
         target = null;
         return false;
     }
-    public Weapon GetPrimary() {
-        if (selectedPrimary < ship.devices.Weapons.Count) {
-            return ship.devices.Weapons[selectedPrimary];
-        }
-        return null;
-    }
-    public bool GetPrimary(out Weapon result) {
-        if (selectedPrimary < ship.devices.Weapons.Count) {
-            result = ship.devices.Weapons[selectedPrimary];
-            return true;
-        }
-        result = null;
-        return false;
-    }
+    public Weapon GetPrimary() => selectedPrimary < ship.devices.Weapons.Count ?
+        ship.devices.Weapons[selectedPrimary] : null;
+    public bool GetPrimary(out Weapon result) => (result = GetPrimary()) != null;
+    public Weapon GetSecondary() => selectedSecondary < ship.devices.Weapons.Count ?
+    ship.devices.Weapons[selectedSecondary] : null;
+    public bool GetSecondary(out Weapon result) => (result = GetSecondary()) != null;
     public void Damage(Projectile p) {
         //Base ship can get destroyed without calling our own Destroy(), so we need to hook up an OnDestroyed event to this
 

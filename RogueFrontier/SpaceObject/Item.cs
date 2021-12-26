@@ -128,9 +128,7 @@ public class Weapon : Device {
     [JsonIgnore]
     public int currentRange { get {
             var f = GetFragmentDesc();
-            var missileSpeed = f.missileSpeed;
-            var lifetime = f.lifetime / Program.TICKS_PER_SECOND;
-            return missileSpeed * lifetime;
+            return f.missileSpeed * f.lifetime / Program.TICKS_PER_SECOND;
     }}
     public int lifetime => GetFragmentDesc().lifetime;
     [JsonIgnore]
@@ -349,211 +347,287 @@ public class Weapon : Device {
         this.firing = firing;
         aiming?.UpdateTarget(target);
     }
-    public class Capacitor {
-        public CapacitorDesc desc;
-        public double charge;
-        public Capacitor(CapacitorDesc desc) {
-            this.desc = desc;
-        }
-        public void CheckFire(ref bool firing) => firing = firing && AllowFire;
-        public bool AllowFire => desc.minChargeToFire <= charge;
-        public void Update() {
-            charge = Math.Min(desc.maxCharge, charge + desc.rechargePerTick);
-        }
-
-        public FragmentDesc Modify(FragmentDesc fd) {
-            return fd with {
-                damageHP = new DiceInc(fd.damageHP, (int)(desc.bonusDamagePerCharge * charge)),
-                missileSpeed = fd.missileSpeed + (int)(desc.bonusSpeedPerCharge * charge),
-                lifetime = fd.lifetime + (int)(desc.bonusLifetimePerCharge * charge)
-            };
-        }
-        public void Modify(ref FragmentDesc fd) {
-            fd = fd with {
-                damageHP = new DiceInc(fd.damageHP, (int)(desc.bonusDamagePerCharge * charge)),
-                missileSpeed = fd.missileSpeed + (int)(desc.bonusSpeedPerCharge * charge),
-                lifetime = fd.lifetime + (int)(desc.bonusLifetimePerCharge * charge)
-            };
-        }
-
-
-        public void OnFire() {
-            charge = Math.Max(0, charge - desc.dischargeOnFire);
-        }
-        public void Clear() => charge = 0;
-    }
-    public interface Aiming {
-        public SpaceObject target { get; }
-        void Update(Station owner, Weapon weapon);
-        void Update(IShip owner, Weapon weapon);
-        bool GetFireAngle(ref double? direction) {
-            return false;
-        }
-        void ClearTarget() { }
-        void UpdateTarget(SpaceObject target = null) { }
-
-        static bool CalcFireAngle(MovingObject owner, MovingObject target, Weapon weapon, out double? result) {
-            if (((target.position - owner.position).magnitude < weapon.currentRange)) {
-                result = Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, weapon.missileSpeed, out var _);
-                return true;
-            } else {
-                result = null;
-                return false;
-            }
-        }
-        static double CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed) {
-            return Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
-        }
-        static bool CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed, out double result) {
-            var velDiff = target.velocity - owner.velocity;
-            if (velDiff.magnitude < missileSpeed) {
-                result = Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
-                return true;
-            } else {
-                result = 0;
-                return false;
-            }
-        }
-
-        static bool CalcFireAngle(MovingObject owner, Projectile target, Weapon weapon, out double? result) {
-            if (((target.position - owner.position).magnitude < weapon.currentRange)) {
-                result = Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, weapon.missileSpeed, out var _);
-                return true;
-            } else {
-                result = null;
-                return false;
-            }
-        }
-        static SpaceObject AcquireTarget(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
-            return owner.world.entities.GetAll(p => (owner.position - p).magnitude2 < weapon.currentRange2).OfType<SpaceObject>().FirstOrDefault(filter);
-        }
-        static Projectile AcquireMissile(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
-            return owner.world.entities.all
-                                .OfType<Projectile>()
-                                .Where(p => (owner.position - p.position).magnitude2 < weapon.currentRange2)
-                                .Where(p => filter(p.source))
-                                .OrderBy(p => (owner.position - p.position).Dot(p.velocity))
-                                //.OrderBy(p => (owner.Position - p.Position).Magnitude2)
-                                .FirstOrDefault();
-        }
-    }
-    public class Targeting : Aiming {
-        public SpaceObject target { get; set; }
-        public Targeting() { }
-        public void Update(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
-            if (target?.active != true
-                || (owner.position - target.position).magnitude > weapon.currentRange
-                ) {
-                target = Aiming.AcquireTarget(owner, weapon, filter);
-            }
-        }
-        public void Update(Station owner, Weapon weapon) {
-            Update(owner, weapon, s => SStation.IsEnemy(owner, s));
-        }
-        public void Update(IShip owner, Weapon weapon) {
-            Update(owner, weapon, s => SShip.IsEnemy(owner, s));
-        }
-        public void ClearTarget() => target = null;
-        public void UpdateTarget(SpaceObject target = null) {
-            this.target = target ?? this.target;
-        }
-    }
-    public class Omnidirectional : Aiming {
-        public SpaceObject target { get; set; }
-        double? direction;
-        public Omnidirectional() { }
-        public void Update(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
-            if (target?.active == true) {
-                UpdateDirection();
-            } else {
-                direction = null;
-                target = Aiming.AcquireTarget(owner, weapon, filter);
-
-                if (target?.active == true) {
-                    UpdateDirection();
-                }
-            }
-
-            void UpdateDirection() {
-                if (Aiming.CalcFireAngle(owner, target, weapon, out direction)) {
-                    Heading.AimLine(owner.world, owner.position, direction.Value);
-                    Heading.Crosshair(owner.world, target.position);
-                }
-            }
-        }
-        public void Update(Station owner, Weapon weapon) {
-            Update(owner, weapon, s => SStation.IsEnemy(owner, s));
-        }
-        public void Update(IShip owner, Weapon weapon) {
-            Update(owner, weapon, s => SShip.IsEnemy(owner, s));
-        }
-        public bool GetFireAngle(ref double? direction) {
-            if (this.direction != null) {
-                direction = this.direction.Value;
-                return true;
-            }
-            return false;
-        }
-        public void ClearTarget() => target = null;
-        public void UpdateTarget(SpaceObject target = null) {
-            this.target = target ?? this.target;
-        }
-    }
-    public interface IAmmo {
-        bool AllowFire { get; }
-        public void Update(IShip source) { }
-        public void Update(Station source) { }
-        void CheckFire(ref bool firing) => firing &= AllowFire;
-        void OnFire();
-    }
-    public class ChargeAmmo : IAmmo {
-        public int charges;
-        public bool AllowFire => charges > 0;
-        public ChargeAmmo(int charges) {
-            this.charges = charges;
-        }
-
-        public void OnFire() {
-            charges--;
-        }
-    }
-    public class ItemAmmo : IAmmo {
-        public ItemType itemType;
-        public HashSet<Item> inventory;
-        public Item unit;
-        public bool AllowFire => unit != null;
-
-        public int count;
-        public int ticks;
-        public ItemAmmo(ItemType itemType) {
-            this.itemType = itemType;
-        }
-        public void Update(IShip source) {
-            Update(source.cargo);
-        }
-        public void Update(Station source) {
-            Update(source.cargo);
-        }
-        public void Update(HashSet<Item> inventory) {
-            ticks++;
-            if (ticks % 10 != 0) {
-                return;
-            }
-            this.inventory = inventory;
-            UpdateUnit();
-        }
-        public void UpdateUnit() {
-            var units = inventory.Where(i => i.type == itemType);
-            unit = units.FirstOrDefault();
-            count = inventory.Count(i => i.type == itemType);
-        }
-        public void OnFire() {
-            inventory.Remove(unit);
-            UpdateUnit();
-        }
-    }
 
 }
+
+public class Launcher : Device {
+    public LauncherDesc desc;
+
+    public Weapon weapon;
+    public int index;
+    [JsonIgnore]
+    public Item source => weapon.source;
+    [JsonIgnore]
+    public LaunchDesc fragmentDesc => desc.missiles[index];
+    [JsonIgnore]
+    int? Device.powerUse => ((Device)weapon).powerUse;
+    public FragmentDesc GetFragmentDesc() => weapon.GetFragmentDesc();
+    [JsonIgnore]
+    public int missileSpeed => GetFragmentDesc().missileSpeed;
+    [JsonIgnore]
+    public int currentRange => GetFragmentDesc().range;
+    [JsonIgnore]
+    public int lifetime => GetFragmentDesc().lifetime;
+    [JsonIgnore]
+    public int currentRange2 => currentRange * currentRange;
+    [JsonIgnore]
+    public Capacitor capacitor => weapon.capacitor;
+    [JsonIgnore]
+    public Aiming aiming => weapon.aiming;
+    [JsonIgnore]
+    public IAmmo ammo => weapon.ammo;
+    [JsonIgnore]
+    public int delay => weapon.delay;
+    [JsonIgnore] 
+    public bool firing => weapon.firing;
+    [JsonIgnore] 
+    public int repeatsLeft => weapon.repeatsLeft;
+    public Launcher() { }
+    public Launcher(Item source, LauncherDesc desc) {
+        this.weapon = desc.GetWeapon(source);
+        this.desc = desc;
+    }
+    public void SetMissile(int index) {
+        this.index = index;
+        var l = desc.missiles[index];
+        weapon.ammo = new ItemAmmo(l.ammoType);
+        weapon.desc.shot = l.shot;
+    }
+    public string GetReadoutName() => weapon.GetReadoutName();
+    public ColoredString GetBar() => weapon.GetBar();
+    public void Update(Station owner) => weapon.Update(owner);
+    public void Update(IShip owner) => weapon.Update(owner);
+    public void OnDisable() => weapon.OnDisable();
+    public bool RangeCheck(SpaceObject user, SpaceObject target) => weapon.RangeCheck(user, target);
+    public bool AllowFire => weapon.AllowFire;
+    public bool ReadyToFire => weapon.ReadyToFire;
+    public void Fire(SpaceObject owner, double direction) => weapon.Fire(owner, direction);
+    public SpaceObject target => weapon.target;
+    public void OverrideTarget(SpaceObject target) => weapon.OverrideTarget(target);
+    public void SetFiring(bool firing = true) => weapon.SetFiring(firing);
+    public void SetFiring(bool firing = true, SpaceObject target = null) => weapon.SetFiring(firing, target);
+
+}
+
+public class Capacitor {
+    public CapacitorDesc desc;
+    public double charge;
+    public Capacitor(CapacitorDesc desc) {
+        this.desc = desc;
+    }
+    public void CheckFire(ref bool firing) => firing = firing && AllowFire;
+    public bool AllowFire => desc.minChargeToFire <= charge;
+    public void Update() {
+        charge = Math.Min(desc.maxCharge, charge + desc.rechargePerTick);
+    }
+
+    public FragmentDesc Modify(FragmentDesc fd) {
+        return fd with {
+            damageHP = new DiceInc(fd.damageHP, (int)(desc.bonusDamagePerCharge * charge)),
+            missileSpeed = fd.missileSpeed + (int)(desc.bonusSpeedPerCharge * charge),
+            lifetime = fd.lifetime + (int)(desc.bonusLifetimePerCharge * charge)
+        };
+    }
+    public void Modify(ref FragmentDesc fd) {
+        fd = fd with {
+            damageHP = new DiceInc(fd.damageHP, (int)(desc.bonusDamagePerCharge * charge)),
+            missileSpeed = fd.missileSpeed + (int)(desc.bonusSpeedPerCharge * charge),
+            lifetime = fd.lifetime + (int)(desc.bonusLifetimePerCharge * charge)
+        };
+    }
+
+
+    public void OnFire() {
+        charge = Math.Max(0, charge - desc.dischargeOnFire);
+    }
+    public void Clear() => charge = 0;
+}
+public interface Aiming {
+    public SpaceObject target { get; }
+    void Update(Station owner, Weapon weapon);
+    void Update(IShip owner, Weapon weapon);
+    bool GetFireAngle(ref double? direction) {
+        return false;
+    }
+    void ClearTarget() { }
+    void UpdateTarget(SpaceObject target = null) { }
+
+    static bool CalcFireAngle(MovingObject owner, MovingObject target, Weapon weapon, out double? result) {
+        if (((target.position - owner.position).magnitude < weapon.currentRange)) {
+            result = Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, weapon.missileSpeed, out var _);
+            return true;
+        } else {
+            result = null;
+            return false;
+        }
+    }
+    static double CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed) {
+        return Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
+    }
+    static bool CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed, out double result) {
+        var velDiff = target.velocity - owner.velocity;
+        if (velDiff.magnitude < missileSpeed) {
+            result = Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
+            return true;
+        } else {
+            result = 0;
+            return false;
+        }
+    }
+
+    static bool CalcFireAngle(MovingObject owner, Projectile target, Weapon weapon, out double? result) {
+        if (((target.position - owner.position).magnitude < weapon.currentRange)) {
+            result = Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, weapon.missileSpeed, out var _);
+            return true;
+        } else {
+            result = null;
+            return false;
+        }
+    }
+    static SpaceObject AcquireTarget(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
+        return owner.world.entities.GetAll(p => (owner.position - p).magnitude2 < weapon.currentRange2).OfType<SpaceObject>().FirstOrDefault(filter);
+    }
+    static Projectile AcquireMissile(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
+        return owner.world.entities.all
+                            .OfType<Projectile>()
+                            .Where(p => (owner.position - p.position).magnitude2 < weapon.currentRange2)
+                            .Where(p => filter(p.source))
+                            .OrderBy(p => (owner.position - p.position).Dot(p.velocity))
+                            //.OrderBy(p => (owner.Position - p.Position).Magnitude2)
+                            .FirstOrDefault();
+    }
+}
+public class Targeting : Aiming {
+    public SpaceObject target { get; set; }
+    public Targeting() { }
+    public void Update(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
+        if (target?.active != true
+            || (owner.position - target.position).magnitude > weapon.currentRange
+            ) {
+            target = Aiming.AcquireTarget(owner, weapon, filter);
+        }
+    }
+    public void Update(Station owner, Weapon weapon) {
+        Update(owner, weapon, s => SStation.IsEnemy(owner, s));
+    }
+    public void Update(IShip owner, Weapon weapon) {
+        Update(owner, weapon, s => SShip.IsEnemy(owner, s));
+    }
+    public void ClearTarget() => target = null;
+    public void UpdateTarget(SpaceObject target = null) {
+        this.target = target ?? this.target;
+    }
+}
+public class Omnidirectional : Aiming {
+    public SpaceObject target { get; set; }
+    double? direction;
+    public Omnidirectional() { }
+    public void Update(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
+        if (target?.active == true) {
+            UpdateDirection();
+        } else {
+            direction = null;
+            target = Aiming.AcquireTarget(owner, weapon, filter);
+
+            if (target?.active == true) {
+                UpdateDirection();
+            }
+        }
+
+        void UpdateDirection() {
+            if (Aiming.CalcFireAngle(owner, target, weapon, out direction)) {
+                Heading.AimLine(owner.world, owner.position, direction.Value);
+                Heading.Crosshair(owner.world, target.position);
+            }
+        }
+    }
+    public void Update(Station owner, Weapon weapon) {
+        Update(owner, weapon, s => SStation.IsEnemy(owner, s));
+    }
+    public void Update(IShip owner, Weapon weapon) {
+        Update(owner, weapon, s => SShip.IsEnemy(owner, s));
+    }
+    public bool GetFireAngle(ref double? direction) {
+        if (this.direction != null) {
+            direction = this.direction.Value;
+            return true;
+        }
+        return false;
+    }
+    public void ClearTarget() => target = null;
+    public void UpdateTarget(SpaceObject target = null) {
+        this.target = target ?? this.target;
+    }
+}
+public interface IAmmo {
+    bool AllowFire { get; }
+    public void Update(IShip source) { }
+    public void Update(Station source) { }
+    void CheckFire(ref bool firing) => firing &= AllowFire;
+    void OnFire();
+}
+public class ChargeAmmo : IAmmo {
+    public int charges;
+    public bool AllowFire => charges > 0;
+    public ChargeAmmo(int charges) {
+        this.charges = charges;
+    }
+
+    public void OnFire() {
+        charges--;
+    }
+}
+public class ItemAmmo : IAmmo {
+    public ItemType itemType;
+    public HashSet<Item> inventory;
+    public Item unit;
+    public bool AllowFire => unit != null;
+
+    public int count;
+    public int ticks;
+    public ItemAmmo(ItemType itemType) {
+        this.itemType = itemType;
+    }
+    public void Update(IShip source) {
+        Update(source.cargo);
+    }
+    public void Update(Station source) {
+        Update(source.cargo);
+    }
+    public void Update(HashSet<Item> inventory) {
+        ticks++;
+        if (ticks % 10 != 0) {
+            return;
+        }
+        this.inventory = inventory;
+        UpdateUnit();
+    }
+    public void UpdateUnit() {
+        var units = inventory.Where(i => i.type == itemType);
+        unit = units.FirstOrDefault();
+        count = inventory.Count(i => i.type == itemType);
+    }
+    public void OnFire() {
+        inventory.Remove(unit);
+        UpdateUnit();
+    }
+}
+/*
+public class MultiItemAmmo : IAmmo {
+    public int index;
+    public List<IAmmo> missiles;
+    public IAmmo current => missiles[index];
+    public bool AllowFire => current.AllowFire;
+    public MultiItemAmmo(List<IAmmo> missiles) {
+        this.missiles = missiles;
+    }
+    public void Update(IShip source) => current.Update(source);
+    public void Update(Station source) => current.Update(source);
+
+    public void OnFire() => current.OnFire();
+}
+*/
+
 public class Armor : Device {
     public Item source { get; private set; }
     public ArmorDesc desc;
