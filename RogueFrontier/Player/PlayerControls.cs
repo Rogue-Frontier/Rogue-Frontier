@@ -171,6 +171,10 @@ public class PlayerControls {
                 playerMain.communicationsMenu.IsVisible = !playerMain.communicationsMenu.IsVisible;
             }
         }
+        if (info.IsKeyPressed(F1)) {
+            SadConsole.Game.Instance.Screen = new IdentityScreen(playerMain) { IsFocused = true };
+            //playerMain.OnIntermission();
+        }
 #if DEBUG
         /*
         if (info.IsKeyPressed(C)) {

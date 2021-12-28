@@ -9,7 +9,7 @@ using Console = SadConsole.Console;
 
 namespace RogueFrontier;
 
-class DeathScreen : Console {
+public class DeathScreen : Console {
     PlayerMain playerMain;
     Epitaph epitaph;
     public DeathScreen(PlayerMain playerMain, Epitaph epitaph) : base(playerMain.Width, playerMain.Height) {
@@ -28,11 +28,13 @@ class DeathScreen : Console {
 
         //Restore mortality chances
         playerShip.mortalChances = 3;
-
+        
         //To do: Restore player HP
         playerShip.ship.damageSystem.Restore();
 
         playerShip.powers.ForEach(p=>p.cooldownLeft=0);
+
+        playerShip.devices.Reactors.ForEach(r => r.energy = r.desc.capacity);
 
         //Resurrect the player; remove wreck and restore ship + heading
         var wreck = epitaph.wreck;
@@ -97,29 +99,11 @@ class DeathScreen : Console {
     }
     public override void Render(TimeSpan delta) {
         this.Clear();
-        var playerShip = playerMain.playerShip;
-        var player = playerShip.player;
-        var str =
-@$"
-{player.name}
-{player.Genome.name}
-{playerShip.shipClass.name}
-{epitaph.desc}
-
-Devices
-{string.Join('\n', playerShip.devices.Installed.Select(device => $"     {device.source.type.name}"))}
-
-Cargo
-{string.Join('\n', playerShip.cargo.GroupBy(i => i.type.name).Select(group => $"{group.Count(),4} {group.Key}"))}
-
-Ships Destroyed
-{string.Join('\n', playerShip.shipsDestroyed.GroupBy(sc => sc.shipClass).Select(pair => $"{pair.Count(),4} {pair.Key.name,-16}"))}
-".Replace("\r", "");
+        var str = playerMain.playerShip.GetMemorial(epitaph.desc);
         int y = 2;
-        foreach (var line in str.Split('\n')) {
+        foreach (var line in str.Replace("\r", "").Split('\n')) {
             this.Print(2, y++, line);
         }
-
         if (epitaph.deathFrame != null) {
             var size = epitaph.deathFrame.GetLength(0);
             for (y = 0; y < size; y++) {
@@ -128,7 +112,81 @@ Ships Destroyed
                 }
             }
         }
+        base.Render(delta);
+    }
+    public override bool ProcessKeyboard(Keyboard keyboard) {
+        return base.ProcessKeyboard(keyboard);
+    }
+}
 
+public class IntermissionScreen : Console {
+    PlayerMain playerMain;
+    LiveGame game;
+    string desc;
+    public IntermissionScreen(PlayerMain playerMain, LiveGame game, string desc) : base(playerMain.Width, playerMain.Height) {
+        this.playerMain = playerMain;
+        this.game = game;
+        this.desc = desc;
+        Children.Add(new LabelButton("Save & Continue", Continue) {
+            Position = new Point(1, Height / 2 - 4), FontSize = playerMain.FontSize * 2
+        });
+        Children.Add(new LabelButton("Save & Quit", Exit) {
+            Position = new Point(1, Height / 2 - 2), FontSize = playerMain.FontSize * 2
+        });
+    }
+    public void Continue() {
+        game.Save();
+        game.OnLoad(playerMain);
+        GameHost.Instance.Screen = new TitleSlideOpening(new Pause(playerMain, Resume, 4), false) { IsFocused = true };
+        void Resume() {
+            GameHost.Instance.Screen = playerMain;
+            playerMain.IsFocused = true;
+            playerMain.ShowUI();
+        }
+    }
+    public void Exit() {
+        game.Save();
+        Game.Instance.Screen = new TitleSlideOpening(new TitleScreen(Width, Height, new System(playerMain.world.universe))) { IsFocused = true };
+    }
+    public override void Render(TimeSpan delta) {
+        this.Clear();
+        var str = playerMain.playerShip.GetMemorial(desc);
+        int y = 2;
+        foreach (var line in str.Replace("\r", "").Split('\n')) {
+            this.Print(2, y++, line);
+        }
+
+        base.Render(delta);
+    }
+    public override bool ProcessKeyboard(Keyboard keyboard) {
+        return base.ProcessKeyboard(keyboard);
+    }
+}
+
+public class IdentityScreen : Console {
+    PlayerMain playerMain;
+    public IdentityScreen(PlayerMain playerMain) : base(playerMain.Width, playerMain.Height) {
+        this.playerMain = playerMain;
+        Children.Add(new LabelButton("Continue", Continue) {
+            Position = new Point(1, Height / 2 - 4), FontSize = playerMain.FontSize * 2
+        });
+        /*
+        Children.Add(new LabelButton("Save & Quit", Exit) {
+            Position = new Point(1, Height / 2 - 2), FontSize = playerMain.FontSize * 2
+        });
+        */
+    }
+    public void Continue() {
+        GameHost.Instance.Screen = playerMain;
+        playerMain.IsFocused = true;
+    }
+    public override void Render(TimeSpan delta) {
+        this.Clear();
+        var str = playerMain.playerShip.GetMemorial("Alive");
+        int y = 2;
+        foreach (var line in str.Replace("\r", "").Split('\n')) {
+            this.Print(2, y++, line);
+        }
 
         base.Render(delta);
     }

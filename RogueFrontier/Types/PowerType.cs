@@ -27,19 +27,22 @@ public class PowerType : DesignType {
         } else if (e.HasElement("ProjectileBarrier", out var xmlProjectileBarrier)) {
             Effect = new PowerBarrier(xmlProjectileBarrier);
         } else if (e.HasElement("Jump", out var xmlJump)) {
-            Effect = new PowerJump();
+            Effect = new PowerJump(e);
         } else {
             throw new Exception($"Power must have effect: {codename} ### {e} ### {e.Parent}");
         }
     }
+    public void Invoke(PlayerShip player) => Effect.Invoke(player);
 }
 //Interface for invokable powers
 public interface PowerEffect {
     //void Invoke(PlayerMain main);
     void Invoke(PlayerShip player);
+    void OnDestroyCheck(PlayerShip player) { }
 }
-public class PowerJump : PowerEffect {
-    public PowerJump() { }
+public record PowerJump() : PowerEffect {
+    [Opt] public int distance;
+    public PowerJump(XElement e) : this() => e.Initialize(this);
     public void Invoke(PlayerMain main) {
         main.Jump();
         Invoke(main.playerShip);

@@ -34,7 +34,7 @@ public class EndGamePlayerDestroyed : IContainer<PlayerShip.Destroyed> {
     private PlayerMain main;
     [JsonIgnore]
     public PlayerShip.Destroyed Value => main is PlayerMain pm ?
-        (p, d, w) => pm.EndGame($"Destroyed by {d?.name ?? "unknown forces"}", w)
+        (p, d, w) => pm.OnPlayerDestroyed($"Destroyed by {d?.name ?? "unknown forces"}", w)
         : null;
     public EndGamePlayerDestroyed(PlayerMain main) {
         this.main = main;
@@ -160,30 +160,49 @@ public class PlayerMain : Console {
         if (!playerShip.CheckGate(out Stargate gate)) {
             return;
         }
-
         var destGate = gate.destGate;
-
-        if (destGate != null) {
-
-            var prevViewport = new Viewport(this, new Camera(playerShip.position), world);
-            world.entities.Remove(playerShip);
-            playerShip.ship.world = destGate.world;
-            playerShip.ship.position = destGate.position + (playerShip.ship.position - gate.position);
-            world.AddEntity(playerShip);
-            world.AddEffect(new Heading(playerShip));
-            var nextViewport = new Viewport(this, this.camera, world);
-
-            back = new(nextViewport);
-            viewport = nextViewport;
-            transition = new GateTransition(prevViewport, nextViewport, () => {
-                transition = null;
-                if (playerShip.mortalTime <= 0) {
-                    vignette.powerAlpha = 0f;
-                }
-            });
+        if (destGate == null) {
+            OnPlayerLeft();
             return;
         }
+        var prevViewport = new Viewport(this, new Camera(playerShip.position), world);
+        world.entities.Remove(playerShip);
+        playerShip.ship.world = destGate.world;
+        playerShip.ship.position = destGate.position + (playerShip.ship.position - gate.position);
+        world.AddEntity(playerShip);
+        world.AddEffect(new Heading(playerShip));
+        var nextViewport = new Viewport(this, this.camera, world);
 
+        back = new(nextViewport);
+        viewport = nextViewport;
+        transition = new GateTransition(prevViewport, nextViewport, () => {
+            transition = null;
+            if (playerShip.mortalTime <= 0) {
+                vignette.powerAlpha = 0f;
+            }
+        });
+    }
+    public void OnIntermission(Container<LiveGame.LoadHook> hook = null) {
+        HideAll();
+        Game.Instance.Screen = new ExitTransition(this, EndCrawl) { IsFocused = true };
+        Console EndCrawl() {
+            SimpleCrawl ds = null;
+            ds = new SimpleCrawl("Intermission\n\n", EndPause) {
+                Position = new Point(Width / 4, 8), IsFocused = true
+            };
+            void EndPause() {
+                Game.Instance.Screen = new Pause(ds, EndGame, 3) { IsFocused = true };
+                void EndGame() {
+                    Game.Instance.Screen = new IntermissionScreen(
+                        this,
+                        new(world, playerShip, hook),
+                        $"Fate unknown") { IsFocused = true };
+                }
+            }
+            return ds;
+        }
+    }
+    public void OnPlayerLeft() {
         HideAll();
         world.entities.Remove(playerShip);
         SadConsole.Game.Instance.Screen = new ExitTransition(this, EndCrawl) { IsFocused = true };
@@ -191,7 +210,7 @@ public class PlayerMain : Console {
             SimpleCrawl ds = null;
             ds = new SimpleCrawl("You have left Human Space.\n\n", EndPause) { Position = new Point(Width / 4, 8), IsFocused = true };
             void EndPause() {
-                Game.Instance.Screen = new Pause(ds, EndGame, 3);
+                Game.Instance.Screen = new Pause(ds, EndGame, 3) { IsFocused = true };
             }
             return ds;
         }
@@ -204,7 +223,7 @@ public class PlayerMain : Console {
                 }) { IsFocused = true };
         }
     }
-    public void EndGame(string message, Wreck wreck) {
+    public void OnPlayerDestroyed(string message, Wreck wreck) {
         //Clear mortal time so that we don't slow down after the player dies
         playerShip.mortalTime = 0;
         HideAll();
@@ -1455,6 +1474,9 @@ public class Edgemap : Console {
         var range = 192;
         var nearby = player.world.entities.GetAll(((int, int) p) => (player.position - p).maxCoord < range);
         foreach (var entity in nearby) {
+            if(entity.tile is null) {
+                continue;
+            }
             var offset = (entity.position - player.position).Rotate(-camera.rotation);
             var (x, y) = (offset / viewScale).abs;
             if (x > halfWidth || y > halfHeight) {

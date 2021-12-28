@@ -336,7 +336,7 @@ class IntroTraining : IPlayerInteraction {
         this.story = story;
         this.station = station;
         var w = station.world;
-        var shipClass = w.types.shipClass["ship_laser_drone"];
+        var shipClass = w.types.Lookup<ShipClass>("ship_laser_drone");
         var sovereign = Sovereign.SelfOnly;
         this.drones = new AIShip[3];
         var k = station.world.karma;

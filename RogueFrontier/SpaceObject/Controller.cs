@@ -9,6 +9,8 @@ public interface IShipOrder : IShipBehavior {
     bool Active { get; }
     //void Update(AIShip owner);
     public bool CanTarget(SpaceObject other) => false;
+
+    public delegate IShipOrder Create(SpaceObject owner);
 }
 
 public interface ICombatOrder {

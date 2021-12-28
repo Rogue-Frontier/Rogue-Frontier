@@ -276,7 +276,7 @@ public class TitleScreen : Console {
             station.CreateGuards();
 
 
-            playerShip.powers.AddRange(World.types.powerType.Values.Select(pt => new Power(pt)));
+            playerShip.powers.AddRange(World.types.Get<PowerType>().Select(pt => new Power(pt)));
 
             var playerMain = new PlayerMain(Width, Height, profile, playerShip);
             playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
@@ -318,7 +318,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         World.PlaceTiles(tiles);
 
         if (World.entities.all.OfType<IShip>().Count() < 5) {
-            var shipClasses = World.types.shipClass.Values;
+            var shipClasses = World.types.Get<ShipClass>();
             var shipClass = shipClasses.ElementAt(World.karma.NextInteger(shipClasses.Count));
             var angle = World.karma.NextDouble() * Math.PI * 2;
             var distance = World.karma.NextInteger(10, 20);
@@ -481,7 +481,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             Settings = settings,
             file = file,
             name = "Player",
-            Genome = World.types.genomeType.Values.First()
+            Genome = World.types.Get<GenomeType>().First()
         };
 
         var universeDesc = new UniverseDesc(XElement.Parse(
@@ -514,7 +514,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
         var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerSovereign, playerStart));
         //playerShip.powers.Add(new Power(w.types.Lookup<PowerType>("power_declare")));
-        playerShip.powers.AddRange(w.types.powerType.Values.Select(pt => new Power(pt)));
+        playerShip.powers.AddRange(w.types.Get<PowerType>().Select(pt => new Power(pt)));
         playerShip.AddMessage(new Message("Welcome to the Rogue Frontier!"));
 
         w.AddEffect(new Heading(playerShip));
@@ -545,18 +545,12 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
 
 
     void AddStarterKit(PlayerShip playerShip) {
-        var World = playerShip.world;
-        playerShip.cargo.Add(new Item(World.types.itemType["item_silence_charm"]));
-
-        playerShip.cargo.Add(new Item(World.types.itemType["item_armor_repair_patch"]));
-        playerShip.cargo.Add(new Item(World.types.itemType["item_armor_repair_patch"]));
-        playerShip.cargo.Add(new Item(World.types.itemType["item_armor_repair_patch"]));
-        playerShip.cargo.Add(new Item(World.types.itemType["item_armor_repair_patch"]));
-
-
-        playerShip.cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
-        playerShip.cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
-        playerShip.cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
-        playerShip.cargo.Add(new Item(World.types.itemType["item_simple_fuel_rod"]));
+        playerShip.cargo.UnionWith(ItemList.From(playerShip.world.types, @"
+            <Items>
+                <Item codename=""item_silence_charm""       count=""1""/>
+                <Item codename=""item_armor_repair_patch""  count=""4""/>
+                <Item codename=""item_simple_fuel_rod""     count=""4""/>
+            </Items>
+            "));
     }
 }

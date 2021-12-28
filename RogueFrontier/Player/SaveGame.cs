@@ -133,15 +133,16 @@ public class LiveGame {
     public System world;
     public Player player => playerShip.player;
     public PlayerShip playerShip;
-    public IContainer<OnLoad> onLoad;
+    public IContainer<LoadHook> hook;
 
-    public delegate void OnLoad(PlayerMain main);
+    public delegate void LoadHook(PlayerMain main);
     public LiveGame() { }
-    public LiveGame(System world, PlayerShip playerShip, IContainer<OnLoad> scene = null) {
+    public LiveGame(System world, PlayerShip playerShip, IContainer<LoadHook> onLoad = null) {
         this.world = world;
         this.playerShip = playerShip;
-        this.onLoad = scene;
+        this.hook = onLoad;
     }
+    public void OnLoad(PlayerMain main) => hook?.Value?.Invoke(main);
     public void Save() {
         var s = SaveGame.Serialize(this);
         File.WriteAllText(player.file, s);

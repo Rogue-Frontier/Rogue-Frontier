@@ -32,7 +32,7 @@
 			value=		"3000"
 
 			invoke=		"invokePower"
-			powerType=	"power_declare"
+			powerType=	"power_declare_orator"
 			charges=	"5"
 			
 			desc=		"This charm contains concentrated energy from The Orator. Invoke this charm to release the energy as a destructive burst."
@@ -99,17 +99,20 @@
 				level=		"1"
 				mass=		"1000"
 
-				value=		"2000"
+				value=		"5000"
 
-				desc=		"The Amethyst laser cannon is the only laser weapon with a magenta-colored beam."
+				desc=		"The Amethyst laser cannon (from Apex Melliferrum) is the only laser cannon (made by Apex Melliferrum) that fires a magenta-colored beam. That is the reason why the Amethyst laser cannon is one of the most pricey starter weapons around."
 		>
 		<Weapon
+			
+			initialCharges=	"1500"
+			
 			powerUse=		"10"
 			fireCooldown=	"20"
 			missileSpeed=	"100"
 			damageType=		"1"
 			damageHP=		"6"
-			lifetime=		"30"
+			lifetime=		"75"
 			char=			"."
 			foreground=		"Magenta"
 			/>
@@ -123,15 +126,20 @@
 				desc=		"The Beowulf dual laser cannon allows you to strike with speed."
 		>
 		<Weapon
+			
+			
+			initialCharges=	"3000"
+			
 			powerUse=		"20"
 			fireCooldown=	"15"
 			missileSpeed=	"100"
 			damageType=		"1"
-			damageHP=		"3"
-			lifetime=		"60"
+			damageHP=		"4"
+			lifetime=		"45"
 
 			char=			"."
 			foreground=		"Red"
+			background=		"Black"
 			>
 		</Weapon>
 	</ItemType>
@@ -474,5 +482,29 @@
 			foreground=		"White"
 			>
 		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_amethyst_warranty_card"
+			name=		"Amethyst warranty card"
+			level=		"1"
+			mass=		"2000"
+			value=		"200"
+
+			desc=		"This card provides proof of limited warranty for your Amethyst-class yacht. Present at any licensed ApexMelliferrum location to receive a discount on maintenance services."
+		>
+	</ItemType>
+	
+	
+	<ItemType	codename=	"item_shield_bash"
+			name=		"SHIELDBASH program"
+			mass=		"1"
+			level=		"2"
+				
+			invoke=		"depleteTargetShields"
+				
+			value=		"3000"
+				
+			desc=		"This one-time program attempts to kill the shields on your selected target."
+				>
 	</ItemType>
 </Module>

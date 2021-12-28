@@ -15,7 +15,7 @@ public class Stargate : SpaceObject {
     [JsonIgnore]
     public bool active => true;
     [JsonIgnore]
-    public ColoredGlyph tile => new ColoredGlyph(Color.Purple, Color.White, '*');
+    public ColoredGlyph tile => new ColoredGlyph(Color.Violet, Color.DarkBlue, '*');
 
     [JsonProperty]
     public int id { get; private set; }

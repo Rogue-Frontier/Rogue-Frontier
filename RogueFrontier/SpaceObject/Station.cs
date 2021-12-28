@@ -15,7 +15,7 @@ public class Wreck : DockableObject {
     [JsonIgnore]
     public string name => $"Wreck of {creator.name}";
     [JsonIgnore]
-    public ColoredGlyph tile => new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, creator.tile.GlyphCharacter);
+    public ColoredGlyph tile => new ColoredGlyph(new Color(128, 128, 128), Color.Black, creator.tile.GlyphCharacter);
 
     [JsonProperty]
     public int id { get; private set; }
@@ -202,13 +202,13 @@ public class Station : DockableObject, ITrader {
     }
     public void Destroy(SpaceObject source) {
         active = false;
-        var wreck = new Wreck(this);
         if (source is PlayerShip ps) {
             ps.stationsDestroyed.Add(this);
             if (type.crimeOnDestroy) {
                 ps.crimeRecord.Add(new Destruction(this));
             }
         }
+        var wreck = new Wreck(this);
         var drop = weapons?.Select(w => w.source);
         if (drop != null) {
             foreach (var item in drop) {
@@ -220,7 +220,7 @@ public class Station : DockableObject, ITrader {
         if (segments != null) {
             foreach (var segment in segments) {
                 var offset = segment.desc.offset;
-                var tile = new ColoredGlyph(new Color(128, 128, 128), Color.Transparent, segment.desc.tile.GlyphCharacter);
+                var tile = new ColoredGlyph(new Color(128, 128, 128), Color.Black, segment.desc.tile.GlyphCharacter);
                 world.AddEntity(new Segment(wreck, new SegmentDesc(offset, new StaticTile(tile))));
             }
         }

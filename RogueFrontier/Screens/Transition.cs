@@ -273,6 +273,12 @@ public class Pause : Console {
         this.next = next;
         Render(new TimeSpan());
     }
+    public override bool ProcessKeyboard(Keyboard keyboard) {
+        if (keyboard.IsKeyPressed(Keys.Enter)) {
+            time = 0;
+        }
+        return base.ProcessKeyboard(keyboard);
+    }
     public override void Update(TimeSpan delta) {
         base.Update(delta);
         if (time > 0) {

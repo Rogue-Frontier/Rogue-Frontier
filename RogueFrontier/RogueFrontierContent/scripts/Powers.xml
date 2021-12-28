@@ -1,6 +1,55 @@
 ﻿<Module>
 	<!-- The Orator -->
-	<PowerType codename="power_declare"
+
+	<PowerType codename="power_silence_orator"
+		name=			"SILENCE"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		message=		"You channel the energy of SILENCE from the void"
+		>
+		<Weapon
+			count=			"90"
+			spreadAngle=	"360"
+			missileSpeed=	"40"
+			damageType=		"1"
+			damageHP=		"12"
+			lifetime=		"60"
+			char=			"*"
+			foreground=		"FF55FFFF"
+			>
+			<Trail
+				lifetime=	"20"
+				char=		"*"
+				foreground=	"FF55FFFF"
+				background=	"BB77DDFF"/>
+		</Weapon>
+	</PowerType>
+	<PowerType codename="power_silence_dictator"
+		name=			"SILENCE"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		message=		"You channel the energy of SILENCE from the void"
+		>
+		<Weapon
+			count=			"90"
+			spreadAngle=	"360"
+			missileSpeed=	"40"
+			damageType=		"1"
+			damageHP=		"12"
+			lifetime=		"60"
+			char=			"*"
+			foreground=		"FF1111FF"
+			>
+			<Trail
+				lifetime=	"20"
+				char=		"*"
+				foreground=	"FF1111FF"
+				background=	"BB1111FF"/>
+		</Weapon>
+	</PowerType>
+	
+	
+	<PowerType codename="power_declare_orator"
 		name=			"DECLARE"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"

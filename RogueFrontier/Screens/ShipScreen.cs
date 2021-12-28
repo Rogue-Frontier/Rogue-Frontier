@@ -611,6 +611,58 @@ public class SListScreen {
         }
     }
 
+
+    public static ListScreen<Item> SetMod(Console prev, PlayerShip player, Item source, Modifier mod, Action callback) {
+        ListScreen<Item> screen = null;
+        IEnumerable<Item> cargo;
+        IEnumerable<Item> installed;
+        List<Item> all = new();
+        void UpdateList() {
+            cargo = player.cargo;
+            installed = player.devices.Installed.Select(d => d.source);
+            all.Clear();
+            all.AddRange(installed.Concat(cargo));
+            all.Remove(source);
+        }
+        UpdateList();
+
+        return screen = new ListScreen<Item>(prev,
+            player,
+            all,
+            GetName,
+            GetDesc,
+            InvokeItem,
+            Escape
+            );
+
+        string GetName(Item i) => $"{(installed.Contains(i) ? "Equip> " : "Cargo> ")}{i.type.name}";
+        List<ColoredString> GetDesc(Item item) {
+            List<ColoredString> result = new();
+            var desc = item.type.desc.SplitLine(32);
+            if (desc.Any()) {
+                result.AddRange(desc.Select(l => new ColoredString(l)));
+                result.Add(new(""));
+            }
+            result.Add(new("[Enter] Apply modifier", Color.Yellow, Color.Black));
+            return result;
+        }
+        void InvokeItem(Item item) {
+            item.mod = mod;
+
+            player.cargo.Remove(source);
+            player.AddMessage(new Message($"Applied {source.name} to {item.name}"));
+            callback?.Invoke();
+            Escape();
+        }
+        void Escape() {
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.Children.Add(prev);
+            p.IsFocused = true;
+        }
+    }
+
+
     public static ListScreen<Reactor> RefuelScreen1(Console prev, PlayerShip player) {
         ListScreen<Reactor> screen = null;
         var devices = player.devices.Reactors;

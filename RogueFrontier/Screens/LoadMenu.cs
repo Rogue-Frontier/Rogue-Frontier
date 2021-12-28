@@ -46,7 +46,7 @@ class LoadMenu : Console {
                                 live.playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
                                 GameHost.Instance.Screen = playerMain;
                                 //If we have any load hooks, trigger them now
-                                live.onLoad?.Value(playerMain);
+                                live.hook?.Value(playerMain);
                                 break;
                             }
                         case DeadGame dead: {

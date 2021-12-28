@@ -9,15 +9,15 @@ using Console = SadConsole.Console;
 using Newtonsoft.Json;
 
 namespace RogueFrontier;
-
-public enum EInvokeAction {
-    none, deployShip, installWeapon, repairArmor, invokePower, refuel
+public enum EItemUse {
+    none, deployShip, installWeapon, repairArmor, invokePower, refuel,
+    depleteTargetShields
 }
-public interface IInvokeAction {
+public interface ItemUse {
     string GetDesc(PlayerShip player, Item item);
     void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) { }
 }
-public record DeployShip : IInvokeAction {
+public record DeployShip : ItemUse {
     [Req] public string shipClass;
     public ShipClass shipType;
     public DeployShip() { }
@@ -51,7 +51,7 @@ public record DeployShip : IInvokeAction {
         };
     }
 }
-public record InstallWeapon : IInvokeAction {
+public record InstallWeapon : ItemUse {
     public string GetDesc(PlayerShip player, Item item) =>
         player.cargo.Contains(item) ? "Install this weapon" : "Remove this weapon";
     public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
@@ -70,7 +70,7 @@ public record InstallWeapon : IInvokeAction {
         callback?.Invoke();
     }
 }
-public record RepairArmor : IInvokeAction {
+public record RepairArmor : ItemUse {
     [Req] public int repairHP;
     public string GetDesc(PlayerShip player, Item item) => "Repair armor";
     public RepairArmor() { }
@@ -83,7 +83,7 @@ public record RepairArmor : IInvokeAction {
         p.Children.Add(SListScreen.RepairArmorScreen(prev, player, item, this, callback));
     }
 }
-public record InvokePower : IInvokeAction {
+public record InvokePower : ItemUse {
     [Req] public string powerType;
     [Req] public int charges;
     public PowerType power;
@@ -92,9 +92,8 @@ public record InvokePower : IInvokeAction {
         e.Initialize(this);
         power = tc.Lookup<PowerType>(powerType);
     }
-    public string GetDesc(PlayerShip player, Item item) {
-        return $"Invoke {power.name} ({charges} charges remaining)";
-    }
+    public string GetDesc(PlayerShip player, Item item) =>
+        $"Invoke {power.name} ({charges} charges remaining)";
     public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
         player.AddMessage(new Message($"Invoked the power of {item.type.name}"));
 
@@ -103,11 +102,10 @@ public record InvokePower : IInvokeAction {
             player.cargo.Remove(item);
         }
         power.Effect.Invoke(player);
-
         callback?.Invoke();
     }
 }
-public record Refuel : IInvokeAction {
+public record Refuel : ItemUse {
     public int energy;
     public Refuel() { }
     public Refuel(TypeCollection tc, XElement e) {
@@ -122,53 +120,95 @@ public record Refuel : IInvokeAction {
         p.Children.Add(SListScreen.RefuelReactor(prev, player, item, this, callback));
     }
 }
+public record DepleteTargetShields() : ItemUse {
+    public DepleteTargetShields(XElement e) : this() {
+        e.Initialize(this);
+    }
+    public string GetDesc(PlayerShip player, Item item) =>
+        player.GetTarget(out var t) ? $"Deplete shields on {t.name}" : "Deplete shields on target";
+    public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+        if(!player.GetTarget(out var t)) {
+            player.AddMessage(new Message($"No target available"));
+            return;
+        } 
+        
+        if(!(t is IShip s)) {
+            player.AddMessage(new Message($"Target must be a ship"));
+            return;
+        }
+
+        if (!s.devices.Shields.Any()) {
+            player.AddMessage(new Message($"Target does not have shields"));
+            return;
+        }
+        s.devices.Shields.ForEach(s => s.Deplete());
+        player.AddMessage(new Message($"Depleted shields on {s.name}"));
+
+        player.cargo.Remove(item);
+        callback?.Invoke();
+    }
+}
+
+
+public record ApplyMod() : ItemUse {
+    Modifier mod;
+    public ApplyMod(XElement e) : this() {
+        e.Initialize(this);
+        mod = new(e);
+    }
+    public string GetDesc(PlayerShip player, Item item) =>
+        $"Apply modifier to item (shows menu)";
+    public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+        var p = prev.Parent;
+        p.Children.Remove(prev);
+        p.Children.Add(SListScreen.SetMod(prev, player, item, mod, callback));
+    }
+}
 public record ItemType : DesignType {
     [Req] public string codename;
     [Req] public string name;
     [Opt] public string desc;
     [Req] public int level;
     [Req] public int mass;
-    [Opt<int>(0)] public int value;
+    [Opt] public int value = 0;
     public FragmentDesc ammo;
     public ArmorDesc armor;
-    public WeaponDesc weapon;
-    public ShieldDesc shield;
+    public EngineDesc engine;
+    public LauncherDesc launcher;
     public ReactorDesc reactor;
+    public ServiceDesc service;
+    public ShieldDesc shield;
     public SolarDesc solar;
-    public ServiceDesc misc;
-    public IInvokeAction invoke;
+    public WeaponDesc weapon;
+    public ItemUse invoke;
     public void Initialize(TypeCollection tc, XElement e) {
         e.Initialize(this);
-        invoke = e.TryAttEnum(nameof(invoke), EInvokeAction.none) switch {
-            EInvokeAction.none => null,
-            EInvokeAction.deployShip => new DeployShip(tc, e),
-            EInvokeAction.installWeapon => new InstallWeapon(),
-            EInvokeAction.repairArmor => new RepairArmor(e),
-            EInvokeAction.invokePower => new InvokePower(tc, e),
-            EInvokeAction.refuel => new Refuel(tc, e),
+        invoke = e.TryAttEnum(nameof(invoke), EItemUse.none) switch {
+            EItemUse.none => null,
+            EItemUse.deployShip => new DeployShip(tc, e),
+            EItemUse.installWeapon => new InstallWeapon(),
+            EItemUse.repairArmor => new RepairArmor(e),
+            EItemUse.invokePower => new InvokePower(tc, e),
+            EItemUse.refuel => new Refuel(tc, e),
+            EItemUse.depleteTargetShields=>new DepleteTargetShields(e),
             _ => null
         };
-        if (e.HasElement("Weapon", out var xmlWeapon)) {
-            weapon = new WeaponDesc(tc, xmlWeapon);
-        }
 
-        if (e.HasElement("Ammo", out var xmlAmmo)) {
-            ammo = new FragmentDesc(xmlAmmo);
-        }
-        if (e.HasElement("Armor", out var xmlArmor)) {
-            armor = new ArmorDesc(xmlArmor);
-        }
-        if (e.HasElement("Shield", out var xmlShield)) {
-            shield = new ShieldDesc(xmlShield);
-        }
-        if (e.HasElement("Reactor", out var xmlReactor)) {
-            reactor = new ReactorDesc(xmlReactor);
-        }
-        if (e.HasElement("Solar", out var xmlSolar)) {
-            solar = new SolarDesc(xmlSolar);
-        }
-        if (e.HasElement("Service", out var xmlService)) {
-            misc = new ServiceDesc(xmlService);
+
+        foreach (var (tag, action) in new Dictionary<string, Action<XElement>> {
+            ["Ammo"] = e =>     ammo = new(e),
+            ["Armor"] = e =>    armor = new(e),
+            ["Engine"] = e =>   engine = new(e),
+            ["Launcher"] = e => launcher = new(tc, e),
+            ["Reactor"] = e =>  reactor = new(e),
+            ["Service"] = e =>  service = new(e),
+            ["Shield"] = e =>   shield = new(e),
+            ["Solar"] = e =>    solar = new(e),
+            ["Weapon"] = e =>   weapon = new(tc, e),
+        }) {
+            if (e.HasElement(tag, out var sub)) {
+                action(sub);
+            }
         }
     }
 
@@ -178,6 +218,21 @@ public record ArmorDesc {
     public Armor GetArmor(Item i) => new(i, this);
     public ArmorDesc() { }
     public ArmorDesc(XElement e) {
+        e.Initialize(this);
+    }
+}
+public record EngineDesc {
+    [Req] public int powerUse;
+
+
+    [Req] public double thrust;
+    [Req] public double maxSpeed;
+    [Req] public double rotationMaxSpeed;
+    [Req] public double rotationDecel;
+    [Req] public double rotationAccel;
+    public Engine GetEngine(Item i) => new(i, this);
+    public EngineDesc() { }
+    public EngineDesc(XElement e) {
         e.Initialize(this);
     }
 }
@@ -193,8 +248,8 @@ public record LaunchDesc {
 public record LauncherDesc {
     [Req] public int powerUse;
     [Req] public int fireCooldown;
-    [Opt<int>(0)] public int recoil;
-    [Opt<int>(0)] public int repeat;
+    [Opt] public int recoil = 0;
+    [Opt] public int repeat = 0;
     public CapacitorDesc capacitor;
     public List<LaunchDesc> missiles;
     public Launcher GetLauncher(Item i) => new Launcher(i, this);
@@ -225,14 +280,13 @@ public record LauncherDesc {
         autoFire = false
     };
 }
-
 public record WeaponDesc {
     [Req] public int powerUse;
     [Req] public int fireCooldown;
-    [Opt<int>(0)] public int recoil;
-    [Opt<int>(0)] public int repeat;
+    [Opt] public int recoil = 0;
+    [Opt] public int repeat = 0;
     public FragmentDesc shot;
-    [Opt<int>(-1)] public int initialCharges;
+    [Opt] public int initialCharges = -1;
     public CapacitorDesc capacitor;
     public ItemType ammoType;
     public bool targetProjectile;
@@ -264,20 +318,20 @@ public record WeaponDesc {
     }
 }
 public record FragmentDesc {
-    [Opt<int>(1)]   public int count;
-    [Opt]           public bool omnidirectional;
-    [Opt]           public bool? targetLocked;
-    [Opt]           public double spreadAngle;
-    [Req]           public int missileSpeed;
-    [Req]           public int damageType;
-    [Req]           public IDice damageHP;
-    [Opt]           public int knockback;
-    [Opt]           public int shock;
-    [Req]           public int lifetime;
-    [Opt]           public bool passthrough;
-    [Opt]           public double maneuver;
-    [Opt]           public double maneuverRadius;
-    [Opt]           public int fragmentInterval;
+    [Opt] public int count = 1;
+    [Opt] public bool omnidirectional;
+    [Opt] public bool? targetLocked;
+    [Opt] public double spreadAngle;
+    [Req] public int missileSpeed;
+    [Req] public int damageType;
+    [Req] public IDice damageHP;
+    [Opt] public int knockback;
+    [Opt] public int shock;
+    [Req] public int lifetime;
+    [Opt] public bool passthrough;
+    [Opt] public double maneuver;
+    [Opt] public double maneuverRadius;
+    [Opt] public int fragmentInterval;
 
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
     public DisruptorDesc disruptor;
@@ -355,7 +409,7 @@ public record DisruptorDesc {
     }
 }
 public record CapacitorDesc {
-    [Opt<double>(0)] public double minChargeToFire;
+    [Opt] public double minChargeToFire = 0;
     [Req] public double dischargeOnFire,
                         rechargePerTick,
                         maxCharge;
@@ -368,36 +422,15 @@ public record CapacitorDesc {
         e.Initialize(this);
     }
 }
-public record ShieldDesc {
-    [Req]            public int powerUse, idlePowerUse;
-    [Req]            public int maxHP;
-    [Req]            public int damageDelay, depletionDelay;
-    [Req]            public double regen;
-    [Opt<double>(1)] public double absorbFactor;
-    public Shield GetShield(Item i) => new Shield(i, this);
-    public ShieldDesc() { }
-    public ShieldDesc(XElement e) {
-        e.Initialize(this);
-    }
-}
 public record ReactorDesc {
-    [Req]               public int maxOutput;
-    [Req]               public int capacity;
-    [Opt<double>(1)]    public double efficiency;
-    [Opt<bool>(false)]  public bool battery;        //If true, then we recharge using power from other reactors when available
+    [Req] public int maxOutput;
+    [Req] public int capacity;
+    [Opt] public double efficiency = 1;
+    [Opt] public bool battery = false;        //If true, then we recharge using power from other reactors when available
 
     public Reactor GetReactor(Item i) => new Reactor(i, this);
     public ReactorDesc() { }
     public ReactorDesc(XElement e) {
-        e.Initialize(this);
-    }
-}
-public record SolarDesc {
-    [Req] public int maxOutput;
-    [Opt<int>(-1 + 0 * 360000)] public int lifetimeOutput;
-    public Solar GetSolar(Item i) => new(i, this);
-    public SolarDesc() { }
-    public SolarDesc(XElement e) {
         e.Initialize(this);
     }
 }
@@ -410,10 +443,31 @@ public record ServiceDesc {
     public ServiceType type;
     [Req] public int powerUse;
     [Req] public int interval;
-    public Service GetMisc(Item i) => new(i, this);
+    public Service GetService(Item i) => new(i, this);
     public ServiceDesc() { }
     public ServiceDesc(XElement e) {
         e.Initialize(this);
         type = e.ExpectAttEnum<ServiceType>(nameof(type));
+    }
+}
+public record ShieldDesc {
+    [Req] public int powerUse, idlePowerUse;
+    [Req] public int maxHP;
+    [Req] public int damageDelay, depletionDelay;
+    [Req] public double regen;
+    [Opt] public double absorbFactor = 1;
+    public Shield GetShield(Item i) => new Shield(i, this);
+    public ShieldDesc() { }
+    public ShieldDesc(XElement e) {
+        e.Initialize(this);
+    }
+}
+public record SolarDesc {
+    [Req] public int maxOutput;
+    [Opt] public int lifetimeOutput = -1 + 0 * 360000;
+    public Solar GetSolar(Item i) => new(i, this);
+    public SolarDesc() { }
+    public SolarDesc(XElement e) {
+        e.Initialize(this);
     }
 }

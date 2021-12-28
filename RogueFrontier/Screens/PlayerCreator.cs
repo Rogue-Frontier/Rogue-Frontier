@@ -48,12 +48,12 @@ class PlayerCreator : ControlsConsole {
 
         context = new ShipSelectorModel() {
             World = World,
-            playable = World.types.shipClass.Values.Where(sc => sc.playerSettings?.startingClass == true).ToList(),
+            playable = World.types.Get<ShipClass>().Where(sc => sc.playerSettings?.startingClass == true).ToList(),
             shipIndex = 0,
-            genomes = World.types.genomeType.Values.ToList(),
+            genomes = World.types.Get<GenomeType>().ToList(),
             genomeIndex = 0,
             playerName = "Luminous",
-            playerGenome = World.types.genomeType.Values.First(),
+            playerGenome = World.types.Get<GenomeType>().First(),
             portrait = new char[8, 8]
         };
         this.settings = settings;

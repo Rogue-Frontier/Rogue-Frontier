@@ -111,7 +111,7 @@ public class Sovereign : DesignType {
                 var disposition = xmlRel.ExpectAttEnum<Disposition>("disposition");
                 var mutual = xmlRel.ExpectAttBool("mutual");
 
-                var sov = tc.sovereign[other];
+                var sov = tc.Lookup<Sovereign>(other);
                 sovDispositions[sov.codename] = disposition;
                 if (mutual) {
                     sov.sovDispositions[this.codename] = disposition;

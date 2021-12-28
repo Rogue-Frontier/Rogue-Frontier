@@ -212,7 +212,7 @@ public class BaseShip : SpaceObject {
         }
         UpdateThrust();
         UpdateTurn();
-        rotationDeg += rotatingVel;
+        UpdateRotation();
         UpdateBrake();
         void UpdateThrust() {
             if (thrusting) {
@@ -262,8 +262,9 @@ public class BaseShip : SpaceObject {
             } else {
                 Decel();
             }
+            void Decel() => rotatingVel -= Math.Min(Math.Abs(rotatingVel), shipClass.rotationDecel / Program.TICKS_PER_SECOND) * Math.Sign(rotatingVel); ;
         }
-        void Decel() => rotatingVel -= Math.Min(Math.Abs(rotatingVel), shipClass.rotationDecel / Program.TICKS_PER_SECOND) * Math.Sign(rotatingVel); ;
+        void UpdateRotation() => rotationDeg += rotatingVel;
         void UpdateBrake() {
             if (decelerating) {
                 if (velocity.magnitude > 0.05) {
@@ -842,4 +843,26 @@ public class PlayerShip : IShip {
     public bool active => ship.active;
     [JsonIgnore]
     public ColoredGlyph tile => ship.tile;
+
+    public string GetMemorial(string epitaph) =>
+@$"
+{player.name} ({player.Genome.subjective}/{player.Genome.objective})
+{player.Genome.name}
+
+{epitaph}
+
+Ship: {shipClass.name}
+
+Armor
+{string.Join('\n', (hull as LayeredArmorSystem).layers.Select(l => $"    {l.source.type.name}"))}
+
+Devices
+{string.Join('\n', devices.Installed.Select(device => $"    {device.source.type.name}"))}
+
+Cargo
+{string.Join('\n', cargo.GroupBy(i => i.type.name).Select(group => $"{group.Count(),4}x {group.Key}"))}
+
+Ships Destroyed
+{string.Join('\n', shipsDestroyed.GroupBy(sc => sc.shipClass).Select(pair => $"{pair.Count(),4}x {pair.Key.name,-16}"))}
+";
 }

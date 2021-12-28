@@ -130,6 +130,13 @@ public class EnergySystem {
             maxGeneratorOutputLeft -= delta;
 
         CheckReactor:
+
+            if(sources[sourceIndex] is Reactor r && r.desc.battery) {
+                sourceIndex++;
+                sourceOutput = sources[sourceIndex].maxOutput;
+                goto CheckReactor;
+            }
+
             if (outputUsed > sourceOutput) {
                 outputUsed -= sourceOutput;
                 sources[sourceIndex].energyDelta = -sourceOutput;
@@ -138,9 +145,10 @@ public class EnergySystem {
                 sourceIndex++;
                 sourceOutput = sources[sourceIndex].maxOutput;
                 goto CheckReactor;
-            } else {
-                sources[sourceIndex].energyDelta = -outputUsed;
             }
+
+            sources[sourceIndex].energyDelta = -outputUsed;
+
 
             if (maxGeneratorOutputLeft == 0) {
                 break;

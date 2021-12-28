@@ -43,7 +43,7 @@ partial class Program {
         using (var s = new StreamWriter("data.csv"))
         using (var c = new CsvWriter(s, new(CultureInfo.InvariantCulture))) {
             var tc = new TypeCollection(main);
-            c.WriteRecords(tc.itemType.Values);
+            c.WriteRecords(tc.Get<ItemType>());
         }
     }
     public static void StartGame(Action OnStart) {

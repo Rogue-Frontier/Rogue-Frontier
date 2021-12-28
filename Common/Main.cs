@@ -609,37 +609,25 @@ public static class Main {
             var a = p.GetCustomAttributes(true).OfType<IAtt>().FirstOrDefault();
             if(a != null) {
                 var name = p.Name;
-                object value = a switch {
-                    Req r => new Dictionary<Type, Func<object>>() {
-                        [typeof(string)] = () => e.ExpectAtt(name),
+                if (a is not Req && e.Attribute(name) == null) {
+                    continue;
+                }
 
-                        [typeof(bool)] = () => e.ExpectAttBool(name),
-                        [typeof(int)] = () => e.ExpectAttInt(name),
-                        [typeof(char)] = () => e.ExpectAttChar(name),
-                        [typeof(double)] = () => e.ExpectAttDouble(name),
+                object value = new Dictionary<Type, Func<object>>() {
+                    [typeof(string)] = () => e.ExpectAtt(name),
 
-                        [typeof(IDice)] = () => e.ExpectAttDice(name),
-                        [typeof(Color)] = () => e.ExpectAttColor(name)
-                    }[p.FieldType](),
-                    Opt o => new Dictionary<Type, Func<object>>() {
-                        [typeof(string)] = () => e.TryAtt(name),
+                    [typeof(bool)] = () => e.ExpectAttBool(name),
+                    [typeof(int)] = () => e.ExpectAttInt(name),
+                    [typeof(char)] = () => e.ExpectAttChar(name),
+                    [typeof(double)] = () => e.ExpectAttDouble(name),
 
-                        [typeof(bool?)] = () => e.TryAttBoolNullable(name),
-                        [typeof(int?)] = () => e.TryAttIntNullable(name),
-                        
-                        [typeof(bool)] = () => e.TryAttBool(name),
-                        [typeof(int)] = () => e.TryAttInt(name),
-                        [typeof(double)] = () => e.TryAttDouble(name),
-                    }[p.FieldType](),
-                    Opt<string> o => e.TryAtt(name, o.fallback),
-                    Opt<int> o => e.TryAttInt(name, o.fallback),
-                    Opt<int?> o => e.TryAttIntNullable(name, o.fallback),
-                    Opt<bool> o => e.TryAttBool(name, o.fallback),
-                    Opt<bool?> o => e.TryAttBoolNullable(name, o.fallback),
-                    Opt<char> o => e.TryAttChar(name, o.fallback),
-                    Opt<double> o => e.TryAttDouble(name, o.fallback),
-                    _ => throw new Exception($"Unsupported attribute type {a.GetType().Name}")
-                };
+
+                    [typeof(bool?)] = () => e.TryAttBoolNullable(name),
+                    [typeof(int?)] = () => e.TryAttIntNullable(name),
+
+                    [typeof(IDice)] = () => e.ExpectAttDice(name),
+                    [typeof(Color)] = () => e.ExpectAttColor(name)
+                }[p.FieldType]();
                 p.SetValue(obj, value);
             }
         }

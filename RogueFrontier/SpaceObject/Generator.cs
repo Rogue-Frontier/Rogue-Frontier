@@ -1,4 +1,5 @@
 ﻿using Common;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,9 +44,9 @@ public enum ShipOrder {
 
 }
 public class ShipEntry : ShipGenerator {
-    [Opt<int>(1)] public int count;
-    [Req]         public string codename;
-    [Opt]         public string sovereign;
+    [Opt] public int count = 1;
+    [Req] public string codename;
+    [Opt] public string sovereign;
     public IOrderDesc orderDesc;
     public ShipEntry() { }
     public ShipEntry(XElement e) {
@@ -59,7 +60,7 @@ public class ShipEntry : ShipGenerator {
     }
     public List<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
         var shipClass = tc.Lookup<ShipClass>(codename);
-        Sovereign s = sovereign.Any() ? tc.Lookup<Sovereign>(sovereign) : owner.sovereign;
+        Sovereign s = sovereign?.Any() == true ? tc.Lookup<Sovereign>(sovereign) : owner.sovereign;
         Func<int, XY> GetPos = orderDesc switch {
             PatrolOrbitDesc pod => i => owner.position + XY.Polar(
                                         Math.PI * 2 * i / count,
@@ -74,7 +75,7 @@ public class ShipEntry : ShipGenerator {
                     s,
                     GetPos(i)
                 ),
-                orderDesc.CreateOrder(owner)
+                orderDesc.Value(owner)
                 ))
             );
     }
@@ -88,39 +89,38 @@ public class ShipEntry : ShipGenerator {
         }
     }
 
-    public interface IOrderDesc {
-        IShipOrder CreateOrder(SpaceObject owner);
-    }
+    public interface IOrderDesc : IContainer<IShipOrder.Create> {}
     public record AttackDesc : IOrderDesc {
-        public IShipOrder CreateOrder(SpaceObject owner) => new AttackOrder(owner);
+        [JsonIgnore]
+        public IShipOrder.Create Value => o => new AttackOrder(o);
     }
     public record GuardDesc : IOrderDesc {
-        public IShipOrder CreateOrder(SpaceObject owner) => new GuardOrder(owner);
+        [JsonIgnore]
+        public IShipOrder.Create Value => o => new GuardOrder(o);
     }
-    public record PatrolOrbitDesc : IOrderDesc {
+    public record PatrolOrbitDesc() : IOrderDesc {
         [Req] public int patrolRadius;
-        public PatrolOrbitDesc() { }
-        public PatrolOrbitDesc(XElement e) {
+        public PatrolOrbitDesc(XElement e) : this() {
             e.Initialize(this);
         }
-        public IShipOrder CreateOrder(SpaceObject owner) => new PatrolOrbitOrder(owner, patrolRadius);
+        [JsonIgnore]
+        public IShipOrder.Create Value => o => new PatrolOrbitOrder(o, patrolRadius);
     }
     //Patrol an entire cluster of stations (moving out to 50 ls + radius of nearest station)
-    public record PatrolCircuitDesc : IOrderDesc {
+    public record PatrolCircuitDesc() : IOrderDesc {
         public int patrolRadius;
-        public PatrolCircuitDesc() { }
-        public PatrolCircuitDesc(XElement e) {
+        public PatrolCircuitDesc(XElement e) : this() {
             e.Initialize(this);
         }
-        public IShipOrder CreateOrder(SpaceObject owner) => new PatrolCircuitOrder(owner, patrolRadius);
+        [JsonIgnore]
+        public IShipOrder.Create Value => o => new PatrolCircuitOrder(o, patrolRadius);
     }
 }
 
-public class ModRoll {
+public record ModRoll() {
     public double modifierChance;
     public Modifier modifier;
-    public ModRoll() { }
-    public ModRoll(XElement e) {
+    public ModRoll(XElement e) : this() {
         modifierChance = e.TryAttDouble(nameof(modifierChance), 1);
         modifier = new Modifier(e);
         if (modifier.empty) {
@@ -134,14 +134,14 @@ public class ModRoll {
         return new Rand().NextDouble() <= modifierChance ? modifier : null;
     }
 }
-public interface ItemGenerator {
-    List<Item> Generate(TypeCollection tc);
+public interface Generator<T> {
+    List<T> Generate(TypeCollection t);
 }
-public class ItemList : ItemGenerator {
-    public List<ItemGenerator> generators;
-    public ItemList() { }
-    public ItemList(XElement e) {
-        generators = new List<ItemGenerator>();
+public record ItemList() : Generator<Item> {
+    public List<Generator<Item>> generators;
+    public static List<Item> From(TypeCollection tc, string str) => new ItemList(XElement.Parse(str)).Generate(tc);
+    public ItemList(XElement e) : this() {
+        generators = new List<Generator<Item>>();
         foreach (var element in e.Elements()) {
             switch (element.Name.LocalName) {
                 case "Item":
@@ -152,41 +152,31 @@ public class ItemList : ItemGenerator {
             }
         }
     }
-    public List<Item> Generate(TypeCollection tc) {
-        var result = new List<Item>();
-        if (generators != null) {
-            generators.ForEach(g => result.AddRange(g.Generate(tc)));
-        }
-        return result;
-    }
+    public List<Item> Generate(TypeCollection tc) =>
+        new(generators.SelectMany(g => g.Generate(tc)));
 }
-public class ItemEntry : ItemGenerator {
-    [Req]         public string codename;
-    [Opt<int>(1)] public int count;
+public record ItemEntry() : Generator<Item> {
+    [Req] public string codename;
+    [Opt] public int count = 1;
     public ModRoll mod;
-    public ItemEntry() { }
-    public ItemEntry(XElement e) {
+    public ItemEntry(XElement e) : this() {
         e.Initialize(this);
         mod = new(e);
-
     }
     public List<Item> Generate(TypeCollection tc) {
         var type = tc.Lookup<ItemType>(codename);
-        var result = new List<Item>(Enumerable.Range(0, count).Select(_ => new Item(type, mod.Generate())));
-        return result;
+        return new List<Item>(Enumerable.Range(0, count).Select(_ => new Item(type, mod.Generate())));
     }
     //In case we want to make sure immediately that the type is valid
-    public void ValidateEager(TypeCollection tc) {
+    public void ValidateEager(TypeCollection tc) =>
         tc.Lookup<ItemType>(codename);
-    }
 }
 public interface ArmorGenerator {
     List<Armor> Generate(TypeCollection tc);
 }
-public class ArmorList : ArmorGenerator {
+public record ArmorList() : ArmorGenerator {
     public List<ArmorGenerator> generators;
-    public ArmorList() { }
-    public ArmorList(XElement e) {
+    public ArmorList(XElement e) : this() {
         generators = new List<ArmorGenerator>();
         foreach (var element in e.Elements()) {
             switch (element.Name.LocalName) {
@@ -198,66 +188,51 @@ public class ArmorList : ArmorGenerator {
             }
         }
     }
-    public List<Armor> Generate(TypeCollection tc) {
-        var result = new List<Armor>();
-        generators.ForEach(g => result.AddRange(g.Generate(tc)));
-        return result;
-    }
+    public List<Armor> Generate(TypeCollection tc) =>
+        new(generators.SelectMany(g => g.Generate(tc)));
 }
-public class ArmorEntry : ArmorGenerator {
+public record ArmorEntry() : ArmorGenerator {
     [Req] public string codename;
     public ModRoll mod;
-    public ArmorEntry() { }
-    public ArmorEntry(XElement e) {
+    public ArmorEntry(XElement e) : this() {
         e.Initialize(this);
         mod = new(e);
     }
-    List<Armor> ArmorGenerator.Generate(TypeCollection tc) {
-        return new List<Armor> { Generate(tc) };
+    List<Armor> ArmorGenerator.Generate(TypeCollection tc) =>
+        new() { Generate(tc) };
+    public Armor Generate(TypeCollection tc) =>
+        SDevice.Generate<Armor>(tc, codename, mod);
+    public void ValidateEager(TypeCollection tc) =>
+        Generate(tc);
+    /*
+    public interface Generator<T> where T: Device {
+        List<T> Generate(TypeCollection tc);
     }
-    public Armor Generate(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-
-        return item.Install<Armor>()
-            ?? throw new Exception($"Expected <ItemType> type with <Armor> desc: {codename}");
-    }
-    //In case we want to make sure immediately that the type is valid
-    public void ValidateEager(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-        var a = item.Install<Armor>()
-            ?? throw new Exception($"Expected <ItemType> type with <Armor> desc: {codename}");
+    public class GeneratorList<T> : Generator<T> where T: Device {
+        public List<Generator<T>> generators;
+        public GeneratorList(XElement e) {
 
         }
+        public List<T> Generate(TypeCollection tc) {
+            var result = new List<T>();
+            generators.ForEach(g => result.AddRange(g.Generate(tc)));
+            return result;
+        }
     }
-/*
-public interface Generator<T> where T: Device {
-    List<T> Generate(TypeCollection tc);
-}
-public class GeneratorList<T> : Generator<T> where T: Device {
-    public List<Generator<T>> generators;
-    public GeneratorList(XElement e) {
+    */
 
-    }
-    public List<T> Generate(TypeCollection tc) {
-        var result = new List<T>();
-        generators.ForEach(g => result.AddRange(g.Generate(tc)));
-        return result;
-    }
 }
-*/
-
-public interface DeviceGenerator {
-    List<Device> Generate(TypeCollection tc);
+public static class SDevice {
+    private static T Install<T>(TypeCollection tc, string codename, ModRoll mod) where T : class, Device =>
+        new Item(tc.Lookup<ItemType>(codename), mod.Generate()).Install<T>();
+    public static T Generate<T>(TypeCollection tc, string codename, ModRoll mod) where T : class, Device =>
+        Install<T>(tc, codename, mod) ??
+            throw new Exception($"Expected <ItemType> type with <{typeof(T).Name}> desc: {codename}");
 }
-public class DeviceList : DeviceGenerator {
-    public List<DeviceGenerator> generators;
-    public DeviceList() {
-        generators = new List<DeviceGenerator>();
-    }
-    public DeviceList(XElement e) {
-        generators = new List<DeviceGenerator>();
+public record DeviceList() : Generator<Device> {
+    public List<Generator<Device>> generators;
+    public DeviceList(XElement e) : this() {
+        generators = new List<Generator<Device>>();
         foreach (var element in e.Elements()) {
             switch (element.Name.LocalName) {
                 case "Weapon":
@@ -280,140 +255,70 @@ public class DeviceList : DeviceGenerator {
             }
         }
     }
-    public List<Device> Generate(TypeCollection tc) {
-        var result = new List<Device>();
-        if (generators.Count == 2) {
-            //int i = 0;
-        }
-        foreach (var g in generators) {
-            result.AddRange(g.Generate(tc));
-        }
-
-        return result;
-    }
+    public List<Device> Generate(TypeCollection tc) =>
+        new(generators.SelectMany(g => g.Generate(tc)));
 }
 
-class ReactorEntry : DeviceGenerator {
+public record ReactorEntry() : Generator<Device> {
     [Req] public string codename;
     public ModRoll mod;
-    public ReactorEntry() { }
-    public ReactorEntry(XElement e) {
+    public ReactorEntry(XElement e) : this() {
         e.Initialize(this);
         mod = new(e);
     }
-    List<Device> DeviceGenerator.Generate(TypeCollection tc) {
-        return new List<Device> { Generate(tc) };
-    }
-    Reactor Generate(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-        return item.Install<Reactor>()
-            ?? throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
-    }
-    //In case we want to make sure immediately that the type is valid
-    public void ValidateEager(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-        var r = item.Install<Reactor>() 
-            ?? throw new Exception($"Expected <ItemType> type with <Reactor> desc: {codename}");
-    }
+    List<Device> Generator<Device>.Generate(TypeCollection tc) =>
+        new() { Generate(tc) };
+    Reactor Generate(TypeCollection tc) =>
+        SDevice.Generate<Reactor>(tc, codename, mod);
+    public void ValidateEager(TypeCollection tc) => Generate(tc);
 }
 
-class SolarEntry : DeviceGenerator {
+public record SolarEntry() : Generator<Device> {
     [Req] public string codename;
     public ModRoll mod;
-    public SolarEntry() { }
-    public SolarEntry(XElement e) {
+    public SolarEntry(XElement e) : this() {
         e.Initialize(this);
         mod = new(e);
     }
-    List<Device> DeviceGenerator.Generate(TypeCollection tc) {
-        return new List<Device> { Generate(tc) };
-    }
-    Solar Generate(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-        return item.Install<Solar>()
-            ?? throw new Exception($"Expected <ItemType> type with <Solar> desc: {codename}");
-    }
-    //In case we want to make sure immediately that the type is valid
-    public void ValidateEager(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-        var r = item.Install<Solar>()
-            ?? throw new Exception($"Expected <ItemType> type with <Solar> desc: {codename}");
-    }
+    List<Device> Generator<Device>.Generate(TypeCollection tc) =>
+        new() { Generate(tc) };
+    Solar Generate(TypeCollection tc) =>
+        SDevice.Generate<Solar>(tc, codename, mod);
+    public void ValidateEager(TypeCollection tc) => Generate(tc);
 }
 
-class ServiceEntry : DeviceGenerator {
+public record ServiceEntry() : Generator<Device> {
     [Req] public string codename;
 
     public ModRoll mod;
-    public ServiceEntry() { }
-    public ServiceEntry(XElement e) {
+    public ServiceEntry(XElement e) : this() {
         e.Initialize(this);
         mod = new(e);
     }
-    List<Device> DeviceGenerator.Generate(TypeCollection tc) {
-        return new List<Device> { Generate(tc) };
-    }
-    Service Generate(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-        return item.Install<Service>() ?? throw new Exception($"Expected <ItemType> type with <Service> desc: {codename}");
-    }
-    //In case we want to make sure immediately that the type is valid
-    public void ValidateEager(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-        if (item.Install<Service>() == null) {
-            throw new Exception($"Expected <ItemType> type with <Service> desc: {codename}");
-        }
-    }
+    List<Device> Generator<Device>.Generate(TypeCollection tc) =>
+        new() { Generate(tc) };
+    Service Generate(TypeCollection tc) => SDevice.Generate<Service>(tc, codename, mod);
+    public void ValidateEager(TypeCollection tc) => Generate(tc);
 }
 
-class ShieldEntry : DeviceGenerator {
+public record ShieldEntry() : Generator<Device> {
     public string codename;
 
     public ModRoll mod;
-    public ShieldEntry() { }
-    public ShieldEntry(XElement e) {
-        this.codename = e.ExpectAtt("codename");
-        this.mod = new(e);
+    public ShieldEntry(XElement e) : this() {
+        codename = e.ExpectAtt("codename");
+        mod = new(e);
     }
-    List<Device> DeviceGenerator.Generate(TypeCollection tc) {
-        return new List<Device> { Generate(tc) };
-    }
-
-    Shield Generate(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-        if (item.Install<Shield>() != null) {
-            return item.shield;
-        } else {
-            throw new Exception($"Expected <ItemType> type with <Shields> desc: {codename}");
-        }
-    }
-    //In case we want to make sure immediately that the type is valid
-    public void ValidateEager(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-        if (item.Install<Shield>() == null) {
-            throw new Exception($"Expected <ItemType> type with <Shields> desc: {codename}");
-        }
-    }
+    List<Device> Generator<Device>.Generate(TypeCollection tc) =>
+        new() { Generate(tc) };
+    Shield Generate(TypeCollection tc) =>
+        SDevice.Generate<Shield>(tc, codename, mod);
+    public void ValidateEager(TypeCollection tc) => Generate(tc);
 }
-
-public interface WeaponGenerator {
-    List<Weapon> Generate(TypeCollection tc);
-}
-public class WeaponList : WeaponGenerator {
-    public List<WeaponGenerator> generators;
-    public WeaponList() {
-        generators = new List<WeaponGenerator>();
-    }
-    public WeaponList(XElement e) {
-        generators = new List<WeaponGenerator>();
+public record WeaponList() : Generator<Weapon> {
+    public List<Generator<Weapon>> generators;
+    public WeaponList(XElement e) : this() {
+        generators = new List<Generator<Weapon>>();
         foreach (var element in e.Elements()) {
             switch (element.Name.LocalName) {
                 case "Weapon":
@@ -424,48 +329,30 @@ public class WeaponList : WeaponGenerator {
             }
         }
     }
-    public List<Weapon> Generate(TypeCollection tc) {
-        var result = new List<Weapon>();
-        generators.ForEach(g => result.AddRange(g.Generate(tc)));
-        return result;
-    }
+    public List<Weapon> Generate(TypeCollection tc) =>
+        new(generators.SelectMany(g => g.Generate(tc)));
 }
-class WeaponEntry : DeviceGenerator, WeaponGenerator {
+public record WeaponEntry() : Generator<Device>, Generator<Weapon> {
     public string codename;
     public bool omnidirectional;
     public ModRoll mod;
-    public WeaponEntry() { }
-    public WeaponEntry(XElement e) {
+    public WeaponEntry(XElement e) : this() {
         codename = e.ExpectAtt("codename");
         omnidirectional = e.TryAttBool("omnidirectional", false);
         mod = new(e);
     }
 
-    List<Weapon> WeaponGenerator.Generate(TypeCollection tc) {
-        return new List<Weapon> { Generate(tc) };
-    }
-    List<Device> DeviceGenerator.Generate(TypeCollection tc) {
-        return new List<Device> { Generate(tc) };
-    }
+    List<Weapon> Generator<Weapon>.Generate(TypeCollection tc) =>
+        new() { Generate(tc) };
+    List<Device> Generator<Device>.Generate(TypeCollection tc) =>
+        new() { Generate(tc) };
 
     Weapon Generate(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-        if (item.Install<Weapon>() != null) {
-            if (omnidirectional) {
-                item.weapon.aiming = new Omnidirectional();
-            }
-            return item.weapon;
-        } else {
-            throw new Exception($"Expected <ItemType> type with <Weapon> desc: {codename}");
+        var w = SDevice.Generate<Weapon>(tc, codename, mod);
+        if (omnidirectional) {
+            w.aiming = new Omnidirectional();
         }
+        return w;
     }
-    //In case we want to make sure immediately that the type is valid
-    public void ValidateEager(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        var item = new Item(type, mod.Generate());
-        if (item.Install<Weapon>() == null) {
-            throw new Exception($"Expected <ItemType> type with <Weapon> desc: {codename}");
-        }
-    }
+    public void ValidateEager(TypeCollection tc) => Generate(tc);
 }

@@ -25,7 +25,7 @@ class RenderShip : Console {
         TypeCollection tc = new TypeCollection("RogueFrontierContent/scripts/Main.xml");
 
         Directory.CreateDirectory("RogueFrontierRenders");
-        foreach ((var codename, var sc) in tc.shipClass) {
+        foreach ((var codename, var sc) in tc.GetDict<ShipClass>()) {
             if (sc.playerSettings?.map == null) {
                 continue;
             }

@@ -88,7 +88,7 @@ class ArenaScreen : Console {
                 void UpdateSovereignListing() {
                     var text = sovereignField.text;
                     buttons.Clear();
-                    var sovereignDict = World.types.sovereign;
+                    var sovereignDict = World.types.GetDict<Sovereign>();
 
                     int i = 0;
                     foreach (var type in sovereignDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
@@ -120,7 +120,7 @@ class ArenaScreen : Console {
                 void UpdateShipListing() {
                     var text = shipField.text;
                     buttons.Clear();
-                    var shipClassDict = World.types.shipClass;
+                    var shipClassDict = World.types.GetDict<ShipClass>();
 
                     int i = 0;
                     foreach (var type in shipClassDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
@@ -174,7 +174,7 @@ class ArenaScreen : Console {
                 void UpdateAddListing() {
                     var text = cargoField.text;
                     addButtons.Clear();
-                    var itemDict = World.types.itemType;
+                    var itemDict = World.types.GetDict<ItemType>();
 
                     int i = 0;
                     foreach (var type in itemDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
@@ -227,7 +227,7 @@ class ArenaScreen : Console {
                 void UpdateAddListing() {
                     var text = deviceField.text;
                     addButtons.Clear();
-                    var itemDict = World.types.itemType;
+                    var itemDict = World.types.GetDict<ItemType>();
                     var keys = itemDict.Keys
                         .OrderBy(k => k)
                         .Where(k => k.Contains(text));

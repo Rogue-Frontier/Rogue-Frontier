@@ -13,15 +13,7 @@ namespace RogueFrontier;
 public class TypeCollection {
     private Dictionary<string, XElement> sources;
     public Dictionary<string, DesignType> all;
-    public Dictionary<string, GenomeType> genomeType;
-    public Dictionary<string, ImageType> imageType;
-    public Dictionary<string, ItemType> itemType;
-    public Dictionary<string, PowerType> powerType;
-    public Dictionary<string, SceneType> sceneType;
-    public Dictionary<string, ShipClass> shipClass;
-    public Dictionary<string, Sovereign> sovereign;
-    public Dictionary<string, StationType> stationType;
-    public Dictionary<string, SystemType> systemType;
+    private Dictionary<Type, object> dicts;
 
     enum InitState {
         InitializePending,
@@ -34,15 +26,19 @@ public class TypeCollection {
     public TypeCollection() {
         sources = new Dictionary<string, XElement>();
         all = new Dictionary<string, DesignType>();
-        genomeType = new Dictionary<string, GenomeType>();
-        imageType = new Dictionary<string, ImageType>();
-        itemType = new Dictionary<string, ItemType>();
-        powerType = new Dictionary<string, PowerType>();
-        sceneType = new Dictionary<string, SceneType>();
-        shipClass = new Dictionary<string, ShipClass>();
-        stationType = new Dictionary<string, StationType>();
-        sovereign = new Dictionary<string, Sovereign>();
-        systemType = new Dictionary<string, SystemType>();
+        dicts = new() {
+            [typeof(GenomeType)] = new Dictionary<string, GenomeType>(),
+            [typeof(ImageType)] = new Dictionary<string, ImageType>(),
+            [typeof(ItemType)] = new Dictionary<string, ItemType>(),
+            [typeof(PowerType)] = new Dictionary<string, PowerType>(),
+            [typeof(SceneType)] = new Dictionary<string, SceneType>(),
+            [typeof(ShipClass)] = new Dictionary<string, ShipClass>(),
+            [typeof(Sovereign)] = new Dictionary<string, Sovereign>(),
+            [typeof(StationType)] = new Dictionary<string, StationType>(),
+            [typeof(SystemType)] = new Dictionary<string, SystemType>(),
+        };
+
+
         state = InitState.InitializePending;
 
         Debug.Print("TypeCollection created");
@@ -91,58 +87,33 @@ public class TypeCollection {
         }
     }
     public void ProcessElement(string file, XElement element) {
-        switch (element.Name.LocalName) {
-            case "Module":
-                var subfile = Path.Combine(Directory.GetParent(file).FullName, element.ExpectAtt("file"));
+
+
+        void ProcessSection(XElement e) => ProcessRoot(file, e);
+        Action<XElement> a = element.Name.LocalName switch {
+            "Module" => e => {
+                var subfile = Path.Combine(Directory.GetParent(file).FullName, e.ExpectAtt("file"));
                 XElement module = XDocument.Load(subfile).Root;
                 ProcessRoot(file, module);
-                break;
-            case "Source":
-                AddSource(element);
-                break;
-            case "Content":
-                ProcessRoot(file, element);
-                break;
-            case "Unused":
+            }
+            ,
+            "Source" => AddSource,
+            "Content" => ProcessSection,
+            "Unused" => e => { },
+            "Debug" => ProcessSection,
+            "GenomeType" => AddType<GenomeType>,
+            "ImageType" => AddType<ImageType>,
+            "ItemType" => AddType<ItemType>,
+            "PowerType" => AddType<PowerType>,
+            "SceneType" => AddType<SceneType>,
+            "ShipClass" => AddType<ShipClass>,
+            "StationType" => AddType<StationType>,
+            "Sovereign" => AddType<Sovereign>,
+            "SystemType" => AddType<SystemType>,
+            _ => throw new Exception($"Unknown element <{element.Name}>")
 
-                break;
-#if DEBUG
-            case "Debug":
-                ProcessRoot(file, element);
-                break;
-#endif
-            case "GenomeType":
-                AddType<GenomeType>(element);
-                break;
-            case "ImageType":
-                AddType<ImageType>(element);
-                break;
-            case "ItemType":
-                AddType<ItemType>(element);
-                break;
-            case "PowerType":
-                AddType<PowerType>(element);
-                break;
-            case "SceneType":
-                AddType<SceneType>(element);
-                break;
-            case "ShipClass":
-                AddType<ShipClass>(element);
-                break;
-            case "StationType":
-                AddType<StationType>(element);
-                break;
-            case "Sovereign":
-                AddType<Sovereign>(element);
-                break;
-            case "SystemType":
-                AddType<SystemType>(element);
-                break;
-            default:
-                throw new Exception($"Unknown element <{element.Name}>");
-                //Debug.Print($"Unknown element <{element.Name}>");
-                //break;
-        }
+        };
+        a(element);
     }
     void AddSource(XElement element) {
         if (!element.TryAttribute("codename", out string type)) {
@@ -153,6 +124,11 @@ public class TypeCollection {
         Debug.Print($"Created Source <{element.Name}> of type {type}");
         sources[type] = element;
     }
+
+    public Dictionary<string, T> GetDict<T>() where T: DesignType =>
+        (Dictionary<string, T>) dicts[typeof(T)];
+    public Dictionary<string, T>.ValueCollection Get<T>() where T : DesignType =>
+        GetDict<T>().Values;
     void AddType<T>(XElement element) where T : DesignType, new() {
         if (!element.TryAttribute("codename", out string type)) {
             throw new Exception("DesignType requires codename attribute");
@@ -161,40 +137,9 @@ public class TypeCollection {
         }
         Debug.Print($"Created <{element.Name}> of type {type}");
         sources[type] = element;
-        T t = new T();
+        T t = new();
         all[type] = t;
-        switch (t) {
-            case GenomeType gn:
-                genomeType[type] = gn;
-                break;
-            case ImageType im:
-                imageType[type] = im;
-                break;
-            case ItemType it:
-                itemType[type] = it;
-                break;
-            case PowerType pt:
-                powerType[type] = pt;
-                break;
-            case SceneType st:
-                sceneType[type] = st;
-                break;
-            case StationType st:
-                stationType[type] = st;
-                break;
-            case ShipClass sc:
-                shipClass[type] = sc;
-                break;
-            case Sovereign sv:
-                sovereign[type] = sv;
-                break;
-            case SystemType ss:
-                systemType[type] = ss;
-                break;
-            default:
-                throw new Exception($"Unrecorded {element.Name} of type {type}");
-        }
-
+        ((Dictionary<string, T>)dicts[typeof(T)])[type] = t;
         Init:
         //If we're uninitialized, then we will definitely initialize later
         if (state != InitState.InitializePending) {
@@ -202,33 +147,24 @@ public class TypeCollection {
             all[type].Initialize(this, sources[type]);
         }
     }
-    public bool Lookup(string type, out DesignType result) {
-        return all.TryGetValue(type, out result);
-    }
+    public bool Lookup(string codename, out DesignType result) =>
+        all.TryGetValue(codename, out result);
 
-    public bool Lookup<T>(string type, out T result) where T : DesignType {
-        if (all.TryGetValue(type, out var t) && t is T) {
-            result = (T)t;
-            return true;
-        } else {
-            result = default(T);
-            return false;
-        }
-    }
-    public T Lookup<T>(string codename) where T : DesignType {
+    public bool Lookup<T>(string type, out T result) where T : class, DesignType =>
+        (result = Lookup<T>(type)) != null;
+    public DesignType Lookup(string codename) {
         if (codename == null || codename.Trim().Length == 0) {
             throw new Exception($"Must specify a codename");
         }
-
-        if (all.TryGetValue(codename, out var result)) {
-            if (result is T t) {
-                return t;
-            } else {
-                throw new Exception($"Type {codename} is <{result.GetType().Name}>, not <{nameof(T)}>");
-            }
-        } else {
-            throw new Exception($"Unknown type {codename}");
+        if(all.TryGetValue(codename, out var result)) {
+            return result;
         }
+        throw new Exception($"Unknown type {codename}");
+    }
+    public T Lookup<T>(string codename) where T : class, DesignType {
+        var result = Lookup(codename);
+        return result as T ??
+            throw new Exception($"Type {codename} is <{result.GetType().Name}>, not <{nameof(T)}>");
     }
 }
 public interface DesignType {
@@ -238,7 +174,7 @@ public interface ITile {
     public ColoredGlyph Original { get; }
     void Update() { }
 }
-public class StaticTile : ITile {
+public record StaticTile() : ITile {
     [JsonProperty]
     public ColoredGlyph Original { get; set; }
     [JsonIgnore]
@@ -247,20 +183,18 @@ public class StaticTile : ITile {
     public Color Background => Original.Background;
     [JsonIgnore]
     public int GlyphCharacter => Original.GlyphCharacter;
-    public StaticTile() {
-    }
-    public StaticTile(XElement e) {
+    public StaticTile(XElement e) : this() {
         char c = e.TryAttChar("char", '?');
         Color foreground = e.TryAttColor("foreground", Color.White);
         Color background = e.TryAttColor("background", Color.Transparent);
 
         Original = new ColoredGlyph(foreground, background, c);
     }
-    public StaticTile(ColoredGlyph Glyph) => this.Original = Glyph;
-    public StaticTile(char c) {
+    public StaticTile(ColoredGlyph Glyph) : this() => this.Original = Glyph;
+    public StaticTile(char c) : this() {
         Original = new ColoredGlyph(Color.White, Color.Black, c);
     }
-    public StaticTile(char c, string foreground, string background) {
+    public StaticTile(char c, string foreground, string background) : this() {
         var fore = (Color)typeof(Color).GetField(foreground).GetValue(null);
         var back = (Color)typeof(Color).GetField(background).GetValue(null);
         Original = new ColoredGlyph(fore, back, c);
@@ -269,7 +203,7 @@ public class StaticTile : ITile {
     public static implicit operator StaticTile(ColoredGlyph cg) => new StaticTile(cg);
 }
 
-public class AlphaTile : ITile {
+public record AlphaTile() : ITile {
     [JsonProperty]
     public ColoredGlyph Original { get; set; }
     [JsonIgnore]
@@ -283,9 +217,7 @@ public class AlphaTile : ITile {
     int alphaRange;
 
     int ticks = 0;
-    public AlphaTile(ColoredGlyph Glyph) {
-        this.Original = Glyph;
-    }
+    public AlphaTile(ColoredGlyph Glyph) : this() => Original = Glyph;
     public void Update() {
         ticks++;
     }

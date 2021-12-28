@@ -5,21 +5,21 @@
 				mass=		"1000"
 		>
 		<Reactor
-			maxOutput=		"30"
-			capacity=		"4000"
+			maxOutput=		"20"
+			capacity=		"2500"
 			efficiency=		"1.0"
 			battery=		"false"
 			/>
 	</ItemType>
 
 	<ItemType	codename=	"item_foundry_battery"
-			name=		"Foundry-class battery"
-			level=		"1"
-		mass=		"1000"
+				name=		"Foundry-class battery"
+				level=		"1"
+				mass=		"1000"
 		>
 		<Reactor
-			maxOutput=		"20"
-			capacity=		"500"
+			maxOutput=		"10"
+			capacity=		"5000"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>

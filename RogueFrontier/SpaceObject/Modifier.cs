@@ -14,14 +14,27 @@ public record Modifier {
     public int damageHPInc = 0,
         missileSpeedInc = 0,
         lifetimeInc = 0;
-    [Opt<double>(1)]
+    [Opt]
     public double damageHPFactor = 1,
         missileSpeedFactor = 1,
         lifetimeFactor = 1;
+
+    [Opt]
+    public int maxHPInc = 0;
     public Modifier() { }
     public Modifier(XElement e) {
         e.Initialize(this);
     }
+    public static Modifier operator +(Modifier x, Modifier y) =>
+        new() {
+            curse = y.curse,
+            damageHPInc = x.damageHPInc + y.damageHPInc,
+            missileSpeedInc = x.missileSpeedInc + y.missileSpeedInc,
+            lifetimeInc = x.lifetimeInc + y.lifetimeInc,
+            damageHPFactor = x.damageHPFactor * y.damageHPFactor,
+            missileSpeedFactor = x.missileSpeedFactor * y.missileSpeedFactor,
+            lifetimeFactor = x.lifetimeFactor * y.lifetimeFactor,
+        };
     public bool empty => this is Modifier {
         curse: false,
         damageHPInc: 0, missileSpeedInc: 0, lifetimeInc: 0,

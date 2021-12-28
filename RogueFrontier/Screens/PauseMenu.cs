@@ -121,7 +121,7 @@ public class PauseMenu : Console {
 
         playerMain.world.RemoveEntity(p);
 
-        playerMain.EndGame("Self destructed", w);
+        playerMain.OnPlayerDestroyed("Self destructed", w);
     }
     public void Quit() {
         var w = playerMain.world;
