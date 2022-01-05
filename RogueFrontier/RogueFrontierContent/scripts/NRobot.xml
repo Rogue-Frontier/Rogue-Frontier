@@ -31,7 +31,7 @@
 			damageType=		"1"
 			damageHP=		"1"
 			lifetime=		"60"
-			char=			"*"
+			glyph=			"*"
 			foreground=		"Cyan"
 			>
 			<Capacitor
@@ -66,7 +66,7 @@
 			damageType=		"1"
 			damageHP=		"1"
 			lifetime=		"30"
-			char=			"*"
+			glyph=			"*"
 			foreground=		"FF0080FF"
 			>
 			<Fragment
@@ -76,7 +76,7 @@
 				damageType=		"1"
 				damageHP=		"1"
 				lifetime=		"60"
-				char=			"*"
+				glyph=			"*"
 				foreground=		"Orange"
 				>
 				<Fragment
@@ -86,7 +86,7 @@
 					damageType=		"1"
 					damageHP=		"1"
 					lifetime=		"30"
-					char=			"*"
+					glyph=			"*"
 					foreground=		"Cyan"
 				/>
 			</Fragment>
@@ -111,7 +111,7 @@
 		rotationDecel=		"6"
 		rotationMaxSpeed=	"4"
 
-		char=				"n"
+		glyph=				"n"
 		foreground=			"LightBlue"
 		>
 		<Devices>
@@ -132,7 +132,7 @@
 
 					hp=			"250"
 
-					char=		"N"
+					glyph=		"N"
 					foreground=	"OrangeRed"
 		>
 		<Segments>

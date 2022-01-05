@@ -145,7 +145,7 @@ public class BaseShip : SpaceObject {
     public void Damage(Projectile p) {
         int dmgFull = p.damageHP;
         ref int dmgLeft = ref p.damageHP;
-        foreach(var s in devices.Shields) {
+        foreach(var s in devices.Shield) {
             if(dmgLeft == 0) {
                 break;
             }
@@ -156,9 +156,9 @@ public class BaseShip : SpaceObject {
             }
         }
         if(dmgLeft > 0) {
-            int knockback = p.desc.knockback * dmgLeft / dmgFull;
+            int knockback = p.fragment.knockback * dmgLeft / dmgFull;
             velocity += (p.velocity - velocity).WithMagnitude(knockback);
-            disruption = p.desc.disruptor?.GetHijack() ?? disruption;
+            disruption = p.fragment.disruptor?.GetHijack() ?? disruption;
         }
         damageSystem.Damage(this, p);
     }
@@ -170,6 +170,15 @@ public class BaseShip : SpaceObject {
         );
         var wreck = new Wreck(this, items);
         world.AddEntity(wreck);
+        foreach(var angle in Enumerable.Range(0, 16).Select(i => i * 2 * Math.PI / 16)) {
+            var blast = new EffectParticle(position + XY.Polar(angle, 1),
+                velocity + XY.Polar(angle, 4),
+                new ColoredGlyph(Color.Orange, Color.Orange.SetAlpha(128), 'x'),
+                60);
+            world.AddEffect(blast);
+
+        }
+
         active = false;
 
         onDestroyed.set.RemoveWhere(d => d.Value == null);
@@ -200,7 +209,7 @@ public class BaseShip : SpaceObject {
                 DisruptMode.FORCE_OFF => false,
                 _ => decelerating
             };
-            devices.Weapons.ForEach(a => a.firing = disruption.fireMode switch {
+            devices.Weapon.ForEach(a => a.firing = disruption.fireMode switch {
                 DisruptMode.FORCE_ON => true,
                 DisruptMode.FORCE_OFF => false,
                 _ => a.firing
@@ -506,8 +515,8 @@ public class PlayerShip : IShip {
         this.ship = ship;
         this.energy = new EnergySystem(ship.devices);
 
-        primary = new(ship.devices.Weapons);
-        secondary = new(ship.devices.Weapons);
+        primary = new(ship.devices.Weapon);
+        secondary = new(ship.devices.Weapon);
 
         //Remember to create the Heading when you add or replace this ship in the World
         Attach();
@@ -741,16 +750,16 @@ public class PlayerShip : IShip {
 
         }
     }
-    public bool GetTarget(out SpaceObject target) {
+    public bool GetTarget(out SpaceObject target) => (target = GetTarget()) != null;
+    public SpaceObject GetTarget() {
         if (targetIndex != -1) {
-            target = targetList[targetIndex];
+            var target = targetList[targetIndex];
             if (target.active) {
-                return true;
+                return target;
             }
             ForgetTarget();
         }
-        target = null;
-        return false;
+        return null;
     }
     public Weapon GetPrimary() => primary.item;
     public bool GetPrimary(out Weapon result) => (result = GetPrimary()) != null;

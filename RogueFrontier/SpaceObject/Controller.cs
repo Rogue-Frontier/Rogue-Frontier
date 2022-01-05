@@ -221,7 +221,7 @@ public class AttackAllOrder : IShipOrder {
             return;
         }
 
-        if (owner.devices.Weapons.Count == 0) {
+        if (owner.devices.Weapon.Count == 0) {
             sleepTicks = 150;
             return;
         }
@@ -252,7 +252,7 @@ public class AttackGroupOrder : IShipOrder {
         attackOrder = new AttackOrder(null);
     }
     public void Update(AIShip owner) {
-        if (owner.devices.Weapons.Count == 0) {
+        if (owner.devices.Weapon.Count == 0) {
             return;
         }
         if (attackOrder.target?.active == true) {
@@ -310,7 +310,7 @@ public class AttackOrder : IShipOrder {
             return;
         }
 
-        var weapons = owner.devices.Weapons;
+        var weapons = owner.devices.Weapon;
         if (weapon?.AllowFire != true) {
             var w = weapons.Where(w => w.AllowFire);
             weapon = w.FirstOrDefault(w => w.aiming == null) ?? w.FirstOrDefault();
@@ -558,7 +558,7 @@ public class SnipeOrder : IShipOrder {
     }
     public bool CanTarget(SpaceObject other) => other == target;
     public void Update(AIShip owner) {
-        var weapons = owner.devices.Weapons;
+        var weapons = owner.devices.Weapon;
         if (weapon?.AllowFire != true) {
             weapon = weapons.FirstOrDefault(w => w.AllowFire);
             if (weapon == null) {
@@ -573,7 +573,7 @@ public class SnipeOrder : IShipOrder {
         aim.Update(owner);
 
         //Fire if we are close enough
-        if (weapon.desc.shot.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
+        if (weapon.desc.fragment.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
             weapon.SetFiring(true, target);
         }
     }

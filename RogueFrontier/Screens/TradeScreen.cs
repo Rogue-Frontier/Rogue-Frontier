@@ -18,16 +18,16 @@ interface ITrader {
 class TradeScene : Console {
     Console next;
     Player player;
-    PlayerShip playerShip;
-    ITrader docked;
+    //PlayerShip playerShip;
+    //ITrader docked;
     ExchangeModel model;
 
     public TradeScene(Console next, PlayerShip playerShip, ITrader docked) : this(next, next, playerShip, docked) { }
     public TradeScene(Console prev, Console next, PlayerShip playerShip, ITrader docked) : base(prev.Width, prev.Height) {
         this.next = next;
         this.player = playerShip.player;
-        this.playerShip = playerShip;
-        this.docked = docked;
+        //this.playerShip = playerShip;
+        //this.docked = docked;
         model = new(new(playerShip.name, playerShip.cargo), new(docked.name, docked.cargo), Transact, Transition);
     }
     public void Transact() {
@@ -65,7 +65,7 @@ class TradeScene : Console {
         model.Render(this);
         
         int x = 16;
-        int y = 16 + 26 + 2;
+        int y = 10;
         var f = Color.White;
         var b = Color.Black;
         this.Print(x, y++, $"Money: {$"{player.money}".PadLeft(8)}", f, b);
@@ -73,7 +73,7 @@ class TradeScene : Console {
         if (item != null) {
             f = Color.Yellow;
 
-            int d = model.traderIndex == 0 ? item.type.value : -item.type.value;
+            //int d = model.traderIndex == 0 ? item.type.value : -item.type.value;
 
             this.Print(x, y++, $"       {$"{item.type.value}".PadLeft(8)}{(model.traderIndex == 0 ? '+' : '-')}", f, b);
             //y++;

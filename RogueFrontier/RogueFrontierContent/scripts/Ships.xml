@@ -8,7 +8,7 @@
                 rotationDecel="12"
                 rotationMaxSpeed="8"
 
-                char="A"
+                glyph="A"
                 foreground="Magenta"
 	    >
 	    <Devices>
@@ -64,7 +64,7 @@
 				  rotationDecel="15"
 				  rotationMaxSpeed="10"
 
-				  char="b"
+				  glyph="b"
 				  foreground="Gold"
                   >
     </ShipClass>
@@ -78,7 +78,7 @@
 				  rotationDecel="15"
 				  rotationMaxSpeed="10"
 
-				  char="b"
+				  glyph="b"
 				  foreground="Gold"
                   >
 	</ShipClass>
@@ -93,7 +93,7 @@
 				  rotationDecel="15"
 				  rotationMaxSpeed="10"
 
-				  char="b"
+				  glyph="b"
 				  foreground="White"
 				  background="Black"
         >
@@ -145,8 +145,8 @@
 		</PlayerSettings>
 	</ShipClass>
 
-    <ShipClass codename=            "ship_wagon"
-               name=                "Wagon-class transport"
+    <ShipClass codename=            "ship_clark"
+               name=                "Clark-class transport"
                thrust=              "0.3"
 			   maxSpeed=            "20"
 
@@ -154,7 +154,7 @@
 			   rotationDecel=       "12"
 			   rotationMaxSpeed=    "8"
 
-               char=                "w"
+               glyph=                "w"
                foreground=          "Orange"
 			   background=			"Black"
         >
@@ -174,7 +174,7 @@
         </LayeredArmorSystem>
 		<PlayerSettings
             startingClass=  "true"
-            description=    "Whether you used to be a banker, carpenter, or farmer before taking to the stars, a pioneer like you could use a fully stocked Wagon-class transport to survive the galactic trail."
+            description=    "Whether you used to be a banker, carpenter, or farmer before taking to the stars, a pioneer like you could use a fully stocked Clark-class transport to survive the galactic trail."
             >
             <Map>
                         __                        
@@ -218,7 +218,7 @@
 			   rotationDecel=       "8"
 			   rotationMaxSpeed=    "4"
 
-			   char=                "k"
+			   glyph=                "k"
 			   foreground=          "Cyan"
         >
 		<Devices>
@@ -242,7 +242,7 @@
 			   rotationDecel=       "8"
 			   rotationMaxSpeed=    "4"
 
-			   char=                "K"
+			   glyph=                "K"
 			   foreground=          "LightBlue"
         >
 		<Devices>
@@ -268,7 +268,7 @@
 			   rotationDecel=       "8"
 			   rotationMaxSpeed=    "4"
 
-			   char=                "t"
+			   glyph=                "t"
 			   foreground=          "LightBlue"
         >
 		<Devices>
@@ -291,7 +291,7 @@
 			   rotationDecel=       "8"
 			   rotationMaxSpeed=    "4"
 
-			   char=                "l"
+			   glyph=                "l"
 			   foreground=          "White"
         >
 		<Devices>

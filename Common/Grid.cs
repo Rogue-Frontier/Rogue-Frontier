@@ -75,7 +75,21 @@ public class XY {
     public XY roundDown => new XY(Math.Round(x, MidpointRounding.ToNegativeInfinity), Math.Round(y, MidpointRounding.ToNegativeInfinity));
     [JsonIgnore]
     public XY roundAway => new XY(Math.Round(x, MidpointRounding.AwayFromZero), Math.Round(y, MidpointRounding.AwayFromZero));
-
+    public XY Step(XY other, int length = 1) {
+        XY offset = other - this;
+        if(offset.magnitude <= length) {
+            return other;
+        }
+        return this + offset.WithMagnitude(length);
+    }
+    public IEnumerable<XY> LineTo(XY other) {
+        var p = this;
+        while(p != other) {
+            yield return p;
+            p = p.Step(other);
+        }
+        yield return p;
+    }
     public static XY Polar(double angleRad, double magnitude = 1) {
         return new XY(Math.Cos(angleRad) * magnitude, Math.Sin(angleRad) * magnitude);
     }

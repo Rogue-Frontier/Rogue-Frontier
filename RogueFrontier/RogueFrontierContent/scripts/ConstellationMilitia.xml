@@ -2,6 +2,37 @@
 	<Sovereign	codename=	"svConstellationMilitia"
 				alignment=	"ConstructiveOrder"
 	/>
+	<StationType	codename="station_constellation_shipyard"
+				name=		"Constellation Shipyard"
+				sovereign=	"sovereign_constellation"
+
+				behavior=	"constellationShipyard"
+
+				hp=			"700"
+				crimeOnDestroy="true"
+
+				glyph=		"S"
+				foreground="BB6633FF"
+		>
+		<Segments>
+			<Ring/>
+			<Line  offsetX="-2"	offsetY="0"		deltaX=	"-8"	glyph="="
+				   foreground="White"/>
+			<Line  offsetX="2"	offsetY="0"		deltaX=	"8"		glyph="="
+				   foreground="White"/>
+			<Line  offsetX="0"	offsetY="2"		width=	"12"	glyph="-"
+				   foreground="White"/>
+			<Line  offsetX="0"	offsetY="-2"	width=	"12"	glyph="-"
+				   foreground="White"/>
+		</Segments>
+		<Guards>
+			<Ship	count="2"	codename="ship_clark"/>
+		</Guards>
+		<Weapons>
+		</Weapons>
+	</StationType>
+	
+	
 	<ItemType	codename=	"itMarksmanRifle"
 			name=		"Marksman Rifle"
 			mass=		"8000"
@@ -16,7 +47,7 @@
 
 						repeat=			"1"
 
-						char=			"."
+						glyph=			"."
 						foreground=		"White"
 			>
 		</Weapon>
@@ -35,7 +66,7 @@
 
 						repeat=			"3"
 
-						char=			"."
+						glyph=			"."
 						foreground=		"White"
 			>
 		</Weapon>
@@ -59,7 +90,7 @@
 			rotationDecel=		"6"
 			rotationMaxSpeed=	"4"
 
-			char=				"M"
+			glyph=				"M"
 			foreground=			"Blue"
 		>
 		<Devices>
@@ -82,7 +113,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				char=				"M"
+				glyph=				"M"
 				foreground=			"Cyan"
 		>
 		<Devices>

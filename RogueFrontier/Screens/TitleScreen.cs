@@ -52,17 +52,21 @@ public class TitleScreen : Console {
         int x = 2;
         int y = 9;
         var fs = FontSize * 1;
-        Children.Add(new LabelButton("[Enter]     Play Story Mode", StartGame) { Position = new Point(x, y++), FontSize = fs });
-        Children.Add(new LabelButton("[Shift + A] Arena Mode", StartArena) { Position = new Point(x, y++), FontSize = fs });
-        Children.Add(new LabelButton("[Shift + C] Controls", StartConfig) { Position = new Point(x, y++), FontSize = fs });
-        Children.Add(new LabelButton("[Shift + L] Load Game", StartLoad) { Position = new Point(x, y++), FontSize = fs });
-        Children.Add(new LabelButton("[Shift + S] Survival Mode", StartSurvival) { Position = new Point(x, y++), FontSize = fs });
-        Children.Add(new LabelButton("[Shift + N] Multiplayer Server", Server) { Position = new Point(x, y++), FontSize = fs });
-        Children.Add(new LabelButton("[Shift + M] Multiplayer Client", Client) { Position = new Point(x, y++), FontSize = fs });
 
+        Button("[Enter]     Play Story Mode", StartGame);
+        Button("[Shift + A] Arena Mode", StartArena);
+        Button("[Shift + C] Controls", StartConfig);
+        Button("[Shift + L] Load Game", StartLoad);
+        Button("[Shift + S] Survival Mode", StartSurvival);
+        Button("[Shift + N] Multiplayer Server", Server);
+        Button("[Shift + M] Multiplayer Client", Client);
 
-        Children.Add(new LabelButton("[Shift + Z] Credits", StartCredits) { Position = new Point(x, y++), FontSize = fs });
-        Children.Add(new LabelButton("[Escape]    Exit", Exit) { Position = new Point(x, y++), FontSize = fs });
+        Button("[Shift + Z] Credits", StartCredits);
+        Button("[Escape]    Exit", Exit);
+
+        void Button(string s, Action a) =>
+            Children.Add(new LabelButton(s, a) { Position = new Point(x, y++), FontSize = fs });
+
 
         var f = "Settings.json";
         if (File.Exists(f)) {
@@ -147,7 +151,7 @@ public class TitleScreen : Console {
                 playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
 
                 playerMain.Update(new());
-                playerMain.PlaceTiles();
+                playerMain.PlaceTiles(new());
 
 
                 crawl.next = () => (new FlashTransition(Width, Height, crawl, Transition));
@@ -166,7 +170,7 @@ public class TitleScreen : Console {
                 }
 
                 void Transition3() {
-                    playerMain.RenderWorld();
+                    playerMain.RenderWorld(new());
                     GameHost.Instance.Screen = new FadeIn(new Pause(playerMain, Transition4, 1)) { IsFocused = true };
 
                 }
@@ -281,9 +285,9 @@ public class TitleScreen : Console {
             var playerMain = new PlayerMain(Width, Height, profile, playerShip);
             playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
 
-            playerMain.Update(new TimeSpan());
-            playerMain.PlaceTiles();
-            playerMain.RenderWorld();
+            playerMain.Update(new());
+            playerMain.PlaceTiles(new());
+            playerMain.RenderWorld(new());
 
             SimpleCrawl ds = null;
             ds = new SimpleCrawl(

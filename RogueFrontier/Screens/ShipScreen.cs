@@ -79,7 +79,7 @@ class ShipScreen : Console {
         Print(x, y++, $"Money:      {pl.money}");
         Print(x, y++, $"Title:      Harmless");
         y++;
-        var reactors = playerShip.ship.devices.Reactors;
+        var reactors = playerShip.ship.devices.Reactor;
         if (reactors.Any()) {
             Print(x, y++, "[Reactors]");
             foreach (var r in reactors) {
@@ -109,19 +109,18 @@ class ShipScreen : Console {
             y++;
         }
 
-        var weapons = playerShip.ship.devices.Weapons;
+        var weapons = playerShip.ship.devices.Weapon;
         if (weapons.Any()) {
             Print(x, y++, "[Weapons]");
             foreach (var w in weapons) {
                 Print(x, y++, $"{w.source.type.name,-32}{w.GetBar()}");
-                Print(x, y++, $"Projectile damage:      {w.desc.damageHP.str}");
-                Print(x, y++, $"Projectile speed:       {w.desc.missileSpeed}");
-                Print(x, y++, $"Shots per second: {60f / w.desc.fireCooldown}");
+                Print(x, y++, $"Projectile damage: {w.desc.damageHP.str}");
+                Print(x, y++, $"Projectile speed:  {w.desc.missileSpeed}");
+                Print(x, y++, $"Shots per second:  {60f / w.desc.fireCooldown}");
 
                 if (w.ammo is ChargeAmmo c) {
-                    Print(x, y++, $"Ammo: ${c.charges}");
+                    Print(x, y++, $"Ammo Remaining:    {c.charges}");
                 }
-
                 y++;
             }
         }
@@ -311,9 +310,9 @@ public class SListScreen {
         List<ColoredString> GetDesc(Item item) {
             var invoke = item.type.invoke;
             List<ColoredString> result = new();
-            var desc = item.type.desc.SplitLine(32);
+            var desc = item.type.desc.SplitLine(64);
             if (desc.Any()) {
-                result.AddRange(desc.Select(l => new ColoredString(l)));
+                result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
             if (invoke != null) {
@@ -353,9 +352,9 @@ public class SListScreen {
             var item = d.source;
             var invoke = item.type.invoke;
             List<ColoredString> result = new();
-            var desc = item.type.desc.SplitLine(32);
+            var desc = item.type.desc.SplitLine(64);
             if (desc.Any()) {
-                result.AddRange(desc.Select(l => new ColoredString(l)));
+                result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
 
@@ -367,11 +366,9 @@ public class SListScreen {
         void InvokeDevice(Device device) {
             var item = device.source;
             var invoke = item.type.invoke;
-
             invoke?.Invoke(screen, player, item);
             screen.UpdateIndex();
         }
-
         void Escape() {
             var p = screen.Parent;
             p.Children.Remove(screen);
@@ -395,9 +392,9 @@ public class SListScreen {
         List<ColoredString> GetDesc(Item item) {
             var invoke = item.type.invoke;
             var result = new List<ColoredString>();
-            var desc = item.type.desc.SplitLine(32);
+            var desc = item.type.desc.SplitLine(64);
             if (desc.Any()) {
-                result.AddRange(desc.Select(l => new ColoredString(l)));
+                result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
             if (invoke != null) {
@@ -410,7 +407,6 @@ public class SListScreen {
             invoke?.Invoke(screen, player, item);
             screen.UpdateIndex();
         }
-
         void Escape() {
             var p = screen.Parent;
             p.Children.Remove(screen);
@@ -434,9 +430,9 @@ public class SListScreen {
         string GetName(Device i) => $"{(disabled.Contains(i) ? " " : "*")} {i.source.type.name}";
         List<ColoredString> GetDesc(Device p) {
             var result = new List<ColoredString>();
-            var desc = p.source.type.desc.SplitLine(32);
+            var desc = p.source.type.desc.SplitLine(64);
             if (desc.Any()) {
-                result.AddRange(desc.Select(l => new ColoredString(l)));
+                result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
             var off = disabled.Contains(p);
@@ -481,9 +477,9 @@ public class SListScreen {
 
             var result = new List<ColoredString>();
 
-            var desc = item.type.desc.SplitLine(32);
+            var desc = item.type.desc.SplitLine(64);
             if (desc.Any()) {
-                result.AddRange(desc.Select(l => new ColoredString(l)));
+                result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
 
@@ -525,9 +521,9 @@ public class SListScreen {
 
             var result = new List<ColoredString>();
 
-            var desc = item.type.desc.SplitLine(32);
+            var desc = item.type.desc.SplitLine(64);
             if (desc.Any()) {
-                result.AddRange(desc.Select(l => new ColoredString(l)));
+                result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
 
@@ -560,7 +556,7 @@ public class SListScreen {
     }
     public static ListScreen<Reactor> RefuelReactor(Console prev, PlayerShip player, Item source, Refuel refuel, Action callback) {
         ListScreen<Reactor> screen = null;
-        var devices = player.devices.Reactors;
+        var devices = player.devices.Reactor;
         return screen = new(prev,
             player,
             devices,
@@ -577,9 +573,9 @@ public class SListScreen {
 
             var result = new List<ColoredString>();
 
-            var desc = item.type.desc.SplitLine(32);
+            var desc = item.type.desc.SplitLine(64);
             if (desc.Any()) {
-                result.AddRange(desc.Select(l => new ColoredString(l)));
+                result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
 
@@ -638,9 +634,9 @@ public class SListScreen {
         string GetName(Item i) => $"{(installed.Contains(i) ? "Equip> " : "Cargo> ")}{i.type.name}";
         List<ColoredString> GetDesc(Item item) {
             List<ColoredString> result = new();
-            var desc = item.type.desc.SplitLine(32);
+            var desc = item.type.desc.SplitLine(64);
             if (desc.Any()) {
-                result.AddRange(desc.Select(l => new ColoredString(l)));
+                result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
             result.Add(new("[Enter] Apply modifier", Color.Yellow, Color.Black));
@@ -665,7 +661,7 @@ public class SListScreen {
 
     public static ListScreen<Reactor> RefuelScreen1(Console prev, PlayerShip player) {
         ListScreen<Reactor> screen = null;
-        var devices = player.devices.Reactors;
+        var devices = player.devices.Reactor;
         return screen = new(prev,
             player,
             devices,
@@ -682,9 +678,9 @@ public class SListScreen {
 
             var result = new List<ColoredString>();
 
-            var desc = item.type.desc.SplitLine(32);
+            var desc = item.type.desc.SplitLine(64);
             if (desc.Any()) {
-                result.AddRange(desc.Select(l => new ColoredString(l)));
+                result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
 
@@ -711,9 +707,9 @@ public class SListScreen {
                 string GetName(Item i) => i.type.name;
                 List<ColoredString> GetDesc(Item item) {
                     var result = new List<ColoredString>();
-                    var desc = item.type.desc.SplitLine(32);
+                    var desc = item.type.desc.SplitLine(64);
                     if (desc.Any()) {
-                        result.AddRange(desc.Select(l => new ColoredString(l)));
+                        result.AddRange(desc.Select(Main.ToColoredString));
                         result.Add(new(""));
                     }
                     result.Add(new($"Fuel amount: {(item.type.invoke as Refuel).energy}"));

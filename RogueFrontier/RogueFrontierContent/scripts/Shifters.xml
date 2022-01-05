@@ -9,7 +9,7 @@
                 rotationDecel="12"
                 rotationMaxSpeed="8"
 
-                char="S"
+                glyph="S"
                 foreground="Yellow"
 	    >
 	    <Devices>

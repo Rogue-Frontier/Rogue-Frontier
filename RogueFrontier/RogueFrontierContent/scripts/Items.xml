@@ -53,7 +53,7 @@
 			damageType=		"1"
 			damageHP=		"1"
 			lifetime=		"60"
-			char=			"*"
+			glyph=			"*"
 			foreground=		"Cyan"
 			>
 			<Capacitor
@@ -89,7 +89,7 @@
 			damageType=		"1"
 			damageHP=		"1"
 			lifetime=		"30"
-			char=			"+"
+			glyph=			"+"
 			foreground=		"Yellow"
 			/>
 	</ItemType>
@@ -113,7 +113,7 @@
 			damageType=		"1"
 			damageHP=		"6"
 			lifetime=		"75"
-			char=			"."
+			glyph=			"."
 			foreground=		"Magenta"
 			/>
 	</ItemType>
@@ -137,7 +137,7 @@
 			damageHP=		"4"
 			lifetime=		"45"
 
-			char=			"."
+			glyph=			"."
 			foreground=		"Red"
 			background=		"Black"
 			>
@@ -217,7 +217,7 @@
 			
 			lifetime=		"120"
 
-			char=			"m"
+			glyph=			"m"
 			foreground=		"White"
 			
 			ammoType="item_klaw_missile"
@@ -249,7 +249,7 @@
 
 			omnidirectional="true"
 
-			char=			"."
+			glyph=			"."
 			foreground=		"White"
 			>
 		</Weapon>
@@ -272,7 +272,7 @@
 			damageType=		"1"
 			damageHP=		"1"
 			lifetime=		"15"
-			char=			"-"
+			glyph=			"-"
 			foreground=		"Red"
 
 			pointDefense=	"true"
@@ -311,7 +311,7 @@
 			damageHP=		"6"
 			lifetime=		"90"
 
-			char=			"."
+			glyph=			"."
 			foreground=		"Gray"
 			>
 		</Weapon>
@@ -335,7 +335,7 @@
 			damageHP=		"12"
 			lifetime=		"120"
 
-			char=			"."
+			glyph=			"."
 			foreground=		"White"
 			>
 		</Weapon>
@@ -419,7 +419,7 @@
 			damageHP=		"5"
 			lifetime=		"90"
 
-			char=			"i"
+			glyph=			"i"
 			foreground=		"Red"
 
 			ammoType="item_dynamite_charge"
@@ -435,7 +435,7 @@
 				damageHP=		"5"
 				lifetime=		"6"
 
-				char=			"z"
+				glyph=			"z"
 				foreground=		"FF7F00FF"
 				/>
 			<Fragment
@@ -448,7 +448,7 @@
 				damageHP=		"5"
 				lifetime=		"60"
 
-				char=			"z"
+				glyph=			"z"
 				foreground=		"FF0000FF"
 				/>
 		</Weapon>
@@ -478,7 +478,7 @@
 
 			initialCharges= "300"
 
-			char=			"+"
+			glyph=			"+"
 			foreground=		"White"
 			>
 		</Weapon>

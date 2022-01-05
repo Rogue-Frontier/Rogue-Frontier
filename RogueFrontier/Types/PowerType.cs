@@ -1,6 +1,8 @@
 ﻿using Common;
+using SadConsole;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace RogueFrontier;
@@ -20,17 +22,20 @@ public class PowerType : DesignType {
         invokeDelay = e.ExpectAttInt(nameof(invokeDelay));
         message = e.TryAtt(nameof(message), null);
 
-        if (e.HasElement("Weapon", out var xmlWeapon)) {
-            Effect = new PowerWeapon(xmlWeapon);
-        } else if (e.HasElement("Heal", out var xmlHeal)) {
-            Effect = new PowerHeal();
-        } else if (e.HasElement("ProjectileBarrier", out var xmlProjectileBarrier)) {
-            Effect = new PowerBarrier(xmlProjectileBarrier);
-        } else if (e.HasElement("Jump", out var xmlJump)) {
-            Effect = new PowerJump(e);
-        } else {
-            throw new Exception($"Power must have effect: {codename} ### {e} ### {e.Parent}");
+        var xmlPower = e.Elements().FirstOrDefault();
+        switch (xmlPower.Name) {
+
         }
+
+        Effect = xmlPower?.Name.LocalName switch {
+            "Weapon" => new PowerWeapon(xmlPower),
+            "Heal" => new PowerHeal(),
+            "ProjectileBarrier" => new PowerBarrier(xmlPower),
+            "Jump" => new PowerJump(xmlPower),
+            "Storm" => new PowerStorm(xmlPower),
+            "FastFire" => new Stonewall(xmlPower),
+            _ => throw new Exception($"Power must have effect: {codename} ### {e} ### {e.Parent}")
+        };
     }
     public void Invoke(PlayerShip player) => Effect.Invoke(player);
 }
@@ -50,6 +55,114 @@ public record PowerJump() : PowerEffect {
     public void Invoke(PlayerShip player) =>
         player.position += XY.Polar(player.rotationRad, 100);
 }
+public record PowerStorm() : PowerEffect {
+    public PowerStorm(XElement e) : this() => e.Initialize(this);
+    public void Invoke(PlayerShip player) =>
+        player.world.AddEffect(new StormOverlay(player));
+
+    public class StormOverlay : Effect {
+        PlayerShip owner;
+        public XY position => owner.position;
+
+        public bool active => owner.active;
+
+        public ColoredGlyph tile => null;
+        public StormOverlay(PlayerShip owner) {
+            this.owner = owner;
+        }
+        public void Update() {
+            var w = owner.GetPrimary();
+            if(w != null) {
+                var f = w.GetFragmentDesc();
+                var p = new Projectile(owner, f,
+                    owner.position + XY.Polar(0, 50),
+                    owner.velocity + XY.Polar(0, -50),
+                    f.GetManeuver(w.target));
+                owner.world.AddEntity(p);
+            }
+        }
+    }
+}
+
+public record Stonewall() : PowerEffect {
+    public Stonewall(XElement e) : this() => e.Initialize(this);
+    public void Invoke(PlayerShip player) =>
+        player.world.AddEffect(new Overlay(player));
+
+    public class Overlay : Effect {
+        int ticks;
+        PlayerShip owner;
+        public XY position => owner.position;
+        public bool active => owner.active;
+        public ColoredGlyph tile => null;
+        public Overlay(PlayerShip owner) {
+            this.owner = owner;
+            UpdateOffsets();
+            directions = new double[offsets.Count];
+        }
+        private void UpdateOffsets() {
+            offsets = new List<XY> {
+                        XY.Polar(owner.rotationRad - Math.PI / 2, 6),
+                        XY.Polar(owner.rotationRad - Math.PI / 2, 4),
+                        XY.Polar(owner.rotationRad - Math.PI / 2, 2),
+                        XY.Polar(owner.rotationRad + Math.PI / 2, 2),
+                        XY.Polar(owner.rotationRad + Math.PI / 2, 4),
+                        XY.Polar(owner.rotationRad + Math.PI / 2, 6),
+                    };
+        }
+        private List<XY> offsets;
+        private double[] directions;
+        private FragmentDesc ready;
+        private bool firing;
+        public void Update() {
+            if(owner.GetPrimary() is Weapon w) {
+                if (w.delay == 0) {
+                    ready = w.GetFragmentDesc();
+                }
+                firing |= w.delay == w.desc.fireCooldown;
+                if (ticks++ % 5 == 0) {
+                    int i = 0;
+
+                    UpdateOffsets();
+                    offsets.ForEach(o => {
+                        var p = owner.position + o;
+                        owner.world.AddEffect(new EffectParticle(p, owner.tile, 5));
+                        if (ready == null) {
+                            Heading.AimLine(owner.world, p, directions[i++], 5);
+                        } else {
+                            double d;
+                            var t = w.target ?? owner.GetTarget();
+                            if (t != null) {
+                                d = Aiming.CalcFireAngle(t.position - (owner.position + o),
+                                    t.velocity - owner.velocity,
+                                    ready) ?? owner.rotationRad;
+                            } else {
+                                d = owner.rotationRad;
+                            }
+                            directions[i++] = d;
+                            Heading.AimLine(owner.world, p, d, 5);
+                        }
+                    });
+                    if (ready != null && firing) {
+                        i = 0;
+                        offsets.ForEach(o => {
+                            var l = ready.GetProjectile(owner, w, directions[i++]);
+                            l.ForEach(p => p.position += o);
+                            l.ForEach(owner.world.AddEntity);
+                            w.ammo?.OnFire();
+                        });
+
+                        //w.delay = 0;
+                        //w.Fire(owner, w.aiming?.GetFireAngle() ?? owner.rotationRad);
+                        ready = null;
+                        firing = false;
+                    }
+                }
+            }
+        }
+    }
+}
+
 //Power that generates a weapon effect
 public class PowerWeapon : PowerEffect {
     public FragmentDesc desc;
@@ -67,8 +180,8 @@ public class PowerHeal : PowerEffect {
     //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
     public void Invoke(PlayerShip player) {
         player.hull.Restore();
-        player.devices.Shields.ForEach(s => s.hp = s.desc.maxHP);
-        player.devices.Reactors.ForEach(r => r.energy = r.desc.capacity);
+        player.devices.Shield.ForEach(s => s.hp = s.desc.maxHP);
+        player.devices.Reactor.ForEach(r => r.energy = r.desc.capacity);
     }
 }
 public class PowerBarrier : PowerEffect {

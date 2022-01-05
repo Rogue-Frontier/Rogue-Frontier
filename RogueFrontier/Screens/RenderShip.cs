@@ -33,7 +33,7 @@ class RenderShip : Console {
             Dictionary<string, Color> c = new Dictionary<string, Color> {
                     {"ship_amethyst", Color.Violet },
                     {"ship_beowulf", Color.LightBlue },
-                    {"ship_wagon", Color.Wheat},
+                    {"ship_clark", Color.Wheat},
                 };
 
             var s = new RenderShip(Width, Height, sc.playerSettings.map, c[codename]);

@@ -49,7 +49,6 @@ public class ShopConsole : Console {
                 UpdateCount();
             }) { Position = new Point(x2 + 2 + 2 + 2, y) });
             void UpdateCount() => count.text = new ColoredString(items[it].ToString(), Color.White, Color.Black);
-
             y++;
         }
         y++;

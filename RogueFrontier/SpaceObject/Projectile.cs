@@ -4,7 +4,7 @@ using SadConsole;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using static RogueFrontier.Weapon;
+using static RogueFrontier.SWeapon;
 
 namespace RogueFrontier;
 
@@ -36,54 +36,34 @@ public class Projectile : MovingObject {
     [JsonProperty]
     public ITrail trail;
     [JsonProperty]
-    public FragmentDesc desc;
+    public FragmentDesc fragment;
     [JsonProperty]
     public Maneuver maneuver;
-    [JsonProperty]
-    public bool hitProjectile;
 
     [JsonProperty]
     public int damageHP;
     [JsonIgnore]
     public bool active => lifetime > 0;
     public Projectile() { }
-    public Projectile(SpaceObject source, FragmentDesc desc, XY position, XY velocity, Maneuver maneuver = null) {
+    public Projectile(SpaceObject source, FragmentDesc fragment, XY position, XY velocity, Maneuver maneuver) {
         this.id = source.world.nextId++;
         this.source = source;
         this.world = source.world;
-        this.tile = desc.effect.Original;
+        this.tile = fragment.effect.Original;
         this.position = position;
         this.velocity = velocity;
-        this.lifetime = desc.lifetime;
-        this.desc = desc;
-        this.trail = (ITrail)desc.trail ?? new SimpleTrail(desc.effect.Original);
+        this.lifetime = fragment.lifetime;
+        this.fragment = fragment;
+        this.trail = (ITrail)fragment.trail ?? new SimpleTrail(fragment.effect.Original);
         this.maneuver = maneuver;
-        this.hitProjectile = false;
-        this.damageHP = desc.damageHP.Roll();
-    }
-    public Projectile(SpaceObject source, Weapon weapon, XY position, XY velocity) {
-        var world = source.world;
-        var f = weapon.GetFragmentDesc();
-
-        this.id = world.nextId++;
-        this.source = source;
-        this.world = world;
-        this.tile = f.effect.Original;
-        this.position = position;
-        this.velocity = velocity;
-        this.lifetime = f.lifetime;
-        this.desc = f;
-        this.trail = (ITrail)f.trail ?? new SimpleTrail(f.effect.Original);
-        this.maneuver = new Maneuver(weapon.aiming?.target, f.maneuver, f.maneuverRadius);
-        this.hitProjectile = weapon.desc.targetProjectile;
-        this.damageHP = desc.damageHP.Roll();
+        this.damageHP = fragment.damageHP.Roll();
     }
 
     public void Update() {
         if (lifetime > 1) {
             lifetime--;
             UpdateMove();
-            foreach (var f in desc.fragments) {
+            foreach (var f in fragment.fragments) {
                 if (f.fragmentInterval > 0 && lifetime % f.fragmentInterval == 0) {
                     Fragment(f);
                 }
@@ -125,7 +105,7 @@ public class Projectile : MovingObject {
                             lifetime = 0;
                             destroyed = true;
                             break;
-                        case Projectile p when hitProjectile && !destroyed:
+                        case Projectile p when fragment.hitProjectile && !destroyed:
                             p.lifetime = 0;
                             lifetime = 0;
                             destroyed = true;
@@ -147,7 +127,8 @@ public class Projectile : MovingObject {
         }
     }
     public void Fragment() {
-        foreach (var f in desc.fragments) {
+        if (fragment.fragments == null) return;
+        foreach (var f in fragment.fragments) {
             Fragment(f);
         }
     }
@@ -156,8 +137,6 @@ public class Projectile : MovingObject {
             && fragment.targetLocked != (maneuver.target != null)) {
             return;
         }
-
-
         double angleInterval = fragment.spreadAngle / fragment.count;
         double centerAngle;
 
@@ -170,9 +149,15 @@ public class Projectile : MovingObject {
         }
         for (int i = 0; i < fragment.count; i++) {
             double angle = centerAngle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-            Projectile p = new Projectile(source, fragment, position + XY.Polar(angle, 0.5), velocity + XY.Polar(angle, fragment.missileSpeed));
+            Projectile p = new Projectile(source,
+                fragment,
+                position + XY.Polar(angle, 0.5),
+                velocity + XY.Polar(angle, fragment.missileSpeed),
+                null
+                );
             world.AddEntity(p);
         }
+        
     }
 }
 

@@ -219,6 +219,22 @@ public class Engine : Device {
         }
     }
 }
+
+public class Enhancer : Device {
+    [JsonProperty]
+    public Item source { get; set; }
+    public EnhancerDesc desc;
+    public int powerUse => desc.powerUse;
+    public Enhancer() { }
+    public Enhancer(Item source, EnhancerDesc desc) {
+        this.source = source;
+        this.desc = desc;
+    }
+    public Enhancer Copy(Item source) => desc.GetEnhancer(source);
+    public void Update(IShip owner) {
+    }
+}
+
 public class Launcher : Device {
     public LauncherDesc desc;
     public Weapon weapon;
@@ -260,7 +276,7 @@ public class Launcher : Device {
         this.index = index;
         var l = desc.missiles[index];
         weapon.ammo = new ItemAmmo(l.ammoType);
-        weapon.desc.shot = l.shot;
+        weapon.desc.fragment = l.shot;
     }
     public string GetReadoutName() => weapon.GetReadoutName();
     public ColoredString GetBar() => weapon.GetBar();
@@ -464,18 +480,39 @@ public class Solar : Device, PowerSource {
         }
     }
 }
+public static class SWeapon {
+
+    public static void CreateShot(this FragmentDesc fragment, SpaceObject source, double direction, SpaceObject target = null) {
+        var world = source.world;
+        var position = source.position;
+        var velocity = source.velocity;
+        var angleInterval = fragment.spreadAngle / fragment.count;
+        for (int i = 0; i < fragment.count; i++) {
+            double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
+            var p = new Projectile(source,
+                fragment,
+                position + XY.Polar(angle, 0.5),
+                velocity + XY.Polar(angle, fragment.missileSpeed),
+                fragment.GetManeuver(target));
+            world.AddEntity(p);
+        }
+    }
+    public static Maneuver GetManeuver(this FragmentDesc f, SpaceObject target) =>
+        target != null && f.maneuver != 0 ? new Maneuver(target, f.maneuver, f.maneuverRadius) : null;
+    public static Maneuver GetManeuver(this Weapon w, FragmentDesc f) =>
+        f.GetManeuver(w.target);
+    public static Maneuver GetManeuver(this Weapon w) =>
+        w.GetFragmentDesc().GetManeuver(w.target);
+}
 public class Weapon : Device {
     [JsonProperty]
     public Item source { get; private set; }
     public WeaponDesc desc;
     [JsonIgnore]
     int? Device.powerUse => (firing || delay > 0) ? desc.powerUse : desc.powerUse / 10;
-    public FragmentDesc GetFragmentDesc() {
-        var d = desc.shot;
-        capacitor?.Modify(ref d);
-        source.mod?.ModifyWeapon(ref d);
-        return d;
-    }
+    public FragmentDesc GetFragmentDesc() =>
+        Modifier.Sum(capacitor?.mod, source.mod, enhancements) * desc.fragment;
+    
     [JsonIgnore]
     public int missileSpeed => GetFragmentDesc().missileSpeed;
     [JsonIgnore]
@@ -491,6 +528,7 @@ public class Weapon : Device {
     public Capacitor capacitor;
     public Aiming aiming;
     public IAmmo ammo;
+    public Modifier enhancements;
     public int delay;
     public bool firing;
     public int repeatsLeft;
@@ -501,11 +539,11 @@ public class Weapon : Device {
         this.delay = 0;
         firing = false;
         if (desc.capacitor != null) {
-            capacitor = new Capacitor(desc.capacitor);
+            capacitor = new(desc.capacitor);
         }
-        if (desc.shot.omnidirectional) {
+        if (desc.fragment.omnidirectional) {
             aiming = new Omnidirectional();
-        } else if (desc.shot.maneuver > 0) {
+        } else if (desc.fragment.maneuver > 0) {
             aiming = new Targeting();
         }
         if (desc.initialCharges > -1) {
@@ -525,17 +563,17 @@ public class Weapon : Device {
     }
     public ColoredString GetBar() {
         if (ammo?.AllowFire == false) {
-            return new ColoredString(new string(' ', 16), Color.Transparent, Color.Black);
+            return new(new(' ', 16), Color.Transparent, Color.Black);
         }
 
         int fireBar = (int)(16f * (desc.fireCooldown - delay) / desc.fireCooldown);
         ColoredString bar;
         if (capacitor != null && capacitor.desc.minChargeToFire > 0) {
             var chargeBar = (int)(16 * Math.Min(1, capacitor.charge / capacitor.desc.minChargeToFire));
-            bar = new ColoredString(new string('>', chargeBar), Color.Gray, Color.Black)
-                + new ColoredString(new string(' ', 16 - chargeBar), Color.Transparent, Color.Black);
+            bar = new ColoredString(new('>', chargeBar), Color.Gray, Color.Black)
+                + new ColoredString(new(' ', 16 - chargeBar), Color.Transparent, Color.Black);
         } else {
-            bar = new ColoredString(new string('>', 16), Color.Gray, Color.Black);
+            bar = new(new('>', 16), Color.Gray, Color.Black);
         }
         foreach (var cg in bar.Take(fireBar)) {
             cg.Foreground = Color.White;
@@ -583,7 +621,8 @@ public class Weapon : Device {
             capacitor?.CheckFire(ref firing);
             ammo?.CheckFire(ref firing);
             if (firing && direction.HasValue) {
-                ammo?.OnFire();
+                enhancements = new();
+
                 Fire(owner, direction.Value);
                 delay = desc.fireCooldown;
                 if (beginRepeat) {
@@ -596,7 +635,7 @@ public class Weapon : Device {
         firing = false;
     }
     public void Update(IShip owner) {
-        double? direction = owner.rotationDeg * Math.PI / 180;
+        double? direction = owner.rotationRad;
 
         if (aiming != null) {
             aiming.Update(owner, this);
@@ -630,7 +669,6 @@ public class Weapon : Device {
             ammo?.CheckFire(ref firing);
 
             if (firing) {
-                ammo?.OnFire();
                 Fire(owner, direction.Value);
 
                 //Apply on next tick (create a delta-momentum variable)
@@ -654,29 +692,16 @@ public class Weapon : Device {
         capacitor?.Clear();
         aiming?.ClearTarget();
     }
-    public bool RangeCheck(SpaceObject user, SpaceObject target) {
-        return (user.position - target.position).magnitude < currentRange;
-    }
+    public bool RangeCheck(SpaceObject user, SpaceObject target) =>
+        (user.position - target.position).magnitude < currentRange;
     public bool AllowFire => ammo?.AllowFire ?? true;
     public bool ReadyToFire => delay == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
-    public void Fire(SpaceObject owner, double direction) {
-        /*
-        var damageHP = desc.shot.damageHP.Roll();
-        var missileSpeed = desc.shot.missileSpeed;
-        var lifetime = desc.shot.lifetime;
-        capacitor?.Modify(ref damageHP, ref missileSpeed, ref lifetime);
-        source.mod?.ModifyWeapon(ref damageHP, ref missileSpeed, ref lifetime);
-        */
-        var shotDesc = desc.shot;
-        double angleInterval = shotDesc.spreadAngle / shotDesc.count;
-        for (int i = 0; i < shotDesc.count; i++) {
-            double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-            Projectile p = new Projectile(owner, this,
-                owner.position + XY.Polar(angle),
-                owner.velocity + XY.Polar(angle, missileSpeed)
-                );
-            owner.world.AddEntity(p);
-        }
+    
+    public void Fire(SpaceObject owner, double direction, List<Projectile> l = null) {
+        var projectiles = GetFragmentDesc().GetProjectile(owner, this, direction);
+        projectiles.ForEach(owner.world.AddEntity);
+        l?.AddRange(projectiles);
+        ammo?.OnFire();
         capacitor?.OnFire();
     }
 
@@ -697,22 +722,6 @@ public class Weapon : Device {
     }
 
 }
-public static class SWeapon {
-    public static void CreateShot(this FragmentDesc fragment, SpaceObject source, double direction) {
-        var world = source.world;
-        var position = source.position;
-        var velocity = source.velocity;
-        var angleInterval = fragment.spreadAngle / fragment.count;
-        for (int i = 0; i < fragment.count; i++) {
-            double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-            var p = new Projectile(source,
-                fragment,
-                position + XY.Polar(angle, 0.5),
-                velocity + XY.Polar(angle, fragment.missileSpeed));
-            world.AddEntity(p);
-        }
-    }
-}
 public class Capacitor {
     public CapacitorDesc desc;
     public double charge;
@@ -723,6 +732,12 @@ public class Capacitor {
     public bool AllowFire => desc.minChargeToFire <= charge;
     public void Update() =>
         charge = Math.Min(desc.maxCharge, charge + desc.rechargePerTick);
+    public Modifier mod => new() {
+        damageHPInc = (int)(desc.bonusDamagePerCharge * charge),
+        missileSpeedInc = (int)(desc.bonusSpeedPerCharge * charge),
+        lifetimeInc = (int)(desc.bonusLifetimePerCharge * charge)
+    };
+    /*
     public FragmentDesc Modify(FragmentDesc fd) =>
         fd with {
             damageHP = new DiceInc(fd.damageHP, (int)(desc.bonusDamagePerCharge * charge)),
@@ -735,6 +750,7 @@ public class Capacitor {
             missileSpeed = fd.missileSpeed + (int)(desc.bonusSpeedPerCharge * charge),
             lifetime = fd.lifetime + (int)(desc.bonusLifetimePerCharge * charge)
         };
+    */
     public void OnFire() =>
         charge = Math.Max(0, charge - desc.dischargeOnFire);
     public void Clear() => charge = 0;
@@ -746,33 +762,38 @@ public interface Aiming {
     double? GetFireAngle() => null;
     void ClearTarget() { }
     void UpdateTarget(SpaceObject target) { }
-    static bool CalcFireAngle(MovingObject owner, MovingObject target, Weapon weapon, out double? result) {
-        var b = ((target.position - owner.position).magnitude < weapon.currentRange);
-        result = b ? Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, weapon.missileSpeed, out var _) : null;
+
+    public static double? CalcFireAngle(XY deltaPosition, XY deltaVelocity, FragmentDesc f) =>
+        (deltaPosition.magnitude < f.range) ?
+            Helper.CalcFireAngle(deltaPosition, deltaVelocity, f.missileSpeed, out var _) :
+            null;
+    public static bool CalcFireAngle(MovingObject owner, MovingObject target, FragmentDesc f, out double? result) {
+        var b = ((target.position - owner.position).magnitude < f.range);
+        result = b ? Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, f.missileSpeed, out var _) : null;
         return b;
     }
-    public static double? CalcFireAngle(MovingObject owner, MovingObject target, Weapon weapon) =>
-        ((target.position - owner.position).magnitude < weapon.currentRange) ?
-            Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, weapon.missileSpeed, out var _) :
+    public static double? CalcFireAngle(MovingObject owner, MovingObject target, FragmentDesc f) =>
+        ((target.position - owner.position).magnitude < f.range) ?
+            Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, f.missileSpeed, out var _) :
             null;
-    static double CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed) =>
+    public static double CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed) =>
         Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
-    static bool CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed, out double result) {
+    public static bool CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed, out double result) {
         var velDiff = target.velocity - owner.velocity;
         var b = velDiff.magnitude < missileSpeed;
         result = b ? Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _) : 0;
         return b;
     }
 
-    static bool CalcFireAngle(MovingObject owner, Projectile target, Weapon weapon, out double? result) {
+    public static bool CalcFireAngle(MovingObject owner, Projectile target, Weapon weapon, out double? result) {
         bool b = ((target.position - owner.position).magnitude < weapon.currentRange);
         result = b ? Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, weapon.missileSpeed, out var _) : null;
         return b;
     }
-    static SpaceObject AcquireTarget(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) =>
+    public static SpaceObject AcquireTarget(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) =>
         owner.world.entities.GetAll(p => (owner.position - p).magnitude2 < weapon.currentRange2).OfType<SpaceObject>().FirstOrDefault(filter);
-    
-    static Projectile AcquireMissile(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) =>
+
+    public static Projectile AcquireMissile(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) =>
         owner.world.entities.all
             .OfType<Projectile>()
             .Where(p => (owner.position - p.position).magnitude2 < weapon.currentRange2)
@@ -804,7 +825,7 @@ public class Omnidirectional : Aiming {
     double? direction;
     public Omnidirectional() { }
     public static double? GetFireAngle(SpaceObject owner, SpaceObject target, Weapon w) =>
-        target == null ? null : Aiming.CalcFireAngle(owner, target, w);
+        target == null ? null : Aiming.CalcFireAngle(owner, target, w.GetFragmentDesc());
     public void Update(SpaceObject owner, Weapon weapon, Func<SpaceObject, bool> filter) {
         if (target?.active == true) {
             UpdateDirection();
@@ -818,7 +839,7 @@ public class Omnidirectional : Aiming {
         }
 
         void UpdateDirection() {
-            if (Aiming.CalcFireAngle(owner, target, weapon, out direction)) {
+            if (Aiming.CalcFireAngle(owner, target, weapon.GetFragmentDesc(), out direction)) {
                 Heading.AimLine(owner.world, owner.position, direction.Value);
                 Heading.Crosshair(owner.world, target.position);
             }

@@ -18,14 +18,19 @@ public record Modifier {
     public double damageHPFactor = 1,
         missileSpeedFactor = 1,
         lifetimeFactor = 1;
-
     [Opt]
     public int maxHPInc = 0;
     public Modifier() { }
     public Modifier(XElement e) {
         e.Initialize(this);
     }
+    public static Modifier Sum(params Modifier[] mods) {
+        Modifier result = new();
+        foreach (var m in mods) result += m;
+        return result;
+    }
     public static Modifier operator +(Modifier x, Modifier y) =>
+        y == null ? x : 
         new() {
             curse = y.curse,
             damageHPInc = x.damageHPInc + y.damageHPInc,
@@ -35,6 +40,10 @@ public record Modifier {
             missileSpeedFactor = x.missileSpeedFactor * y.missileSpeedFactor,
             lifetimeFactor = x.lifetimeFactor * y.lifetimeFactor,
         };
+
+
+    public static FragmentDesc operator *(Modifier x, FragmentDesc y) =>
+        x.ModifyWeapon(y);
     public bool empty => this is Modifier {
         curse: false,
         damageHPInc: 0, missileSpeedInc: 0, lifetimeInc: 0,
@@ -55,7 +64,8 @@ public record Modifier {
         return d with {
             damageHP = damageHP,
             missileSpeed = (int) (d.missileSpeed * missileSpeedFactor + missileSpeedInc),
-            lifetime = (int) (d.lifetime * lifetimeFactor + lifetimeInc)
+            lifetime = (int) (d.lifetime * lifetimeFactor + lifetimeInc),
+            mod = this
         };
     }
     public void ModifyWeapon(ref FragmentDesc d) {

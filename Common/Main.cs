@@ -21,37 +21,30 @@ public static class Main {
     public static string ExpectFile(string path) =>
          (File.Exists(path)) ? path :
             throw new Exception($"File {path} does not exist");
-    public static bool TryFile(string path, out string file) {
-        if (File.Exists(path)) {
-            file = path;
-            return true;
-        } else {
-            file = null;
-            return false;
-        }
-    }
+    public static bool TryFile(string path, out string file) =>
+        (file = File.Exists(path) ? path : null) != null;
     public static T GetRandom<T>(this IEnumerable<T> e, Rand r) =>
         e.ElementAt(r.NextInteger(e.Count()));
     public static T GetRandomOrDefault<T>(this IEnumerable<T> e, Rand r) =>
         e.Any() ? e.ElementAt(r.NextInteger(e.Count())) : default(T);
     public static SetDict<(int, int), T> Downsample<T>(this Dictionary<(int, int), T> from, double scale) {
         var result = new SetDict<(int, int), T>();
-        foreach ((int x, int y) p in from.Keys) {
-            result.Add(new XY((p.x / scale), (int)(p.y / scale)).roundDown, from[p]);
+        foreach (((int x, int y) p, var items) in from) {
+            result.Add(new XY((p.x / scale), (int)(p.y / scale)).roundDown, items);
         }
         return result;
     }
     public static SetDict<(int, int), T> DownsampleSet<T>(this Dictionary<(int, int), HashSet<T>> from, double scale) {
         var result = new SetDict<(int, int), T>();
-        foreach ((int x, int y) p in from.Keys) {
-            result.AddRange(new XY((p.x / scale), (int)(p.y / scale)).roundDown, from[p]);
+        foreach (((int x, int y) p, var items) in from) {
+            result.AddRange(new XY((p.x / scale), (int)(p.y / scale)).roundDown, items);
         }
         return result;
     }
     public static SetDict<(int, int), T> DownsampleSet<T>(this Dictionary<(int, int), HashSet<T>> from, double scale, Func<T, bool> filter) {
         var result = new SetDict<(int, int), T>();
-        foreach ((int x, int y) p in from.Keys) {
-            result.AddRange(new XY((p.x / scale), (int)(p.y / scale)).roundDown, from[p].Where(filter));
+        foreach (((int x, int y) p, var items) in from) {
+            result.AddRange(new XY((p.x / scale), (int)(p.y / scale)).roundDown, items.Where(filter));
         }
         return result;
     }
@@ -90,8 +83,8 @@ public static class Main {
     }
     public static bool InRange(double n, double center, double maxDistance) =>
         n > center - maxDistance && n < center + maxDistance;
-    public static bool AreKeysPressed(this SadConsole.Input.Keyboard keyboard, params Keys[] keys) =>
-        keys.All(k => keyboard.IsKeyPressed(k));
+    public static bool AreKeysPressed(this Keyboard keyboard, params Keys[] keys) =>
+        keys.All(keyboard.IsKeyPressed);
     public static double Round(this double d, double interval) {
         int times = (int)(d / interval);
         var roundedDown = times * interval;
@@ -284,92 +277,93 @@ public static class Main {
         (result = e.Element(key)) != null;
     public static bool HasElements(this XElement e, string key, out IEnumerable<XElement> result) =>
         (result = e.Elements(key)) != null;
-    public static string ExpectAtt(this XElement e, string attribute) =>
-        e.Attribute(attribute)?.Value
-            ?? throw new Exception($"<{e.Name}> requires {attribute} attribute ### {e.Name}");
+    public static string Att(this XElement e, string key) =>
+        e.Attribute(key)?.Value;
+    public static string ExpectAtt(this XElement e, string key) =>
+        e.Att(key)
+            ?? throw e.Missing<string>(key);
     public static XElement ExpectElement(this XElement e, string name) =>
         e.Element(name)
             ?? throw new Exception($"Element <{e.Name}> requires subelement {name} ### {e.Name}");
-    public static bool TryAttribute(this XElement e, string attribute, out string result) =>
-        (result = e.Attribute(attribute)?.Value) != null;
     
-    public static string TryAtt(this XElement e, string attribute, string fallback = "") =>
-        e.Attribute(attribute)?.Value ?? fallback;
-    public static string TryAttNullable(this XElement e, string attribute) =>
-    e.Attribute(attribute)?.Value;
+    public static bool TryAtt(this XElement e, string key, out string result) =>
+        (result = e.Att(key)) != null;
+    public static string TryAtt(this XElement e, string key, string fallback = "") =>
+        e.Att(key) ?? fallback;
+    public static string TryAttNullable(this XElement e, string key) =>
+        e.Att(key);
     public static char TryAttChar(this XElement e, string attribute, char fallback) =>
-        e.TryAttribute("char", out string s) ?
+        e.TryAtt(attribute, out string s) ?
             (s.Length == 1 ?
                 s.First() :
             s.StartsWith("\\") && int.TryParse(s.Substring(1), out var result) ?
                 (char)result :
-            throw new Exception($"Char value expected:{attribute}=\"{s}\" ### {e.Name}")
+            throw e.Invalid<char>(attribute)
             ) : fallback;
-
     public static char ExpectAttChar(this XElement e, string attribute) =>
-        e.TryAttribute("char", out string s) ?
+        e.TryAtt(attribute, out string s) ?
             (s.Length == 1 ?
                 s.First() :
             s.StartsWith("\\") && int.TryParse(s.Substring(1), out var result) ?
                 (char)result :
-            throw new Exception($"Char value expected:{attribute}=\"{s}\" ### {e.Name}")
-            ) : throw new Exception($"Char value expected:{attribute}=\"{s}\" ### {e.Name}");
+            throw e.Invalid<char>(attribute)
+            ) : throw e.Invalid<char>(attribute);
     public static Color TryAttColor(this XElement e, string attribute, Color fallback) {
-        if (e.TryAttribute(attribute, out string s)) {
+        if (e.TryAtt(attribute, out string s)) {
             if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
                 return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
             } else try {
                     FieldInfo f = typeof(Color).GetField(s);
-                    return (Color)(f?.GetValue(null) ?? throw new Exception($"Color value expected: {attribute}=\"{s}\" ### {e.Name}"));
+                    return (Color)(f?.GetValue(null) ?? throw e.Invalid<Color>(attribute));
                 } catch {
-                    throw new Exception($"Color name expected: {attribute}=\"{s}\" ### {e.Name}");
+                    throw e.Invalid<Color>(attribute);
                 }
         } else {
             return fallback;
         }
     }
-    public static int TryAttInt(this XElement e, string attribute, int fallback = 0) => TryAttributeInt(e.Attribute(attribute), fallback);
+    public static Exception Missing<T>(this XElement e, string key) =>
+        new Exception($"{typeof(T).Name} requires ${typeof(T).Name} attribute: {key} ### {e.Name}");
+    public static Exception Invalid<T>(this XElement e, string key) =>
+        new Exception($"{typeof(T).Name} value expected: {key}=\"{e.Attribute(key).Value}\" ### {e.Name}");
+    public static int TryAttInt(this XElement e, string key, int fallback = 0) => 
+        e.TryAtt(key, out var value) ?
+            (int.TryParse(value, out int result) ?
+                result :
+            value.Any() ?
+                Convert.ToInt32(new Expression(value).Evaluate()) :
+            throw e.Invalid<int>(key)) :
+        fallback;
 
-    public static int? TryAttIntNullable(this XElement e, string attribute, int? fallback=null) => TryAttributeIntOptional(e.Attribute(attribute)) ?? fallback;
-    //We expect either no value or a valid value; an invalid value gets an exception
-    public static int TryAttributeInt(this XAttribute a, int fallback = 0) =>
-        a == null ?
-            fallback :
-        int.TryParse(a.Value, out int result) ?
-            result :
-        a.Value.Any() ?
-            Convert.ToInt32(new Expression(a.Value).Evaluate()) :
-        throw new Exception($"int value expected: {a.Name}=\"{a.Value}\" ### {a.Parent.Name}");
-    public static int? TryAttributeIntOptional(this XAttribute a, int? fallback = null) =>
-        a == null ?
-            fallback :
-        int.TryParse(a.Value, out int result) ? 
-            result :
-        a.Value.Any() ? 
-            Convert.ToInt32(new Expression(a.Value).Evaluate()):
-        throw new Exception($"int value expected: {a.Name}=\"{a.Value}\" ### {a.Parent.Name}");
-    public static Color ExpectAttColor(this XElement e, string attribute) {
-        if (e.TryAttribute(attribute, out string s)) {
+    public static int? TryAttIntNullable(this XElement e, string key, int? fallback=null) =>
+        e.TryAtt(key, out var value) ?
+            (value == "null" ? null : 
+            int.TryParse(value, out int result) ? result :
+            value.Any() ? Convert.ToInt32(new Expression(value).Evaluate()) :
+            throw e.Invalid<int?>(key)) :
+        fallback;
+    public static Color ExpectAttColor(this XElement e, string key) {
+        if (e.TryAtt(key, out string s)) {
             if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
                 return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
             } else try {
                 return (Color)typeof(Color).GetProperty(s).GetValue(null, null);
             } catch {
-                throw new Exception($"Color value expected: {attribute}=\"{s}\" ### {e.Name}");
+                throw e.Invalid<Color>(key);
             }
         } else {
-            throw new Exception($"{e.Name} requires color attribute {attribute} ### {e.Name}");
+            throw e.Missing<Color>(key);
         }
     }
-    public static int ExpectAttInt(this XElement e, string attribute) =>
-        e.Attribute(attribute) is XAttribute a ?
+    public static int ExpectAttInt(this XElement e, string key) =>
+        e.Attribute(key) is XAttribute a ?
             ExpectAttributeInt(a) :
-            throw new Exception($"<{e.Name}> requires int attribute: {attribute} ### {e} ### {e.Parent}");
+            throw e.Missing<int>(key);
 
-    public static IDice ExpectAttDice(this XElement e, string attribute) =>
-    e.Attribute(attribute) is XAttribute a ?
+    public static IDice ExpectAttDice(this XElement e, string key) =>
+    e.Attribute(key) is XAttribute a ?
         ExpectAttributeDice(a) :
-        throw new Exception($"<{e.Name}> requires dice attribute: {attribute} ### {e} ### {e.Parent}");
+        throw new Exception($"<{e.Name}> requires dice range attribute: {key} ### {e} ### {e.Parent}");
     public static int ExpectAttributeInt(this XAttribute a) =>
         int.TryParse(a.Value, out int result) ? result :
         a.Value.Any() ? Convert.ToInt32(new Expression(a.Value).Evaluate()) :
@@ -379,26 +373,32 @@ public static class Main {
         IDice.Parse(a.Value) ?? 
         throw new Exception($"int value / equation expected: {a.Name} = \"{a.Value}\"");
 
-    public static double ExpectAttDouble(this XElement e, string attribute) =>
-        e.Attribute(attribute) is XAttribute a ? ExpectAttributeDouble(a) :
-        throw new Exception($"<{e.Name}> requires double attribute: {attribute} ### {e} ### {e.Parent}");
-    public static double ExpectAttributeDouble(this XAttribute a) =>
-        double.TryParse(a.Value, out double result) ? result :
-        a.Value.Any() ? Convert.ToDouble(new Expression(a.Value).Evaluate()) :
-        throw new Exception($"double value expected: {a.Name} = \"{a.Value}\"");
-    public static bool ExpectAttBool(this XElement e, string attribute) =>
-        e.Attribute(attribute) is XAttribute a ?
-        ExpectAttributeBool(a) :
-        throw new Exception($"<{e.Name}> requires bool attribute: {attribute} ### {e.Name}");
-    public static bool ExpectAttributeBool(this XAttribute a) =>
-        bool.TryParse(a.Value, out bool result) ? result :
-        throw new Exception($"bool value expected: {a.Name} = \"{a.Value}\"");
-    public static double TryAttDouble(this XElement e, string attribute, double fallback = 0) => TryAttributeDouble(e.Attribute(attribute), fallback);
-    public static double TryAttributeDouble(this XAttribute a, double fallback = 0) =>
-        a == null ? fallback :
-        double.TryParse(a.Value, out double result) ? result :
-        a.Value.Any() ? Convert.ToDouble(new Expression(a.Value).Evaluate()) :
-        throw new Exception($"double value expected: {a.Name}=\"{a.Value}\"  ### {a.Parent.Name}");
+    public static double ExpectAttDouble(this XElement e, string key) =>
+        e.TryAtt(key, out var value) ? 
+            (double.TryParse(value, out double result) ? result :
+            value.Any() ? Convert.ToDouble(new Expression(value).Evaluate()) :
+            throw e.Missing<double>(key)) :
+        throw e.Missing<double>(key);
+    public static bool ExpectAttBool(this XElement e, string key) =>
+        e.TryAtt(key, out var value) ?  
+            (bool.TryParse(value, out bool result) ? result :
+            throw e.Invalid<bool>(key)) :
+        throw e.Missing<bool>(key);
+    public static double TryAttDouble(this XElement e, string attribute, double fallback = 0) =>
+        e.TryAtt(attribute, out var value) ?
+            (double.TryParse(value, out double result) ? result :
+            value.Any() ? Convert.ToDouble(new Expression(value).Evaluate()) :
+            throw e.Invalid<double>(attribute)) :
+        fallback;
+    public static bool TryAttDouble2(this XElement e, string attribute, out double result, double fallback = 0) {
+        var b = e.TryAtt(attribute, out var value);
+        result = b ?
+            (double.TryParse(value, out result) ? result :
+            value.Any() ? Convert.ToDouble(new Expression(value).Evaluate()) :
+            throw e.Invalid<double>(attribute)) :
+        fallback;
+        return b;
+    }
     public static List<string> SplitLine(this string s, int width) {
         List<string> result = new List<string>();
         int column = 0;
@@ -415,7 +415,7 @@ public static class Main {
             column = 0;
         }
         foreach (var c in s) {
-            if (column < width) {
+            if (line.Length + column < width) {
                 if (c == ' ') {
                     AddWord();
                     line.Append(c);
@@ -437,6 +437,51 @@ public static class Main {
         }
         line.Append(word.ToString());
         if (line.Length > 0) {
+            AddLine();
+        }
+
+        return result;
+    }
+
+    public static List<ColoredString> SplitLine(this ColoredString s, int width) {
+        var result = new List<ColoredString>();
+        int column = 0;
+        var line = new List<ColoredGlyph>();
+        var word = new List<ColoredGlyph>();
+
+        void AddWord() {
+            line.AddRange(word);
+            word.Clear();
+        }
+        void AddLine() {
+            result.Add(new(line.ToArray()));
+            line.Clear();
+            column = 0;
+        }
+        foreach (var c in s) {
+            if (column < width) {
+                var g = c.Glyph;
+                if (g == ' ') {
+                    AddWord();
+                    line.Append(c);
+                    column++;
+                } else if (g == '\n') {
+                    AddWord();
+                    column = 0;
+                } else if (g == '-') {
+                    word.Append(c);
+                    AddWord();
+                } else {
+                    word.Append(c);
+                    column++;
+                }
+            } else {
+                word.Append(c);
+                AddLine();
+            }
+        }
+        line.AddRange(word);
+        if (line.Count > 0) {
             AddLine();
         }
 
@@ -608,27 +653,50 @@ public static class Main {
         foreach (var p in props) {
             var a = p.GetCustomAttributes(true).OfType<IAtt>().FirstOrDefault();
             if(a != null) {
-                var name = p.Name;
-                if (a is not Req && e.Attribute(name) == null) {
-                    continue;
+                var key = p.Name;
+
+                var value = e.Att(key);
+                if (value == null) {
+                    if (a is Req) {
+                        throw new Exception($"<{e.Name}> requires {p.FieldType.Name} attribute: {key} ### {e.Parent.Name}");
+                    } else {
+                        continue;
+                    }
                 }
 
-                object value = new Dictionary<Type, Func<object>>() {
-                    [typeof(string)] = () => e.ExpectAtt(name),
+                object parsed = new Dictionary<Type, Func<object>>() {
+                    [typeof(string)] = () => value,
 
-                    [typeof(bool)] = () => e.ExpectAttBool(name),
-                    [typeof(int)] = () => e.ExpectAttInt(name),
-                    [typeof(char)] = () => e.ExpectAttChar(name),
-                    [typeof(double)] = () => e.ExpectAttDouble(name),
+                    [typeof(bool)] = ParseBool,
+                    [typeof(int)] = ParseInt,
+                    [typeof(char)] = ParseChar,
+                    [typeof(double)] = ParseDouble,
 
 
-                    [typeof(bool?)] = () => e.TryAttBoolNullable(name),
-                    [typeof(int?)] = () => e.TryAttIntNullable(name),
+                    [typeof(bool?)] = ParseBoolNullable,
+                    [typeof(int?)] = () => e.TryAttIntNullable(key),
 
-                    [typeof(IDice)] = () => e.ExpectAttDice(name),
-                    [typeof(Color)] = () => e.ExpectAttColor(name)
+                    [typeof(IDice)] = () => e.ExpectAttDice(key),
+                    [typeof(Color)] = () => e.ExpectAttColor(key)
                 }[p.FieldType]();
-                p.SetValue(obj, value);
+                p.SetValue(obj, parsed);
+
+                object ParseBool() =>
+                    bool.TryParse(value, out var result) ? result : throw Error<bool>();
+                object ParseBoolNullable() =>
+                    value == "null" ? null : ParseBool();
+                object ParseInt() =>
+                    int.TryParse(value, out var result) ? result : throw Error<int>();
+                object ParseChar() =>
+                    (value.Length == 1 ?
+                        value.First() :
+                    value.StartsWith("\\") && int.TryParse(value.Substring(1), out var result) ?
+                        (char)result :
+                        throw Error<char>());
+                object ParseDouble() =>
+                    value.Any() ? Convert.ToDouble(new Expression(value).Evaluate()) : throw Error<double>();
+                Exception Error<T>() =>
+                    e.Invalid<T>(key);
             }
         }
     }
@@ -653,8 +721,8 @@ public static class Main {
     public static bool CalcBlocked(int coverage, int accuracy, Random karma) {
         return karma.Next(coverage) > karma.Next(accuracy);
     }
-    public static ColoredGlyph Colored(char c, Color foreground, Color background) {
-        return new ColoredGlyph(foreground, background, c);
+    public static ColoredGlyph Colored(char c, Color? f = null, Color? b = null) {
+        return new ColoredGlyph(f??Color.White, b??Color.Black, c);
     }
     public static ColoredString WithBackground(this ColoredString c, Color? Background = null) {
         var result = c.SubString(0, c.Count());
@@ -685,9 +753,13 @@ public static class Main {
             Glyph = cg.Glyph
         };
     }
-    public static ColoredString ToColoredString(this ColoredGlyph c) {
-        return new ColoredString(c.ToEffect());
-    }
+    public static ColoredString ToColoredString(this string s) =>
+        s.Colored();
+    public static ColoredString Colored(this string s, Color? f = null, Color? b = null) =>
+        new(s, f ?? Color.White, b ?? Color.Black);
+    public static ColoredString ToColoredString(this ColoredGlyph c) =>
+        new ColoredString(c.ToEffect());
+    
     public static ColoredGlyph Brighten(this ColoredGlyph c, int intensity) {
         ColoredGlyph result = c.Clone();
         result.Foreground = Sum(result.Foreground, new Color(intensity, intensity, intensity, 0));
@@ -706,9 +778,9 @@ public static class Main {
         result.Foreground = Sum(result.Foreground, foregroundInc);
         return result;
     }
-    public static Color Sum(Color c, Color c2) {
-        return new Color(Range(0, 255, c.R + c2.R), Range(0, 255, c.G + c2.G), Range(0, 255, c.B + c2.B), Range(0, 255, c.A + c2.A));
-    }
+    public static Color Sum(Color c, Color c2) =>
+        new Color(Range(0, 255, c.R + c2.R), Range(0, 255, c.G + c2.G), Range(0, 255, c.B + c2.B), Range(0, 255, c.A + c2.A));
+    
     //Essentially the same as blending this color over Color.Black
     public static Color Premultiply(this Color c) => new Color((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, c.A);
     //Premultiply and also set the alpha

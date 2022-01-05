@@ -8,18 +8,18 @@
 		message=		"You channel the energy of SILENCE from the void"
 		>
 		<Weapon
-			count=			"90"
+			count=			"120"
 			spreadAngle=	"360"
 			missileSpeed=	"40"
 			damageType=		"1"
 			damageHP=		"12"
-			lifetime=		"60"
-			char=			"*"
+			lifetime=		"30"
+			glyph=			"*"
 			foreground=		"FF55FFFF"
 			>
 			<Trail
 				lifetime=	"20"
-				char=		"*"
+				glyph=		"*"
 				foreground=	"FF55FFFF"
 				background=	"BB77DDFF"/>
 		</Weapon>
@@ -31,18 +31,18 @@
 		message=		"You channel the energy of SILENCE from the void"
 		>
 		<Weapon
-			count=			"90"
+			count=			"120"
 			spreadAngle=	"360"
 			missileSpeed=	"40"
 			damageType=		"1"
 			damageHP=		"12"
-			lifetime=		"60"
-			char=			"*"
+			lifetime=		"30"
+			glyph=			"*"
 			foreground=		"FF1111FF"
 			>
 			<Trail
 				lifetime=	"20"
-				char=		"*"
+				glyph=		"*"
 				foreground=	"FF1111FF"
 				background=	"BB1111FF"/>
 		</Weapon>
@@ -56,18 +56,18 @@
 		message=		"You DECLARE your mission"
 		>
 		<Weapon
-			count=			"90"
+			count=			"120"
 			spreadAngle=	"360"
 			missileSpeed=	"40"
 			damageType=		"1"
 			damageHP=		"12"
-			lifetime=		"60"
-			char=			"*"
+			lifetime=		"30"
+			glyph=			"*"
 			foreground=		"FF55FFFF"
 			>
 			<Trail
 				lifetime=	"20"
-				char=		"*"
+				glyph=		"*"
 				foreground=	"FF55FFFF"
 				background=	"BB77DDFF"/>
 		</Weapon>
@@ -107,6 +107,15 @@
 		<Jump/>
 	</PowerType>
 
+
+	<PowerType codename="power_purge"
+		name=			"PURGE"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+			>
+		<FastFire/>
+	</PowerType>
+
 	<Unused>
 		<!-- The Dictator -->
 		<PowerType codename="power_silence"
@@ -115,37 +124,26 @@
 			cooldownTime=	"3600"
 			>
 		</PowerType>
-
-		<PowerType codename="power_accuse"
-			name=			"ACCUSE"
+		<PowerType codename="power_purge"
+			name=			"PURGE"
 			invokeDelay=	"120"
 			cooldownTime=	"3600"
 			>
 		</PowerType>
-		<PowerType codename="power_manipulate"
-			name=			"MANIPULATE"
+		<PowerType codename="power_raze"
+			name=			"RAZE"
 			invokeDelay=	"120"
 			cooldownTime=	"3600"
 			>
 		</PowerType>
-		<PowerType codename="power_ignore"
-			name=			"IGNORE"
+		
+		<!--The Rhetor-->
+		<PowerType codename="power_silence"
+			name=			"RIOT"
 			invokeDelay=	"120"
 			cooldownTime=	"3600"
 			>
-		</PowerType>
-		<PowerType codename="power_deny"
-			name=			"DENY"
-			invokeDelay=	"120"
-			cooldownTime=	"3600"
-			>
-		</PowerType>
-
-		<PowerType codename="power_control"
-			name=			"CONTROL"
-			invokeDelay=	"120"
-			cooldownTime=	"3600"
-			>
+			<Storm/>
 		</PowerType>
 	</Unused>
 </Module>

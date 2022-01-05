@@ -9,13 +9,15 @@ using static RogueFrontier.Weapon;
 namespace RogueFrontier;
 
 public interface ShipGenerator {
-    List<AIShip> Generate(TypeCollection tc, SpaceObject owner);
-    public void GenerateAndPlace(TypeCollection tc, SpaceObject owner) {
+    IEnumerable<AIShip> Generate(TypeCollection tc, SpaceObject owner);
+    public IEnumerable<AIShip> GenerateAndPlace(TypeCollection tc, SpaceObject owner) {
         var w = owner.world;
-        Generate(tc, owner)?.ForEach(s => {
+        var result = Generate(tc, owner);
+        foreach(var s in result) {
             w.AddEntity(s);
             w.AddEffect(new Heading(s));
-        });
+        }
+        return result;
     }
 }
 public class ShipList : ShipGenerator {
@@ -33,11 +35,8 @@ public class ShipList : ShipGenerator {
             }
         }
     }
-    public List<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
-        var result = new List<AIShip>();
-        generators.ForEach(g => result.AddRange(g.Generate(tc, owner)));
-        return result;
-    }
+    public IEnumerable<AIShip> Generate(TypeCollection tc, SpaceObject owner) =>
+        generators.SelectMany(g => g.Generate(tc, owner));
 }
 public enum ShipOrder {
     attack, guard, patrol, patrolCircuit, 
@@ -58,7 +57,7 @@ public class ShipEntry : ShipGenerator {
             ShipOrder.patrolCircuit => new PatrolCircuitDesc(e)
         };
     }
-    public List<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
+    public IEnumerable<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
         var shipClass = tc.Lookup<ShipClass>(codename);
         Sovereign s = sovereign?.Any() == true ? tc.Lookup<Sovereign>(sovereign) : owner.sovereign;
         Func<int, XY> GetPos = orderDesc switch {
@@ -67,8 +66,7 @@ public class ShipEntry : ShipGenerator {
                                         pod.patrolRadius),
             _ => i => owner.position
         };
-        return new List<AIShip>(
-            Enumerable.Range(0, count)
+        return Enumerable.Range(0, count)
             .Select(i => new AIShip(new BaseShip(
                     owner.world,
                     shipClass,
@@ -76,8 +74,7 @@ public class ShipEntry : ShipGenerator {
                     GetPos(i)
                 ),
                 orderDesc.Value(owner)
-                ))
-            );
+                ));
     }
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) {
@@ -131,7 +128,10 @@ public record ModRoll() {
         if (modifier == null) {
             return null;
         }
-        return new Rand().NextDouble() <= modifierChance ? modifier : null;
+        if(new Rand().NextDouble() <= modifierChance) {
+            return modifier;
+        }
+        return null;
     }
 }
 public interface Generator<T> {

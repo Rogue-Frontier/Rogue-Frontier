@@ -15,12 +15,12 @@ public class EnergySystem {
         this.devices = devices;
     }
     public void Update(PlayerShip player) {
-        var reactors = devices.Reactors;
+        var reactors = devices.Reactor;
         if (!reactors.Any()) {
             return;
         }
 
-        var solars = devices.Solars;
+        var solars = devices.Solar;
         var burners = new List<Reactor>();
         var batteries = new List<Reactor>();
         foreach(var s in solars) {

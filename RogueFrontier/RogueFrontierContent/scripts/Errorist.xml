@@ -32,7 +32,7 @@
 						spreadAngle=	"15"
 						count=			"9"
 
-						char=			"."
+						glyph=			"."
 						foreground=		"Green"
 			>
 		</Weapon>
@@ -56,7 +56,7 @@
 						spreadAngle=	"15"
 						count=			"12"
 
-						char=			"."
+						glyph=			"."
 						foreground=		"Green"
 			>
 		</Weapon>
@@ -71,7 +71,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				char=				"c"
+				glyph=				"c"
 				foreground=			"LightGreen"
 		>
 		<Devices>
@@ -91,7 +91,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				char=				"m"
+				glyph=				"m"
 				foreground=			"LightGreen"
 		>
 		<Devices>
@@ -108,39 +108,39 @@
 
 					hp=			"250"
 
-					char=		"E"
+					glyph=		"E"
 					foreground="LightGreen"
 		>
 		<Segments>
 
 			<Point offsetX="-1" offsetY="1"
-				   char="/" foreground="Yellow"/>
+				   glyph="/" foreground="Yellow"/>
 			<Point offsetX="0" offsetY="1"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="1" offsetY="1"
-				   char="\" foreground="Yellow"/>
+				   glyph="\" foreground="Yellow"/>
 
 			<Point offsetX="-1" offsetY="-1"
-				   char="\" foreground="Yellow"/>
+				   glyph="\" foreground="Yellow"/>
 			<Point offsetX="0" offsetY="-1"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="1" offsetY="-1"
-				   char="/" foreground="Yellow"/>
+				   glyph="/" foreground="Yellow"/>
 
 
 			<Point offsetX="-1" offsetY="0"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="-2" offsetY="0"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="-3" offsetY="0"
-				   char="+" foreground="Yellow"/>
+				   glyph="+" foreground="Yellow"/>
 
 			<Point offsetX="1" offsetY="0"
-					char="-" foreground="Yellow"/>
+					glyph="-" foreground="Yellow"/>
 			<Point offsetX="2" offsetY="0"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="3" offsetY="0"
-				   char="+" foreground="Yellow"/>
+				   glyph="+" foreground="Yellow"/>
 
 		</Segments>
 		<Guards>

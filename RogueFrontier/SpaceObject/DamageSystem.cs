@@ -59,7 +59,7 @@ public class LayeredArmorSystem : HullSystem {
             layer.lastDamageTick = tick;
 
             int depth = 2;
-            foreach (var j in Enumerable.Range(i - p.desc.shock, p.desc.shock).Reverse().Where(j => j > -1)) {
+            foreach (var j in Enumerable.Range(i - p.fragment.shock, p.fragment.shock).Reverse().Where(j => j > -1)) {
                 var nextLayer = layers[j];
                 int nextAbsorbed = Math.Min(nextLayer.hp, absorbed / depth);
                 nextLayer.hp -= nextAbsorbed;

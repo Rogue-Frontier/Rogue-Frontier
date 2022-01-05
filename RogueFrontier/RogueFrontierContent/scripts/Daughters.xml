@@ -8,17 +8,17 @@
 
 				 hp=		"400"
 
-				 char=		"S"
+				 glyph=		"S"
 				 foreground="Magenta"
 		>
 		<Segments>
 			<Point offsetX="-1"
 				   offsetY="0"
-				   char="&lt;"
+				   glyph="&lt;"
 				   foreground="Yellow"/>
 			<Point offsetX="1"
 				   offsetY="0"
-				   char="&gt;"
+				   glyph="&gt;"
 				   foreground="Yellow"/>
 		</Segments>
 		<Guards>

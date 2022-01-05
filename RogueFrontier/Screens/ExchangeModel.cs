@@ -24,6 +24,43 @@ public class Trader {
         this.items = items;
         UpdateIndex();
     }
+    public void ToggleGroup() {
+        if (index == null) {
+            goto Done;
+        }
+        int nextIndex = 0;
+        if (groupMode) {
+            for(int i = 0; i < index; i++) {
+                nextIndex += groups.ElementAt(i).count;
+            }
+        } else {
+            foreach(var g in groups) {
+                if(index.Value >= g.count) {
+                    index -= g.count;
+                    nextIndex++;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        index = nextIndex;
+    Done:
+        groupMode = !groupMode;
+    }
+    public void IncIndex(int delta) {
+
+        index = (delta < 0 ?
+                (index == null ? count - 1 :
+                index == 0 ? null :
+                Math.Max(index.Value + delta, 0)) :
+            delta > 0 ?
+                (index == null ? 0 :
+                index == count - 1 ? null :
+                Math.Min(index.Value + delta, count - 1)) :
+            index);
+        UpdateIndex();
+    }
     public void UpdateGroup() {
         var l = items.ToList();
         groups = items.GroupBy(i => i.type)
@@ -33,7 +70,9 @@ public class Trader {
     }
     public void UpdateIndex() {
         if (groupMode) UpdateGroup();
-        index = count > 0 ? index = Math.Min(index ?? 0, count - 1) : null;
+        if (index.HasValue) {
+            index = count > 0 ? index = Math.Min(index ?? 0, count - 1) : null;
+        }
     }
 }
 public class ExchangeModel {
@@ -63,36 +102,23 @@ public class ExchangeModel {
 
         foreach (var key in keyboard.KeysPressed) {
             switch (key.Key) {
+                case Keys.Tab:
+                    currentTrader.ToggleGroup();
+                    break;
                 case Keys.PageUp:
-                    index = fromCount > 0 ?
-                        (index == null ? (fromCount - 1) :
-                            index == 0 ? null :
-                            Math.Max(index.Value - 26, 0))
-                        : null;
+                    from.IncIndex(-26);
                     tick = 0;
                     break;
                 case Keys.Up:
-                    index = fromCount>0 ?
-                        (index == null ?
-                            fromCount - 1 :
-                            Math.Max(index.Value - 1, 0)) :
-                        null;
+                    from.IncIndex(-1);
                     tick = 0;
                     break;
                 case Keys.Down:
-                    index = fromCount>0 ?
-                        (index == null ?
-                            0 :
-                            Math.Min(index.Value + 1, fromCount - 1)) :
-                        null;
+                    from.IncIndex(1);
                     tick = 0;
                     break;
                 case Keys.PageDown:
-                    index = fromCount>0 ?
-                        (index == null ? 0 :
-                            index == fromCount - 1 ? null :
-                            Math.Min(index.Value + 26, fromCount - 1))
-                        : null;
+                    from.IncIndex(26);
                     tick = 0;
                     break;
                 case Keys.Left:

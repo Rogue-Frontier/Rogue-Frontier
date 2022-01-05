@@ -10,24 +10,24 @@
 					
 					crimeOnDestroy="true"
 
-					char=		"U"
+					glyph=		"U"
 					foreground="LightGray"
 
 					behavior=	"reinforceNearby"
 		>
 		<Segments>
 			<MultiPoint offsetX="2" offsetY="-1" angleInc="90"
-				   char="+" foreground="White"/>
+				   glyph="+" foreground="White"/>
 			<MultiPoint offsetX="2" offsetY="0" angleInc="90"
-				   char="+" foreground="White"/>
+				   glyph="+" foreground="White"/>
 			<MultiPoint offsetX="2" offsetY="1" angleInc="90"
-				   char="+" foreground="White"/>
+				   glyph="+" foreground="White"/>
 			<MultiPoint offsetX="2" offsetY="2" angleInc="90"
-				   char="#" foreground="LightGray"/>
+				   glyph="#" foreground="LightGray"/>
 			<MultiPoint offsetX="3" offsetY="0" angleInc="90"
-				   char="=" foreground="LightGray"/>
+				   glyph="=" foreground="LightGray"/>
 			<MultiPoint offsetX="4" offsetY="0" angleInc="90"
-				   char="=" foreground="White"/>
+				   glyph="=" foreground="White"/>
 			<Ring/>
 		</Segments>
 		<Dock>
@@ -38,7 +38,7 @@
 			<Ship	count="1"	codename="ship_beowulf" order="patrolCircuit" patrolRadius="20"/>
 			<Ship	count="3"	codename="ship_beowulf"/>
 			<Ship	count="2"	codename="ship_amethyst"/>
-			<Ship	count="1"	codename="ship_wagon"/>
+			<Ship	count="1"	codename="ship_clark"/>
 		</Guards>
 		<Cargo>
 			<Item count="60"	codename="item_simple_fuel_rod"/>
@@ -61,22 +61,22 @@
 					hp=			"100"
 					crimeOnDestroy="true"
 
-					char=		"H"
+					glyph=		"H"
 					foreground="BB6633FF"
 		>
 		<Segments>
 			<Point offsetX="0"
 				   offsetY="-1"
-				   char="#"
+				   glyph="#"
 				   foreground="White"/>
 			<Point offsetX="0"
 				   offsetY="1"
-				   char="#"
+				   glyph="#"
 				   foreground="White"/>
 		</Segments>
 
 		<Guards>
-			<Ship	count="2"	codename="ship_wagon"/>
+			<Ship	count="2"	codename="ship_clark"/>
 		</Guards>
 		<Weapons>
 		</Weapons>
@@ -92,17 +92,17 @@
 				hp=			"200"
 				crimeOnDestroy="true"
 
-				char=		"H"
+				glyph=		"H"
 				foreground="BB6633FF"
 		>
 		<Segments>
 			<Point offsetX="0"
 				   offsetY="-1"
-				   char="#"
+				   glyph="#"
 				   foreground="White"/>
 			<Point offsetX="0"
 				   offsetY="1"
-				   char="#"
+				   glyph="#"
 				   foreground="White"/>
 		</Segments>
 
@@ -123,19 +123,19 @@
 					hp=			"250"
 					crimeOnDestroy="true"
 
-					char=		"A"
+					glyph=		"A"
 					foreground="LightGray"
 		>
 		<Segments>
 			<Point offsetX="2" offsetY="0"
-				   char="=" foreground="White"/>
+				   glyph="=" foreground="White"/>
 			<Point offsetX="3" offsetY="0"
-				   char="]" foreground="White"/>
+				   glyph="]" foreground="White"/>
 			
 			<Point offsetX="-2" offsetY="0"
-				   char="=" foreground="White"/>
+				   glyph="=" foreground="White"/>
 			<Point offsetX="-3" offsetY="0"
-				   char="[" foreground="White"/>
+				   glyph="[" foreground="White"/>
 			<Ring/>
 		</Segments>
 		<Dock>
@@ -145,7 +145,7 @@
 		<Guards>
 			<Ship	count="1"	codename="ship_beowulf"/>
 			<Ship	count="2"	codename="ship_amethyst"/>
-			<Ship	count="1"	codename="ship_wagon"/>
+			<Ship	count="1"	codename="ship_clark"/>
 		</Guards>
 		<Cargo>
 			<Item count="40"	codename="item_armor_repair_patch"/>
@@ -164,19 +164,19 @@
 					hp=			"250"
 					crimeOnDestroy="true"
 
-					char=		"A"
+					glyph=		"A"
 					foreground="LightGray"
 		>
 		<Segments>
 			<Point offsetX="2" offsetY="0"
-				   char="=" foreground="White"/>
+				   glyph="=" foreground="White"/>
 			<Point offsetX="3" offsetY="0"
-				   char="&gt;" foreground="White"/>
+				   glyph="&gt;" foreground="White"/>
 
 			<Point offsetX="-2" offsetY="0"
-				   char="=" foreground="White"/>
+				   glyph="=" foreground="White"/>
 			<Point offsetX="-3" offsetY="0"
-				   char="&lt;" foreground="White"/>
+				   glyph="&lt;" foreground="White"/>
 			<Ring/>
 		</Segments>
 		<Dock>
@@ -186,7 +186,7 @@
 		<Guards>
 			<Ship	count="2"	codename="ship_beowulf"/>
 			<Ship	count="1"	codename="ship_amethyst"/>
-			<Ship	count="1"	codename="ship_wagon"/>
+			<Ship	count="1"	codename="ship_clark"/>
 		</Guards>
 		<Cargo>
 

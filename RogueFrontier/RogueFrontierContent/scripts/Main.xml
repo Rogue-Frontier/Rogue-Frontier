@@ -19,4 +19,7 @@
 	<Module file="Ships.xml"/>
 	
 	<Module file="Systems.xml"/>
+
+
+	<Module file="Intro.xml"/>
 </Module>

@@ -34,7 +34,7 @@ public class DeathScreen : Console {
 
         playerShip.powers.ForEach(p=>p.cooldownLeft=0);
 
-        playerShip.devices.Reactors.ForEach(r => r.energy = r.desc.capacity);
+        playerShip.devices.Reactor.ForEach(r => r.energy = r.desc.capacity);
 
         //Resurrect the player; remove wreck and restore ship + heading
         var wreck = epitaph.wreck;
@@ -56,6 +56,7 @@ public class DeathScreen : Console {
     }
     public void Exit() {
         var profile = playerMain.profile;
+        /*
         if (profile != null) {
             var unlocked = SAchievements.GetAchievements(profile, playerMain.playerShip)
                 .Except(profile.achievements);
@@ -89,6 +90,7 @@ public class DeathScreen : Console {
             }
 
         }
+        */
         TitleScreen();
         void TitleScreen() {
             SadConsole.Game.Instance.Screen = new TitleSlideOpening(new TitleScreen(Width, Height, new System(playerMain.world.universe))) { IsFocused = true };
@@ -187,7 +189,6 @@ public class IdentityScreen : Console {
         foreach (var line in str.Replace("\r", "").Split('\n')) {
             this.Print(2, y++, line);
         }
-
         base.Render(delta);
     }
     public override bool ProcessKeyboard(Keyboard keyboard) {

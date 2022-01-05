@@ -54,21 +54,25 @@ partial class Program {
         Game.Instance.Run();
         Game.Instance.Dispose();
     }
-    public static void StartServer() {
+
+    public static System GenerateIntroSystem() {
         var w = new System();
         w.types.LoadFile(main);
-        var t = new TitleScreen(Width, Height, w);
+        if(w.types.Lookup<SystemType>("system_intro", out var s)) {
+            s.Generate(w);
+        }
+        return w;
+    }
+    public static void StartServer() {
+        
+        var t = new TitleScreen(Width, Height, GenerateIntroSystem());
         for(int i = 0; i < 100; i++) t.Update(new());
         t.Server();
     }
     public static void StartClient() {
-        var w = new System();
-        w.types.LoadFile(main);
-        new TitleScreen(Width, Height, w).Client();
+        new TitleScreen(Width, Height, GenerateIntroSystem()).Client();
     }
     public static void StartRegular() {
-        var w = new System();
-        w.types.LoadFile(main);
 #if false
             GameHost.Instance.Screen = new BackdropConsole(Width, Height, new Backdrop(), () => new Common.XY(0.5, 0.5));
 			return;
@@ -78,7 +82,7 @@ partial class Program {
 
         var poster = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText(cover)));
 
-        var title = new TitleScreen(Width, Height, w);
+        var title = new TitleScreen(Width, Height, GenerateIntroSystem());
         var titleSlide = new TitleSlideOpening(title) { IsFocused = true };
 
         var splashBack = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText(splash)));

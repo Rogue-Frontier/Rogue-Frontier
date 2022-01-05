@@ -17,7 +17,7 @@
 				damageType="2"
 				damageHP="5"
 				lifetime="60"
-				char=	"-"
+				glyph=	"-"
 				foreground="White"
 
 				initialCharges=	"200"
@@ -47,7 +47,7 @@
 						damageHP=		"15"
 						lifetime=		"120"
 
-						char=			"+"
+						glyph=			"+"
 						foreground=		"White"
 	
 						initialCharges=	"100"
@@ -88,7 +88,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				char=				"i"
+				glyph=				"i"
 				foreground=			"LightGray"
 		>
 		<Devices>
@@ -107,7 +107,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 				
-				char=				"I"
+				glyph=				"I"
 				foreground=			"Yellow"
 		>
 		<Devices>
@@ -127,7 +127,7 @@
 
 					hp=			"250"
 
-					char=		"O"
+					glyph=		"O"
 					foreground="White"
 					
 				behavior=	"pirate"
@@ -135,33 +135,33 @@
 		<Segments>
 
 			<Point offsetX="-1" offsetY="1"
-				   char="/" foreground="Yellow"/>
+				   glyph="/" foreground="Yellow"/>
 			<Point offsetX="0" offsetY="1"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="1" offsetY="1"
-				   char="\" foreground="Yellow"/>
+				   glyph="\" foreground="Yellow"/>
 
 			<Point offsetX="-1" offsetY="-1"
-				   char="\" foreground="Yellow"/>
+				   glyph="\" foreground="Yellow"/>
 			<Point offsetX="0" offsetY="-1"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="1" offsetY="-1"
-				   char="/" foreground="Yellow"/>
+				   glyph="/" foreground="Yellow"/>
 
 
 			<Point offsetX="-1" offsetY="0"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="-2" offsetY="0"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="-3" offsetY="0"
-				   char="+" foreground="Yellow"/>
+				   glyph="+" foreground="Yellow"/>
 
 			<Point offsetX="1" offsetY="0"
-					char="-" foreground="Yellow"/>
+					glyph="-" foreground="Yellow"/>
 			<Point offsetX="2" offsetY="0"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="3" offsetY="0"
-				   char="+" foreground="Yellow"/>
+				   glyph="+" foreground="Yellow"/>
 
 		</Segments>
 		<Guards>
@@ -179,7 +179,7 @@
 
 				hp=			"250"
 
-				char=		"O"
+				glyph=		"O"
 				foreground="White"
 
 				
@@ -189,22 +189,22 @@
 		<Segments>
 
 			<Point offsetX="-1" offsetY="0"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="-2" offsetY="0"
-				   char="+" foreground="White"/>
+				   glyph="+" foreground="White"/>
 			<Point offsetX="-3" offsetY="0"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="-4" offsetY="0"
-				   char="+" foreground="White"/>
+				   glyph="+" foreground="White"/>
 
 			<Point offsetX="1" offsetY="0"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="2" offsetY="0"
-				   char="+" foreground="White"/>
+				   glyph="+" foreground="White"/>
 			<Point offsetX="3" offsetY="0"
-				   char="-" foreground="Yellow"/>
+				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="4" offsetY="0"
-				   char="+" foreground="White"/>
+				   glyph="+" foreground="White"/>
 
 		</Segments>
 		<Guards>

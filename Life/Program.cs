@@ -59,7 +59,6 @@ public class Life : Console {
     public void UpdateLife() {
         cells.live.Clear();
         cells.live.UnionWith(next.live);
-
         UpdateNext();
     }
     public void UpdateNext() {
@@ -159,13 +158,5 @@ public class Life : Console {
 
         return base.ProcessMouse(state);
     }
-    public int Count(params bool[] bb) {
-        int i = 0;
-        foreach (var b in bb) {
-            if (b) {
-                i++;
-            }
-        }
-        return i;
-    }
+    public int Count(params bool[] bb) => bb.Count(b=>b);
 }

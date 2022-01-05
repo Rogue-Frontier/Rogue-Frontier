@@ -52,7 +52,7 @@ class LoadMenu : Console {
                         case DeadGame dead: {
                                 var playerMain = new PlayerMain(Width, Height, profile, dead.playerShip);
                                 playerMain.camera.position = dead.playerShip.position;
-                                playerMain.PlaceTiles();
+                                playerMain.PlaceTiles(new());
                                 var deathScreen = new DeathScreen(playerMain, dead.epitaph);
                                 dead.playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
                                 GameHost.Instance.Screen = deathScreen;

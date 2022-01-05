@@ -67,7 +67,7 @@ public class TypeCollection {
         }
     }
     void AddSource(XElement element) {
-        if (!element.TryAttribute("codename", out string codename)) {
+        if (!element.TryAtt("codename", out string codename)) {
             //throw new Exception("DesignType requires type attribute");
             codename = System.Guid.NewGuid().ToString();
         }
@@ -81,7 +81,7 @@ public class TypeCollection {
     }
     void AddType<T>(XElement element) where T : DesignType, new() {
         string codename;
-        if (!element.TryAttribute(nameof(codename), out codename)) {
+        if (!element.TryAtt(nameof(codename), out codename)) {
             //throw new Exception("DesignType requires type attribute");
             codename = System.Guid.NewGuid().ToString();
         }

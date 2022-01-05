@@ -137,11 +137,11 @@ public record DepleteTargetShields() : ItemUse {
             return;
         }
 
-        if (!s.devices.Shields.Any()) {
+        if (!s.devices.Shield.Any()) {
             player.AddMessage(new Message($"Target does not have shields"));
             return;
         }
-        s.devices.Shields.ForEach(s => s.Deplete());
+        s.devices.Shield.ForEach(s => s.Deplete());
         player.AddMessage(new Message($"Depleted shields on {s.name}"));
 
         player.cargo.Remove(item);
@@ -167,7 +167,7 @@ public record ApplyMod() : ItemUse {
 public record ItemType : DesignType {
     [Req] public string codename;
     [Req] public string name;
-    [Opt] public string desc;
+    [Opt] public string desc = "";
     [Req] public int level;
     [Req] public int mass;
     [Opt] public int value = 0;
@@ -193,8 +193,6 @@ public record ItemType : DesignType {
             EItemUse.depleteTargetShields=>new DepleteTargetShields(e),
             _ => null
         };
-
-
         foreach (var (tag, action) in new Dictionary<string, Action<XElement>> {
             ["Ammo"] = e =>     ammo = new(e),
             ["Armor"] = e =>    armor = new(e),
@@ -211,7 +209,6 @@ public record ItemType : DesignType {
             }
         }
     }
-
 }
 public record ArmorDesc {
     [Req] public int maxHP;
@@ -223,8 +220,6 @@ public record ArmorDesc {
 }
 public record EngineDesc {
     [Req] public int powerUse;
-
-
     [Req] public double thrust;
     [Req] public double maxSpeed;
     [Req] public double rotationMaxSpeed;
@@ -234,6 +229,16 @@ public record EngineDesc {
     public EngineDesc() { }
     public EngineDesc(XElement e) {
         e.Initialize(this);
+    }
+}
+public record EnhancerDesc {
+    [Req] public int powerUse;
+    public Modifier mod;
+    public Enhancer GetEnhancer(Item i) => new(i, this);
+    public EnhancerDesc() { }
+    public EnhancerDesc(XElement e) {
+        e.Initialize(this);
+        mod = new(e);
     }
 }
 public record LaunchDesc {
@@ -253,7 +258,7 @@ public record LauncherDesc {
     public CapacitorDesc capacitor;
     public List<LaunchDesc> missiles;
     public Launcher GetLauncher(Item i) => new Launcher(i, this);
-    public Weapon GetWeapon(Item i) => new Weapon(i, weapon);
+    public Weapon GetWeapon(Item i) => new Weapon(i, weaponDesc);
     public LauncherDesc() { }
     public LauncherDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
@@ -267,12 +272,12 @@ public record LauncherDesc {
         }
     }
 
-    public WeaponDesc weapon => new() {
+    public WeaponDesc weaponDesc => new() {
         powerUse = powerUse,
         fireCooldown = fireCooldown,
         recoil = recoil,
         repeat = repeat,
-        shot = missiles.First().shot,
+        fragment = missiles.First().shot,
         initialCharges = -1,
         capacitor = capacitor,
         ammoType = missiles.First().ammoType,
@@ -285,31 +290,32 @@ public record WeaponDesc {
     [Req] public int fireCooldown;
     [Opt] public int recoil = 0;
     [Opt] public int repeat = 0;
-    public FragmentDesc shot;
+    public FragmentDesc fragment;
     [Opt] public int initialCharges = -1;
     public CapacitorDesc capacitor;
     public ItemType ammoType;
     public bool targetProjectile;
     public bool autoFire;
-    public int missileSpeed => shot.missileSpeed;
-    public int damageType => shot.damageType;
-    public IDice damageHP => shot.damageHP;
-    public int lifetime => shot.lifetime;
-    public int minRange => shot.missileSpeed * shot.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
+    public int missileSpeed => fragment.missileSpeed;
+    public int damageType => fragment.damageType;
+    public IDice damageHP => fragment.damageHP;
+    public int lifetime => fragment.lifetime;
+    public int minRange => fragment.missileSpeed * fragment.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
     public Weapon GetWeapon(Item i) => new Weapon(i, this);
     public WeaponDesc() { }
     public WeaponDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
-        shot = new FragmentDesc(e);
+        fragment = new FragmentDesc(e);
 
         if (e.HasElement("Capacitor", out var xmlCapacitor)) {
             capacitor = new CapacitorDesc(xmlCapacitor);
         }
 
-        if (e.TryAttribute(nameof(ammoType), out string at)) {
+        if (e.TryAtt(nameof(ammoType), out string at)) {
             ammoType = types.Lookup<ItemType>(at);
         }
         if (e.TryAttBool("pointDefense")) {
+            fragment.hitProjectile = true;
             targetProjectile = true;
             autoFire = true;
         }
@@ -332,12 +338,15 @@ public record FragmentDesc {
     [Opt] public double maneuver;
     [Opt] public double maneuverRadius;
     [Opt] public int fragmentInterval;
+    [Opt] public bool hitProjectile;
 
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
     public DisruptorDesc disruptor;
     public HashSet<FragmentDesc> fragments;
     public StaticTile effect;
     public TrailDesc trail;
+
+    public Modifier mod;
     public FragmentDesc() { }
     public FragmentDesc(XElement e) {
         Initialize(e);
@@ -351,17 +360,29 @@ public record FragmentDesc {
             spreadAngle = e.TryAttDouble(nameof(spreadAngle), count == 1 ? 0 : 3) * Math.PI / 180;
         }
         maneuver *= Math.PI / (180);
-        fragments = new HashSet<FragmentDesc>();
         if (e.HasElements("Fragment", out var fragmentsList)) {
-            fragments.UnionWith(fragmentsList.Select(f => new FragmentDesc(f)));
+            fragments = new(fragmentsList.Select(f => new FragmentDesc(f)));
         }
         if (e.HasElement("Disruptor", out var xmlDisruptor)) {
-            disruptor = new DisruptorDesc(xmlDisruptor);
+            disruptor = new(xmlDisruptor);
         }
-        if (e.HasElement("Trail", out var trail)) {
-            this.trail = new TrailDesc(trail);
+        if (e.HasElement("Trail", out var xmlTrail)) {
+            trail = new(xmlTrail);
         }
         effect = new StaticTile(e);
+    }
+
+    public List<Projectile> GetProjectile(SpaceObject owner, Weapon w, double direction) {
+        double angleInterval = spreadAngle / count;
+        var f = w.GetFragmentDesc();
+        return new(Enumerable.Range(0, count).Select(i => {
+            double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
+            return new Projectile(owner, f,
+                owner.position + XY.Polar(angle),
+                owner.velocity + XY.Polar(angle, missileSpeed),
+                f.GetManeuver(w.target)
+                );
+        }));
     }
 }
 public record TrailDesc : ITrail {

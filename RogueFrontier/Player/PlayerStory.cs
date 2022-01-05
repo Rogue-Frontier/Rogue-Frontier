@@ -564,7 +564,8 @@ as you dock.",
             });
         Con Arrest(Con prev) {
             return new Dialog(prev,
-@$"""You are under immediate arrest for {c.name}.""
+@$"""You are under immediate arrest for
+{c.name}.""
 
 There will be no trial.",
             new() { new("Continue", Continue) }

@@ -19,7 +19,7 @@
 				damageType="2"
 				damageHP="5"
 				lifetime="60"
-				char=	"+"
+				glyph=	"+"
 				foreground="Orange"
 
 				initialCharges=	"200"
@@ -56,7 +56,7 @@
 						
 						initialCharges=	"200"
 
-						char=			"+"
+						glyph=			"+"
 						foreground=		"Orange"
 			>
 			<Capacitor	dischargeOnFire=		"100"
@@ -92,7 +92,7 @@
 						
 						initialCharges=	"40"
 
-						char=			"+"
+						glyph=			"+"
 						foreground=		"Orange"
 			>
 			<Fragment
@@ -103,7 +103,7 @@
 				damageHP=		"8"
 				lifetime=		"60"
 
-				char=			"+"
+				glyph=			"+"
 				foreground=		"Orange"
 				>
 			</Fragment>
@@ -141,7 +141,7 @@
 
 						count=			"3"
 
-						char=			"+"
+						glyph=			"+"
 						foreground=		"Orange"
 			>
 			<Capacitor	dischargeOnFire=		"100"
@@ -187,7 +187,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				char=				"r"
+				glyph=				"r"
 				foreground=			"Blue"
 		>
 		<Devices>
@@ -210,7 +210,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				char=				"R"
+				glyph=				"R"
 				foreground=			"Blue"
 		>
 		<Devices>
@@ -234,7 +234,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				char=				"R"
+				glyph=				"R"
 				foreground=			"White"
 
 				behavior=			"sulphin"
@@ -253,7 +253,7 @@
 
 					hp=			"250"
 
-					char=		"c"
+					glyph=		"c"
 					foreground="Blue"
 		>
 		<Segments>
@@ -272,7 +272,7 @@
 
 					hp=			"500"
 
-					char=		"c"
+					glyph=		"c"
 					foreground="Blue"
 		>
 		<Segments>
@@ -297,17 +297,17 @@
 
 				hp=			"200"
 
-				char=		"H"
+				glyph=		"H"
 				foreground= "3366BBFF"
 		>
 		<Segments>
 			<Point offsetX="0"
 				   offsetY="-1"
-				   char="#"
+				   glyph="#"
 				   foreground="White"/>
 			<Point offsetX="0"
 				   offsetY="1"
-				   char="#"
+				   glyph="#"
 				   foreground="White"/>
 		</Segments>
 

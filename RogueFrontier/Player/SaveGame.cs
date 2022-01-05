@@ -104,7 +104,7 @@ public static class SaveGame {
     public static string Serialize(object o) {
         PrepareConvert();
         STypeConverter.PrepareConvert();
-        return JsonConvert.SerializeObject(o, form, settings);
+        return JsonConvert.SerializeObject(o, formmat, settings);
     }
     public static T Deserialize<T>(string s) {
         PrepareConvert();
@@ -114,7 +114,6 @@ public static class SaveGame {
     public static object Deserialize(string s) {
         PrepareConvert();
         STypeConverter.PrepareConvert();
-
         return JsonConvert.DeserializeObject(s, settings);
     }
     public static readonly JsonSerializerSettings settings = new JsonSerializerSettings {
@@ -127,7 +126,7 @@ public static class SaveGame {
     static SaveGame() {
         settings.ContractResolver = new DictionaryAsArrayResolver();
     }
-    public static readonly Formatting form = Formatting.Indented;
+    public static readonly Formatting formmat = Formatting.Indented;
 }
 public class LiveGame {
     public System world;

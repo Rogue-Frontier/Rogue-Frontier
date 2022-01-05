@@ -65,7 +65,7 @@ public record LocationMod {
 }
 
 public interface SystemElement {
-    void Generate(LocationContext lc, TypeCollection tc);
+    void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null);
 }
 public static class SSystemElement {
     public static SystemElement Create(XElement e) {
@@ -108,9 +108,9 @@ public record SystemGroup : SystemElement {
             .Select(sub => SSystemElement.Create(sub))
             .ToList();
     }
-    public void Generate(LocationContext lc, TypeCollection tc) {
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var sub_lc = loc.Adjust(lc);
-        subelements.ForEach(g => g.Generate(sub_lc, tc));
+        subelements.ForEach(g => g.Generate(sub_lc, tc, result));
     }
 }
 
@@ -122,9 +122,9 @@ public record SystemAt : SystemElement {
         subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
         index = e.ExpectAttInt("index");
     }
-    public void Generate(LocationContext lc, TypeCollection tc) {
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         if (lc.index == index) {
-            subelements.ForEach(g => g.Generate(lc, tc));
+            subelements.ForEach(g => g.Generate(lc, tc, result));
         }
     }
 }
@@ -176,10 +176,10 @@ public record SystemOrbital : SystemElement {
         }
         radius = e.ExpectAttInt(nameof(radius));
     }
-    public void Generate(LocationContext lc, TypeCollection tc) {
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var angle = this.angle;
         var increment = this.increment;
-        int equidistantInterval = 360 / subelements.Count;
+        int equidistantInterval = 360 / (subelements.Count * count);
 
         if (randomAngle) {
             angle = lc.world.karma.NextInteger(360);
@@ -195,7 +195,7 @@ public record SystemOrbital : SystemElement {
                     index = i
                 };
 
-                sub.Generate(loc, tc);
+                sub.Generate(loc, tc, result);
 
                 if (increment > 0) {
                     angle += increment;
@@ -215,8 +215,10 @@ public record SystemMarker : SystemElement {
     public SystemMarker(XElement e) {
         name = e.ExpectAtt("name");
     }
-    public void Generate(LocationContext lc, TypeCollection tc) {
-        lc.world.AddEntity(new Marker(name, lc.pos));
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
+        var m = new Marker(name, lc.pos);
+        lc.world.AddEntity(m);
+        result?.Add(m);
     }
 }
 public record SystemPlanet : SystemElement {
@@ -227,7 +229,7 @@ public record SystemPlanet : SystemElement {
         radius = e.ExpectAttInt(nameof(radius));
         showOrbit = e.TryAttBool(nameof(showOrbit), true);
     }
-    public void Generate(LocationContext lc, TypeCollection tc) {
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var diameter = radius * 2;
         var radius2 = radius * radius;
         var center = new XY(radius, radius);
@@ -287,7 +289,7 @@ public record SystemAsteroids : SystemElement {
         angle = e.ExpectAttDouble(nameof(angle)) * Math.PI / 180;
         size = e.ExpectAttInt(nameof(size));
     }
-    public void Generate(LocationContext lc, TypeCollection tc) {
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         double arc = lc.radius * angle;
         double halfArc = arc / 2;
         for (double i = -halfArc; i < halfArc; i++) {
@@ -315,7 +317,7 @@ public record SystemNebula : SystemElement {
         angle = e.ExpectAttDouble(nameof(angle)) * Math.PI / 180;
         size = e.ExpectAttInt(nameof(size));
     }
-    public void Generate(LocationContext lc, TypeCollection tc) {
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         double arc = lc.radius * angle;
         double halfArc = arc / 2;
         for (double i = -halfArc; i < halfArc; i += 0.1) {
@@ -348,7 +350,7 @@ public record SystemSibling : SystemElement {
 
         subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
     }
-    public void Generate(LocationContext lc, TypeCollection tc) {
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var angle = lc.angle + angleInc + arcInc / lc.radius;
         var radius = lc.radius + radiusInc;
         var sub_lc = lc with {
@@ -378,7 +380,7 @@ public record SystemStar : SystemElement {
     public SystemStar(XElement e) {
         this.radius = e.ExpectAttInt("radius");
     }
-    public void Generate(LocationContext lc, TypeCollection tc) {
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         /*
         var diameter = radius * 2;
         var radius2 = radius * radius;
@@ -410,7 +412,7 @@ public record SystemStation : SystemElement {
             ships = new ShipList(xmlShips);
         }
     }
-    public void Generate(LocationContext lc, TypeCollection tc) {
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var stationtype = tc.Lookup<StationType>(codename);
         var w = lc.world;
         var s = new Station(w, stationtype, lc.pos);
@@ -434,7 +436,7 @@ public record SystemStargate : SystemElement {
             ships = new ShipList(xmlShips);
         }
     }
-    public void Generate(LocationContext lc, TypeCollection tc) {
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var s = new Stargate(lc.world, lc.pos) { gateId = gateId, destGateId = destGateId };
         lc.world.AddEntity(s);
         s.CreateSegments();

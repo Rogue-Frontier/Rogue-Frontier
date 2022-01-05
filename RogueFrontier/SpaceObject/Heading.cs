@@ -51,7 +51,7 @@ class Heading : Effect {
         ticks++;
 
     }
-    public static void AimLine(System World, XY start, double angle) {
+    public static void AimLine(System World, XY start, double angle, int lifetime = 1) {
         //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
         ColoredGlyph pointEffect = new ColoredGlyph(new Color(255, 255, 0, 204), Color.Transparent, '.');
         XY point = start;
@@ -60,7 +60,7 @@ class Heading : Effect {
         int interval = 4;
         for (int i = 0; i < length / interval; i++) {
             point += inc * interval;
-            World.AddEffect(new EffectParticle(point, pointEffect, 1));
+            World.AddEffect(new EffectParticle(point, pointEffect, lifetime));
         }
     }
     public static void AimLine(SpaceObject owner, double angle, Weapon w) {

@@ -144,7 +144,7 @@ public class Station : DockableObject, ITrader {
     }
     public void CreateSegments() {
         segments = new List<Segment>();
-        foreach (var segmentDesc in type.segments) {
+        foreach (var segmentDesc in type.segments??new()) {
             var s = new Segment(this, segmentDesc);
             segments.Add(s);
             world.AddEntity(s);
@@ -152,15 +152,14 @@ public class Station : DockableObject, ITrader {
     }
     public void CreateGuards() {
         guards = new List<AIShip>();
-        if (type.guards != null) {
-            //Suppose we should pass in the owner object
-            var generated = type.guards.Generate(world.types, this);
-            foreach (var guard in generated) {
-                guards.Add(guard);
-                world.AddEntity(guard);
-                world.AddEffect(new Heading(guard));
-            }
+        foreach (var guard in type.guards?.Generate(world.types, this) ?? new List<AIShip>()) {
+            guards.Add(guard);
+            world.AddEntity(guard);
+            world.AddEffect(new Heading(guard));
         }
+    }
+    public void CreateSatellites() {
+        type.satellites?.Generate(new() { focus = position }, world.types);
     }
     public IEnumerable<AIShip> GetDocked() {
         return world.entities.GetAll(p => (position - p).magnitude < 5)

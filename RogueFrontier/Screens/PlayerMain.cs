@@ -264,7 +264,13 @@ public class PlayerMain : Console {
         SadConsole.Game.Instance.Screen = dp;
         Task.Run(() => {
             lock (world) {
-                new DeadGame(world, playerShip, ep).Save();
+                try {
+                    new DeadGame(world, playerShip, ep).Save();
+                } catch(Exception e) {
+#if DEBUG
+                    throw;
+#endif
+                }
             }
             dp.done = true;
         });
@@ -300,7 +306,7 @@ public class PlayerMain : Console {
                     autopilotUpdate = false;
                 }
 
-                viewport.Update(delta);
+                PlaceTiles(delta);
                 transition?.Update(delta);
             }
 
@@ -382,8 +388,7 @@ public class PlayerMain : Console {
 
                     autopilotUpdate = false;
                 }
-
-                viewport.Update(delta);
+                PlaceTiles(delta);
                 transition?.Update(delta);
             }
 
@@ -436,11 +441,16 @@ public class PlayerMain : Console {
         }
     }
 
-    public void PlaceTiles() {
-        viewport.Update(new());
+    public void PlaceTiles(TimeSpan delta) {
+        viewport.Update(delta);
+        /*
+        foreach((var key, var value) in viewport.tiles) {
+            viewport.tiles[key] = new(value.Foreground, value.Background, '?');
+        }
+        */
     }
-    public void RenderWorld() {
-        viewport.Render(new());
+    public void RenderWorld(TimeSpan delta) {
+        viewport.Render(delta);
     }
     public override void Render(TimeSpan drawTime) {
 
@@ -721,12 +731,22 @@ public class Megamap : Console {
         viewScale = 1;
         time = 0;
     }
+    public double delta => Math.Min(viewScale / (2 * 30), 1);
     public override bool ProcessKeyboard(Keyboard info) {
+        if (info.IsKeyPressed(N)) {
+            viewScale /= 2;
+            if (viewScale < 1) {
+                viewScale = 1;
+            }
+        }
+        if (info.IsKeyPressed(M)) {
+            viewScale *= 2;
+        }
         if (info.IsKeyDown(OemMinus)) {
-            viewScale += Math.Min(viewScale / (2 * 30), 1);
+            viewScale += delta;
         }
         if (info.IsKeyDown(OemPlus)) {
-            viewScale -= Math.Min(viewScale / (2 * 30), 1);
+            viewScale -= delta;
             if (viewScale < 1) {
                 viewScale = 1;
             }
@@ -734,14 +754,18 @@ public class Megamap : Console {
         return base.ProcessKeyboard(info);
     }
     public override void Update(TimeSpan delta) {
-        alpha = (byte)(255 * Math.Min(1, (viewScale - 1)));
+        alpha = (byte)(255 * Math.Min(1, viewScale - 1));
         time += delta.TotalSeconds;
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
         this.Clear();
 
+        var alpha = this.alpha;
         if (alpha > 0) {
+            if(alpha < 128) {
+                alpha = (byte)(128 * Math.Sqrt(alpha / 128f));
+            }
             XY screenSize = new XY(Width, Height);
             XY screenCenter = screenSize / 2;
             for (int x = 0; x < Width; x++) {
@@ -918,7 +942,8 @@ public class Vignette : Console {
         int borderSize = 2;
 
         if (powerAlpha > 0) {
-            borderColor = borderColor.Blend(new Color(204, 153, 255, 255) * (float)Math.Min(1, powerAlpha * 1.5)).Premultiply();
+            var v = new Color(204, 153, 255, (int)(255 * (float)Math.Min(1, powerAlpha * 1.5)));
+            borderColor = borderColor.Blend(v).Premultiply();
 
             borderSize += (int)(12 * powerAlpha);
 
@@ -969,14 +994,23 @@ public class Vignette : Console {
             var b = player.world.backdrop.starlight.GetBackgroundFixed(player.position);
             borderColor = borderColor.Blend(b.SetAlpha((byte)(255 * b.GetBrightness())));
         }
-        int dec = 255 / borderSize;
 
         for (int i = 0; i < borderSize; i++) {
-            var decrease = i * dec;
-            byte alpha = (byte)Math.Max(0, 255 - decrease);
-
+            var d = 1d * i / borderSize;
+            d = Math.Pow(d, 1.4);
+            byte alpha = (byte)(255 - 255 * d);
+            var c = borderColor.SetAlpha(alpha);
+            /*
+            if(i < borderSize / 5) {
+                c = c.Blend(Color.White.SetAlpha((byte)(255 * (powerAlpha - powerAlpha * i / (borderSize / 5)))))
+                    .Premultiply()
+                    .SetAlpha(alpha);
+            } else if(alpha < 153) {
+                continue;
+            }
+            */
             var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
-            var c = borderColor.SetAlpha(alpha).Premultiply();
+            
             foreach (var point in screenPerimeter.PerimeterPositions()) {
                 //var back = this.GetBackground(point.X, point.Y).Premultiply();
                 var (x, y) = point;
@@ -1068,7 +1102,7 @@ public class Readout : Console {
             targetY = 1;
         }
         //var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
-        foreach (var autoTarget in player.devices.Weapons.Select(w => w.target)) {
+        foreach (var autoTarget in player.devices.Weapon.Select(w => w.target)) {
             if (autoTarget != null && autoTarget != playerTarget) {
                 this.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
                 this.Print(targetX, targetY++, autoTarget.name);
@@ -1233,8 +1267,8 @@ public class Readout : Console {
             int y = 3;
             var b = Color.Black;
 
-            var solars = player.ship.devices.Solars;
-            var reactors = player.ship.devices.Reactors;
+            var solars = player.ship.devices.Solar;
+            var reactors = player.ship.devices.Reactor;
 
             void PrintTotalPower() {
                 double totalFuel = reactors.Sum(r => r.energy),
@@ -1343,11 +1377,18 @@ public class Readout : Console {
             }
 
             y++;
-            var weapons = player.ship.devices.Weapons;
+            var weapons = player.ship.devices.Weapon;
             if (weapons.Any()) {
                 int i = 0;
                 foreach (var w in weapons) {
-                    string tag = $"{(i == player.primary.index ? "->" : i == player.secondary.index ? "=>" : "  ")}{w.GetReadoutName()}";
+
+                    string enhancement;
+                    if(w.source.mod?.empty == false) {
+                        enhancement = "[+]";
+                    } else {
+                        enhancement = "";
+                    }
+                    string tag = $"{(i == player.primary.index ? "->" : i == player.secondary.index ? "=>" : "  ")}{w.GetReadoutName()} {enhancement}";
                     Color foreground;
                     if (player.energy.off.Contains(w)) {
                         foreground = Color.Gray;
@@ -1383,7 +1424,7 @@ public class Readout : Console {
 
                 y++;
             }
-            var shields = player.ship.devices.Shields;
+            var shields = player.ship.devices.Shield;
             if (shields.Any()) {
                 foreach (var s in shields) {
                     string name = s.source.type.name;

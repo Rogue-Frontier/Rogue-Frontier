@@ -116,7 +116,7 @@ public class TypeCollection {
         a(element);
     }
     void AddSource(XElement element) {
-        if (!element.TryAttribute("codename", out string type)) {
+        if (!element.TryAtt("codename", out string type)) {
             throw new Exception("DesignType requires codename attribute");
         } else if (sources.ContainsKey(type)) {
             throw new Exception($"DesignType type conflict: {type}");
@@ -130,7 +130,7 @@ public class TypeCollection {
     public Dictionary<string, T>.ValueCollection Get<T>() where T : DesignType =>
         GetDict<T>().Values;
     void AddType<T>(XElement element) where T : DesignType, new() {
-        if (!element.TryAttribute("codename", out string type)) {
+        if (!element.TryAtt("codename", out string type)) {
             throw new Exception("DesignType requires codename attribute");
         } else if (sources.ContainsKey(type)) {
             throw new Exception($"DesignType type conflict: {type}");
@@ -184,7 +184,7 @@ public record StaticTile() : ITile {
     [JsonIgnore]
     public int GlyphCharacter => Original.GlyphCharacter;
     public StaticTile(XElement e) : this() {
-        char c = e.TryAttChar("char", '?');
+        char c = e.ExpectAttChar("glyph");
         Color foreground = e.TryAttColor("foreground", Color.White);
         Color background = e.TryAttColor("background", Color.Transparent);
 

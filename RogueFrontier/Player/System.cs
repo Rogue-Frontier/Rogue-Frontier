@@ -11,7 +11,6 @@ class EffectLocator : ILocator<Effect, (int, int)> {
 class EntityLocator : ILocator<Entity, (int, int)> {
     public (int, int) Locate(Entity e) => (e.position.xi, e.position.yi);
 }
-
 public class System {
     [JsonIgnore]
     public static readonly System empty = new System(new Universe());
