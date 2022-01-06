@@ -110,7 +110,7 @@ public class Projectile : MovingObject {
                             lifetime = 0;
                             destroyed = true;
                             break;
-                        case ProjectileBarrier barrier:
+                        case ProjectileBarrier barrier when fragment.hitBarrier:
                             barrier.Interact(this);
                             stop = true;
                             //Keep interacting with all the barriers

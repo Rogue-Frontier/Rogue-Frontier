@@ -703,6 +703,10 @@ public class Weapon : Device {
         l?.AddRange(projectiles);
         ammo?.OnFire();
         capacitor?.OnFire();
+
+        if(owner is PlayerShip p) {
+            p.onWeaponFire.ForEach(f => f(p, this, projectiles));
+        }
     }
 
     public SpaceObject target => aiming?.target;

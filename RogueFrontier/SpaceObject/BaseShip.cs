@@ -504,8 +504,11 @@ public class PlayerShip : IShip {
 
     public delegate void Destroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
-    public delegate void PlayerDamaged(PlayerShip playerShip, Projectile p);
-    public FuncSet<IContainer<PlayerDamaged>> onDamaged = new();
+    public delegate void Damaged(PlayerShip playerShip, Projectile p);
+    public FuncSet<IContainer<Damaged>> onDamaged = new();
+
+    public delegate void WeaponFired(PlayerShip playerShip, Weapon w, List<Projectile> p);
+    public FuncSet<IContainer<WeaponFired>> onWeaponFire = new();
 
     public List<AIShip> wingmates = new();
 

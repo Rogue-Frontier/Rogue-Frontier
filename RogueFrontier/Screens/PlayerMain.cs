@@ -1833,12 +1833,13 @@ public class PowerMenu : Console {
                     //Invoke now!
                     p.cooldownLeft = p.cooldownPeriod;
 
-                    var ef = p.type.Effect;
-                    if (ef is PowerJump j) {
-                        j.Invoke(main);
-                    } else {
-                        ef.Invoke(playerShip);
-                    }
+                    p.type.Effect.ForEach(e => {
+                        if (e is PowerJump j) {
+                            j.Invoke(main);
+                        } else {
+                            e.Invoke(playerShip);
+                        }
+                    });
                     if (p.type.message != null) {
                         playerShip.AddMessage(new Message(p.type.message));
                     }

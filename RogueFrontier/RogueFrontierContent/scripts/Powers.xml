@@ -24,6 +24,52 @@
 				background=	"BB77DDFF"/>
 		</Weapon>
 	</PowerType>
+
+	<PowerType codename="power_recite_orator"
+		name=			"RECITE"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		message=		"You RECITE the healing words"
+		>
+		<Heal/>
+	</PowerType>
+	<PowerType codename="power_protect"
+		name=			"PROTECT"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		message=		"You PROTECT yourself from malice"
+		>
+		<ProjectileBarrier barrierType="shield" lifetime="900" radius="4"/>
+	</PowerType>
+	<PowerType codename="power_reflect"
+		name=			"REFLECT"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		message=		"You REFLECT on your fate"
+		onDestroyCheck=	"true"
+		>
+		<ProjectileBarrier barrierType="bubble" lifetime="900" radius="1"/>
+		<Weapon
+			count=			"120"
+			spreadAngle=	"360"
+			missileSpeed=	"40"
+			damageType=		"1"
+			damageHP=		"12"
+			lifetime=		"30"
+			glyph=			"*"
+			foreground=		"FFFFFFFF"
+			hitBarrier=		"false"
+			>
+			<Trail
+				lifetime=	"20"
+				glyph=		"*"
+				foreground=	"FFFFFFFF"
+				background=	"BBBBBBFF"/>
+		</Weapon>
+	</PowerType>
+
+
+
 	<PowerType codename="power_silence_dictator"
 		name=			"SILENCE"
 		invokeDelay=	"120"
@@ -47,57 +93,23 @@
 				background=	"BB1111FF"/>
 		</Weapon>
 	</PowerType>
-	
-	
-	<PowerType codename="power_declare_orator"
-		name=			"DECLARE"
-		invokeDelay=	"120"
-		cooldownTime=	"3600"
-		message=		"You DECLARE your mission"
-		>
-		<Weapon
-			count=			"120"
-			spreadAngle=	"360"
-			missileSpeed=	"40"
-			damageType=		"1"
-			damageHP=		"12"
-			lifetime=		"30"
-			glyph=			"*"
-			foreground=		"FF55FFFF"
-			>
-			<Trail
-				lifetime=	"20"
-				glyph=		"*"
-				foreground=	"FF55FFFF"
-				background=	"BB77DDFF"/>
-		</Weapon>
-	</PowerType>
-	<PowerType codename="power_swear"
-		name=			"SWEAR"
-		invokeDelay=	"120"
-		cooldownTime=	"3600"
-		message=		"You SWEAR by your devotion"
-		>
-		<Heal/>
-	</PowerType>
-	<PowerType codename="power_echo"
-		name=			"SHIELD"
-		invokeDelay=	"120"
-		cooldownTime=	"3600"
-		message=		"You SHIELD yourself from malice"
-		>
-		<ProjectileBarrier barrierType="echo" lifetime="900" radius="4"/>
-	</PowerType>
 
+	<PowerType codename="power_deflect_dictator"
+		name=			"DEFLECT"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		message=		"You DEFLECT incoming attacks"
+		>
+		<ProjectileBarrier barrierType="bounce" lifetime="900" radius="4"/>
+	</PowerType>
 	<PowerType codename="power_decry"
 		name=			"DECRY"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
 		message=		"You DECRY those who oppose you"
 		>
-		<ProjectileBarrier barrierType="accuse" lifetime="900" radius="4"/>
+		<ProjectileBarrier barrierType="multiplyAttack" lifetime="900" radius="4"/>
 	</PowerType>
-
 	<PowerType codename="power_jump"
 		name=			"JUMP"
 		invokeDelay=	"120"
@@ -106,24 +118,16 @@
 		>
 		<Jump/>
 	</PowerType>
-
-
-	<PowerType codename="power_purge"
-		name=			"PURGE"
-		invokeDelay=	"120"
-		cooldownTime=	"3600"
+	<PowerType codename="power_execute_dictator"
+			name=			"EXECUTE"
+			invokeDelay=	"120"
+			cooldownTime=	"3600"
+			message=		"You EXECUTE those who oppose you"
 			>
-		<FastFire/>
+		<Clonewall/>
 	</PowerType>
 
 	<Unused>
-		<!-- The Dictator -->
-		<PowerType codename="power_silence"
-			name=			"SILENCE"
-			invokeDelay=	"120"
-			cooldownTime=	"3600"
-			>
-		</PowerType>
 		<PowerType codename="power_purge"
 			name=			"PURGE"
 			invokeDelay=	"120"

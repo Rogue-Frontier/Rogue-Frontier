@@ -101,7 +101,7 @@ public record InvokePower : ItemUse {
         if (charges == 0) {
             player.cargo.Remove(item);
         }
-        power.Effect.Invoke(player);
+        power.Effect.ForEach(e=>e.Invoke(player));
         callback?.Invoke();
     }
 }
@@ -339,6 +339,7 @@ public record FragmentDesc {
     [Opt] public double maneuverRadius;
     [Opt] public int fragmentInterval;
     [Opt] public bool hitProjectile;
+    [Opt] public bool hitBarrier = true;
 
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
     public DisruptorDesc disruptor;
@@ -374,13 +375,12 @@ public record FragmentDesc {
 
     public List<Projectile> GetProjectile(SpaceObject owner, Weapon w, double direction) {
         double angleInterval = spreadAngle / count;
-        var f = w.GetFragmentDesc();
         return new(Enumerable.Range(0, count).Select(i => {
             double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-            return new Projectile(owner, f,
+            return new Projectile(owner, this,
                 owner.position + XY.Polar(angle),
                 owner.velocity + XY.Polar(angle, missileSpeed),
-                f.GetManeuver(w.target)
+                this.GetManeuver(w.target)
                 );
         }));
     }

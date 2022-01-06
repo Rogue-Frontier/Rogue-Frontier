@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Common;
 
@@ -26,6 +27,14 @@ public class Container<T> : IContainer<T> {
         this.Value = Value;
     }
     public static implicit operator T(Container<T> c) => c.Value;
+}
+
+public static class SFuncSet {
+    public static void ForEach<T>(this FuncSet<IContainer<T>> f, Action<T> a) {
+        foreach(var t in f.set) {
+            a(t.Value);
+        }
+    }
 }
 public class FuncSet<T> {
     public HashSet<T> set = new HashSet<T>();

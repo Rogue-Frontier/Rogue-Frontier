@@ -43,7 +43,7 @@ You are a complete stranger here.".Replace("\r", null);
 
                 var t =
 @"Walking into the main hall, You see a great monolith of
-sparkling crystals and glowing symbols. A low hum echoes
+sparkling crystals and glowing symbols. A low hum reflectes
 throughout the room. If you stand still, you can hear
 some indistinct whispering from somewhere behind.
 

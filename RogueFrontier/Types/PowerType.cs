@@ -1,71 +1,62 @@
 ﻿using Common;
 using SadConsole;
+using SadRogue.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-
 namespace RogueFrontier;
-
-public class PowerType : DesignType {
-    public string codename;
-    public string name;
-    public int cooldownTime;
-    public int invokeDelay;
-    public string message;
-
-    public PowerEffect Effect;
+public record PowerType() : DesignType {
+    [Req] public string codename;
+    [Req] public string name;
+    [Req] public int cooldownTime;
+    [Req] public int invokeDelay;
+    [Opt] public bool onDestroyCheck;
+    [Opt] public string message;
+    public List<PowerEffect> Effect;
     public void Initialize(TypeCollection collection, XElement e) {
         codename = e.ExpectAtt(nameof(codename));
         name = e.ExpectAtt(nameof(name));
         cooldownTime = e.ExpectAttInt(nameof(cooldownTime));
         invokeDelay = e.ExpectAttInt(nameof(invokeDelay));
         message = e.TryAtt(nameof(message), null);
-
-        var xmlPower = e.Elements().FirstOrDefault();
-        switch (xmlPower.Name) {
-
-        }
-
-        Effect = xmlPower?.Name.LocalName switch {
-            "Weapon" => new PowerWeapon(xmlPower),
+        Effect = new(e.Elements().Select(e => (PowerEffect)(e.Name.LocalName switch {
+            "Weapon" => new PowerWeapon(e),
             "Heal" => new PowerHeal(),
-            "ProjectileBarrier" => new PowerBarrier(xmlPower),
-            "Jump" => new PowerJump(xmlPower),
-            "Storm" => new PowerStorm(xmlPower),
-            "FastFire" => new Stonewall(xmlPower),
-            _ => throw new Exception($"Power must have effect: {codename} ### {e} ### {e.Parent}")
-        };
+            "ProjectileBarrier" => new PowerBarrier(e),
+            "Jump" => new PowerJump(e),
+            "Storm" => new PowerStorm(e),
+            "Clonewall" => new Clonewall(e),
+            _ => throw new Exception($"Unknown PowerEffect type: {e.Name.LocalName} ### {e} ### {e.Parent}")
+        })));
+        if(Effect.Count == 0) {
+            throw new Exception($"Power must have effect: {codename} ### {e} ### {e.Parent}");
+        }
     }
-    public void Invoke(PlayerShip player) => Effect.Invoke(player);
+    public void Invoke(PlayerShip player) => Effect.ForEach(e => e.Invoke(player));
 }
 //Interface for invokable powers
 public interface PowerEffect {
-    //void Invoke(PlayerMain main);
     void Invoke(PlayerShip player);
-    void OnDestroyCheck(PlayerShip player) { }
 }
 public record PowerJump() : PowerEffect {
-    [Opt] public int distance;
+    [Opt] public int distance = 100;
     public PowerJump(XElement e) : this() => e.Initialize(this);
     public void Invoke(PlayerMain main) {
         main.Jump();
         Invoke(main.playerShip);
     }
     public void Invoke(PlayerShip player) =>
-        player.position += XY.Polar(player.rotationRad, 100);
+        player.position += XY.Polar(player.rotationRad, distance);
 }
 public record PowerStorm() : PowerEffect {
     public PowerStorm(XElement e) : this() => e.Initialize(this);
     public void Invoke(PlayerShip player) =>
         player.world.AddEffect(new StormOverlay(player));
-
     public class StormOverlay : Effect {
         PlayerShip owner;
         public XY position => owner.position;
-
         public bool active => owner.active;
-
         public ColoredGlyph tile => null;
         public StormOverlay(PlayerShip owner) {
             this.owner = owner;
@@ -83,17 +74,19 @@ public record PowerStorm() : PowerEffect {
         }
     }
 }
-
-public record Stonewall() : PowerEffect {
-    public Stonewall(XElement e) : this() => e.Initialize(this);
-    public void Invoke(PlayerShip player) =>
-        player.world.AddEffect(new Overlay(player));
-
-    public class Overlay : Effect {
+public record Clonewall() : PowerEffect {
+    [Opt] public int lifetime = 60 * 60;
+    public Clonewall(XElement e) : this() => e.Initialize(this);
+    public void Invoke(PlayerShip player) {
+        var o = new Overlay(player);
+        player.world.AddEffect(o);
+        player.onWeaponFire += o;
+    }
+    public class Overlay : Effect, IContainer<PlayerShip.WeaponFired> {
         int ticks;
         PlayerShip owner;
         public XY position => owner.position;
-        public bool active => owner.active;
+        public bool active => owner.active && owner.world.effects.Contains(this);
         public ColoredGlyph tile => null;
         public Overlay(PlayerShip owner) {
             this.owner = owner;
@@ -113,22 +106,42 @@ public record Stonewall() : PowerEffect {
         private List<XY> offsets;
         private double[] directions;
         private FragmentDesc ready;
-        private bool firing;
+        PlayerShip.WeaponFired IContainer<PlayerShip.WeaponFired>.Value => (p, w, pr) => {
+            if (!active) {
+                p.onWeaponFire -= this;
+                return;
+            }
+            foreach(var projectile in pr) {
+                var fragment = projectile.fragment;
+                int i = 0;
+                offsets.ForEach(o => {
+                    var l = fragment.GetProjectile(owner, w, directions[i++]);
+                    l.ForEach(p => p.position += o);
+                    l.ForEach(owner.world.AddEntity);
+                    w.ammo?.OnFire();
+                });
+            }
+        };
         public void Update() {
+            ticks++;
             if(owner.GetPrimary() is Weapon w) {
                 if (w.delay == 0) {
                     ready = w.GetFragmentDesc();
                 }
-                firing |= w.delay == w.desc.fireCooldown;
-                if (ticks++ % 5 == 0) {
+                const int interval = 6;
+                if (ticks % interval == 0) {
                     int i = 0;
-
                     UpdateOffsets();
+                    var tile = owner.tile;
+                    var cg = new ColoredGlyph(Color.Transparent, Color.White.Blend(Color.Red.SetAlpha(204)).SetAlpha(204), ' ');
                     offsets.ForEach(o => {
                         var p = owner.position + o;
-                        owner.world.AddEffect(new EffectParticle(p, owner.tile, 5));
+
+                        //owner.world.AddEffect(new EffectParticle(p, cg, interval * 5));
+
+                        owner.world.AddEffect(new EffectParticle(p, tile, interval + 2));
                         if (ready == null) {
-                            Heading.AimLine(owner.world, p, directions[i++], 5);
+                            Heading.AimLine(owner.world, p, directions[i++], interval);
                         } else {
                             double d;
                             var t = w.target ?? owner.GetTarget();
@@ -140,29 +153,14 @@ public record Stonewall() : PowerEffect {
                                 d = owner.rotationRad;
                             }
                             directions[i++] = d;
-                            Heading.AimLine(owner.world, p, d, 5);
+                            Heading.AimLine(owner.world, p, d, interval);
                         }
                     });
-                    if (ready != null && firing) {
-                        i = 0;
-                        offsets.ForEach(o => {
-                            var l = ready.GetProjectile(owner, w, directions[i++]);
-                            l.ForEach(p => p.position += o);
-                            l.ForEach(owner.world.AddEntity);
-                            w.ammo?.OnFire();
-                        });
-
-                        //w.delay = 0;
-                        //w.Fire(owner, w.aiming?.GetFireAngle() ?? owner.rotationRad);
-                        ready = null;
-                        firing = false;
-                    }
                 }
             }
         }
     }
 }
-
 //Power that generates a weapon effect
 public class PowerWeapon : PowerEffect {
     public FragmentDesc desc;
@@ -186,7 +184,7 @@ public class PowerHeal : PowerEffect {
 }
 public class PowerBarrier : PowerEffect {
     public enum BarrierType {
-        block, echo, accuse
+        shield, bubble, bounce, multiplyAttack
     }
     public BarrierType barrierType;
     [Req] public int radius;
@@ -202,17 +200,22 @@ public class PowerBarrier : PowerEffect {
         var end = 2 * Math.PI;
         Func<XY, int, ProjectileBarrier> construct = null;
         switch (barrierType) {
-            case BarrierType.block: {
+            case BarrierType.shield: {
                     HashSet<Projectile> blocked = new HashSet<Projectile>();
-                    construct = (position, lifetime) => new BlockBarrier(player, position, lifetime, blocked);
+                    construct = (position, lifetime) => new ShieldBarrier(player, position, lifetime, blocked);
                     break;
                 }
-            case BarrierType.accuse: {
+            case BarrierType.bubble: {
+                    HashSet<Projectile> blocked = new HashSet<Projectile>();
+                    construct = (position, lifetime) => new BubbleBarrier(player, position, lifetime, blocked);
+                    break;
+                }
+            case BarrierType.multiplyAttack: {
                     HashSet<Projectile> cloned = new HashSet<Projectile>();
                     construct = (position, lifetime) => new CloneBarrier(player, position, lifetime, cloned);
                     break;
                 }
-            case BarrierType.echo: {
+            case BarrierType.bounce: {
                     HashSet<Projectile> reflected = new HashSet<Projectile>();
                     construct = (position, lifetime) => new ReflectBarrier(player, position, lifetime, reflected);
                     break;
@@ -243,22 +246,26 @@ public interface IPower {
     public int cooldownLeft { get; set; }
     public int invokeCharge { get; set; }
     public bool charging { get; set; }
-    public PowerEffect Effect { get; }
+    public List<PowerEffect> Effect { get; }
 }
 public class Power : IPower {
     public PowerType type;
-
     public int cooldownPeriod => type.cooldownTime;
     public int invokeDelay => type.invokeDelay;
     public bool fullyCharged => invokeCharge >= invokeDelay;
-
     public int cooldownLeft { get; set; }
     public bool ready => cooldownLeft == 0;
     public int invokeCharge { get; set; }
     public bool charging { get; set; }
+    public List<PowerEffect> Effect => type.Effect;
 
-    public PowerEffect Effect => type.Effect;
     public Power(PowerType type) {
         this.type = type;
+    }
+    public void OnDestroyCheck(PlayerShip player, Projectile p) {
+        if (type.onDestroyCheck) {
+            p.damageHP = 0;
+            type.Effect.ForEach(e=>e.Invoke(player));
+        }
     }
 }
