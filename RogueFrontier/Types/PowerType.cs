@@ -1,4 +1,5 @@
 ﻿using Common;
+using Newtonsoft.Json;
 using SadConsole;
 using SadRogue.Primitives;
 using System;
@@ -249,14 +250,20 @@ public interface IPower {
     public List<PowerEffect> Effect { get; }
 }
 public class Power : IPower {
+    [JsonProperty]
     public PowerType type;
+    [JsonIgnore]
     public int cooldownPeriod => type.cooldownTime;
+    [JsonIgnore]
     public int invokeDelay => type.invokeDelay;
+    [JsonIgnore]
     public bool fullyCharged => invokeCharge >= invokeDelay;
     public int cooldownLeft { get; set; }
+    [JsonIgnore]
     public bool ready => cooldownLeft == 0;
     public int invokeCharge { get; set; }
     public bool charging { get; set; }
+    [JsonIgnore]
     public List<PowerEffect> Effect => type.Effect;
 
     public Power(PowerType type) {

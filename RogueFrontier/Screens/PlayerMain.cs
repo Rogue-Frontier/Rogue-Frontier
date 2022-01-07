@@ -14,6 +14,7 @@ using ArchConsole;
 using static RogueFrontier.PlayerShip;
 using static RogueFrontier.Station;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace RogueFrontier;
 public class NotifyStationDestroyed : IContainer<Station.Destroyed> {
@@ -264,31 +265,34 @@ public class PlayerMain : Console {
         SadConsole.Game.Instance.Screen = dp;
         Task.Run(() => {
             lock (world) {
+                StreamWriter w = null;
                 try {
                     new DeadGame(world, playerShip, ep).Save();
                 } catch(Exception e) {
-#if DEBUG
+#if !DEBUG
                     throw;
+#else
+                    if (w == null) {
+                        var name = $"[{DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss")}] Save Failed.txt";
+                        w = new StreamWriter(new FileStream(name, FileMode.Create));
+                    }
+                    w.Write(e.Message);
 #endif
                 }
+                w?.Close();
             }
             dp.done = true;
         });
     }
-
-
     public void UpdateClient(TimeSpan delta) {
         //if(!frameRendered) return;
         if (updatesSinceRender > 2) return;
         updatesSinceRender++;
-
         void UpdateUniverse() {
             world.UpdateActive();
             world.UpdatePresent();
         }
-
         if (true) {
-
             back.Update(delta);
             lock (world) {
                 UpdateUniverse();
@@ -305,11 +309,9 @@ public class PlayerMain : Console {
 
                     autopilotUpdate = false;
                 }
-
                 PlaceTiles(delta);
                 transition?.Update(delta);
             }
-
             var dock = playerShip.dock;
             if (dock?.justDocked == true && dock.Target is DockableObject d) {
                 Console scene = story.GetScene(this, d, playerShip) ?? d.GetDockScene(this, playerShip);
@@ -324,12 +326,9 @@ public class PlayerMain : Console {
         }
         camera.position = playerShip.position;
         //frameRendered = false;
-
         //Required to update children
         base.Update(delta);
     }
-
-
     public override void Update(TimeSpan delta) {
         //if(!frameRendered) return;
         if (updatesSinceRender > 2) return;
@@ -341,12 +340,9 @@ public class PlayerMain : Console {
         //If the player is in mortality, then slow down time
         bool passTime = true;
         if (playerShip.active && playerShip.mortalTime > 0) {
-
-
             //Note that while the world updates are slowed down, the game window actually updates faster since there's less work per frame
             var timePassed = delta.TotalSeconds;
             updateWait += timePassed;
-
             var interval = Math.Max(2, playerShip.mortalTime);
             if (updateWait < interval / 60) {
                 passTime = false;
@@ -355,13 +351,10 @@ public class PlayerMain : Console {
             }
             playerShip.mortalTime -= timePassed;
         }
-
         UpdateUI(delta);
-
         void UpdateUniverse() {
             world.UpdateActive();
             world.UpdatePresent();
-
             systems.GetNext(1).ForEach(s => {
                 if (s != world) {
                     s.UpdateActive();
@@ -369,9 +362,7 @@ public class PlayerMain : Console {
                 }
             });
         }
-
         if (passTime) {
-
             back.Update(delta);
             lock (world) {
                 UpdateUniverse();
@@ -406,11 +397,9 @@ public class PlayerMain : Console {
         }
         camera.position = playerShip.position;
         //frameRendered = false;
-
         //Required to update children
         base.Update(delta);
     }
-
     public void UpdateUI(TimeSpan delta) {
         if (sceneContainer.Children.Any()) {
             sceneContainer.Update(delta);
@@ -440,7 +429,6 @@ public class PlayerMain : Console {
             }
         }
     }
-
     public void PlaceTiles(TimeSpan delta) {
         viewport.Update(delta);
         /*
@@ -453,7 +441,6 @@ public class PlayerMain : Console {
         viewport.Render(delta);
     }
     public override void Render(TimeSpan drawTime) {
-
         if (pauseMenu.IsVisible) {
             back.Render(drawTime);
             viewport.Render(drawTime);
@@ -621,8 +608,6 @@ public class PlayerMain : Console {
             if (state.Mouse.MiddleClicked) {
                 TargetMouse();
             }
-
-
             bool enableMouseTurn = !sleepMouse;
             //Update the crosshair if we're aiming with it
             if (playerShip.GetTarget(out t) && t == crosshair) {
@@ -630,22 +615,15 @@ public class PlayerMain : Console {
                 crosshair.velocity = playerShip.velocity;
                 //If we set velocity to match player's velocity, then the weapon will aim directly at the crosshair
                 //If we set the velocity to zero, then the weapon will aim to the lead angle of the crosshair
-
                 //crosshair.Update();
-
                 Heading.Crosshair(world, crosshair.position);
-
                 //Idea: Aiming with crosshair disables mouse turning
                 enableMouseTurn = false;
             }
-
             //Also enable mouse turn with Power Menu
-
             if (enableMouseTurn && playerShip.ship.rotating == Rotating.None) {
                 var playerOffset = mouseWorldPos - playerShip.position;
-
                 if (playerOffset.xi != 0 && playerOffset.yi != 0) {
-
                     var radius = playerOffset.magnitude;
                     var facing = XY.Polar(playerShip.rotationRad, radius);
                     var aim = playerShip.position + facing;

@@ -39,7 +39,7 @@ public class Transmission : IPlayerMessage {
     }
 }
 public class Message : IPlayerMessage {
-    [JsonIgnore]
+    [JsonProperty]
     public ColoredString message { get; private set; }
     public string text => message.String;
     public int index;

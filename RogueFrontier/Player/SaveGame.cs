@@ -44,13 +44,11 @@ public class DictionaryAsArrayResolver : DefaultContractResolver {
 
         return false;
     }
-
     private object CreateInstance(Type objectType) {
         Type dictionaryType = typeof(Dictionary<,>).MakeGenericType(objectType.GetGenericArguments());
         return Activator.CreateInstance(dictionaryType);
     }
 }
-
 public class ColoredStringConverter : TypeConverter {
     public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) {
         return destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
@@ -84,9 +82,32 @@ public class ColoredStringConverter : TypeConverter {
     }
 }
 
+public class ColoredGlyphConverter : TypeConverter {
+    public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) {
+        return destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
+    }
+    public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
+        ColoredGlyph c = value as ColoredGlyph;
+        var elements = new List<uint> { c.Foreground.PackedValue , c.Background.PackedValue, (uint)c.Glyph};
+        return string.Join(',', elements);
+    }
+    public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) {
+        return sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+    }
+    public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) {
+        var elements = Convert.ToString(value).Trim('(', ')').Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var result = new ColoredGlyph(
+            new Color(uint.Parse(elements[0])),
+            new Color(uint.Parse(elements[1])),
+            (int)uint.Parse(elements[2]));
+        return result;
+    }
+}
+
 public static class SaveGame {
     public static void PrepareConvert() {
         //TypeDescriptor.AddAttributes(typeof(ColoredString), new TypeConverterAttribute(typeof(ColoredStringConverter)));
+        TypeDescriptor.AddAttributes(typeof(ColoredGlyph), new TypeConverterAttribute(typeof(ColoredGlyphConverter)));
     }
 
     public static bool TryDeserializeFile<T>(string file, out T result) {
@@ -104,7 +125,7 @@ public static class SaveGame {
     public static string Serialize(object o) {
         PrepareConvert();
         STypeConverter.PrepareConvert();
-        return JsonConvert.SerializeObject(o, formmat, settings);
+        return JsonConvert.SerializeObject(o, format, settings);
     }
     public static T Deserialize<T>(string s) {
         PrepareConvert();
@@ -119,14 +140,14 @@ public static class SaveGame {
     public static readonly JsonSerializerSettings settings = new JsonSerializerSettings {
         PreserveReferencesHandling = PreserveReferencesHandling.Objects,
         TypeNameHandling = TypeNameHandling.All,
-        ReferenceLoopHandling = ReferenceLoopHandling.Error,
+        ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
         ContractResolver = new WritablePropertiesOnlyResolver(),
 
     };
     static SaveGame() {
         settings.ContractResolver = new DictionaryAsArrayResolver();
     }
-    public static readonly Formatting formmat = Formatting.Indented;
+    public static readonly Formatting format = Formatting.Indented;
 }
 public class LiveGame {
     public System world;

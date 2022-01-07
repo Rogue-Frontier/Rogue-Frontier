@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Helper = Common.Main;
 using static RogueFrontier.SShipBehavior;
+using Newtonsoft.Json;
+
 namespace RogueFrontier;
 public interface IShipOrder : IShipBehavior {
     bool Active { get; }
@@ -40,7 +42,9 @@ public class BaseShipBehavior : IShipBehavior {
     public bool Active => orders.Any();
 }
 public class EscortOrder : IShipOrder {
+    [JsonProperty]
     private AttackOrder attack;
+    [JsonProperty]
     private FollowOrder follow;
     int ticks = 0;
     public EscortOrder() { }
@@ -73,6 +77,7 @@ public class EscortOrder : IShipOrder {
 public class FollowOrder : IShipOrder {
     public XY baseOffset;
     public IShip target => approach.target;
+    [JsonProperty]
     private ApproachOrder approach;
     public FollowOrder(IShip target, XY offset) {
         this.baseOffset = offset;
@@ -90,6 +95,7 @@ public class FollowOrder : IShipOrder {
 public class ApproachOrder : IShipOrder {
     public IShip target;
     public XY offset;
+    [JsonProperty]
     private FaceOrder face;
     public ApproachOrder(IShip target, XY offset) {
         this.target = target;
@@ -141,8 +147,11 @@ public class ApproachOrder : IShipOrder {
     public bool Active => true;
 }
 public class GuardOrder : IShipOrder {
+    [JsonProperty]
     public SpaceObject GuardTarget { get; private set; }
+    [JsonProperty]
     public AttackOrder attackOrder { get; private set; }
+    [JsonProperty]
     private ApproachOrbitOrder approach;
     public int attackTime;
     public int ticks;
@@ -274,9 +283,13 @@ public class AttackOrder : IShipOrder {
     public SpaceObject target { get; private set; }
     public Weapon weapon;
     public List<Weapon> omni=new();
+    [JsonProperty]
     private AimOrder aim = new(null, 0);
+    [JsonProperty]
     private ApproachOrbitOrder approach = new(null);
+    [JsonProperty]
     private GateOrder gate = null;
+    [JsonProperty]
     private FaceOrder face = new(0);
     public AttackOrder(SpaceObject target) {
         SetTarget(target);
@@ -453,7 +466,7 @@ public class PatrolOrbitOrder : IShipOrder {
 }
 public class PatrolCircuitOrder : IShipOrder {
     public SpaceObject patrolTarget;
-    public IEnumerable<SpaceObject> nearbyFriends;
+    public List<SpaceObject> nearbyFriends;
     public SpaceObject nearestFriend;
     public double patrolRadius;
     public double attackLimit;
@@ -464,7 +477,7 @@ public class PatrolCircuitOrder : IShipOrder {
         this.patrolTarget = patrolTarget;
         this.patrolRadius = patrolRadius;
         this.attackLimit = 2 * patrolRadius;
-        this.nearbyFriends = new List<SpaceObject>();
+        this.nearbyFriends = new();
         this.attackOrder = new(null);
         this.face = new(0);
     }
@@ -500,11 +513,11 @@ public class PatrolCircuitOrder : IShipOrder {
 
 
         //Update our awareness of friendly stations periodically
-        if (tick % 300 == 0 || nearbyFriends == null) {
+        if (tick % 300 == 0) {
             var friendlyStations = owner.world.entities.all.OfType<Station>()
                 .Where(s => s.sovereign == patrolTarget.sovereign)
                 .OrderBy(s => (s.position - patrolTarget.position).magnitude2);
-            var nearbyFriends = new HashSet<SpaceObject>();
+            nearbyFriends = new();
             nearbyFriends.Add(patrolTarget);
             var threshold = 100 * 100;
             foreach (var s in friendlyStations) {
@@ -512,7 +525,6 @@ public class PatrolCircuitOrder : IShipOrder {
                     nearbyFriends.Add(s);
                 }
             }
-            this.nearbyFriends = nearbyFriends;
 
         }
 
@@ -551,6 +563,7 @@ public class PatrolCircuitOrder : IShipOrder {
 public class SnipeOrder : IShipOrder {
     public SpaceObject target;
     public Weapon weapon;
+    [JsonProperty]
     private AimOrder aim;
     public SnipeOrder(SpaceObject target) {
         this.target = target;
@@ -581,6 +594,7 @@ public class SnipeOrder : IShipOrder {
 }
 public class ApproachOrbitOrder : IShipOrder {
     public SpaceObject target;
+    [JsonProperty]
     private FaceOrder face;
     public ApproachOrbitOrder(SpaceObject target) {
         this.target = target;

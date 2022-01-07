@@ -11,9 +11,22 @@ using Newtonsoft.Json;
 namespace RogueFrontier;
 
 public class TypeCollection {
-    private Dictionary<string, XElement> sources;
-    public Dictionary<string, DesignType> all;
-    private Dictionary<Type, object> dicts;
+    [JsonProperty]
+    private Dictionary<string, XElement> sources=new();
+    [JsonProperty]
+    public Dictionary<string, DesignType> all=new();
+    [JsonProperty]
+    private Dictionary<Type, object> dicts = new() {
+        [typeof(GenomeType)] = new Dictionary<string, GenomeType>(),
+        [typeof(ImageType)] = new Dictionary<string, ImageType>(),
+        [typeof(ItemType)] = new Dictionary<string, ItemType>(),
+        [typeof(PowerType)] = new Dictionary<string, PowerType>(),
+        [typeof(SceneType)] = new Dictionary<string, SceneType>(),
+        [typeof(ShipClass)] = new Dictionary<string, ShipClass>(),
+        [typeof(Sovereign)] = new Dictionary<string, Sovereign>(),
+        [typeof(StationType)] = new Dictionary<string, StationType>(),
+        [typeof(SystemType)] = new Dictionary<string, SystemType>(),
+    };
 
     enum InitState {
         InitializePending,
@@ -24,21 +37,6 @@ public class TypeCollection {
 
     //After our first initialization, any types we create later must be initialized immediately. Any dependency types must already be bound
     public TypeCollection() {
-        sources = new Dictionary<string, XElement>();
-        all = new Dictionary<string, DesignType>();
-        dicts = new() {
-            [typeof(GenomeType)] = new Dictionary<string, GenomeType>(),
-            [typeof(ImageType)] = new Dictionary<string, ImageType>(),
-            [typeof(ItemType)] = new Dictionary<string, ItemType>(),
-            [typeof(PowerType)] = new Dictionary<string, PowerType>(),
-            [typeof(SceneType)] = new Dictionary<string, SceneType>(),
-            [typeof(ShipClass)] = new Dictionary<string, ShipClass>(),
-            [typeof(Sovereign)] = new Dictionary<string, Sovereign>(),
-            [typeof(StationType)] = new Dictionary<string, StationType>(),
-            [typeof(SystemType)] = new Dictionary<string, SystemType>(),
-        };
-
-
         state = InitState.InitializePending;
 
         Debug.Print("TypeCollection created");
@@ -175,51 +173,53 @@ public interface ITile {
     void Update() { }
 }
 public record StaticTile() : ITile {
+    [JsonIgnore]
+    public ColoredGlyph Original => new (foreground, background, glyph);
     [JsonProperty]
-    public ColoredGlyph Original { get; set; }
-    [JsonIgnore]
-    public Color foreground => Original.Foreground;
-    [JsonIgnore]
-    public Color Background => Original.Background;
-    [JsonIgnore]
-    public int GlyphCharacter => Original.GlyphCharacter;
+    [Opt] public Color foreground;
+    [JsonProperty]
+    [Opt] public Color background;
+    [JsonProperty]
+    [Req] public char glyph;
     public StaticTile(XElement e) : this() {
-        char c = e.ExpectAttChar("glyph");
-        Color foreground = e.TryAttColor("foreground", Color.White);
-        Color background = e.TryAttColor("background", Color.Transparent);
-
-        Original = new ColoredGlyph(foreground, background, c);
+        e.Initialize(this);
     }
-    public StaticTile(ColoredGlyph Glyph) : this() => this.Original = Glyph;
-    public StaticTile(char c) : this() {
-        Original = new ColoredGlyph(Color.White, Color.Black, c);
-    }
+    public StaticTile(ColoredGlyph cg) : this() =>
+        (foreground, background, glyph) = (cg.Foreground, cg.Background, cg.GlyphCharacter);
+    public StaticTile(char c) : this() =>
+        (foreground, background, glyph) = (Color.White, Color.Black, c);
     public StaticTile(char c, string foreground, string background) : this() {
-        var fore = (Color)typeof(Color).GetField(foreground).GetValue(null);
-        var back = (Color)typeof(Color).GetField(background).GetValue(null);
-        Original = new ColoredGlyph(fore, back, c);
+        this.foreground=(Color)typeof(Color).GetField(foreground).GetValue(null);
+        this.background=(Color)typeof(Color).GetField(background).GetValue(null);
+        this.glyph = c;
     }
     public static implicit operator ColoredGlyph(StaticTile t) => t.Original;
     public static implicit operator StaticTile(ColoredGlyph cg) => new StaticTile(cg);
 }
 
 public record AlphaTile() : ITile {
+
+    [JsonIgnore]
+    public ColoredGlyph Original => new(foreground, background, glyph);
     [JsonProperty]
-    public ColoredGlyph Original { get; set; }
+    [Opt] public Color foreground;
+    [JsonProperty]
+    [Opt] public Color background;
+    [JsonProperty]
+    [Req] public int glyph;
+    [JsonIgnore]
+    private double alpha => alphaRange * Math.Sin(ticks * 2 * Math.PI / cycle);
     [JsonIgnore]
     public ColoredGlyph Glyph => new ColoredGlyph(
-        Original.Foreground.SetAlpha((byte)(
-            Original.Foreground.A + alphaRange * Math.Sin(ticks * 2 * Math.PI / cycle))),
-        Original.Background.SetAlpha((byte)(
-            Original.Background.A + alphaRange * Math.Sin(ticks * 2 * Math.PI / cycle))),
-        Original.Glyph);
+        foreground.SetAlpha((byte)(foreground.A + alpha)),
+        background.SetAlpha((byte)(background.A + alpha)),
+        glyph);
     int cycle;
     int alphaRange;
-
     int ticks = 0;
-    public AlphaTile(ColoredGlyph Glyph) : this() => Original = Glyph;
-    public void Update() {
+    public AlphaTile(ColoredGlyph cg) : this() =>
+        (foreground, background, glyph) = (cg.Foreground, cg.Background, cg.Glyph);
+    public void Update() =>
         ticks++;
-    }
     public static implicit operator ColoredGlyph(AlphaTile t) => t.Original;
 }

@@ -219,7 +219,7 @@ public class Station : DockableObject, ITrader {
         if (segments != null) {
             foreach (var segment in segments) {
                 var offset = segment.desc.offset;
-                var tile = new ColoredGlyph(new Color(128, 128, 128), Color.Black, segment.desc.tile.GlyphCharacter);
+                var tile = new ColoredGlyph(new Color(128, 128, 128), Color.Black, segment.desc.tile.glyph);
                 world.AddEntity(new Segment(wreck, new SegmentDesc(offset, new StaticTile(tile))));
             }
         }
@@ -256,6 +256,7 @@ public class Station : DockableObject, ITrader {
         behavior?.Update(this);
     }
     public Console GetDockScene(Console prev, PlayerShip playerShip) => null;
+    [JsonIgnore]
     public ColoredGlyph tile => type.tile.Original;
 }
 public interface ISegment : SpaceObject {
