@@ -18,7 +18,7 @@ _Rogue Frontier_ is an ambitious ASCII-style space adventure RPG set in an alter
 - [ASECII](https://github.com/INeedAUniqueUsername/ASECII)
 
 ## Run
-Please make sure you have .NET 5.0 installed. Let me know if you have any problems with running the game.
+Please make sure you have .NET 6.0 installed. Let me know if you have any problems with running the game.
 
 ## Development
 This game is currently a well-developed engine demo. Most of the main UI features are polished and complete. The XML type system is complete. The current bottleneck is content and story development. The following features are implemented:
@@ -58,7 +58,7 @@ I plan to write story and implement long-term player progression.
 
 For a particularly advanced goal, I would like to implement station docking as a turn-based roguelike sub-game where the player can walk around ASCII-style station floors and interact with characters in person.
 
-The second part of *Transcendence* is titled "The Vault of the Galaxy." In kind, I plan to title the second part of *Transcendence: Rogue Frontier* as "The Hall of the GALASCII" (Galactic Alien Lifeforms A la Star Control II)
+The second part of *Transcendence* is titled "The Vault of the Galaxy." In kind, I plan to title the second part of *Rogue Frontier* as "The Hall of the GALASCII" (Galactic Alien Lifeforms A la Star Control II)
 
 # Island Hopper
-PlayerUnknown's Battlegrounds with the gameplay of Dwarf Fortress and the writing of Team Fortress 2
+Island Hopper is a horrible roguelike parodying PlayerUnknown's Battlegrounds with the gameplay of Dwarf Fortress and the writing of Team Fortress 2
