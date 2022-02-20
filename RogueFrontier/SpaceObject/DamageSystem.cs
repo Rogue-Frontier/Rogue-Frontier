@@ -7,7 +7,7 @@ namespace RogueFrontier;
 
 public static class SDamageSystem {
     public static void React(this SpaceObject owner, SpaceObject source) {
-        if (source is PlayerShip ps && !owner.sovereign.IsEnemy(ps)) {
+        if (source is PlayerShip ps && !owner.sovereign.IsEnemy(ps) && !owner.CanTarget(ps)) {
             ps.AddMessage(new Transmission(owner, $@"""Watch your targets!"" - {owner.name}", 1));
         }
     }

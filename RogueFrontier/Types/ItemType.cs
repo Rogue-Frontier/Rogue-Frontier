@@ -31,7 +31,7 @@ public record DeployShip : ItemUse {
         var w = new Wingmate(player);
         var a = new AIShip(
             new BaseShip(player.world, shipType, player.sovereign, player.position),
-            w
+            behavior:w
             );
         player.onDestroyed += w;
         player.world.AddEntity(a);

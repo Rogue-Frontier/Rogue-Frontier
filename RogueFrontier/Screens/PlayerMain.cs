@@ -1515,7 +1515,7 @@ public class Edgemap : Console {
                     Projectile p => p.tile.Foreground,
                     _ => Color.Transparent
                 };
-                this.Print(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
+                this.SetCellAppearance(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
             }
         }
         base.Render(drawTime);
@@ -1701,7 +1701,7 @@ public class CommunicationsMenu : Console {
                     };
                     commands["Attack Target"] = i => {
                         if (player.GetTarget(out SpaceObject target)) {
-                            subject.behavior = new BaseShipBehavior(new AttackOrder(target), GetEscortOrder(i));
+                            subject.behavior = new CompoundOrder(new AttackOrder(target), GetEscortOrder(i));
                             player.AddMessage(new Message($"Ordered {subject.name} to {commands.Keys.ElementAt(i)}"));
                         } else {
                             player.AddMessage(new Message($"No target selected"));

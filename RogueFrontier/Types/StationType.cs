@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace RogueFrontier;
 
-public enum StationBehaviors {
+public enum EStationBehaviors {
     none,
     raisu,
     pirate,
@@ -20,7 +20,7 @@ public class StationType : DesignType {
     [Req] public string name;
     [Req] public int hp;
     [Opt] public bool crimeOnDestroy;
-    public StationBehaviors behavior;
+    public EStationBehaviors behavior;
     public Sovereign Sovereign;
     public StaticTile tile;
     public ItemList cargo;
@@ -29,14 +29,14 @@ public class StationType : DesignType {
     public List<SegmentDesc> segments;
     public List<XY> dockPoints;
 
-    public ShipList guards;
+    public ShipList ships;
     public SystemGroup satellites;
 
     public Dictionary<(int, int), ColoredGlyph> heroImage;
 
     public void Initialize(TypeCollection collection, XElement e) {
         e.Initialize(this);
-        behavior = e.TryAttEnum(nameof(behavior), StationBehaviors.none);
+        behavior = e.TryAttEnum(nameof(behavior), EStationBehaviors.none);
         Sovereign = collection.Lookup<Sovereign>(e.ExpectAtt("sovereign"));
         tile = new StaticTile(e);
         dockPoints = new();
@@ -131,8 +131,8 @@ public class StationType : DesignType {
         if (e.HasElement("Cargo", out XElement xmlCargo) || e.HasElement("Items", out xmlCargo)) {
             cargo = new(xmlCargo);
         }
-        if (e.HasElement("Guards", out var xmlGuards)) {
-            guards = new(xmlGuards);
+        if (e.HasElement("Ships", out var xmlShips)) {
+            ships = new(xmlShips);
         }
         if (e.HasElement("HeroImage", out var heroImage)) {
             if (heroImage.TryAtt("path", out string path)) {

@@ -25,9 +25,9 @@
 			<Line  offsetX="0"	offsetY="-2"	width=	"12"	glyph="-"
 				   foreground="White"/>
 		</Segments>
-		<Guards>
+		<Ships>
 			<Ship	count="2"	codename="ship_clark"/>
-		</Guards>
+		</Ships>
 		<Weapons>
 		</Weapons>
 	</StationType>

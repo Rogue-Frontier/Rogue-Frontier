@@ -34,12 +34,12 @@
 			<MultiPoint offsetX="3" offsetY="0" angleInc="90"/>
 			<MultiPoint offsetX="4" offsetY="0" angleInc="90"/>
 		</Dock>
-		<Guards>
+		<Ships>
 			<Ship	count="1"	codename="ship_beowulf" order="patrolCircuit" patrolRadius="20"/>
 			<Ship	count="3"	codename="ship_beowulf"/>
 			<Ship	count="2"	codename="ship_amethyst"/>
-			<Ship	count="1"	codename="ship_clark"/>
-		</Guards>
+			<Ship	count="1"	codename="ship_clark_merchant"/>
+		</Ships>
 		<Cargo>
 			<Item count="60"	codename="item_simple_fuel_rod"/>
 			<Item count="20"	codename="item_armor_repair_patch"/>
@@ -75,9 +75,9 @@
 				   foreground="White"/>
 		</Segments>
 
-		<Guards>
+		<Ships>
 			<Ship	count="2"	codename="ship_clark"/>
-		</Guards>
+		</Ships>
 		<Weapons>
 		</Weapons>
 		<!--
@@ -106,9 +106,9 @@
 				   foreground="White"/>
 		</Segments>
 
-		<Guards>
+		<Ships>
 			<Ship	count="6"	codename="ship_orion_raider" sovereign="svOrionWarlords" order="patrol" patrolRadius="20"/>
-		</Guards>
+		</Ships>
 		<Weapons>
 		</Weapons>
 		<!--
@@ -142,11 +142,11 @@
 			<Point offsetX="2" offsetY="0"/>
 			<Point offsetX="-2" offsetY="0"/>
 		</Dock>
-		<Guards>
+		<Ships>
 			<Ship	count="1"	codename="ship_beowulf"/>
 			<Ship	count="2"	codename="ship_amethyst"/>
 			<Ship	count="1"	codename="ship_clark"/>
-		</Guards>
+		</Ships>
 		<Cargo>
 			<Item count="40"	codename="item_armor_repair_patch"/>
 			<Item count="8" codename="item_crystalsteel_plate"/>
@@ -183,11 +183,11 @@
 			<Point offsetX="2" offsetY="0"/>
 			<Point offsetX="-2" offsetY="0"/>
 		</Dock>
-		<Guards>
+		<Ships>
 			<Ship	count="2"	codename="ship_beowulf"/>
 			<Ship	count="1"	codename="ship_amethyst"/>
 			<Ship	count="1"	codename="ship_clark"/>
-		</Guards>
+		</Ships>
 		<Cargo>
 
 			<Item count="8" codename="item_amethyst_laser"/>

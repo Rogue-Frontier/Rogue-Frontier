@@ -16,11 +16,11 @@ public class Crime : ICrime {
         this.resolved = resolved;
     }
 }
-public class Destruction : ICrime {
-    public string name => $"destruction of {station.name}";
+public class DestructionCrime : ICrime {
+    public string name => $"destruction of {destroyed.name}";
     public bool resolved { get; set; } = false;
-    public Station station;
-    public Destruction(Station station) {
-        this.station = station;
+    public SpaceObject destroyed;
+    public DestructionCrime(SpaceObject destroyed) {
+        this.destroyed = destroyed;
     }
 }

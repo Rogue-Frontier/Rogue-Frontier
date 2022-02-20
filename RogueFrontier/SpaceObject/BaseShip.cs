@@ -237,7 +237,6 @@ public class BaseShip : SpaceObject {
                 if (velocity.magnitude > shipClass.maxSpeed) {
                     velocity = velocity.normal * shipClass.maxSpeed;
                 }
-
                 thrusting = false;
             }
         }
@@ -292,23 +291,21 @@ public class BaseShip : SpaceObject {
 public static class SShipBehavior {
     public static bool CanTarget(this IShipBehavior behavior, SpaceObject other) {
         switch (behavior) {
-            case BaseShipBehavior b:
-                return b.orders.Any(order => order.CanTarget(other));
             case Wingmate w:
                 return w.order is ICombatOrder c && c.CanTarget(other);
+            case ICombatOrder o:
+                return o.CanTarget(other);
         }
         return false;
     }
     public static IShipOrder GetOrder(this IShipBehavior behavior) {
         switch (behavior) {
-            case BaseShipBehavior b:
-                return b.current;
             case Wingmate w:
                 return w.order;
             case IShipOrder o:
                 return o;
-            case IShipBehavior b:
-                return null;
+            case Sulphin s:
+                return s.order;
             default:
                 throw new Exception("Unknown behavior type");
         }
@@ -325,9 +322,9 @@ public interface IShipBehavior {
 public class Sulphin : IShipBehavior {
     public int ticks = 0;
     public HashSet<PlayerShip> playersMet = new();
-    public IShipBehavior order;
+    public IShipOrder order;
     public Sulphin() {}
-    public Sulphin(IShipBehavior order) {
+    public Sulphin(IShipOrder order) {
         this.order = order;
     }
     public void Update(AIShip owner) {
@@ -392,12 +389,12 @@ public class AIShip : IShip, DockableObject {
     //The behavior sets the current order and does not affect ship controls
     public IShipBehavior behavior;
     public AIShip() { }
-    public AIShip(BaseShip ship, IShipBehavior behavior) {
+    public AIShip(BaseShip ship, IShipBehavior behavior = null, IShipOrder order = null) {
         this.ship = ship;
-        this.behavior = ship.shipClass.behavior switch {
-            ShipBehaviors.sulphin => new Sulphin(behavior),
-            ShipBehaviors.none => behavior,
-            _ => behavior
+        this.behavior = behavior ?? ship.shipClass.behavior switch {
+            EShipBehavior.sulphin => new Sulphin(order),
+            EShipBehavior.none => order,
+            _ => order
         };
     }
     public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
@@ -407,6 +404,9 @@ public class AIShip : IShip, DockableObject {
     public void Destroy(SpaceObject source) {
         if (source is PlayerShip ps) {
             ps.shipsDestroyed.Add(this);
+            if (shipClass.crimeOnDestroy) {
+                ps.crimeRecord.Add(new DestructionCrime(this));
+            }
         }
         ship.Destroy(source);
     }

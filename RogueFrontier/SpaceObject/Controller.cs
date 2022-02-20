@@ -12,17 +12,17 @@ public interface IShipOrder : IShipBehavior {
     //void Update(AIShip owner);
     public bool CanTarget(SpaceObject other) => false;
 
-    public delegate IShipOrder Create(SpaceObject owner);
+    public delegate IShipOrder Create(SpaceObject target);
 }
 
 public interface ICombatOrder {
     public bool CanTarget(SpaceObject other) => false;
 }
-public class BaseShipBehavior : IShipBehavior {
+public class CompoundOrder : IShipOrder {
     public List<IShipOrder> orders;
     public IShipOrder current => orders.Any() ? orders[0] : null;
-    public BaseShipBehavior() { }
-    public BaseShipBehavior(params IShipOrder[] orders) {
+    public CompoundOrder() { }
+    public CompoundOrder(params IShipOrder[] orders) {
         this.orders = new List<IShipOrder>(orders);
     }
     public void Update(AIShip owner) {

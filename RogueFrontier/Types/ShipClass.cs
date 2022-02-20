@@ -3,20 +3,21 @@ using System;
 using System.Xml.Linq;
 namespace RogueFrontier;
 
-public enum ShipBehaviors {
+public enum EShipBehavior {
     none, sulphin
 }
 public class ShipClass : DesignType {
     public static ShipClass empty => new ShipClass() { devices = new DeviceList(), damageDesc = new HPSystemDesc(), rotationDecel = 1 };
 
-    public string codename;
-    public string name;
-    public double thrust;
-    public double maxSpeed;
-    public double rotationMaxSpeed;
-    public double rotationDecel;
-    public double rotationAccel;
-    public ShipBehaviors behavior;
+    [Req] public string codename;
+    [Req] public string name;
+    [Req] public double thrust;
+    [Req] public double maxSpeed;
+    [Req] public double rotationMaxSpeed;
+    [Req] public double rotationDecel;
+    [Req] public double rotationAccel;
+    [Opt] public bool crimeOnDestroy;
+    public EShipBehavior behavior;
     public StaticTile tile;
     public HullSystemDesc damageDesc;
     public ItemList cargo;
@@ -30,30 +31,54 @@ public class ShipClass : DesignType {
     }
     public ShipClass() { }
     public void Initialize(TypeCollection collection, XElement e) {
-        codename = e.ExpectAtt("codename");
-        name = e.ExpectAtt("name");
-        thrust = e.ExpectAttDouble("thrust");
-        maxSpeed = e.ExpectAttDouble("maxSpeed");
-        rotationMaxSpeed = e.ExpectAttDouble("rotationMaxSpeed");
-        rotationDecel = e.ExpectAttDouble("rotationDecel");
-        rotationAccel = e.ExpectAttDouble("rotationAccel");
-        behavior = e.TryAttEnum(nameof(behavior), ShipBehaviors.none);
-        tile = new StaticTile(e);
+        if(e.TryAtt("inherit", out string inherit)) {
+            var parent = collection.Lookup<ShipClass>(inherit);
+            codename = e.Att(nameof(codename));
+            name = e.TryAtt(nameof(name), parent.name);
+            thrust = e.TryAttDouble(nameof(thrust), parent.thrust);
+            maxSpeed = e.TryAttDouble(nameof(maxSpeed), parent.maxSpeed);
+            rotationMaxSpeed = e.TryAttDouble(nameof(rotationMaxSpeed), parent.rotationMaxSpeed);
+            rotationDecel = e.TryAttDouble(nameof(rotationDecel), parent.rotationDecel);
+            rotationAccel = e.TryAttDouble(nameof(rotationAccel), parent.rotationAccel);
+            crimeOnDestroy = e.TryAttBool(nameof(crimeOnDestroy), parent.crimeOnDestroy);
+
+            tile = parent.tile;
+
+            behavior = parent.behavior;
+            damageDesc = parent.damageDesc;
+            devices = parent.devices;
+            cargo = parent.cargo;
+            playerSettings = parent.playerSettings;
+
+
+            if(e.HasElement("Tile", out XElement xmlTile)){
+                tile = new(xmlTile);
+            }
+        } else {
+            e.Initialize(this);
+
+            tile = new(e);
+        }
+        behavior = e.TryAttEnum(nameof(behavior), behavior);
+        
         if (e.HasElement("HPSystem", out XElement xmlHPSystem)) {
             damageDesc = new HPSystemDesc(xmlHPSystem);
         } else if (e.HasElement("LayeredArmorSystem", out XElement xmlLayeredArmor)) {
             damageDesc = new LayeredArmorDesc(xmlLayeredArmor);
-        } else {
+        }
+        
+        if(damageDesc == null) {
             throw new Exception("<ShipClass> requires either <HPSystem> or <LayeredArmorSystem> subelement");
         }
+
         if (e.HasElement("Devices", out XElement xmlDevices)) {
-            devices = new DeviceList(xmlDevices);
+            devices = new(xmlDevices);
         }
         if (e.HasElement("Cargo", out XElement xmlCargo) || e.HasElement("Items", out xmlCargo)) {
-            cargo = new ItemList(xmlCargo);
+            cargo = new(xmlCargo);
         }
         if (e.HasElement("PlayerSettings", out XElement xmlPlayerSettings)) {
-            playerSettings = new PlayerSettings(xmlPlayerSettings);
+            playerSettings = new(xmlPlayerSettings);
         }
     }
 }

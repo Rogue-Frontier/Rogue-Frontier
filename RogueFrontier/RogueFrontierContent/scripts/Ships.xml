@@ -202,6 +202,30 @@
             </Map>
         </PlayerSettings>
     </ShipClass>
+	<ShipClass codename="ship_clark_merchant"
+			   name="Clark-class merchant"
+			   inherit="ship_clark"
+			   crimeOnDestroy="true"
+			   >
+
+		<Items>
+			<Item codename="item_armor_repair_patch"	count="24"/>
+
+			<Item codename="item_simple_fuel_rod" count="120"/>
+			<ItemTable count="240">
+				<Item chance="1" codename="item_simple_fuel_rod" count="4"/>
+				<Item chance="1" codename="item_klaw_missile_launcher" count="1"/>
+				<Item chance="1" codename="item_klaw_missile" count="20"/>
+				<Item chance="1" codename="item_laser_drone" count="1"/>
+				<Item chance="1" codename="item_dynamite_cannon" count="1"/>
+				<Item chance="1" codename="item_dynamite_charge" count="10"/>
+				<Item chance="1" codename="item_shield_bash" count="1"/>
+				<Item chance="1" codename="item_buckler_shield" count="1"/>
+
+			</ItemTable>
+		</Items>
+		<PlayerSettings startingClass="false" description=""/>
+	</ShipClass>
     <!--
     <ShipClass codename="scFlatbed"
         

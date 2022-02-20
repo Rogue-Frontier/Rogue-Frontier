@@ -12,9 +12,7 @@ using System;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
-
 namespace RogueFrontier;
-
 partial class Program {
     public static int TICKS_PER_SECOND = 60;
     static Program() {
@@ -38,7 +36,6 @@ partial class Program {
             StartGame(StartRegular);
         }
     }
-
     public static void StartData() {
         using (var s = new StreamWriter("data.csv"))
         using (var c = new CsvWriter(s, new(CultureInfo.InvariantCulture))) {
@@ -54,7 +51,6 @@ partial class Program {
         Game.Instance.Run();
         Game.Instance.Dispose();
     }
-
     public static System GenerateIntroSystem() {
         var w = new System();
         w.types.LoadFile(main);
@@ -64,7 +60,6 @@ partial class Program {
         return w;
     }
     public static void StartServer() {
-        
         var t = new TitleScreen(Width, Height, GenerateIntroSystem());
         for(int i = 0; i < 100; i++) t.Update(new());
         t.Server();

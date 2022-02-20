@@ -13,12 +13,11 @@ class Program {
     static void Main(string[] args) {
         // Setup the engine and create the main window.
         SadConsole.Game.Create(Width, Height, "RogueFrontierContent/sprites/IBMCGA.font");
-        SadConsole.Game.Instance.DefaultFontSize = Font.Sizes.Four;
+        SadConsole.Game.Instance.DefaultFontSize = IFont.Sizes.Four;
         SadConsole.Game.Instance.OnStart = Init;
         SadConsole.Game.Instance.Run();
         SadConsole.Game.Instance.Dispose();
     }
-
     private static void Init() {
         RogueFrontier.System w = new RogueFrontier.System();
         w.types.LoadFile("RogueFrontierContent/scripts/Main.xml");
@@ -37,7 +36,7 @@ class Program {
         }
 
         s.Render(new TimeSpan());
-        var t = ((ScreenSurfaceRenderer)s.Renderer).BackingTexture;
+        var t = ((ScreenSurfaceRenderer)s.Renderer)._backingTexture;
         t.Save("GraphicsContent/Archcannon.png");
 
         Environment.Exit(0);

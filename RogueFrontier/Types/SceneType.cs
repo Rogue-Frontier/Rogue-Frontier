@@ -62,12 +62,6 @@ public class HeroImageScene : Console {
         }
         base.Render(delta);
     }
-    public override bool ProcessMouse(MouseScreenObjectState state) {
-        return base.ProcessMouse(state);
-    }
-    public override bool ProcessKeyboard(Keyboard keyboard) {
-        return base.ProcessKeyboard(keyboard);
-    }
 }
 public enum NavFlags : long {
     ESC = 0b1,

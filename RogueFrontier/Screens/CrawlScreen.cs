@@ -19,10 +19,12 @@ class CrawlScreen : Console {
             new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/sprites/PillarsOfCreation.cg")))
         };
     private readonly string[] text = new string[] {
-@"The Orator's Revelation:            
-Visions of a different universe...            
-Of a timeline drastically changed?            
-Or of one reconstructed entirely?",
+@"In a dreaming I could see
+the words of a deity borne
+The Orator who would speak
+a 
+
+",
 
 @"...In a time far beyond what
 mankind currently knows as time,
@@ -31,6 +33,12 @@ altogether remade new entirely,
 a different mankind grows out of
 the metaphorical ashes of our
 own mortal era...",
+
+@"
+In the vision, I could see
+of troubles forever more
+The Orator now then speaks
+a request for piety sworn",
 
 @"...But only those who are willing
 to meet the Orator at their home
@@ -172,7 +180,7 @@ I know it was much more than a dream." }.Select(line => line.Replace("\r", "")).
                     foreach ((var p, var t) in images[0].Sprite
                         .Where(p => p.Key.x < backgroundSlideX && p.Key.y > topEdge && p.Key.y < bottomEdge)) {
 
-                        this.Print(p.x, p.y, t);
+                        this.SetCellAppearance(p.x, p.y, t);
                     }
 
                     int effectY = topEdge;
@@ -191,14 +199,14 @@ I know it was much more than a dream." }.Select(line => line.Replace("\r", "")).
                         foreach ((var p, var t) in images[0].Sprite
                             .Where(p => p.Key.x >= backgroundSlideX && p.Key.y > topEdge && p.Key.y < bottomEdge)) {
 
-                            this.Print(p.x, p.y, t);
+                            this.SetCellAppearance(p.x, p.y, t);
                         }
                     }
 
                     foreach ((var p, var t) in images[1].Sprite
                         .Where(p => p.Key.x < backgroundSlideX && p.Key.y > topEdge && p.Key.y < bottomEdge)) {
 
-                        this.Print(p.x, p.y, t);
+                        this.SetCellAppearance(p.x, p.y, t);
                     }
                     break;
                 }
@@ -207,14 +215,14 @@ I know it was much more than a dream." }.Select(line => line.Replace("\r", "")).
                         foreach ((var p, var t) in images[1].Sprite
                             .Where(p => p.Key.x >= backgroundSlideX && p.Key.y > topEdge && p.Key.y < bottomEdge)) {
 
-                            this.Print(p.x, p.y, t);
+                            this.SetCellAppearance(p.x, p.y, t);
                         }
                     }
                     var b = new ColoredGlyph(Color.Black, Color.Black, 0);
                     foreach ((var p, var t) in images[1].Sprite
                         .Where(p => p.Key.x < backgroundSlideX && p.Key.y > topEdge && p.Key.y < bottomEdge)) {
 
-                        this.Print(p.x, p.y, b);
+                        this.SetCellAppearance(p.x, p.y, b);
                     }
                     break;
                 }

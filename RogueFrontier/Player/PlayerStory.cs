@@ -53,7 +53,7 @@ A stout man stands for reception duty near a wide door.
 You must be new here... May I help you with anything?""
 ".Replace("\r", null);
                 var sc = new Dialog(prev, t, new() {
-                    new(@"""I've been hearing a voice...""", Intro3)
+                    new(@"""I heard a voice...""", Intro3)
                 }) { background = heroImage };
                 return sc;
             }
@@ -73,46 +73,43 @@ entity and several possibly preferred timelines.".Replace("\r", null);
 
             Con Intro3(Con from) {
                 var t =
-@"""I've been hearing a voice. It calls itself...""
-
-""The Orator.""
-
-""And I thought you might know something about it.""
+@"""I heard a voice.
+It calls itself...The Orator.
+And I thought you might know
+something about it,"" you say.
 
 ""Hmmm, yes, we are quite experienced with The Orator.
 Though you are the first guest we've had in a while.
-What did you hear?"" The man asked.".Replace("\r", null);
+What did you hear?"" The man replied.";
                 var sc = new Dialog(prev, t, new() {
-                    new(@"""The voice told me...""", Intro4)
+                    new(@"""The Orator told me...""", Intro4)
                 }) { background = heroImage };
                 return sc;
             }
             Con Intro4(Con from) {
                 string t =
-@"""The voice told me...
+@"""The Orator told me...
 that there is something terribly wrong
-happening to us. With humanity. I had a vision...""
+happening to us. All of us. Humanity.
 
-""...I felt a sort of stillness as I watched
-centuries of human history pass
-beyond the Earth...""
+Forces of conflict are emanating from the Celestial Center
+and provoking extremely deadly wars throughout our civilization.
+A voice known as The Dictator seeks to control us in horrible ways.
 
-""...It was dreadful, watching every civilization cycle
-between war and peace in the most repetitive manner...""
+As I asked The Orator about what would eventually happen to us,
+I heard a droning voice begin to speak loudly over The Orator, slowly
+raising itself into a dreadful yell. I began falling out of the dream.
+The Orator shouted ""SILENCE"" at the other voice, which then stopped,
+before giving me Their final message.
 
-""I saw history crumble, not under earthquake or gravity
-or any other force of nature, but under itself...""
-
-""And the Orator told me, that They had an answer. And that
+The Orator told me, that They had an answer. And that
 if I went to Them, and I found Them at the Galactic Core,
 and I listened to Their words, and I wielded Their powers,
-then They would bring forth an ultimate peace.""
+then They would bring forth an ultimate peace.
 
-""And...""
+And...
 
-Wait, how are you saying all of this- Your mind blanks out.
-
-""...And I... I witnessed all of this in a dream I had?""
+...And I... I witnessed all of this in a strange dream I had.""
 ".Replace("\r", null);
                 var sc = new Dialog(prev, t, new() {
                     new("Continue", Intro5)
@@ -124,11 +121,19 @@ Wait, how are you saying all of this- Your mind blanks out.
 @"The man replies, ""...I understand. That reminds me of
 my own first encounter with The Orator.""
 
-""Experience has taught well-connected Followers that there
-are other answers besides leaving for the Galactic Core.""
+""In that dream, I could see everything - horrible conflicts
+in distant star systems I could never even fathom visiting.
+But I was terribly fearful of the Dictator - so fearful that
+I vowed to see the Celestial Center and personally destroy
+everything that I could find of The Dictator myself.""
+
+""But now I know of older followers who discovered that
+leaving for the Celestial Center was not the only answer.""
 
 ""The old survivors built this place to provide a shelter
-for those who seek a certain kind of answer.""
+for those who seek a different kind of answer - one that
+values peace from within. Our bond with The Orator grants
+us safety from The Dictator. I welcome you to reside here.""
 
 ""Unless, your answer rests..."" he points to a distant star
 shining through the window, ""...far out there.""
@@ -164,9 +169,7 @@ around here... Not since the last war.""
             }
             Dialog Intro7(Con from) {
                 string t =
-@"""That is correct.""
-
-The man sighs.
+@"The man sighs.
 
 ""So you understand that this is not the first time that
 The Orator has spoken, and told someone to just pack up,
@@ -174,7 +177,6 @@ leave, and look for Them somewhere out there?""
 
 ""Are you prepared to die?""
 ";
-                t = t.Replace("\r", null);
                 return new(prev, t, new() {
                     new(@"""Huh?!?!?!""", Intro8)
                 }) { background = heroImage };
@@ -183,26 +185,29 @@ leave, and look for Them somewhere out there?""
                 string t =
 @"The man paces around for a while.
 
-""The Orator calls people on the regular. We know that this
+""The Orator destinately calls people. We know that this
 happens occasionally but predictably. We see a new person
-come in first time, and ask us about The Orator. It's only
-a matter of time until they leave this place for the last
-time and we never see that person again-""
+come in for their first time, and ask us about The Orator.
+It's only a matter of days until they leave this place
+for the last time and we never see that person again-""
 
-""-until they show up in a news headline and
+""-until they show up in a news report in which
 someone identifies them as an unwitting traveler
 who got blown up in the middle of a war zone...""
 
-""...So tell me, what do you intend to do?""";
+""And you know that the rest of the world is currently
+in the middle of the most destructive war in decades.""
+
+""So tell me, what do you intend to do?""";
                 return new Dialog(prev, t, new() {
-                    new(@"""I intend to reach the Galactic Core.""", Intro9a),
+                    new(@"""I intend to reach the Celestial Center.""", Intro9a),
                     new("...", Intro9b)
                 }) { background = heroImage }; ;
             }
             Dialog Intro9a(Con from) {
                 story.mainInteractions.Remove(this);
                 string t =
-@"""Okay, I see you've already made your mind then.
+@"""Alright then, I see you've already made your mind.
 I'll provide you with some combat training to start
 your journey. That is all. Let's hope you make it.""";
                 return new(prev, t, new() {
@@ -581,8 +586,8 @@ There will be no trial.",
         }
     }
     public IEnumerable<ICrime> GetConstellationCrimes(Station source, PlayerShip p) {
-        return p.crimeRecord.Where(c => c is Destruction d
-            && object.ReferenceEquals(d.station.sovereign, source.sovereign)
+        return p.crimeRecord.Where(c => c is DestructionCrime d
+            && object.ReferenceEquals(d.destroyed.sovereign, source.sovereign)
             && !d.resolved);
     }
     public Con ConstellationAstra(Con prev, Station source, PlayerShip playerShip) {
@@ -722,7 +727,7 @@ Okay, fine, I'll just find someone else to do it then.""",
         Dialog Intro() {
             var nearby = source.world.entities.all
                 .OfType<AIShip>()
-                .Where(s => s.behavior is BaseShipBehavior b
+                .Where(s => s.behavior is CompoundOrder b
                          && b.current is PatrolOrbitOrder p
                          && p.patrolTarget == source);
             if (nearby.Any()) {

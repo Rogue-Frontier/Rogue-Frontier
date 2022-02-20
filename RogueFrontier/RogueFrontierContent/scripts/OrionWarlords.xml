@@ -259,9 +259,9 @@
 		<Segments>
 			<Ring/>
 		</Segments>
-		<Guards>
+		<Ships>
 			<Ship	count="5"	codename="ship_orion_raider"/>
-		</Guards>
+		</Ships>
 		<Weapons>
 			<Weapon	codename="itOrionBolter"/>
 		</Weapons>
@@ -278,13 +278,13 @@
 		<Segments>
 			<Ring/>
 		</Segments>
-		<Guards>
+		<Ships>
 			<Ship	codename="ship_orion_raider"/>
 			<Ship	codename="ship_orion_raider"/>
 			<Ship	codename="ship_orion_raider"/>
 			<Ship	codename="ship_orion_raider"/>
 			<Ship	codename="ship_orion_huntsman"/>
-		</Guards>
+		</Ships>
 		<Weapons>
 			<Weapon	codename="itOrionBow"/>
 		</Weapons>
@@ -311,10 +311,10 @@
 				   foreground="White"/>
 		</Segments>
 
-		<Guards>
+		<Ships>
 			<Ship	count="6"	codename="ship_orion_raider" sovereign="svOrionWarlords" order="patrol" patrolRadius="20"/>
 			<Ship	count="1"	codename="ship_william_sulphin" sovereign="svOrionWarlords" order="patrol" patrolRadius="5"/>
-		</Guards>
+		</Ships>
 		<Weapons>
 		</Weapons>
 		<!--
