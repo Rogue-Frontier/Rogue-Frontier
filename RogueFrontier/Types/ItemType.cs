@@ -9,10 +9,6 @@ using Console = SadConsole.Console;
 using Newtonsoft.Json;
 
 namespace RogueFrontier;
-public enum EItemUse {
-    none, deployShip, installWeapon, repairArmor, invokePower, refuel,
-    depleteTargetShields
-}
 public interface ItemUse {
     string GetDesc(PlayerShip player, Item item);
     void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) { }
@@ -137,8 +133,12 @@ public record DepleteTargetShields() : ItemUse {
             return;
         }
 
-        if (!s.devices.Shield.Any()) {
-            player.AddMessage(new Message($"Target does not have shields"));
+        if (s.devices.Shield.Count == 0) {
+            player.AddMessage(new Message($"Target does not have installed shields"));
+            return;
+        }
+        if(!s.devices.Shield.Any(s => s.hp > 0)) {
+            player.AddMessage(new Message($"Target does not have active shields"));
             return;
         }
         s.devices.Shield.ForEach(s => s.Deplete());
@@ -148,7 +148,21 @@ public record DepleteTargetShields() : ItemUse {
         callback?.Invoke();
     }
 }
+public record ReplaceDevice() : ItemUse {
+    public ItemType from, to;
+    public ReplaceDevice(TypeCollection tc, XElement e) : this() =>
+        (from, to) = (tc.Lookup<ItemType>(e.ExpectAtt("from")), tc.Lookup<ItemType>(e.ExpectAtt("to")));
+    public string GetDesc(PlayerShip player, Item item) =>
+        $"Replace installed {from.name}";
+    public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+        var p = prev.Parent;
+        p.Children.Remove(prev);
+        p.Children.Add(SListScreen.ReplaceDevice(prev, player, item, this, callback));
 
+        player.cargo.Remove(item);
+        callback?.Invoke();
+    }
+}
 
 public record ApplyMod() : ItemUse {
     Modifier mod;
@@ -164,13 +178,14 @@ public record ApplyMod() : ItemUse {
         p.Children.Add(SListScreen.SetMod(prev, player, item, mod, callback));
     }
 }
-public record ItemType : DesignType {
+public record ItemType : IDesignType {
     [Req] public string codename;
     [Req] public string name;
     [Opt] public string desc = "";
     [Req] public int level;
     [Req] public int mass;
-    [Opt] public int value = 0;
+    [Opt] public int value;
+    public HashSet<string> attributes;
     public FragmentDesc ammo;
     public ArmorDesc armor;
     public EngineDesc engine;
@@ -181,7 +196,31 @@ public record ItemType : DesignType {
     public SolarDesc solar;
     public WeaponDesc weapon;
     public ItemUse invoke;
+    public T Get<T>() =>
+        (T)new Dictionary<Type, object>{
+            [typeof(FragmentDesc)] = ammo,
+            [typeof(ArmorDesc)] = armor,
+            [typeof(EngineDesc)] = engine,
+            [typeof(LaunchDesc)] = launcher,
+            [typeof(ReactorDesc)] = reactor,
+            [typeof(ServiceDesc)] = service,
+            [typeof(ShieldDesc)] = shield,
+            [typeof(SolarDesc)] = solar,
+            [typeof(WeaponDesc)] = weapon,
+            [typeof(ItemUse)] = invoke
+        }[typeof(T).GetType()];
+    public enum EItemUse {
+        none,
+        deployShip,
+        installWeapon,
+        repairArmor,
+        invokePower,
+        refuel,
+        depleteTargetShields,
+        replaceDevice
+    }
     public void Initialize(TypeCollection tc, XElement e) {
+        attributes = e.TryAtt("attributes").Split(";").ToHashSet();
         e.Initialize(this);
         invoke = e.TryAttEnum(nameof(invoke), EItemUse.none) switch {
             EItemUse.none => null,
@@ -191,6 +230,7 @@ public record ItemType : DesignType {
             EItemUse.invokePower => new InvokePower(tc, e),
             EItemUse.refuel => new Refuel(tc, e),
             EItemUse.depleteTargetShields=>new DepleteTargetShields(e),
+            EItemUse.replaceDevice => new ReplaceDevice(tc, e),
             _ => null
         };
         foreach (var (tag, action) in new Dictionary<string, Action<XElement>> {
@@ -305,15 +345,11 @@ public record WeaponDesc {
     public WeaponDesc() { }
     public WeaponDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
-        fragment = new FragmentDesc(e);
-
-        if (e.HasElement("Capacitor", out var xmlCapacitor)) {
-            capacitor = new CapacitorDesc(xmlCapacitor);
-        }
-
-        if (e.TryAtt(nameof(ammoType), out string at)) {
-            ammoType = types.Lookup<ItemType>(at);
-        }
+        fragment = new(e.Element("Projectile"));
+        capacitor = e.HasElement("Capacitor", out var xmlCapacitor) ?
+            new(xmlCapacitor) : null;
+        ammoType = e.TryAtt(nameof(ammoType), out string at) ?
+            types.Lookup<ItemType>(at) : null;
         if (e.TryAttBool("pointDefense")) {
             fragment.hitProjectile = true;
             targetProjectile = true;
@@ -342,6 +378,7 @@ public record FragmentDesc {
     [Opt] public bool hitBarrier = true;
 
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
+    public int range2 => range * range;
     public DisruptorDesc disruptor;
     public HashSet<FragmentDesc> fragments;
     public StaticTile effect;
@@ -361,29 +398,30 @@ public record FragmentDesc {
             spreadAngle = e.TryAttDouble(nameof(spreadAngle), count == 1 ? 0 : 3) * Math.PI / 180;
         }
         maneuver *= Math.PI / (180);
-        if (e.HasElements("Fragment", out var fragmentsList)) {
-            fragments = new(fragmentsList.Select(f => new FragmentDesc(f)));
-        }
-        if (e.HasElement("Disruptor", out var xmlDisruptor)) {
-            disruptor = new(xmlDisruptor);
-        }
-        if (e.HasElement("Trail", out var xmlTrail)) {
-            trail = new(xmlTrail);
-        }
-        effect = new StaticTile(e);
+
+        fragments = e.HasElements("Fragment", out var fragmentsList) ?
+            new(fragmentsList.Select(f => new FragmentDesc(f))) : null;
+        disruptor = e.HasElement("Disruptor", out var xmlDisruptor) ?
+            new(xmlDisruptor) : null;
+        trail = e.HasElement("Trail", out var xmlTrail) ?
+            new(xmlTrail) : null;
+        effect = new(e);
     }
 
-    public List<Projectile> GetProjectile(SpaceObject owner, Weapon w, double direction) {
+    public List<Projectile> GetProjectiles(SpaceObject owner, SpaceObject target, double direction) {
         double angleInterval = spreadAngle / count;
         return new(Enumerable.Range(0, count).Select(i => {
             double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
             return new Projectile(owner, this,
                 owner.position + XY.Polar(angle),
                 owner.velocity + XY.Polar(angle, missileSpeed),
-                this.GetManeuver(w.target)
+                GetManeuver(target)
                 );
         }));
     }
+
+    public Maneuver GetManeuver(SpaceObject target) =>
+        target != null && maneuver != 0 ? new Maneuver(target, maneuver, maneuverRadius) : null;
 }
 public record TrailDesc : ITrail {
     [Req] public int lifetime;

@@ -549,7 +549,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
 
 
     void AddStarterKit(PlayerShip playerShip) {
-        playerShip.cargo.UnionWith(ItemList.From(playerShip.world.types, @"
+        playerShip.cargo.UnionWith(Group<Item>.From(playerShip.world.types, SGenerator.ItemFrom, @"
             <Items>
                 <Item codename=""item_orator_charm_silence""       count=""1""/>
                 <Item codename=""item_armor_repair_patch""  count=""4""/>

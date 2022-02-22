@@ -23,8 +23,8 @@
 			<Item codename="item_amethyst_warranty_card"	count="1"/>
 		</Items>
         <LayeredArmorSystem>
-			<Armor  codename="item_crystalsteel_plate"/>
-			<Armor  codename="item_crystalsteel_plate"/>
+			<Armor  codename="item_gemsteel_plate"/>
+			<Armor  codename="item_gemsteel_plate"/>
         </LayeredArmorSystem>
         <PlayerSettings
             startingClass="true"
@@ -98,13 +98,14 @@
 				  background="Black"
         >
 		<Items>
+			<Item codename="item_beowulf_dual_laser_upgrade" count="1"/>
 			<Item codename="item_laser_drone"  count="2"/>
 			<Item codename="item_klaw_missile" count="16"/>
 			<Item codename="item_simple_fuel_rod" count="12"/>
 			<Item codename="item_armor_repair_patch"	count="4"/>
 		</Items>
 		<Devices>
-			<Weapon codename="item_beowulf_dual_cannon"/>
+			<Weapon codename="item_beowulf_dual_laser_cannon"/>
 			<Weapon codename="item_klaw_missile_launcher"/>
 			<Shield codename="item_buckler_shield"/>
 			<Reactor codename="item_foundry_reactor"/>
@@ -212,7 +213,7 @@
 			<Item codename="item_armor_repair_patch"	count="24"/>
 
 			<Item codename="item_simple_fuel_rod" count="120"/>
-			<ItemTable count="240">
+			<ItemTable count="120">
 				<Item chance="1" codename="item_simple_fuel_rod" count="4"/>
 				<Item chance="1" codename="item_klaw_missile_launcher" count="1"/>
 				<Item chance="1" codename="item_klaw_missile" count="20"/>
@@ -221,10 +222,9 @@
 				<Item chance="1" codename="item_dynamite_charge" count="10"/>
 				<Item chance="1" codename="item_shield_bash" count="1"/>
 				<Item chance="1" codename="item_buckler_shield" count="1"/>
-
 			</ItemTable>
 		</Items>
-		<PlayerSettings startingClass="false" description=""/>
+		<PlayerSettings startingClass="true"/>
 	</ShipClass>
     <!--
     <ShipClass codename="scFlatbed"

@@ -1,0 +1,132 @@
+﻿<Module>
+	<StationType	codename="station_amethyst_store"
+					name=		"The Amethyst Store"
+					sovereign=	"sovereign_constellation"
+
+					hp=			"300"
+					
+					crimeOnDestroy="true"
+
+					glyph=		"A"
+					foreground=	"Magenta"
+		>
+		<Segments>
+			<MultiPoint offsetX="2" offsetY="-1" angleInc="90"
+				   glyph="#" foreground="Magenta"/>
+			<MultiPoint offsetX="2" offsetY="0" angleInc="90"
+				   glyph="#" foreground="Magenta"/>
+			<MultiPoint offsetX="2" offsetY="1" angleInc="90"
+				   glyph="#" foreground="Magenta"/>
+			<MultiPoint offsetX="2" offsetY="2" angleInc="90"
+				   glyph="#" foreground="Magenta"/>
+			<Ring/>
+		</Segments>
+		<Dock>
+			<MultiPoint offsetX="2" offsetY="0" angleInc="90"/>
+		</Dock>
+		<Ships>
+			<Ship	count="4"	codename="ship_amethyst"/>
+		</Ships>
+		<Cargo>
+			<Item count="12"	codename="item_amethyst_laser"/>
+			<Item count="12"	codename="item_amethyst_laser_ii"/>
+			<Item count="24"	codename="item_gemsteel_plate"/>
+			<Item count="24"	codename="item_gemsteel_plate_ii"/>
+			<Item count="12"	codename="item_shimmer_shield"/>
+		</Cargo>
+		<Weapons>
+			<Weapon codename="item_amethyst_laser_ii"/>
+		</Weapons>
+	</StationType>
+
+	<ItemType	codename=	"item_amethyst_laser"
+				name=		"Amethyst laser cannon I"
+				level=		"1"
+				mass=		"1000"
+
+				value=		"5000"
+
+				desc=		"The Amethyst laser cannon (manufactured by Amethyst, Inc. for the Amethyst-class yacht) is the only laser cannon that fires a magenta-colored beam. Not that you'll ever get to see it."
+		>
+		<Weapon
+			initialCharges=	"1500"
+			powerUse=		"10"
+			fireCooldown=	"20"
+			>
+			<Projectile
+				missileSpeed=	"100"
+				damageType=		"1"
+				damageHP=		"6"
+				lifetime=		"75"
+				glyph=			"."
+				foreground=		"Magenta"
+				/>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_amethyst_laser_ii"
+			name=		"Amethyst laser cannon II"
+			level=		"1"
+			mass=		"1000"
+
+			value=		"12000"
+
+			desc=		"This is the second-generation Amethyst laser cannon, with incrementally improved damage output over the original."
+		>
+		<Weapon
+			initialCharges=	"1800"
+			powerUse=		"10"
+			fireCooldown=	"15"
+			>
+			<Projectile
+				missileSpeed=	"100"
+				damageType=		"1"
+				damageHP=		"9"
+				lifetime=		"90"
+				glyph=			"."
+				foreground=		"Magenta"
+				/>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_shimmer_shield"
+		name=		"Shimmer shield"
+		level=		"2"
+		mass=		"200"
+		value=		"400"
+				
+		desc=		"Basic shield generator"
+		>
+		<Shield
+			powerUse=		"10"
+			idlePowerUse=	"1"
+			maxHP=			"60"
+			damageDelay=	"30"
+			depletionDelay=	"90"
+			regen=			"60 / 150"
+			>
+		</Shield>
+	</ItemType>
+
+	<ItemType	codename=	"item_gemsteel_plate"
+		name=		"Gemsteel plate I"
+		mass=		"4000"
+		level=		"1"
+		value=		"1500"
+		desc=		"Designed for the Amethyst-class yacht, this semicrystalline armor maintains its aesthetic beauty at any condition. It glows brightly when exposed to starlight, so it's not good for stealth ships."
+		>
+		<Armor	maxHP=		"90"
+			/>
+	</ItemType>
+
+	<ItemType	codename=	"item_gemsteel_plate_ii"
+		name=		"Gemsteel plate II"
+		mass=		"4000"
+		level=		"1"
+		value=		"4000"
+		desc=		"Second-generation Gemsteel armor has improved durability."
+		>
+		<Armor	maxHP=		"150"
+			/>
+	</ItemType>
+</Module>

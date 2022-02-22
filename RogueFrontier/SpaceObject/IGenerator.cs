@@ -142,47 +142,87 @@ public record None<T>() : IGenerator<T> {
     public None(XElement e) : this() { }
     public List<T> Generate(TypeCollection tc) => new();
 }
-public static class SItemGenerator {
-    public static IGenerator<Item> From(XElement element) {
+public static class SGenerator {
+    public static IGenerator<Item> ItemFrom(XElement element) {
+        var f = ItemFrom;
         return element.Name.LocalName switch {
             "Item" => new ItemEntry(element),
-            "Items" => new ItemList(element),
-            "ItemList" => new ItemList(element),
-            "ItemTable" => new ItemTable(element),
+            "Items" => new Group<Item>(element, f),
+            "ItemGroup" => new Group<Item>(element, f),
+            "ItemTable" => new Table<Item>(element, f),
             "None" => new None<Item>(),
-            _ => throw new Exception($"Unknown <Items> subelement {element.Name}")
+            _ => throw new Exception($"Unknown ItemGenerator subelement {element.Name}")
+        };
+    }
+
+    public static IGenerator<Device> DeviceFrom(XElement element) {
+        var f = DeviceFrom;
+        return element.Name.LocalName switch {
+            "Weapon" => new WeaponEntry(element),
+            "Shield" => new ShieldEntry(element),
+            "Reactor" => new ReactorEntry(element),
+            "Solar" => new SolarEntry(element),
+            "Service" => new ServiceEntry(element),
+
+            "Devices" => new Group<Device>(element, f),
+            "DeviceGroup" => new Group<Device>(element, f),
+            "DeviceTable" => new Table<Device>(element, f),
+            "None" => new None<Device>(),
+            _ => throw new Exception($"Unknown DeviceGenerator subelement {element.Name}")
+        };
+    }
+    public static IGenerator<Weapon> WeaponFrom(XElement element) {
+        var f = WeaponFrom;
+        return element.Name.LocalName switch {
+            "Weapon" => new WeaponEntry(element),
+            "Weapons" => new Group<Weapon>(element, f),
+            "WeaponGroup" => new Group<Weapon>(element, f),
+            "WeaponTable" => new Table<Weapon>(element, f),
+            "None" => new None<Weapon>(),
+            _ => throw new Exception($"Unknown WeaponGenerator subelement {element.Name}")
+        };
+    }
+    public static IGenerator<Armor> ArmorFrom(XElement element) {
+        var f = ArmorFrom;
+        return element.Name.LocalName switch {
+            "Armor" => new ArmorEntry(element),
+            "Armors" => new Group<Armor>(element, f),
+            "ArmorGroup" => new Group<Armor>(element, f),
+            "ArmorTable" => new Table<Armor>(element, f),
+            "None" => new None<Armor>(),
+            _ => throw new Exception($"Unknown ArmorGenerator subelement {element.Name}")
         };
     }
 }
-public record ItemList() : IGenerator<Item> {
-    public List<IGenerator<Item>> generators;
-    public static List<Item> From(TypeCollection tc, string str) => new ItemList(XElement.Parse(str)).Generate(tc);
-    public ItemList(XElement e) : this() {
-        generators = new List<IGenerator<Item>>();
+public record Group<T>() : IGenerator<T> {
+    public List<IGenerator<T>> generators;
+    public static List<T> From(TypeCollection tc, Func<XElement, IGenerator<T>> parse, string str) => new Group<T>(XElement.Parse(str), parse).Generate(tc);
+    public Group(XElement e, Func<XElement, IGenerator<T>> parse) : this() {
+        generators = new();
         foreach (var element in e.Elements()) {
-            generators.Add(SItemGenerator.From(element));
+            generators.Add(parse(element));
         }
     }
-    public List<Item> Generate(TypeCollection tc) =>
+    public List<T> Generate(TypeCollection tc) =>
         new(generators.SelectMany(g => g.Generate(tc)));
 }
 
-public record ItemTable() : IGenerator<Item> {
+public record Table<T>() : IGenerator<T> {
     [Opt] public IDice count = new Constant(1);
     [Opt] public bool replacement = true;
-    public List<(double chance, IGenerator<Item>)> generators;
+    public List<(double chance, IGenerator<T>)> generators;
     private double totalChance;
-    public static List<Item> From(TypeCollection tc, string str) => new ItemTable(XElement.Parse(str)).Generate(tc);
-    public ItemTable(XElement e) : this() {
+    public static List<T> From(TypeCollection tc, Func<XElement, IGenerator<T>> parse, string str) => new Table<T>(XElement.Parse(str), parse).Generate(tc);
+    public Table(XElement e, Func<XElement, IGenerator<T>> parse) : this() {
         e.Initialize(this);
         generators = new();
         foreach (var element in e.Elements()) {
             var chance = element.ExpectAttDouble("chance");
-            generators.Add((chance, SItemGenerator.From(element)));
+            generators.Add((chance, parse(element)));
             totalChance += chance;
         }
     }
-    public List<Item> Generate(TypeCollection tc) {
+    public List<T> Generate(TypeCollection tc) {
         if (replacement) {
             return new(Enumerable.Range(0, count.Roll()).SelectMany(i => {
                 var c = new Random().NextDouble() * totalChance;
@@ -196,7 +236,7 @@ public record ItemTable() : IGenerator<Item> {
                 throw new Exception("Unexpected roll");
             }));
         } else {
-            List<(double chance, IGenerator<Item>)> choicesLeft;
+            List<(double chance, IGenerator<T>)> choicesLeft;
             double totalChanceLeft;
             ResetTable();
             return new(Enumerable.Range(0, count.Roll()).SelectMany(i => {
@@ -242,55 +282,19 @@ public record ItemEntry() : IGenerator<Item> {
     public void ValidateEager(TypeCollection tc) =>
         tc.Lookup<ItemType>(codename);
 }
-public interface ArmorGenerator {
-    List<Armor> Generate(TypeCollection tc);
-}
-public record ArmorList() : ArmorGenerator {
-    public List<ArmorGenerator> generators;
-    public ArmorList(XElement e) : this() {
-        generators = new List<ArmorGenerator>();
-        foreach (var element in e.Elements()) {
-            switch (element.Name.LocalName) {
-                case "Armor":
-                    generators.Add(new ArmorEntry(element));
-                    break;
-                default:
-                    throw new Exception($"Unknown <Armor> subelement {element.Name}");
-            }
-        }
-    }
-    public List<Armor> Generate(TypeCollection tc) =>
-        new(generators.SelectMany(g => g.Generate(tc)));
-}
-public record ArmorEntry() : ArmorGenerator {
+public record ArmorEntry() : IGenerator<Armor> {
     [Req] public string codename;
     public ModRoll mod;
     public ArmorEntry(XElement e) : this() {
         e.Initialize(this);
         mod = new(e);
     }
-    List<Armor> ArmorGenerator.Generate(TypeCollection tc) =>
+    List<Armor> IGenerator<Armor>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
     public Armor Generate(TypeCollection tc) =>
         SDevice.Generate<Armor>(tc, codename, mod);
     public void ValidateEager(TypeCollection tc) =>
         Generate(tc);
-    /*
-    public interface Generator<T> where T: Device {
-        List<T> Generate(TypeCollection tc);
-    }
-    public class GeneratorList<T> : Generator<T> where T: Device {
-        public List<Generator<T>> generators;
-        public GeneratorList(XElement e) {
-
-        }
-        public List<T> Generate(TypeCollection tc) {
-            var result = new List<T>();
-            generators.ForEach(g => result.AddRange(g.Generate(tc)));
-            return result;
-        }
-    }
-    */
 
 }
 public static class SDevice {
@@ -300,36 +304,6 @@ public static class SDevice {
         Install<T>(tc, codename, mod) ??
             throw new Exception($"Expected <ItemType> type with <{typeof(T).Name}> desc: {codename}");
 }
-public record DeviceList() : IGenerator<Device> {
-    public List<IGenerator<Device>> generators;
-    public DeviceList(XElement e) : this() {
-        generators = new List<IGenerator<Device>>();
-        foreach (var element in e.Elements()) {
-            switch (element.Name.LocalName) {
-                case "Weapon":
-                    generators.Add(new WeaponEntry(element));
-                    break;
-                case "Shield":
-                    generators.Add(new ShieldEntry(element));
-                    break;
-                case "Reactor":
-                    generators.Add(new ReactorEntry(element));
-                    break;
-                case "Solar":
-                    generators.Add(new SolarEntry(element));
-                    break;
-                case "Service":
-                    generators.Add(new ServiceEntry(element));
-                    break;
-                default:
-                    throw new Exception($"Unknown <Devices> subelement <{element.Name}>");
-            }
-        }
-    }
-    public List<Device> Generate(TypeCollection tc) =>
-        new(generators.SelectMany(g => g.Generate(tc)));
-}
-
 public record ReactorEntry() : IGenerator<Device> {
     [Req] public string codename;
     public ModRoll mod;
@@ -372,7 +346,7 @@ public record ServiceEntry() : IGenerator<Device> {
     public void ValidateEager(TypeCollection tc) => Generate(tc);
 }
 
-public record ShieldEntry() : IGenerator<Device> {
+public record ShieldEntry() : IGenerator<Device>, IGenerator<Shield> {
     public string codename;
 
     public ModRoll mod;
@@ -381,6 +355,8 @@ public record ShieldEntry() : IGenerator<Device> {
         mod = new(e);
     }
     List<Device> IGenerator<Device>.Generate(TypeCollection tc) =>
+        new() { Generate(tc) };
+    List<Shield> IGenerator<Shield>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
     Shield Generate(TypeCollection tc) =>
         SDevice.Generate<Shield>(tc, codename, mod);

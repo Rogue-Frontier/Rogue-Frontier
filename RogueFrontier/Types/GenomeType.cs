@@ -3,7 +3,7 @@ using System.Xml.Linq;
 
 namespace RogueFrontier;
 
-public class GenomeType : DesignType {
+public class GenomeType : IDesignType {
     public string name, species, gender, subjective, objective, possessiveAdj, possessiveNoun, reflexive;
     public void Initialize(TypeCollection collection, XElement e) {
         name = e.ExpectAtt(nameof(name));

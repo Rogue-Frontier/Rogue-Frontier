@@ -377,7 +377,7 @@ public class AIShip : IShip, DockableObject {
     [JsonIgnore]
     public HashSet<SpaceObject> avoidHit => new HashSet<SpaceObject> {
         dock?.Target,
-        (behavior as GuardOrder)?.GuardTarget
+        (behavior as GuardOrder)?.home
     };
     public Docking dock { get; set; }
 

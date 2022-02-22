@@ -6,8 +6,8 @@ namespace RogueFrontier;
 public enum EShipBehavior {
     none, sulphin
 }
-public class ShipClass : DesignType {
-    public static ShipClass empty => new ShipClass() { devices = new DeviceList(), damageDesc = new HPSystemDesc(), rotationDecel = 1 };
+public class ShipClass : IDesignType {
+    public static ShipClass empty => new ShipClass() { devices = new(), damageDesc = new HPSystemDesc(), rotationDecel = 1 };
 
     [Req] public string codename;
     [Req] public string name;
@@ -20,8 +20,8 @@ public class ShipClass : DesignType {
     public EShipBehavior behavior;
     public StaticTile tile;
     public HullSystemDesc damageDesc;
-    public ItemList cargo;
-    public DeviceList devices;
+    public Group<Item> cargo;
+    public Group<Device> devices;
     public PlayerSettings playerSettings;
 
     public void Validate() {
@@ -31,55 +31,33 @@ public class ShipClass : DesignType {
     }
     public ShipClass() { }
     public void Initialize(TypeCollection collection, XElement e) {
-        if(e.TryAtt("inherit", out string inherit)) {
-            var parent = collection.Lookup<ShipClass>(inherit);
-            codename = e.Att(nameof(codename));
-            name = e.TryAtt(nameof(name), parent.name);
-            thrust = e.TryAttDouble(nameof(thrust), parent.thrust);
-            maxSpeed = e.TryAttDouble(nameof(maxSpeed), parent.maxSpeed);
-            rotationMaxSpeed = e.TryAttDouble(nameof(rotationMaxSpeed), parent.rotationMaxSpeed);
-            rotationDecel = e.TryAttDouble(nameof(rotationDecel), parent.rotationDecel);
-            rotationAccel = e.TryAttDouble(nameof(rotationAccel), parent.rotationAccel);
-            crimeOnDestroy = e.TryAttBool(nameof(crimeOnDestroy), parent.crimeOnDestroy);
 
-            tile = parent.tile;
-
-            behavior = parent.behavior;
-            damageDesc = parent.damageDesc;
-            devices = parent.devices;
-            cargo = parent.cargo;
-            playerSettings = parent.playerSettings;
-
-
-            if(e.HasElement("Tile", out XElement xmlTile)){
-                tile = new(xmlTile);
-            }
+        var parent = e.TryAtt("inherit", out string inherit) ? collection.Lookup<ShipClass>(inherit) : null;
+        e.Initialize(this, parent);
+        if (parent != null) {
+            tile = e.HasElement("Tile", out XElement xmlTile) ? 
+                new(xmlTile) : parent.tile;
         } else {
-            e.Initialize(this);
-
             tile = new(e);
         }
-        behavior = e.TryAttEnum(nameof(behavior), behavior);
-        
-        if (e.HasElement("HPSystem", out XElement xmlHPSystem)) {
-            damageDesc = new HPSystemDesc(xmlHPSystem);
-        } else if (e.HasElement("LayeredArmorSystem", out XElement xmlLayeredArmor)) {
-            damageDesc = new LayeredArmorDesc(xmlLayeredArmor);
-        }
-        
-        if(damageDesc == null) {
-            throw new Exception("<ShipClass> requires either <HPSystem> or <LayeredArmorSystem> subelement");
-        }
+        behavior = e.TryAttEnum(nameof(behavior), parent?.behavior ?? EShipBehavior.none);
 
-        if (e.HasElement("Devices", out XElement xmlDevices)) {
-            devices = new(xmlDevices);
-        }
-        if (e.HasElement("Cargo", out XElement xmlCargo) || e.HasElement("Items", out xmlCargo)) {
-            cargo = new(xmlCargo);
-        }
-        if (e.HasElement("PlayerSettings", out XElement xmlPlayerSettings)) {
-            playerSettings = new(xmlPlayerSettings);
-        }
+        damageDesc = e.HasElement("HPSystem", out var xmlHPSystem) ?
+            new HPSystemDesc(xmlHPSystem) :
+            e.HasElement("LayeredArmorSystem", out var xmlLayeredArmor) ?
+            new LayeredArmorDesc(xmlLayeredArmor) :
+            parent?.damageDesc ??
+            throw new Exception("<ShipClass> requires either <HPSystem> or <LayeredArmorSystem> subelement");
+
+        devices = e.HasElement("Devices", out var xmlDevices) ?
+            new(xmlDevices, SGenerator.DeviceFrom) :
+            parent?.devices;
+        cargo = e.HasElement("Cargo", out var xmlCargo) || e.HasElement("Items", out xmlCargo) ?
+            new(xmlCargo, SGenerator.ItemFrom) :
+            parent?.cargo;
+        playerSettings = e.HasElement("PlayerSettings", out var xmlPlayerSettings) ?
+            new(xmlPlayerSettings, parent?.playerSettings) :
+            parent?.playerSettings;
     }
 }
 public interface HullSystemDesc {
@@ -96,25 +74,22 @@ public class HPSystemDesc : HullSystemDesc {
     }
 }
 public class LayeredArmorDesc : HullSystemDesc {
-    public ArmorList armorList;
+    public Group<Armor> armorList;
     public LayeredArmorDesc() { }
     public LayeredArmorDesc(XElement e) {
-        armorList = new ArmorList(e);
+        armorList = new Group<Armor>(e, SGenerator.ArmorFrom);
     }
     public HullSystem Create(SpaceObject owner) {
         return new LayeredArmorSystem(armorList.Generate(owner.world.types));
     }
 }
-public class PlayerSettings {
-    public bool startingClass;
-    public string description;
+public record PlayerSettings() {
+    [Req] public bool startingClass;
+    [Req] public string description;
     public string[] map;
-    public PlayerSettings() { }
-    public PlayerSettings(XElement e) {
-        startingClass = e.ExpectAttBool("startingClass");
-        description = e.ExpectAtt("description");
-        if (e.HasElement("Map", out var xmlMap)) {
-            map = xmlMap.Value.Replace("\r", "").Split('\n');
-        }
+    public PlayerSettings(XElement e, PlayerSettings source = null) : this() {
+        e.Initialize(this, source);
+
+        map = source?.map ?? e.Element("Map")?.Value?.Replace("\r", "").Split('\n');
     }
 }

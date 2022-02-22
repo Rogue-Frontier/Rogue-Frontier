@@ -21,20 +21,20 @@
 
 			desc=		"This unusual weapon sprays irradiated sand imported from the surface of Mars. Above all combat science and practical strategy, the Errorist zeal reigns supreme. And despite what Errorist zeal might make one believe, this weapon is extremely poor in combat potential."
 				>
-		<Weapon			powerUse=		"50"
-						fireCooldown=	"60"
-						missileSpeed=	"30"
+		<Weapon	powerUse=		"50"
+				fireCooldown=	"60"
+				initialCharges=	"100"
+			>
+			<Projectile	missileSpeed=	"30"
 						damageType=		"2"
 						damageHP=		"4"
 						lifetime=		"90"
-						initialCharges=	"100"
-
 						spreadAngle=	"15"
 						count=			"9"
 
 						glyph=			"."
 						foreground=		"Green"
-			>
+				/>
 		</Weapon>
 	</ItemType>
 	<ItemType	codename=	"item_septic_cannon"
@@ -44,21 +44,19 @@
 
 			desc=		"Driven by hatred, the Errorist channels pure resentment through their veins into the barrel of this acid-launching cannon."
 				>
-		<Weapon			powerUse=		"50"
-						fireCooldown=	"80"
-						missileSpeed=	"30"
+		<Weapon	powerUse=		"50"
+				fireCooldown=	"80"		
+				initialCharges=	"100"
+			>
+			<Projectile	missileSpeed=	"30"
 						damageType=		"2"
 						damageHP=		"6"
 						lifetime=		"90"
-						
-						initialCharges=	"100"
-
 						spreadAngle=	"15"
 						count=			"12"
-
 						glyph=			"."
 						foreground=		"Green"
-			>
+				/>
 		</Weapon>
 	</ItemType>
 

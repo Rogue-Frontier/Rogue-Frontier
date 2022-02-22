@@ -648,7 +648,7 @@ public static class Main {
         }
     }
     //Remember to call this to initialize XML properties
-    public static void Initialize(this XElement e, object obj) {
+    public static void Initialize(this XElement e, object obj, object source = null) {
         var props = obj.GetType().GetFields();
         foreach (var p in props) {
             var a = p.GetCustomAttributes(true).OfType<IAtt>().FirstOrDefault();
@@ -657,10 +657,14 @@ public static class Main {
 
                 var value = e.Att(key);
                 if (value == null) {
-                    if (a is Req) {
-                        throw new Exception($"<{e.Name}> requires {p.FieldType.Name} attribute: {key} ### {e.Parent.Name}");
-                    } else {
+
+                    if(source != null) {
+                        p.SetValue(obj, p.GetValue(source));
                         continue;
+                    } else if (a is Opt) {
+                        continue;
+                    } else {
+                        throw new Exception($"<{e.Name}> requires {p.FieldType.Name} attribute: {key} ### {e.Parent.Name}");
                     }
                 }
 

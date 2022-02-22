@@ -40,7 +40,7 @@ public class Pirate : StationBehavior {
                     var target = targets.FirstOrDefault(
                         s => CountAttackers(s) < 5 && CountDefenders(s, g) < 3);
                     if (target != null) {
-                        o.Attack(target);
+                        o.SetAttack(target);
                     }
                 }
             }
@@ -98,7 +98,7 @@ public class ReinforceNearby : StationBehavior {
                     if (nearby.guards.Count < 3) {
                         if (owner.guards.Count > 3) {
                             var g = owner.guards.Last();
-                            ((GuardOrder)g.behavior.GetOrder()).SetTarget(nearby);
+                            ((GuardOrder)g.behavior.GetOrder()).SetHome(nearby);
                             owner.guards.RemoveAt(owner.guards.Count - 1);
                             nearby.guards.Add(g);
                         }

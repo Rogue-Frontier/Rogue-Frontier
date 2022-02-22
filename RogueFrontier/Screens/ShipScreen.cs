@@ -606,6 +606,144 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
+    public static ListScreen<Device> ReplaceDevice(Console prev, PlayerShip player, Item source, ReplaceDevice replace, Action callback) {
+        ListScreen<Device> screen = null;
+        var devices = player.devices.Installed.Where(i => i.source.type == replace.from);
+        return screen = new(prev,
+            player,
+            devices,
+            GetName,
+            GetDesc,
+            Invoke,
+            Escape
+            ) { IsFocused = true };
+
+        string GetName(Device d) => $"{d.source.type.name}";
+        List<ColoredString> GetDesc(Device r) {
+            var item = r.source;
+            
+            var result = new List<ColoredString>();
+
+            var desc = item.type.desc.SplitLine(64);
+            if (desc.Any()) {
+                result.AddRange(desc.Select(Main.ToColoredString));
+                result.Add(new(""));
+            }
+
+            result.Add(new("Replace this device", Color.Yellow, Color.Black));
+            return result;
+        }
+        void Invoke(Device d) {
+            d.source.type = replace.to;
+            switch(d) {
+                case Weapon w: w.SetDesc(replace.to.weapon); break;
+                default:
+                    throw new Exception("Unsupported ReplaceDevice type");
+            }
+            player.AddMessage(new Message($"Used {source.type.name} to replace {d.source.type.name} with {replace.to.name}"));
+            callback?.Invoke();
+            Escape();
+        }
+        void Escape() {
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.Children.Add(prev);
+            p.IsFocused = true;
+        }
+    }
+
+
+    public static ListScreen<Armor> ArmorRepairService(Console prev, PlayerShip player, List<Armor> layers, Func<Armor, int> GetPrice, Action callback) {
+        ListScreen<Armor> screen = null;
+
+        RepairEffect job = null;
+        return screen = new(prev,
+            player,
+            layers,
+            GetName,
+            GetDesc,
+            Invoke,
+            Escape
+            ) { IsFocused = true };
+
+
+
+        string GetName(Armor a) => $"[{a.hp}/{a.desc.maxHP}] {a.source.type.name}";
+        List<ColoredString> GetDesc(Armor a) {
+            var item = a.source;
+
+            var result = new List<ColoredString>();
+
+            var desc = item.type.desc.SplitLine(64);
+            if (desc.Any()) {
+                result.AddRange(desc.Select(Main.ToColoredString));
+                result.Add(new(""));
+            }
+
+
+            int unitPrice = GetPrice(a);
+            if (unitPrice < 0) {
+                result.Add(new("Repair services are unavailable for this armor", Color.Yellow, Color.Black));
+            } else {
+                int delta = a.desc.maxHP - a.hp;
+                result.Add(new($"Cost per HP: {unitPrice}"));
+                result.Add(new($"Total cost:  {unitPrice * delta}"));
+                result.Add(new(""));
+                if (delta <= 0) {
+                    result.Add(new("This armor is at full HP", Color.Yellow, Color.Black));
+                } else if (job?.active == true) {
+                    if (job.armor == a) {
+                        result.Add(new("This armor is currently under repairs", Color.Yellow, Color.Black));
+                    } else {
+                        result.Add(new("Please wait for current repair job to finish", Color.Yellow, Color.Black));
+                    }
+                } else {
+                    if (unitPrice > player.player.money) {
+                        result.Add(new($"You cannot afford repairs", Color.Yellow, Color.Black));
+                    } else {
+                        result.Add(new($"Order repairs", Color.Yellow, Color.Black));
+                    }
+                }
+            }
+            return result;
+        }
+        void Invoke(Armor a) {
+            if (job?.active == true) {
+                return;
+            }
+            int delta = a.desc.maxHP - a.hp;
+            if (delta == 0) {
+                return;
+            }
+            int unitPrice = GetPrice(a);
+            int price = delta * unitPrice;
+            if(price > player.player.money) {
+                return;
+            }
+            job = new RepairEffect(player, a, 6, unitPrice, Done);
+            player.world.AddEvent(job);
+            player.AddMessage(new Message($"Repair job initiated..."));
+            callback?.Invoke();
+        }
+        void Done(RepairEffect r) {
+            player.world.RemoveEvent(r);
+            player.AddMessage(new Message($"Repair job {(r.terminated ? "terminated" : "completed")}"));
+        }
+        void Escape() {
+            if(job?.active == true) {
+                job.active = false;
+                player.world.RemoveEvent(job);
+                job = null;
+                player.AddMessage(new Message($"Repair job canceled"));
+                return;
+            }
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.Children.Add(prev);
+            p.IsFocused = true;
+        }
+    }
+
 
 
     public static ListScreen<Item> SetMod(Console prev, PlayerShip player, Item source, Modifier mod, Action callback) {

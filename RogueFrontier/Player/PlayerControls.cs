@@ -77,7 +77,7 @@ public class PlayerControls {
         }
         if (input.AutoAim) {
             if (playerShip.GetTarget(out SpaceObject target) && playerShip.GetPrimary(out Weapon w)) {
-                playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.position - playerShip.position, target.velocity - playerShip.velocity, w.missileSpeed, out _));
+                playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.position - playerShip.position, target.velocity - playerShip.velocity, w.fragmentDesc.missileSpeed, out _));
             }
         }
     }

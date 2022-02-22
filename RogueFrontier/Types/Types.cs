@@ -14,7 +14,7 @@ public class TypeCollection {
     [JsonProperty]
     private Dictionary<string, XElement> sources=new();
     [JsonProperty]
-    public Dictionary<string, DesignType> all=new();
+    public Dictionary<string, IDesignType> all=new();
     [JsonProperty]
     private Dictionary<Type, object> dicts = new() {
         [typeof(GenomeType)] = new Dictionary<string, GenomeType>(),
@@ -60,7 +60,7 @@ public class TypeCollection {
         state = InitState.Initializing;
         //We don't evaluate all sources; just the ones that are used by DesignTypes
         foreach (string key in all.Keys.ToList()) {
-            DesignType type = all[key];
+            IDesignType type = all[key];
             XElement source = sources[key];
             type.Initialize(this, source);
         }
@@ -123,11 +123,11 @@ public class TypeCollection {
         sources[type] = element;
     }
 
-    public Dictionary<string, T> GetDict<T>() where T: DesignType =>
+    public Dictionary<string, T> GetDict<T>() where T: IDesignType =>
         (Dictionary<string, T>) dicts[typeof(T)];
-    public Dictionary<string, T>.ValueCollection Get<T>() where T : DesignType =>
+    public Dictionary<string, T>.ValueCollection Get<T>() where T : IDesignType =>
         GetDict<T>().Values;
-    void AddType<T>(XElement element) where T : DesignType, new() {
+    void AddType<T>(XElement element) where T : IDesignType, new() {
         if (!element.TryAtt("codename", out string type)) {
             throw new Exception("DesignType requires codename attribute");
         } else if (sources.ContainsKey(type)) {
@@ -145,12 +145,12 @@ public class TypeCollection {
             all[type].Initialize(this, sources[type]);
         }
     }
-    public bool Lookup(string codename, out DesignType result) =>
+    public bool Lookup(string codename, out IDesignType result) =>
         all.TryGetValue(codename, out result);
 
-    public bool Lookup<T>(string type, out T result) where T : class, DesignType =>
+    public bool Lookup<T>(string type, out T result) where T : class, IDesignType =>
         (result = Lookup<T>(type)) != null;
-    public DesignType Lookup(string codename) {
+    public IDesignType Lookup(string codename) {
         if (codename == null || codename.Trim().Length == 0) {
             throw new Exception($"Must specify a codename");
         }
@@ -159,13 +159,13 @@ public class TypeCollection {
         }
         throw new Exception($"Unknown type {codename}");
     }
-    public T Lookup<T>(string codename) where T : class, DesignType {
+    public T Lookup<T>(string codename) where T : class, IDesignType {
         var result = Lookup(codename);
         return result as T ??
             throw new Exception($"Type {codename} is <{result.GetType().Name}>, not <{nameof(T)}>");
     }
 }
-public interface DesignType {
+public interface IDesignType {
     void Initialize(TypeCollection collection, XElement e);
 }
 public interface ITile {

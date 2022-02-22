@@ -69,6 +69,11 @@
 										<Station codename="station_armor_shop"/>
 									</Sibling>
 								</At>
+								<At index="2">
+									<Sibling radiusInc="-10">
+										<Station codename="station_amethyst_store"/>
+									</Sibling>
+								</At>
 								<At index="3">
 									<Sibling	radiusInc="-10">
 										<Station codename="station_arms_dealer"/>

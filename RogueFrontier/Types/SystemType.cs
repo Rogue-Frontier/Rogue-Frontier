@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace RogueFrontier;
 
-public record SystemType : DesignType {
+public record SystemType : IDesignType {
     public string codename;
     public SystemGroup systemGroup;
     public SystemType() {

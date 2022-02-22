@@ -100,7 +100,7 @@ public class PlayerMain : Console {
         UseKeyboard = true;
         camera = new();
         this.profile = profile;
-        this.story = new();
+        this.story = new(playerShip);
         this.playerShip = playerShip;
         this.playerControls = new(playerShip, this);
 

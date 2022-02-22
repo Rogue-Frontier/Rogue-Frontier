@@ -50,7 +50,7 @@ public class SplashScreen : Console {
                     rotationDecel = 12,
                     rotationMaxSpeed = 10,
                     tile = new ColoredGlyph(Color.LightCyan, Color.Transparent, c),
-                    devices = new DeviceList(),
+                    devices = new Group<Device>(),
                     damageDesc = ShipClass.empty.damageDesc
                 };
                 XY p = null;

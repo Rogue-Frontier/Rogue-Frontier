@@ -7,22 +7,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 namespace RogueFrontier;
-public record PowerType() : DesignType {
+public record PowerType() : IDesignType {
     [Req] public string codename;
     [Req] public string name;
     [Req] public int cooldownTime;
     [Req] public int invokeDelay;
-    [Opt] public bool onDestroyCheck;
-    [Opt] public string message;
+    [Opt] public bool onDestroyCheck = false;
+    [Opt] public string message = null;
     public List<PowerEffect> Effect;
     public void Initialize(TypeCollection collection, XElement e) {
-        codename = e.ExpectAtt(nameof(codename));
-        name = e.ExpectAtt(nameof(name));
-        cooldownTime = e.ExpectAttInt(nameof(cooldownTime));
-        invokeDelay = e.ExpectAttInt(nameof(invokeDelay));
-        message = e.TryAtt(nameof(message), null);
+        var parent = e.TryAtt("inherit", out var inherit) ? collection.Lookup<PowerType>(inherit) : null;
+        e.Initialize(this, parent);
         Effect = new(e.Elements().Select(e => (PowerEffect)(e.Name.LocalName switch {
-            "Weapon" => new PowerWeapon(e),
+            "Projectile" => new PowerProjectile(e),
             "Heal" => new PowerHeal(),
             "ProjectileBarrier" => new PowerBarrier(e),
             "Jump" => new PowerJump(e),
@@ -36,7 +33,6 @@ public record PowerType() : DesignType {
     }
     public void Invoke(PlayerShip player) => Effect.ForEach(e => e.Invoke(player));
 }
-//Interface for invokable powers
 public interface PowerEffect {
     void Invoke(PlayerShip player);
 }
@@ -59,13 +55,12 @@ public record PowerStorm() : PowerEffect {
         public XY position => owner.position;
         public bool active => owner.active;
         public ColoredGlyph tile => null;
-        public StormOverlay(PlayerShip owner) {
+        public StormOverlay(PlayerShip owner) =>
             this.owner = owner;
-        }
         public void Update() {
             var w = owner.GetPrimary();
             if(w != null) {
-                var f = w.GetFragmentDesc();
+                var f = w.fragmentDesc;
                 var p = new Projectile(owner, f,
                     owner.position + XY.Polar(0, 50),
                     owner.velocity + XY.Polar(0, -50),
@@ -89,13 +84,18 @@ public record Clonewall() : PowerEffect {
         public XY position => owner.position;
         public bool active => owner.active && owner.world.effects.Contains(this);
         public ColoredGlyph tile => null;
+
+
+        private List<XY> offsets;
+        private double[] directions;
+        private FragmentDesc ready;
         public Overlay(PlayerShip owner) {
             this.owner = owner;
             UpdateOffsets();
             directions = new double[offsets.Count];
         }
-        private void UpdateOffsets() {
-            offsets = new List<XY> {
+        private void UpdateOffsets() =>
+            offsets = new() {
                         XY.Polar(owner.rotationRad - Math.PI / 2, 6),
                         XY.Polar(owner.rotationRad - Math.PI / 2, 4),
                         XY.Polar(owner.rotationRad - Math.PI / 2, 2),
@@ -103,10 +103,6 @@ public record Clonewall() : PowerEffect {
                         XY.Polar(owner.rotationRad + Math.PI / 2, 4),
                         XY.Polar(owner.rotationRad + Math.PI / 2, 6),
                     };
-        }
-        private List<XY> offsets;
-        private double[] directions;
-        private FragmentDesc ready;
         PlayerShip.WeaponFired IContainer<PlayerShip.WeaponFired>.Value => (p, w, pr) => {
             if (!active) {
                 p.onWeaponFire -= this;
@@ -115,8 +111,9 @@ public record Clonewall() : PowerEffect {
             foreach(var projectile in pr) {
                 var fragment = projectile.fragment;
                 int i = 0;
+                var target = w.target;
                 offsets.ForEach(o => {
-                    var l = fragment.GetProjectile(owner, w, directions[i++]);
+                    var l = fragment.GetProjectiles(owner, target, directions[i++]);
                     l.ForEach(p => p.position += o);
                     l.ForEach(owner.world.AddEntity);
                     w.ammo?.OnFire();
@@ -127,7 +124,7 @@ public record Clonewall() : PowerEffect {
             ticks++;
             if(owner.GetPrimary() is Weapon w) {
                 if (w.delay == 0) {
-                    ready = w.GetFragmentDesc();
+                    ready = w.fragmentDesc;
                 }
                 const int interval = 6;
                 if (ticks % interval == 0) {
@@ -163,10 +160,10 @@ public record Clonewall() : PowerEffect {
     }
 }
 //Power that generates a weapon effect
-public class PowerWeapon : PowerEffect {
+public class PowerProjectile : PowerEffect {
     public FragmentDesc desc;
-    public PowerWeapon() { }
-    public PowerWeapon(XElement e) {
+    public PowerProjectile() { }
+    public PowerProjectile(XElement e) {
         desc = new FragmentDesc(e);
     }
     //public void Invoke(PlayerMain main) => Invoke(main.playerShip);

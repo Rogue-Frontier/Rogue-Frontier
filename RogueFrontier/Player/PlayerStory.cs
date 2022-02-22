@@ -22,6 +22,7 @@ public class IntroMeeting : IPlayerInteraction {
             var benedictPortrait = SScene.LoadImage("RogueFrontierContent/BenedictPortrait.asc.cg").Translate(new Point(heroImage.Max(p => p.Key.Item1), 4));
             var outpostLobby = SScene.LoadImage("RogueFrontierContent/DaughtersOutpostDock.asc.cg").Translate(new Point(benedictPortrait.Max(p => p.Key.Item1), 4));
             */
+            return Intro();
             Con Intro() {
                 var t =
 @"Docking at the front entrance of the abbey, the great
@@ -78,8 +79,8 @@ It calls itself...The Orator.
 And I thought you might know
 something about it,"" you say.
 
-""Hmmm, yes, we are quite experienced with The Orator.
-Though you are the first guest we've had in a while.
+""...Yes, we are quite experienced with The Orator.
+You are the first guest we've had in a while.
 What did you hear?"" The man replied.";
                 var sc = new Dialog(prev, t, new() {
                     new(@"""The Orator told me...""", Intro4)
@@ -93,24 +94,25 @@ that there is something terribly wrong
 happening to us. All of us. Humanity.
 
 Forces of conflict are emanating from the Celestial Center
-and provoking extremely deadly wars throughout our civilization.
+and causing extremely deadly wars throughout our civilization.
 A voice known as The Dictator seeks to control us in horrible ways.
 
-As I asked The Orator about what would eventually happen to us,
+I asked The Orator about what The Dictator's intentions were, and then
 I heard a droning voice begin to speak loudly over The Orator, slowly
-raising itself into a dreadful yell. I began falling out of the dream.
-The Orator shouted ""SILENCE"" at the other voice, which then stopped,
-before giving me Their final message.
+raising itself into a dreadful yell. My senses began falling apart.
+One voice shouted ""SILENCE"" at the other Voice and both went quiet,
+then The Orator spoke a final message.
 
 The Orator told me, that They had an answer. And that
-if I went to Them, and I found Them at the Galactic Core,
+if I went to Them, taking a journey to the Celestial Center,
 and I listened to Their words, and I wielded Their powers,
 then They would bring forth an ultimate peace.
 
-And...
+And...""
 
-...And I... I witnessed all of this in a strange dream I had.""
-".Replace("\r", null);
+Wait, how are you saying all of this- Your mind blanks out.
+
+""...And I... I witnessed all of this in a strange dream I had.""";
                 var sc = new Dialog(prev, t, new() {
                     new("Continue", Intro5)
                 }) { background = heroImage };
@@ -138,8 +140,7 @@ us safety from The Dictator. I welcome you to reside here.""
 ""Unless, your answer rests..."" he points to a distant star
 shining through the window, ""...far out there.""
 
-""Does it?""
-";
+""Does it?""";
                 t = t.Replace("\r", null);
                 var sc = new Dialog(prev, t, new() {
                     new(@"""It does.""", Intro6, NavFlags.ESC)
@@ -159,9 +160,9 @@ The man thinks for a minute.
 ""I figured. You have your own starship, fit for
 leaving this system and exploring the stars beyond.
 We don't really see modern builds like yours
-around here... Not since the last war.""
+around here... Not since the last war ended.
 
-""You really intend to see what's out there.""";
+You really intend to see what's out there.""";
                 t = t.Replace("\r", null);
                 return new(prev, t, new() {
                     new(@"""That is correct.""", Intro7, NavFlags.ESC)
@@ -169,62 +170,79 @@ around here... Not since the last war.""
             }
             Dialog Intro7(Con from) {
                 string t =
-@"The man sighs.
+@"He glares at you.
 
-""So you understand that this is not the first time that
-The Orator has spoken, and told someone to just pack up,
-leave, and look for Them somewhere out there?""
+""So you understand that... this? This is not
+the first time that The Orator has spoken,
+and told someone to just pack up, leave,
+and look for Them somewhere out there?
 
-""Are you prepared to die?""
-";
+I don't care how ready you think you are
+to go wherever you think you're going.
+
+Are you prepared to die?""";
                 return new(prev, t, new() {
                     new(@"""Huh?!?!?!""", Intro8)
                 }) { background = heroImage };
             }
             Dialog Intro8(Con from) {
                 string t =
-@"The man paces around for a while.
+@"He looks increasingly tense.
 
-""The Orator destinately calls people. We know that this
+""The Orator definitely calls to people. We know that this
 happens occasionally but predictably. We see a new person
-come in for their first time, and ask us about The Orator.
+come in for their first time, and ask us about The Orator,
+and, and,
+
 It's only a matter of days until they leave this place
-for the last time and we never see that person again-""
+for the last time...
 
-""-until they show up in a news report in which
+...And we never see that person again.
+
+Until they show up in a news report in which
 someone identifies them as an unwitting traveler
-who got blown up in the middle of a war zone...""
+who got blown up in the middle of a war zone...
 
-""And you know that the rest of the world is currently
-in the middle of the most destructive war in decades.""
+And you know that the rest of the world is currently
+in the middle of the most destructive war in decades.
 
-""So tell me, what do you intend to do?""";
+You'd have better chances of surviving if you joined
+the Constellation Fleet. Not much better, mind you.
+At least I got out when they were about to send us
+through the gateway... before they'd shut the door
+and lock it behind us.
+
+So, tell me, what is it that you intend to do?""";
                 return new Dialog(prev, t, new() {
                     new(@"""I intend to reach the Celestial Center.""", Intro9a),
                     new("...", Intro9b)
-                }) { background = heroImage }; ;
+                }) { background = heroImage };
             }
             Dialog Intro9a(Con from) {
                 story.mainInteractions.Remove(this);
                 string t =
-@"""Alright then, I see you've already made your mind.
-I'll provide you with some combat training to start
-your journey. That is all. Let's hope you make it.""";
+@"""So you do. Okay. Alright. I won't try to change
+your mind.""
+
+The man sighs and stares at the ground for a second.
+
+""The Matriarch who runs this place said that we
+need to give more training to those who decide to
+seek the Celestial Center. I won't tell you what
+to do, but here are the basics.""
+
+The man takes out a script and reads from it.";
                 return new(prev, t, new() {
-                    new("Continue", Intro10)
-                }) { background = heroImage }; ;
+                    new("Continue", Intro11)
+                }) { background = heroImage };
             }
-
-
             Dialog Intro9b(Con from) {
                 story.mainInteractions.Remove(this);
                 string t =
 @"You pause for a moment.";
                 t = t.Replace("\r", null);
                 return new(prev, t, new() {
-                    new('I', @"""I intend to reach the Galactic Core.""", Intro10a),
-                    new('C', @"""I intend to destroy the United Constellation.""", Destroy1),
-                    new('D', @"""I don't know anymore.""", Intro10c)
+                    new('I', @"""I intend to reach the Celestial Center.""", Intro10a),
                 }) { background = heroImage }; ;
             }
 
@@ -236,11 +254,39 @@ Do you truly intend to do that?""";
                 t = t.Replace("\r", null);
                 return new(prev, t, new() {
                     new('I', @"I intend to reach the Galactic Core.", Intro9a),
-                    new('.', "...", Intro9b, NavFlags.ESC)
+                }) { background = heroImage };
+            }
+            Dialog Intro11(Con prev) {
+                story.mainInteractions.Remove(this);
+                string t =
+@"""You will meet many different friends and foes
+during your journey. Especially on the frontier,
+you might be surprised at the kind of people that
+you meet. And there are some who will want to
+destroy you.
+
+And with your starship, you may choose how much
+trouble you want to involve yourself in. We, the
+Daughters of the Orator, do not have any particular
+opinion on how you ought to conduct yourself, but
+we advise you to do only what feels right to you.
+
+Please, please, do not abuse whatever magical powers
+The Orator has granted you. We, the Daughters of the
+Orator, have seen enough of that happen.
+
+Take note of your complete surroundings as well as
+yourself and your starship. Be sure to maintain your
+ship's hull systems, energy systems, weapon systems,
+
+""";
+                t = t.Replace("\r", null);
+                return new(prev, t, new() {
+                    new('C', @"Continue", Intro11),
                 }) { background = heroImage };
             }
 
-
+            /*
             Dialog Destroy1(Con prev) {
                 string t =
 @"""I intend to destroy the United Constellation,"" you say.
@@ -301,32 +347,7 @@ Allow me to join you on your mission.""
 
                 return null;
             }
-            Dialog Intro10c(Con prev) {
-                story.mainInteractions.Remove(this);
-                string t =
-@"""I don't know anymore,"" you say.";
-                return new(prev, t, new() {
-                    new("Continue")
-                }) { background = heroImage };
-            }
-            Dialog Intro10(Con from) {
-                story.mainInteractions.Remove(this);
-                string t =
-@"""Let's start with some target practice.
-I've sent some drones outside the station.
-Destroy them as fast as you can""";
-                return new(prev, t, new() {
-                    new("Start", StartTraining)
-                }) { background = heroImage };
-            }
-            Con StartTraining(Con from) {
-                var m = new IntroTraining(story, s, playerShip);
-                story.mainInteractions.Add(m);
-                m.AddDrones();
-                return null;
-            }
-            var sc = Intro();
-            return sc;
+            */
         } else {
             return null;
         }
@@ -525,8 +546,68 @@ public class PlayerStory {
     public HashSet<IPlayerInteraction> secondaryInteractions;
     public HashSet<IPlayerInteraction> completedInteractions;
 
+    Dictionary<ItemType, int> standardTradeValue;
+    public PlayerStory(PlayerShip playerShip) {
+        var i = playerShip.world.types.GetDict<ItemType>();
+        standardTradeValue = new Dictionary<string, int>() {
+            { "item_amethyst_laser", 5000 },
+            { "item_amethyst_laser_ii", 12000 },
+            { "item_shimmer_shield", 400 },
+            { "item_gemsteel_plate", 1500 },
+            { "item_gemsteel_plate_ii", 4000 },
+            { "itMarksmanRifle", 0 },
+            { "itMarshalRepeater", 0 },
+            { "itMarshalPlate", 0 },
+            { "item_natural_killer_plate", 0 },
+            { "item_heartland_cannon", 0 },
+            { "item_septic_cannon", 0 },
+            { "item_iron_driver", 0 },
+            { "item_iron_cannon", 0 },
+            { "item_ironclad_plate", 0 },
+            { "item_blockade_plate", 0 },
+            { "item_grinder", 0 },
+            { "item_deflect_device", 0 },
+            { "item_shutdown_cannon", 0 },
+            { "item_breakdown_cannon", 0 },
+            { "itOrionBolter", 400 },
+            { "itOrionLongbow", 800 },
+            { "itTraitorLongbow", 1200 },
+            { "itOrionBallista", 2000 },
+            { "itHunterscalePlate", 250 },
+            { "itSkullhelmPlate", 600 },
+            { "item_dark_cannon", 0 },
+            { "item_sidewinder_missile", 0 },
+            { "item_sidewinder_missile_launcher", 0 },
+            { "item_simple_fuel_rod", 200 },
+            { "item_armor_repair_patch", 500 },
+            { "item_orator_charm_silence", 3000 },
+            { "item_dictator_charm_silence", 3000 },
+            { "item_emp_cannon", 0 },
+            { "item_laser_pointer", 0 },
+            { "item_beowulf_dual_laser_cannon", 3000 },
+            { "item_beowulf_dual_laser_repeater", 3000 },
+            { "item_beowulf_dual_laser_upgrade", 3000 },
+            { "item_buckler_shield", 400 },
+            { "item_klaw_missile", 8 },
+            { "item_klaw_missile_launcher", 400 },
+            { "item_musket_cannon", 3500 },
+            { "item_missile_defender", 4000 },
+            { "item_laser_drone", 1500 },
+            { "item_flintlock", 1500 },
+            { "item_sabre", 2500 },
+            { "item_knightsteel_plate", 5000 },
+            { "item_bumpersteel_plate", 4500 },
+            { "item_dynamite_charge", 12 },
+            { "item_dynamite_cannon", 2000 },
+            { "item_intelligun", 8 },
+            { "item_amethyst_warranty_card", 200 },
+            { "item_shield_bash", 3000 },
+            { "item_foundry_reactor", 0 },
+            { "item_foundry_battery", 0 },
+            { "item_solar_panel", 0 },
+        }.ToDictionary(pair => i[pair.Key], pair => pair.Value);
 
-    public PlayerStory() {
+
         mainInteractions = new HashSet<IPlayerInteraction>();
         mainInteractions.Add(new IntroMeeting(this));
         secondaryInteractions = new HashSet<IPlayerInteraction>();
@@ -542,6 +623,8 @@ public class PlayerStory {
             if (d is Station source) {
                 string codename = source.type.codename;
                 Dictionary<string, GetDockScreen> funcMap = new Dictionary<string, GetDockScreen> {
+
+                        {"station_amethyst_store", AmethystStore },
                         {"station_constellation_astra", ConstellationAstra},
                         {"station_constellation_habitat", ConstellationHabitat },
                         {"station_armor_shop", TradeStation },
@@ -556,6 +639,39 @@ public class PlayerStory {
         }
         return null;
     }
+
+
+    public Con AmethystStore(Con prev, Station source, PlayerShip playerShip) {
+        var c = GetConstellationCrimes(source, playerShip);
+        if (c.Any()) return ConstellationArrest(prev, source, playerShip, c.First());
+
+        var discount = playerShip.cargo.Any(i => i.type.codename == "item_amethyst_warranty_card");
+        return Intro();
+        Dialog Intro() {
+            return new(prev,
+@"You are docked at The Amethyst Store,
+one of several corporate stations owned
+by Amethyst, Inc. ",
+            new() {
+                new("Trade", Trade),
+                new("Repair Armor", ArmorServices),
+                new("Undock")
+            });
+        }
+        int GetPrice(Armor a) {
+            if(a.source.type.codename != "item_gemsteel_plate") {
+                return -1;
+            }
+            if(discount) {
+                return 1;
+            }
+            return 3;
+        }
+        Con Trade(Con from) => new TradeScene(from, playerShip, source);
+        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, (playerShip.hull as LayeredArmorSystem)?.layers, GetPrice, null);
+
+    }
+
     public Con TradeStation(Con prev, Station source, PlayerShip playerShip) {
         return new TradeScene(prev, null, playerShip, source);
     }
@@ -577,7 +693,7 @@ There will be no trial.",
             );
         }
         Con Undock(Con prev) {
-            source.guards.ForEach(s => (s.behavior.GetOrder() as GuardOrder)?.Attack(playerShip, 900));
+            source.guards.ForEach(s => (s.behavior.GetOrder() as GuardOrder)?.SetAttack(playerShip, 900));
             return null;
         }
         Con Continue(Con prev) {

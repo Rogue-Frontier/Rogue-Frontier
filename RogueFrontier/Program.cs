@@ -25,6 +25,17 @@ partial class Program {
     public static string cover = ExpectFile("RogueFrontierContent/sprites/RogueFrontierPosterV2.asc.cg");
     public static string splash = ExpectFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
     static void Main(string[] args) {
+
+        /*
+        var w = new System();
+        w.types.LoadFile(main);
+        string s = "";
+        foreach(var type in w.types.Get<ItemType>()) {
+            s += (@$"{'\n'}{{""{type.codename}"", {type.value}}}");
+        }
+        */
+
+
         if (args.Any()) {
             switch (args[0]) {
                 case "server": StartGame(StartServer); break;

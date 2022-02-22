@@ -15,7 +15,7 @@ public enum EStationBehaviors {
     reinforceNearby,
     constellationShipyard
 }
-public class StationType : DesignType {
+public class StationType : IDesignType {
     [Req] public string codename;
     [Req] public string name;
     [Req] public int hp;
@@ -23,7 +23,7 @@ public class StationType : DesignType {
     public EStationBehaviors behavior;
     public Sovereign Sovereign;
     public StaticTile tile;
-    public ItemList cargo;
+    public Group<Item> cargo;
     public WeaponList weapons;
 
     public List<SegmentDesc> segments;
@@ -129,7 +129,7 @@ public class StationType : DesignType {
             }
         }
         if (e.HasElement("Cargo", out XElement xmlCargo) || e.HasElement("Items", out xmlCargo)) {
-            cargo = new(xmlCargo);
+            cargo = new(xmlCargo, SGenerator.ItemFrom);
         }
         if (e.HasElement("Ships", out var xmlShips)) {
             ships = new(xmlShips);

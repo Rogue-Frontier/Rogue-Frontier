@@ -1,6 +1,7 @@
 ﻿<Module>
 	<Module file="Genomes.xml"/>
 
+	<Module file="Amethyst.xml"/>
 	<Module file="Constellation.xml"/>
 	<Module file="ConstellationMilitia.xml"/>
 	<Module file="Daughters.xml"/>

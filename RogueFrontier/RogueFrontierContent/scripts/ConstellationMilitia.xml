@@ -34,22 +34,23 @@
 	
 	
 	<ItemType	codename=	"itMarksmanRifle"
-			name=		"Marksman Rifle"
-			mass=		"8000"
-			level=		"4"
+				name=		"Marksman Rifle"
+				mass=		"8000"
+				level=		"4"
 				>
-		<Weapon			powerUse=		"50"
-						fireCooldown=	"60"
+		<Weapon		powerUse=		"50"
+					fireCooldown=	"60"
+					repeat=			"1"
+					>
+			<Projectile
 						missileSpeed=	"50"
 						damageType=		"2"
 						damageHP=		"8"
 						lifetime=		"60"
-
-						repeat=			"1"
-
+					
 						glyph=			"."
 						foreground=		"White"
-			>
+						/>
 		</Weapon>
 	</ItemType>
 	<ItemType	codename=	"itMarshalRepeater"
@@ -59,16 +60,17 @@
 				>
 		<Weapon			powerUse=		"50"
 						fireCooldown=	"60"
-						missileSpeed=	"40"
+
+						repeat=			"3"
+			>
+			<Projectile	missileSpeed=	"40"
 						damageType=		"2"
 						damageHP=		"8"
 						lifetime=		"60"
 
-						repeat=			"3"
-
 						glyph=			"."
 						foreground=		"White"
-			>
+				/>
 		</Weapon>
 	</ItemType>
 

@@ -57,19 +57,20 @@
 			name=		"EMP cannon"
 			level=		"3"
 			mass=		"4000"
-
 			desc=		"."
 		>
-		<Weapon
-			powerUse=		"30"
-			fireCooldown=	"90"
-			missileSpeed=	"60"
-			damageType=		"1"
-			damageHP=		"1"
-			lifetime=		"60"
-			glyph=			"*"
-			foreground=		"Cyan"
+		<Weapon	initialCharges="900"
+				powerUse=		"30"
+				fireCooldown=	"90"
 			>
+			<Projectile
+					missileSpeed=	"60"
+					damageType=		"1"
+					damageHP=		"1"
+					lifetime=		"60"
+					glyph=			"*"
+					foreground=		"Cyan"
+				/>
 			<Capacitor
 				minChargeToFire=		"40"
 				dischargeOnFire=		"40"
@@ -90,48 +91,29 @@
 	</ItemType>
 
 	<ItemType	codename=	"item_laser_pointer"
-				name=		"basic laser cannon"
+				name=		"cheap laser cannon"
 				level=		"1"
 				mass=		"1000"
 
-				desc=		"This is a cheap laser weapon usually found on combat test dummies."
+				desc=		"Advancements in technology have allowed laser cannons to shrink to the size of a pistol."
 		>
 		<Weapon
+			initialCharges=	"900"
 			powerUse=		"5"
 			fireCooldown=	"30"
-			missileSpeed=	"100"
-			damageType=		"1"
-			damageHP=		"1"
-			lifetime=		"30"
-			glyph=			"+"
-			foreground=		"Yellow"
-			/>
+			>
+			<Projectile	missileSpeed=	"100"
+						damageType=		"1"
+						damageHP=		"1"
+						lifetime=		"30"
+						glyph=			"+"
+						foreground=		"Yellow"
+				/>
+		</Weapon>
+		
 	</ItemType>
 
-	<ItemType	codename=	"item_amethyst_laser"
-				name=		"Amethyst laser cannon"
-				level=		"1"
-				mass=		"1000"
-
-				value=		"5000"
-
-				desc=		"The Amethyst laser cannon (from Apex Melliferrum) is the only laser cannon (made by Apex Melliferrum) that fires a magenta-colored beam. That is the reason why the Amethyst laser cannon is one of the most pricey starter weapons around."
-		>
-		<Weapon
-			
-			initialCharges=	"1500"
-			
-			powerUse=		"10"
-			fireCooldown=	"20"
-			missileSpeed=	"100"
-			damageType=		"1"
-			damageHP=		"6"
-			lifetime=		"75"
-			glyph=			"."
-			foreground=		"Magenta"
-			/>
-	</ItemType>
-	<ItemType	codename=	"item_beowulf_dual_cannon"
+	<ItemType	codename=	"item_beowulf_dual_laser_cannon"
 				name=		"Beowulf dual laser cannon"
 				level=		"1"
 				mass=		"2000"
@@ -139,23 +121,69 @@
 
 				desc=		"The Beowulf dual laser cannon allows you to strike with speed."
 		>
-		<Weapon
-			
-			
-			initialCharges=	"3000"
-			
-			powerUse=		"20"
-			fireCooldown=	"15"
-			missileSpeed=	"100"
-			damageType=		"1"
-			damageHP=		"4"
-			lifetime=		"45"
-
-			glyph=			"."
-			foreground=		"Red"
-			background=		"Black"
+		<Weapon	initialCharges=	"2400"
+				powerUse=		"20"
+				fireCooldown=	"15"
 			>
+			<Projectile
+					count="2"
+					missileSpeed=	"100"
+					damageType=		"1"
+					damageHP=		"3"
+					lifetime=		"45"
+
+					glyph=			"."
+					foreground=		"Red"
+					background=		"Black"
+				/>
 		</Weapon>
+	</ItemType>
+	<ItemType	codename=	"item_beowulf_dual_laser_repeater"
+			name=		"Beowulf dual laser repeater"
+			level=		"1"
+			mass=		"2000"
+			value=		"3000"
+
+			desc=		"The Beowulf dual laser repeater allows you to strike with even more speed."
+		>
+		<Weapon	initialCharges=	"3000"
+				powerUse=		"30"
+				fireCooldown=	"5"
+			>
+			<Projectile
+					count="2"
+					missileSpeed=	"100"
+					damageType=		"1"
+					damageHP=		"3"
+					lifetime=		"45"
+
+					glyph=			"."
+					foreground=		"Red"
+					background=		"Black"
+				>
+			</Projectile>
+			<Capacitor
+				minChargeToFire=		"5"
+				dischargeOnFire=		"5"
+				rechargePerTick=	    "5/30"
+				maxCharge=				"100"
+				bonusDamagePerCharge=	"3/100"
+				bonusLifetimePerCharge=	"30/100"
+					/>
+		</Weapon>
+	</ItemType>
+	<ItemType	codename=	"item_beowulf_dual_laser_upgrade"
+		name=		"Beowulf dual laser upgrade module"
+		level=		"1"
+		mass=		"2000"
+		value=		"3000"
+				
+		invoke=		"replaceDevice"
+		from=		"item_beowulf_dual_laser_cannon"
+		to=			"item_beowulf_dual_laser_repeater"
+
+		desc=		"This module converts a Beowulf dual laser cannon into a dual laser repeater."
+		>
 	</ItemType>
 	<ItemType	codename=	"item_buckler_shield"
 			name=		"Buckler shield"
@@ -173,25 +201,6 @@
 			depletionDelay=	"30"
 			regen=			"30 / 90"
 			
-			>
-		</Shield>
-	</ItemType>
-
-	<ItemType	codename=	"item_shimmer_shield"
-		name=		"Shimmer shield"
-		level=		"2"
-		mass=		"200"
-		value=		"400"
-				
-		desc=		"Basic shield generator"
-		>
-		<Shield
-			powerUse=		"10"
-			idlePowerUse=	"1"
-			maxHP=			"60"
-			damageDelay=	"30"
-			depletionDelay=	"90"
-			regen=			"60 / 150"
 			>
 		</Shield>
 	</ItemType>
@@ -215,27 +224,23 @@
 				
 				desc=		"The Klaw missile launcher fires two quick tracking missiles at a time."
 		>
-		<Weapon
-			count=			"2"
-
-			spreadAngle=	"30"
-
-			maneuver=		"4"
-
-			powerUse=		"10"
-			fireCooldown=	"90"
-			missileSpeed=	"60"
-			damageType=		"1"
-			damageHP=		"6"
-			shock=			"2"
-			
-			lifetime=		"120"
-
-			glyph=			"m"
-			foreground=		"White"
-			
-			ammoType="item_klaw_missile"
+		<Weapon	powerUse=		"10"
+				fireCooldown=	"90"
+				ammoType="item_klaw_missile"
 			>
+			<Projectile	count=			"2"
+						spreadAngle=	"30"
+						maneuver=		"4"
+						missileSpeed=	"60"
+						damageType=		"1"
+						damageHP=		"6"
+						shock=			"2"
+			
+						lifetime=		"120"
+
+						glyph=			"m"
+						foreground=		"White"
+				/>
 		</Weapon>
 	</ItemType>
 
@@ -251,21 +256,19 @@
 				desc=		"This lightweight kinetic gun is mounted on an omnidirectional turret for automatic aiming. Like any other disposable weapon, it has limited ammo and easy installation."
 		>
 		<Weapon
-
 			initialCharges=	"500"
-
 			powerUse=		"20"
 			fireCooldown=	"25"
-			missileSpeed=	"40"
-			damageType=		"2"
-			damageHP=		"12"
-			lifetime=		"120"
-
 			omnidirectional="true"
-
-			glyph=			"."
-			foreground=		"White"
 			>
+			<Projectile
+				missileSpeed=	"40"
+				damageType=		"2"
+				damageHP=		"12"
+				lifetime=		"120"
+				glyph=			"."
+				foreground=		"White"
+				/>
 		</Weapon>
 	</ItemType>
 
@@ -282,15 +285,18 @@
 		<Weapon
 			powerUse=		"5"
 			fireCooldown=	"30"
-			missileSpeed=	"100"
-			damageType=		"1"
-			damageHP=		"1"
-			lifetime=		"15"
-			glyph=			"-"
-			foreground=		"Red"
-
 			pointDefense=	"true"
-			/>
+			>
+
+			<Projectile
+				missileSpeed=	"100"
+				damageType=		"1"
+				damageHP=		"1"
+				lifetime=		"15"
+				glyph=			"-"
+				foreground=		"Red"
+				/>
+		</Weapon>
 	</ItemType>
 
 	<ItemType	codename=	"item_laser_drone"
@@ -317,70 +323,50 @@
 				
 				desc=		"The flintlock mass driver fires a basic kinetic projectile."
 		>
-		<Weapon
-			powerUse=		"20"
-			fireCooldown=	"20"
-			missileSpeed=	"30"
-			damageType=		"2"
-			damageHP=		"6"
-			lifetime=		"90"
-
-			glyph=			"."
-			foreground=		"Gray"
+		<Weapon	powerUse=		"20"
+				fireCooldown=	"20"
 			>
+			<Projectile
+				
+					missileSpeed=	"30"
+					damageType=		"2"
+					damageHP=		"6"
+					lifetime=		"90"
+
+					glyph=			"."
+					foreground=		"Gray"
+				/>
 		</Weapon>
 	</ItemType>
 
 	<ItemType	codename=	"item_sabre"
-				name=		"Sabre mass driver"
-				level=		"2"
-				mass=		"4000"
-
-				
-				value=		"2500"
-
-				desc=		"The sabre mass driver fires a stronger kinetic projectile."
+		name=		"Sabre mass driver"
+		level=		"2"
+		mass=		"4000"
+		value=		"2500"
+		desc=		"The sabre mass driver fires a stronger kinetic projectile."
 		>
 		<Weapon
 			powerUse=		"20"
 			fireCooldown=	"30"
-			missileSpeed=	"20"
-			damageType=		"2"
-			damageHP=		"12"
-			lifetime=		"120"
-
-			glyph=			"."
-			foreground=		"White"
 			>
+			<Projectile
+				missileSpeed=	"20"
+				damageType=		"2"
+				damageHP=		"12"
+				lifetime=		"120"
+
+				glyph=			"."
+				foreground=		"White"
+				/>
 		</Weapon>
 	</ItemType>
-
-	<ItemType	codename=	"item_crystalsteel_plate"
-				name=		"Gemsteel plate"
-				mass=		"4000"
-				level=		"1"
-
-				
-				value=		"1500"
-
-				
-				desc=		"This semicrystalline armor maintains its aesthetic beauty at all damage levels, but it can be quite brittle. The fact that gemsteel glows bright violet when exposed to light is one reason why it is not recommended for stealth fighters."
-		>
-		<Armor	maxHP=		"100"
-			/>
-	</ItemType>
-
-
-
 	<ItemType	codename=	"item_knightsteel_plate"
-				name=		"Knightscale plate"
-				mass=		"6000"
-				level=		"1"
-
-				
-				value=		"5000"
-				
-				desc=		"This strong armor is made for the Knight series of gunships."
+		name=		"Knightscale plate"
+		mass=		"6000"
+		level=		"1"
+		value=		"5000"
+		desc=		"This strong armor is made for the Knight series of gunships."
 		>
 		<Armor	maxHP=		"150"
 			>
@@ -392,14 +378,14 @@
 	<!--Rustbucket plate-->
 
 	<ItemType	codename=	"item_bumpersteel_plate"
-				name=		"Bumpersteel Plate"
-				mass=		"8000"
-				level=		"2"
+		name=		"Bumpersteel Plate"
+		mass=		"8000"
+		level=		"2"
 				
-				value=		"4500"
+		value=		"4500"
 				
-				desc=		"This hardy armor is the main choice of plating for the Wagon-class."
-				>
+		desc=		"This hardy armor is the main choice of plating for the Wagon-class."
+		>
 		<Armor	maxHP=		"200"
 			>
 		</Armor>
@@ -407,64 +393,59 @@
 
 
 	<ItemType	codename=	"item_dynamite_charge"
-			name=		"Dynamite charge"
-			level=		"1"
-			mass=		"2000"
-			value=		"12"
+		name=		"Dynamite charge"
+		level=		"1"
+		mass=		"2000"
+		value=		"12"
 
-			desc=		"This cheap explosive is capable of blowing apart a civilian starship (with some difficulty)."
+		desc=		"This cheap explosive is capable of blowing apart a civilian starship (with some difficulty)."
 		/>
 
 	<ItemType	codename=	"item_dynamite_cannon"
-			name=		"Dynamite cannon"
-			level=		"1"
-			mass=		"2000"
-			value=		"2000"
+		name=		"Dynamite cannon"
+		level=		"1"
+		mass=		"2000"
+		value=		"2000"
 			
-			invoke=		"installWeapon"
+		invoke=		"installWeapon"
 
-			desc=		"This civilian-grade bomb launcher packs a small but powerful explosion. It requires Dynamite charges. Time and technology have not made it any less unwieldy as a weapon."
+		desc=		"This civilian-grade bomb launcher packs a small but powerful explosion. It requires Dynamite charges. Time and technology have not made it any less unwieldy as a weapon."
 		>
-		<Weapon
+		<Weapon	
 			powerUse=		"10"
 			fireCooldown=	"30"
-			missileSpeed=	"20"
-			damageType=		"1"
-			damageHP=		"5"
-			lifetime=		"90"
-
-			glyph=			"i"
-			foreground=		"Red"
-
 			ammoType="item_dynamite_charge"
 			>
-			<Fragment
-			
-				count=			"36"
-
-				spreadAngle=	"360"
-
-				missileSpeed=	"40"
+			<Projectile
+				missileSpeed=	"20"
 				damageType=		"1"
 				damageHP=		"5"
-				lifetime=		"6"
+				lifetime=		"90"
+				glyph=			"i"
+				foreground=		"Red"
+				>
+				<Fragment
+					count=			"36"
+					spreadAngle=	"360"
+					missileSpeed=	"40"
+					damageType=		"1"
+					damageHP=		"5"
+					lifetime=		"6"
+					glyph=			"z"
+					foreground=		"FF7F00FF"
+					/>
+				<Fragment
+					count=			"15"
+					spreadAngle=	"360"
+					missileSpeed=	"30"
+					damageType=		"1"
+					damageHP=		"5"
+					lifetime=		"60"
+					glyph=			"z"
+					foreground=		"FF0000FF"
+					/>
 
-				glyph=			"z"
-				foreground=		"FF7F00FF"
-				/>
-			<Fragment
-				count=			"15"
-
-				spreadAngle=	"360"
-
-				missileSpeed=	"30"
-				damageType=		"1"
-				damageHP=		"5"
-				lifetime=		"60"
-
-				glyph=			"z"
-				foreground=		"FF0000FF"
-				/>
+			</Projectile>
 		</Weapon>
 	</ItemType>
 
@@ -480,45 +461,43 @@
 		>
 
 		<Weapon
-
-			maneuver=		"8"
-
 			powerUse=		"10"
 			fireCooldown=	"30"
-			missileSpeed=	"40"
-			damageType=		"1"
-			damageHP=		"6"
-			lifetime=		"180"
-
 			initialCharges= "300"
-
-			glyph=			"+"
-			foreground=		"White"
 			>
+			<Projectile
+				maneuver=		"8"
+				missileSpeed=	"40"
+				damageType=		"1"
+				damageHP=		"6"
+				lifetime=		"180"
+				glyph=			"+"
+				foreground=		"White"
+				/>
 		</Weapon>
 	</ItemType>
 
 	<ItemType	codename=	"item_amethyst_warranty_card"
-			name=		"Amethyst warranty card"
-			level=		"1"
-			mass=		"2000"
-			value=		"200"
+		name=		"Amethyst warranty card"
+		level=		"1"
+		mass=		"2000"
+		value=		"200"
 
-			desc=		"This card provides proof of limited warranty for your Amethyst-class yacht. Present at any licensed ApexMelliferrum location to receive a discount on maintenance services."
+		desc=		"This card provides proof of limited warranty for your Amethyst-class yacht. Present at any licensed Amethyst, Inc. location to receive a discount on maintenance services."
 		>
 	</ItemType>
 	
 	
 	<ItemType	codename=	"item_shield_bash"
-			name=		"SHIELDBASH program"
-			mass=		"1"
-			level=		"2"
+		name=		"SHIELDBASH program"
+		mass=		"1"
+		level=		"2"
 				
-			invoke=		"depleteTargetShields"
+		invoke=		"depleteTargetShields"
 				
-			value=		"3000"
+		value=		"3000"
 				
-			desc=		"This one-time program attempts to kill the shields on your selected target."
-				>
+		desc=		"This one-time program attempts to kill the shields on your selected target."
+		>
 	</ItemType>
 </Module>

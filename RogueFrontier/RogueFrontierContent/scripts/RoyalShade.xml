@@ -1,25 +1,26 @@
 ﻿<Module>
 
 	<ItemType	codename=	"item_dark_cannon"
-			name=		"Darkspeed cannon"
-			level=		"2"
-			mass=		"2000"
-			invoke=		"installWeapon"
-			desc=		"."
+		name=		"Darkspeed cannon"
+		level=		"2"
+		mass=		"2000"
+		invoke=		"installWeapon"
+		desc=		"."
 		>
 		<Weapon
 			powerUse=		"10"
 			fireCooldown=	"120"
 			recoil=			"12"
-
-			missileSpeed=	"300"
-			damageType=		"1"
-			damageHP=		"12"
-			lifetime=		"20"
-
-			glyph=			"d"
-			foreground=		"FFFFFFFF"
 			>
+			<Projectile
+				missileSpeed=	"300"
+				damageType=		"1"
+				damageHP=		"12"
+				lifetime=		"20"
+
+				glyph=			"d"
+				foreground=		"FFFFFFFF"
+				/>
 			<Trail
 				lifetime=	"20"
 				glyph=		"d"
@@ -48,46 +49,49 @@
 			desc=		"."
 		>
 		<Weapon
-			maneuver=		"4"
-			maneuverRadius=	"12"
 			powerUse=		"10"
 			fireCooldown=	"90"
-			missileSpeed=	"40"
-			damageType=		"1"
-			damageHP=		"6"
-			lifetime=		"240"
-
-			glyph=			"s"
-			foreground=		"Orange"
 			
 			ammoType="item_sidewinder_missile"
 			>
-			<Fragment
-				count=				"1"
-				targetLocked=		"true"
-				omnidirectional=	"true"
-				fragmentInterval=	"20"
-				missileSpeed=		"60"
-				lifetime=			"60"
-				damageType=			"1"
-				damageHP=			"6"
+			<Projectile
+				maneuver=		"4"
+				maneuverRadius=	"12"
+				missileSpeed=	"40"
+				damageType=		"1"
+				damageHP=		"6"
+				lifetime=		"240"
+
+				glyph=			"s"
+				foreground=		"Orange"
+				>
+				<Fragment
+					count=				"1"
+					targetLocked=		"true"
+					omnidirectional=	"true"
+					fragmentInterval=	"20"
+					missileSpeed=		"60"
+					lifetime=			"60"
+					damageType=			"1"
+					damageHP=			"6"
 				
-				glyph=				"."
-				foreground=			"Red"
-				/>
-			<Fragment
-				count=				"9"
-				targetLocked=		"true"
-				omnidirectional=	"true"
-				spreadAngle=		"20"
-				missileSpeed=		"60"
-				lifetime=			"60"
-				damageType=			"1"
-				damageHP=			"6"
+					glyph=				"."
+					foreground=			"Red"
+					/>
+				<Fragment
+					count=				"9"
+					targetLocked=		"true"
+					omnidirectional=	"true"
+					spreadAngle=		"20"
+					missileSpeed=		"60"
+					lifetime=			"60"
+					damageType=			"1"
+					damageHP=			"6"
 				
-				glyph=				"."
-				foreground=			"Red"
-				/>
+					glyph=				"."
+					foreground=			"Red"
+					/>
+			</Projectile>
 		</Weapon>
 	</ItemType>
 
@@ -114,7 +118,7 @@
 			<Item count="25" codename="item_sidewinder_missile"/>
 		</Items>
         <LayeredArmorSystem>
-			<Armor  codename="item_crystalsteel_plate"/>
+			<Armor  codename="item_gemsteel_plate"/>
         </LayeredArmorSystem>
     </ShipClass>
 </Module>

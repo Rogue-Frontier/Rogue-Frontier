@@ -12,7 +12,7 @@ using System.IO;
 
 namespace RogueFrontier;
 
-public class SceneType : DesignType {
+public class SceneType : IDesignType {
     public void Initialize(TypeCollection collection, XElement e) {
     }
 }

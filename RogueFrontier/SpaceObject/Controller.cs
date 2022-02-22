@@ -148,32 +148,31 @@ public class ApproachOrder : IShipOrder {
 }
 public class GuardOrder : IShipOrder {
     [JsonProperty]
-    public SpaceObject GuardTarget { get; private set; }
+    public SpaceObject home { get; private set; }
     [JsonProperty]
     public AttackOrder attackOrder { get; private set; }
     [JsonProperty]
     private ApproachOrbitOrder approach;
     public int attackTime;
     public int ticks;
-    public GuardOrder(SpaceObject guard) {
-        this.GuardTarget = guard;
-        this.attackOrder = new(null);
-        this.approach = new(guard);
+    public GuardOrder(SpaceObject home) {
+        this.home = home;
+        approach = new(home);
         attackOrder = new(null);
         attackTime = 0;
     }
-    public void SetTarget(SpaceObject guard) {
-        GuardTarget = guard;
-        approach.target = guard;
+    public void SetHome(SpaceObject home) {
+        this.home = home;
+        approach.target = home;
     }
     public bool CanTarget(SpaceObject other) => other == attackOrder?.target;
-    public void Attack(SpaceObject target, int attackTime = -1) {
+    public void SetAttack(SpaceObject target, int attackTime = -1) {
         this.attackOrder.SetTarget(target);
         this.attackTime = attackTime;
     }
     public void ClearAttack() {
-        this.attackOrder.SetTarget(null);
-        this.attackTime = -1;
+        attackOrder.SetTarget(null);
+        attackTime = -1;
     }
     public void Update(AIShip owner) {
         ticks++;
@@ -183,39 +182,42 @@ public class GuardOrder : IShipOrder {
             //If we have finite attackTime set, then our attack order expires on time out
             attackTime--;
             if (attackTime == 0) {
-                attackOrder.ClearTarget(); ;
+                attackOrder.ClearTarget();
             }
             return;
         }
         //Otherwise, we're idle
         //If we're docked, then don't check for enemies every tick
-        if (owner.dock?.docked == true) {
-            if (ticks % 150 != 0) {
-                return;
-            }
+        if (ticks % 150 != 0 && owner.dock?.docked == true) {
+            return;
         }
         //Look for a nearby attack target periodically
-        if (ticks % 15 == 0) {
-            var target = owner.world.entities
-                .GetAll(p => (GuardTarget.position - p).magnitude2 < 50 * 50)
-                .OfType<SpaceObject>()
-                .Where(o => !o.IsEqual(owner) && GuardTarget.CanTarget(o))
-                .GetRandomOrDefault(owner.destiny);
-            //If we find a target, start attacking
-            if (target != null) {
-                Attack(target);
-                attackOrder.Update(owner);
-                return;
-            }
+        if (ticks % 30 == 0 && FindTarget(out var target)) {
+            //Start attacking
+            SetAttack(target);
+            attackOrder.Update(owner);
+            return;
+        }
+        //If we're currently docking, then continue
+        if(owner.dock != null) {
+            return;
         }
         //At this point, we definitely don't have an attack target so we return
-        if ((owner.position - GuardTarget.position).magnitude2 < 6 * 6) {
-            owner.dock = new Docking(GuardTarget, GuardTarget is Dockable d ? d.GetDockPoint() : XY.Zero);
+        if ((owner.position - home.position).magnitude2 < 6 * 6) {
+            owner.dock = new(home, home is Dockable d ? d.GetDockPoint() : XY.Zero);
         } else {
             approach.Update(owner);
         }
+
+        bool FindTarget(out SpaceObject target) =>
+            (target = owner.world.entities
+                .GetAll(p => (home.position - p).magnitude2 < 50 * 50)
+                .OfType<SpaceObject>()
+                .Where(o => !o.IsEqual(owner) && home.CanTarget(o))
+                .GetRandomOrDefault(owner.destiny)) != null;
+        
     }
-    public bool Active => GuardTarget.active;
+    public bool Active => home.active;
 }
 public class AttackAllOrder : IShipOrder {
     public int sleepTicks;
@@ -331,7 +333,7 @@ public class AttackOrder : IShipOrder {
                 //omni = null;
                 return;
             }
-            aim.missileSpeed = weapon.missileSpeed;
+            aim.missileSpeed = weapon.fragmentDesc.missileSpeed;
             omni.Clear();
             omni.AddRange(w
                .Where(w => w.aiming != null)
@@ -341,7 +343,7 @@ public class AttackOrder : IShipOrder {
                 .FirstOrDefault(w => w.aiming == null)
                 ?? weapon;
         }
-        bool RangeCheck() => (owner.position - target.position).magnitude2 < weapon.currentRange2;
+        bool RangeCheck() => (owner.position - target.position).magnitude2 < weapon.fragmentDesc.range2;
         //Remove dock
         if (owner.dock != null) {
             owner.dock = null;
@@ -349,7 +351,7 @@ public class AttackOrder : IShipOrder {
         var offset = (target.position - owner.position);
         var dist = offset.magnitude;
         omni.ForEach(w => {
-            if (dist < w.currentRange) {
+            if (dist < w.fragmentDesc.range) {
                 Set(w);
             }
         });
@@ -364,8 +366,9 @@ public class AttackOrder : IShipOrder {
             //Get moving!
             owner.SetThrusting(true);
         } else {
-            bool freeAim = weapon.aiming != null && dist < weapon.currentRange;
-            if (dist < weapon.currentRange / 2) {
+            var range = weapon.fragmentDesc.range;
+            bool freeAim = weapon.aiming != null && dist < range;
+            if (dist < range / 2) {
                 //If we are in range, then aim and fire
                 //Aim at the target
                 aim.Update(owner);
@@ -577,10 +580,10 @@ public class SnipeOrder : IShipOrder {
             if (weapon == null) {
                 return;
             }
-            aim.missileSpeed = weapon.missileSpeed;
+            aim.missileSpeed = weapon.fragmentDesc.missileSpeed;
         } else if (!weapon.ReadyToFire && weapons.Count > 1) {
             weapon = weapons.FirstOrDefault(w => w.ReadyToFire) ?? weapon;
-            aim.missileSpeed = weapon.missileSpeed;
+            aim.missileSpeed = weapon.fragmentDesc.missileSpeed;
         }
         //Aim at the target
         aim.Update(owner);

@@ -2,7 +2,7 @@
 
 namespace RogueFrontier;
 
-public class ImageType : DesignType {
+public class ImageType : IDesignType {
     public void Initialize(TypeCollection collection, XElement e) {
     }
 }

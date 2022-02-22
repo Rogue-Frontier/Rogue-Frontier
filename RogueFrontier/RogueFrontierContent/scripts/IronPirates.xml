@@ -11,17 +11,17 @@
 
 				desc=		"The Iron Driver is a makeshift kinetic mass driver with modestly-rapid-fire capabilities."
 				>
-		<Weapon	powerUse=		"15"
-				fireCooldown=	"20"
-				missileSpeed=	"60"
-				damageType="2"
-				damageHP="5"
-				lifetime="60"
-				glyph=	"-"
-				foreground="White"
-
-				initialCharges=	"200"
+		<Weapon		powerUse=		"15"
+					fireCooldown=	"20"
+					initialCharges=	"200"
 			>
+			<Projectile	missileSpeed=	"60"
+						damageType=		"2"
+						damageHP=		"5"
+						lifetime=		"60"
+						glyph=			"-"
+						foreground=		"White"
+				/>
 			<Capacitor
 					minChargeToFire=		"10"
 					dischargeOnFire=		"10"
@@ -40,19 +40,19 @@
 
 				desc=		"The Iron Cannon fires a heavy kinetic shell with crude seeking capabilities."
 				>
-		<Weapon			powerUse=		"50"
-						fireCooldown=	"60"
-						missileSpeed=	"30"
+		<Weapon		powerUse=		"50"
+					fireCooldown=	"60"
+					initialCharges=	"100"
+			>
+			<Projectile	missileSpeed=	"30"
 						damageType=		"2"
 						damageHP=		"15"
 						lifetime=		"120"
-
+						
 						glyph=			"+"
 						foreground=		"White"
-	
-						initialCharges=	"100"
 						maneuver="2"
-			>
+				/>
 		</Weapon>
 	</ItemType>
 

@@ -10,7 +10,7 @@ namespace RogueFrontier;
 public enum Alignment {
     ConstructiveOrder, ConstructiveChaos, Neutral, DestructiveOrder, DestructiveChaos
 }
-public class Sovereign : DesignType {
+public class Sovereign : IDesignType {
     public class AutoEnemySelf : IContainer<AutoSovereign> {
         public Sovereign self;
         public AutoEnemySelf(Sovereign self) {

@@ -38,6 +38,8 @@ public static class SSpaceObject {
         if(owner is TargetingMarker t) {
             owner = t.Owner;
         }
-        return target.active && !IsEqual(owner, target) && owner.sovereign.IsEnemy(target) && !(target is Wreck);
+        return target.active && !IsEqual(owner, target) && target is not Wreck
+            && (owner.sovereign.IsEnemy(target.sovereign)
+                || (owner is AIShip s && s.behavior.GetOrder().CanTarget(target)));
     }
 }

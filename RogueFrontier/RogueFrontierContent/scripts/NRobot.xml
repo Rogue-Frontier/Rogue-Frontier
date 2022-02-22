@@ -27,13 +27,16 @@
 		<Weapon
 			powerUse=		"30"
 			fireCooldown=	"60"
-			missileSpeed=	"60"
-			damageType=		"1"
-			damageHP=		"1"
-			lifetime=		"60"
-			glyph=			"*"
-			foreground=		"Cyan"
 			>
+			<Projectile
+				missileSpeed=	"60"
+				damageType=		"1"
+				damageHP=		"1"
+				lifetime=		"60"
+				glyph=			"*"
+				foreground=		"Cyan"
+				/>
+			
 			<Capacitor
 				minChargeToFire=		"35"
 				dischargeOnFire=		"35"
@@ -62,34 +65,37 @@
 		<Weapon
 			powerUse=		"20"
 			fireCooldown=	"120"
-			missileSpeed=	"10"
-			damageType=		"1"
-			damageHP=		"1"
-			lifetime=		"30"
-			glyph=			"*"
-			foreground=		"FF0080FF"
 			>
-			<Fragment
-				count=			"3"
-				spreadAngle=	"90"
+			<Projectile
 				missileSpeed=	"10"
 				damageType=		"1"
 				damageHP=		"1"
-				lifetime=		"60"
+				lifetime=		"30"
 				glyph=			"*"
-				foreground=		"Orange"
+				foreground=		"FF0080FF"
 				>
 				<Fragment
-					count=			"18"
-					spreadAngle=	"360"
-					missileSpeed=	"40"
+					count=			"3"
+					spreadAngle=	"90"
+					missileSpeed=	"10"
 					damageType=		"1"
 					damageHP=		"1"
-					lifetime=		"30"
+					lifetime=		"60"
 					glyph=			"*"
-					foreground=		"Cyan"
-				/>
-			</Fragment>
+					foreground=		"Orange"
+					>
+					<Fragment
+						count=			"18"
+						spreadAngle=	"360"
+						missileSpeed=	"40"
+						damageType=		"1"
+						damageHP=		"1"
+						lifetime=		"30"
+						glyph=			"*"
+						foreground=		"Cyan"
+						/>
+				</Fragment>
+			</Projectile>
 			<Capacitor
 				minChargeToFire=		"35"
 				dischargeOnFire=		"35"
@@ -122,7 +128,7 @@
 			<Reactor codename="item_foundry_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="item_crystalsteel_plate"/>
+			<Armor  codename="item_gemsteel_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 
