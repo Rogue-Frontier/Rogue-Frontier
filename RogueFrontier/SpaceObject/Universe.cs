@@ -8,7 +8,7 @@ namespace RogueFrontier;
 public class UniverseDesc {
     public List<SystemDesc> systems;
     public List<LinkDesc> links;
-    public UniverseDesc(XElement e) {
+    public UniverseDesc(TypeCollection tc, XElement e) {
         systems = new();
         links = new();
 
@@ -16,7 +16,7 @@ public class UniverseDesc {
             foreach (var element in xmlTopology.Elements()) {
                 switch (element.Name.LocalName) {
                     case "System":
-                        systems.Add(new SystemDesc(element));
+                        systems.Add(new SystemDesc(tc, element));
                         break;
                     case "Link":
                         links.Add(new LinkDesc(element));
@@ -40,11 +40,11 @@ public class UniverseDesc {
         public List<GlobalStargateDesc> globalStargates;
 
         public SystemDesc() { }
-        public SystemDesc(XElement e) {
+        public SystemDesc(TypeCollection tc, XElement e) {
             id = e.ExpectAtt(nameof(id));
             name = e.ExpectAtt(nameof(name));
             if (e.HasElement("SystemGroup", out var xmlSystemGroup)) {
-                systemGroup = new SystemGroup(xmlSystemGroup);
+                systemGroup = new SystemGroup(xmlSystemGroup, SGenerator.ParseFrom(tc, SSystemElement.Create));
             }
             codename = e.TryAtt(nameof(codename));
             globalStargates = new();

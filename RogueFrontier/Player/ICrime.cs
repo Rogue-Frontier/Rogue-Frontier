@@ -19,8 +19,8 @@ public class Crime : ICrime {
 public class DestructionCrime : ICrime {
     public string name => $"destruction of {destroyed.name}";
     public bool resolved { get; set; } = false;
-    public SpaceObject destroyed;
-    public DestructionCrime(SpaceObject destroyed) {
+    public ActiveObject destroyed;
+    public DestructionCrime(ActiveObject destroyed) {
         this.destroyed = destroyed;
     }
 }

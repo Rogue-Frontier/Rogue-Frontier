@@ -53,7 +53,7 @@ public class ShipClass : IDesignType {
             new(xmlDevices, SGenerator.DeviceFrom) :
             parent?.devices;
         cargo = e.HasElement("Cargo", out var xmlCargo) || e.HasElement("Items", out xmlCargo) ?
-            new(xmlCargo, SGenerator.ItemFrom) :
+            new(xmlCargo, (XElement e) => SGenerator.ItemFrom(collection, e)) :
             parent?.cargo;
         playerSettings = e.HasElement("PlayerSettings", out var xmlPlayerSettings) ?
             new(xmlPlayerSettings, parent?.playerSettings) :
@@ -61,7 +61,7 @@ public class ShipClass : IDesignType {
     }
 }
 public interface HullSystemDesc {
-    HullSystem Create(SpaceObject owner);
+    HullSystem Create(TypeCollection tc);
 }
 public class HPSystemDesc : HullSystemDesc {
     public int maxHP;
@@ -69,7 +69,7 @@ public class HPSystemDesc : HullSystemDesc {
     public HPSystemDesc(XElement e) {
         maxHP = e.ExpectAttInt("maxHP");
     }
-    public HullSystem Create(SpaceObject owner) {
+    public HullSystem Create(TypeCollection tc) {
         return new HPSystem(maxHP);
     }
 }
@@ -79,8 +79,8 @@ public class LayeredArmorDesc : HullSystemDesc {
     public LayeredArmorDesc(XElement e) {
         armorList = new Group<Armor>(e, SGenerator.ArmorFrom);
     }
-    public HullSystem Create(SpaceObject owner) {
-        return new LayeredArmorSystem(armorList.Generate(owner.world.types));
+    public HullSystem Create(TypeCollection tc) {
+        return new LayeredArmorSystem(armorList.Generate(tc));
     }
 }
 public record PlayerSettings() {

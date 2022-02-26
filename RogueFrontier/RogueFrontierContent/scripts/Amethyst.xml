@@ -3,6 +3,8 @@
 					name=		"The Amethyst Store"
 					sovereign=	"sovereign_constellation"
 
+					behavior=	"amethystStore"
+					
 					hp=			"300"
 					
 					crimeOnDestroy="true"
@@ -43,8 +45,9 @@
 				name=		"Amethyst laser cannon I"
 				level=		"1"
 				mass=		"1000"
-
-				value=		"5000"
+				value=		"4800"
+				
+				attributes= "Amethyst"
 
 				desc=		"The Amethyst laser cannon (manufactured by Amethyst, Inc. for the Amethyst-class yacht) is the only laser cannon that fires a magenta-colored beam. Not that you'll ever get to see it."
 		>
@@ -68,8 +71,9 @@
 			name=		"Amethyst laser cannon II"
 			level=		"1"
 			mass=		"1000"
-
-			value=		"12000"
+			value=		"6000"
+				
+			attributes= "Amethyst"
 
 			desc=		"This is the second-generation Amethyst laser cannon, with incrementally improved damage output over the original."
 		>
@@ -89,11 +93,40 @@
 		</Weapon>
 	</ItemType>
 
+	<ItemType	codename=	"item_amethyst_laser_iii"
+		name=		"Amethyst laser cannon III"
+		level=		"1"
+		mass=		"1000"
+		value=		"7200"
+				
+		attributes= "Amethyst"
+
+		desc=		"This is the third-generation Amethyst laser cannon, with incrementally improved damage output over the original."
+		>
+		<Weapon
+			initialCharges=	"2100"
+			powerUse=		"10"
+			fireCooldown=	"15"
+			>
+			<Projectile
+				missileSpeed=	"100"
+				damageType=		"1"
+				damageHP=		"12"
+				lifetime=		"90"
+				glyph=			"."
+				foreground=		"Magenta"
+				/>
+		</Weapon>
+	</ItemType>
+
+
 	<ItemType	codename=	"item_shimmer_shield"
 		name=		"Shimmer shield"
 		level=		"2"
 		mass=		"200"
 		value=		"400"
+		
+		attributes= "Amethyst"
 				
 		desc=		"Basic shield generator"
 		>
@@ -113,6 +146,9 @@
 		mass=		"4000"
 		level=		"1"
 		value=		"1500"
+				
+		attributes= "Amethyst"
+				
 		desc=		"Designed for the Amethyst-class yacht, this semicrystalline armor maintains its aesthetic beauty at any condition. It glows brightly when exposed to starlight, so it's not good for stealth ships."
 		>
 		<Armor	maxHP=		"90"
@@ -124,6 +160,9 @@
 		mass=		"4000"
 		level=		"1"
 		value=		"4000"
+				
+		attributes= "Amethyst"
+				
 		desc=		"Second-generation Gemsteel armor has improved durability."
 		>
 		<Armor	maxHP=		"150"

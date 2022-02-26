@@ -130,7 +130,7 @@ public class TitleScreen : Console {
                 start.active = false;
                 var playerStart = start.position;
                 var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
-                var playerShip = new PlayerShip(player, new(w, playerClass, playerSovereign, playerStart));
+                var playerShip = new PlayerShip(player, new(w, playerClass, playerStart), playerSovereign);
                 playerShip.AddMessage(new Message("Welcome to the Rogue Frontier!"));
 
                 w.AddEffect(new Heading(playerShip));
@@ -260,7 +260,7 @@ public class TitleScreen : Console {
 
             var playerStart = new XY(0, 0);
             var playerSovereign = World.types.Lookup<Sovereign>("sovereign_player");
-            var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerSovereign, playerStart));
+            var playerShip = new PlayerShip(player, new BaseShip(World, playerClass, playerStart), playerSovereign);
             playerShip.AddMessage(new Message("Welcome to the Rogue Frontier!"));
 
             World.RemoveAll();
@@ -327,8 +327,8 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             var angle = World.karma.NextDouble() * Math.PI * 2;
             var distance = World.karma.NextInteger(10, 20);
             var center = World.entities.all.FirstOrDefault()?.position ?? new XY(0, 0);
-            var ship = new BaseShip(World, shipClass, Sovereign.Gladiator, center + XY.Polar(angle, distance));
-            var enemy = new AIShip(ship, new AttackAllOrder());
+            var ship = new BaseShip(World, shipClass, center + XY.Polar(angle, distance));
+            var enemy = new AIShip(ship, Sovereign.Gladiator, new AttackAllOrder());
             World.AddEntity(enemy);
             World.AddEffect(new Heading(enemy));
             //Update now in case we need a POV
@@ -423,8 +423,6 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
                 pov.Destroy(pov);
             }
         }
-
-
         if (info.IsKeyPressed(Keys.P)) {
 
         }
@@ -475,20 +473,17 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
     }
 #if DEBUG
     public void QuickStart() {
-
         var loc = $"{AppDomain.CurrentDomain.BaseDirectory}/save/Debug";
         string file;
         do { file = $"{loc}-{new Random().Next(9999)}.trl"; }
         while (File.Exists(file));
-
         Player player = new Player() {
             Settings = settings,
             file = file,
             name = "Player",
             Genome = World.types.Get<GenomeType>().First()
         };
-
-        var universeDesc = new UniverseDesc(XElement.Parse(
+        var universeDesc = new UniverseDesc(World.types, XElement.Parse(
 @"<Universe>
     <Topology>
         <System id=""orion"" name=""Orion's Star"" codename=""system_orion""/>
@@ -516,7 +511,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         var playerClass = w.types.Lookup<ShipClass>(quickStartClass);
         var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").position;
         var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
-        var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerSovereign, playerStart));
+        var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerStart), playerSovereign);
         //playerShip.powers.Add(new Power(w.types.Lookup<PowerType>("power_declare")));
         playerShip.powers.AddRange(w.types.Get<PowerType>().Select(pt => new Power(pt)));
         playerShip.AddMessage(new Message("Welcome to the Rogue Frontier!"));
@@ -549,12 +544,12 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
 
 
     void AddStarterKit(PlayerShip playerShip) {
-        playerShip.cargo.UnionWith(Group<Item>.From(playerShip.world.types, SGenerator.ItemFrom, @"
-            <Items>
+        var tc = playerShip.world.types;
+        playerShip.cargo.UnionWith(Group<Item>.From(tc, SGenerator.ParseFrom(tc, SGenerator.ItemFrom),
+          @"<Items>
                 <Item codename=""item_orator_charm_silence""       count=""1""/>
                 <Item codename=""item_armor_repair_patch""  count=""4""/>
                 <Item codename=""item_simple_fuel_rod""     count=""4""/>
-            </Items>
-            "));
+            </Items>"));
     }
 }

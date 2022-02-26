@@ -2,14 +2,36 @@
 	<Sovereign	codename=	"sovereign_iron_pirates"
 				alignment=	"DestructiveOrder"
 	/>
-	<ItemType	codename=	"item_iron_driver"
-				name=		"Iron Driver"
-				mass=		"3000"
-				level=		"2"
 
+	<ItemType	codename=	"item_iron_cannon"
+				name=		"Iron Cannon"
+				mass=		"8000"
+				level=		"4"
 				invoke=		"installWeapon"
+				desc=		"The Iron Cannon fires a heavy kinetic shell with crude seeking capabilities."
+				>
+		<Weapon		powerUse=		"50"
+					fireCooldown=	"60"
+					initialCharges=	"100"
+			>
+			<Projectile	missileSpeed=	"30"
+						damageType=		"2"
+						damageHP=		"15"
+						lifetime=		"120"
+						
+						glyph=			"+"
+						foreground=		"White"
+						maneuver="2"
+				/>
+		</Weapon>
+	</ItemType>
 
-				desc=		"The Iron Driver is a makeshift kinetic mass driver with modestly-rapid-fire capabilities."
+	<ItemType	codename=	"item_iron_driver"
+			name=		"Iron Driver"
+			mass=		"3000"
+			level=		"2"
+			invoke=		"installWeapon"
+			desc=		"The Iron Driver is a makeshift kinetic mass driver with crude rapid-fire capabilities."
 				>
 		<Weapon		powerUse=		"15"
 					fireCooldown=	"20"
@@ -30,66 +52,62 @@
 				/>
 		</Weapon>
 	</ItemType>
-
-	<ItemType	codename=	"item_iron_cannon"
-				name=		"Iron Cannon"
-				mass=		"8000"
-				level=		"4"
-
-				invoke=		"installWeapon"
-
-				desc=		"The Iron Cannon fires a heavy kinetic shell with crude seeking capabilities."
+	
+	<ItemType	codename=	"item_iron_hook_cannon"
+			name=		"Hook cannon"
+			mass=		"3000"
+			level=		"2"
+			invoke=		"installWeapon"
+			desc=		"This cannon launches Iron Hooks which can latch onto a ship and pull on it."
 				>
-		<Weapon		powerUse=		"50"
+		<Weapon		ammoType=		"item_iron_hook"
+					powerUse=		"15"
 					fireCooldown=	"60"
-					initialCharges=	"100"
 			>
-			<Projectile	missileSpeed=	"30"
+			<Projectile	missileSpeed=	"60"
 						damageType=		"2"
-						damageHP=		"15"
-						lifetime=		"120"
-						
-						glyph=			"+"
+						damageHP=		"5"
+						lifetime=		"60"
+						glyph=			"?"
 						foreground=		"White"
-						maneuver="2"
 				/>
 		</Weapon>
 	</ItemType>
+	
+	<ItemType	codename=	"item_iron_hook"
+			name=		"Iron Hook"
+			mass=		"10"
+			level=		"2"
+			desc=		"This giant hook is fired by the Hook cannon. It is one of many things that the Iron Pirates like to make in their secret foundries."
+		/>
 
 	<ItemType	codename=	"item_ironclad_plate"
 				name=		"Ironclad plate"
 				mass=		"1000"
 				level=		"1"
-
-				
-				desc=		"This armor is made of pure iron, a material which has been obsoleted by various kinds of steel."
+				desc=		"This armor is made of iron, which is a material that would rust if the Iron Pirates ever visited a planet called Earth."
 		>
-		<Armor	maxHP=		"60"
-			>
-		</Armor>
+		<Armor	maxHP=		"60"/>
 	</ItemType>
-	<ItemType	codename=	"item_blockade_plate"
-				name=		"Blockade plate"
+	<ItemType	codename=	"item_ironside_plate"
+				name=		"Ironside plate"
 				mass=		"5000"
 				level=		"2"
-
 				desc=		"If you're standing in the middle of a battlefield, then this armor is guaranteed to last you at least 15 seconds."
 		>
-		<Armor	maxHP=		"90"
-			>
-		</Armor>
+		<Armor	maxHP=		"90"/>
 	</ItemType>
 	<ShipClass	codename=			"ship_iron_gunboat"
-				name=				"Ironside gunboat"
-				thrust=				"0.1"
-				maxSpeed=			"10"
+				name=				"Blockade-class gunboat"
+				thrust=				"0.3"
+				maxSpeed=			"15"
 
 				rotationAccel=		"3"
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
 				glyph=				"i"
-				foreground=			"LightGray"
+				foreground=			"Yellow"
 		>
 		<Devices>
 			<Weapon	codename="item_iron_driver"/>
@@ -98,7 +116,7 @@
 			<Armor	codename="item_ironclad_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
-	<ShipClass	codename=			"ship_iron_embargo"
+	<ShipClass	codename=			"ship_iron_missileship"
 				name=				"Embargo-class missileship"
 				thrust=				"0.3"
 				maxSpeed=			"15"
@@ -112,14 +130,40 @@
 		>
 		<Devices>
 			<Weapon	codename="item_iron_cannon"/>
-
-
 			<Weapon	codename="item_iron_driver" omnidirectional="true"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor	codename="item_blockade_plate"/>
+			<Armor	codename="item_ironclad_plate"/>
+			<Armor	codename="item_ironside_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
+	
+
+	<ShipClass	codename=			"ship_iron_battleship"
+				name=				"Ironside-class battleship"
+				thrust=				"0.3"
+				maxSpeed=			"15"
+
+				rotationAccel=		"3"
+				rotationDecel=		"6"
+				rotationMaxSpeed=	"4"
+				
+				glyph=				"I"
+				foreground=			"Yellow"
+		>
+		<Devices>
+			<Weapon	codename="item_iron_cannon"/>
+			<Weapon	codename="item_iron_hook_cannon" omnidirectional="true"/>
+			<Weapon	codename="item_iron_driver" omnidirectional="true"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor	codename="item_ironclad_plate"/>
+			<Armor	codename="item_ironclad_plate"/>
+			<Armor	codename="item_ironside_plate"/>
+			<Armor	codename="item_ironside_plate"/>
+		</LayeredArmorSystem>
+	</ShipClass>	
+
 
 	<StationType	codename="station_iron_pirates_hideout"
 					name=		"Iron Pirates hideout"
@@ -130,10 +174,9 @@
 					glyph=		"O"
 					foreground="White"
 					
-				behavior=	"pirate"
+					behavior=	"pirate"
 		>
 		<Segments>
-
 			<Point offsetX="-1" offsetY="1"
 				   glyph="/" foreground="Yellow"/>
 			<Point offsetX="0" offsetY="1"
@@ -148,7 +191,6 @@
 			<Point offsetX="1" offsetY="-1"
 				   glyph="/" foreground="Yellow"/>
 
-
 			<Point offsetX="-1" offsetY="0"
 				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="-2" offsetY="0"
@@ -162,32 +204,50 @@
 				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="3" offsetY="0"
 				   glyph="+" foreground="Yellow"/>
-
 		</Segments>
-		<Guards>
-			<Ship	count="5"	codename="ship_iron_gunboat"/>
-			<Ship	count="2"	codename="ship_iron_embargo" order="patrol" patrolRadius="25"/>
-		</Guards>
+		<Ships>
+			<Ship	count="8"	codename="ship_iron_gunboat"/>
+			<Ship	count="2"	codename="ship_iron_missileship" order="patrol" patrolRadius="25"/>
+		</Ships>
 		<Weapons>
 			<Weapon	codename="item_iron_driver"/>
 		</Weapons>
 	</StationType>
 
-	<StationType	codename="station_iron_pirates_nest"
-				name=		"Iron Pirates nest"
-				sovereign=	"sovereign_iron_pirates"
-
-				hp=			"250"
-
-				glyph=		"O"
-				foreground="White"
-
-				
-				behavior=	"pirate"
-
+	<StationType	codename="station_iron_pirates_foundry"
+		name=		"Iron Pirates foundry"
+		sovereign=	"sovereign_iron_pirates"
+		hp=			"250"
+		glyph=		"O"
+		foreground="White"
+		behavior=	"pirate"
 		>
 		<Segments>
 
+			
+			<Point offsetX="3" offsetY="-1"
+				   glyph="/" foreground="Yellow"/>
+			<Point offsetX="-3" offsetY="-1"
+				   glyph="\" foreground="Yellow"/>
+			<Line  offsetX="-2"	offsetY="-1" deltaX="4"	glyph="=" foreground="Yellow"/>
+			<Point offsetX="2" offsetY="-2"
+				   glyph="/" foreground="Yellow"/>
+			<Point offsetX="-2" offsetY="-2"
+				   glyph="\" foreground="Yellow"/>
+			<Line  offsetX="-1"	offsetY="-2" deltaX="2"	glyph="-" foreground="Yellow"/>
+			
+			<Point offsetX="3" offsetY="1"
+				   glyph="\" foreground="Yellow"/>
+			<Point offsetX="-3" offsetY="1"
+				   glyph="/" foreground="Yellow"/>
+			<Line  offsetX="-2"	offsetY="1"	 deltaX="4"	glyph="=" foreground="Yellow"/>
+			<Point offsetX="2" offsetY="2"
+				   glyph="\" foreground="Yellow"/>
+			<Point offsetX="-2" offsetY="2"
+				   glyph="/" foreground="Yellow"/>
+			<Line  offsetX="-1"	offsetY="2" deltaX="2"	glyph="-" foreground="Yellow"/>
+			
+			
 			<Point offsetX="-1" offsetY="0"
 				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="-2" offsetY="0"
@@ -195,6 +255,10 @@
 			<Point offsetX="-3" offsetY="0"
 				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="-4" offsetY="0"
+				   glyph="&lt;" foreground="White"/>
+			<Point offsetX="-5" offsetY="0"
+				   glyph="-" foreground="Yellow"/>
+			<Point offsetX="-6" offsetY="0"
 				   glyph="+" foreground="White"/>
 
 			<Point offsetX="1" offsetY="0"
@@ -204,13 +268,21 @@
 			<Point offsetX="3" offsetY="0"
 				   glyph="-" foreground="Yellow"/>
 			<Point offsetX="4" offsetY="0"
+				   glyph="&gt;" foreground="White"/>
+			<Point offsetX="5" offsetY="0"
+				   glyph="-" foreground="Yellow"/>
+			<Point offsetX="6" offsetY="0"
 				   glyph="+" foreground="White"/>
-
 		</Segments>
-		<Guards>
-			<Ship	count="3"	codename="ship_iron_gunboat"/>
-			<Ship	count="2"	codename="ship_iron_embargo"/>
-		</Guards>
+		<Ships>
+			<Ship	count="8"	codename="ship_iron_gunboat"/>
+			<Ship	count="2"	codename="ship_iron_missileship" order="patrol" patrolRadius="10"/>
+			<Ship	count="1"	codename="ship_iron_battleship" order="patrol" patrolRadius="25">
+				<Ships>
+					<Ship count="4" codename="ship_iron_gunboat" order="escort"/>	
+				</Ships>
+			</Ship>
+		</Ships>
 		<Weapons>
 			<Weapon	codename="item_iron_cannon"/>
 		</Weapons>

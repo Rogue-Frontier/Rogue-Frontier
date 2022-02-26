@@ -26,7 +26,8 @@ public record DeployShip : ItemUse {
 
         var w = new Wingmate(player);
         var a = new AIShip(
-            new BaseShip(player.world, shipType, player.sovereign, player.position),
+            new BaseShip(player.world, shipType, player.position),
+            player.sovereign,
             behavior:w
             );
         player.onDestroyed += w;
@@ -317,7 +318,7 @@ public record LauncherDesc {
         fireCooldown = fireCooldown,
         recoil = recoil,
         repeat = repeat,
-        fragment = missiles.First().shot,
+        projectile = missiles.First().shot,
         initialCharges = -1,
         capacitor = capacitor,
         ammoType = missiles.First().ammoType,
@@ -330,39 +331,37 @@ public record WeaponDesc {
     [Req] public int fireCooldown;
     [Opt] public int recoil = 0;
     [Opt] public int repeat = 0;
-    public FragmentDesc fragment;
+    public FragmentDesc projectile;
     [Opt] public int initialCharges = -1;
     public CapacitorDesc capacitor;
     public ItemType ammoType;
     public bool targetProjectile;
     public bool autoFire;
-    public int missileSpeed => fragment.missileSpeed;
-    public int damageType => fragment.damageType;
-    public IDice damageHP => fragment.damageHP;
-    public int lifetime => fragment.lifetime;
-    public int minRange => fragment.missileSpeed * fragment.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
+    public int missileSpeed => projectile.missileSpeed;
+    public int damageType => projectile.damageType;
+    public IDice damageHP => projectile.damageHP;
+    public int lifetime => projectile.lifetime;
+    public int minRange => projectile.missileSpeed * projectile.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
     public Weapon GetWeapon(Item i) => new Weapon(i, this);
     public WeaponDesc() { }
     public WeaponDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
-        fragment = new(e.Element("Projectile"));
+        projectile = new(e.Element("Projectile"));
         capacitor = e.HasElement("Capacitor", out var xmlCapacitor) ?
             new(xmlCapacitor) : null;
         ammoType = e.TryAtt(nameof(ammoType), out string at) ?
             types.Lookup<ItemType>(at) : null;
         if (e.TryAttBool("pointDefense")) {
-            fragment.hitProjectile = true;
+            projectile.hitProjectile = true;
             targetProjectile = true;
             autoFire = true;
         }
-        
-
     }
 }
 public record FragmentDesc {
     [Opt] public int count = 1;
-    [Opt] public bool omnidirectional;
     [Opt] public bool? targetLocked;
+    [Opt] public bool omnidirectional;
     [Opt] public double spreadAngle;
     [Req] public int missileSpeed;
     [Req] public int damageType;
@@ -408,7 +407,7 @@ public record FragmentDesc {
         effect = new(e);
     }
 
-    public List<Projectile> GetProjectiles(SpaceObject owner, SpaceObject target, double direction) {
+    public List<Projectile> GetProjectiles(ActiveObject owner, ActiveObject target, double direction) {
         double angleInterval = spreadAngle / count;
         return new(Enumerable.Range(0, count).Select(i => {
             double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
@@ -420,7 +419,7 @@ public record FragmentDesc {
         }));
     }
 
-    public Maneuver GetManeuver(SpaceObject target) =>
+    public Maneuver GetManeuver(ActiveObject target) =>
         target != null && maneuver != 0 ? new Maneuver(target, maneuver, maneuverRadius) : null;
 }
 public record TrailDesc : ITrail {

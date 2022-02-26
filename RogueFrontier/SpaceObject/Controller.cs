@@ -10,13 +10,17 @@ namespace RogueFrontier;
 public interface IShipOrder : IShipBehavior {
     bool Active { get; }
     //void Update(AIShip owner);
-    public bool CanTarget(SpaceObject other) => false;
+    public bool CanTarget(ActiveObject other) => false;
 
-    public delegate IShipOrder Create(SpaceObject target);
+    public delegate IShipOrder Create(ActiveObject target);
 }
 
 public interface ICombatOrder {
-    public bool CanTarget(SpaceObject other) => false;
+    public bool CanTarget(ActiveObject other) => false;
+}
+
+public interface IDestructionEvents : IContainer<Station.Destroyed>, IContainer<AIShip.Destroyed>, IContainer<PlayerShip.Destroyed> {
+
 }
 public class CompoundOrder : IShipOrder {
     public List<IShipOrder> orders;
@@ -52,7 +56,8 @@ public class EscortOrder : IShipOrder {
         this.attack = new(null);
         this.follow = new(target, offset);
     }
-    public bool CanTarget(SpaceObject other) => other == attack?.target;
+    public override string ToString() => $"escort {follow.target.name} {(attack?.Active == true ? $"(attack {attack.target.name})" : "")}";
+    public bool CanTarget(ActiveObject other) => other == attack?.target;
     public void Update(AIShip owner) {
         ticks++;
         if(attack.Active == true) {
@@ -116,7 +121,7 @@ public class ApproachOrder : IShipOrder {
         }
         var formationPoint = target.position + this.offset.Rotate(target.stoppingRotation * Math.PI / 180);
         var dest = formationPoint + (target.velocity * stoppingTime);
-        var offset = formationPoint - owner.position;
+        var offset = dest - owner.position;
 #if DEBUG
         //Heading.Crosshair(owner.world, dest);
 #endif
@@ -146,27 +151,37 @@ public class ApproachOrder : IShipOrder {
     }
     public bool Active => true;
 }
-public class GuardOrder : IShipOrder {
+public class GuardOrder : IShipOrder, IDestructionEvents {
     [JsonProperty]
-    public SpaceObject home { get; private set; }
+    public ActiveObject home { get; private set; }
     [JsonProperty]
     public AttackOrder attackOrder { get; private set; }
     [JsonProperty]
     private ApproachOrbitOrder approach;
     public int attackTime;
     public int ticks;
-    public GuardOrder(SpaceObject home) {
+
+    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => { };
+    AIShip.Destroyed IContainer<AIShip.Destroyed>.Value => (s, d, w) => { };
+    PlayerShip.Destroyed IContainer<PlayerShip.Destroyed>.Value => (s, d, w) => { };
+    public GuardOrder(ActiveObject home) {
         this.home = home;
+        switch (home) {
+            case Station s: s.onDestroyed += this;break;
+            case AIShip s: s.onDestroyed += this; break;
+            case PlayerShip s: s.onDestroyed += this; break;
+        }
         approach = new(home);
         attackOrder = new(null);
         attackTime = 0;
     }
-    public void SetHome(SpaceObject home) {
+    public override string ToString() => $"guard {home.name} {(attackOrder?.Active == true ? $"(attack {attackOrder.target.name})" : "")}";
+    public void SetHome(ActiveObject home) {
         this.home = home;
         approach.target = home;
     }
-    public bool CanTarget(SpaceObject other) => other == attackOrder?.target;
-    public void SetAttack(SpaceObject target, int attackTime = -1) {
+    public bool CanTarget(ActiveObject other) => other == attackOrder?.target;
+    public void SetAttack(ActiveObject target, int attackTime = -1) {
         this.attackOrder.SetTarget(target);
         this.attackTime = attackTime;
     }
@@ -204,15 +219,15 @@ public class GuardOrder : IShipOrder {
         }
         //At this point, we definitely don't have an attack target so we return
         if ((owner.position - home.position).magnitude2 < 6 * 6) {
-            owner.dock = new(home, home is Dockable d ? d.GetDockPoint() : XY.Zero);
+            owner.dock = new(home, (home as Station).GetDockPoint() ?? XY.Zero);
         } else {
             approach.Update(owner);
         }
 
-        bool FindTarget(out SpaceObject target) =>
+        bool FindTarget(out ActiveObject target) =>
             (target = owner.world.entities
                 .GetAll(p => (home.position - p).magnitude2 < 50 * 50)
-                .OfType<SpaceObject>()
+                .OfType<ActiveObject>()
                 .Where(o => !o.IsEqual(owner) && home.CanTarget(o))
                 .GetRandomOrDefault(owner.destiny)) != null;
         
@@ -222,7 +237,7 @@ public class GuardOrder : IShipOrder {
 public class AttackAllOrder : IShipOrder {
     public int sleepTicks;
     public AttackOrder attack;
-    public bool CanTarget(SpaceObject other) => other == attack.target;
+    public bool CanTarget(ActiveObject other) => other == attack.target;
     public AttackAllOrder() {
         attack = new(null);
     }
@@ -242,7 +257,7 @@ public class AttackAllOrder : IShipOrder {
         }
         //currentRange is variable and minRange is constant, so weapon dynamics may affect attack range
         var target = owner.world.entities.all
-            .OfType<SpaceObject>()
+            .OfType<ActiveObject>()
             .Where(o => owner.IsEnemy(o) && !owner.IsEqual(o))
             .GetRandomOrDefault(owner.destiny);
 
@@ -256,9 +271,9 @@ public class AttackAllOrder : IShipOrder {
     public bool Active => true;
 }
 public class AttackGroupOrder : IShipOrder {
-    public HashSet<SpaceObject> targets;
+    public HashSet<ActiveObject> targets;
     public AttackOrder attackOrder;
-    public bool CanTarget(SpaceObject other) => targets.Contains(other);
+    public bool CanTarget(ActiveObject other) => targets.Contains(other);
     public AttackGroupOrder() {
         attackOrder = new AttackOrder(null);
     }
@@ -282,7 +297,7 @@ public class AttackGroupOrder : IShipOrder {
     public bool Active => targets.Any();
 }
 public class AttackOrder : IShipOrder {
-    public SpaceObject target { get; private set; }
+    public ActiveObject target { get; private set; }
     public Weapon weapon;
     public List<Weapon> omni=new();
     [JsonProperty]
@@ -293,17 +308,17 @@ public class AttackOrder : IShipOrder {
     private GateOrder gate = null;
     [JsonProperty]
     private FaceOrder face = new(0);
-    public AttackOrder(SpaceObject target) {
+    public AttackOrder(ActiveObject target) {
         SetTarget(target);
     }
     public void ClearTarget() => this.target = null;
-    public void SetTarget(SpaceObject target) {
+    public void SetTarget(ActiveObject target) {
         this.target = target;
 
         this.aim = new(target, 0);
         this.approach = new(target);
     }
-    public bool CanTarget(SpaceObject other) => other == target;
+    public bool CanTarget(ActiveObject other) => other == target;
     private void Set(Weapon w) => w.SetFiring(true, target);
     public void Update(AIShip owner) {
         if (target == null) {
@@ -333,7 +348,6 @@ public class AttackOrder : IShipOrder {
                 //omni = null;
                 return;
             }
-            aim.missileSpeed = weapon.fragmentDesc.missileSpeed;
             omni.Clear();
             omni.AddRange(w
                .Where(w => w.aiming != null)
@@ -343,7 +357,7 @@ public class AttackOrder : IShipOrder {
                 .FirstOrDefault(w => w.aiming == null)
                 ?? weapon;
         }
-        bool RangeCheck() => (owner.position - target.position).magnitude2 < weapon.fragmentDesc.range2;
+        bool RangeCheck() => (owner.position - target.position).magnitude2 < weapon.projectileDesc.range2;
         //Remove dock
         if (owner.dock != null) {
             owner.dock = null;
@@ -351,7 +365,7 @@ public class AttackOrder : IShipOrder {
         var offset = (target.position - owner.position);
         var dist = offset.magnitude;
         omni.ForEach(w => {
-            if (dist < w.fragmentDesc.range) {
+            if (dist < w.projectileDesc.range) {
                 Set(w);
             }
         });
@@ -366,11 +380,12 @@ public class AttackOrder : IShipOrder {
             //Get moving!
             owner.SetThrusting(true);
         } else {
-            var range = weapon.fragmentDesc.range;
+            var range = weapon.projectileDesc.range;
             bool freeAim = weapon.aiming != null && dist < range;
             if (dist < range / 2) {
                 //If we are in range, then aim and fire
                 //Aim at the target
+                aim.missileSpeed = weapon.projectileDesc.missileSpeed;
                 aim.Update(owner);
                 if (Math.Abs(aim.GetAngleDiff(owner)) < 10
                     && (owner.velocity - target.velocity).magnitude2 < 5 * 5) {
@@ -402,7 +417,7 @@ public class GateOrder : IShipOrder {
         this.gate = gate;
         Active = true;
     }
-    public bool CanTarget(SpaceObject other) => false;
+    public bool CanTarget(ActiveObject other) => false;
     public void Update(AIShip owner) {
         if ((owner.position - gate.position).magnitude2 > 10) {
             new ApproachOrbitOrder(gate).Update(owner);
@@ -415,12 +430,12 @@ public class GateOrder : IShipOrder {
 }
 
 public class PatrolOrbitOrder : IShipOrder {
-    public SpaceObject patrolTarget;
+    public ActiveObject patrolTarget;
     public double patrolRadius;
     public double attackLimit;
     public AttackOrder attackOrder;
     public int tick;
-    public PatrolOrbitOrder(SpaceObject patrolTarget, double patrolRadius) {
+    public PatrolOrbitOrder(ActiveObject patrolTarget, double patrolRadius) {
         this.patrolTarget = patrolTarget;
         this.patrolRadius = patrolRadius;
         this.attackLimit = 2 * patrolRadius;
@@ -435,11 +450,11 @@ public class PatrolOrbitOrder : IShipOrder {
         }
         //Look for an attack target periodically
         if (tick % 15 == 0) {
-            List<SpaceObject> except = new List<SpaceObject> { owner, patrolTarget };
+            List<ActiveObject> except = new List<ActiveObject> { owner, patrolTarget };
             var attackLimit2 = attackLimit * attackLimit;
             var attackRange2 = 50 * 50;
             var target = owner.world.entities.all
-                .OfType<SpaceObject>()
+                .OfType<ActiveObject>()
                 .Where(p => (patrolTarget.position - p.position).magnitude2 < attackLimit2)
                 .Where(p => (owner.position - p.position).magnitude2 < attackRange2)
                 .Where(o => owner.IsEnemy(o))
@@ -468,15 +483,15 @@ public class PatrolOrbitOrder : IShipOrder {
     public bool Active => patrolTarget.active;
 }
 public class PatrolCircuitOrder : IShipOrder {
-    public SpaceObject patrolTarget;
-    public List<SpaceObject> nearbyFriends;
-    public SpaceObject nearestFriend;
+    public ActiveObject patrolTarget;
+    public List<ActiveObject> nearbyFriends;
+    public ActiveObject nearestFriend;
     public double patrolRadius;
     public double attackLimit;
     public AttackOrder attackOrder;
     public FaceOrder face;
     public int tick;
-    public PatrolCircuitOrder(SpaceObject patrolTarget, double patrolRadius) {
+    public PatrolCircuitOrder(ActiveObject patrolTarget, double patrolRadius) {
         this.patrolTarget = patrolTarget;
         this.patrolRadius = patrolRadius;
         this.attackLimit = 2 * patrolRadius;
@@ -495,11 +510,11 @@ public class PatrolCircuitOrder : IShipOrder {
 
         //Look for an attack target periodically
         if (tick % 15 == 0) {
-            List<SpaceObject> except = new List<SpaceObject> { owner, patrolTarget };
+            List<ActiveObject> except = new List<ActiveObject> { owner, patrolTarget };
             var attackLimit2 = attackLimit * attackLimit;
             var attackRange2 = 50 * 50;
             var target = owner.world.entities.all
-                .OfType<SpaceObject>()
+                .OfType<ActiveObject>()
                 .Where(p => (patrolTarget.position - p.position).magnitude2 < attackLimit2)
                 .Where(p => (owner.position - p.position).magnitude2 < attackRange2)
                 .Where(o => owner.IsEnemy(o))
@@ -564,15 +579,15 @@ public class PatrolCircuitOrder : IShipOrder {
 }
 
 public class SnipeOrder : IShipOrder {
-    public SpaceObject target;
+    public ActiveObject target;
     public Weapon weapon;
     [JsonProperty]
     private AimOrder aim;
-    public SnipeOrder(SpaceObject target) {
+    public SnipeOrder(ActiveObject target) {
         this.target = target;
         this.aim = new(target, 0);
     }
-    public bool CanTarget(SpaceObject other) => other == target;
+    public bool CanTarget(ActiveObject other) => other == target;
     public void Update(AIShip owner) {
         var weapons = owner.devices.Weapon;
         if (weapon?.AllowFire != true) {
@@ -580,26 +595,26 @@ public class SnipeOrder : IShipOrder {
             if (weapon == null) {
                 return;
             }
-            aim.missileSpeed = weapon.fragmentDesc.missileSpeed;
+            aim.missileSpeed = weapon.projectileDesc.missileSpeed;
         } else if (!weapon.ReadyToFire && weapons.Count > 1) {
             weapon = weapons.FirstOrDefault(w => w.ReadyToFire) ?? weapon;
-            aim.missileSpeed = weapon.fragmentDesc.missileSpeed;
+            aim.missileSpeed = weapon.projectileDesc.missileSpeed;
         }
         //Aim at the target
         aim.Update(owner);
 
         //Fire if we are close enough
-        if (weapon.desc.fragment.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
+        if (weapon.projectileDesc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
             weapon.SetFiring(true, target);
         }
     }
     public bool Active => target?.active == true && weapon?.AllowFire == true;
 }
 public class ApproachOrbitOrder : IShipOrder {
-    public SpaceObject target;
+    public ActiveObject target;
     [JsonProperty]
     private FaceOrder face;
-    public ApproachOrbitOrder(SpaceObject target) {
+    public ApproachOrbitOrder(ActiveObject target) {
         this.target = target;
         this.face = new(0);
     }
@@ -637,7 +652,7 @@ public class ApproachOrbitOrder : IShipOrder {
 
 public class AimOnceOrder : IShipOrder {
     public AimOrder order;
-    public AimOnceOrder(BaseShip owner, BaseShip target, double missileSpeed) {
+    public AimOnceOrder(StructureObject target, double missileSpeed) {
         this.order = new AimOrder(target, missileSpeed);
         Active = true;
     }
@@ -649,12 +664,12 @@ public class AimOnceOrder : IShipOrder {
     public bool Active { get; private set; }
 }
 public class AimOrder : IShipOrder {
-    public SpaceObject target;
+    public StructureObject target;
     public double missileSpeed;
     public double GetTargetRads(AIShip owner) => Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
     public double GetAngleDiff(AIShip owner) => Helper.AngleDiff(owner.rotationDeg, GetTargetRads(owner) * 180 / Math.PI);
 
-    public AimOrder(SpaceObject target, double missileSpeed) {
+    public AimOrder(StructureObject target, double missileSpeed) {
         this.target = target;
         this.missileSpeed = missileSpeed;
     }

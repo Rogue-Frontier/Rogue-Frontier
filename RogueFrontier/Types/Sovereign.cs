@@ -91,7 +91,7 @@ public class Sovereign : IDesignType {
         };
 
     public delegate Disposition AutoSovereign(Sovereign other);
-    public delegate Disposition AutoSpaceObject(SpaceObject other);
+    public delegate Disposition AutoSpaceObject(ActiveObject other);
 
     public Sovereign() {
         sovDispositions = new Dict<string, Disposition>();
@@ -121,7 +121,7 @@ public class Sovereign : IDesignType {
 
     }
     public void SetDisposition(Sovereign other, Disposition d) => sovDispositions[other.codename] = d;
-    public void SetDisposition(SpaceObject other, Disposition d) => entityDispositions[other] = d;
+    public void SetDisposition(ActiveObject other, Disposition d) => entityDispositions[other] = d;
     public Disposition GetDisposition(Sovereign other) {
         if (sovDispositions.TryGetValue(other.codename, out Disposition d)
             //|| (parent?.sovDispositions.TryGetValue(other, out d) == true)
@@ -133,7 +133,7 @@ public class Sovereign : IDesignType {
         }
     }
     public bool IsEnemy(Sovereign other) => GetDisposition(other) == Disposition.Enemy;
-    public Disposition GetDisposition(SpaceObject other) {
+    public Disposition GetDisposition(ActiveObject other) {
         if (entityDispositions.TryGetValue(other, out Disposition d)
             //|| (parent?.entityDispositions.TryGetValue(other, out d) == true)
             ) {
@@ -147,8 +147,8 @@ public class Sovereign : IDesignType {
         //entityDispositions[other] = GetAutoDisposition(other.sovereign);
         //return entityDispositions[other];
     }
-    public bool IsFriend(SpaceObject other) => GetDisposition(other) == Disposition.Friend;
-    public bool IsEnemy(SpaceObject other) => GetDisposition(other) == Disposition.Enemy;
+    public bool IsFriend(ActiveObject other) => GetDisposition(other) == Disposition.Friend;
+    public bool IsEnemy(ActiveObject other) => GetDisposition(other) == Disposition.Enemy;
     public Disposition GetAutoDisposition(Sovereign other) {
         var d = AutoSovereignDisposition?.Value?.Invoke(other);
         if (d.HasValue) {

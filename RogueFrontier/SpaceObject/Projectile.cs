@@ -4,10 +4,8 @@ using SadConsole;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using static RogueFrontier.SWeapon;
 
 namespace RogueFrontier;
-
 public interface ITrail {
     Effect GetTrail(XY Position);
 }
@@ -24,7 +22,7 @@ public class Projectile : MovingObject {
     [JsonProperty]
     public System world { get; set; }
     [JsonProperty]
-    public SpaceObject source;
+    public ActiveObject source;
     [JsonProperty]
     public XY position { get; set; }
     [JsonProperty]
@@ -45,7 +43,7 @@ public class Projectile : MovingObject {
     [JsonIgnore]
     public bool active => lifetime > 0;
     public Projectile() { }
-    public Projectile(SpaceObject source, FragmentDesc fragment, XY position, XY velocity, Maneuver maneuver) {
+    public Projectile(ActiveObject source, FragmentDesc fragment, XY position, XY velocity, Maneuver maneuver) {
         this.id = source.world.nextId++;
         this.source = source;
         this.world = source.world;
@@ -91,12 +89,10 @@ public class Projectile : MovingObject {
                 bool destroyed = false;
                 bool stop = false;
 
-                foreach (var other in world.entities[position].Except(exclude)) {
+                foreach (var other in world.entities[position].Select(e => e is ISegment s ? s.parent : e).Distinct().Except(exclude)) {
+
                     switch (other) {
-                        //Skip excluded segments
-                        case Segment seg when exclude.Contains(seg.parent):
-                            continue;
-                        case SpaceObject hit when !destroyed:
+                        case ActiveObject hit when !destroyed:
                             hit.Damage(this);
                             var angle = (hit.position - position).angleRad;
                             world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 10));
@@ -162,10 +158,10 @@ public class Projectile : MovingObject {
 }
 
 public class Maneuver {
-    public SpaceObject target;
+    public ActiveObject target;
     public double maneuver;
     public double maneuverDistance;
-    public Maneuver(SpaceObject target, double maneuver, double maneuverDistance) {
+    public Maneuver(ActiveObject target, double maneuver, double maneuverDistance) {
         this.target = target;
         this.maneuver = maneuver;
         this.maneuverDistance = maneuverDistance;

@@ -60,7 +60,7 @@ public record PowerStorm() : PowerEffect {
         public void Update() {
             var w = owner.GetPrimary();
             if(w != null) {
-                var f = w.fragmentDesc;
+                var f = w.projectileDesc;
                 var p = new Projectile(owner, f,
                     owner.position + XY.Polar(0, 50),
                     owner.velocity + XY.Polar(0, -50),
@@ -124,7 +124,7 @@ public record Clonewall() : PowerEffect {
             ticks++;
             if(owner.GetPrimary() is Weapon w) {
                 if (w.delay == 0) {
-                    ready = w.fragmentDesc;
+                    ready = w.projectileDesc;
                 }
                 const int interval = 6;
                 if (ticks % interval == 0) {
@@ -168,7 +168,7 @@ public class PowerProjectile : PowerEffect {
     }
     //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
     public void Invoke(PlayerShip player) =>
-        SWeapon.CreateShot(desc, player, player.rotationDeg * Math.PI / 180);
+        new Weapon() { projectileDesc = desc }.Fire(player, player.rotationRad);
 }
 public class PowerHeal : PowerEffect {
     public PowerHeal() { }
@@ -219,7 +219,6 @@ public class PowerBarrier : PowerEffect {
                     break;
                 }
         }
-
         //HashSet<(int, int)> covered = new();
         for (double r = radius; r < radius + 2; r++) {
             double step = 1f / (r * 2);
@@ -262,13 +261,13 @@ public class Power : IPower {
     public bool charging { get; set; }
     [JsonIgnore]
     public List<PowerEffect> Effect => type.Effect;
-
     public Power(PowerType type) {
         this.type = type;
     }
     public void OnDestroyCheck(PlayerShip player, Projectile p) {
         if (type.onDestroyCheck) {
             p.damageHP = 0;
+            player.ship.damageSystem.Restore();
             type.Effect.ForEach(e=>e.Invoke(player));
         }
     }

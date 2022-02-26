@@ -14,31 +14,35 @@ public interface StationBehavior {
     void Update(Station owner);
     public void RegisterGuard(AIShip guard) { }
 }
-public class Pirate : StationBehavior {
+
+public class PirateStation : StationBehavior {
     int ticks = 0;
-    public Pirate() { }
+    public PirateStation() { }
     public void Update(Station owner) {
         ticks++;
         if (ticks % 300 == 0) {
             //Clear any pirate attacks where the target has too many defenders
             foreach (var g in owner.guards) {
-                if (g.behavior is CompoundOrder b
-                    && b.current is GuardOrder order
-                    && order.attackOrder.Active == true
-                    && CountDefenders(order.attackOrder.target, g) > 2) {
-                    order.ClearAttack();
+                if (g.behavior.GetOrder() is GuardOrder o
+                    && o.attackOrder.Active == true
+                    && CountDefenders(o.attackOrder.target, g) > 2) {
+                    o.ClearAttack();
                 }
             }
 
             var targets = owner.world.entities.all
                         .OfType<IShip>()
                         .Where(s => owner.IsEnemy(s))
-                        .Where(s => (s.position - owner.position).magnitude < 500);
+                        .Where(s => (s.position - owner.position).magnitude < 500)
+                        .ToList();
             //Handle all available guards
             foreach (var g in owner.guards) {
-                if (g.behavior is CompoundOrder b && b.current is GuardOrder o && o.attackTime < 1) {
+                if (g.behavior.GetOrder() is GuardOrder { attackTime: < 1 } o) {
                     var target = targets.FirstOrDefault(
-                        s => CountAttackers(s) < 5 && CountDefenders(s, g) < 3);
+                        s => {
+                            int attackers = CountAttackers(s), defenders = CountDefenders(s, g);
+                            return attackers < 5 && defenders < 3;
+                        });
                     if (target != null) {
                         o.SetAttack(target);
                     }
@@ -46,19 +50,19 @@ public class Pirate : StationBehavior {
             }
 
             //Count the number of objects that could defend this target from the attacker
-            int CountDefenders(SpaceObject target, SpaceObject attacker) {
+            int CountDefenders(ActiveObject target, ActiveObject attacker) {
                 return target.world.entities.all
-                        .OfType<SpaceObject>()
+                        .OfType<ActiveObject>()
                         .Where(other => (other.position - target.position).magnitude < 150)
                         .Where(other => other.CanTarget(attacker))
                         .Count();
             }
             //Count the number of ships already attacking this target
-            int CountAttackers(SpaceObject target) {
+            int CountAttackers(ActiveObject target) {
                 return target.world.entities.all
                         .OfType<AIShip>()
                         .Where(s => s.sovereign == owner.sovereign)
-                        .Where(s => s.behavior is CompoundOrder b && b.current is GuardOrder o && o.attackOrder?.target == target)
+                        .Where(s => s.behavior.GetOrder().CanTarget(target))
                         .Count();
             }
         }

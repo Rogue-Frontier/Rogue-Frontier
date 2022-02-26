@@ -57,13 +57,13 @@ class Heading : Effect {
         XY point = start;
         XY inc = XY.Polar(angle);
         int length = 20;
-        int interval = 4;
+        int interval = 2;
         for (int i = 0; i < length / interval; i++) {
             point += inc * interval;
             World.AddEffect(new EffectParticle(point, pointEffect, lifetime));
         }
     }
-    public static void AimLine(SpaceObject owner, double angle, Weapon w) {
+    public static void AimLine(ActiveObject owner, double angle, Weapon w) {
         //Idea: Highlight a segment of the aimline based on the firetime left on the weapon
 
         var start = owner.position;
@@ -76,7 +76,7 @@ class Heading : Effect {
         XY inc = XY.Polar(angle);
         //var length = w.target == null ? 20 : (w.target.Position - owner.Position).Magnitude;
         var length = 20;
-        int interval = 4;
+        int interval = 2;
 
         var points = length / interval;
         //var highlights = points * (1 - w.fireTime / w.desc.fireCooldown);

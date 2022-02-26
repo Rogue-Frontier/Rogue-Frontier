@@ -62,7 +62,7 @@ class FrontierClient : TcpClient {
                         }
                         client.removed = ai;
                         sys.RemoveEntity(ai);
-                        var playerShip = new PlayerShip(new Player(client.prev.settings), ai.ship);
+                        var playerShip = new PlayerShip(new Player(client.prev.settings), ai.ship, ai.sovereign);
                         playerShip.mortalChances = 0;
                         sys.AddEntity(playerShip);
                         sys.UpdatePresent();

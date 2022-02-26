@@ -1,8 +1,8 @@
 ﻿<Module>
-	<Sovereign	codename=	"svOrionWarlords"
+	<Sovereign	codename=	"sovereign_orion_warlords"
 				alignment=	"DestructiveOrder"
 	/>
-	<ItemType	codename=	"itOrionBolter"
+	<ItemType	codename=	"item_orion_bolter"
 				name=		"Orion bolter"
 				mass=		"3000"
 				level=		"2"
@@ -35,7 +35,7 @@
 		</Weapon>
 	</ItemType>
 
-	<ItemType	codename=	"itOrionLongbow"
+	<ItemType	codename=	"item_orion_longbow"
 				name=		"Orion Longbow"
 				mass=		"5000"
 				level=		"3"
@@ -69,7 +69,7 @@
 	</ItemType>
 
 
-	<ItemType	codename=	"itTraitorLongbow"
+	<ItemType	codename=	"item_traitor_longbow"
 		name=		"Traitor's Longbow"
 		mass=		"5000"
 		level=		"3"
@@ -118,7 +118,7 @@
 		</Weapon>
 	</ItemType>
 
-	<ItemType	codename=	"itOrionBallista"
+	<ItemType	codename=	"item_orion_ballista"
 		name=		"Orion crossbow"
 		mass=		"8000"
 		level=		"4"
@@ -152,7 +152,7 @@
 		</Weapon>
 	</ItemType>
 
-	<ItemType	codename=	"itHunterscalePlate"
+	<ItemType	codename=	"item_hunterscale_plate"
 				name=		"Hunterscale plate"
 				mass=		"1000"
 				level=		"1"
@@ -163,7 +163,7 @@
 			>
 		</Armor>
 	</ItemType>
-	<ItemType	codename=	"itSkullhelmPlate"
+	<ItemType	codename=	"item_skullhelm_plate"
 				name=		"Skullhelm plate"
 				mass=		"5000"
 				level=		"2"
@@ -188,10 +188,10 @@
 				foreground=			"Blue"
 		>
 		<Devices>
-			<Weapon	codename="itOrionBolter" modifierChance="10/100" damageHPInc="4"/>
+			<Weapon	codename="item_orion_bolter" modifierChance="10/100" damageHPInc="4"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor	codename="itHunterscalePlate"/>
+			<Armor	codename="item_hunterscale_plate"/>
 		</LayeredArmorSystem>
 		<PlayerSettings
 			startingClass=  "false"
@@ -211,10 +211,10 @@
 				foreground=			"Blue"
 		>
 		<Devices>
-			<Weapon	codename="itOrionLongbow"/>
+			<Weapon	codename="item_orion_longbow"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor	codename="itSkullhelmPlate"/>
+			<Armor	codename="item_skullhelm_plate"/>
 		</LayeredArmorSystem>
 		<PlayerSettings
 			startingClass=  "false"
@@ -237,16 +237,16 @@
 				behavior=			"sulphin"
 		>
 		<Devices>
-			<Weapon	codename="itOrionBallista"/>
+			<Weapon	codename="item_orion_ballista"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor	codename="itSkullhelmPlate"/>
+			<Armor	codename="item_skullhelm_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 
 	<StationType	codename="station_orion_warlords_camp"
 					name=		"Orion Warlords camp"
-					sovereign=	"svOrionWarlords"
+					sovereign=	"sovereign_orion_warlords"
 
 					hp=			"250"
 
@@ -260,12 +260,12 @@
 			<Ship	count="5"	codename="ship_orion_raider"/>
 		</Ships>
 		<Weapons>
-			<Weapon	codename="itOrionBolter"/>
+			<Weapon	codename="item_orion_bolter"/>
 		</Weapons>
 	</StationType>
-	<StationType	codename="stOrionWarlordsStronghold"
+	<StationType	codename="station_orion_warlords_stronghold"
 					name=		"Orion Warlords stronghold"
-					sovereign=	"svOrionWarlords"
+					sovereign=	"sovereign_orion_warlords"
 
 					hp=			"500"
 
@@ -283,14 +283,14 @@
 			<Ship	codename="ship_orion_huntsman"/>
 		</Ships>
 		<Weapons>
-			<Weapon	codename="itOrionBow"/>
+			<Weapon	codename="item_orion_longbow"/>
 		</Weapons>
 	</StationType>
 
 
 	<StationType	codename="station_arnold_habitat"
 				name=		"William Sulphin's container habitat"
-				sovereign=	"svOrionWarlords"
+				sovereign=	"sovereign_orion_warlords"
 
 				hp=			"200"
 
@@ -309,8 +309,8 @@
 		</Segments>
 
 		<Ships>
-			<Ship	count="6"	codename="ship_orion_raider" sovereign="svOrionWarlords" order="patrol" patrolRadius="20"/>
-			<Ship	count="1"	codename="ship_william_sulphin" sovereign="svOrionWarlords" order="patrol" patrolRadius="5"/>
+			<Ship	count="6"	codename="ship_orion_raider" sovereign="sovereign_orion_warlords" order="patrol" patrolRadius="20"/>
+			<Ship	count="1"	codename="ship_william_sulphin" sovereign="sovereign_orion_warlords" order="patrol" patrolRadius="5"/>
 		</Ships>
 		<Weapons>
 		</Weapons>

@@ -3,16 +3,16 @@
 namespace RogueFrontier;
 
 public class Docking {
-    public SpaceObject Target;
+    public StructureObject Target;
     public XY Offset;
     public bool docked;
     public bool justDocked;
     public Docking() { }
-    public Docking(SpaceObject Target) {
+    public Docking(StructureObject Target) {
         this.Target = Target;
         this.Offset = new XY(0, 0);
     }
-    public Docking(SpaceObject Target, XY Offset) {
+    public Docking(StructureObject Target, XY Offset) {
         this.Target = Target;
         this.Offset = Offset;
     }

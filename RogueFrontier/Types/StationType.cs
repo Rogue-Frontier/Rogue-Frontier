@@ -8,19 +8,12 @@ using System.Linq;
 
 namespace RogueFrontier;
 
-public enum EStationBehaviors {
-    none,
-    raisu,
-    pirate,
-    reinforceNearby,
-    constellationShipyard
-}
 public class StationType : IDesignType {
     [Req] public string codename;
     [Req] public string name;
     [Req] public int hp;
     [Opt] public bool crimeOnDestroy;
-    public EStationBehaviors behavior;
+    public Station.Behaviors behavior;
     public Sovereign Sovereign;
     public StaticTile tile;
     public Group<Item> cargo;
@@ -29,15 +22,15 @@ public class StationType : IDesignType {
     public List<SegmentDesc> segments;
     public List<XY> dockPoints;
 
-    public ShipList ships;
+    public ShipGroup ships;
     public SystemGroup satellites;
 
     public Dictionary<(int, int), ColoredGlyph> heroImage;
 
-    public void Initialize(TypeCollection collection, XElement e) {
+    public void Initialize(TypeCollection tc, XElement e) {
         e.Initialize(this);
-        behavior = e.TryAttEnum(nameof(behavior), EStationBehaviors.none);
-        Sovereign = collection.Lookup<Sovereign>(e.ExpectAtt("sovereign"));
+        behavior = e.TryAttEnum(nameof(behavior), Station.Behaviors.none);
+        Sovereign = tc.Lookup<Sovereign>(e.ExpectAtt("sovereign"));
         tile = new StaticTile(e);
         dockPoints = new();
 
@@ -100,7 +93,7 @@ public class StationType : IDesignType {
             }
         }
         if (e.HasElement("Satellites", out var xmlSatellites)) {
-            satellites = new(xmlSatellites);
+            satellites = new(xmlSatellites, (XElement e) => SSystemElement.Create(tc, e));
         }
         if (e.HasElement("Dock", out var xmlDock)) {
             foreach (var xmlPart in xmlDock.Elements()) {
@@ -129,10 +122,10 @@ public class StationType : IDesignType {
             }
         }
         if (e.HasElement("Cargo", out XElement xmlCargo) || e.HasElement("Items", out xmlCargo)) {
-            cargo = new(xmlCargo, SGenerator.ItemFrom);
+            cargo = new(xmlCargo, SGenerator.ParseFrom(tc, SGenerator.ItemFrom));
         }
         if (e.HasElement("Ships", out var xmlShips)) {
-            ships = new(xmlShips);
+            ships = new(xmlShips, SGenerator.ParseFrom(tc, SGenerator.ShipFrom));
         }
         if (e.HasElement("HeroImage", out var heroImage)) {
             if (heroImage.TryAtt("path", out string path)) {

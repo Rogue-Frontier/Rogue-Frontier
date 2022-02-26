@@ -10,7 +10,7 @@
 				<Station codename="station_constellation_shipyard"/>
 
 				<Orbital radius="50" angle="0" increment="equidistant" count="4">
-					<Station	codename="station_orion_warlords_camp"/>
+					<Station	codename="station_iron_pirates_foundry"/>
 				</Orbital>
 
 			</Orbital>

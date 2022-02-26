@@ -6,38 +6,46 @@ using System.Linq;
 using Console = SadConsole.Console;
 using static UI;
 using SadRogue.Primitives;
+using Common;
 
 namespace RogueFrontier;
 
-interface ITrader {
+public interface ITrader {
     string name { get; }
     HashSet<Item> cargo { get; }
 
     //public static implicit operator Dealer(ITrader r) => new(r.name, r.cargo);
 }
-class TradeScene : Console {
-    Console next;
+public delegate int GetPrice(Item i);
+public class TradeMenu : Console {
+    Console prev;
     Player player;
-    //PlayerShip playerShip;
-    //ITrader docked;
     ExchangeModel model;
-
-    public TradeScene(Console next, PlayerShip playerShip, ITrader docked) : this(next, next, playerShip, docked) { }
-    public TradeScene(Console prev, Console next, PlayerShip playerShip, ITrader docked) : base(prev.Width, prev.Height) {
-        this.next = next;
+    GetPrice GetBuyPrice, GetSellPrice;
+    public TradeMenu(Console prev, PlayerShip playerShip, ITrader docked, GetPrice GetBuyPrice, GetPrice GetSellPrice) : base(prev.Width, prev.Height) {
+        this.prev = prev;
         this.player = playerShip.player;
-        //this.playerShip = playerShip;
-        //this.docked = docked;
         model = new(new(playerShip.name, playerShip.cargo), new(docked.name, docked.cargo), Transact, Transition);
+        this.GetBuyPrice = GetBuyPrice;
+        this.GetSellPrice = GetSellPrice;
     }
     public void Transact() {
         var item = model.currentItem;
         if (model.traderIndex == 0) {
-            player.money += item.type.value;
-        } else if (player.money >= item.type.value) {
-            player.money -= item.type.value;
+            var price = GetSellPrice(item);
+            if (price == -1) {
+                return;
+            }
+            player.money += price;
         } else {
-            return;
+            var price = GetBuyPrice(item);
+            if(price == -1) {
+                return;
+            }
+            if (player.money < price) {
+                return;
+            }
+            player.money -= price;
         }
         model.from.items.Remove(item);
         model.to.items.Add(item);
@@ -45,9 +53,9 @@ class TradeScene : Console {
     public void Transition() {
         var p = Parent;
         p.Children.Remove(this);
-        if (next != null) {
-            p.Children.Add(next);
-            next.IsFocused = true;
+        if (prev != null) {
+            p.Children.Add(prev);
+            prev.IsFocused = true;
         } else {
             p.IsFocused = true;
         }
@@ -61,23 +69,26 @@ class TradeScene : Console {
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
-        
         model.Render(this);
-        
         int x = 16;
         int y = 10;
         var f = Color.White;
         var b = Color.Black;
         this.Print(x, y++, $"Money: {$"{player.money}".PadLeft(8)}", f, b);
         var item = model.currentItem;
-        if (item != null) {
+        var value = item == null ? -1 : model.traderIndex == 0 ? GetSellPrice(item) : GetBuyPrice(item);
+        if (value > -1) {
             f = Color.Yellow;
-
-            //int d = model.traderIndex == 0 ? item.type.value : -item.type.value;
-
-            this.Print(x, y++, $"       {$"{item.type.value}".PadLeft(8)}{(model.traderIndex == 0 ? '+' : '-')}", f, b);
-            //y++;
-            //this.Print(x, y++, $"       {$"{player.money + d}".PadLeft(8)}", f, b);
+            this.Print(x, y++, $"       {$"{value}".PadLeft(8)}{(model.traderIndex == 0 ? '+' : '-')}", f, b);
+        }
+        if (item != null) {
+            x = 33;
+            y = 4;
+            this.Print(x, y++, item.type.name, Color.White, Color.Black);
+            y++;
+            foreach(var line in item.type.desc.SplitLine(90)) {
+                this.Print(x, y++, line, Color.White, Color.Black);
+            }
         }
         base.Render(delta);
     }

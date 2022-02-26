@@ -20,7 +20,7 @@ class Marker : Entity {
     public void Update() { }
 }
 
-class TargetingMarker : SpaceObject {
+class TargetingMarker : ActiveObject {
     [JsonIgnore]
     public ColoredGlyph tile => null;
     [JsonIgnore]
@@ -49,5 +49,5 @@ class TargetingMarker : SpaceObject {
         //Nearby = Owner.world.entities.all.OfType<SpaceObject>().Except(new SpaceObject[] { Owner }).OrderBy(e => (e.position - position).magnitude).ToList();
     }
     public void Damage(Projectile p) { }
-    public void Destroy(SpaceObject source = null) { }
+    public void Destroy(ActiveObject source = null) { }
 }

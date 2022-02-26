@@ -12,7 +12,9 @@
                 foreground="Magenta"
 	    >
 	    <Devices>
-		    <Weapon codename="item_amethyst_laser"/>
+			<Weapon codename="item_amethyst_laser"/>
+			<Weapon codename="item_amethyst_laser_ii"/>
+			<Weapon codename="item_amethyst_laser_iii"/>
 			<Shield codename="item_shimmer_shield"/>
 			<Reactor codename="item_foundry_reactor"/>
 			<Reactor codename="item_foundry_battery"/>
@@ -322,7 +324,7 @@
 			<Weapon codename="item_laser_pointer"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="itHunterscalePlate"/>
+			<Armor  codename="item_hunterscale_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 

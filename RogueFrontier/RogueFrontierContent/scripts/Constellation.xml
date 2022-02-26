@@ -107,7 +107,7 @@
 		</Segments>
 
 		<Ships>
-			<Ship	count="6"	codename="ship_orion_raider" sovereign="svOrionWarlords" order="patrol" patrolRadius="20"/>
+			<Ship	count="6"	codename="ship_orion_raider" sovereign="sovereign_orion_warlords" order="patrol" patrolRadius="20"/>
 		</Ships>
 		<Weapons>
 		</Weapons>

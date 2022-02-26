@@ -36,12 +36,9 @@ class ArenaScreen : Console {
     public Dictionary<(int, int), ColoredGlyph> tiles;
     XY screenCenter;
     MouseWatch mouse;
-
-    public SpaceObject pov;
-    SpaceObject nearest;
-
+    public ActiveObject pov;
+    ActiveObject nearest;
     public PlayerMain playerMain;
-
     public ArenaScreen(TitleScreen prev, Settings settings, System World) : base(prev.Width, prev.Height) {
         this.prev = prev;
         this.settings = settings;
@@ -68,6 +65,7 @@ class ArenaScreen : Console {
             List<Device> devices = new List<Device>();
 
             AddSovereignField();
+            AddStationField();
             AddShipField();
             AddCargoField();
             AddDeviceField();
@@ -106,8 +104,53 @@ class ArenaScreen : Console {
                     label.text = new ColoredString($"Sovereign: {sovereign.codename}");
                 }
             }
-            void AddShipField() {
+
+
+            void AddStationField() {
                 var x = 1 + 32;
+                var y = 7;
+
+                Children.Add(new Label("Spawn Station") { Position = new Point(x, y++) });
+                var stationField = new TextField(24) { Position = new Point(x, y++) };
+                ButtonList buttons = new ButtonList(this, new Point(x, y++));
+                stationField.TextChanged += _ => UpdateStationListing();
+                Children.Add(stationField);
+                UpdateStationListing();
+
+                void UpdateStationListing() {
+                    var text = stationField.text;
+                    buttons.Clear();
+                    var stationTypeDict = World.types.GetDict<StationType>();
+
+                    int i = 0;
+                    foreach (var type in stationTypeDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
+                        buttons.Add(type, () => {
+                            var station = new Station(World, stationTypeDict[type], camera) { sovereign = sovereign };
+
+                            if (cargo.Any()) {
+                                station.cargo.Clear();
+                                station.cargo.UnionWith(cargo.Select(s => new Item(s)));
+                            }
+                            if (devices.Any()) {
+                                station.weapons.Clear();
+                                station.weapons.AddRange(devices.Select(d => new Item(d.source).weapon).Where(d => d != null));
+                            }
+
+                            World.AddEntity(station);
+
+                            station.CreateSegments();
+                            station.CreateGuards();
+                        });
+
+                        if (++i > 16) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            void AddShipField() {
+                var x = 1 + 32 + 32;
                 var y = 7;
 
                 Children.Add(new Label("Spawn Ship") { Position = new Point(x, y++) });
@@ -125,7 +168,7 @@ class ArenaScreen : Console {
                     int i = 0;
                     foreach (var type in shipClassDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
                         buttons.Add(type, () => {
-                            var ship = new AIShip(new BaseShip(World, shipClassDict[type], sovereign, camera), new AttackAllOrder());
+                            var ship = new AIShip(new BaseShip(World, shipClassDict[type], camera), sovereign, new AttackAllOrder());
 
                             if (cargo.Any()) {
                                 ship.cargo.Clear();
@@ -154,9 +197,11 @@ class ArenaScreen : Console {
                     }
                 }
             }
+
+
             void AddCargoField() {
-                var x = 1 + 32 + 32;
-                var y = 7;
+                var x = 1;
+                var y = 7 + 18;
 
                 Children.Add(new Label("Cargo") { Position = new Point(x, y++) });
                 var cargoField = new TextField(24) { Position = new Point(x, y++) };
@@ -208,7 +253,7 @@ class ArenaScreen : Console {
 
 
             void AddDeviceField() {
-                var x = 1;
+                var x = 1 + 32;
                 var y = 7 + 18;
 
                 Children.Add(new Label("Devices") { Position = new Point(x, y++) });
@@ -332,7 +377,7 @@ class ArenaScreen : Console {
 
         void UpdateNearest() {
             XY worldPos = new XY(mouse.nowPos) - screenCenter + camera;
-            nearest = World.entities.all.OfType<SpaceObject>().OrderBy(e => (e.position - worldPos).magnitude).FirstOrDefault();
+            nearest = World.entities.all.OfType<ActiveObject>().OrderBy(e => (e.position - worldPos).magnitude).FirstOrDefault();
         }
 
 
@@ -382,7 +427,7 @@ class ArenaScreen : Console {
 
                 playerMain.playerShip.Detach();
                 World.RemoveEntity(playerMain.playerShip);
-                var aiShip = new AIShip(playerMain.playerShip.ship, new AttackAllOrder());
+                var aiShip = new AIShip(playerMain.playerShip.ship, playerMain.playerShip.sovereign, new AttackAllOrder());
                 World.AddEntity(aiShip);
                 World.AddEffect(new Heading(aiShip));
 
@@ -409,7 +454,7 @@ class ArenaScreen : Console {
                 World.RemoveEntity(a);
 
                 var p = new Player() { Settings = settings, Genome = new GenomeType() { name = "Human" } };
-                var playerShip = new PlayerShip(p, new BaseShip(a.ship));
+                var playerShip = new PlayerShip(p, new BaseShip(a.ship), a.sovereign);
 
                 playerMain = new PlayerMain(Width, Height, null, playerShip) { IsFocused = true };
                 playerMain.camera.position = camera;
@@ -432,7 +477,7 @@ class ArenaScreen : Console {
         if (info.IsKeyPressed(K) && nearest != null) {
             nearest.Destroy();
             if (info.IsKeyDown(LeftShift)) {
-                foreach (var s in World.entities.all.OfType<SpaceObject>()) {
+                foreach (var s in World.entities.all.OfType<ActiveObject>()) {
                     s.Destroy();
                 }
             }

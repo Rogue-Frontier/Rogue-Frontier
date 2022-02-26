@@ -8,9 +8,10 @@ using static RogueFrontier.Weapon;
 
 namespace RogueFrontier;
 
+public delegate T Parse<T>(XElement e);
 public interface ShipGenerator {
-    IEnumerable<AIShip> Generate(TypeCollection tc, SpaceObject owner);
-    public IEnumerable<AIShip> GenerateAndPlace(TypeCollection tc, SpaceObject owner) {
+    IEnumerable<AIShip> Generate(TypeCollection tc, ActiveObject owner);
+    public IEnumerable<AIShip> GenerateAndPlace(TypeCollection tc, ActiveObject owner) {
         var w = owner.world;
         var result = Generate(tc, owner);
         foreach(var s in result) {
@@ -20,71 +21,60 @@ public interface ShipGenerator {
         return result;
     }
 }
-public class ShipList : ShipGenerator {
+public class ShipGroup : ShipGenerator {
     public List<ShipGenerator> generators;
-    public ShipList() { generators = new List<ShipGenerator>(); }
-    public ShipList(XElement e) {
+    public ShipGroup() {
+        generators = new List<ShipGenerator>();
+    }
+    public ShipGroup(XElement e, Parse<ShipGenerator> parse) {
         generators = new();
         foreach (var element in e.Elements()) {
-            switch (element.Name.LocalName) {
-                case "Ship":
-                    generators.Add(new ShipEntry(element));
-                    break;
-                default:
-                    throw new Exception($"Unknown <Ships> subelement {element.Name}");
-            }
+            generators.Add(parse(element));
         }
     }
-    public IEnumerable<AIShip> Generate(TypeCollection tc, SpaceObject owner) =>
+    public IEnumerable<AIShip> Generate(TypeCollection tc, ActiveObject owner) =>
         generators.SelectMany(g => g.Generate(tc, owner));
 }
 public enum ShipOrder {
-    attack, guard, patrol, patrolCircuit, 
+    attack, escort, guard, patrol, patrolCircuit, 
 }
 public class ShipEntry : ShipGenerator {
     [Opt] public int count = 1;
     [Req] public string codename;
     [Opt] public string sovereign;
+    public ShipGroup subordinates;
+    public ShipClass shipClass;
+    public Sovereign sov;
     public IShipOrderDesc orderDesc;
     public EShipBehavior behavior;
     public ShipEntry() { }
-    public ShipEntry(XElement e) {
+    public ShipEntry(TypeCollection tc, XElement e) {
         e.Initialize(this);
+        subordinates = e.HasElement("Ships", out var xmlSub) ? new(xmlSub, SGenerator.ParseFrom(tc, SGenerator.ShipFrom)) : new();
+        shipClass = tc.Lookup<ShipClass>(codename);
+        sov = sovereign?.Any() == true ? tc.Lookup<Sovereign>(sovereign) : null;
         orderDesc = e.TryAttEnum("order", ShipOrder.guard) switch {
             ShipOrder.attack => new AttackDesc(),
+            ShipOrder.escort => new EscortDesc(e),
             ShipOrder.guard => new GuardDesc(),
             ShipOrder.patrol => new PatrolOrbitDesc(e),
             ShipOrder.patrolCircuit => new PatrolCircuitDesc(e),
             _ => new GuardDesc()
         };
     }
-    public IEnumerable<AIShip> Generate(TypeCollection tc, SpaceObject owner) {
-        var shipClass = tc.Lookup<ShipClass>(codename);
-        Sovereign s = sovereign?.Any() == true ? tc.Lookup<Sovereign>(sovereign) : owner.sovereign;
+    public IEnumerable<AIShip> Generate(TypeCollection tc, ActiveObject owner) {
+        Sovereign s = sov ?? owner.sovereign;
         Func<int, XY> GetPos = orderDesc switch {
             PatrolOrbitDesc pod => i => owner.position + XY.Polar(
                                         Math.PI * 2 * i / count,
                                         pod.patrolRadius),
             _ => i => owner.position
         };
-        return Enumerable.Range(0, count)
-            .Select(i => new AIShip(new BaseShip(
-                    owner.world,
-                    shipClass,
-                    s,
-                    GetPos(i)
-                ),
-                orderDesc.Value(owner)
-                ));
-    }
-    //In case we want to make sure immediately that the type is valid
-    public void ValidateEager(TypeCollection tc) {
-        if (!tc.Lookup<ShipClass>(codename, out var shipClass)) {
-            throw new Exception($"Invalid ShipClass type {codename}");
-        }
-        if (sovereign.Any() && !tc.Lookup<Sovereign>(sovereign, out var sov)) {
-            throw new Exception($"Invalid Sovereign type {sovereign}");
-        }
+        var ships = Enumerable.Range(0, count).Select(
+            i => new AIShip(new(owner.world, shipClass, GetPos(i)), s, orderDesc.Value(owner))
+            ).ToList();
+        var subShips = ships.SelectMany(ship => subordinates.Generate(tc, ship));
+        return ships.Concat(subShips);
     }
 
     public interface IShipOrderDesc : IContainer<IShipOrder.Create> {}
@@ -113,6 +103,14 @@ public class ShipEntry : ShipGenerator {
         [JsonIgnore]
         public IShipOrder.Create Value => target => new PatrolCircuitOrder(target, patrolRadius);
     }
+
+    public record EscortDesc() : IShipOrderDesc {
+        public EscortDesc(XElement e) : this() {
+            e.Initialize(this);
+        }
+        [JsonIgnore]
+        public IShipOrder.Create Value => target => new EscortOrder((IShip)target, XY.Polar(0, 2));
+    }
 }
 
 public record ModRoll() {
@@ -137,16 +135,27 @@ public record ModRoll() {
 }
 public interface IGenerator<T> {
     List<T> Generate(TypeCollection t);
+
 }
 public record None<T>() : IGenerator<T> {
     public None(XElement e) : this() { }
     public List<T> Generate(TypeCollection tc) => new();
 }
 public static class SGenerator {
-    public static IGenerator<Item> ItemFrom(XElement element) {
-        var f = ItemFrom;
+    public static Parse<T> ParseFrom<T>(TypeCollection tc, Func<TypeCollection, XElement, T> f) =>
+        (XElement e) => f(tc, e);
+    public static ShipGenerator ShipFrom(TypeCollection tc, XElement element) {
+        var f = ParseFrom(tc, ShipFrom);
         return element.Name.LocalName switch {
-            "Item" => new ItemEntry(element),
+            "Ship" => new ShipEntry(tc, element),
+            "Ships" => new ShipGroup(element, f),
+            _ => throw new Exception($"Unknown <Ships> subelement {element.Name}")
+        };
+    }
+    public static IGenerator<Item> ItemFrom(TypeCollection tc, XElement element) {
+        var f = ParseFrom(tc, ItemFrom);
+        return element.Name.LocalName switch {
+            "Item" => new ItemEntry(tc, element),
             "Items" => new Group<Item>(element, f),
             "ItemGroup" => new Group<Item>(element, f),
             "ItemTable" => new Table<Item>(element, f),
@@ -154,9 +163,8 @@ public static class SGenerator {
             _ => throw new Exception($"Unknown ItemGenerator subelement {element.Name}")
         };
     }
-
     public static IGenerator<Device> DeviceFrom(XElement element) {
-        var f = DeviceFrom;
+        var f = (Parse<IGenerator<Device>>)DeviceFrom;
         return element.Name.LocalName switch {
             "Weapon" => new WeaponEntry(element),
             "Shield" => new ShieldEntry(element),
@@ -172,7 +180,7 @@ public static class SGenerator {
         };
     }
     public static IGenerator<Weapon> WeaponFrom(XElement element) {
-        var f = WeaponFrom;
+        var f = (Parse<IGenerator<Weapon>>)WeaponFrom;
         return element.Name.LocalName switch {
             "Weapon" => new WeaponEntry(element),
             "Weapons" => new Group<Weapon>(element, f),
@@ -183,7 +191,7 @@ public static class SGenerator {
         };
     }
     public static IGenerator<Armor> ArmorFrom(XElement element) {
-        var f = ArmorFrom;
+        var f = (Parse<IGenerator<Armor>>)ArmorFrom;
         return element.Name.LocalName switch {
             "Armor" => new ArmorEntry(element),
             "Armors" => new Group<Armor>(element, f),
@@ -196,8 +204,8 @@ public static class SGenerator {
 }
 public record Group<T>() : IGenerator<T> {
     public List<IGenerator<T>> generators;
-    public static List<T> From(TypeCollection tc, Func<XElement, IGenerator<T>> parse, string str) => new Group<T>(XElement.Parse(str), parse).Generate(tc);
-    public Group(XElement e, Func<XElement, IGenerator<T>> parse) : this() {
+    public static List<T> From(TypeCollection tc, Parse<IGenerator<T>> parse, string str) => new Group<T>(XElement.Parse(str), parse).Generate(tc);
+    public Group(XElement e, Parse<IGenerator<T>> parse) : this() {
         generators = new();
         foreach (var element in e.Elements()) {
             generators.Add(parse(element));
@@ -212,8 +220,8 @@ public record Table<T>() : IGenerator<T> {
     [Opt] public bool replacement = true;
     public List<(double chance, IGenerator<T>)> generators;
     private double totalChance;
-    public static List<T> From(TypeCollection tc, Func<XElement, IGenerator<T>> parse, string str) => new Table<T>(XElement.Parse(str), parse).Generate(tc);
-    public Table(XElement e, Func<XElement, IGenerator<T>> parse) : this() {
+    public static List<T> From(TypeCollection tc, Parse<IGenerator<T>> parse, string str) => new Table<T>(XElement.Parse(str), parse).Generate(tc);
+    public Table(XElement e, Parse<IGenerator<T>> parse) : this() {
         e.Initialize(this);
         generators = new();
         foreach (var element in e.Elements()) {
@@ -269,15 +277,15 @@ public record Table<T>() : IGenerator<T> {
 public record ItemEntry() : IGenerator<Item> {
     [Req] public string codename;
     [Opt] public int count = 1;
+    public ItemType type;
     public ModRoll mod;
-    public ItemEntry(XElement e) : this() {
+    public ItemEntry(TypeCollection tc, XElement e) : this() {
         e.Initialize(this);
+        type = tc.Lookup<ItemType>(codename);
         mod = new(e);
     }
-    public List<Item> Generate(TypeCollection tc) {
-        var type = tc.Lookup<ItemType>(codename);
-        return new List<Item>(Enumerable.Range(0, count).Select(_ => new Item(type, mod.Generate())));
-    }
+    public List<Item> Generate(TypeCollection tc) =>
+        new(Enumerable.Range(0, count).Select(_ => new Item(type, mod.Generate())));
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) =>
         tc.Lookup<ItemType>(codename);

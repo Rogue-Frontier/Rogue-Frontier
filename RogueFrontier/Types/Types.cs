@@ -26,6 +26,7 @@ public class TypeCollection {
         [typeof(Sovereign)] = new Dictionary<string, Sovereign>(),
         [typeof(StationType)] = new Dictionary<string, StationType>(),
         [typeof(SystemType)] = new Dictionary<string, SystemType>(),
+        [typeof(TradeDesc)] = new Dictionary<string, TradeDesc>()
     };
 
     enum InitState {
@@ -108,6 +109,7 @@ public class TypeCollection {
             "StationType" => AddType<StationType>,
             "Sovereign" => AddType<Sovereign>,
             "SystemType" => AddType<SystemType>,
+            "TradeDesc" => AddType<TradeDesc>,
             _ => throw new Exception($"Unknown element <{element.Name}>")
 
         };
@@ -122,7 +124,6 @@ public class TypeCollection {
         Debug.Print($"Created Source <{element.Name}> of type {type}");
         sources[type] = element;
     }
-
     public Dictionary<string, T> GetDict<T>() where T: IDesignType =>
         (Dictionary<string, T>) dicts[typeof(T)];
     public Dictionary<string, T>.ValueCollection Get<T>() where T : IDesignType =>
@@ -147,7 +148,6 @@ public class TypeCollection {
     }
     public bool Lookup(string codename, out IDesignType result) =>
         all.TryGetValue(codename, out result);
-
     public bool Lookup<T>(string type, out T result) where T : class, IDesignType =>
         (result = Lookup<T>(type)) != null;
     public IDesignType Lookup(string codename) {

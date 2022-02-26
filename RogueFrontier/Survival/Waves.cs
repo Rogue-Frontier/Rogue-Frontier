@@ -22,7 +22,7 @@ class Waves : Event {
                 {"ship_errant", 180 },
                 {"ship_vassal", 270 },
                 {"ship_hyperego", 240 },
-                {"ship_iron_embargo", 300 },
+                {"ship_iron_missileship", 300 },
                 {"ship_iron_gunboat", 180 },
                 {"ship_laser_drone", 30 },
                 {"ship_orion_raider", 90 },
@@ -67,8 +67,9 @@ class Waves : Event {
 
             AIShip create() =>
                 new AIShip(new BaseShip(world,
-                    shipClass, Sovereign.Gladiator,
+                    shipClass,
                     playerShip.position + XY.Polar(world.karma.NextDouble(0, 2 * Math.PI), 200)),
+                    Sovereign.Gladiator,
                     behavior
                     );
             AIShip ship;

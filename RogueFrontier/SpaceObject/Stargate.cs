@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace RogueFrontier;
 
-public class Stargate : SpaceObject {
+public class Stargate : ActiveObject {
     [JsonIgnore]
     public string name => $"Stargate";
     [JsonIgnore]
@@ -107,7 +107,7 @@ public class Stargate : SpaceObject {
     }
     public void Damage(Projectile p) {}
 
-    public void Destroy(SpaceObject source) {}
+    public void Destroy(ActiveObject source) {}
 
     public void Update() {}
 }

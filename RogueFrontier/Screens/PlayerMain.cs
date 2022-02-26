@@ -313,14 +313,14 @@ public class PlayerMain : Console {
                 transition?.Update(delta);
             }
             var dock = playerShip.dock;
-            if (dock?.justDocked == true && dock.Target is DockableObject d) {
-                Console scene = story.GetScene(this, d, playerShip) ?? d.GetDockScene(this, playerShip);
+            if (dock?.justDocked == true && dock.Target is IDockable d) {
+                Console scene = story.GetScene(this, playerShip, d) ?? d.GetDockScene(this, playerShip);
                 if (scene != null) {
                     playerShip.DisengageAutopilot();
                     playerShip.dock = null;
                     sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
                 } else {
-                    playerShip.AddMessage(new Message($"Stationed on {d.name}"));
+                    playerShip.AddMessage(new Message($"Stationed on {dock.Target.name}"));
                 }
             }
         }
@@ -384,14 +384,14 @@ public class PlayerMain : Console {
             }
 
             var dock = playerShip.dock;
-            if (dock?.justDocked == true && dock.Target is DockableObject d) {
-                Console scene = story.GetScene(this, d, playerShip) ?? d.GetDockScene(this, playerShip);
+            if (dock?.justDocked == true && dock.Target is IDockable d) {
+                Console scene = story.GetScene(this, playerShip, d) ?? d.GetDockScene(this, playerShip);
                 if (scene != null) {
                     playerShip.DisengageAutopilot();
                     playerShip.dock = null;
                     sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
                 } else {
-                    playerShip.AddMessage(new Message($"Stationed on {d.name}"));
+                    playerShip.AddMessage(new Message($"Stationed on {dock.Target.name}"));
                 }
             }
         }
@@ -554,11 +554,11 @@ public class PlayerMain : Console {
         return base.ProcessKeyboard(info);
     }
     public void TargetMouse() {
-        var targetList = new List<SpaceObject>(
+        var targetList = new List<ActiveObject>(
                     world.entities.all
-                    .OfType<SpaceObject>()
+                    .OfType<ActiveObject>()
                     .OrderBy(e => (e.position - mouseWorldPos).magnitude)
-                    .Select(s => s is Segment seg ? seg.parent : s)
+                    
                     .Distinct()
                     );
 
@@ -569,7 +569,7 @@ public class PlayerMain : Console {
             if (playerShip.GetTarget(out var t) && t == crosshair) {
                 playerShip.ClearTarget();
             } else {
-                playerShip.SetTargetList(new List<SpaceObject>() { crosshair });
+                playerShip.SetTargetList(new List<ActiveObject>() { crosshair });
             }
         } else {
             playerShip.targetList = targetList;
@@ -604,7 +604,7 @@ public class PlayerMain : Console {
             var centerOffset = new XY(mouseScreenPos.X, Height - mouseScreenPos.Y) - new XY(Width / 2, Height / 2);
             centerOffset *= uiMegamap.viewScale;
             mouseWorldPos = (centerOffset.Rotate(camera.rotation) + camera.position);
-            SpaceObject t;
+            ActiveObject t;
             if (state.Mouse.MiddleClicked) {
                 TargetMouse();
             }
@@ -796,7 +796,8 @@ public class Megamap : Console {
             var scaledEffects = player.world.effects.space.DownsampleSet(viewScale);
             HashSet<(int, int)> rendered = new HashSet<(int, int)>();
             foreach ((var p, HashSet<Entity> set) in scaledEntities.space) {
-                var visible = set.Where(t => !(t is Segment)).Where(t => t.tile != null);
+                var visible = set.Where(t => !(t is ISegment))
+                    .Where(t => t.tile != null);
                 if (visible.Any()) {
                     var e = visible.ElementAt((int)time % visible.Count());
                     var offset = (e.position - player.position) / viewScale;
@@ -810,7 +811,7 @@ public class Megamap : Console {
                 }
             }
             foreach ((var p, HashSet<Effect> set) in scaledEffects.space) {
-                var visible = set.Where(t => !(t is Segment)).Where(t => t.tile != null);
+                var visible = set.Where(t => !(t is ISegment)).Where(t => t.tile != null);
                 if (visible.Any()) {
                     var e = visible.ElementAt((int)time % visible.Count());
                     var offset = (e.position - player.position) / viewScale;
@@ -1053,7 +1054,7 @@ public class Readout : Console {
         var messageY = Height * 3 / 5;
         int targetX = 48, targetY = 1;
 
-        void DrawTargetArrow(SpaceObject target) {
+        void DrawTargetArrow(ActiveObject target) {
             var offset = (target.position - player.position) / viewScale;
             if (Math.Abs(offset.x) > Width / 2 - 6 || Math.Abs(offset.y) > Height / 2 - 6) {
 
@@ -1071,7 +1072,7 @@ public class Readout : Console {
             }
         }
 
-        if (player.GetTarget(out SpaceObject playerTarget)) {
+        if (player.GetTarget(out ActiveObject playerTarget)) {
             this.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
             this.Print(targetX, targetY++, playerTarget.name);
             PrintTarget(targetX, targetY, playerTarget);
@@ -1089,7 +1090,7 @@ public class Readout : Console {
             }
         }
 
-        void PrintTarget(int x, int y, SpaceObject target) {
+        void PrintTarget(int x, int y, ActiveObject target) {
             if (target is AIShip ai) {
                 PrintDamageSystem(ai.damageSystem);
                 PrintDeviceSystem(ai.devices);
@@ -1500,7 +1501,7 @@ public class Edgemap : Console {
             var (x, y) = (offset / viewScale).abs;
             if (x > halfWidth || y > halfHeight) {
                 //Do not show Segments beyond edge
-                if (entity is Segment) {
+                if (entity is ISegment) {
                     continue;
                 }
                 (x, y) = Helper.GetBoundaryPoint(screenSize, offset.angleRad);
@@ -1511,7 +1512,7 @@ public class Edgemap : Console {
             }
             void PrintTile(int x, int y, Entity e) {
                 Color c = e switch {
-                    SpaceObject so => so.tile.Foreground,
+                    ActiveObject so => so.tile.Foreground,
                     Projectile p => p.tile.Foreground,
                     _ => Color.Transparent
                 };
@@ -1550,7 +1551,7 @@ public class Minimap : Console {
                 var entities = mapSample[(
                     (x - halfSize + playerShip.position.xi / mapScale),
                     (halfSize - y + playerShip.position.yi / mapScale))]
-                    .Where(e => !(e is Segment))
+                    .Where(e => !(e is ISegment))
                     .Where(e => e.tile != null);
 
                 if (entities.Any()) {
@@ -1682,7 +1683,7 @@ public class CommunicationsMenu : Console {
                     };
 
                     commands["Attack Target"] = i => {
-                        if (player.GetTarget(out SpaceObject target)) {
+                        if (player.GetTarget(out ActiveObject target)) {
                             w.order = new AttackOrder(target);
                             player.AddMessage(new Transmission(subject, $"Ordered {subject.name} to Attack Target"));
                         } else {
@@ -1700,7 +1701,7 @@ public class CommunicationsMenu : Console {
                         subject.behavior = GetEscortOrder(i);
                     };
                     commands["Attack Target"] = i => {
-                        if (player.GetTarget(out SpaceObject target)) {
+                        if (player.GetTarget(out ActiveObject target)) {
                             subject.behavior = new CompoundOrder(new AttackOrder(target), GetEscortOrder(i));
                             player.AddMessage(new Message($"Ordered {subject.name} to {commands.Keys.ElementAt(i)}"));
                         } else {

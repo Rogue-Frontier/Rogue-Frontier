@@ -95,7 +95,7 @@ class FrontierSession : TcpSession {
         var World = game.World;
         removed = ai;
         World.RemoveEntity(ai);
-        playerShip = new PlayerShip(new Player(new Settings()), ai.ship);
+        playerShip = new PlayerShip(new Player(new Settings()), ai.ship, World.types.Lookup<Sovereign>("sovereign_player"));
         World.AddEntity(playerShip);
     }
     public void Handle(TellServer.ControlPlayerShip c) {
@@ -137,7 +137,7 @@ public class FrontierServer : TcpServer {
 public class ServerMain : Console {
     public TitleScreen prev { get; }
     public System World;
-    public SpaceObject pov;
+    public ActiveObject pov;
     public XY camera;
     public MouseWatch mouse { get; } = new();
     public Dictionary<(int, int), ColoredGlyph> tiles { get; } = new();
@@ -227,7 +227,7 @@ public class ServerMain : Console {
         World.PlaceTiles(tiles);
 
         if (pov == null) {
-            pov = (SpaceObject)playerControls.Keys.FirstOrDefault() ?? (SpaceObject)World.entities.all.OfType<AIShip>().FirstOrDefault();
+            pov = (ActiveObject)playerControls.Keys.FirstOrDefault() ?? (ActiveObject)World.entities.all.OfType<AIShip>().FirstOrDefault();
             return;
         }
         //Smoothly move the camera to where it should be

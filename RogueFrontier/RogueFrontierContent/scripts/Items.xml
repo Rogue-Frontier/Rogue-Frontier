@@ -259,9 +259,9 @@
 			initialCharges=	"500"
 			powerUse=		"20"
 			fireCooldown=	"25"
-			omnidirectional="true"
 			>
 			<Projectile
+				omnidirectional="true"
 				missileSpeed=	"40"
 				damageType=		"2"
 				damageHP=		"12"

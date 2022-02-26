@@ -15,6 +15,8 @@ public class Trader {
     public int? index;
     public HashSet<Item> items;
     public HashSet<(Item item, int count)> groups;
+
+
     public int count => groupMode ? groups.Count : items.Count;
     public bool groupMode = true;
     public Item currentItem => index.HasValue ? items.ElementAt(index.Value) : null;

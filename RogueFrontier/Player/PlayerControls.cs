@@ -76,8 +76,8 @@ public class PlayerControls {
             playerShip.SetFiringSecondary();
         }
         if (input.AutoAim) {
-            if (playerShip.GetTarget(out SpaceObject target) && playerShip.GetPrimary(out Weapon w)) {
-                playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.position - playerShip.position, target.velocity - playerShip.velocity, w.fragmentDesc.missileSpeed, out _));
+            if (playerShip.GetTarget(out ActiveObject target) && playerShip.GetPrimary(out Weapon w)) {
+                playerShip.SetRotatingToFace(Helper.CalcFireAngle(target.position - playerShip.position, target.velocity - playerShip.velocity, w.projectileDesc.missileSpeed, out _));
             }
         }
     }
@@ -104,7 +104,7 @@ public class PlayerControls {
                 playerShip.dock = null;
             } else {
                 if (playerShip.GetTarget(out var t) && (playerShip.position - t.position).magnitude < 24) {
-                    if (t is not DockableObject d) {
+                    if (t is not IDockable d) {
                         playerShip.AddMessage(new Transmission(t, "Target is not dockable"));
                     } else {
                         Dock(d);
@@ -112,8 +112,8 @@ public class PlayerControls {
                 } else {
                     var dest = playerShip.world.entities
                         .GetAll(p => (playerShip.position - p).magnitude < 8)
-                        .OfType<DockableObject>()
-                        .Where(s => s.dockable)
+                        .OfType<IDockable>()
+                        .Where(s => s.GetDockPoint() != null)
                         .OrderBy(p => (p.position - playerShip.position).magnitude)
                         .FirstOrDefault();
                     if (dest != null) {
@@ -123,7 +123,7 @@ public class PlayerControls {
                     }
                 }
 
-                void Dock(DockableObject dest) {
+                void Dock(IDockable dest) {
                     playerShip.AddMessage(new Transmission(dest, "Docking sequence engaged"));
                     playerShip.dock = new Docking(dest, dest.GetDockPoint());
                 }

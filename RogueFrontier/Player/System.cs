@@ -113,7 +113,7 @@ public class System {
     public void PlaceTiles(Dictionary<(int, int), ColoredGlyph> tiles) {
         foreach (var e in entities.all) {
             var p = e.position.roundDown;
-            if (e.tile != null && (!tiles.ContainsKey(p) || e is Segment)) {
+            if (e.tile != null && (!tiles.ContainsKey(p) || e is ISegment)) {
                 tiles[p] = e.tile;
             }
         }

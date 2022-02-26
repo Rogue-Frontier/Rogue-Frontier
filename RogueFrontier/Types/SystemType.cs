@@ -20,7 +20,7 @@ public record SystemType : IDesignType {
     public void Initialize(TypeCollection collection, XElement e) {
         codename = e.ExpectAtt("codename");
         if (e.HasElement("SystemGroup", out var xmlSystem)) {
-            systemGroup = new SystemGroup(xmlSystem);
+            systemGroup = new SystemGroup(xmlSystem, SGenerator.ParseFrom(collection, SSystemElement.Create));
         }
     }
     public void Generate(System world) {
@@ -68,13 +68,14 @@ public interface SystemElement {
     void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null);
 }
 public static class SSystemElement {
-    public static SystemElement Create(XElement e) {
+    public static SystemElement Create(TypeCollection tc, XElement e) {
+        var f = SGenerator.ParseFrom(tc, Create);
         switch (e.Name.LocalName) {
             case "System":
             case "Group":
-                return new SystemGroup(e);
+                return new SystemGroup(e, f);
             case "Orbital":
-                return new SystemOrbital(e);
+                return new SystemOrbital(e, f);
             case "Planet":
                 return new SystemPlanet(e);
             case "Asteroids":
@@ -82,15 +83,15 @@ public static class SSystemElement {
             case "Nebula":
                 return new SystemNebula(e);
             case "Sibling":
-                return new SystemSibling(e);
+                return new SystemSibling(e, f);
             case "Star":
                 return new SystemStar(e);
             case "Stargate":
-                return new SystemStargate(e);
+                return new SystemStargate(tc, e);
             case "Station":
-                return new SystemStation(e);
+                return new SystemStation(tc, e);
             case "At":
-                return new SystemAt(e);
+                return new SystemAt(e, f);
             case "Marker":
                 return new SystemMarker(e);
             default:
@@ -102,11 +103,9 @@ public record SystemGroup : SystemElement {
     public LocationMod loc;
     public List<SystemElement> subelements;
     public SystemGroup() { }
-    public SystemGroup(XElement e) {
+    public SystemGroup(XElement e, Parse<SystemElement> parse) {
         loc = new(e);
-        subelements = e.Elements()
-            .Select(sub => SSystemElement.Create(sub))
-            .ToList();
+        subelements = e.Elements().Select(e => parse(e)).ToList();
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var sub_lc = loc.Adjust(lc);
@@ -118,8 +117,8 @@ public record SystemAt : SystemElement {
     public List<SystemElement> subelements;
     public int index = -1;
     public SystemAt() { }
-    public SystemAt(XElement e) {
-        subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
+    public SystemAt(XElement e, Parse<SystemElement> parse) {
+        subelements = e.Elements().Select(e => parse(e)).ToList();
         index = e.ExpectAttInt("index");
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
@@ -143,8 +142,8 @@ public record SystemOrbital : SystemElement {
 
     public int radius;
     public SystemOrbital() { }
-    public SystemOrbital(XElement e) {
-        subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
+    public SystemOrbital(XElement e, Parse<SystemElement> parse) {
+        subelements = e.Elements().Select(e => parse(e)).ToList();
         count = e.TryAttInt(nameof(count), 1);
         switch (e.ExpectAtt(nameof(angle))) {
             case "random":
@@ -343,12 +342,12 @@ public record SystemSibling : SystemElement {
 
     public List<SystemElement> subelements;
     public SystemSibling() { }
-    public SystemSibling(XElement e) {
+    public SystemSibling(XElement e, Parse<SystemElement> parse) {
         arcInc = e.TryAttInt(nameof(arcInc), 0);
         angleInc = e.TryAttInt(nameof(angleInc), 0);
         radiusInc = e.TryAttInt(nameof(radiusInc), 0);
 
-        subelements = e.Elements().Select(sub => SSystemElement.Create(sub)).ToList();
+        subelements = e.Elements().Select(e => parse(e)).ToList();
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var angle = lc.angle + angleInc + arcInc / lc.radius;
@@ -403,24 +402,22 @@ public record SystemStar : SystemElement {
 }
 public record SystemStation : SystemElement {
     public string codename;
-    public ShipGenerator ships;
+    public ShipGroup ships;
+    public StationType stationtype;
     public SystemStation() { }
-    public SystemStation(XElement e) {
+    public SystemStation(TypeCollection tc, XElement e) {
         codename = e.ExpectAtt("codename");
 
-        if(e.HasElement("Ships", out XElement xmlShips)) {
-            ships = new ShipList(xmlShips);
-        }
+        ships = e.HasElement("Ships", out var xmlShips) ? new(xmlShips, SGenerator.ParseFrom(tc, SGenerator.ShipFrom)) : null;
+        stationtype = tc.Lookup<StationType>(codename);
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
-        var stationtype = tc.Lookup<StationType>(codename);
         var w = lc.world;
         var s = new Station(w, stationtype, lc.pos);
         w.AddEntity(s);
         s.CreateSegments();
         s.CreateGuards();
-
-        ships?.GenerateAndPlace(tc, s);
+        ((ShipGenerator)ships)?.GenerateAndPlace(tc, s);
     }
 }
 public record SystemStargate : SystemElement {
@@ -428,12 +425,12 @@ public record SystemStargate : SystemElement {
     public string destGateId;
     public ShipGenerator ships;
     public SystemStargate() { }
-    public SystemStargate(XElement e) {
+    public SystemStargate(TypeCollection tc, XElement e) {
         gateId = e.ExpectAtt(nameof(gateId));
         destGateId = e.TryAtt(nameof(destGateId));
 
         if (e.HasElement("Ships", out XElement xmlShips)) {
-            ships = new ShipList(xmlShips);
+            ships = new ShipGroup(xmlShips, SGenerator.ParseFrom(tc, SGenerator.ShipFrom));
         }
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {

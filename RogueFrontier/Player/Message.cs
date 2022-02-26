@@ -17,14 +17,14 @@ public interface IPlayerMessage {
     bool Equals(IPlayerMessage other);
 }
 public class Transmission : IPlayerMessage {
-    public SpaceObject source;
+    public Entity source;
     public Message info;
     public Transmission() { }
-    public Transmission(SpaceObject source, string message, int updateInterval = 3) {
+    public Transmission(Entity source, string message, int updateInterval = 3) {
         this.source = source;
         this.info = new Message(message, updateInterval);
     }
-    public Transmission(SpaceObject source, ColoredString message, int updateInterval = 3) {
+    public Transmission(Entity source, ColoredString message, int updateInterval = 3) {
         this.source = source;
         this.info = new Message(message, updateInterval);
     }

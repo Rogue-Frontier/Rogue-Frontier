@@ -101,7 +101,6 @@
 							</Group>
 						</Orbital>
 					</Group>
-
 				</Orbital>
 			</Orbital>
 		</SystemGroup>
@@ -123,8 +122,15 @@
 				</Group>
 			</Orbital>
 
-			<Orbital count="5"
+			
+			<Orbital count="3"
 					 radius="300"
+					 angle="random">
+
+				<Station	codename="station_iron_pirates_hideout"/>
+			</Orbital>
+			<Orbital count="5"
+					 radius="800"
 					 angle="random">
 
 				<Station	codename="station_orion_warlords_camp"/>

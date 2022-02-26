@@ -8,14 +8,14 @@ using Con = SadConsole.Console;
 namespace RogueFrontier;
 
 public interface IPlayerInteraction {
-    Con GetScene(Con prev, Dockable d, PlayerShip playerShip);
+    Con GetScene(Con prev, PlayerShip playerShip, IDockable d);
 }
 public class IntroMeeting : IPlayerInteraction {
     PlayerStory story;
     public IntroMeeting(PlayerStory story) {
         this.story = story;
     }
-    public Con GetScene(Con prev, Dockable d, PlayerShip playerShip) {
+    public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
         if (d is Station s && s.type.codename == "station_daughters_outpost") {
             var heroImage = s.type.heroImage;
             /*
@@ -367,7 +367,8 @@ class IntroTraining : IPlayerInteraction {
         this.drones = new AIShip[3];
         var k = station.world.karma;
         for (int i = 0; i < 3; i++) {
-            var d = new AIShip(new BaseShip(w, shipClass, sovereign, station.position + XY.Polar(k.NextDouble() * 2 * Math.PI, k.NextDouble() * 25 + 25)), new SnipeOrder(player));
+            var d = new AIShip(new(w, shipClass, station.position + XY.Polar(k.NextDouble() * 2 * Math.PI, k.NextDouble() * 25 + 25)),
+                sovereign, new SnipeOrder(player));
             drones[i] = d;
         }
     }
@@ -377,7 +378,7 @@ class IntroTraining : IPlayerInteraction {
             station.world.AddEffect(new Heading(d));
         }
     }
-    public Con GetScene(Con prev, Dockable d, PlayerShip playerShip) {
+    public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
         if (d == station) {
             var s = station;
             var heroImage = s.type.heroImage;
@@ -450,7 +451,7 @@ class IntroExploration : IPlayerInteraction {
         targets = new HashSet<Station>(w.entities.all.OfType<Station>().Where(
             s => s.sovereign.IsFriend(playerShip)));
     }
-    public Con GetScene(Con prev, Dockable d, PlayerShip playerShip) {
+    public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
         var s = station;
         if (d != s) return null;
 
@@ -513,7 +514,7 @@ class IntroOuterEnemy : IPlayerInteraction {
         target.CreateGuards();
         w.AddEntity(target);
     }
-    public Con GetScene(Con prev, Dockable d, PlayerShip playerShip) {
+    public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
         if (d != station) {
             return null;
         }
@@ -546,10 +547,12 @@ public class PlayerStory {
     public HashSet<IPlayerInteraction> secondaryInteractions;
     public HashSet<IPlayerInteraction> completedInteractions;
 
-    Dictionary<ItemType, int> standardTradeValue;
+    Dictionary<ItemType, int> stdPrice;
+
+    public int GetStdPrice(Item i) => stdPrice[i.type];
     public PlayerStory(PlayerShip playerShip) {
         var i = playerShip.world.types.GetDict<ItemType>();
-        standardTradeValue = new Dictionary<string, int>() {
+        stdPrice = new Dictionary<string, int>() {
             { "item_amethyst_laser", 5000 },
             { "item_amethyst_laser_ii", 12000 },
             { "item_shimmer_shield", 400 },
@@ -564,17 +567,17 @@ public class PlayerStory {
             { "item_iron_driver", 0 },
             { "item_iron_cannon", 0 },
             { "item_ironclad_plate", 0 },
-            { "item_blockade_plate", 0 },
+            { "item_ironside_plate", 0 },
             { "item_grinder", 0 },
             { "item_deflect_device", 0 },
             { "item_shutdown_cannon", 0 },
             { "item_breakdown_cannon", 0 },
-            { "itOrionBolter", 400 },
-            { "itOrionLongbow", 800 },
-            { "itTraitorLongbow", 1200 },
-            { "itOrionBallista", 2000 },
-            { "itHunterscalePlate", 250 },
-            { "itSkullhelmPlate", 600 },
+            { "item_orion_bolter", 400 },
+            { "item_orion_longbow", 800 },
+            { "item_traitor_longbow", 1200 },
+            { "item_orion_ballista", 2000 },
+            { "item_hunterscale_plate", 250 },
+            { "item_skullhelm_plate", 600 },
             { "item_dark_cannon", 0 },
             { "item_sidewinder_missile", 0 },
             { "item_sidewinder_missile_launcher", 0 },
@@ -607,45 +610,41 @@ public class PlayerStory {
             { "item_solar_panel", 0 },
         }.ToDictionary(pair => i[pair.Key], pair => pair.Value);
 
-
         mainInteractions = new HashSet<IPlayerInteraction>();
         mainInteractions.Add(new IntroMeeting(this));
         secondaryInteractions = new HashSet<IPlayerInteraction>();
         completedInteractions = new HashSet<IPlayerInteraction>();
     }
-    delegate Con GetDockScreen(Con prev, Station source, PlayerShip playerShip);
-    public Con GetScene(Con prev, Dockable d, PlayerShip playerShip) {
+    delegate Con GetDockScreen(Con prev, PlayerShip playerShip, Station source);
+    public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
         Con sc;
-        sc = mainInteractions.Select(m => m.GetScene(prev, d, playerShip)).FirstOrDefault(s => s != null);
+        sc = mainInteractions.Select(m => m.GetScene(prev, playerShip, d)).FirstOrDefault(s => s != null);
         if (sc != null) {
             return sc;
         } else {
             if (d is Station source) {
                 string codename = source.type.codename;
                 Dictionary<string, GetDockScreen> funcMap = new Dictionary<string, GetDockScreen> {
-
                         {"station_amethyst_store", AmethystStore },
                         {"station_constellation_astra", ConstellationAstra},
                         {"station_constellation_habitat", ConstellationHabitat },
-                        {"station_armor_shop", TradeStation },
-                        {"station_arms_dealer", TradeStation },
-                        {"station_raisu", Raisu },
+                        {"station_armor_shop", ArmorDealer },
+                        {"station_arms_dealer", ArmsDealer },
                         {"station_orion_warlords_camp", OrionWarlordsCamp }
                     };
                 if (funcMap.TryGetValue(codename, out var f)) {
-                    return f(prev, source, playerShip);
+                    return f(prev, playerShip, source);
                 }
             }
         }
         return null;
     }
-
-
-    public Con AmethystStore(Con prev, Station source, PlayerShip playerShip) {
-        var c = GetConstellationCrimes(source, playerShip);
-        if (c.Any()) return ConstellationArrest(prev, source, playerShip, c.First());
+    public Con AmethystStore(Con prev, PlayerShip playerShip, Station source) {
+        var c = GetConstellationCrimes(playerShip, source);
+        if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
 
         var discount = playerShip.cargo.Any(i => i.type.codename == "item_amethyst_warranty_card");
+        var buyAdj = discount ? 0.8 : 1;
         return Intro();
         Dialog Intro() {
             return new(prev,
@@ -659,7 +658,7 @@ by Amethyst, Inc. ",
             });
         }
         int GetPrice(Armor a) {
-            if(a.source.type.codename != "item_gemsteel_plate") {
+            if(!a.source.type.attributes.Contains("Amethyst")) {
                 return -1;
             }
             if(discount) {
@@ -667,15 +666,20 @@ by Amethyst, Inc. ",
             }
             return 3;
         }
-        Con Trade(Con from) => new TradeScene(from, playerShip, source);
+        
+        Con Trade(Con from) => new TradeMenu(from, playerShip, source,
+            i => (int)(GetStdPrice(i) * buyAdj),
+            i => i.type.attributes.Contains("Amethyst") ? GetStdPrice(i) / 10 : -1);
         Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, (playerShip.hull as LayeredArmorSystem)?.layers, GetPrice, null);
-
     }
+    public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>
+        new (prev, playerShip, source, GetStdPrice, i => GetStdPrice(i) / 2);
+    public TradeMenu ArmorDealer(Con prev, PlayerShip playerShip, Station source) =>
+            new (prev, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.9 * GetStdPrice(i) : -1));
+    public TradeMenu ArmsDealer(Con prev, PlayerShip playerShip, Station source) =>
+            new (prev, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
 
-    public Con TradeStation(Con prev, Station source, PlayerShip playerShip) {
-        return new TradeScene(prev, null, playerShip, source);
-    }
-    public Con ConstellationArrest(Con prev, Station source, PlayerShip playerShip, ICrime c) {
+    public Con ConstellationArrest(Con prev, PlayerShip playerShip, Station source, ICrime c) {
         return new Dialog(prev,
 @"Constellation armed soldiers approach your ship
 as you dock.",
@@ -701,14 +705,14 @@ There will be no trial.",
             return null;
         }
     }
-    public IEnumerable<ICrime> GetConstellationCrimes(Station source, PlayerShip p) {
+    public IEnumerable<ICrime> GetConstellationCrimes(PlayerShip p, Station source) {
         return p.crimeRecord.Where(c => c is DestructionCrime d
             && object.ReferenceEquals(d.destroyed.sovereign, source.sovereign)
             && !d.resolved);
     }
-    public Con ConstellationAstra(Con prev, Station source, PlayerShip playerShip) {
-        var c = GetConstellationCrimes(source, playerShip);
-        if (c.Any()) return ConstellationArrest(prev, source, playerShip, c.First());
+    public Con ConstellationAstra(Con prev, PlayerShip playerShip, Station source) {
+        var c = GetConstellationCrimes(playerShip, source);
+        if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
 
         return Intro();
         Dialog Intro() {
@@ -731,12 +735,12 @@ There is a modest degree of artificial gravity here.",
                 new("Undock")
             }) { background = source.type.heroImage };
         }
-        Con Trade(Con from) => new TradeScene(from, playerShip, source);
+        Con Trade(Con from) => TradeStation(from, playerShip, source);
 
     }
-    public Con ConstellationHabitat(Con prev, Station source, PlayerShip playerShip) {
-        var c = GetConstellationCrimes(source, playerShip);
-        if (c.Any()) return ConstellationArrest(prev, source, playerShip, c.First());
+    public Con ConstellationHabitat(Con prev, PlayerShip playerShip, Station source) {
+        var c = GetConstellationCrimes(playerShip, source);
+        if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
 
         return Intro(prev);
         Con Intro(Con prev) {
@@ -751,11 +755,11 @@ a residential station of the United Constellation.",
         Con MeetingHall(Con prev) {
             var mission = mainInteractions.OfType<DestroyTarget>().FirstOrDefault(i => i.source == source);
             if (mission != null) {
-                return mission.GetScene(prev, source, playerShip);
+                return mission.GetScene(prev, playerShip, source);
             }
-            var target = source.world.entities.all.OfType<Station>().FirstOrDefault(other =>
-                other.type.codename == "station_orion_warlords_camp"
-                && (other.position - source.position).magnitude < 256
+            var target = source.world.entities.all.OfType<Station>().FirstOrDefault(s =>
+                s.type.codename is "station_orion_warlords_camp"
+                && (s.position - source.position).magnitude < 256
             );
             if (target == null) {
                 return new Dialog(prev,
@@ -838,106 +842,7 @@ Okay, fine, I'll just find someone else to do it then.""",
             }
         }
     }
-    public bool raisuLiberated;
-    public Con Raisu(Con prev, Station source, PlayerShip playerShip) {
-        Dialog Intro() {
-            var nearby = source.world.entities.all
-                .OfType<AIShip>()
-                .Where(s => s.behavior is CompoundOrder b
-                         && b.current is PatrolOrbitOrder p
-                         && p.patrolTarget == source);
-            if (nearby.Any()) {
-                return new(prev,
-@"You are docked at Raisu station, though
-nobody attends to the docking bay right now.",
-                new() {
-                    new("Undock")
-                });
-            }
-
-            return new(prev,
-@"You are docked at Raisu station.",
-                new() {
-                    new("Meeting Hall", MeetingHall),
-                    new("Undock")
-                });
-            Dialog MeetingHall(Con prev) {
-                var c = source.world.entities.all
-                    .OfType<Station>()
-                    .Where(s => s.type.codename == "station_orion_warlords_camp")
-                    .Count();
-                if (c > 0) {
-                    return new(prev,
-@"The station master glares at you.
-
-""Please get out of here before you get us killed!""", new() {
-new("Continue")
-});
-                }
-                if (raisuLiberated) {
-                    return new(prev,
-@"Not much is happening around the station right now.
-You feel a sense of relief.", new() {
-new("Continue")
-});
-                }
-                var target = playerShip.world.entities.all.OfType<AIShip>()
-                        .FirstOrDefault(s => s.shipClass.codename == "ship_william_sulphin");
-                if (target != null) {
-                    return new(prev,
-@"The station master waits for you at the entrance.
-
-""Is it true? Have you confronted the Orion Warlords? They have
-given us a lifetime of suffering. I have one thing to ask of you. 
-Give them eternity.""
-
-""Destroy William Sulphin. Let the Orion Warlords fall.""
-
-The station master brings out a modified warlord weapon.
-
-""Take these missiles if you have to.""",
-                    new() {
-                        new("Accept", Accept)
-                    });
-                    Dialog Accept(Con prev) {
-                        playerShip.cargo.Add(new Item(playerShip.world.types.Lookup<ItemType>("itTraitorLongbow")));
-                        DestroyTarget mission = null;
-                        mission = new DestroyTarget(playerShip, source, target) { inProgress = InProgress, debrief = Debrief };
-                        target.ship.onDestroyed += mission;
-                        mainInteractions.Add(mission);
-                        return null;
-                        Dialog InProgress(Con prev) {
-                            return new(prev,
-@"""You made a promise. Destroy William Sulphin.""",
-                                new() {
-                                    new("Undock")
-                                });
-                        }
-                        Dialog Debrief(Con prev) {
-                            return new(prev,
-@"""Thank you for destroying William Sulphin.""
-
-""Now the real fight begins""",
-                                new() {
-                                    new("Undock", Debriefed)
-                                });
-                        }
-                        Dialog Debriefed(Con prev) {
-                            raisuLiberated = true;
-                            mainInteractions.Remove(mission);
-                            return null;
-                        }
-                    }
-                }
-                return new(prev,
-@"Not much is happening around the station right now.", new() {
-new("Continue")
-});
-            }
-        }
-        return Intro();
-    }
-    public Con OrionWarlordsCamp(Con home, Station source, PlayerShip playerShip) {
+    public Con OrionWarlordsCamp(Con home, PlayerShip playerShip, Station source) {
         Dialog Intro(Con prev) {
 
             return new(prev,
@@ -983,21 +888,21 @@ You leave the station in ruins.",
         return Intro(home);
     }
 }
-class DestroyTarget : IPlayerInteraction, IContainer<BaseShip.Destroyed>, IContainer<Station.Destroyed> {
+class DestroyTarget : IPlayerInteraction, IContainer<AIShip.Destroyed>, IContainer<Station.Destroyed> {
     public PlayerShip attacker;
     public Station source;
-    public HashSet<SpaceObject> targets;
+    public HashSet<ActiveObject> targets;
     public bool complete => targets.Count == 0;
     [JsonIgnore]
     public Func<Con, Con> inProgress, debrief;
-    public DestroyTarget(PlayerShip attacker, Station source, params SpaceObject[] targets) {
+    public DestroyTarget(PlayerShip attacker, Station source, params ActiveObject[] targets) {
         this.attacker = attacker;
         this.source = source;
         this.targets = new(targets);
         foreach (var t in targets) {
             switch (t) {
                 case AIShip s:
-                    s.ship.onDestroyed += this;
+                    s.onDestroyed += this;
                     break;
                 case Station s:
                     s.onDestroyed += this;
@@ -1006,7 +911,7 @@ class DestroyTarget : IPlayerInteraction, IContainer<BaseShip.Destroyed>, IConta
         }
     }
 
-    BaseShip.Destroyed IContainer<BaseShip.Destroyed>.Value => (s, d, w) => {
+    AIShip.Destroyed IContainer<AIShip.Destroyed>.Value => (s, d, w) => {
         if (targets.Remove(s) && targets.Count == 0) {
             attacker.AddMessage(new Message("Mission complete!"));
             s.onDestroyed -= this;
@@ -1020,7 +925,7 @@ class DestroyTarget : IPlayerInteraction, IContainer<BaseShip.Destroyed>, IConta
         }
     };
 
-    public Con GetScene(Con prev, Dockable d, PlayerShip playerShip) {
+    public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
         if (d != source) {
             return null;
         }

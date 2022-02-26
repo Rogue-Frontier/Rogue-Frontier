@@ -14,7 +14,7 @@ public enum Rotating {
 }
 
 public static class SStation {
-    public static bool IsEnemy(this Station owner, SpaceObject target) {
+    public static bool IsEnemy(this Station owner, ActiveObject target) {
         return (owner != target
             && (owner.sovereign.IsEnemy(target)
             || target.sovereign.IsEnemy(owner.sovereign)))
@@ -22,17 +22,17 @@ public static class SStation {
     }
 }
 public static class SShip {
-    public static bool IsEnemy(this IShip owner, SpaceObject target) {
+    public static bool IsEnemy(this IShip owner, ActiveObject target) {
         return owner.CanTarget(target) && (owner.sovereign.IsEnemy(target) || target.sovereign.IsEnemy(owner.sovereign)) && !(target is Wreck);
     }
-    public static bool IsFriendly(this IShip owner, SpaceObject target) {
+    public static bool IsFriendly(this IShip owner, ActiveObject target) {
         return owner.CanTarget(target) && owner.sovereign.IsFriend(target) && !(target is Wreck);
     }
-    public static bool CanTarget(this IShip owner, SpaceObject target) {
+    public static bool CanTarget(this IShip owner, ActiveObject target) {
         return owner != target;
     }
 }
-public interface IShip : SpaceObject {
+public interface IShip : ActiveObject {
     XY position { get; set; }
     XY velocity { get; set; }
     HashSet<Item> cargo { get; }
@@ -43,9 +43,9 @@ public interface IShip : SpaceObject {
     public double stoppingRotation { get; }
     Docking dock { get; set; }
 }
-public class BaseShip : SpaceObject {
+public class BaseShip : StructureObject {
     [JsonIgnore]
-    public static BaseShip dead => new(System.empty, ShipClass.empty, Sovereign.Gladiator, XY.Zero) { active = false };
+    public static BaseShip dead => new(System.empty, ShipClass.empty, XY.Zero) { active = false };
     [JsonIgnore]
     public string name => shipClass.name;
     [JsonIgnore]
@@ -73,8 +73,6 @@ public class BaseShip : SpaceObject {
     [JsonProperty]
     public ShipClass shipClass { get; set; }
     [JsonProperty]
-    public Sovereign sovereign { get; set; }
-    [JsonProperty]
     public XY position { get; set; }
     [JsonProperty]
     public int id { get; set; }
@@ -99,18 +97,16 @@ public class BaseShip : SpaceObject {
     public bool decelerating;
 
 
-    public delegate void Destroyed(BaseShip ship, SpaceObject destroyer, Wreck wreck);
+    public delegate void Destroyed(BaseShip ship, ActiveObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
 
 
 
     public BaseShip() { }
-    public BaseShip(System world, ShipClass shipClass, Sovereign Sovereign, XY Position) {
+    public BaseShip(System world, ShipClass shipClass, XY Position) {
         this.world = world;
         this.id = world.nextId++;
         this.shipClass = shipClass;
-
-        this.sovereign = Sovereign;
 
         this.position = Position;
         this.velocity = new();
@@ -121,14 +117,12 @@ public class BaseShip : SpaceObject {
         this.cargo.UnionWith(shipClass.cargo?.Generate(world.types) ?? new List<Item>());
         this.devices = new();
         this.devices.Install(shipClass.devices?.Generate(world.types) ?? new List<Device>());
-
-        this.damageSystem = shipClass.damageDesc.Create(this);
+        this.damageSystem = shipClass.damageDesc.Create(world.types);
         this.destiny = new Rand(world.karma.NextInteger());
     }
     public BaseShip(BaseShip source) {
         this.world = source.world;
         this.shipClass = source.shipClass;
-        this.sovereign = source.sovereign;
         this.position = source.position;
         this.velocity = source.velocity;
         this.active = true;
@@ -142,11 +136,12 @@ public class BaseShip : SpaceObject {
         this.rotating = rotating;
     }
     public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
-    public void Damage(Projectile p) {
+    
+    public void ReduceDamage(Projectile p) {
         int dmgFull = p.damageHP;
         ref int dmgLeft = ref p.damageHP;
-        foreach(var s in devices.Shield) {
-            if(dmgLeft == 0) {
+        foreach (var s in devices.Shield) {
+            if (dmgLeft == 0) {
                 break;
             }
             var d = Math.Min(s.maxAbsorb, (int)(dmgLeft * s.absorbFactor));
@@ -155,14 +150,17 @@ public class BaseShip : SpaceObject {
                 dmgLeft -= d;
             }
         }
-        if(dmgLeft > 0) {
+        if (dmgLeft > 0) {
             int knockback = p.fragment.knockback * dmgLeft / dmgFull;
             velocity += (p.velocity - velocity).WithMagnitude(knockback);
             disruption = p.fragment.disruptor?.GetHijack() ?? disruption;
         }
-        damageSystem.Damage(this, p);
     }
-    public void Destroy(SpaceObject source) {
+    public void Damage(Projectile p) {
+        ReduceDamage(p);
+        damageSystem.Damage(world.tick, p, Destroy);
+    }
+    public void Destroy(ActiveObject source) {
         var items = cargo.Concat(
             devices.Installed
             .Select(d => d.source)
@@ -289,7 +287,7 @@ public class BaseShip : SpaceObject {
     }
 }
 public static class SShipBehavior {
-    public static bool CanTarget(this IShipBehavior behavior, SpaceObject other) {
+    public static bool CanTarget(this IShipBehavior behavior, ActiveObject other) {
         switch (behavior) {
             case Wingmate w:
                 return w.order is ICombatOrder c && c.CanTarget(other);
@@ -317,7 +315,7 @@ public interface IShipBehavior {
     //We pass in the owner via update since ideally we'd like to allow
     //multiple ships run the same behavior
     void Update(AIShip owner);
-    public void OnDestroyed(SpaceObject destroyer) {}
+    public void OnDestroyed(ActiveObject destroyer) {}
 }
 public class Sulphin : IShipBehavior {
     public int ticks = 0;
@@ -347,7 +345,7 @@ public class Sulphin : IShipBehavior {
 }
 
 
-public class AIShip : IShip, DockableObject {
+public class AIShip : IShip {
     [JsonIgnore]
     public int id => ship.id;
     [JsonIgnore]
@@ -356,8 +354,6 @@ public class AIShip : IShip, DockableObject {
     public System world => ship.world;
     [JsonIgnore]
     public ShipClass shipClass => ship.shipClass;
-    [JsonIgnore]
-    public Sovereign sovereign => ship.sovereign;
     [JsonIgnore]
     public XY position { get => ship.position; set => ship.position = value; }
     [JsonIgnore]
@@ -375,33 +371,37 @@ public class AIShip : IShip, DockableObject {
     [JsonIgnore]
     public double stoppingRotation => ship.stoppingRotation;
     [JsonIgnore]
-    public HashSet<SpaceObject> avoidHit => new HashSet<SpaceObject> {
+    public HashSet<Entity> avoidHit => new HashSet<Entity> {
         dock?.Target,
         (behavior as GuardOrder)?.home
     };
+    public bool dockable => false;
     public Docking dock { get; set; }
 
-
-    public bool dockable => false;
+    public delegate void Destroyed(AIShip ship, ActiveObject destroyer, Wreck wreck);
+    public FuncSet<IContainer<Destroyed>> onDestroyed = new();
 
     public BaseShip ship;
+    public Sovereign sovereign { get; set; }
     //IShipBehavior and IShipOrder have the same interface but different purpose
     //The behavior sets the current order and does not affect ship controls
     public IShipBehavior behavior;
     public AIShip() { }
-    public AIShip(BaseShip ship, IShipBehavior behavior = null, IShipOrder order = null) {
+    public AIShip(BaseShip ship, Sovereign sovereign, IShipBehavior behavior = null, IShipOrder order = null) {
         this.ship = ship;
+        this.sovereign = sovereign;
         this.behavior = behavior ?? ship.shipClass.behavior switch {
             EShipBehavior.sulphin => new Sulphin(order),
             EShipBehavior.none => order,
             _ => order
         };
     }
+    public override string ToString() => $"{id}, {position.roundDown}, {velocity.roundDown}, {shipClass.codename}, {behavior}";
     public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
     public void SetDecelerating(bool decelerating = true) => ship.SetDecelerating(decelerating);
-    public void Damage(Projectile p) => ship.damageSystem.Damage(this, p);
-    public void Destroy(SpaceObject source) {
+    public void Damage(Projectile p) => ship.damageSystem.Damage(world.tick, p, Destroy);
+    public void Destroy(ActiveObject source) {
         if (source is PlayerShip ps) {
             ps.shipsDestroyed.Add(this);
             if (shipClass.crimeOnDestroy) {
@@ -427,7 +427,6 @@ public class AIShip : IShip, DockableObject {
     [JsonIgnore]
     public ColoredGlyph tile => ship.tile;
 }
-
 public struct BaseOnDestroyed : IContainer<Destroyed> {
     public PlayerShip player;
     public BaseOnDestroyed(PlayerShip player) {
@@ -447,8 +446,6 @@ public class PlayerShip : IShip {
     [JsonIgnore]
     public ShipClass shipClass => ship.shipClass;
     [JsonIgnore]
-    public Sovereign sovereign => ship.sovereign;
-    [JsonIgnore]
     public XY position { get => ship.position; set => ship.position = value; }
     [JsonIgnore]
     public XY velocity { get => ship.velocity; set => ship.velocity = value; }
@@ -467,18 +464,19 @@ public class PlayerShip : IShip {
 
     public Player player;
     public BaseShip ship;
+    public Sovereign sovereign { get; set; }
     public EnergySystem energy;
     public List<Power> powers = new();
 
     [JsonIgnore]
-    public HashSet<SpaceObject> avoidHit => new() {
+    public HashSet<Entity> avoidHit => new() {
         dock?.Target
     };
     public Docking dock { get; set; }
 
     public int targetIndex = -1;
     public bool targetFriends = false;
-    public List<SpaceObject> targetList = new();
+    public List<ActiveObject> targetList = new();
 
     public bool firingPrimary = false;
     public bool firingSecondary = false;
@@ -495,14 +493,14 @@ public class PlayerShip : IShip {
     public List<IPlayerMessage> messages = new();
     public HashSet<Entity> visible = new();
     public HashSet<Station> known = new();
-    public HashSet<SpaceObject> missionTargets = new();
+    public HashSet<ActiveObject> missionTargets = new();
     private int ticks = 0;
     public HashSet<IShip> shipsDestroyed = new();
     public HashSet<Station> stationsDestroyed = new();
 
     public List<ICrime> crimeRecord=new();
 
-    public delegate void Destroyed(PlayerShip playerShip, SpaceObject destroyer, Wreck wreck);
+    public delegate void Destroyed(PlayerShip playerShip, ActiveObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
     public delegate void Damaged(PlayerShip playerShip, Projectile p);
     public FuncSet<IContainer<Damaged>> onDamaged = new();
@@ -511,18 +509,23 @@ public class PlayerShip : IShip {
     public FuncSet<IContainer<WeaponFired>> onWeaponFire = new();
 
     public List<AIShip> wingmates = new();
-
     public PlayerShip() { }
-    public PlayerShip(Player player, BaseShip ship) {
+    public PlayerShip(Player player, BaseShip ship, Sovereign sovereign) {
         this.player = player;
         this.ship = ship;
-        this.energy = new EnergySystem(ship.devices);
+        this.sovereign = sovereign;
 
+        energy = new EnergySystem(ship.devices);
         primary = new(ship.devices.Weapon);
         secondary = new(ship.devices.Weapon);
-
         //Remember to create the Heading when you add or replace this ship in the World
         Attach();
+    }
+    public bool CanSee(Entity e) {
+        return e switch {
+
+            _ => true
+        };
     }
     public void Attach() {
         //Hook up our own event to the ship since calling Damage can call base ship's Destroy without calling our own Destroy()
@@ -533,7 +536,7 @@ public class PlayerShip : IShip {
         //Ship.OnDestroyed.set.RemoveWhere(s => s is BaseOnDestroyed b && b.player == this);
     }
 
-    public void FireOnDestroyed(BaseShip s, SpaceObject source, Wreck wreck) {
+    public void FireOnDestroyed(BaseShip s, ActiveObject source, Wreck wreck) {
         onDestroyed.set.RemoveWhere(d => d.Value == null);
         foreach (var f in onDestroyed.set) f.Value.Invoke(this, source, wreck);
     }
@@ -567,7 +570,7 @@ public class PlayerShip : IShip {
     }
     public bool CheckGate(out Stargate gate) {
         foreach (var s in world.effects[position]) {
-            if ((s is Segment seg ? seg.parent : s) is Stargate g) {
+            if ((s is ISegment seg ? seg.parent : s) is Stargate g) {
                 gate = g;
                 return true;
             }
@@ -633,7 +636,7 @@ public class PlayerShip : IShip {
         targetIndex++;
         if (targetIndex < targetList.Count) {
             var target = targetList[targetIndex];
-            if (!this.IsEnemy(target)) {
+            if (target is ActiveObject a && !this.IsEnemy(a)) {
                 goto CheckTarget;
             } else if (!target.active) {
                 goto CheckTarget;
@@ -656,10 +659,9 @@ public class PlayerShip : IShip {
         void Refresh() {
             targetList =
                 world.entities.all
-                .OfType<SpaceObject>()
+                .OfType<ActiveObject>()
                 .Where(e => this.IsEnemy(e))
                 .OrderBy(e => (e.position - position).magnitude)
-                .Select(s => s is Segment seg ? seg.parent : s)
                 .Distinct()
                 .ToList();
             canRefresh = false;
@@ -701,10 +703,9 @@ public class PlayerShip : IShip {
 
         void Refresh() {
             targetList = world.entities.all
-                .OfType<SpaceObject>()
+                .OfType<ActiveObject>()
                 .Where(e => this.IsFriendly(e))
                 .OrderBy(e => (e.position - position).magnitude)
-                .Select(s => s is Segment seg ? seg.parent : s)
                 .Distinct()
                 .ToList();
             canRefresh = false;
@@ -740,7 +741,7 @@ public class PlayerShip : IShip {
         targetIndex = -1;
     }
 
-    public void SetTargetList(List<SpaceObject> targetList) {
+    public void SetTargetList(List<ActiveObject> targetList) {
         if (targetIndex > -1) {
             ResetAutoAim();
         }
@@ -753,8 +754,8 @@ public class PlayerShip : IShip {
 
         }
     }
-    public bool GetTarget(out SpaceObject target) => (target = GetTarget()) != null;
-    public SpaceObject GetTarget() {
+    public bool GetTarget(out ActiveObject target) => (target = GetTarget()) != null;
+    public ActiveObject GetTarget() {
         if (targetIndex != -1) {
             var target = targetList[targetIndex];
             if (target.active) {
@@ -772,8 +773,21 @@ public class PlayerShip : IShip {
         //Base ship can get destroyed without calling our own Destroy(), so we need to hook up an OnDestroyed event to this
 
         int originalHP = ship.damageSystem.GetHP();
-        ship.Damage(p);
+        
+        //Handle the damage systems ourself
+        ship.ReduceDamage(p);
+        ship.damageSystem.Damage(world.tick, p, DestroyCheck);
 
+        //Check for saving throws
+        void DestroyCheck(ActiveObject o) {
+            powers.ForEach(power => power.OnDestroyCheck(this, p));
+            ship.ReduceDamage(p);
+            ship.damageSystem.Damage(world.tick, p, Destroy);
+        }
+
+        if (!active) {
+            return;
+        }
         int delta = originalHP - ship.damageSystem.GetHP();
         if (delta > ship.damageSystem.GetHP() / 3) {
             if (mortalTime <= 0) {
@@ -785,17 +799,16 @@ public class PlayerShip : IShip {
                 }
             }
         }
-
         foreach (var f in onDamaged.set) f.Value.Invoke(this, p);
     }
-    public void Destroy(SpaceObject source) {
+    public void Destroy(ActiveObject source) {
         ship.Destroy(source);
     }
     public void Update() {
         messages.ForEach(m => m.Update());
         messages.RemoveAll(m => !m.Active);
 
-        if (GetTarget(out SpaceObject target)) {
+        if (GetTarget(out ActiveObject target)) {
             Heading.Crosshair(world, target.position);
         }
 

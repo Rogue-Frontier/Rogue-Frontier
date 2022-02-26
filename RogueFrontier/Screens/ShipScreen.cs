@@ -208,7 +208,7 @@ public class SListScreen {
             return i switch {
                 Message m => new(),
                 Transmission t => new() {
-                    new ColoredString("Source: ") + t.source.name,
+                    new ColoredString("Source: ") + (t.source as ActiveObject)?.name ?? new("N/A"),
                 }
             };
         }

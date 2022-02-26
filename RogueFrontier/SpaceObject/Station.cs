@@ -11,20 +11,17 @@ using static RogueFrontier.Weapon;
 
 namespace RogueFrontier;
 
-public class Wreck : DockableObject {
+public class Wreck : MovingObject, IDockable {
     [JsonIgnore]
     public string name => $"Wreck of {creator.name}";
     [JsonIgnore]
     public ColoredGlyph tile => new ColoredGlyph(new Color(128, 128, 128), Color.Black, creator.tile.GlyphCharacter);
-
     [JsonProperty]
     public int id { get; private set; }
     [JsonProperty]
-    public SpaceObject creator { get; set; }
+    public StructureObject creator { get; set; }
     [JsonProperty]
     public System world { get; private set; }
-    [JsonProperty]
-    public Sovereign sovereign { get; private set; }
     [JsonProperty]
     public XY position { get; private set; }
     [JsonProperty]
@@ -38,13 +35,10 @@ public class Wreck : DockableObject {
     [JsonProperty]
     public XY gravity { get; private set; }
     public Wreck() { }
-    public Wreck(SpaceObject creator, IEnumerable<Item> cargo = null) {
+    public Wreck(StructureObject creator, IEnumerable<Item> cargo = null) {
         this.id = creator.world.nextId++;
         this.creator = creator;
-
-
         this.world = creator.world;
-        this.sovereign = Sovereign.Inanimate;
         this.position = creator.position;
         this.velocity = creator.velocity;
         this.active = true;
@@ -55,11 +49,12 @@ public class Wreck : DockableObject {
 
         gravity = new XY(0, 0);
     }
+    public XY GetDockPoint() => XY.Zero;
     public Console GetDockScene(Console prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
     public void Damage(Projectile p) {
     }
 
-    public void Destroy(SpaceObject source) {
+    public void Destroy(ActiveObject source) {
         active = false;
     }
 
@@ -84,7 +79,7 @@ public class Wreck : DockableObject {
         velocity += gravity;
     }
 }
-public class Station : DockableObject, ITrader {
+public class Station : ActiveObject, ITrader, IDockable {
     [JsonIgnore]
     public string name => type.name;
     [JsonProperty]
@@ -113,7 +108,8 @@ public class Station : DockableObject, ITrader {
     public List<Weapon> weapons;
     [JsonProperty]
     public List<AIShip> guards;
-    public delegate void Destroyed(Station station, SpaceObject destroyer, Wreck wreck);
+
+    public delegate void Destroyed(Station station, ActiveObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
     public Station() { }
     public Station(System World, StationType Type, XY Position) {
@@ -125,17 +121,25 @@ public class Station : DockableObject, ITrader {
         this.active = true;
         this.sovereign = Type.Sovereign;
         damageSystem = new HPSystem(Type.hp);
-        cargo = new HashSet<Item>(Type.cargo?.Generate(World.types) ?? new List<Item>());
-        weapons = type.weapons?.Generate(World.types);
-        weapons?.ForEach(w => w.aiming = new Omnidirectional());
+        cargo = new(Type.cargo?.Generate(World.types) ?? new List<Item>());
+        weapons = type.weapons?.Generate(World.types) ?? new();
+        weapons.ForEach(w => w.aiming = new Omnidirectional());
         InitBehavior(Type.behavior);
     }
-    public void InitBehavior(EStationBehaviors behavior) {
+    public enum Behaviors {
+        none,
+        raisu,
+        pirate,
+        reinforceNearby,
+        constellationShipyard,
+        amethystStore
+    }
+    public void InitBehavior(Behaviors behavior) {
         this.behavior = behavior switch {
-            EStationBehaviors.raisu => null,
-            EStationBehaviors.pirate => new Pirate(),
-            EStationBehaviors.reinforceNearby => new ReinforceNearby(),
-            EStationBehaviors.none => null,
+            Behaviors.raisu => null,
+            Behaviors.pirate => new PirateStation(),
+            Behaviors.reinforceNearby => new ReinforceNearby(),
+            Behaviors.none => null,
             _ => null
         };
     }
@@ -183,7 +187,7 @@ public class Station : DockableObject, ITrader {
     }
     */
     public void Damage(Projectile p) {
-        damageSystem.Damage(this, p);
+        damageSystem.Damage(world.tick, p, Destroy);
         var source = p.source;
         if (source != null && source.sovereign != sovereign) {
             var guards = world.entities.all.OfType<AIShip>()
@@ -195,7 +199,7 @@ public class Station : DockableObject, ITrader {
             }
         }
     }
-    public void Destroy(SpaceObject source) {
+    public void Destroy(ActiveObject source) {
         active = false;
         if (source is PlayerShip ps) {
             ps.stationsDestroyed.Add(this);
@@ -253,38 +257,32 @@ public class Station : DockableObject, ITrader {
     [JsonIgnore]
     public ColoredGlyph tile => type.tile.Original;
 }
-public interface ISegment : SpaceObject {
-    SpaceObject parent { get; }
+public interface ISegment : MovingObject {
+    MovingObject parent { get; }
 }
 public class Segment : ISegment {
     //The segment essentially impersonates its parent station but with a different tile
-    [JsonIgnore]
-    public string name => parent.name;
     [JsonIgnore]
     public System world => parent.world;
     [JsonIgnore]
     public XY position => parent.position + desc.offset;
     [JsonIgnore]
     public XY velocity => parent.velocity;
-    [JsonIgnore]
-    public Sovereign sovereign => parent.sovereign;
 
     [JsonProperty]
     public int id { get; private set; }
     [JsonProperty]
-    public SpaceObject parent { get; private set; }
+    public MovingObject parent { get; private set; }
     [JsonProperty]
     public SegmentDesc desc { get; private set; }
     public Segment() { }
-    public Segment(SpaceObject parent, SegmentDesc desc) {
+    public Segment(MovingObject parent, SegmentDesc desc) {
         this.id = parent.world.nextId++;
         this.parent = parent;
         this.desc = desc;
     }
     [JsonIgnore]
     public bool active => parent.active;
-    public void Damage(Projectile p) => parent.Damage(p);
-    public void Destroy(SpaceObject source) => parent.Destroy(source);
     public void Update() {}
     [JsonIgnore]
     public ColoredGlyph tile => desc.tile.Original;
@@ -305,6 +303,8 @@ public class AngledSegment : ISegment {
     public int id { get; private set; }
     [JsonProperty]
     public IShip parent { get; private set; }
+    [JsonIgnore]
+    MovingObject ISegment.parent => parent;
     [JsonProperty]
     public SegmentDesc desc { get; private set; }
     public AngledSegment() { }
@@ -316,10 +316,8 @@ public class AngledSegment : ISegment {
     [JsonIgnore]
     public bool active => parent.active;
     public void Damage(Projectile p) => parent.Damage(p);
-    public void Destroy(SpaceObject source) => parent.Destroy(source);
+    public void Destroy(ActiveObject source) => parent.Destroy(source);
     public void Update() { }
     [JsonIgnore]
     public ColoredGlyph tile => desc.tile.Original;
-    [JsonIgnore]
-    SpaceObject ISegment.parent => parent;
 }

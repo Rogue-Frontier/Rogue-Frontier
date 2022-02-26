@@ -109,6 +109,7 @@ public class XY {
         var a = angleRad;
         return new XY(Math.Cos(a) * magnitude, Math.Sin(a) * magnitude);
     }
+    public override string ToString() => $"({x}, {y})";
 
     [JsonIgnore]
     public double maxCoord => Math.Max(Math.Abs(x), Math.Abs(y));

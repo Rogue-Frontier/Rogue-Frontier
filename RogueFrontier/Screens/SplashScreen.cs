@@ -38,7 +38,7 @@ public class SplashScreen : Console {
         for (int y = 0; y < lines.Length; y++) {
             var s = lines[y];
             var pos = new XY(-s.Length, -lines.Length + y * 2);
-            var margin = new AIShip(new BaseShip(World, ShipClass.empty, new Sovereign(), pos) { rotationDeg = 90 }, null);
+            var margin = new AIShip(new BaseShip(World, ShipClass.empty, pos) { rotationDeg = 90 }, new Sovereign(), null);
             for (int x = 0; x < s.Length; x++) {
                 var c = s[x];
                 if (c == ' ')
@@ -70,7 +70,7 @@ public class SplashScreen : Console {
                         p = new XY(r.Next(-Width, Width), -Height);
                         break;
                 }
-                var ship = new AIShip(new BaseShip(World, shipClass, new Sovereign(), p), new ApproachOrder(margin, new XY(0, -2 - (x * 2))));
+                var ship = new AIShip(new BaseShip(World, shipClass, p), new Sovereign(), new ApproachOrder(margin, new XY(0, -2 - (x * 2))));
                 World.AddEntity(ship);
                 //World.AddEffect(new Heading(ship));
             }
