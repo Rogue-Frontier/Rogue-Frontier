@@ -290,8 +290,8 @@ public static class SShipBehavior {
     public static bool CanTarget(this IShipBehavior behavior, ActiveObject other) {
         switch (behavior) {
             case Wingmate w:
-                return w.order is ICombatOrder c && c.CanTarget(other);
-            case ICombatOrder o:
+                return w.order.CanTarget(other);
+            case IShipOrder o:
                 return o.CanTarget(other);
         }
         return false;
@@ -311,40 +311,6 @@ public static class SShipBehavior {
     public static string GetOrderName(this IShipBehavior behavior) =>
         behavior.GetOrder()?.GetType().Name ?? "Unknown";
 }
-public interface IShipBehavior {
-    //We pass in the owner via update since ideally we'd like to allow
-    //multiple ships run the same behavior
-    void Update(AIShip owner);
-    public void OnDestroyed(ActiveObject destroyer) {}
-}
-public class Sulphin : IShipBehavior {
-    public int ticks = 0;
-    public HashSet<PlayerShip> playersMet = new();
-    public IShipOrder order;
-    public Sulphin() {}
-    public Sulphin(IShipOrder order) {
-        this.order = order;
-    }
-    public void Update(AIShip owner) {
-        order?.Update(owner);
-        ticks++;
-        if (ticks % 150 == 0) {
-            var players = owner.world.entities.all
-                .OfType<PlayerShip>()
-                .Except(playersMet)
-                .Where(p => (p.position - owner.position).magnitude < 80);
-            foreach (var p in players) {
-                p.AddMessage(new Transmission(owner, new ColoredString(
-                    @"""Kack! Who the hell are you??""", Color.Yellow, Color.Black
-                    )));
-            }
-            playersMet.UnionWith(players);
-
-        }
-    }
-}
-
-
 public class AIShip : IShip {
     [JsonIgnore]
     public int id => ship.id;
@@ -427,15 +393,7 @@ public class AIShip : IShip {
     [JsonIgnore]
     public ColoredGlyph tile => ship.tile;
 }
-public struct BaseOnDestroyed : IContainer<Destroyed> {
-    public PlayerShip player;
-    public BaseOnDestroyed(PlayerShip player) {
-        this.player = player;
-    }
-    [JsonIgnore]
-    public Destroyed Value => player != null ? player.FireOnDestroyed : null;
-    public override bool Equals(object obj) => obj is BaseOnDestroyed b && b.player == player;
-}
+
 public class PlayerShip : IShip {
     [JsonIgnore]
     public string name => ship.name;
@@ -508,6 +466,7 @@ public class PlayerShip : IShip {
     public delegate void WeaponFired(PlayerShip playerShip, Weapon w, List<Projectile> p);
     public FuncSet<IContainer<WeaponFired>> onWeaponFire = new();
 
+
     public List<AIShip> wingmates = new();
     public PlayerShip() { }
     public PlayerShip(Player player, BaseShip ship, Sovereign sovereign) {
@@ -518,22 +477,12 @@ public class PlayerShip : IShip {
         energy = new EnergySystem(ship.devices);
         primary = new(ship.devices.Weapon);
         secondary = new(ship.devices.Weapon);
-        //Remember to create the Heading when you add or replace this ship in the World
-        Attach();
     }
     public bool CanSee(Entity e) {
         return e switch {
 
             _ => true
         };
-    }
-    public void Attach() {
-        //Hook up our own event to the ship since calling Damage can call base ship's Destroy without calling our own Destroy()
-        ship.onDestroyed += new BaseOnDestroyed(this);
-    }
-    public void Detach() {
-        ship.onDestroyed -= new BaseOnDestroyed(this);
-        //Ship.OnDestroyed.set.RemoveWhere(s => s is BaseOnDestroyed b && b.player == this);
     }
 
     public void FireOnDestroyed(BaseShip s, ActiveObject source, Wreck wreck) {
@@ -770,11 +719,9 @@ public class PlayerShip : IShip {
     public Weapon GetSecondary() => secondary.item;
     public bool GetSecondary(out Weapon result) => (result = GetSecondary()) != null;
     public void Damage(Projectile p) {
-        //Base ship can get destroyed without calling our own Destroy(), so we need to hook up an OnDestroyed event to this
-
         int originalHP = ship.damageSystem.GetHP();
         
-        //Handle the damage systems ourself
+        //We handle our own damage system
         ship.ReduceDamage(p);
         ship.damageSystem.Damage(world.tick, p, DestroyCheck);
 

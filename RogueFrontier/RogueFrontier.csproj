@@ -187,6 +187,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Behavior\" />
     <Folder Include="RogueFrontierContent\text\" />
   </ItemGroup>
   <Import Project="..\Common\Common.projitems" Label="Shared" />

@@ -23,10 +23,9 @@ public record DeployShip : ItemUse {
     }
     public string GetDesc(PlayerShip player, Item item) => $"Deploy {shipType.name}";
     public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
-
         var w = new Wingmate(player);
         var a = new AIShip(
-            new BaseShip(player.world, shipType, player.position),
+            new(player.world, shipType, player.position),
             player.sovereign,
             behavior:w
             );
@@ -36,16 +35,6 @@ public record DeployShip : ItemUse {
         player.AddMessage(new Transmission(a, $"Deployed {shipType.name}"));
         player.cargo.Remove(item);
         callback?.Invoke();
-    }
-    class Avenge : IContainer<BaseShip.Destroyed> {
-        AIShip avenger;
-        public Avenge(AIShip avenger) {
-            this.avenger = avenger;
-        }
-        [JsonIgnore]
-        public BaseShip.Destroyed Value => (s, d, w) => {
-            avenger.behavior = new AttackOrder(d);
-        };
     }
 }
 public record InstallWeapon : ItemUse {
@@ -298,14 +287,14 @@ public record LauncherDesc {
     [Opt] public int repeat = 0;
     public CapacitorDesc capacitor;
     public List<LaunchDesc> missiles;
-    public Launcher GetLauncher(Item i) => new Launcher(i, this);
-    public Weapon GetWeapon(Item i) => new Weapon(i, weaponDesc);
+    public Launcher GetLauncher(Item i) => new(i, this);
+    public Weapon GetWeapon(Item i) => new(i, weaponDesc);
     public LauncherDesc() { }
     public LauncherDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
 
         if (e.HasElement("Capacitor", out var xmlCapacitor)) {
-            capacitor = new CapacitorDesc(xmlCapacitor);
+            capacitor = new(xmlCapacitor);
         }
         missiles = new();
         if(e.HasElements("Missile", out var xmlMissileArr)) {
@@ -342,7 +331,7 @@ public record WeaponDesc {
     public IDice damageHP => projectile.damageHP;
     public int lifetime => projectile.lifetime;
     public int minRange => projectile.missileSpeed * projectile.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
-    public Weapon GetWeapon(Item i) => new Weapon(i, this);
+    public Weapon GetWeapon(Item i) => new(i, this);
     public WeaponDesc() { }
     public WeaponDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
@@ -420,7 +409,7 @@ public record FragmentDesc {
     }
 
     public Maneuver GetManeuver(ActiveObject target) =>
-        target != null && maneuver != 0 ? new Maneuver(target, maneuver, maneuverRadius) : null;
+        target != null && maneuver != 0 ? new(target, maneuver, maneuverRadius) : null;
 }
 public record TrailDesc : ITrail {
     [Req] public int lifetime;
@@ -431,7 +420,7 @@ public record TrailDesc : ITrail {
     public TrailDesc(XElement e) {
         e.Initialize(this);
     }
-    public Effect GetTrail(XY Position) => new FadingTile(Position, new ColoredGlyph(foreground, background, glyph), lifetime);
+    public Effect GetTrail(XY Position) => new FadingTile(Position, new(foreground, background, glyph), lifetime);
 }
 public record DisruptorDesc {
     DisruptMode thrustMode, turnMode, brakeMode, fireMode;
@@ -444,7 +433,7 @@ public record DisruptorDesc {
         fireMode = GetMode(e.TryAtt(nameof(fireMode), null));
         lifetime = e.TryAttInt(nameof(lifetime), 60);
     }
-    public Disrupt GetHijack() => new Disrupt() {
+    public Disrupt GetHijack() => new() {
         thrustMode = thrustMode,
         turnMode = turnMode,
         brakeMode = brakeMode,
@@ -486,7 +475,7 @@ public record ReactorDesc {
     [Opt] public double efficiency = 1;
     [Opt] public bool battery = false;        //If true, then we recharge using power from other reactors when available
 
-    public Reactor GetReactor(Item i) => new Reactor(i, this);
+    public Reactor GetReactor(Item i) => new(i, this);
     public ReactorDesc() { }
     public ReactorDesc(XElement e) {
         e.Initialize(this);
@@ -514,7 +503,7 @@ public record ShieldDesc {
     [Req] public int damageDelay, depletionDelay;
     [Req] public double regen;
     [Opt] public double absorbFactor = 1;
-    public Shield GetShield(Item i) => new Shield(i, this);
+    public Shield GetShield(Item i) => new(i, this);
     public ShieldDesc() { }
     public ShieldDesc(XElement e) {
         e.Initialize(this);

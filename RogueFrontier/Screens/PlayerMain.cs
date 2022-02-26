@@ -1655,17 +1655,14 @@ public class CommunicationsMenu : Console {
         base.Render(delta);
     }
     public class CommandMenu : Console {
-        PlayerShip player;
+        //PlayerShip player;
         AIShip subject;
         public int ticks = 0;
-        private Dictionary<string, Action<int>> commands;
-
+        private Dictionary<string, Action> commands;
         public CommandMenu(Console prev, PlayerShip player, AIShip subject) : base(prev.Width, prev.Height) {
-            this.player = player;
+            //this.player = player;
             this.subject = subject;
-
             EscortOrder GetEscortOrder(int i) {
-
                 int root = (int)Math.Sqrt(i);
                 int lower = root * root;
                 int upper = (root + 1) * (root + 1);
@@ -1677,12 +1674,12 @@ public class CommunicationsMenu : Console {
             commands = new();
             switch(subject?.behavior) {
                 case Wingmate w:
-                    commands["Form Up"] = i => {
+                    commands["Form Up"] = () => {
                         player.AddMessage(new Transmission(subject, $"Ordered {subject.name} to Form Up"));
-                        w.order = GetEscortOrder(i);
+                        w.order = GetEscortOrder(0);
                     };
 
-                    commands["Attack Target"] = i => {
+                    commands["Attack Target"] = () => {
                         if (player.GetTarget(out ActiveObject target)) {
                             w.order = new AttackOrder(target);
                             player.AddMessage(new Transmission(subject, $"Ordered {subject.name} to Attack Target"));
@@ -1690,20 +1687,23 @@ public class CommunicationsMenu : Console {
                             player.AddMessage(new Transmission(subject, $"No target selected"));
                         }
                     };
-                    commands["Wait"] = i => {
+                    commands["Wait"] = () => {
                         w.order = new GuardOrder(new TargetingMarker(player, "Wait", subject.position));
                         player.AddMessage(new Transmission(subject, $"Ordered {subject.name} to Wait"));
                     };
                     break;
                 default:
-                    commands["Form Up"] = i => {
-                        player.AddMessage(new Message($"Ordered {subject.name} to {commands.Keys.ElementAt(i)}"));
-                        subject.behavior = GetEscortOrder(i);
+                    commands["Form Up"] = () => {
+                        player.AddMessage(new Message($"Ordered {subject.name} to Form Up"));
+                        subject.behavior = GetEscortOrder(0);
                     };
-                    commands["Attack Target"] = i => {
+                    commands["Attack Target"] = () => {
                         if (player.GetTarget(out ActiveObject target)) {
-                            subject.behavior = new CompoundOrder(new AttackOrder(target), GetEscortOrder(i));
-                            player.AddMessage(new Message($"Ordered {subject.name} to {commands.Keys.ElementAt(i)}"));
+                            var attack = new AttackOrder(target);
+                            var escort = GetEscortOrder(0);
+                            subject.behavior = attack;
+                            new OrderOnDestroy(subject, attack, escort).Register(target);
+                            player.AddMessage(new Message($"Ordered {subject.name} to Attack Target"));
                         } else {
                             player.AddMessage(new Message($"No target selected"));
                         }
@@ -1719,7 +1719,7 @@ public class CommunicationsMenu : Console {
             foreach (var k in info.KeysPressed) {
                 int index = keyToIndex(k.Character);
                 if (index > -1 && index < commands.Count) {
-                    commands.Values.ElementAt(index)(0);
+                    commands.Values.ElementAt(index)();
                 }
             }
             if (info.IsKeyPressed(Keys.Escape)) {

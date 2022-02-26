@@ -5,9 +5,42 @@ using System.Linq;
 using Helper = Common.Main;
 using static RogueFrontier.SShipBehavior;
 using Newtonsoft.Json;
+using SadConsole;
+using SadRogue.Primitives;
 
 namespace RogueFrontier;
-public interface IShipOrder : IShipBehavior {
+
+
+public interface IShipBehavior {
+    void Update(AIShip owner);
+}
+public class Sulphin : IShipBehavior {
+    public int ticks = 0;
+    public HashSet<PlayerShip> playersMet = new();
+    public IShipOrder order;
+    public Sulphin() { }
+    public Sulphin(IShipOrder order) {
+        this.order = order;
+    }
+    public void Update(AIShip owner) {
+        order?.Update(owner);
+        ticks++;
+        if (ticks % 150 == 0) {
+            var players = owner.world.entities.all
+                .OfType<PlayerShip>()
+                .Except(playersMet)
+                .Where(p => (p.position - owner.position).magnitude < 80);
+            foreach (var p in players) {
+                p.AddMessage(new Transmission(owner, new ColoredString(
+                    @"""Kack! Who the hell are you??""", Color.Yellow, Color.Black
+                    )));
+            }
+            playersMet.UnionWith(players);
+        }
+    }
+}
+
+public interface IShipOrder : IShipBehavior{
     bool Active { get; }
     //void Update(AIShip owner);
     public bool CanTarget(ActiveObject other) => false;
@@ -15,12 +48,26 @@ public interface IShipOrder : IShipBehavior {
     public delegate IShipOrder Create(ActiveObject target);
 }
 
-public interface ICombatOrder {
-    public bool CanTarget(ActiveObject other) => false;
-}
-
 public interface IDestructionEvents : IContainer<Station.Destroyed>, IContainer<AIShip.Destroyed>, IContainer<PlayerShip.Destroyed> {
 
+}
+public record OrderOnDestroy(AIShip ship, IShipOrder current, IShipOrder next) : IContainer<Station.Destroyed>, IContainer<AIShip.Destroyed>, IContainer<PlayerShip.Destroyed> {
+    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => Do();
+    AIShip.Destroyed IContainer<AIShip.Destroyed>.Value => (s, d, w) => Do();
+    PlayerShip.Destroyed IContainer<PlayerShip.Destroyed>.Value => (s, d, w) => Do();
+    public bool active => ship.behavior == current;
+    public void Do() {
+        if (active) {
+            ship.behavior = next;
+        }
+    }
+    public void Register(ActiveObject o) {
+        switch (o) {
+            case Station s: s.onDestroyed += this; break;
+            case AIShip s: s.onDestroyed += this; break;
+            case PlayerShip s: s.onDestroyed += this; break;
+        }
+    }
 }
 public class CompoundOrder : IShipOrder {
     public List<IShipOrder> orders;

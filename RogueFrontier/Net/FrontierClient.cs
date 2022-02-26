@@ -281,7 +281,6 @@ public class ScreenClient : Console {
     }
     public void LeavePlayer() {
         if (playerMain != null) {
-            playerMain.playerShip.Detach();
             World.RemoveEntity(playerMain.playerShip);
             playerMain = null;
         }

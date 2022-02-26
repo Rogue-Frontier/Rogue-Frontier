@@ -425,7 +425,6 @@ class ArenaScreen : Console {
                     return playerMain.ProcessKeyboard(info);
                 }
 
-                playerMain.playerShip.Detach();
                 World.RemoveEntity(playerMain.playerShip);
                 var aiShip = new AIShip(playerMain.playerShip.ship, playerMain.playerShip.sovereign, new AttackAllOrder());
                 World.AddEntity(aiShip);
