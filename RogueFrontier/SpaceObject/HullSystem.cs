@@ -50,27 +50,22 @@ public class LayeredArmorSystem : HullSystem {
         this.layers = layers;
     }
     public void Damage(int tick, Projectile p, Action<ActiveObject> Destroy) {
-        ref int hp = ref p.damageHP;
-
-        Handle:
+        if (p.damageHP == 0)
+            return;
         foreach (var i in Enumerable.Range(0, layers.Count).Reverse()) {
             var layer = layers[i];
             if (layer == null || layer.hp == 0)
                 continue;
-            int absorbed = Math.Min(layer.hp, hp);
-            layer.hp -= absorbed;
-            hp -= absorbed;
+            int absorbed = layer.Absorb(p);
             layer.lastDamageTick = tick;
-
             int depth = 2;
-            foreach (var j in Enumerable.Range(i - p.fragment.shock, p.fragment.shock).Reverse().Where(j => j > -1)) {
+            foreach (var j in Enumerable.Range(i - p.fragment.shock, p.fragment.shock).Reverse().TakeWhile(j => j > -1)) {
                 var nextLayer = layers[j];
-                int nextAbsorbed = Math.Min(nextLayer.hp, absorbed / depth);
-                nextLayer.hp -= nextAbsorbed;
+                nextLayer.Absorb(absorbed / depth);
                 nextLayer.lastDamageTick = tick;
                 depth++;
             }
-            if (hp == 0)
+            if (p.damageHP == 0)
                 return;
         }
         Destroy(p.source);

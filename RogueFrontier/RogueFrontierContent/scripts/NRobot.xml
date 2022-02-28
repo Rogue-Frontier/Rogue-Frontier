@@ -35,7 +35,15 @@
 				lifetime=		"60"
 				glyph=			"*"
 				foreground=		"Cyan"
+				>
+				<Disruptor
+					thrustMode="off"
+					turnMode="off"
+					brakeMode="on"
+					fireMode="off"
+					lifetime="120"
 				/>
+			</Projectile>
 			
 			<Capacitor
 				minChargeToFire=		"35"
@@ -45,13 +53,6 @@
 				bonusSpeedPerCharge=	"30/100"
 				bonusDamagePerCharge=	"30/100"
 				bonusLifetimePerCharge=	"30/100"
-				/>
-			<Disruptor
-				thrustMode="off"
-				turnMode="off"
-				brakeMode="on"
-				fireMode="off"
-				lifetime="120"
 				/>
 		</Weapon>
 	</ItemType>
@@ -67,6 +68,7 @@
 			fireCooldown=	"120"
 			>
 			<Projectile
+				acquireTarget=	"true"
 				missileSpeed=	"10"
 				damageType=		"1"
 				damageHP=		"1"
@@ -75,9 +77,9 @@
 				foreground=		"FF0080FF"
 				>
 				<Fragment
-					count=			"3"
-					spreadAngle=	"90"
-					missileSpeed=	"10"
+					omnidirectional="true"
+					count=			"1"
+					missileSpeed=	"40"
 					damageType=		"1"
 					damageHP=		"1"
 					lifetime=		"60"
@@ -107,16 +109,24 @@
 				/>
 		</Weapon>
 	</ItemType>
-
-	<ShipClass	codename=	"ship_hyperego"
-		name=				"Hyperego-class fighter"
+	<ItemType	codename=	"item_shining_armor"
+		name=		"Shining armor"
+		mass=		"8000"
+		level=		"2"
+		value=		"8000"
+		desc=		"."
+		>
+		<Armor	maxHP=		"150"
+				recoveryFactor="0.8"
+				recoveryRate="10/30"/>
+	</ItemType>
+	<ShipClass	codename=	"ship_flawless"
+		name=				"Flawless-class fighter"
 		thrust=				"0.2"
 		maxSpeed=			"15"
-
 		rotationAccel=		"3"
 		rotationDecel=		"6"
 		rotationMaxSpeed=	"4"
-
 		glyph=				"n"
 		foreground=			"LightBlue"
 		>
@@ -124,26 +134,31 @@
 			<Service codename="item_deflect_device"/>
 			<Weapon codename="item_shutdown_cannon"/>
 			<Weapon codename="item_breakdown_cannon"/>
-			<Reactor codename="item_foundry_reactor"/>
-			<Reactor codename="item_foundry_battery"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_10mw_storage_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="item_gemsteel_plate"/>
+			<Armor  codename="item_shining_armor"/>
+			<Armor  codename="item_shining_armor"/>
+			<Armor  codename="item_shining_armor"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 
-	<StationType	codename="station_nrobot_castle"
-					name=		"NRobot castle"
+	<StationType	codename="station_nrobot_fortress"
+					name=		"NRobot fortress"
 					sovereign=	"sovereign_nrobot"
 
 					hp=			"250"
 
 					glyph=		"N"
-					foreground=	"OrangeRed"
+					foreground=	"Cyan"
 		>
 		<Segments>
 
 		</Segments>
+		<Ships>
+			<Ship codename="ship_flawless" count="4" order="guard"/>
+		</Ships>
 	</StationType>
 
 </Module>

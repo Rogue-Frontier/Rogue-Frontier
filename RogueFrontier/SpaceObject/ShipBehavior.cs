@@ -440,7 +440,7 @@ public class AttackOrder : IShipOrder {
                 }
                 //Fire if we are close enough
                 if (freeAim
-                    || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3) {
+                    || Math.Abs(aim.GetAngleDiff(owner)) * dist < 6) {
                     SetFiringPrimary();
                 }
             } else {
@@ -448,7 +448,7 @@ public class AttackOrder : IShipOrder {
                 approach.Update(owner);
                 //Fire if our angle is good enough
                 if (freeAim
-                    || Math.Abs(aim.GetAngleDiff(owner)) * dist < 3 && RangeCheck()) {
+                    || Math.Abs(aim.GetAngleDiff(owner)) * dist < 6 && RangeCheck()) {
                     SetFiringPrimary();
                 }
 

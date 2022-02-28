@@ -136,25 +136,18 @@ public class BaseShip : StructureObject {
         this.rotating = rotating;
     }
     public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
-    
     public void ReduceDamage(Projectile p) {
         int dmgFull = p.damageHP;
         ref int dmgLeft = ref p.damageHP;
         foreach (var s in devices.Shield) {
-            if (dmgLeft == 0) {
-                break;
-            }
-            var d = Math.Min(s.maxAbsorb, (int)(dmgLeft * s.absorbFactor));
-            if (d > 0) {
-                s.Absorb(d);
-                dmgLeft -= d;
-            }
+            if (dmgLeft == 0) return;
+            s.Absorb(p);
         }
-        if (dmgLeft > 0) {
-            int knockback = p.fragment.knockback * dmgLeft / dmgFull;
-            velocity += (p.velocity - velocity).WithMagnitude(knockback);
-            disruption = p.fragment.disruptor?.GetHijack() ?? disruption;
-        }
+        if (dmgLeft == 0) return;
+
+        int knockback = p.fragment.knockback * dmgLeft / dmgFull;
+        velocity += (p.velocity - velocity).WithMagnitude(knockback);
+        disruption = p.fragment.disruptor?.GetHijack() ?? disruption;
     }
     public void Damage(Projectile p) {
         ReduceDamage(p);
@@ -162,9 +155,7 @@ public class BaseShip : StructureObject {
     }
     public void Destroy(ActiveObject source) {
         var items = cargo.Concat(
-            devices.Installed
-            .Select(d => d.source)
-            .Where(i => i != null)
+            devices.Installed.Select(d => d.source).Where(i => i != null)
         );
         var wreck = new Wreck(this, items);
         world.AddEntity(wreck);
@@ -174,7 +165,6 @@ public class BaseShip : StructureObject {
                 new ColoredGlyph(Color.Orange, Color.Orange.SetAlpha(128), 'x'),
                 60);
             world.AddEffect(blast);
-
         }
 
         active = false;
@@ -185,33 +175,21 @@ public class BaseShip : StructureObject {
         }
     }
     public void Update() {
-        UpdateControls();
+        UpdateControl();
         UpdateMotion();
         //Devices.Update(this);
     }
-    public void UpdateControls() {
+    public void UpdateControl() {
         if (disruption != null) {
-            thrusting = disruption.thrustMode switch {
-                DisruptMode.FORCE_ON => true,
-                DisruptMode.FORCE_OFF => false,
-                _ => thrusting
-            };
+            thrusting = disruption.thrustMode ?? thrusting;
             rotating = disruption.turnMode switch {
-                DisruptMode.FORCE_ON => Rotating.CCW,
-                DisruptMode.FORCE_OFF => Rotating.None,
+                true => Rotating.CCW,
+                false => Rotating.None,
                 _ => rotating
             };
 
-            decelerating = disruption.brakeMode switch {
-                DisruptMode.FORCE_ON => true,
-                DisruptMode.FORCE_OFF => false,
-                _ => decelerating
-            };
-            devices.Weapon.ForEach(a => a.firing = disruption.fireMode switch {
-                DisruptMode.FORCE_ON => true,
-                DisruptMode.FORCE_OFF => false,
-                _ => a.firing
-            });
+            decelerating = disruption.brakeMode ?? decelerating;
+            devices.Weapon.ForEach(a => a.firing = disruption.fireMode ?? a.firing);
             disruption.Update();
             if (disruption.active == false) {
                 disruption = null;
@@ -381,12 +359,13 @@ public class AIShip : IShip {
 
         dock?.Update(this);
 
-        ship.UpdateControls();
+        ship.UpdateControl();
         ship.UpdateMotion();
 
         //We update the ship's devices as ourselves because they need to know who the exact owner is
         //In case someone other than us needs to know who we are through our devices
         ship.devices.Update(this);
+        (ship.damageSystem as LayeredArmorSystem)?.layers.ForEach(l => l.Update(this));
     }
     [JsonIgnore]
     public bool active => ship.active;
@@ -792,7 +771,7 @@ public class PlayerShip : IShip {
 
         dock?.Update(this);
 
-        ship.UpdateControls();
+        ship.UpdateControl();
         ship.UpdateMotion();
 
         //We update the ship's devices as ourselves because they need to know who the exact owner is
@@ -801,6 +780,7 @@ public class PlayerShip : IShip {
             enabled.Update(this);
         }
         energy.Update(this);
+        (ship.damageSystem as LayeredArmorSystem)?.layers.ForEach(l => l.Update(this));
     }
     public void AddMessage(IPlayerMessage message) {
         var existing = messages.FirstOrDefault(m => m.Equals(message));

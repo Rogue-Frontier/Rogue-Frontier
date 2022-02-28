@@ -126,6 +126,12 @@ public class Armor : Device {
     public Item source { get; private set; }
     public ArmorDesc desc;
     public int hp;
+    public int hpToRecover;
+    public double recoveryHP;
+
+    public double regenHP;
+
+    public int lifetimeDamageAbsorbed;
     public int lastDamageTick;
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
@@ -134,7 +140,50 @@ public class Armor : Device {
         this.hp = desc.maxHP;
     }
     public Armor Copy(Item source) => desc.GetArmor(source);
-    public void Update(IShip owner) { }
+    public void Update(IShip owner) {
+        if(hpToRecover > 0) {
+            recoveryHP += desc.recoveryRate;
+            while (recoveryHP >= 1) {
+                if (hp < desc.maxHP) {
+                    hp++;
+                    recoveryHP--;
+                    hpToRecover--;
+                } else {
+                    recoveryHP = 0;
+                    hpToRecover = 0;
+                }
+            }
+        }
+        regenHP += desc.regenRate;
+        while (regenHP >= 1) {
+            if(hp < desc.maxHP) {
+                hp++;
+                regenHP--;
+            } else {
+                regenHP = 0;
+            }
+        }
+    }
+    public void Absorb(int amount) {
+        var absorbed = Math.Min(hp, amount);
+        if (absorbed > 0) {
+            hp -= absorbed;
+            lifetimeDamageAbsorbed += absorbed;
+            hpToRecover += (int)(absorbed * desc.recoveryFactor);
+        }
+    }
+
+    public int Absorb(Projectile p) {
+        var absorbed = Math.Min(hp, p.damageHP);
+        if (absorbed > 0) {
+            hp -= absorbed;
+            lifetimeDamageAbsorbed += absorbed;
+            hpToRecover += (int)(absorbed * desc.recoveryFactor);
+
+            p.damageHP -= absorbed;
+        }
+        return absorbed;
+    }
 }
 public class Engine : Device {
     [JsonProperty]
@@ -292,6 +341,7 @@ public class Reactor : Device, PowerSource {
     public double energyDelta { get; set; }
     public int rechargeDelay;
     public int maxOutput => energy > 0 ? desc.maxOutput : 0;
+    public double lifetimeEnergyUsed;
     public Reactor() { }
     public Reactor(Item source, ReactorDesc desc) {
         this.source = source;
@@ -301,9 +351,13 @@ public class Reactor : Device, PowerSource {
     }
     public Reactor Copy(Item source) => desc.GetReactor(source);
     public void Update(IShip owner) {
+        var e = energy;
         energy = Math.Max(0, Math.Min(
             energy + (energyDelta < 0 ? energyDelta / desc.efficiency : energyDelta) / 30,
             desc.capacity));
+        if(e > energy) {
+            lifetimeEnergyUsed += e - energy;
+        }
     }
 }
 public class Service : Device {
@@ -376,6 +430,7 @@ public class Shield : Device {
     public int delay;
     public double absorbFactor => desc.absorbFactor;
     public int maxAbsorb => hp;
+    public int lifetimeDamageAbsorbed;
     /*
     public int maxAbsorb => desc.absorbMaxHP == -1 ?
         hp : Math.Min(hp, absorbHP);
@@ -422,10 +477,15 @@ public class Shield : Device {
             */
         }
     }
-    public void Absorb(int damage) {
-        hp = Math.Max(0, hp - damage);
-        //absorbHP = Math.Max(0, absorbHP - damage);
-        delay = (hp == 0 ? desc.depletionDelay : desc.damageDelay);
+    public void Absorb(Projectile p) {
+        var absorbed = Math.Min(maxAbsorb, (int)(p.damageHP * absorbFactor));
+        if (absorbed > 0) {
+            hp -= absorbed;
+            lifetimeDamageAbsorbed += absorbed;
+            delay = (hp == 0 ? desc.depletionDelay : desc.damageDelay);
+
+            p.damageHP -= absorbed;
+        }
     }
 }
 public class Solar : Device, PowerSource {
@@ -501,7 +561,7 @@ public class Weapon : Device {
         }
         if (desc.projectile.omnidirectional) {
             aiming = new Omnidirectional();
-        } else if (desc.projectile.maneuver > 0) {
+        } else if (desc.projectile.acquireTarget) {
             aiming = new Targeting();
         }
         if (desc.initialCharges > -1) {
@@ -727,7 +787,6 @@ public interface Aiming {
     double? GetFireAngle() => null;
     void ClearTarget() { }
     void UpdateTarget(ActiveObject target) { }
-
     public static double? CalcFireAngle(XY deltaPosition, XY deltaVelocity, FragmentDesc f) =>
         (deltaPosition.magnitude < f.range) ?
             Helper.CalcFireAngle(deltaPosition, deltaVelocity, f.missileSpeed, out var _) :
@@ -746,10 +805,9 @@ public interface Aiming {
     public static bool CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed, out double result) {
         var velDiff = target.velocity - owner.velocity;
         var b = velDiff.magnitude < missileSpeed;
-        result = b ? Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _) : 0;
+        result = b ? Helper.CalcFireAngle(target.position - owner.position, velDiff, missileSpeed, out var _) : 0;
         return b;
     }
-
     public static bool CalcFireAngle(MovingObject owner, Projectile target, FragmentDesc fd, out double? result) {
         bool b = ((target.position - owner.position).magnitude < fd.range);
         result = b ? Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, fd.missileSpeed, out var _) : null;
@@ -757,7 +815,6 @@ public interface Aiming {
     }
     public static ActiveObject AcquireTarget(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) =>
         owner.world.entities.GetAll(p => (owner.position - p).magnitude2 < weapon.projectileDesc.range2).OfType<ActiveObject>().FirstOrDefault(filter);
-
     public static Projectile AcquireMissile(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) =>
         owner.world.entities.all
             .OfType<Projectile>()

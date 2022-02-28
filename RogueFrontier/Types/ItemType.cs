@@ -242,6 +242,10 @@ public record ItemType : IDesignType {
 }
 public record ArmorDesc {
     [Req] public int maxHP;
+    [Opt] public double recoveryFactor;
+    [Opt] public double recoveryRate;
+    [Opt] public double regenRate;
+    
     public Armor GetArmor(Item i) => new(i, this);
     public ArmorDesc() { }
     public ArmorDesc(XElement e) {
@@ -359,6 +363,7 @@ public record FragmentDesc {
     [Opt] public int shock;
     [Req] public int lifetime;
     [Opt] public bool passthrough;
+    [Opt] public bool acquireTarget;
     [Opt] public double maneuver;
     [Opt] public double maneuverRadius;
     [Opt] public int fragmentInterval;
@@ -380,6 +385,7 @@ public record FragmentDesc {
 
     public void Initialize(XElement e) {
         e.Initialize(this);
+        acquireTarget = acquireTarget || maneuver > 0;
         if (e.TryAttBool("spreadOmni")) {
             spreadAngle = (2 * Math.PI) / count;
         } else {
@@ -395,7 +401,6 @@ public record FragmentDesc {
             new(xmlTrail) : null;
         effect = new(e);
     }
-
     public List<Projectile> GetProjectiles(ActiveObject owner, ActiveObject target, double direction) {
         double angleInterval = spreadAngle / count;
         return new(Enumerable.Range(0, count).Select(i => {
@@ -407,9 +412,8 @@ public record FragmentDesc {
                 );
         }));
     }
-
     public Maneuver GetManeuver(ActiveObject target) =>
-        target != null && maneuver != 0 ? new(target, maneuver, maneuverRadius) : null;
+        (acquireTarget && target != null) ? new(target, maneuver, maneuverRadius) : null;
 }
 public record TrailDesc : ITrail {
     [Req] public int lifetime;
@@ -423,7 +427,7 @@ public record TrailDesc : ITrail {
     public Effect GetTrail(XY Position) => new FadingTile(Position, new(foreground, background, glyph), lifetime);
 }
 public record DisruptorDesc {
-    DisruptMode thrustMode, turnMode, brakeMode, fireMode;
+    bool? thrustMode, turnMode, brakeMode, fireMode;
     public int lifetime;
     public DisruptorDesc() { }
     public DisruptorDesc(XElement e) {
@@ -440,20 +444,13 @@ public record DisruptorDesc {
         fireMode = fireMode,
         ticksLeft = lifetime
     };
-    public DisruptMode GetMode(string str) {
-        switch (str) {
-            case "on":
-                return DisruptMode.FORCE_ON;
-            case "off":
-                return DisruptMode.FORCE_OFF;
-            case "none":
-            case null:
-                return DisruptMode.NONE;
-            default:
-                throw new Exception($"Invalid value {str}");
-
-        }
-    }
+    public bool? GetMode(string str) => str switch {
+        "on" => true,
+        "off" => false,
+        "none" => null,
+        null => null,
+        _ => throw new Exception($"Invalid value {str}")
+    };
 }
 public record CapacitorDesc {
     [Opt] public double minChargeToFire = 0;

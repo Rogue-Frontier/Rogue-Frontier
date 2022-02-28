@@ -273,14 +273,14 @@
 	</ItemType>
 
 	<ItemType	codename=	"item_missile_defender"
-				name=		"Anti-missile defender"
+				name=		"Kinetic takedown"
 				level=		"3"
 				mass=		"1000"
 				value=		"4000"
 				
 				invoke=		"installWeapon"
 
-				desc=		"This turret fires lasers at incoming projectiles to destroy them."
+				desc=		"This turret fires lasers at incoming kinetic projectiles to destroy them."
 		>
 		<Weapon
 			powerUse=		"5"
@@ -298,7 +298,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_laser_drone"
 				name=		"Deployable laser drone"
 				level=		"2"
@@ -316,10 +315,7 @@
 				name=		"Flintlock mass driver"
 				level=		"2"
 				mass=		"4000"
-
-				
 				value=		"1500"
-
 				
 				desc=		"The flintlock mass driver fires a basic kinetic projectile."
 		>
@@ -384,11 +380,9 @@
 				
 		value=		"4500"
 				
-		desc=		"This hardy armor is the main choice of plating for the Wagon-class."
+		desc=		"This hardy armor is the main choice of armor plating for the Clark-class."
 		>
-		<Armor	maxHP=		"200"
-			>
-		</Armor>
+		<Armor	maxHP=		"150"/>
 	</ItemType>
 
 

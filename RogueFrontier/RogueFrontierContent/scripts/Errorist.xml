@@ -3,42 +3,40 @@
 				alignment=	"DestructiveOrder"
 	/>
 
-	<ItemType	codename=	"item_natural_killer_plate"
-				name=		"Natural killer plate"
+	<ItemType	codename=	"item_radiant_plate"
+				name=		"Radiant plate"
 				mass=		"1000"
 				level=		"1"
 
-				desc=		"This armor resembles a mess of organic flesh slathered onto a metal substrate."
+				desc=		"This armor glows because of radiation."
 		>
-		<Armor	maxHP=		"70"
-			>
-		</Armor>
+		<Armor	maxHP=		"90"/>
 	</ItemType>
-	<ItemType	codename=	"item_heartland_cannon"
-			name=		"Heartland soil cannon"
+	<ItemType	codename=	"item_sand_cannon"
+			name=		"Sand cannon"
 			mass=		"5000"
 			level=		"3"
 
-			desc=		"This unusual weapon sprays irradiated sand imported from the surface of Mars. Above all combat science and practical strategy, the Errorist zeal reigns supreme. And despite what Errorist zeal might make one believe, this weapon is extremely poor in combat potential."
+			desc=		"This unusual weapon sprays irradiated sand imported from the surface of Mars. Above all combat science and practical strategy, the Errorist zeal reigns supreme. The sand cannon is known to have poor combat potential."
 				>
 		<Weapon	powerUse=		"50"
-				fireCooldown=	"60"
+				fireCooldown=	"15"
 				initialCharges=	"100"
 			>
 			<Projectile	missileSpeed=	"30"
 						damageType=		"2"
 						damageHP=		"4"
 						lifetime=		"90"
-						spreadAngle=	"15"
+						spreadAngle=	"20"
 						count=			"9"
 
 						glyph=			"."
-						foreground=		"Green"
+						foreground=		"SpringGreen"
 				/>
 		</Weapon>
 	</ItemType>
 	<ItemType	codename=	"item_septic_cannon"
-			name=		"Septic blood cannon"
+			name=		"Sludge cannon"
 			mass=		"5000"
 			level=		"3"
 
@@ -55,13 +53,13 @@
 						spreadAngle=	"15"
 						count=			"12"
 						glyph=			"."
-						foreground=		"Green"
+						foreground=		"SpringGreen"
 				/>
 		</Weapon>
 	</ItemType>
 
-	<ShipClass	codename=			"ship_chemotoxin"
-				name=				"Chemotoxin-class raider"
+	<ShipClass	codename=			"ship_toxin"
+				name=				"Toxin-class raider"
 				thrust=				"0.2"
 				maxSpeed=			"15"
 
@@ -69,19 +67,19 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				glyph=				"c"
+				glyph=				"e"
 				foreground=			"LightGreen"
 		>
 		<Devices>
-			<Weapon	codename="item_heartland_cannon"/>
+			<Weapon	codename="item_sand_cannon"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor	codename="item_natural_killer_plate"/>
+			<Armor	codename="item_radiant_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 
-	<ShipClass	codename=			"ship_malignus"
-				name=				"Malignus-class missileship"
+	<ShipClass	codename=			"ship_mutant"
+				name=				"Mutant-class missileship"
 				thrust=				"0.2"
 				maxSpeed=			"15"
 
@@ -89,14 +87,14 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
-				glyph=				"m"
+				glyph=				"E"
 				foreground=			"LightGreen"
 		>
 		<Devices>
-			<Weapon	codename="item_heartland_cannon"/>
+			<Weapon	codename="item_sand_cannon"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor	codename="item_natural_killer_plate"/>
+			<Armor	codename="item_radiant_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 
@@ -142,7 +140,8 @@
 
 		</Segments>
 		<Guards>
-			<Ship	count="5"	codename="ship_chemotoxin"/>
+			<Ship	count="3"	codename="ship_mutant"/>
+			<Ship	count="5"	codename="ship_toxin"/>
 		</Guards>
 	</StationType>
 

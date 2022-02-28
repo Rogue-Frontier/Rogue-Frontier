@@ -484,21 +484,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             Genome = World.types.Get<GenomeType>().First()
         };
         var universeDesc = new UniverseDesc(World.types, XElement.Parse(
-@"<Universe>
-    <Topology>
-        <System id=""orion"" name=""Orion's Star"" codename=""system_orion""/>
-        <System id=""orion2"" name=""Orion's Star 2"" codename=""system_2""/>
-        <System id=""orion3"" name=""Orion's Star 3"" codename=""system_2""/>
-        <System id=""orion4"" name=""Orion's Star 4"" codename=""system_2""/>
-        <System id=""orion5"" name=""Orion's Star 5"" codename=""system_2""/>
-
-        <Link fromGateId=""orion:Next"" toGateId=""orion2:Prev""/>
-        <Link fromGateId=""orion2:Next"" toGateId=""orion3:Prev""/>
-        <Link fromGateId=""orion3:Next"" toGateId=""orion4:Prev""/>
-        <Link fromGateId=""orion4:Next"" toGateId=""orion5:Prev""/>
-    </Topology>
-</Universe>
-"
+            File.ReadAllText("RogueFrontierContent/scripts/Universe.xml")
             ));
 
         //Name is seed

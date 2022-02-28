@@ -107,18 +107,17 @@ public class Sovereign : IDesignType {
 
         if (e.HasElement("Relations", out var xmlRelations)) {
             foreach (var xmlRel in xmlRelations.Elements()) {
-                var other = xmlRel.ExpectAtt("target");
+                var other = xmlRel.ExpectAtt("codename");
                 var disposition = xmlRel.ExpectAttEnum<Disposition>("disposition");
                 var mutual = xmlRel.ExpectAttBool("mutual");
 
                 var sov = tc.Lookup<Sovereign>(other);
                 sovDispositions[sov.codename] = disposition;
                 if (mutual) {
-                    sov.sovDispositions[this.codename] = disposition;
+                    sov.sovDispositions[codename] = disposition;
                 }
             }
         }
-
     }
     public void SetDisposition(Sovereign other, Disposition d) => sovDispositions[other.codename] = d;
     public void SetDisposition(ActiveObject other, Disposition d) => entityDispositions[other] = d;

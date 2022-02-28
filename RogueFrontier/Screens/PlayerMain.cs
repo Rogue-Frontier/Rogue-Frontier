@@ -1466,16 +1466,13 @@ public class Readout : Console {
             }
         }
         */
-
         base.Render(drawTime);
     }
 }
 public class Edgemap : Console {
     Camera camera;
     PlayerShip player;
-
     public double viewScale;
-
     public Edgemap(Camera camera, PlayerShip player, int width, int height) : base(width, height) {
         this.camera = camera;
         this.player = player;
@@ -1604,7 +1601,7 @@ public class CommunicationsMenu : Console {
             int index = keyToIndex(k.Character);
             if (index > -1 && index < 10 && index < playerShip.wingmates.Count) {
                 var w = playerShip.wingmates[index];
-                menu = new(this, playerShip, w) { Position = this.Position };
+                menu = new(this, playerShip, w) { Position = Position };
             }
         }
         if (info.IsKeyPressed(Keys.Escape)) {

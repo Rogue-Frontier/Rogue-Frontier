@@ -137,4 +137,69 @@
 			</Orbital>
 		</SystemGroup>
 	</SystemType>
+
+
+	<SystemType	codename=	"system_3"
+			name=		"Orion"
+		>
+		<SystemGroup>
+			<Star	 radius="50"/>
+
+
+			<Orbital radius="150" angle="random">
+				<Group>
+					<Stargate gateId="Next"/>
+					<Sibling angleInc="135" radiusInc="100">
+						<Stargate gateId="Prev"/>
+					</Sibling>
+				</Group>
+			</Orbital>
+
+
+			<Orbital count="3"
+					 radius="300"
+					 angle="random">
+
+				<Station	codename="station_nrobot_fortress"/>
+			</Orbital>
+			<Orbital count="5"
+					 radius="800"
+					 angle="random">
+
+				<Station	codename="station_iron_pirates_hideout"/>
+			</Orbital>
+		</SystemGroup>
+	</SystemType>
+
+	<SystemType	codename=	"system_4"
+			name=		"Orion"
+		>
+		<SystemGroup>
+			<Star	 radius="50"/>
+
+
+			<Orbital radius="150" angle="random">
+				<Group>
+					<Stargate gateId="Next"/>
+					<Sibling angleInc="135" radiusInc="100">
+						<Stargate gateId="Prev"/>
+					</Sibling>
+				</Group>
+			</Orbital>
+
+
+			<Orbital count="3"
+					 radius="300"
+					 angle="random">
+
+				<Station	codename="station_errorist_compound"/>
+			</Orbital>
+			<Orbital count="5"
+					 radius="800"
+					 angle="random">
+
+				<Station	codename="station_nrobot_fortress"/>
+			</Orbital>
+		</SystemGroup>
+	</SystemType>
 </Module>

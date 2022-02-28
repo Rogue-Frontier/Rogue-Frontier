@@ -130,7 +130,7 @@ public class Projectile : MovingObject {
     }
     public void Fragment(FragmentDesc fragment) {
         if (fragment.targetLocked != null
-            && fragment.targetLocked != (maneuver.target != null)) {
+            && fragment.targetLocked != (maneuver?.target != null)) {
             return;
         }
         double angleInterval = fragment.spreadAngle / fragment.count;
@@ -145,11 +145,11 @@ public class Projectile : MovingObject {
         }
         for (int i = 0; i < fragment.count; i++) {
             double angle = centerAngle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-            Projectile p = new Projectile(source,
+            var p = new Projectile(source,
                 fragment,
                 position + XY.Polar(angle, 0.5),
                 velocity + XY.Polar(angle, fragment.missileSpeed),
-                null
+                fragment.GetManeuver(maneuver?.target)
                 );
             world.AddEntity(p);
         }

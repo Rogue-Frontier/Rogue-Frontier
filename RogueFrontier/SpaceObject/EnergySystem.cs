@@ -47,7 +47,7 @@ public class EnergySystem {
         var deactivated = new HashSet<Device>();
         //Devices consume power
         int outputUsed = 0;
-        foreach (var powered in devices.Powered.Where(p => !off.Contains(p))) {
+        foreach (var powered in devices.Powered.Except(off)) {
             Handle(powered, overloaded);
         }
         foreach (var powered in overloaded) {
@@ -56,11 +56,9 @@ public class EnergySystem {
         }
 
         void Handle(Device powered, HashSet<Device> overflow) {
-
             if(powered is Service s && s.desc.type == ServiceType.grind) {
                 int i = 0;
             }
-
             var powerUse = powered.powerUse.Value;
             if (powerUse <= 0) { return; }
             if (powerUse > totalOutputLeft) {

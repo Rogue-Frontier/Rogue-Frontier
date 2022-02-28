@@ -1,29 +1,82 @@
 ﻿<Module>
-	<ItemType	codename=	"item_foundry_reactor"
-				name=		"Foundry-class generator"
+	<ItemType	codename=	"item_20mw_generator"
+				name=		"20MW generator"
 				level=		"1"
 				mass=		"1000"
 		>
 		<Reactor
 			maxOutput=		"20"
-			capacity=		"2500"
+			capacity=		"3000"
 			efficiency=		"1.0"
 			battery=		"false"
 			/>
 	</ItemType>
 
-	<ItemType	codename=	"item_foundry_battery"
-				name=		"Foundry-class battery"
+	<ItemType	codename=	"item_50mw_generator"
+			name=		"50MW generator"
+			level=		"1"
+			mass=		"1000"
+		>
+		<Reactor
+			maxOutput=		"50"
+			capacity=		"15000"
+			efficiency=		"1.0"
+			battery=		"false"
+			/>
+	</ItemType>
+
+	<ItemType	codename=	"item_10mw_storage_battery"
+				name=		"10MW storage battery"
 				level=		"1"
 				mass=		"1000"
 		>
 		<Reactor
 			maxOutput=		"10"
-			capacity=		"5000"
+			capacity=		"3000"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>
 	</ItemType>
+	<ItemType	codename=	"item_10mw_storage_battery"
+			name=		"20MW combat battery"
+			level=		"1"
+			mass=		"1000"
+		>
+		<Reactor
+			maxOutput=		"20"
+			capacity=		"1500"
+			efficiency=		"1.0"
+			battery=		"true"
+			/>
+	</ItemType>
+
+
+	<ItemType	codename=	"item_10mw_storage_battery"
+			name=		"30MW storage battery"
+			level=		"1"
+			mass=		"1000"
+		>
+		<Reactor
+			maxOutput=		"30"
+			capacity=		"9000"
+			efficiency=		"1.0"
+			battery=		"true"
+			/>
+	</ItemType>
+	<ItemType	codename=	"item_10mw_storage_battery"
+			name=		"40MW combat battery"
+			level=		"1"
+			mass=		"1000"
+		>
+		<Reactor
+			maxOutput=		"40"
+			capacity=		"4500"
+			efficiency=		"1.0"
+			battery=		"true"
+			/>
+	</ItemType>
+
+
 	<ItemType	codename=	"item_solar_panel"
 			name=		"Solar panel"
 			level=		"1"

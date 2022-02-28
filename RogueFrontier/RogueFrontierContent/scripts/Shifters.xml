@@ -14,8 +14,8 @@
 	    >
 	    <Devices>
 		    <Weapon codename="item_amethyst_laser"/>
-			<Reactor codename="item_foundry_reactor"/>
-			<Reactor codename="item_foundry_battery"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_10mw_storage_battery"/>
         </Devices>
         <LayeredArmorSystem>
 			<Armor  codename="item_gemsteel_plate"/>

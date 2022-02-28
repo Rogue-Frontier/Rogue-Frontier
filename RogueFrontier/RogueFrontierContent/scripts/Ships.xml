@@ -13,11 +13,9 @@
 	    >
 	    <Devices>
 			<Weapon codename="item_amethyst_laser"/>
-			<Weapon codename="item_amethyst_laser_ii"/>
-			<Weapon codename="item_amethyst_laser_iii"/>
 			<Shield codename="item_shimmer_shield"/>
-			<Reactor codename="item_foundry_reactor"/>
-			<Reactor codename="item_foundry_battery"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_10mw_storage_battery"/>
 			<Solar codename="item_solar_panel"/>
         </Devices>
 		<Items>
@@ -110,8 +108,8 @@
 			<Weapon codename="item_beowulf_dual_laser_cannon"/>
 			<Weapon codename="item_klaw_missile_launcher"/>
 			<Shield codename="item_buckler_shield"/>
-			<Reactor codename="item_foundry_reactor"/>
-			<Reactor codename="item_foundry_battery"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_10mw_storage_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_knightsteel_plate"/>
@@ -148,7 +146,36 @@
 		</PlayerSettings>
 	</ShipClass>
 
-    <ShipClass codename=            "ship_clark"
+	<ShipClass    codename="ship_beowulf_ii"
+			  inherit="ship_beowulf"
+			  name="Beowulf II-class gunship"
+        >
+		<Items>
+			<Item codename="item_klaw_missile" count="64"/>
+			<Item codename="item_simple_fuel_rod" count="30"/>
+			<Item codename="item_armor_repair_patch"	count="12"/>
+		</Items>
+		<Devices>
+			<Weapon codename="item_beowulf_dual_laser_repeater"/>
+			<Weapon codename="item_klaw_missile_launcher"/>
+			<Shield codename="item_buckler_shield"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_10mw_storage_battery"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="item_knightsteel_plate"/>
+			<Armor  codename="item_knightsteel_plate"/>
+			<Armor  codename="item_knightsteel_plate"/>
+			<Armor  codename="item_knightsteel_plate"/>
+		</LayeredArmorSystem>
+		<PlayerSettings
+			startingClass="false"
+			description="The Beowulf II is an upgraded version of the Beowulf-class gunship."
+        />
+	</ShipClass>
+
+
+	<ShipClass codename=            "ship_clark"
                name=                "Clark-class transport"
                thrust=              "0.3"
 			   maxSpeed=            "20"
@@ -168,8 +195,8 @@
         <Devices>
 			<Weapon codename="item_musket_cannon"/>
 			<Weapon codename="item_missile_defender"/>
-			<Reactor codename="item_foundry_reactor"/>
-			<Reactor codename="item_foundry_battery"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_10mw_storage_battery"/>
 		</Devices>
         <LayeredArmorSystem>
 			<Armor  codename="item_bumpersteel_plate"/>
@@ -210,10 +237,8 @@
 			   inherit="ship_clark"
 			   crimeOnDestroy="true"
 			   >
-
 		<Items>
 			<Item codename="item_armor_repair_patch"	count="24"/>
-
 			<Item codename="item_simple_fuel_rod" count="120"/>
 			<ItemTable count="120">
 				<Item chance="1" codename="item_simple_fuel_rod" count="4"/>
@@ -226,7 +251,7 @@
 				<Item chance="1" codename="item_buckler_shield" count="1"/>
 			</ItemTable>
 		</Items>
-		<PlayerSettings startingClass="true"/>
+		<PlayerSettings startingClass="false"/>
 	</ShipClass>
     <!--
     <ShipClass codename="scFlatbed"

@@ -1,58 +1,72 @@
 ﻿<Module>
 
+	<Sovereign	codename=	"sovereign_royal_shade"
+				alignment=	"DestructiveOrder"
+	/>
 	<ItemType	codename=	"item_dark_cannon"
-		name=		"Darkspeed cannon"
+		name=		"Dark cannon"
 		level=		"2"
 		mass=		"2000"
 		invoke=		"installWeapon"
-		desc=		"."
+		desc=		"This powerful mass driver fires bullets at high velocity."
 		>
 		<Weapon
 			powerUse=		"10"
 			fireCooldown=	"120"
-			recoil=			"12"
+			recoil=			"9"
 			>
 			<Projectile
-				missileSpeed=	"300"
+				missileSpeed=	"200"
 				damageType=		"1"
 				damageHP=		"12"
 				lifetime=		"20"
-
-				glyph=			"d"
+				shock=			"4"
+				glyph=			"*"
 				foreground=		"FFFFFFFF"
-				/>
+				>
+				<!--
+				<Fragment count=	"8"
+					spreadAngle=	"360"
+					damageType=		"1"
+					damageHP=		"0"
+					missileSpeed=	"40"
+					lifetime=		"12"
+					glyph=			"*"
+					foreground=		"FFFFFFFF"
+					/>
+				-->
+			</Projectile>
 			<Trail
-				lifetime=	"20"
-				glyph=		"d"
+				lifetime=	"40"
+				glyph=		"*"
 				foreground=	"FFFFFFFF"
 				background=	"000000FF"
 				/>
 		</Weapon>
 	</ItemType>
 
-	<ItemType	codename=	"item_sidewinder_missile"
-				name=		"Sidewinder missile"
+	<ItemType	codename=	"item_thorn_missile"
+				name=		"Thorn missile"
 				level=		"2"
 				mass=		"200"
 				
-				desc=		"This missile contains a laser module that aims at its target."
+				desc=		"The Thorn missile maintains distance from its target while firing the automatic laser turret on its warhead."
 		>
-
 	</ItemType>
-	<ItemType	codename=	"item_sidewinder_missile_launcher"
-			name=		"Sidewinder missile launcher"
+	<ItemType	codename=	"item_thorn_missile_system"
+			name=		"Thorn missile system"
 			level=		"2"
 			mass=		"2000"
 
 			invoke=		"installWeapon"
 				
-			desc=		"."
+			desc=		"The Thorn missile system substitutes explosive power for sustained laser fire."
 		>
 		<Weapon
 			powerUse=		"10"
 			fireCooldown=	"90"
 			
-			ammoType="item_sidewinder_missile"
+			ammoType="item_thorn_missile"
 			>
 			<Projectile
 				maneuver=		"4"
@@ -110,15 +124,31 @@
 	    <Devices>
 
 			<Weapon codename="item_dark_cannon"/>
-		    <Weapon codename="item_sidewinder_missile_launcher"/>
-			<Reactor codename="item_foundry_reactor"/>
-			<Reactor codename="item_foundry_battery"/>
+		    <Weapon codename="item_thorn_missile_system"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_10mw_storage_battery"/>
         </Devices>
 		<Items>
-			<Item count="25" codename="item_sidewinder_missile"/>
+			<Item count="25" codename="item_thorn_missile"/>
 		</Items>
         <LayeredArmorSystem>
 			<Armor  codename="item_gemsteel_plate"/>
         </LayeredArmorSystem>
     </ShipClass>
+	<StationType	codename="station_royal_tower"
+					name=		"Royal tower"
+					sovereign=	"sovereign_royal_shade"
+
+					hp=			"250"
+
+					glyph=		"R"
+					foreground=	"FF0080FF"
+		>
+		<Segments>
+
+		</Segments>
+		<Ships>
+			<Ship codename="ship_royal_guard" count="4" order="guard"/>
+		</Ships>
+	</StationType>
 </Module>
