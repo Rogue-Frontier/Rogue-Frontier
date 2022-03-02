@@ -42,7 +42,6 @@ public record LocationContext {
     public XY focus;
     public int index;
 }
-
 public record LocationMod {
     public int? radius;
     public int radiusInc;
@@ -99,11 +98,10 @@ public static class SSystemElement {
         }
     }
 }
-public record SystemGroup : SystemElement {
+public record SystemGroup() : SystemElement {
     public LocationMod loc;
     public List<SystemElement> subelements;
-    public SystemGroup() { }
-    public SystemGroup(XElement e, Parse<SystemElement> parse) {
+    public SystemGroup(XElement e, Parse<SystemElement> parse):this() {
         loc = new(e);
         subelements = e.Elements().Select(e => parse(e)).ToList();
     }
@@ -112,12 +110,10 @@ public record SystemGroup : SystemElement {
         subelements.ForEach(g => g.Generate(sub_lc, tc, result));
     }
 }
-
-public record SystemAt : SystemElement {
+public record SystemAt() : SystemElement {
     public List<SystemElement> subelements;
     public int index = -1;
-    public SystemAt() { }
-    public SystemAt(XElement e, Parse<SystemElement> parse) {
+    public SystemAt(XElement e, Parse<SystemElement> parse) : this() {
         subelements = e.Elements().Select(e => parse(e)).ToList();
         index = e.ExpectAttInt("index");
     }
@@ -128,7 +124,7 @@ public record SystemAt : SystemElement {
     }
 }
 
-public record SystemOrbital : SystemElement {
+public record SystemOrbital() : SystemElement {
     public List<SystemElement> subelements;
 
     public int count;
@@ -141,8 +137,7 @@ public record SystemOrbital : SystemElement {
     public bool equidistant;
 
     public int radius;
-    public SystemOrbital() { }
-    public SystemOrbital(XElement e, Parse<SystemElement> parse) {
+    public SystemOrbital(XElement e, Parse<SystemElement> parse) : this() {
         subelements = e.Elements().Select(e => parse(e)).ToList();
         count = e.TryAttInt(nameof(count), 1);
         switch (e.ExpectAtt(nameof(angle))) {
@@ -157,7 +152,6 @@ public record SystemOrbital : SystemElement {
             case var unknown:
                 throw new Exception($"Invalid angle {unknown}");
         }
-
         switch (e.TryAttNullable(nameof(increment))) {
             case null:
                 break;
@@ -179,11 +173,9 @@ public record SystemOrbital : SystemElement {
         var angle = this.angle;
         var increment = this.increment;
         int equidistantInterval = 360 / (subelements.Count * count);
-
         if (randomAngle) {
             angle = lc.world.karma.NextInteger(360);
         }
-
         for (int i = 0; i < count; i++) {
             foreach (var sub in subelements) {
                 var loc = lc with {
@@ -193,9 +185,7 @@ public record SystemOrbital : SystemElement {
                     pos = lc.pos + XY.Polar(angle * Math.PI / 180, radius),
                     index = i
                 };
-
                 sub.Generate(loc, tc, result);
-
                 if (increment > 0) {
                     angle += increment;
                 } else if (randomInc) {
@@ -205,13 +195,11 @@ public record SystemOrbital : SystemElement {
                 }
             }
         }
-
     }
 }
-public record SystemMarker : SystemElement {
+public record SystemMarker() : SystemElement {
     public string name;
-    public SystemMarker() { }
-    public SystemMarker(XElement e) {
+    public SystemMarker(XElement e) : this() {
         name = e.ExpectAtt("name");
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
@@ -220,11 +208,10 @@ public record SystemMarker : SystemElement {
         result?.Add(m);
     }
 }
-public record SystemPlanet : SystemElement {
+public record SystemPlanet() : SystemElement {
     public int radius;
     public bool showOrbit;
-    public SystemPlanet() { }
-    public SystemPlanet(XElement e) {
+    public SystemPlanet(XElement e) : this() {
         radius = e.ExpectAttInt(nameof(radius));
         showOrbit = e.TryAttBool(nameof(showOrbit), true);
     }
@@ -253,7 +240,6 @@ public record SystemPlanet : SystemElement {
                 //lc.world.AddEffect(new FixedTile(tile, pos));
             }
         }
-
         var circ = radius * 2 * Math.PI;
         for (int x = 0; x < diameter; x++) {
             var xOffset = Math.Abs(x - radius);
@@ -278,13 +264,10 @@ public record SystemPlanet : SystemElement {
         */
     }
 }
-
-
-public record SystemAsteroids : SystemElement {
+public record SystemAsteroids() : SystemElement {
     public double angle;
     public int size;
-    public SystemAsteroids() { }
-    public SystemAsteroids(XElement e) {
+    public SystemAsteroids(XElement e) : this() {
         angle = e.ExpectAttDouble(nameof(angle)) * Math.PI / 180;
         size = e.ExpectAttInt(nameof(size));
     }
@@ -308,11 +291,10 @@ public record SystemAsteroids : SystemElement {
         }
     }
 }
-public record SystemNebula : SystemElement {
+public record SystemNebula() : SystemElement {
     public double angle;
     public int size;
-    public SystemNebula() { }
-    public SystemNebula(XElement e) {
+    public SystemNebula(XElement e) : this() {
         angle = e.ExpectAttDouble(nameof(angle)) * Math.PI / 180;
         size = e.ExpectAttInt(nameof(size));
     }
@@ -334,15 +316,13 @@ public record SystemNebula : SystemElement {
         }
     }
 }
-
-public record SystemSibling : SystemElement {
+public record SystemSibling() : SystemElement {
     public int arcInc;
     public int angleInc;
     public int radiusInc;
 
     public List<SystemElement> subelements;
-    public SystemSibling() { }
-    public SystemSibling(XElement e, Parse<SystemElement> parse) {
+    public SystemSibling(XElement e, Parse<SystemElement> parse) : this() {
         arcInc = e.TryAttInt(nameof(arcInc), 0);
         angleInc = e.TryAttInt(nameof(angleInc), 0);
         radiusInc = e.TryAttInt(nameof(radiusInc), 0);
@@ -360,11 +340,10 @@ public record SystemSibling : SystemElement {
         subelements.ForEach(s => s.Generate(sub_lc, tc));
     }
 }
-public record LightGenerator : IGridGenerator<Color> {
+public record LightGenerator() : IGridGenerator<Color> {
     public LocationContext lc;
     public int radius;
-    public LightGenerator() { }
-    public LightGenerator(LocationContext lc, int radius) {
+    public LightGenerator(LocationContext lc, int radius) : this() {
         this.lc = lc;
         this.radius = radius;
     }
@@ -373,10 +352,9 @@ public record LightGenerator : IGridGenerator<Color> {
         return new Color(255, 255, 204, Math.Min(255, (int)(radius * 255 / ((lc.pos - p).magnitude + 1))));
     }
 }
-public record SystemStar : SystemElement {
+public record SystemStar() : SystemElement {
     public int radius;
-    public SystemStar() { }
-    public SystemStar(XElement e) {
+    public SystemStar(XElement e) : this() {
         this.radius = e.ExpectAttInt("radius");
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
@@ -400,12 +378,11 @@ public record SystemStar : SystemElement {
         lc.world.stars.Add(new Star(lc.pos, radius));
     }
 }
-public record SystemStation : SystemElement {
+public record SystemStation() : SystemElement {
     public string codename;
     public ShipGroup ships;
     public StationType stationtype;
-    public SystemStation() { }
-    public SystemStation(TypeCollection tc, XElement e) {
+    public SystemStation(TypeCollection tc, XElement e) : this() {
         codename = e.ExpectAtt("codename");
 
         ships = e.HasElement("Ships", out var xmlShips) ? new(xmlShips, SGenerator.ParseFrom(tc, SGenerator.ShipFrom)) : null;
@@ -420,15 +397,13 @@ public record SystemStation : SystemElement {
         ((ShipGenerator)ships)?.GenerateAndPlace(tc, s);
     }
 }
-public record SystemStargate : SystemElement {
+public record SystemStargate() : SystemElement {
     public string gateId;
     public string destGateId;
     public ShipGenerator ships;
-    public SystemStargate() { }
-    public SystemStargate(TypeCollection tc, XElement e) {
+    public SystemStargate(TypeCollection tc, XElement e) : this() {
         gateId = e.ExpectAtt(nameof(gateId));
         destGateId = e.TryAtt(nameof(destGateId));
-
         if (e.HasElement("Ships", out XElement xmlShips)) {
             ships = new ShipGroup(xmlShips, SGenerator.ParseFrom(tc, SGenerator.ShipFrom));
         }

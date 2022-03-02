@@ -7,6 +7,14 @@ using Common;
 namespace Common;
 
 public interface IDice {
+    public static IDice Apply(IDice original, double factor, int inc) {
+        var result = original;
+        if (factor != 1)
+            result = new DiceFactor(result, factor);
+        if(inc != 0)
+            result = new DiceInc(result, inc);
+        return result;
+    }
     public static IDice Parse(string s) {
         Match m;
         IDice result = null;

@@ -64,7 +64,7 @@ public record PowerStorm() : PowerEffect {
                 var p = new Projectile(owner, f,
                     owner.position + XY.Polar(0, 50),
                     owner.velocity + XY.Polar(0, -50),
-                    f.GetManeuver(w.target));
+                    maneuver:f.GetManeuver(w.target));
                 owner.world.AddEntity(p);
             }
         }

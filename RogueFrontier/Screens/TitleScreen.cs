@@ -314,9 +314,8 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
     }
     public override void Update(TimeSpan timeSpan) {
 
-        World.UpdateAdded();
         World.UpdateActive();
-        World.UpdateRemoved();
+        World.UpdatePresent();
 
         tiles.Clear();
         World.PlaceTiles(tiles);

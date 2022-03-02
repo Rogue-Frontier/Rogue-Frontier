@@ -329,7 +329,8 @@ public record WeaponDesc {
     public CapacitorDesc capacitor;
     public ItemType ammoType;
     public bool targetProjectile;
-    public bool autoFire;
+    [Opt] public bool autoFire;
+    public bool spray;
     public int missileSpeed => projectile.missileSpeed;
     public int damageType => projectile.damageType;
     public IDice damageHP => projectile.damageHP;
@@ -348,6 +349,10 @@ public record WeaponDesc {
             projectile.hitProjectile = true;
             targetProjectile = true;
             autoFire = true;
+        }
+        if (e.TryAttBool("spray")) {
+            autoFire = true;
+            spray = true;
         }
     }
 }
@@ -369,6 +374,10 @@ public record FragmentDesc {
     [Opt] public int fragmentInterval;
     [Opt] public bool hitProjectile;
     [Opt] public bool hitBarrier = true;
+    [Opt] public int radiation;
+    [Opt] public int ricochet = 0;
+
+    public Armor.Decay decay;
 
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
     public int range2 => range * range;
@@ -393,6 +402,10 @@ public record FragmentDesc {
         }
         maneuver *= Math.PI / (180);
 
+        if(e.HasElement("Decay", out var xmlDecay)) {
+            decay = new(xmlDecay.ExpectAttInt("lifetime"), xmlDecay.ExpectAttDouble("rate"));
+        }
+
         fragments = e.HasElements("Fragment", out var fragmentsList) ?
             new(fragmentsList.Select(f => new FragmentDesc(f))) : null;
         disruptor = e.HasElement("Disruptor", out var xmlDisruptor) ?
@@ -408,6 +421,7 @@ public record FragmentDesc {
             return new Projectile(owner, this,
                 owner.position + XY.Polar(angle),
                 owner.velocity + XY.Polar(angle, missileSpeed),
+                angle,
                 GetManeuver(target)
                 );
         }));
@@ -424,7 +438,7 @@ public record TrailDesc : ITrail {
     public TrailDesc(XElement e) {
         e.Initialize(this);
     }
-    public Effect GetTrail(XY Position) => new FadingTile(Position, new(foreground, background, glyph), lifetime);
+    public Effect GetParticle(XY Position) => new FadingTile(Position, new(foreground, background, glyph), lifetime);
 }
 public record DisruptorDesc {
     bool? thrustMode, turnMode, brakeMode, fireMode;
@@ -508,7 +522,7 @@ public record ShieldDesc {
 }
 public record SolarDesc {
     [Req] public int maxOutput;
-    [Opt] public int lifetimeOutput = -1 + 0 * 360000;
+    [Opt] public int durability = -1 + 0 * 360000;
     public Solar GetSolar(Item i) => new(i, this);
     public SolarDesc() { }
     public SolarDesc(XElement e) {

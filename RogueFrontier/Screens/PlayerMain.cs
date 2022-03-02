@@ -789,7 +789,7 @@ public class Megamap : Console {
             var visiblePerimeter = new Rectangle(new(Width / 2, Height / 2), (int)(Width / (viewScale * 2) - 1), (int)(Height / (viewScale * 2) - 1));
             foreach (var point in visiblePerimeter.PerimeterPositions()) {
                 var b = this.GetBackground(point.X, point.Y);
-                this.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, 128)));
+                this.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, (int)(128/viewScale))));
             }
 
             var scaledEntities = player.world.entities.space.DownsampleSet(viewScale);

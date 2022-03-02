@@ -287,7 +287,7 @@ public class Dialog : Console {
     public override void Render(TimeSpan delta) {
         this.RenderBackground();
 
-        if (background.Any()) {
+        if (background?.Any() == true) {
             foreach (((var px, var py), var cg) in background) {
                 this.SetCellAppearance(px, py, cg);
             }

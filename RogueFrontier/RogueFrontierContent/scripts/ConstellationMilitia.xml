@@ -31,8 +31,6 @@
 		<Weapons>
 		</Weapons>
 	</StationType>
-	
-	
 	<ItemType	codename=	"itMarksmanRifle"
 				name=		"Marksman Rifle"
 				mass=		"8000"

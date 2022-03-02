@@ -636,7 +636,7 @@ public class SListScreen {
         void Invoke(Device d) {
             d.source.type = replace.to;
             switch(d) {
-                case Weapon w: w.SetDesc(replace.to.weapon); break;
+                case Weapon w: w.SetWeaponDesc(replace.to.weapon); break;
                 default:
                     throw new Exception("Unsupported ReplaceDevice type");
             }

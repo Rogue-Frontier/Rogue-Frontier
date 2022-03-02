@@ -37,7 +37,7 @@
 			battery=		"true"
 			/>
 	</ItemType>
-	<ItemType	codename=	"item_10mw_storage_battery"
+	<ItemType	codename=	"item_20mw_combat_battery"
 			name=		"20MW combat battery"
 			level=		"1"
 			mass=		"1000"
@@ -51,7 +51,7 @@
 	</ItemType>
 
 
-	<ItemType	codename=	"item_10mw_storage_battery"
+	<ItemType	codename=	"item_30mw_storage_battery"
 			name=		"30MW storage battery"
 			level=		"1"
 			mass=		"1000"
@@ -63,7 +63,7 @@
 			battery=		"true"
 			/>
 	</ItemType>
-	<ItemType	codename=	"item_10mw_storage_battery"
+	<ItemType	codename=	"item_40mw_combat_battery"
 			name=		"40MW combat battery"
 			level=		"1"
 			mass=		"1000"
@@ -78,7 +78,7 @@
 
 
 	<ItemType	codename=	"item_solar_panel"
-			name=		"Solar panel"
+			name=		"50MW Solar panel"
 			level=		"1"
 			mass=		"1000"
 		>

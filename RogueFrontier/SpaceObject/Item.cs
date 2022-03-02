@@ -126,13 +126,24 @@ public class Armor : Device {
     public Item source { get; private set; }
     public ArmorDesc desc;
     public int hp;
-    public int hpToRecover;
+    public double hpToRecover;
     public double recoveryHP;
-
     public double regenHP;
+    public double decayHP;
+
+    public int damageDelay;
 
     public int lifetimeDamageAbsorbed;
     public int lastDamageTick;
+
+    List<Decay> decay=new();
+    public class Decay {
+        public int lifetime;
+        public double rate;
+        public Decay(int lifetime, double rate) => (this.lifetime, this.rate) = (lifetime, rate);
+    }
+
+
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
         this.source = source;
@@ -141,7 +152,32 @@ public class Armor : Device {
     }
     public Armor Copy(Item source) => desc.GetArmor(source);
     public void Update(IShip owner) {
-        if(hpToRecover > 0) {
+        
+
+        if (decay.Any()) {
+            foreach (var d in decay) {
+                decayHP += d.rate;
+                d.lifetime--;
+            }
+            decay.RemoveAll(r => r.lifetime == 0);
+            if (decayHP >= 1) {
+                var delta = Math.Min(hp, (int)decayHP);
+                hp -= delta;
+                hpToRecover += (delta * desc.recoveryFactor);
+                lifetimeDamageAbsorbed += delta;
+                decayHP = 0;
+                lastDamageTick = owner.world.tick;
+
+                damageDelay = 30;
+            }
+        }
+
+        if (damageDelay > 0) {
+            damageDelay--;
+            return;
+        }
+
+        if (hpToRecover >= 1) {
             recoveryHP += desc.recoveryRate;
             while (recoveryHP >= 1) {
                 if (hp < desc.maxHP) {
@@ -169,18 +205,23 @@ public class Armor : Device {
         if (absorbed > 0) {
             hp -= absorbed;
             lifetimeDamageAbsorbed += absorbed;
-            hpToRecover += (int)(absorbed * desc.recoveryFactor);
+            hpToRecover += (absorbed * desc.recoveryFactor);
+            damageDelay = 30;
         }
     }
-
     public int Absorb(Projectile p) {
         var absorbed = Math.Min(hp, p.damageHP);
         if (absorbed > 0) {
             hp -= absorbed;
             lifetimeDamageAbsorbed += absorbed;
-            hpToRecover += (int)(absorbed * desc.recoveryFactor);
+            hpToRecover += (absorbed * desc.recoveryFactor);
+            damageDelay = 30;
 
             p.damageHP -= absorbed;
+
+            if(p.fragment.decay is Decay d) {
+                decay.Add(new(d.lifetime, d.rate));
+            }
         }
         return absorbed;
     }
@@ -483,7 +524,6 @@ public class Shield : Device {
             hp -= absorbed;
             lifetimeDamageAbsorbed += absorbed;
             delay = (hp == 0 ? desc.depletionDelay : desc.damageDelay);
-
             p.damageHP -= absorbed;
         }
     }
@@ -492,8 +532,7 @@ public class Solar : Device, PowerSource {
     [JsonProperty]
     public Item source { get; private set; }
     public SolarDesc desc;
-    public int lifetimeOutput;
-    public bool dead;
+    public int durability;
     [JsonProperty]
     public int maxOutput { get; private set; }
     [JsonProperty]
@@ -502,7 +541,7 @@ public class Solar : Device, PowerSource {
     public Solar(Item source, SolarDesc desc) {
         this.source = source;
         this.desc = desc;
-        lifetimeOutput = desc.lifetimeOutput;
+        durability = desc.durability;
     }
     public Solar Copy(Item source) => desc.GetSolar(source);
     public void Update(IShip owner) {
@@ -511,23 +550,24 @@ public class Solar : Device, PowerSource {
             var b = t.A;
             maxOutput = (b * desc.maxOutput / 255);
         }
-        switch (lifetimeOutput) {
-            case -1: 
+        switch (durability) {
+            case -1:
                 Update();
                 break;
-            case 0: 
+            case 0:
                 break;
             case 1:
-                lifetimeOutput = 0;
+                durability = 0;
                 maxOutput = 0;
                 if (owner is PlayerShip ps) {
                     ps.AddMessage(new Message($"{source.name} has stopped functioning"));
                 }
                 break;
-            default:
-                lifetimeOutput = (int)Math.Max(1, lifetimeOutput + energyDelta);
+            case > 1:
+                durability = (int)Math.Max(1, durability + energyDelta);
                 Update();
                 break;
+            default: throw new Exception($"Invalid durability value {durability}");
         }
     }
 }
@@ -552,9 +592,9 @@ public class Weapon : Device {
         this.source = source;
         this.delay = 0;
         firing = false;
-        SetDesc(desc);
+        SetWeaponDesc(desc);
     }
-    public void SetDesc(WeaponDesc desc) {
+    public void SetWeaponDesc(WeaponDesc desc) {
         this.desc = desc;
         if (desc.capacitor != null) {
             capacitor = new(desc.capacitor);
@@ -569,6 +609,7 @@ public class Weapon : Device {
         } else if (desc.ammoType != null) {
             ammo = new ItemAmmo(desc.ammoType);
         }
+        UpdateProjectileDesc();
     }
     public Weapon Copy(Item source) => desc.GetWeapon(source);
     public string GetReadoutName() {
@@ -627,15 +668,18 @@ public class Weapon : Device {
                 firing = true;
                 beginRepeat = false;
             } else if (desc.autoFire) {
-                if (desc.targetProjectile) {
-                    var target = Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s));
-                    if (target != null
-                        && Aiming.CalcFireAngle(owner, target, projectileDesc, out var d)) {
-                        direction = d;
-                        firing = true;
-                    }
-                } else if (aiming?.target != null) {
-                    firing = true;
+                firing = CheckProjectile() || CheckSpray() || aiming?.target != null;
+                bool CheckProjectile() {
+                    double? d = 0;
+                    bool result = desc.targetProjectile
+                        && Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s)) is Projectile target
+                        && Aiming.CalcFireAngle(owner, target, projectileDesc, out d);
+                    direction = result ? d : direction;
+                    return result;
+                }
+                bool CheckSpray() {
+                    direction = desc.spray ? new Random().NextDouble() * 2 * Math.PI : direction;
+                    return desc.spray;
                 }
             }
             //bool allowFire = (firing || true) && (capacitor?.AllowFire ?? true);
@@ -673,15 +717,19 @@ public class Weapon : Device {
                 firing = true;
                 beginRepeat = false;
             } else if (desc.autoFire) {
-                if (desc.targetProjectile) {
-                    var target = Aiming.AcquireMissile(owner, this, s => s == null || SShip.IsEnemy(owner, s));
-                    if (target != null
-                        && Aiming.CalcFireAngle(owner, target, projectileDesc, out var d)) {
-                        direction = d;
-                        firing = true;
-                    }
-                } else if (aiming?.target != null) {
-                    firing = true;
+                firing = CheckProjectile() || CheckSpray() || aiming?.target != null;
+
+                bool CheckProjectile() {
+                    double? d = 0;
+                    bool result = desc.targetProjectile
+                        && Aiming.AcquireMissile(owner, this, s => s == null || SShip.IsEnemy(owner, s)) is Projectile target
+                        && Aiming.CalcFireAngle(owner, target, projectileDesc, out d);
+                    direction = result ? d : direction;
+                    return result;
+                }
+                bool CheckSpray() {
+                    direction = desc.spray ? new Random().NextDouble() * 2 * Math.PI : direction;
+                    return desc.spray;
                 }
             }
 
@@ -707,7 +755,6 @@ public class Weapon : Device {
         }
         firing = false;
     }
-
     public void OnDisable() {
         delay = desc.fireCooldown;
         capacitor?.Clear();
@@ -724,15 +771,12 @@ public class Weapon : Device {
         result?.AddRange(projectiles);
         ammo?.OnFire();
         capacitor?.OnFire();
-
         if(owner is PlayerShip p) {
             p.onWeaponFire.ForEach(f => f(p, this, projectiles));
         }
     }
-
     public ActiveObject target => aiming?.target;
     public void OverrideTarget(ActiveObject target) {
-
         if (aiming != null) {
             aiming.ClearTarget();
             aiming.UpdateTarget(target);
@@ -745,7 +789,6 @@ public class Weapon : Device {
         this.firing = firing;
         aiming?.UpdateTarget(target);
     }
-
 }
 public class Capacitor {
     public CapacitorDesc desc;

@@ -563,7 +563,7 @@ public class PlayerStory {
             { "itMarshalPlate", 0 },
             { "item_radiant_plate", 0 },
             { "item_sand_cannon", 0 },
-            { "item_septic_cannon", 0 },
+            { "item_sludge_cannon", 0 },
             { "item_iron_driver", 0 },
             { "item_iron_cannon", 0 },
             { "item_ironclad_plate", 0 },
@@ -642,7 +642,6 @@ public class PlayerStory {
     public Con AmethystStore(Con prev, PlayerShip playerShip, Station source) {
         var c = GetConstellationCrimes(playerShip, source);
         if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
-
         var discount = playerShip.cargo.Any(i => i.type.codename == "item_amethyst_warranty_card");
         var buyAdj = discount ? 0.8 : 1;
         return Intro();
@@ -658,15 +657,12 @@ by Amethyst, Inc. ",
             });
         }
         int GetPrice(Armor a) {
-            if(!a.source.type.attributes.Contains("Amethyst")) {
+            if(!a.source.type.attributes.Contains("Amethyst")) 
                 return -1;
-            }
-            if(discount) {
+            if(discount) 
                 return 1;
-            }
             return 3;
         }
-        
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             i => (int)(GetStdPrice(i) * buyAdj),
             i => i.type.attributes.Contains("Amethyst") ? GetStdPrice(i) / 10 : -1);
@@ -674,18 +670,13 @@ by Amethyst, Inc. ",
     }
     public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>
         new (prev, playerShip, source, GetStdPrice, i => GetStdPrice(i) / 2);
-    public TradeMenu ArmorDealer(Con prev, PlayerShip playerShip, Station source) =>
-            new (prev, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.9 * GetStdPrice(i) : -1));
-    public TradeMenu ArmsDealer(Con prev, PlayerShip playerShip, Station source) =>
-            new (prev, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
-
     public Con ConstellationArrest(Con prev, PlayerShip playerShip, Station source, ICrime c) {
         return new Dialog(prev,
 @"Constellation armed soldiers approach your ship
 as you dock.",
             new() {
                 new("Continue docking", Arrest),
-                new("Undock", Undock)
+                new("Cancel", Cancel)
             });
         Con Arrest(Con prev) {
             return new Dialog(prev,
@@ -693,14 +684,14 @@ as you dock.",
 {c.name}.""
 
 There will be no trial.",
-            new() { new("Continue", Continue) }
+            new() { new("Continue", Surrender) }
             );
         }
-        Con Undock(Con prev) {
+        Con Cancel(Con prev) {
             source.guards.ForEach(s => (s.behavior.GetOrder() as GuardOrder)?.SetAttack(playerShip, 900));
             return null;
         }
-        Con Continue(Con prev) {
+        Con Surrender(Con prev) {
             playerShip.Destroy(source);
             return null;
         }
@@ -709,6 +700,26 @@ There will be no trial.",
         return p.crimeRecord.Where(c => c is DestructionCrime d
             && object.ReferenceEquals(d.destroyed.sovereign, source.sovereign)
             && !d.resolved);
+    }
+    public Con ArmorDealer(Con prev, PlayerShip playerShip, Station source) {
+        var c = GetConstellationCrimes(playerShip, source);
+        if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
+        return new Dialog(prev,
+@"You are docked at an armor dealing station.", new() {
+            new("Armor", Trade),
+            new("Undock")
+        }) { background = source.type.heroImage };
+        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.9 * GetStdPrice(i) : -1));
+    }
+    public Con ArmsDealer(Con prev, PlayerShip playerShip, Station source) {
+        var c = GetConstellationCrimes(playerShip, source);
+        if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
+        return new Dialog(prev,
+@"You are docked at an arms dealing station", new() {
+            new("Weapons", Trade),
+            new("Undock")
+        }) { background = source.type.heroImage };
+        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
     }
     public Con ConstellationAstra(Con prev, PlayerShip playerShip, Station source) {
         var c = GetConstellationCrimes(playerShip, source);
@@ -736,7 +747,6 @@ There is a modest degree of artificial gravity here.",
             }) { background = source.type.heroImage };
         }
         Con Trade(Con from) => TradeStation(from, playerShip, source);
-
     }
     public Con ConstellationHabitat(Con prev, PlayerShip playerShip, Station source) {
         var c = GetConstellationCrimes(playerShip, source);

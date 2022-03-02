@@ -13,6 +13,8 @@ public class StationType : IDesignType {
     [Req] public string name;
     [Req] public int hp;
     [Opt] public bool crimeOnDestroy;
+    public FragmentDesc explosionType;
+
     public Station.Behaviors behavior;
     public Sovereign Sovereign;
     public StaticTile tile;
@@ -29,6 +31,11 @@ public class StationType : IDesignType {
 
     public void Initialize(TypeCollection tc, XElement e) {
         e.Initialize(this);
+        explosionType = e.TryAtt(nameof(explosionType), out var s)
+            ? tc.Lookup<ItemType>(s).weapon.projectile ?? throw new Exception($"Expected Weapon desc")
+            : explosionType;
+        explosionType = e.HasElement("Explosion", out var xmlExplosion) ? new FragmentDesc(xmlExplosion) : explosionType;
+
         behavior = e.TryAttEnum(nameof(behavior), Station.Behaviors.none);
         Sovereign = tc.Lookup<Sovereign>(e.ExpectAtt("sovereign"));
         tile = new StaticTile(e);

@@ -96,6 +96,11 @@ public class Station : ActiveObject, ITrader, IDockable {
     public XY velocity { get; set; }
     [JsonProperty]
     public bool active { get; set; }
+
+
+    [JsonProperty]
+    public double rotation;
+
     [JsonProperty]
     public StationBehavior behavior;
     [JsonProperty]
@@ -207,6 +212,10 @@ public class Station : ActiveObject, ITrader, IDockable {
                 ps.crimeRecord.Add(new DestructionCrime(this));
             }
         }
+
+        if(type.explosionType != null)
+            new Weapon() { projectileDesc = type.explosionType, aiming = new Targeting() { target = source } }.Fire(this, rotation);
+
         var wreck = new Wreck(this);
         var drop = weapons?.Select(w => w.source);
         if (drop != null) {

@@ -148,6 +148,7 @@ public class BaseShip : StructureObject {
         int knockback = p.fragment.knockback * dmgLeft / dmgFull;
         velocity += (p.velocity - velocity).WithMagnitude(knockback);
         disruption = p.fragment.disruptor?.GetHijack() ?? disruption;
+
     }
     public void Damage(Projectile p) {
         ReduceDamage(p);

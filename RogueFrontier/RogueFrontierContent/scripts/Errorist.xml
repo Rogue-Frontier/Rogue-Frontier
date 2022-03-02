@@ -3,109 +3,191 @@
 				alignment=	"DestructiveOrder"
 	/>
 
-	<ItemType	codename=	"item_radiant_plate"
-				name=		"Radiant plate"
-				mass=		"1000"
-				level=		"1"
-
-				desc=		"This armor glows because of radiation."
+	<ItemType
+		codename=	"item_radiant_plate"
+		name=		"Radiant plate"
+		mass=		"1000"
+		level=		"1"
+		desc=		"This armor glows because of radiation."
 		>
 		<Armor	maxHP=		"90"/>
 	</ItemType>
 	<ItemType	codename=	"item_sand_cannon"
-			name=		"Sand cannon"
-			mass=		"5000"
-			level=		"3"
-
-			desc=		"This unusual weapon sprays irradiated sand imported from the surface of Mars. Above all combat science and practical strategy, the Errorist zeal reigns supreme. The sand cannon is known to have poor combat potential."
-				>
-		<Weapon	powerUse=		"50"
-				fireCooldown=	"15"
-				initialCharges=	"100"
+		name=		"Sand cannon"
+		mass=		"5000"
+		level=		"3"
+		desc=		"This uncommon weapon sprays radioactive sand imported from the surface of Mars."
+		>
+		<Weapon
+			powerUse=		"50"
+			fireCooldown=	"15"
+			initialCharges=	"400"
 			>
 			<Projectile	missileSpeed=	"30"
 						damageType=		"2"
-						damageHP=		"4"
-						lifetime=		"90"
+						damageHP=		"1"
+						lifetime=		"150"
 						spreadAngle=	"20"
 						count=			"9"
+						
+						ricochet=		"4"
+						
+						hitProjectile=	"true"
 
 						glyph=			"."
 						foreground=		"SpringGreen"
+						background=		"Transparent"
 				/>
 		</Weapon>
 	</ItemType>
-	<ItemType	codename=	"item_septic_cannon"
-			name=		"Sludge cannon"
-			mass=		"5000"
-			level=		"3"
+	<ItemType	codename=	"item_sludge_cannon"
+		name=		"Sludge cannon"
+		mass=		"5000"
+		level=		"3"
 
-			desc=		"Driven by hatred, the Errorist channels pure resentment through their veins into the barrel of this acid-launching cannon."
-				>
-		<Weapon	powerUse=		"50"
-				fireCooldown=	"80"		
-				initialCharges=	"100"
+		desc=		"This radioactive sludge is "
+		>
+		<Weapon	powerUse=		"30"
+				fireCooldown=	"60"
+				initialCharges=	"240"
 			>
 			<Projectile	missileSpeed=	"30"
 						damageType=		"2"
-						damageHP=		"6"
-						lifetime=		"90"
-						spreadAngle=	"15"
-						count=			"12"
+						damageHP=		"3"
+						lifetime=		"240"
+						spreadAngle=	"15/2"
+						count=			"18"
 						glyph=			"."
 						foreground=		"SpringGreen"
+						background=		"Transparent"
+				>
+				<Decay lifetime="300" rate="1/30"/>
+			</Projectile>
+		</Weapon>
+	</ItemType>
+	<ItemType	codename=	"item_radiation_vent"
+		name=		"Radiation vent"
+		mass=		"5000"
+		level=		"3"
+
+		desc=		"."
+		>
+		<Weapon
+			powerUse=		"0"
+			fireCooldown=	"5"
+			spray=			"true"
+			>
+			<Projectile
+				missileSpeed=	"5"
+				damageType=		"2"
+				damageHP=		"1"
+				lifetime=		"240"
+				spreadAngle=	"20"
+				count=			"9"
+						
+				ricochet=		"4"
+
+				hitProjectile=	"true"
+						
+				glyph=			"."
+				foreground=		"Green"
+				background=		"Transparent"
 				/>
 		</Weapon>
 	</ItemType>
+	<ItemType	codename=	"item_radiation_bomb_cannon"
+		name=		"Radiation bomb cannon"
+		mass=		"5000"
+		level=		"3"
 
-	<ShipClass	codename=			"ship_toxin"
-				name=				"Toxin-class raider"
-				thrust=				"0.2"
-				maxSpeed=			"15"
+		desc=		"."
+		>
+		<Weapon
+			powerUse=		"0"
+			fireCooldown=	"90"
+			spray=			"true"
+			>
+			<Projectile
+				missileSpeed=	"5"
+				damageType=		"2"
+				damageHP=		"1"
+				lifetime=		"240"
+				
+				hitProjectile=	"true"
 
-				rotationAccel=		"3"
-				rotationDecel=		"6"
-				rotationMaxSpeed=	"4"
+				glyph=			"="
+				foreground=		"SpringGreen"
+				background=		"Transparent"
+				>
+				<Fragment
+					count=			"24"
+					spreadAngle=	"360"
+					
+					missileSpeed=	"5"
+					damageType=		"2"
+					damageHP=		"1"
+					lifetime=		"90"
+					
+					hitProjectile=	"true"
+					
+					glyph=			"."
+					foreground=		"SpringGreen"
+					background=		"Transparent"
+					>
+				</Fragment>
+			</Projectile>
+		</Weapon>
+	</ItemType>
+	<ShipClass	codename=	"ship_toxin"
+		name=				"Toxin-class raider"
+		thrust=				"0.2"
+		maxSpeed=			"15"
 
-				glyph=				"e"
-				foreground=			"LightGreen"
+		rotationAccel=		"3"
+		rotationDecel=		"6"
+		rotationMaxSpeed=	"4"
+
+		glyph=				"e"
+		foreground=			"LightGreen"
 		>
 		<Devices>
 			<Weapon	codename="item_sand_cannon"/>
 		</Devices>
 		<LayeredArmorSystem>
+			<Armor	codename="item_radiant_plate"/>
 			<Armor	codename="item_radiant_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 
 	<ShipClass	codename=			"ship_mutant"
-				name=				"Mutant-class missileship"
-				thrust=				"0.2"
-				maxSpeed=			"15"
+		name=				"Mutant-class missileship"
+		thrust=				"0.2"
+		maxSpeed=			"15"
 
-				rotationAccel=		"3"
-				rotationDecel=		"6"
-				rotationMaxSpeed=	"4"
+		rotationAccel=		"3"
+		rotationDecel=		"6"
+		rotationMaxSpeed=	"4"
 
-				glyph=				"E"
-				foreground=			"LightGreen"
+		glyph=				"E"
+		foreground=			"LightGreen"
 		>
 		<Devices>
-			<Weapon	codename="item_sand_cannon"/>
+			<Weapon	codename="item_sludge_cannon"/>
 		</Devices>
 		<LayeredArmorSystem>
+			<Armor	codename="item_radiant_plate"/>
 			<Armor	codename="item_radiant_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
 
 	<StationType	codename="station_errorist_compound"
-					name=		"Errorist compound"
-					sovereign=	"sovereign_errorist"
+		name=		"Errorist compound"
+		sovereign=	"sovereign_errorist"
 
-					hp=			"250"
+		hp=			"250"
 
-					glyph=		"E"
-					foreground="LightGreen"
+		glyph=		"E"
+		foreground="LightGreen"
 		>
 		<Segments>
 
@@ -139,10 +221,31 @@
 				   glyph="+" foreground="Yellow"/>
 
 		</Segments>
-		<Guards>
+
+		<Explosion
+			missileSpeed=	"5"
+			damageType=		"2"
+			damageHP=		"1"
+			lifetime=		"360"
+			spreadAngle=	"360"
+			count=			"120"
+						
+			ricochet=		"4"
+
+			hitProjectile=	"true"
+						
+			glyph=			"."
+			foreground=		"SpringGreen"
+			background=		"Transparent"
+			/>
+		<Weapons>
+			<Weapon	codename="item_radiation_vent"/>
+			<Weapon	codename="item_radiation_bomb_cannon"/>
+		</Weapons>
+		<Ships>
 			<Ship	count="3"	codename="ship_mutant"/>
 			<Ship	count="5"	codename="ship_toxin"/>
-		</Guards>
+		</Ships>
 	</StationType>
 
 </Module>

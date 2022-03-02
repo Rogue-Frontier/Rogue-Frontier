@@ -40,35 +40,20 @@ public record Modifier {
             missileSpeedFactor = x.missileSpeedFactor * y.missileSpeedFactor,
             lifetimeFactor = x.lifetimeFactor * y.lifetimeFactor,
         };
-
-
     public static FragmentDesc operator *(Modifier x, FragmentDesc y) =>
-        x.ModifyWeapon(y);
+        y with {
+            damageHP = IDice.Apply(y.damageHP, x.damageHPFactor, x.damageHPInc),
+            missileSpeed = (int)((y.missileSpeed * x.missileSpeedFactor) + x.missileSpeedInc),
+            lifetime = (int)((y.lifetime * x.lifetimeFactor) + x.lifetimeFactor),
+        };
     public bool empty => this is Modifier {
         curse: false,
         damageHPInc: 0, missileSpeedInc: 0, lifetimeInc: 0,
         damageHPFactor: 1, missileSpeedFactor: 1, lifetimeFactor: 1
     };
-    
     public void ModifyRemoval(ref bool removable) {
         if (curse) {
             removable = false;
         }
-    }
-    public FragmentDesc ModifyWeapon(FragmentDesc d) {
-        var damageHP = d.damageHP;
-        if (damageHPFactor != 1)
-            damageHP = new DiceFactor(damageHP, damageHPFactor);
-        if (damageHPInc != 0)
-            damageHP = new DiceInc(damageHP, damageHPInc);
-        return d with {
-            damageHP = damageHP,
-            missileSpeed = (int) (d.missileSpeed * missileSpeedFactor + missileSpeedInc),
-            lifetime = (int) (d.lifetime * lifetimeFactor + lifetimeInc),
-            mod = this
-        };
-    }
-    public void ModifyWeapon(ref FragmentDesc d) {
-        d = ModifyWeapon(d);
     }
 }

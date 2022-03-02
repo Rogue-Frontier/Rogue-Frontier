@@ -195,7 +195,7 @@
 		</LayeredArmorSystem>
 		<PlayerSettings
 			startingClass=  "false"
-			description=    "Other than being a patched-up rustbucket, the Orion raider is known for its Orion bolter, a kinetic weapon that hits harder and faster when fully charged."
+			description=    "Besides being a patched-up rustbucket, the Orion raider is known for its Orion bolter, a kinetic weapon that hits harder and faster when fully charged."
             />
 	</ShipClass>
 	<ShipClass	codename=			"ship_orion_huntsman"
