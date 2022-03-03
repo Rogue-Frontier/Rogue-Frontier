@@ -299,10 +299,10 @@
 			<Ship	count="2"	codename="ship_orion_huntsman"/>
 		</Ships>
 		<Weapons>
-			<Weapon	codename="item_orion_bolter" posX="3" posY="3"/>
-			<Weapon	codename="item_orion_bolter" posX="3" posY="-3"/>
-			<Weapon	codename="item_orion_bolter" posX="-3" posY="3"/>
-			<Weapon	codename="item_orion_bolter" posX="-3" posY="-3"/>
+			<Weapon	codename="item_orion_bolter" posX="3" posY="3"	angle="90" leftRange="90" rightRange="135"/>
+			<Weapon	codename="item_orion_bolter" posX="3" posY="-3"	angle="-90" leftRange="135" rightRange="90"/>
+			<Weapon	codename="item_orion_bolter" posX="-3" posY="3"	angle="90" leftRange="135" rightRange="90"/>
+			<Weapon	codename="item_orion_bolter" posX="-3" posY="-3"	angle="-90" leftRange="90" rightRange="135"/>
 		</Weapons>
 	</StationType>
 

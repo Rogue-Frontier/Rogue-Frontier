@@ -22,20 +22,21 @@
 			fireCooldown=	"15"
 			initialCharges=	"400"
 			>
-			<Projectile	missileSpeed=	"30"
-						damageType=		"2"
-						damageHP=		"1"
-						lifetime=		"150"
-						spreadAngle=	"20"
-						count=			"9"
+			<Projectile	
+				missileSpeed=	"30"
+				damageType=		"2"
+				damageHP=		"1"
+				lifetime=		"150"
+				spreadAngle=	"20"
+				count=			"9"
 						
-						ricochet=		"4"
+				ricochet=		"4"
 						
-						hitProjectile=	"true"
+				hitProjectile=	"true"
 
-						glyph=			"."
-						foreground=		"SpringGreen"
-						background=		"Transparent"
+				glyph=			"."
+				foreground=		"SpringGreen"
+				background=		"Transparent"
 				/>
 		</Weapon>
 	</ItemType>
@@ -50,15 +51,16 @@
 				fireCooldown=	"60"
 				initialCharges=	"240"
 			>
-			<Projectile	missileSpeed=	"30"
-						damageType=		"2"
-						damageHP=		"3"
-						lifetime=		"240"
-						spreadAngle=	"15/2"
-						count=			"18"
-						glyph=			"."
-						foreground=		"SpringGreen"
-						background=		"Transparent"
+			<Projectile
+				missileSpeed=	"30"
+				damageType=		"2"
+				damageHP=		"3"
+				lifetime=		"240"
+				spreadAngle=	"15/2"
+				count=			"18"
+				glyph=			"."
+				foreground=		"SpringGreen"
+				background=		"Transparent"
 				>
 				<Decay lifetime="600" rate="1/60"/>
 			</Projectile>
@@ -124,6 +126,7 @@
 			spray=			"true"
 			>
 			<Projectile
+				omnidirectional="true"
 				missileSpeed=	"5"
 				damageType=		"2"
 				damageHP=		"1"
@@ -144,7 +147,7 @@
 	<ItemType	codename=	"item_sludge_vent"
 		name=		"Sludge vent"
 		mass=		"5000"
-				level=		"1"
+		level=		"1"
 
 		desc=		"This machine periodically releases a barrel of radioactive sludge."
 		>
@@ -154,6 +157,7 @@
 			spray=			"true"
 			>
 			<Projectile
+				omnidirectional="true"
 				missileSpeed=	"5"
 				damageType=		"2"
 				damageHP=		"1"

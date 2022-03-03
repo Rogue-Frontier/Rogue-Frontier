@@ -390,6 +390,7 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
     public string codename;
     public bool omnidirectional;
     public XY offset=new(0,0);
+    public double angle, leftRange, rightRange;
     public ModRoll mod;
     public WeaponEntry(XElement e) : this() {
         codename = e.ExpectAtt("codename");
@@ -400,6 +401,15 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
         } else if (e.TryAtt("posX", out var posX) && e.TryAtt("posY", out var posY)) {
             offset = new(double.Parse(posX), double.Parse(posY));
         }
+        if(e.TryAtt("angle", out var angle)) {
+            this.angle = double.Parse(angle)*Math.PI/180;
+        }
+        if (e.TryAtt("leftRange", out var leftRange)) {
+            this.leftRange = double.Parse(leftRange) * Math.PI / 180;
+        }
+        if (e.TryAtt("rightRange", out var rightRange)) {
+            this.rightRange = double.Parse(rightRange) * Math.PI / 180;
+        }
     }
     List<Weapon> IGenerator<Weapon>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
@@ -409,7 +419,10 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
         var w = SDevice.Generate<Weapon>(tc, codename, mod);
         if (omnidirectional) {
             w.aiming = new Omnidirectional();
+        } else if(leftRange + rightRange > 0) {
+            w.aiming = new Swivel(leftRange, rightRange);
         }
+        w.angle = angle;
         w.offset = offset;
         return w;
     }

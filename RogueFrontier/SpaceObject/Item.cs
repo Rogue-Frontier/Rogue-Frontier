@@ -630,6 +630,7 @@ public class Weapon : Device {
     public int delay;
     public bool firing;
     public int repeatsLeft;
+    public double angle;
     public XY offset=new(0,0);
     public Weapon() { }
     public Weapon(Item source, WeaponDesc desc) {
@@ -720,7 +721,11 @@ public class Weapon : Device {
                     return false;
                 }
                 bool CheckSpray() {
-                    direction = desc.spray ? new Random().NextDouble() * 2 * Math.PI : direction;
+                    direction = desc.spray ? aiming switch {
+                        Omnidirectional => new Random().NextDouble() * 2 * Math.PI,
+                        Swivel s => angle + new Random().NextDouble()*(s.leftRange + s.rightRange) - s.leftRange,
+                        _ => angle
+                    } : direction;
                     return desc.spray;
                 }
             }
@@ -743,7 +748,7 @@ public class Weapon : Device {
     }
     public void Update(IShip owner) {
         UpdateProjectileDesc();
-        double? direction = owner.rotationRad;
+        double? direction = owner.rotationRad + angle;
         if (aiming != null) {
             aiming.Update(owner, this);
             direction = aiming.GetFireAngle() ?? direction;
@@ -935,6 +940,54 @@ public class Omnidirectional : Aiming {
     public void UpdateTarget(ActiveObject target) =>
         this.target = target ?? this.target;
 }
+
+
+public class Swivel : Aiming {
+    public double weaponAngle;
+    public double leftRange, rightRange;
+    public ActiveObject target { get; set; }
+    double? direction;
+    public Swivel(double range) { leftRange = rightRange = range / 2; }
+    public Swivel(double left, double right) => (this.leftRange, this.rightRange) = (left, right);
+    public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
+        if (target?.active == true) {
+            UpdateDirection(weapon);
+        } else {
+            direction = null;
+            target = Aiming.AcquireTarget(owner, weapon, filter);
+
+            if (target?.active == true) {
+                UpdateDirection(weapon);
+            }
+        }
+        void UpdateDirection(Weapon weapon) {
+            if (target != null) {
+                direction = Omnidirectional.GetFireAngle(owner, target, weapon);
+                var diff = Helper.AngleDiff(weaponAngle * 180 / Math.PI, direction.Value * 180 / Math.PI) * Math.PI / 180;
+                var limit = Helper.IsRight(weaponAngle, direction.Value) ? rightRange : leftRange;
+                if(diff >= limit) {
+                    direction = null;
+                    return;
+                }
+                Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
+                Heading.Crosshair(owner.world, target.position);
+            }
+        }
+    }
+    public void Update(Station owner, Weapon weapon) {
+        weaponAngle = owner.rotation + weapon.angle;
+        Update(owner, weapon, s => SStation.IsEnemy(owner, s));
+    }
+    public void Update(IShip owner, Weapon weapon) {
+        weaponAngle = owner.rotationRad + weapon.angle;
+        Update(owner, weapon, s => SShip.IsEnemy(owner, s));
+    }
+    public double? GetFireAngle() => direction;
+    public void ClearTarget() => target = null;
+    public void UpdateTarget(ActiveObject target) =>
+        this.target = target ?? this.target;
+}
+
 public interface IAmmo {
     bool AllowFire { get; }
     public void Update(IShip source) { }

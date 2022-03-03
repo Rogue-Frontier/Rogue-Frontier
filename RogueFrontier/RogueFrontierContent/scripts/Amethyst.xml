@@ -64,10 +64,10 @@
 			<Item count="12"	codename="item_shimmer_shield"/>
 		</Cargo>
 		<Weapons>
-			<Weapon codename="item_amethyst_laser_ii" posX="2" posY="2"/>
-			<Weapon codename="item_amethyst_laser_ii" posX="2" posY="-2"/>
-			<Weapon codename="item_amethyst_laser_ii" posX="-2" posY="2"/>
-			<Weapon codename="item_amethyst_laser_ii" posX="2" posY="-2"/>
+			<Weapon codename="item_amethyst_laser_ii" posX="2" posY="2"		angle="90" leftRange="90" rightRange="135"/>
+			<Weapon codename="item_amethyst_laser_ii" posX="2" posY="-2"	angle="-90" leftRange="135" rightRange="90"/>
+			<Weapon codename="item_amethyst_laser_ii" posX="-2" posY="2"	angle="90" leftRange="135" rightRange="90"/>
+			<Weapon codename="item_amethyst_laser_ii" posX="-2" posY="-2"	angle="-90" leftRange="90" rightRange="135"/>
 		</Weapons>
 	</StationType>
 

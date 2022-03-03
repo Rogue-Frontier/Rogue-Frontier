@@ -843,9 +843,16 @@ public static class Main {
     //https://stackoverflow.com/a/28037434
     public static double AngleDiff(double angle1, double angle2) {
         double diff = (angle2 - angle1 + 180) % 360 - 180;
-        return diff < -180 ? diff + 360 : diff;
+
+        while(diff < 0) {
+            diff += 180;
+        }
+
+        return diff;
     }
 
+    public static bool IsRight(double from, double to) =>
+        (XY.Polar(to)-XY.Polar(from)).magnitude2 > (XY.Polar(to)-XY.Polar(from - 0.1)).magnitude2;
     public static Func<T, bool> Or<T>(params Func<T, bool>[] f) {
         Func<T, bool> result = e => true;
         foreach (Func<T, bool> condition in f) {

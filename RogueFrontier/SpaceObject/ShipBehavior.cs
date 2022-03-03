@@ -345,8 +345,8 @@ public class AttackGroupOrder : IShipOrder {
 }
 public class AttackOrder : IShipOrder {
     public ActiveObject target { get; private set; }
-    public Weapon weapon;
-    public List<Weapon> omni=new();
+    public Weapon primary;
+    public List<Weapon> secondary=new();
     [JsonProperty]
     private AimOrder aim = new(null, 0);
     [JsonProperty]
@@ -371,7 +371,6 @@ public class AttackOrder : IShipOrder {
         if (target == null) {
             return;
         }
-
         if (gate != null) {
             var gateWorld = gate.gate.world;
             if (gateWorld == owner.world && owner.world != target.world) {
@@ -386,38 +385,38 @@ public class AttackOrder : IShipOrder {
             gate.Update(owner);
             return;
         }
-
         var weapons = owner.devices.Weapon;
-        if (weapon?.AllowFire != true) {
+        if (primary?.AllowFire != true) {
             var w = weapons.Where(w => w.AllowFire);
-            weapon = w.FirstOrDefault(w => w.aiming == null) ?? w.FirstOrDefault();
-            if (weapon == null) {
+            primary = w.FirstOrDefault(w => w.aiming == null) ?? w.FirstOrDefault();
+            if (primary == null) {
                 //omni = null;
                 return;
             }
-            omni.Clear();
-            omni.AddRange(w
+            secondary.Clear();
+            secondary.AddRange(w
                .Where(w => w.aiming != null)
-               .Where(w => w != weapon));
-        } else if (!weapon.ReadyToFire && weapons.Count > 1) {
-            weapon = weapons.Where(w => w.ReadyToFire)
+               .Where(w => w != primary));
+        } else if (!primary.ReadyToFire && weapons.Count > 1) {
+            primary = weapons.Where(w => w.ReadyToFire)
                 .FirstOrDefault(w => w.aiming == null)
-                ?? weapon;
+                ?? primary;
         }
-        bool RangeCheck() => (owner.position - target.position).magnitude2 < weapon.projectileDesc.range2;
+        bool RangeCheck() => (owner.position - target.position).magnitude2 < primary.projectileDesc.range2;
         //Remove dock
         if (owner.dock != null) {
             owner.dock = null;
         }
         var offset = (target.position - owner.position);
         var dist = offset.magnitude;
-        omni.ForEach(w => {
-            if (dist < w.projectileDesc.range) {
+        secondary.ForEach(w => {
+            if (dist < w.projectileDesc.range
+                && (w.aiming.GetFireAngle() != null || (w.aiming is Targeting t && t.target != null))) {
                 Set(w);
             }
         });
         void SetFiringPrimary() {
-            Set(weapon);
+            Set(primary);
         }
         if (dist < 10) {
             //If we are too close, then move away
@@ -427,12 +426,12 @@ public class AttackOrder : IShipOrder {
             //Get moving!
             owner.SetThrusting(true);
         } else {
-            var range = weapon.projectileDesc.range;
-            bool freeAim = weapon.aiming != null && dist < range;
+            var range = primary.projectileDesc.range;
+            bool freeAim = primary.aiming != null && dist < range;
             if (dist < range / 2) {
                 //If we are in range, then aim and fire
                 //Aim at the target
-                aim.missileSpeed = weapon.projectileDesc.missileSpeed;
+                aim.missileSpeed = primary.projectileDesc.missileSpeed;
                 aim.Update(owner);
                 if (Math.Abs(aim.GetAngleDiff(owner)) < 10
                     && (owner.velocity - target.velocity).magnitude2 < 5 * 5) {

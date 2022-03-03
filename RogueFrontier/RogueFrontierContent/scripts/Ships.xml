@@ -12,7 +12,7 @@
                 foreground="Magenta"
 	    >
 	    <Devices>
-			<Weapon codename="item_amethyst_laser"/>
+			<Weapon codename="item_amethyst_laser" angle="30" leftRange="60" rightRange="120"/>
 			<Shield codename="item_shimmer_shield"/>
 			<Reactor codename="item_20mw_generator"/>
 			<Reactor codename="item_10mw_storage_battery"/>
