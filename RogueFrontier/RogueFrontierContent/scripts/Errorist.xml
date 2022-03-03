@@ -2,7 +2,6 @@
 	<Sovereign	codename=	"sovereign_errorist"
 				alignment=	"DestructiveOrder"
 	/>
-
 	<ItemType
 		codename=	"item_radiant_plate"
 		name=		"Radiant plate"
@@ -45,7 +44,7 @@
 		mass=		"5000"
 		level=		"3"
 
-		desc=		"This radioactive sludge is "
+		desc=		"This cannon shoots radioactive sludge that sticks onto armor."
 		>
 		<Weapon	powerUse=		"30"
 				fireCooldown=	"60"
@@ -61,16 +60,63 @@
 						foreground=		"SpringGreen"
 						background=		"Transparent"
 				>
-				<Decay lifetime="300" rate="1/30"/>
+				<Decay lifetime="600" rate="1/60"/>
 			</Projectile>
 		</Weapon>
 	</ItemType>
-	<ItemType	codename=	"item_radiation_vent"
-		name=		"Radiation vent"
+
+	<ItemType	codename=	"item_sand_bomb_cannon"
+		name=		"Sand bomb cannon"
+		mass=		"5000"
+		level=		"1"
+
+		desc=		"The Errorist-made sand bomb explodes into a deadly cloud of radioactive sand."
+		>
+		<Weapon
+			powerUse=		"30"
+			fireCooldown=	"60"
+			initialCharges=	"200"
+			>
+			<Projectile
+				missileSpeed=	"20"
+				damageType=		"2"
+				damageHP=		"3"
+				lifetime=		"240"
+				
+				hitProjectile=	"true"
+
+				glyph=			"="
+				foreground=		"SpringGreen"
+				background=		"Transparent"
+				>
+				<Fragment
+					count=			"48"
+					spreadAngle=	"360"
+					
+					missileSpeed=	"20"
+					damageType=		"2"
+					damageHP=		"2"
+					lifetime=		"150"
+					
+					hitProjectile=	"true"
+					
+					ricochet=		"4"
+					
+					glyph=			"."
+					foreground=		"SpringGreen"
+					background=		"Transparent"
+					>
+				</Fragment>
+			</Projectile>
+		</Weapon>
+	</ItemType>
+	
+	<ItemType	codename=	"item_sand_vent"
+		name=		"Sand vent"
 		mass=		"5000"
 		level=		"3"
 
-		desc=		"."
+		desc=		"The Errorists use this machine to generate a cloud of radioactive sand."
 		>
 		<Weapon
 			powerUse=		"0"
@@ -81,7 +127,7 @@
 				missileSpeed=	"5"
 				damageType=		"2"
 				damageHP=		"1"
-				lifetime=		"240"
+				lifetime=		"210"
 				spreadAngle=	"20"
 				count=			"9"
 						
@@ -95,12 +141,12 @@
 				/>
 		</Weapon>
 	</ItemType>
-	<ItemType	codename=	"item_radiation_bomb_cannon"
-		name=		"Radiation bomb cannon"
+	<ItemType	codename=	"item_sludge_vent"
+		name=		"Sludge vent"
 		mass=		"5000"
-		level=		"3"
+				level=		"1"
 
-		desc=		"."
+		desc=		"This machine periodically releases a barrel of radioactive sludge."
 		>
 		<Weapon
 			powerUse=		"0"
@@ -111,7 +157,7 @@
 				missileSpeed=	"5"
 				damageType=		"2"
 				damageHP=		"1"
-				lifetime=		"240"
+				lifetime=		"210"
 				
 				hitProjectile=	"true"
 
@@ -128,19 +174,18 @@
 					damageHP=		"1"
 					lifetime=		"90"
 					
-					hitProjectile=	"true"
-					
 					glyph=			"."
 					foreground=		"SpringGreen"
 					background=		"Transparent"
 					>
+					<Decay lifetime="600" rate="1/60"/>
 				</Fragment>
 			</Projectile>
 		</Weapon>
 	</ItemType>
 	<ShipClass	codename=	"ship_toxin"
 		name=				"Toxin-class raider"
-		thrust=				"0.2"
+		thrust=				"0.3"
 		maxSpeed=			"15"
 
 		rotationAccel=		"3"
@@ -160,9 +205,9 @@
 	</ShipClass>
 
 	<ShipClass	codename=			"ship_mutant"
-		name=				"Mutant-class missileship"
-		thrust=				"0.2"
-		maxSpeed=			"15"
+		name=				"Mutant-class destroyer"
+		thrust=				"0.25"
+		maxSpeed=			"12"
 
 		rotationAccel=		"3"
 		rotationDecel=		"6"
@@ -173,11 +218,17 @@
 		>
 		<Devices>
 			<Weapon	codename="item_sludge_cannon"/>
+			<Weapon codename="item_sand_bomb_cannon"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="item_radiant_plate"/>
 			<Armor	codename="item_radiant_plate"/>
+			<Armor	codename="item_radiant_plate"/>
 		</LayeredArmorSystem>
+		<PlayerSettings
+			startingClass="false"
+			description="The Mutant-class missileship is armed with the armor-melting sludge cannon and armor-pelting sand-bomb cannon"
+			/>
 	</ShipClass>
 
 	<StationType	codename="station_errorist_compound"
@@ -239,8 +290,8 @@
 			background=		"Transparent"
 			/>
 		<Weapons>
-			<Weapon	codename="item_radiation_vent"/>
-			<Weapon	codename="item_radiation_bomb_cannon"/>
+			<Weapon	codename="item_sand_vent"/>
+			<Weapon	codename="item_sludge_vent"/>
 		</Weapons>
 		<Ships>
 			<Ship	count="3"	codename="ship_mutant"/>

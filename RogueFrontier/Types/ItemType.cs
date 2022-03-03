@@ -240,15 +240,15 @@ public record ItemType : IDesignType {
         }
     }
 }
-public record ArmorDesc {
+public record ArmorDesc() {
     [Req] public int maxHP;
     [Opt] public double recoveryFactor;
     [Opt] public double recoveryRate;
     [Opt] public double regenRate;
+    [Opt] public int killHP;
     
     public Armor GetArmor(Item i) => new(i, this);
-    public ArmorDesc() { }
-    public ArmorDesc(XElement e) {
+    public ArmorDesc(XElement e) : this() {
         e.Initialize(this);
     }
 }
@@ -368,15 +368,21 @@ public record FragmentDesc {
     [Opt] public int shock;
     [Req] public int lifetime;
     [Opt] public bool passthrough;
+    /// <summary>
+    /// If true, then the weapon has Targeting
+    /// </summary>
     [Opt] public bool acquireTarget;
     [Opt] public double maneuver;
     [Opt] public double maneuverRadius;
     [Opt] public int fragmentInterval;
     [Opt] public bool hitProjectile;
     [Opt] public bool hitBarrier = true;
-    [Opt] public int radiation;
-    [Opt] public int ricochet = 0;
-
+    [Opt] public int ricochet;
+    [Opt] public bool hook;
+    /// <summary>
+    /// If armor integrity ratio is below this amount, then we bypass the armor completely and go to the next layer
+    /// </summary>
+    [Opt] public double drillFactor;
     public Armor.Decay decay;
 
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
@@ -414,12 +420,13 @@ public record FragmentDesc {
             new(xmlTrail) : null;
         effect = new(e);
     }
-    public List<Projectile> GetProjectiles(ActiveObject owner, ActiveObject target, double direction) {
+    public List<Projectile> GetProjectiles(ActiveObject owner, ActiveObject target, double direction, XY offset = null) {
+        var position = owner.position + offset??new(0,0);
         double angleInterval = spreadAngle / count;
         return new(Enumerable.Range(0, count).Select(i => {
             double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
             return new Projectile(owner, this,
-                owner.position + XY.Polar(angle),
+                position + XY.Polar(angle),
                 owner.velocity + XY.Polar(angle, missileSpeed),
                 angle,
                 GetManeuver(target)

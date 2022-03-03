@@ -97,11 +97,11 @@ class ShipScreen : Console {
 
 
         var ds = playerShip.ship.damageSystem;
-        if (ds is HPSystem hp) {
+        if (ds is HP hp) {
             Print(x, y++, "[Health]");
             Print(x, y++, $"HP: {hp.hp}");
             y++;
-        } else if (ds is LayeredArmorSystem las) {
+        } else if (ds is LayeredArmor las) {
             Print(x, y++, "[Armor]");
             foreach (var a in las.layers) {
                 Print(x, y++, $"{a.source.type.name}: {a.hp} / {a.desc.maxHP}");
@@ -504,7 +504,7 @@ public class SListScreen {
     }
     public static ListScreen<Armor> RepairArmorScreen(Console prev, PlayerShip player, Item source, RepairArmor repair, Action callback) {
         ListScreen<Armor> screen = null;
-        var devices = (player.hull as LayeredArmorSystem).layers;
+        var devices = (player.hull as LayeredArmor).layers;
         return screen = new(prev,
             player,
             devices,

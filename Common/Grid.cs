@@ -42,7 +42,9 @@ public class XY {
     public static XY operator -(XY p, (int x, int y) other) => new XY(p.x - other.x, p.y - other.y);
     public static XY operator *(XY p, XY other) => new XY(p.x * other.x, p.y * other.y);
     public static XY operator *(XY p, double scalar) => new XY(p.x * scalar, p.y * scalar);
+    public static XY operator *(XY p, int scalar) => new XY(p.x * scalar, p.y * scalar);
     public static XY operator /(XY p, double scalar) => new XY(p.x / scalar, p.y / scalar);
+    public static XY operator /(XY p, int scalar) => new XY(p.x / scalar, p.y / scalar);
     public static XY operator %(XY p, XY limit) {
         XY result = new XY(p);
         while (result.x < 0) result.x += limit.x;

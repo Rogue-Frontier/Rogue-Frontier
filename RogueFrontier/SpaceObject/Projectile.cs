@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using System;
+using ASECII;
 
 namespace RogueFrontier;
 public interface ITrail {
@@ -95,6 +96,10 @@ public class Projectile : MovingObject {
                                 //stop = true;
                             } else {
                                 Fragment();
+                                if (fragment.hook) {
+                                    world.AddEntity(new Hook(hit, source));
+                                }
+
                                 lifetime = 0;
                                 destroyed = true;
 
@@ -149,9 +154,11 @@ public class Projectile : MovingObject {
         double fragmentAngle;
 
         if (fragment.omnidirectional
-            && maneuver?.target?.active == true
-            && Aiming.CalcFireAngle(this, maneuver.target, fragment.missileSpeed, out var result)) {
-            fragmentAngle = result;
+            && maneuver?.target is ActiveObject target
+            && target.active == true
+            && (target.position - position) is XY offset
+            && offset.magnitude < fragment.range) {
+            fragmentAngle = Main.CalcFireAngle((target.position - position), (target.velocity - velocity), fragment.missileSpeed, out var _);
         } else {
             fragmentAngle = direction;
         }

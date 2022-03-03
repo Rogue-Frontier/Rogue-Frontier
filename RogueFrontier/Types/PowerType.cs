@@ -144,9 +144,8 @@ public record Clonewall() : PowerEffect {
                             double d;
                             var t = w.target ?? owner.GetTarget();
                             if (t != null) {
-                                d = Aiming.CalcFireAngle(t.position - (owner.position + o),
-                                    t.velocity - owner.velocity,
-                                    ready) ?? owner.rotationRad;
+                                d = Main.CalcFireAngle(t.position - (owner.position + o),
+                                    t.velocity - owner.velocity, ready.missileSpeed, out var _);
                             } else {
                                 d = owner.rotationRad;
                             }

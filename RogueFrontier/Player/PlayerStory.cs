@@ -666,7 +666,7 @@ by Amethyst, Inc. ",
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             i => (int)(GetStdPrice(i) * buyAdj),
             i => i.type.attributes.Contains("Amethyst") ? GetStdPrice(i) / 10 : -1);
-        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, (playerShip.hull as LayeredArmorSystem)?.layers, GetPrice, null);
+        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, (playerShip.hull as LayeredArmor)?.layers, GetPrice, null);
     }
     public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>
         new (prev, playerShip, source, GetStdPrice, i => GetStdPrice(i) / 2);

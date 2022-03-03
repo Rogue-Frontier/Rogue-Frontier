@@ -70,7 +70,7 @@ public class HPSystemDesc : HullSystemDesc {
         maxHP = e.ExpectAttInt("maxHP");
     }
     public HullSystem Create(TypeCollection tc) {
-        return new HPSystem(maxHP);
+        return new HP(maxHP);
     }
 }
 public class LayeredArmorDesc : HullSystemDesc {
@@ -80,7 +80,7 @@ public class LayeredArmorDesc : HullSystemDesc {
         armorList = new Group<Armor>(e, SGenerator.ArmorFrom);
     }
     public HullSystem Create(TypeCollection tc) {
-        return new LayeredArmorSystem(armorList.Generate(tc));
+        return new LayeredArmor(armorList.Generate(tc));
     }
 }
 public record PlayerSettings() {

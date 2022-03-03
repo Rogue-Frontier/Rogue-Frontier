@@ -394,6 +394,7 @@ public record SystemStation() : SystemElement {
         w.AddEntity(s);
         s.CreateSegments();
         s.CreateGuards();
+        s.CreateSatellites(lc);
         ((ShipGenerator)ships)?.GenerateAndPlace(tc, s);
     }
 }

@@ -257,7 +257,7 @@
 			<Ring/>
 		</Segments>
 		<Ships>
-			<Ship	count="5"	codename="ship_orion_raider"/>
+			<Ship	count="7"	codename="ship_orion_raider"/>
 		</Ships>
 		<Weapons>
 			<Weapon	codename="item_orion_bolter"/>
@@ -273,17 +273,36 @@
 					foreground="Blue"
 		>
 		<Segments>
+			<Point offsetX="2" offsetY="3"	glyph="-" foreground="LightBlue"/>
+			<Point offsetX="3" offsetY="3"	glyph="+" foreground="LightBlue"/>
+			<Point offsetX="3" offsetY="2"	glyph="|" foreground="LightBlue"/>
+			<Point offsetX="2" offsetY="2"	glyph="\" foreground="LightBlue"/>
+
+			<Point offsetX="-2" offsetY="3"	glyph="-" foreground="LightBlue"/>
+			<Point offsetX="-3" offsetY="3"	glyph="+" foreground="LightBlue"/>
+			<Point offsetX="-3" offsetY="2"	glyph="|" foreground="LightBlue"/>
+			<Point offsetX="-2" offsetY="2"	glyph="/" foreground="LightBlue"/>
+
+			<Point offsetX="2" offsetY="-3"	glyph="-" foreground="LightBlue"/>
+			<Point offsetX="3" offsetY="-3"	glyph="+" foreground="LightBlue"/>
+			<Point offsetX="3" offsetY="-2"	glyph="|" foreground="LightBlue"/>
+			<Point offsetX="2" offsetY="-2"	glyph="\" foreground="LightBlue"/>
+
+			<Point offsetX="-2" offsetY="-3"	glyph="-" foreground="LightBlue"/>
+			<Point offsetX="-3" offsetY="-3"	glyph="+" foreground="LightBlue"/>
+			<Point offsetX="-3" offsetY="-2"	glyph="|" foreground="LightBlue"/>
+			<Point offsetX="-2" offsetY="-2"	glyph="/" foreground="LightBlue"/>
 			<Ring/>
 		</Segments>
 		<Ships>
-			<Ship	codename="ship_orion_raider"/>
-			<Ship	codename="ship_orion_raider"/>
-			<Ship	codename="ship_orion_raider"/>
-			<Ship	codename="ship_orion_raider"/>
-			<Ship	codename="ship_orion_huntsman"/>
+			<Ship	count="13"	codename="ship_orion_raider"/>
+			<Ship	count="2"	codename="ship_orion_huntsman"/>
 		</Ships>
 		<Weapons>
-			<Weapon	codename="item_orion_longbow"/>
+			<Weapon	codename="item_orion_bolter" posX="3" posY="3"/>
+			<Weapon	codename="item_orion_bolter" posX="3" posY="-3"/>
+			<Weapon	codename="item_orion_bolter" posX="-3" posY="3"/>
+			<Weapon	codename="item_orion_bolter" posX="-3" posY="-3"/>
 		</Weapons>
 	</StationType>
 

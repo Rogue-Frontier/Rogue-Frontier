@@ -112,12 +112,11 @@ public class ShipEntry : ShipGenerator {
         public IShipOrder.Create Value => target => new EscortOrder((IShip)target, XY.Polar(0, 2));
     }
 }
-
 public record ModRoll() {
-    public double modifierChance;
+    [Opt] public double modifierChance = 1;
     public Modifier modifier;
     public ModRoll(XElement e) : this() {
-        modifierChance = e.TryAttDouble(nameof(modifierChance), 1);
+        e.Initialize(this);
         modifier = new Modifier(e);
         if (modifier.empty) {
             modifier = null;
@@ -390,23 +389,28 @@ public record WeaponList() : IGenerator<Weapon> {
 public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
     public string codename;
     public bool omnidirectional;
+    public XY offset=new(0,0);
     public ModRoll mod;
     public WeaponEntry(XElement e) : this() {
         codename = e.ExpectAtt("codename");
         omnidirectional = e.TryAttBool("omnidirectional", false);
         mod = new(e);
+        if(e.TryAtt("posAngle", out var posAngle) && e.TryAtt("posRadius", out var posRadius)) {
+            offset = XY.Polar(double.Parse(posAngle) * Math.PI / 180, double.Parse(posRadius));
+        } else if (e.TryAtt("posX", out var posX) && e.TryAtt("posY", out var posY)) {
+            offset = new(double.Parse(posX), double.Parse(posY));
+        }
     }
-
     List<Weapon> IGenerator<Weapon>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
     List<Device> IGenerator<Device>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
-
     Weapon Generate(TypeCollection tc) {
         var w = SDevice.Generate<Weapon>(tc, codename, mod);
         if (omnidirectional) {
             w.aiming = new Omnidirectional();
         }
+        w.offset = offset;
         return w;
     }
     public void ValidateEager(TypeCollection tc) => Generate(tc);

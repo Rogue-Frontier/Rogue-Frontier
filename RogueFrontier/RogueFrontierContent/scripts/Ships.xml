@@ -115,7 +115,6 @@
 			<Armor  codename="item_knightsteel_plate"/>
 			<Armor  codename="item_knightsteel_plate"/>
 			<Armor  codename="item_knightsteel_plate"/>
-			<Armor  codename="item_knightsteel_plate"/>
         </LayeredArmorSystem>
 		<PlayerSettings
 			startingClass="true"

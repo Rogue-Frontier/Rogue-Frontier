@@ -23,9 +23,9 @@ public class Wreck : MovingObject, IDockable {
     [JsonProperty]
     public System world { get; private set; }
     [JsonProperty]
-    public XY position { get; private set; }
+    public XY position { get; set; }
     [JsonProperty]
-    public XY velocity { get; private set; }
+    public XY velocity { get; set; }
     [JsonProperty]
     public bool active { get; private set; }
     [JsonProperty]
@@ -125,7 +125,7 @@ public class Station : ActiveObject, ITrader, IDockable {
         this.velocity = new XY();
         this.active = true;
         this.sovereign = Type.Sovereign;
-        damageSystem = new HPSystem(Type.hp);
+        damageSystem = new HP(Type.hp);
         cargo = new(Type.cargo?.Generate(World.types) ?? new List<Item>());
         weapons = type.weapons?.Generate(World.types) ?? new();
         weapons.ForEach(w => w.aiming = new Omnidirectional());
@@ -164,8 +164,8 @@ public class Station : ActiveObject, ITrader, IDockable {
             world.AddEffect(new Heading(guard));
         }
     }
-    public void CreateSatellites() {
-        type.satellites?.Generate(new() { focus = position }, world.types);
+    public void CreateSatellites(LocationContext lc) {
+        type.satellites?.Generate(lc, world.types);
     }
     public IEnumerable<AIShip> GetDocked() =>
         world.entities.GetAll(p => (position - p).magnitude < 5)

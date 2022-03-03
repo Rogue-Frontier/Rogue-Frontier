@@ -13,15 +13,42 @@
 					foreground=	"Magenta"
 		>
 		<Segments>
-			<MultiPoint offsetX="2" offsetY="-1" angleInc="90"
-				   glyph="#" foreground="Magenta"/>
-			<MultiPoint offsetX="2" offsetY="0" angleInc="90"
-				   glyph="#" foreground="Magenta"/>
-			<MultiPoint offsetX="2" offsetY="1" angleInc="90"
-				   glyph="#" foreground="Magenta"/>
 			<MultiPoint offsetX="2" offsetY="2" angleInc="90"
-				   glyph="#" foreground="Magenta"/>
+				   glyph="*" foreground="Magenta"/>
+
+			<Point offsetX="-1" offsetY="2"
+				   glyph="-" foreground="Magenta"/>
+			<Point offsetX="0" offsetY="2"
+				   glyph="-" foreground="Magenta"/>
+			<Point offsetX="1" offsetY="2"
+				   glyph="-" foreground="Magenta"/>
+			
+			<Point offsetX="3" offsetY="1"
+				   glyph="\" foreground="Magenta"/>
+			<Point offsetX="4" offsetY="0"
+				   glyph="&gt;" foreground="Magenta"/>
+			<Point offsetX="3" offsetY="-1"
+				   glyph="/" foreground="Magenta"/>
+
+			<Point offsetX="-1" offsetY="-2"
+				   glyph="-" foreground="Magenta"/>
+			<Point offsetX="0" offsetY="-2"
+				   glyph="-" foreground="Magenta"/>
+			<Point offsetX="1" offsetY="-2"
+				   glyph="-" foreground="Magenta"/>
+			
+			<Point offsetX="-3" offsetY="1"
+				   glyph="/" foreground="Magenta"/>
+			<Point offsetX="-4" offsetY="0"
+				   glyph="&lt;" foreground="Magenta"/>
+			<Point offsetX="-3" offsetY="-1"
+				   glyph="\" foreground="Magenta"/>
+			
 			<Ring/>
+			<Point offsetX="2" offsetY="0"
+				   glyph="&gt;" foreground="Magenta"/>
+			<Point offsetX="-2" offsetY="0"
+				   glyph="&lt;" foreground="Magenta"/>
 		</Segments>
 		<Dock>
 			<MultiPoint offsetX="2" offsetY="0" angleInc="90"/>
@@ -37,7 +64,10 @@
 			<Item count="12"	codename="item_shimmer_shield"/>
 		</Cargo>
 		<Weapons>
-			<Weapon codename="item_amethyst_laser_ii"/>
+			<Weapon codename="item_amethyst_laser_ii" posX="2" posY="2"/>
+			<Weapon codename="item_amethyst_laser_ii" posX="2" posY="-2"/>
+			<Weapon codename="item_amethyst_laser_ii" posX="-2" posY="2"/>
+			<Weapon codename="item_amethyst_laser_ii" posX="2" posY="-2"/>
 		</Weapons>
 	</StationType>
 
@@ -52,7 +82,7 @@
 				desc=		"The Amethyst laser cannon (manufactured by Amethyst, Inc. for the Amethyst-class yacht) is the only laser cannon that fires a magenta-colored beam. Not that you'll ever get to see it."
 		>
 		<Weapon
-			initialCharges=	"1500"
+			initialCharges=	"1200"
 			powerUse=		"10"
 			fireCooldown=	"20"
 			>
@@ -66,7 +96,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_amethyst_laser_ii"
 			name=		"Amethyst laser cannon II"
 			level=		"1"
@@ -78,7 +107,7 @@
 			desc=		"This is the second-generation Amethyst laser cannon, with incrementally improved damage output over the original."
 		>
 		<Weapon
-			initialCharges=	"1800"
+			initialCharges=	"1500"
 			powerUse=		"10"
 			fireCooldown=	"15"
 			>
@@ -104,7 +133,7 @@
 		desc=		"This is the third-generation Amethyst laser cannon, with incrementally improved damage output over the original."
 		>
 		<Weapon
-			initialCharges=	"2100"
+			initialCharges=	"1800"
 			powerUse=		"10"
 			fireCooldown=	"15"
 			>

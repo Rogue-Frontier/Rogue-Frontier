@@ -2,9 +2,6 @@
 	<Sovereign	codename=	"sovereign_silentians"
 				alignment=	"DestructiveOrder"
 	/>
-
-
-
 	<StationType	codename="station_silentian_outpost"
 				name=		"Silentian outpost"
 				sovereign=	"sovereign_silentians"

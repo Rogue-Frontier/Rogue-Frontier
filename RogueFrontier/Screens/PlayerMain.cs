@@ -1105,9 +1105,9 @@ public class Readout : Console {
             }
 
             void PrintDamageSystem(HullSystem s) {
-                if (s is HPSystem hp) {
+                if (s is HP hp) {
                     this.Print(x, y++, $"Hull: {hp.hp} hp");
-                } else if (s is LayeredArmorSystem las) {
+                } else if (s is LayeredArmor las) {
                     this.Print(x, y++, $"[Armor]");
                     foreach (var layer in las.layers) {
                         this.Print(x, y++, $"{layer.source.type.name}{new string('>', (16 * layer.hp) / layer.desc.maxHP)}");
@@ -1425,7 +1425,7 @@ public class Readout : Console {
                 y++;
             }
             switch (player.ship.damageSystem) {
-                case LayeredArmorSystem las:
+                case LayeredArmor las:
                     var back = Color.Black;
                     las.layers.ForEach(armor => {
                         var fore = (player.world.tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
@@ -1436,7 +1436,7 @@ public class Readout : Console {
                         y++;
                     });
                     break;
-                case HPSystem hp:
+                case HP hp:
                     this.Print(x, y, $"HP: {hp.hp}", Color.White, Color.Black);
                     break;
             }

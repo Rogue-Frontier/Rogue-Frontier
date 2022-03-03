@@ -131,6 +131,8 @@ public class Armor : Device {
     public double regenHP;
     public double decayHP;
 
+    public int killHP;
+
     public int damageDelay;
 
     public int lifetimeDamageAbsorbed;
@@ -142,8 +144,6 @@ public class Armor : Device {
         public double rate;
         public Decay(int lifetime, double rate) => (this.lifetime, this.rate) = (lifetime, rate);
     }
-
-
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
         this.source = source;
@@ -152,8 +152,6 @@ public class Armor : Device {
     }
     public Armor Copy(Item source) => desc.GetArmor(source);
     public void Update(IShip owner) {
-        
-
         if (decay.Any()) {
             foreach (var d in decay) {
                 decayHP += d.rate;
@@ -163,20 +161,18 @@ public class Armor : Device {
             if (decayHP >= 1) {
                 var delta = Math.Min(hp, (int)decayHP);
                 hp -= delta;
-                hpToRecover += (delta * desc.recoveryFactor);
-                lifetimeDamageAbsorbed += delta;
                 decayHP = 0;
                 lastDamageTick = owner.world.tick;
 
+                lifetimeDamageAbsorbed += delta;
+                hpToRecover += (delta * desc.recoveryFactor);
                 damageDelay = 30;
             }
         }
-
         if (damageDelay > 0) {
             damageDelay--;
             return;
         }
-
         if (hpToRecover >= 1) {
             recoveryHP += desc.recoveryRate;
             while (recoveryHP >= 1) {
@@ -199,29 +195,78 @@ public class Armor : Device {
                 regenHP = 0;
             }
         }
+        if (hp > 0 && killHP < desc.killHP) {
+            killHP = desc.killHP;
+        }
+    }
+    private void OnAbsorb(int absorbed) {
+        lifetimeDamageAbsorbed += absorbed;
+        hpToRecover += (absorbed * desc.recoveryFactor);
+        damageDelay = 30;
     }
     public void Absorb(int amount) {
+        if(hp == 0 || amount == 0) {
+            return;
+        }
+        //Check if we have a kill threshold
+        if (hp <= killHP) {
+            if(amount < killHP) {
+                //Remember this but take no damage
+                OnAbsorb(amount);
+            } else {
+                //Otherwise, we fall
+                hp = 0;
+                OnAbsorb(killHP);
+            }
+            return;
+        }
+
         var absorbed = Math.Min(hp, amount);
-        if (absorbed > 0) {
-            hp -= absorbed;
-            lifetimeDamageAbsorbed += absorbed;
-            hpToRecover += (absorbed * desc.recoveryFactor);
-            damageDelay = 30;
+        hp -= absorbed;
+        OnAbsorb(absorbed);
+        if (killHP > 0 && absorbed > killHP) {
+            killHP = 0;
         }
     }
     public int Absorb(Projectile p) {
-        var absorbed = Math.Min(hp, p.damageHP);
-        if (absorbed > 0) {
-            hp -= absorbed;
-            lifetimeDamageAbsorbed += absorbed;
-            hpToRecover += (absorbed * desc.recoveryFactor);
-            damageDelay = 30;
+        if (hp == 0 || p.damageHP == 0)
+            return 0;
+        //If we're below the drill threshold, then skip this armor
+        if(((float)hp / desc.maxHP) < p.fragment.drillFactor) {
+            return 0;
+        }
+        //Check if we have a kill threshold
+        if (hp <= killHP) {
+            if (p.damageHP < killHP) {
+                var amount = p.damageHP;
+                p.damageHP = 0;
 
-            p.damageHP -= absorbed;
+                //Remember this but take no damage
+                OnAbsorb(amount);
+                return amount;
+            } else {
+                p.damageHP -= killHP;
+                lastDamageTick = p.world.tick;
 
-            if(p.fragment.decay is Decay d) {
-                decay.Add(new(d.lifetime, d.rate));
+                //Otherwise, we fall
+                hp = 0;
+                OnAbsorb(killHP);
+                return killHP;
             }
+        }
+
+        var absorbed = Math.Min(hp, p.damageHP);
+        hp -= absorbed;
+        OnAbsorb(absorbed);
+        if (killHP > 0 && absorbed > killHP) {
+            killHP = 0;
+        }
+
+        lastDamageTick = p.world.tick;
+
+        p.damageHP -= absorbed;
+        if (p.fragment.decay is Decay d) {
+            decay.Add(new(d.lifetime, d.rate));
         }
         return absorbed;
     }
@@ -577,21 +622,18 @@ public class Weapon : Device {
     public WeaponDesc desc;
     [JsonIgnore]
     int? Device.powerUse => (firing || delay > 0) ? desc.powerUse : desc.powerUse / 10;
-
     public FragmentDesc projectileDesc;
-    
     public Capacitor capacitor;
     public Aiming aiming;
     public IAmmo ammo;
-    public Modifier enhancements;
+    public Modifier mod;
     public int delay;
     public bool firing;
     public int repeatsLeft;
+    public XY offset=new(0,0);
     public Weapon() { }
     public Weapon(Item source, WeaponDesc desc) {
         this.source = source;
-        this.delay = 0;
-        firing = false;
         SetWeaponDesc(desc);
     }
     public void SetWeaponDesc(WeaponDesc desc) {
@@ -624,7 +666,6 @@ public class Weapon : Device {
         if (ammo?.AllowFire == false) {
             return new(new(' ', 16), Color.Transparent, Color.Black);
         }
-
         int fireBar = (int)(16f * (desc.fireCooldown - delay) / desc.fireCooldown);
         ColoredString bar;
         if (capacitor != null && capacitor.desc.minChargeToFire > 0) {
@@ -646,14 +687,16 @@ public class Weapon : Device {
         return bar;
     }
     public void UpdateProjectileDesc() {
-        projectileDesc = Modifier.Sum(capacitor?.mod, source.mod, enhancements) * desc.projectile;
+        projectileDesc = Modifier.Sum(capacitor?.mod, source.mod, mod) * desc.projectile;
     }
     public void Update(Station owner) {
         UpdateProjectileDesc();
         double? direction = null;
         if (aiming != null) {
             aiming.Update(owner, this);
-            direction = aiming.GetFireAngle() ?? Omnidirectional.GetFireAngle(owner, aiming.target, this);
+            if (aiming.target != null && (aiming.target.position - owner.position).magnitude < projectileDesc.range) {
+                direction = aiming.GetFireAngle();
+            }
         }
         capacitor?.Update();
         if (delay > 0 && repeatsLeft == 0) {
@@ -670,12 +713,11 @@ public class Weapon : Device {
             } else if (desc.autoFire) {
                 firing = CheckProjectile() || CheckSpray() || aiming?.target != null;
                 bool CheckProjectile() {
-                    double? d = 0;
-                    bool result = desc.targetProjectile
-                        && Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s)) is Projectile target
-                        && Aiming.CalcFireAngle(owner, target, projectileDesc, out d);
-                    direction = result ? d : direction;
-                    return result;
+                    if(desc.targetProjectile && Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s)) is Projectile target) {
+                        direction = Omnidirectional.GetFireAngle(owner, target, this);
+                        return true;
+                    }
+                    return false;
                 }
                 bool CheckSpray() {
                     direction = desc.spray ? new Random().NextDouble() * 2 * Math.PI : direction;
@@ -686,7 +728,7 @@ public class Weapon : Device {
             capacitor?.CheckFire(ref firing);
             ammo?.CheckFire(ref firing);
             if (firing && direction.HasValue) {
-                enhancements = new();
+                mod = new();
 
                 Fire(owner, direction.Value);
                 delay = desc.fireCooldown;
@@ -718,14 +760,12 @@ public class Weapon : Device {
                 beginRepeat = false;
             } else if (desc.autoFire) {
                 firing = CheckProjectile() || CheckSpray() || aiming?.target != null;
-
                 bool CheckProjectile() {
-                    double? d = 0;
-                    bool result = desc.targetProjectile
-                        && Aiming.AcquireMissile(owner, this, s => s == null || SShip.IsEnemy(owner, s)) is Projectile target
-                        && Aiming.CalcFireAngle(owner, target, projectileDesc, out d);
-                    direction = result ? d : direction;
-                    return result;
+                    if (desc.targetProjectile && Aiming.AcquireMissile(owner, this, s => SShip.IsEnemy(owner, s)) is Projectile target) {
+                        direction = Omnidirectional.GetFireAngle(owner, target, this);
+                        return true;
+                    }
+                    return false;
                 }
                 bool CheckSpray() {
                     direction = desc.spray ? new Random().NextDouble() * 2 * Math.PI : direction;
@@ -764,9 +804,8 @@ public class Weapon : Device {
         (user.position - target.position).magnitude < projectileDesc.range;
     public bool AllowFire => ammo?.AllowFire ?? true;
     public bool ReadyToFire => delay == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
-    
     public void Fire(ActiveObject owner, double direction, List<Projectile> result = null) {
-        var projectiles = projectileDesc.GetProjectiles(owner, target, direction);
+        var projectiles = projectileDesc.GetProjectiles(owner, target, direction, offset);
         projectiles.ForEach(owner.world.AddEntity);
         result?.AddRange(projectiles);
         ammo?.OnFire();
@@ -830,32 +869,6 @@ public interface Aiming {
     double? GetFireAngle() => null;
     void ClearTarget() { }
     void UpdateTarget(ActiveObject target) { }
-    public static double? CalcFireAngle(XY deltaPosition, XY deltaVelocity, FragmentDesc f) =>
-        (deltaPosition.magnitude < f.range) ?
-            Helper.CalcFireAngle(deltaPosition, deltaVelocity, f.missileSpeed, out var _) :
-            null;
-    public static bool CalcFireAngle(MovingObject owner, MovingObject target, FragmentDesc f, out double? result) {
-        var b = ((target.position - owner.position).magnitude < f.range);
-        result = b ? Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, f.missileSpeed, out var _) : null;
-        return b;
-    }
-    public static double? CalcFireAngle(MovingObject owner, MovingObject target, FragmentDesc f) =>
-        ((target.position - owner.position).magnitude < f.range) ?
-            Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, f.missileSpeed, out var _) :
-            null;
-    public static double CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed) =>
-        Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
-    public static bool CalcFireAngle(MovingObject owner, MovingObject target, int missileSpeed, out double result) {
-        var velDiff = target.velocity - owner.velocity;
-        var b = velDiff.magnitude < missileSpeed;
-        result = b ? Helper.CalcFireAngle(target.position - owner.position, velDiff, missileSpeed, out var _) : 0;
-        return b;
-    }
-    public static bool CalcFireAngle(MovingObject owner, Projectile target, FragmentDesc fd, out double? result) {
-        bool b = ((target.position - owner.position).magnitude < fd.range);
-        result = b ? Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, fd.missileSpeed, out var _) : null;
-        return b;
-    }
     public static ActiveObject AcquireTarget(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) =>
         owner.world.entities.GetAll(p => (owner.position - p).magnitude2 < weapon.projectileDesc.range2).OfType<ActiveObject>().FirstOrDefault(filter);
     public static Projectile AcquireMissile(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) =>
@@ -889,22 +902,26 @@ public class Omnidirectional : Aiming {
     public ActiveObject target { get; set; }
     double? direction;
     public Omnidirectional() { }
-    public static double? GetFireAngle(ActiveObject owner, ActiveObject target, Weapon w) =>
-        target == null ? null : Aiming.CalcFireAngle(owner, target, w.projectileDesc);
+    public static double GetFireAngle(MovingObject owner, MovingObject target, Weapon w) =>
+        Helper.CalcFireAngle(target.position - (owner.position + w.offset),
+            target.velocity - owner.velocity,
+            w.projectileDesc.missileSpeed, out var _);
+
     public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
         if (target?.active == true) {
-            UpdateDirection();
+            UpdateDirection(weapon);
         } else {
             direction = null;
             target = Aiming.AcquireTarget(owner, weapon, filter);
 
             if (target?.active == true) {
-                UpdateDirection();
+                UpdateDirection(weapon);
             }
         }
-        void UpdateDirection() {
-            if (Aiming.CalcFireAngle(owner, target, weapon.projectileDesc, out direction)) {
-                Heading.AimLine(owner.world, owner.position, direction.Value);
+        void UpdateDirection(Weapon weapon) {
+            if (target != null) {
+                direction = GetFireAngle(owner, target, weapon);
+                Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
                 Heading.Crosshair(owner.world, target.position);
             }
         }

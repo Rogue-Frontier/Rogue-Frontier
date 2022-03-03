@@ -364,15 +364,10 @@
 		value=		"5000"
 		desc=		"This strong armor is made for the Knight series of gunships."
 		>
-		<Armor	maxHP=		"150"
+		<Armor	maxHP=		"120"
 			>
 		</Armor>
 	</ItemType>
-	<!--Hunterscale plate-->
-	<!--Dragonscale plate-->
-
-	<!--Rustbucket plate-->
-
 	<ItemType	codename=	"item_bumpersteel_plate"
 		name=		"Bumpersteel Plate"
 		mass=		"8000"
@@ -442,7 +437,6 @@
 			</Projectile>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_intelligun"
 			name=		"IntelliGun 1.0"
 			level=		"2"
@@ -470,7 +464,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_amethyst_warranty_card"
 		name=		"Amethyst warranty card"
 		level=		"1"
@@ -480,8 +473,6 @@
 		desc=		"This card provides proof of limited warranty for your Amethyst-class yacht. Present at any licensed Amethyst, Inc. location to receive a discount on maintenance services."
 		>
 	</ItemType>
-	
-	
 	<ItemType	codename=	"item_shield_bash"
 		name=		"SHIELDBASH program"
 		mass=		"1"

@@ -24,9 +24,9 @@ public class Stargate : ActiveObject {
     [JsonProperty]
     public Sovereign sovereign { get; private set; }
     [JsonProperty]
-    public XY position { get; private set; }
+    public XY position { get; set; }
     [JsonProperty]
-    public XY velocity { get; private set; }
+    public XY velocity { get; set; }
     [JsonProperty]
     public HashSet<Segment> Segments { get; private set; }
 

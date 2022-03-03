@@ -366,7 +366,7 @@ public class AIShip : IShip {
         //We update the ship's devices as ourselves because they need to know who the exact owner is
         //In case someone other than us needs to know who we are through our devices
         ship.devices.Update(this);
-        (ship.damageSystem as LayeredArmorSystem)?.layers.ForEach(l => l.Update(this));
+        (ship.damageSystem as LayeredArmor)?.layers.ForEach(l => l.Update(this));
     }
     [JsonIgnore]
     public bool active => ship.active;
@@ -781,7 +781,7 @@ public class PlayerShip : IShip {
             enabled.Update(this);
         }
         energy.Update(this);
-        (ship.damageSystem as LayeredArmorSystem)?.layers.ForEach(l => l.Update(this));
+        (ship.damageSystem as LayeredArmor)?.layers.ForEach(l => l.Update(this));
     }
     public void AddMessage(IPlayerMessage message) {
         var existing = messages.FirstOrDefault(m => m.Equals(message));
@@ -807,7 +807,7 @@ public class PlayerShip : IShip {
 Ship: {shipClass.name}
 
 Armor
-{string.Join('\n', (hull as LayeredArmorSystem).layers.Select(l => $"    {l.source.type.name}"))}
+{string.Join('\n', (hull as LayeredArmor).layers.Select(l => $"    {l.source.type.name}"))}
 
 Devices
 {string.Join('\n', devices.Installed.Select(device => $"    {device.source.type.name}"))}

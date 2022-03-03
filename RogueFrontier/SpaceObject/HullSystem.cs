@@ -20,11 +20,11 @@ public interface HullSystem {
     int GetMaxHP();
     void Damage(int tick, Projectile p, Action<ActiveObject> Destroy);
 }
-public class HPSystem : HullSystem {
+public class HP : HullSystem {
     public int maxHP;
     public int hp;
     public int lastDamageTick;
-    public HPSystem(int maxHP) {
+    public HP(int maxHP) {
         this.maxHP = maxHP;
         this.hp = maxHP;
     }
@@ -43,10 +43,10 @@ public class HPSystem : HullSystem {
     public void Restore() => hp = maxHP;
 }
 //WMD would allow the attacker to hit multiple layers at a time, multiplying the damage
-public class LayeredArmorSystem : HullSystem {
+public class LayeredArmor : HullSystem {
     public List<Armor> layers;
     public int tick;
-    public LayeredArmorSystem(List<Armor> layers) {
+    public LayeredArmor(List<Armor> layers) {
         this.layers = layers;
     }
     public void Damage(int tick, Projectile p, Action<ActiveObject> Destroy) {
@@ -54,9 +54,11 @@ public class LayeredArmorSystem : HullSystem {
             return;
         foreach (var i in Enumerable.Range(0, layers.Count).Reverse()) {
             var layer = layers[i];
-            if (layer == null || layer.hp == 0)
+            if (layer == null)
                 continue;
             int absorbed = layer.Absorb(p);
+            if (absorbed == 0)
+                goto CheckDamage;
             layer.lastDamageTick = tick;
             int depth = 2;
             foreach (var j in Enumerable.Range(i - p.fragment.shock, p.fragment.shock).Reverse().TakeWhile(j => j > -1)) {
@@ -65,6 +67,8 @@ public class LayeredArmorSystem : HullSystem {
                 nextLayer.lastDamageTick = tick;
                 depth++;
             }
+
+            CheckDamage:
             if (p.damageHP == 0)
                 return;
         }

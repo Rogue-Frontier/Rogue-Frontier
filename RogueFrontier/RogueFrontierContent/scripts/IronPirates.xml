@@ -54,11 +54,11 @@
 	</ItemType>
 	
 	<ItemType	codename=	"item_iron_hook_cannon"
-			name=		"Hook cannon"
+			name=		"Hook Cannon"
 			mass=		"3000"
 			level=		"2"
 			invoke=		"installWeapon"
-			desc=		"This cannon launches Iron Hooks which can latch onto a ship and pull on it."
+			desc=		"This cannon launches Iron Hooks which can latch onto an enemy and pull it closer."
 				>
 		<Weapon		ammoType=		"item_iron_hook"
 					powerUse=		"15"
@@ -70,6 +70,7 @@
 						lifetime=		"60"
 						glyph=			"?"
 						foreground=		"White"
+						hook=			"true"
 				/>
 		</Weapon>
 	</ItemType>
@@ -93,9 +94,10 @@
 				name=		"Ironside plate"
 				mass=		"5000"
 				level=		"2"
-				desc=		"If you're standing in the middle of a battlefield, then this armor is guaranteed to last you at least 15 seconds."
+				desc=		"It will take a very strong attack to bring down this armor plate."
 		>
-		<Armor	maxHP=		"90"/>
+		<Armor	maxHP=		"90"
+				killHP=		"6"/>
 	</ItemType>
 	<ShipClass	codename=			"ship_iron_gunboat"
 				name=				"Blockade-class gunboat"
@@ -111,8 +113,10 @@
 		>
 		<Devices>
 			<Weapon	codename="item_iron_driver"/>
+			<Weapon	codename="item_iron_hook_cannon"/>
 		</Devices>
 		<LayeredArmorSystem>
+			<Armor	codename="item_ironclad_plate"/>
 			<Armor	codename="item_ironclad_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
@@ -128,19 +132,21 @@
 				glyph=				"I"
 				foreground=			"Yellow"
 		>
+		<Cargo>
+			<Item count="36"	codename="item_iron_hook"/>
+		</Cargo>
 		<Devices>
 			<Weapon	codename="item_iron_cannon"/>
 			<Weapon	codename="item_iron_driver" omnidirectional="true"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor	codename="item_ironclad_plate"/>
 			<Armor	codename="item_ironside_plate"/>
+			<Armor	codename="item_ironclad_plate"/>
+			<Armor	codename="item_ironclad_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
-	
-
-	<ShipClass	codename=			"ship_iron_battleship"
-				name=				"Ironside-class battleship"
+	<ShipClass	codename=			"ship_iron_destroyer"
+				name=				"Ironside-class destroyer"
 				thrust=				"0.3"
 				maxSpeed=			"15"
 
@@ -151,20 +157,21 @@
 				glyph=				"I"
 				foreground=			"Yellow"
 		>
+		<Cargo>
+			<Item count="120"	codename="item_iron_hook"/>
+		</Cargo>
 		<Devices>
-			<Weapon	codename="item_iron_cannon"/>
 			<Weapon	codename="item_iron_hook_cannon" omnidirectional="true"/>
-			<Weapon	codename="item_iron_driver" omnidirectional="true"/>
+			<Weapon	codename="item_iron_driver"/>
+			<Weapon	codename="item_iron_driver"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor	codename="item_ironclad_plate"/>
-			<Armor	codename="item_ironclad_plate"/>
 			<Armor	codename="item_ironside_plate"/>
+			<Armor	codename="item_ironclad_plate"/>
+			<Armor	codename="item_ironclad_plate"/>
 			<Armor	codename="item_ironside_plate"/>
 		</LayeredArmorSystem>
-	</ShipClass>	
-
-
+	</ShipClass>
 	<StationType	codename="station_iron_pirates_hideout"
 					name=		"Iron Pirates hideout"
 					sovereign=	"sovereign_iron_pirates"
@@ -277,7 +284,7 @@
 		<Ships>
 			<Ship	count="8"	codename="ship_iron_gunboat"/>
 			<Ship	count="2"	codename="ship_iron_missileship" order="patrol" patrolRadius="10"/>
-			<Ship	count="1"	codename="ship_iron_battleship" order="patrol" patrolRadius="25">
+			<Ship	count="1"	codename="ship_iron_destroyer" order="patrol" patrolRadius="25">
 				<Ships>
 					<Ship count="4" codename="ship_iron_gunboat" order="escort"/>	
 				</Ships>
