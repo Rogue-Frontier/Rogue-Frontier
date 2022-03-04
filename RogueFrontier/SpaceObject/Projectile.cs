@@ -28,6 +28,14 @@ public class Projectile : MovingObject {
     [JsonProperty] public Maneuver maneuver;
     [JsonProperty] public int damageHP;
     [JsonProperty] public int ricochet = 0;
+    [JsonProperty] public bool hitHull;
+
+    //List of projectiles that were created from the same fragment
+    public List<Projectile> siblings = new();
+
+    public delegate void OnHitActive(Projectile p, ActiveObject other);
+    public FuncSet<IContainer<OnHitActive>> onHitActive=new();
+
     [JsonIgnore]   public bool active => lifetime > 0;
     
     public Projectile() { }
@@ -60,8 +68,6 @@ public class Projectile : MovingObject {
             UpdateMove();
             Fragment();
         }
-
-
         void UpdateMove() {
             HashSet<Entity> exclude = new HashSet<Entity> { null, source, this };
             exclude.UnionWith(source switch {
@@ -95,10 +101,12 @@ public class Projectile : MovingObject {
                                 //velocity += (hit.velocity - velocity) / 2;
                                 //stop = true;
                             } else {
+                                onHitActive.ForEach(f => f(this, hit));
                                 Fragment();
                                 if (fragment.hook) {
                                     world.AddEntity(new Hook(hit, source));
                                 }
+
 
                                 lifetime = 0;
                                 destroyed = true;

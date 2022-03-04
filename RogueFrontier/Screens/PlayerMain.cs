@@ -793,11 +793,9 @@ public class Megamap : Console {
             }
 
             var scaledEntities = player.world.entities.space.DownsampleSet(viewScale);
-            var scaledEffects = player.world.effects.space.DownsampleSet(viewScale);
-            HashSet<(int, int)> rendered = new HashSet<(int, int)>();
+            var rendered = new HashSet<(int, int)>();
             foreach ((var p, HashSet<Entity> set) in scaledEntities.space) {
-                var visible = set.Where(t => !(t is ISegment))
-                    .Where(t => t.tile != null);
+                var visible = set.Where(t => t is not ISegment && t.tile != null && player.GetVisibleDistanceLeft(t) > 0);
                 if (visible.Any()) {
                     var e = visible.ElementAt((int)time % visible.Count());
                     var offset = (e.position - player.position) / viewScale;
@@ -810,6 +808,8 @@ public class Megamap : Console {
                     }
                 }
             }
+            /*
+            var scaledEffects = player.world.effects.space.DownsampleSet(viewScale);
             foreach ((var p, HashSet<Effect> set) in scaledEffects.space) {
                 var visible = set.Where(t => !(t is ISegment)).Where(t => t.tile != null);
                 if (visible.Any()) {
@@ -827,6 +827,7 @@ public class Megamap : Console {
                     }
                 }
             }
+            */
         }
         base.Render(delta);
     }

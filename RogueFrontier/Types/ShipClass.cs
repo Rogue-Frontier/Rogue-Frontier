@@ -17,6 +17,7 @@ public class ShipClass : IDesignType {
     [Req] public double rotationDecel;
     [Req] public double rotationAccel;
     [Opt] public bool crimeOnDestroy;
+    [Opt] public double stealth;
     public EShipBehavior behavior;
     public StaticTile tile;
     public HullSystemDesc damageDesc;

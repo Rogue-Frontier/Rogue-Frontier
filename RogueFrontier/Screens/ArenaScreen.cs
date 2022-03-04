@@ -63,22 +63,18 @@ class ArenaScreen : Console {
             var sovereign = Sovereign.Gladiator;
             List<Item> cargo = new List<Item>();
             List<Device> devices = new List<Device>();
-
             AddSovereignField();
             AddStationField();
             AddShipField();
             AddCargoField();
             AddDeviceField();
-
             void AddSovereignField() {
-
                 var x = 1;
                 var y = 7;
                 var label = new Label("Sovereign") { Position = new Point(x, y++) };
                 var sovereignField = new TextField(24) { Position = new Point(x, y++) };
                 ButtonList buttons = new ButtonList(this, new Point(x, y++));
                 sovereignField.TextChanged += _ => UpdateSovereignListing();
-
                 Children.Add(label);
                 Children.Add(sovereignField);
                 UpdateSovereignLabel();
@@ -87,36 +83,29 @@ class ArenaScreen : Console {
                     var text = sovereignField.text;
                     buttons.Clear();
                     var sovereignDict = World.types.GetDict<Sovereign>();
-
                     int i = 0;
                     foreach (var type in sovereignDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
-                        buttons.Add(type, (Action)(() => {
-                            sovereign = sovereignDict[type];
+                        buttons.Add(type, () => {
+                            sovereign = (sovereign == sovereignDict[type]) ? null : sovereignDict[type];
                             UpdateSovereignLabel();
-                        }));
-
+                        });
                         if (++i > 16) {
                             break;
                         }
                     }
                 }
-                void UpdateSovereignLabel() {
-                    label.text = new ColoredString($"Sovereign: {sovereign.codename}");
-                }
+                void UpdateSovereignLabel() =>
+                    label.text = new ColoredString($"Sovereign: {sovereign?.codename ?? "None"}");
             }
-
-
             void AddStationField() {
                 var x = 1 + 32;
                 var y = 7;
-
                 Children.Add(new Label("Spawn Station") { Position = new Point(x, y++) });
                 var stationField = new TextField(24) { Position = new Point(x, y++) };
                 ButtonList buttons = new ButtonList(this, new Point(x, y++));
                 stationField.TextChanged += _ => UpdateStationListing();
                 Children.Add(stationField);
                 UpdateStationListing();
-
                 void UpdateStationListing() {
                     var text = stationField.text;
                     buttons.Clear();
@@ -125,8 +114,10 @@ class ArenaScreen : Console {
                     int i = 0;
                     foreach (var type in stationTypeDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
                         buttons.Add(type, () => {
-                            var station = new Station(World, stationTypeDict[type], camera) { sovereign = sovereign };
-
+                            var station = new Station(World, stationTypeDict[type], camera);
+                            if(sovereign != null) {
+                                station.sovereign = sovereign;
+                            }
                             if (cargo.Any()) {
                                 station.cargo.Clear();
                                 station.cargo.UnionWith(cargo.Select(s => new Item(s)));
@@ -168,7 +159,7 @@ class ArenaScreen : Console {
                     int i = 0;
                     foreach (var type in shipClassDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
                         buttons.Add(type, () => {
-                            var ship = new AIShip(new BaseShip(World, shipClassDict[type], camera), sovereign, new AttackAllOrder());
+                            var ship = new AIShip(new(World, shipClassDict[type], camera), sovereign ?? Sovereign.Gladiator, new AttackAllOrder());
 
                             if (cargo.Any()) {
                                 ship.cargo.Clear();

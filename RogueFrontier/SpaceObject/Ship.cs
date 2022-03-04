@@ -32,6 +32,23 @@ public static class SShip {
         return owner != target;
     }
 }
+public static class SStealth {
+    public static bool IsVisible(this PlayerShip p, Entity e) => p.GetVisibleDistanceLeft(e) > 0;
+    public static double GetVisibleDistanceLeft(this PlayerShip p, Entity e) => e switch {
+        AIShip ai => GetVisibleRange(ai.shipClass.stealth) - (e.position - p.position).magnitude,
+        Station st => GetVisibleRange(st.type.stealth) - (e.position - p.position).magnitude,
+        _ => double.PositiveInfinity
+    };
+    public static double GetVisibleRange(double stealth) => stealth switch {
+        > 0 => 250 / stealth,
+        0 => double.PositiveInfinity,
+        < 0 => throw new Exception($"Invalid stealth {stealth}")
+    };
+    public static double GetVisibleRange2(double stealth) {
+        var result = GetVisibleRange(stealth);
+        return result * result;
+    }
+}
 public interface IShip : ActiveObject {
     XY position { get; set; }
     XY velocity { get; set; }
@@ -152,7 +169,7 @@ public class BaseShip : StructureObject {
     }
     public void Damage(Projectile p) {
         ReduceDamage(p);
-        damageSystem.Damage(world.tick, p, Destroy);
+        damageSystem.Damage(world.tick, p, () => Destroy(p.source));
     }
     public void Destroy(ActiveObject source) {
         var items = cargo.Concat(
@@ -291,41 +308,22 @@ public static class SShipBehavior {
         behavior.GetOrder()?.GetType().Name ?? "Unknown";
 }
 public class AIShip : IShip {
-    [JsonIgnore]
-    public int id => ship.id;
-    [JsonIgnore]
-    public string name => ship.name;
-    [JsonIgnore]
-    public System world => ship.world;
-    [JsonIgnore]
-    public ShipClass shipClass => ship.shipClass;
-    [JsonIgnore]
-    public XY position { get => ship.position; set => ship.position = value; }
-    [JsonIgnore]
-    public XY velocity { get => ship.velocity; set => ship.velocity = value; }
-    [JsonIgnore]
-    public double rotationDeg => ship.rotationDeg;
-    [JsonIgnore]
-    public HashSet<Item> cargo => ship.cargo;
-    [JsonIgnore]
-    public DeviceSystem devices => ship.devices;
-    [JsonIgnore]
-    public HullSystem damageSystem => ship.damageSystem;
-    [JsonIgnore]
-    public Rand destiny => ship.destiny;
-    [JsonIgnore]
-    public double stoppingRotation => ship.stoppingRotation;
-    [JsonIgnore]
-    public HashSet<Entity> avoidHit => new HashSet<Entity> {
-        dock?.Target,
-        (behavior as GuardOrder)?.home
-    };
-    public bool dockable => false;
+    [JsonIgnore] public int id => ship.id;
+    [JsonIgnore] public string name => ship.name;
+    [JsonIgnore] public System world => ship.world;
+    [JsonIgnore] public ShipClass shipClass => ship.shipClass;
+    [JsonIgnore] public XY position { get => ship.position; set => ship.position = value; }
+    [JsonIgnore] public XY velocity { get => ship.velocity; set => ship.velocity = value; }
+    [JsonIgnore] public double rotationDeg => ship.rotationDeg;
+    [JsonIgnore] public HashSet<Item> cargo => ship.cargo;
+    [JsonIgnore] public DeviceSystem devices => ship.devices;
+    [JsonIgnore] public HullSystem damageSystem => ship.damageSystem;
+    [JsonIgnore] public Rand destiny => ship.destiny;
+    [JsonIgnore] public double stoppingRotation => ship.stoppingRotation;
+    [JsonIgnore] public HashSet<Entity> avoidHit => new HashSet<Entity> { dock?.Target, (behavior as GuardOrder)?.home };
     public Docking dock { get; set; }
-
     public delegate void Destroyed(AIShip ship, ActiveObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
-
     public BaseShip ship;
     public Sovereign sovereign { get; set; }
     //IShipBehavior and IShipOrder have the same interface but different purpose
@@ -345,7 +343,7 @@ public class AIShip : IShip {
     public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
     public void SetDecelerating(bool decelerating = true) => ship.SetDecelerating(decelerating);
-    public void Damage(Projectile p) => ship.damageSystem.Damage(world.tick, p, Destroy);
+    public void Damage(Projectile p) => ship.damageSystem.Damage(world.tick, p, () => Destroy(p.source));
     public void Destroy(ActiveObject source) {
         if (source is PlayerShip ps) {
             ps.shipsDestroyed.Add(this);
@@ -448,6 +446,8 @@ public class PlayerShip : IShip {
 
 
     public List<AIShip> wingmates = new();
+
+    public Dictionary<Entity, double> visibleDistanceLeft=new();
     public PlayerShip() { }
     public PlayerShip(Player player, BaseShip ship, Sovereign sovereign) {
         this.player = player;
@@ -706,10 +706,10 @@ public class PlayerShip : IShip {
         ship.damageSystem.Damage(world.tick, p, DestroyCheck);
 
         //Check for saving throws
-        void DestroyCheck(ActiveObject o) {
+        void DestroyCheck() {
             powers.ForEach(power => power.OnDestroyCheck(this, p));
             ship.ReduceDamage(p);
-            ship.damageSystem.Damage(world.tick, p, Destroy);
+            ship.damageSystem.Damage(world.tick, p, () => Destroy(p.source));
         }
 
         if (!active) {
@@ -731,6 +731,8 @@ public class PlayerShip : IShip {
     public void Destroy(ActiveObject source) {
         ship.Destroy(source);
     }
+
+    public double GetVisibleDistanceLeft(Entity e) => visibleDistanceLeft.TryGetValue(e, out var d) ? d : double.PositiveInfinity;
     public void Update() {
         messages.ForEach(m => m.Update());
         messages.RemoveAll(m => !m.Active);
@@ -762,9 +764,18 @@ public class PlayerShip : IShip {
         }
 
         ticks++;
+
+        if(ticks%10 == 0) {
+            visibleDistanceLeft.Clear();
+            world.entities.all.Select(e => e switch {
+                Station st => visibleDistanceLeft[st] = SStealth.GetVisibleRange(st.type.stealth) - (e.position - position).magnitude,
+                AIShip ai => visibleDistanceLeft[ai] = SStealth.GetVisibleRange(ai.shipClass.stealth) - (e.position - position).magnitude,
+            });
+        }
+
         if (ticks % 60 == 0) {
             visible = new HashSet<Entity>(world.entities.GetAll(p => (position - p).maxCoord < 50));
-            foreach (var s in visible.OfType<Station>().Where(s => !known.Contains(s))) {
+            foreach (var s in visible.OfType<Station>().Except(known)) {
                 AddMessage(new Transmission(s, $"Discovered: {s.type.name}"));
                 known.Add(s);
             }

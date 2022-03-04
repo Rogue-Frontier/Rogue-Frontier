@@ -616,7 +616,7 @@ public class Solar : Device, PowerSource {
         }
     }
 }
-public class Weapon : Device {
+public class Weapon : Device, IContainer<Projectile.OnHitActive> {
     [JsonProperty]
     public Item source { get; private set; }
     public WeaponDesc desc;
@@ -632,6 +632,9 @@ public class Weapon : Device {
     public int repeatsLeft;
     public double angle;
     public XY offset=new(0,0);
+
+    public delegate void OnFire(Weapon w, List<Projectile> p);
+    public FuncSet<IContainer<OnFire>> onFire=new();
     public Weapon() { }
     public Weapon(Item source, WeaponDesc desc) {
         this.source = source;
@@ -783,6 +786,11 @@ public class Weapon : Device {
             ammo?.CheckFire(ref firing);
 
             if (firing) {
+                delay = desc.fireCooldown;
+                if (beginRepeat) {
+                    repeatsLeft = desc.repeat;
+                }
+
                 Fire(owner, direction.Value);
 
                 //Apply on next tick (create a delta-momentum variable)
@@ -790,10 +798,6 @@ public class Weapon : Device {
                     owner.velocity += XY.Polar(direction.Value + Math.PI, desc.recoil);
                 }
 
-                delay = desc.fireCooldown;
-                if (beginRepeat) {
-                    repeatsLeft = desc.repeat;
-                }
             } else {
                 repeatsLeft = 0;
             }
@@ -812,14 +816,24 @@ public class Weapon : Device {
     public void Fire(ActiveObject owner, double direction, List<Projectile> result = null) {
         var projectiles = projectileDesc.GetProjectiles(owner, target, direction, offset);
         projectiles.ForEach(owner.world.AddEntity);
+        projectiles.ForEach(p => p.onHitActive += this);
         result?.AddRange(projectiles);
         ammo?.OnFire();
         capacitor?.OnFire();
+        onFire.ForEach(f => f(this, projectiles));
         if(owner is PlayerShip p) {
             p.onWeaponFire.ForEach(f => f(p, this, projectiles));
         }
     }
+    Projectile.OnHitActive IContainer<Projectile.OnHitActive>.Value => (projectile, hit) => {
+        projectile.onHitActive -= this;
+        if (projectileDesc.lightning && projectile.hitHull) {
+            hit.world.AddEntity(new LightningRod(hit, this));
+        }
+    };
+
     public ActiveObject target => aiming?.target;
+
     public void OverrideTarget(ActiveObject target) {
         if (aiming != null) {
             aiming.ClearTarget();

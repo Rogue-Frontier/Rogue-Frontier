@@ -26,7 +26,7 @@ public class Cable : Entity {
 }
 public class Hook : Entity {
     public StructureObject attached, source;
-    List<Cable> segments;
+    List<Cable> segments=new();
     public Hook(StructureObject attached, StructureObject source) {
         this.attached = attached;
         this.source = source;
@@ -41,7 +41,7 @@ public class Hook : Entity {
         }
 
         var direction = offset.normal;
-        segments = new(Enumerable.Range(1, distance).Select(
+        segments.AddRange(Enumerable.Range(1, distance).Select(
             i => new Cable(this, source.position + direction * i)));
         segments.ForEach(attached.world.AddEntity);
     }
@@ -71,5 +71,58 @@ public class Hook : Entity {
             segments.GetRange(length - remove, remove).ForEach(s=>s.active=false);
             segments.RemoveRange(length - remove, remove);
         }
+    }
+}
+public class LightningRod : Entity, IContainer<Weapon.OnFire>, IContainer<Projectile.OnHitActive> {
+    public ActiveObject target;
+    public Weapon source;
+    public int lifetime;
+    public LightningRod(ActiveObject target, Weapon source) {
+        this.id = target.world.nextId++;
+
+        this.target = target;
+        this.source = source;
+        this.lifetime = 60;
+        source.onFire += this;
+    }
+    Weapon.OnFire IContainer<Weapon.OnFire>.Value => (weapon, projectiles) => {
+        if (!active) {
+            weapon.onFire -= this;
+            return;
+        }
+        weapon.delay = 5;
+        projectiles.ForEach(p => {
+            if (!p.active) { return; }
+            var source = p.source;
+            var direction = Main.CalcFireAngle(target.position - p.position, target.velocity - source.velocity, 300, out var _);
+            p.velocity = source.velocity + XY.Polar(direction, 300);
+            p.onHitActive -= weapon;
+            p.onHitActive += this;
+            //target.Damage(p);
+            //p.lifetime = 0;
+        });
+    };
+    Projectile.OnHitActive IContainer<Projectile.OnHitActive>.Value => (p, hit) => {
+        if(hit != target) {
+            return;
+        }
+        if (!active) {
+            return;
+        }
+        if (p.hitHull) {
+            lifetime = 60;
+        }
+    };
+
+    public int id { get; set; }
+
+    public XY position => target.position;
+
+    public bool active => target.active && lifetime>0;
+
+    public ColoredGlyph tile => null;
+
+    public void Update() {
+        lifetime--;
     }
 }

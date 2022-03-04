@@ -118,7 +118,7 @@ public class XY {
     [JsonIgnore]
     public double manhattan => Math.Abs(x) + Math.Abs(y);
     [JsonIgnore]
-    public double magnitude => Math.Sqrt(x * x + y * y);
+    public double magnitude => Math.Sqrt(magnitude2);
     [JsonIgnore]
     public double magnitude2 => (x * x + y * y);
     [JsonIgnore]

@@ -843,7 +843,7 @@ public static class Main {
     //https://stackoverflow.com/a/28037434
     public static double AngleDiff(double angle1, double angle2) {
         double diff = (angle2 - angle1 + 180) % 360 - 180;
-
+        //FIX THIS
         while(diff < 0) {
             diff += 180;
         }

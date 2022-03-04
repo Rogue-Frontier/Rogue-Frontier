@@ -379,6 +379,7 @@ public record FragmentDesc {
     [Opt] public bool hitBarrier = true;
     [Opt] public int ricochet;
     [Opt] public bool hook;
+    [Opt] public bool lightning;    //On hit, the projectile attaches an overlay that automatically makes future shots hit instantly
     /// <summary>
     /// If armor integrity ratio is below this amount, then we bypass the armor completely and go to the next layer
     /// </summary>
@@ -423,15 +424,18 @@ public record FragmentDesc {
     public List<Projectile> GetProjectiles(ActiveObject owner, ActiveObject target, double direction, XY offset = null) {
         var position = owner.position + offset??new(0,0);
         double angleInterval = spreadAngle / count;
-        return new(Enumerable.Range(0, count).Select(i => {
+
+        var projectiles = new List<Projectile>();
+        projectiles.AddRange(Enumerable.Range(0, count).Select(i => {
             double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
             return new Projectile(owner, this,
                 position + XY.Polar(angle),
                 owner.velocity + XY.Polar(angle, missileSpeed),
                 angle,
                 GetManeuver(target)
-                );
+                ) { siblings = projectiles };
         }));
+        return projectiles;
     }
     public Maneuver GetManeuver(ActiveObject target) =>
         (acquireTarget && target != null) ? new(target, maneuver, maneuverRadius) : null;

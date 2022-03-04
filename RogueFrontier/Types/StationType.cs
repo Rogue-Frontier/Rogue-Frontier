@@ -13,6 +13,7 @@ public class StationType : IDesignType {
     [Req] public string name;
     [Req] public int hp;
     [Opt] public bool crimeOnDestroy;
+    [Opt] public double stealth;
     public FragmentDesc explosionType;
 
     public Station.Behaviors behavior;

@@ -19,8 +19,8 @@
 		>
 		<Weapon
 			powerUse=		"50"
-			fireCooldown=	"15"
-			initialCharges=	"400"
+			fireCooldown=	"20"
+			initialCharges=	"320"
 			>
 			<Projectile	
 				missileSpeed=	"30"
@@ -59,7 +59,7 @@
 				spreadAngle=	"15/2"
 				count=			"18"
 				glyph=			"."
-				foreground=		"SpringGreen"
+				foreground=		"FF7777FF"
 				background=		"Transparent"
 				>
 				<Decay lifetime="600" rate="1/60"/>
@@ -68,7 +68,7 @@
 	</ItemType>
 
 	<ItemType	codename=	"item_sand_bomb_cannon"
-		name=		"Sand bomb cannon"
+		name=		"Sand blaster"
 		mass=		"5000"
 		level=		"1"
 
@@ -76,39 +76,26 @@
 		>
 		<Weapon
 			powerUse=		"30"
-			fireCooldown=	"60"
-			initialCharges=	"200"
+			fireCooldown=	"10"
+			initialCharges=	"480"
 			>
 			<Projectile
+				count=			"4"
+				spreadAngle=	"8"
+					
 				missileSpeed=	"20"
 				damageType=		"2"
-				damageHP=		"3"
-				lifetime=		"240"
-				
+				damageHP=		"2"
+				lifetime=		"150"
+					
 				hitProjectile=	"true"
-
-				glyph=			"="
+					
+				ricochet=		"4"
+					
+				glyph=			"."
 				foreground=		"SpringGreen"
 				background=		"Transparent"
 				>
-				<Fragment
-					count=			"48"
-					spreadAngle=	"360"
-					
-					missileSpeed=	"20"
-					damageType=		"2"
-					damageHP=		"2"
-					lifetime=		"150"
-					
-					hitProjectile=	"true"
-					
-					ricochet=		"4"
-					
-					glyph=			"."
-					foreground=		"SpringGreen"
-					background=		"Transparent"
-					>
-				</Fragment>
 			</Projectile>
 		</Weapon>
 	</ItemType>
@@ -179,7 +166,7 @@
 					lifetime=		"90"
 					
 					glyph=			"."
-					foreground=		"SpringGreen"
+					foreground=		"FF7777FF"
 					background=		"Transparent"
 					>
 					<Decay lifetime="600" rate="1/60"/>
@@ -247,33 +234,33 @@
 		<Segments>
 
 			<Point offsetX="-1" offsetY="1"
-				   glyph="/" foreground="Yellow"/>
+				   glyph="/" foreground="YellowGreen"/>
 			<Point offsetX="0" offsetY="1"
-				   glyph="-" foreground="Yellow"/>
+				   glyph="-" foreground="YellowGreen"/>
 			<Point offsetX="1" offsetY="1"
-				   glyph="\" foreground="Yellow"/>
+				   glyph="\" foreground="YellowGreen"/>
 
 			<Point offsetX="-1" offsetY="-1"
-				   glyph="\" foreground="Yellow"/>
+				   glyph="\" foreground="YellowGreen"/>
 			<Point offsetX="0" offsetY="-1"
-				   glyph="-" foreground="Yellow"/>
+				   glyph="-" foreground="YellowGreen"/>
 			<Point offsetX="1" offsetY="-1"
-				   glyph="/" foreground="Yellow"/>
+				   glyph="/" foreground="YellowGreen"/>
 
 
 			<Point offsetX="-1" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
+				   glyph="-" foreground="YellowGreen"/>
 			<Point offsetX="-2" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
+				   glyph="-" foreground="YellowGreen"/>
 			<Point offsetX="-3" offsetY="0"
-				   glyph="+" foreground="Yellow"/>
+				   glyph="+" foreground="YellowGreen"/>
 
 			<Point offsetX="1" offsetY="0"
-					glyph="-" foreground="Yellow"/>
+					glyph="-" foreground="YellowGreen"/>
 			<Point offsetX="2" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
+				   glyph="-" foreground="YellowGreen"/>
 			<Point offsetX="3" offsetY="0"
-				   glyph="+" foreground="Yellow"/>
+				   glyph="+" foreground="YellowGreen"/>
 
 		</Segments>
 

@@ -18,7 +18,7 @@ public interface HullSystem {
     void Restore();
     int GetHP();
     int GetMaxHP();
-    void Damage(int tick, Projectile p, Action<ActiveObject> Destroy);
+    void Damage(int tick, Projectile p, Action Destroy);
 }
 public class HP : HullSystem {
     public int maxHP;
@@ -28,14 +28,16 @@ public class HP : HullSystem {
         this.maxHP = maxHP;
         this.hp = maxHP;
     }
-    public void Damage(int tick, Projectile p, Action<ActiveObject> Destroy) {
-        Handle:
+    public void Damage(int tick, Projectile p, Action Destroy) {
+        if (p.damageHP == 0)
+            return;
+        p.hitHull = true;
         var absorbed = Math.Min(hp, p.damageHP);
         hp -= absorbed;
         p.damageHP -= absorbed;
         lastDamageTick = tick;
         if (hp < 1) {
-            Destroy(p.source);
+            Destroy();
         }
     }
     public int GetHP() => hp;
@@ -49,9 +51,10 @@ public class LayeredArmor : HullSystem {
     public LayeredArmor(List<Armor> layers) {
         this.layers = layers;
     }
-    public void Damage(int tick, Projectile p, Action<ActiveObject> Destroy) {
+    public void Damage(int tick, Projectile p, Action Destroy) {
         if (p.damageHP == 0)
             return;
+        p.hitHull = true;
         foreach (var i in Enumerable.Range(0, layers.Count).Reverse()) {
             var layer = layers[i];
             if (layer == null)
@@ -72,7 +75,7 @@ public class LayeredArmor : HullSystem {
             if (p.damageHP == 0)
                 return;
         }
-        Destroy(p.source);
+        Destroy();
     }
     public List<ColoredString> GetDesc() =>
         new List<ColoredString>(layers.GroupBy(l => l.source.type).Select(l => new ColoredString(l.First().source.type.name + $" (x{l.Count()})")));

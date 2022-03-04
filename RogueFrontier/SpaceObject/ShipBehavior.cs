@@ -198,7 +198,7 @@ public class ApproachOrder : IShipOrder {
     }
     public bool Active => true;
 }
-public class GuardOrder : IShipOrder, IDestructionEvents {
+public class GuardOrder : IShipOrder {
     [JsonProperty]
     public ActiveObject home { get; private set; }
     [JsonProperty]
@@ -208,16 +208,8 @@ public class GuardOrder : IShipOrder, IDestructionEvents {
     public int attackTime;
     public int ticks;
 
-    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => { };
-    AIShip.Destroyed IContainer<AIShip.Destroyed>.Value => (s, d, w) => { };
-    PlayerShip.Destroyed IContainer<PlayerShip.Destroyed>.Value => (s, d, w) => { };
     public GuardOrder(ActiveObject home) {
         this.home = home;
-        switch (home) {
-            case Station s: s.onDestroyed += this;break;
-            case AIShip s: s.onDestroyed += this; break;
-            case PlayerShip s: s.onDestroyed += this; break;
-        }
         approach = new(home);
         attackOrder = new(null);
         attackTime = 0;
