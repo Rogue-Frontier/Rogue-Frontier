@@ -94,24 +94,20 @@ public class Projectile : MovingObject {
                             hit.Damage(this);
                             var angle = (hit.position - position).angleRad;
                             world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 10));
-
                             if(ricochet > 0) {
                                 ricochet--;
                                 velocity = -velocity;
                                 //velocity += (hit.velocity - velocity) / 2;
                                 //stop = true;
                             } else {
-                                onHitActive.ForEach(f => f(this, hit));
-                                Fragment();
-                                if (fragment.hook) {
+                                if (fragment.hook && hitHull) {
                                     world.AddEntity(new Hook(hit, source));
                                 }
-
-
+                                onHitActive.ForEach(f => f(this, hit));
+                                Fragment();
+                                
                                 lifetime = 0;
                                 destroyed = true;
-
-
                                 //new FlashDesc() { intensity = 5000 }.Create(world, position);
                             }
                             break;
@@ -126,7 +122,6 @@ public class Projectile : MovingObject {
                                 destroyed = true;
                             }
                             */
-
                             p.lifetime = 0;
                             lifetime = 0;
                             destroyed = true;

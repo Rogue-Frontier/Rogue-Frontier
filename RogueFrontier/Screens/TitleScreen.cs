@@ -313,13 +313,10 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         Environment.Exit(0);
     }
     public override void Update(TimeSpan timeSpan) {
-
         World.UpdateActive();
         World.UpdatePresent();
-
         tiles.Clear();
         World.PlaceTiles(tiles);
-
         if (World.entities.all.OfType<IShip>().Count() < 5) {
             var shipClasses = World.types.Get<ShipClass>();
             var shipClass = shipClasses.ElementAt(World.karma.NextInteger(shipClasses.Count));
@@ -369,7 +366,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         this.Clear();
         var titleY = 0;
         foreach (var line in title) {
-            this.Print(0, titleY, line, Color.White, Color.Transparent);
+            this.Print(0, titleY, line, Color.White, Color.Black);
             titleY++;
         }
 

@@ -101,6 +101,8 @@ public class XY {
 
     public static implicit operator (int, int)(XY p) => (p.xi, p.yi);
     public static implicit operator (double, double)(XY p) => (p.x, p.y);
+    public static explicit operator XY((int x, int y) p) => new XY(p.x, p.y);
+    public static explicit operator XY((double x, double y) p) => new XY(p.x, p.y);
 
     public double Dot(XY other) => x * other.x + y * other.y;
     [JsonIgnore]

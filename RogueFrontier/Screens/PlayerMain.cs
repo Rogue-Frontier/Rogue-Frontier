@@ -749,34 +749,26 @@ public class Megamap : Console {
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
                     var offset = new XY((x - screenCenter.x) * viewScale, (y - screenCenter.y) * viewScale).Rotate(-camera.rotation);
-
                     var pos = player.position + offset;
-
-                    bool IsVisible(ColoredGlyph cg) {
-                        return cg.GlyphCharacter != ' ' || cg.Background != Color.Transparent;
-
-                    }
+                    bool IsVisible(ColoredGlyph cg) =>
+                        cg.GlyphCharacter != ' ' || cg.Background != Color.Transparent;
                     void Render(ColoredGlyph cg) {
                         var glyph = cg.Glyph;
                         var background = cg.Background.PremultiplySet(alpha);
                         var foreground = cg.Foreground.PremultiplySet(alpha);
                         this.SetCellAppearance(x, Height - y, new ColoredGlyph(foreground, background, glyph));
                     }
-
                     var environment = player.world.backdrop.planets.GetTile(pos.Snap(viewScale), XY.Zero);
                     if (IsVisible(environment)) {
                         Render(environment);
                         continue;
                     }
-
                     environment = player.world.backdrop.nebulae.GetTile(pos.Snap(viewScale), XY.Zero);
                     if (IsVisible(environment)) {
                         Render(environment);
                         continue;
                     }
-
                     var starlight = player.world.backdrop.starlight.GetTile(pos).PremultiplySet(255);
-
                     var cg = this.background.GetTileFixed(new XY(x, y));
                     //Make sure to clone this so that we don't apply alpha changes to the original
                     var glyph = cg.Glyph;
@@ -785,23 +777,21 @@ public class Megamap : Console {
                     this.SetCellAppearance(x, Height - y, new ColoredGlyph(foreground, background, glyph));
                 }
             }
-
             var visiblePerimeter = new Rectangle(new(Width / 2, Height / 2), (int)(Width / (viewScale * 2) - 1), (int)(Height / (viewScale * 2) - 1));
             foreach (var point in visiblePerimeter.PerimeterPositions()) {
                 var b = this.GetBackground(point.X, point.Y);
                 this.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, (int)(128/viewScale))));
             }
-
-            var scaledEntities = player.world.entities.space.DownsampleSet(viewScale);
+            var scaledEntities = player.world.entities.space.DownsampleSet(viewScale, -player.position);
             var rendered = new HashSet<(int, int)>();
-            foreach ((var p, HashSet<Entity> set) in scaledEntities.space) {
-                var visible = set.Where(t => t is not ISegment && t.tile != null && player.GetVisibleDistanceLeft(t) > 0);
-                if (visible.Any()) {
-                    var e = visible.ElementAt((int)time % visible.Count());
-                    var offset = (e.position - player.position) / viewScale;
-                    var (x, y) = screenCenter + offset.Rotate(-camera.rotation);
-                    y = Height - y;
-                    if (x > -1 && x < Width && y > -1 && y < Height) {
+            foreach ((var offset, var ent) in scaledEntities.space) {
+                var (x, y) = screenCenter + ((XY)offset).Rotate(-camera.rotation);
+                x += 1;
+                y = Height - y - 1;
+                if (x > -1 && x < Width && y > -1 && y < Height) {
+                    var visible = ent.Where(t => t is not ISegment && t.tile != null);
+                    if (visible.Any()) {
+                        var e = visible.ElementAt((int)time % visible.Count());
                         var t = new ColoredGlyph(e.tile.Foreground, this.GetBackground(x, y), e.tile.Glyph);
                         this.SetCellAppearance(x, y, t);
                         rendered.Add((x, y));

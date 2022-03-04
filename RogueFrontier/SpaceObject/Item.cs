@@ -220,7 +220,6 @@ public class Armor : Device {
             }
             return;
         }
-
         var absorbed = Math.Min(hp, amount);
         hp -= absorbed;
         OnAbsorb(absorbed);
@@ -254,16 +253,13 @@ public class Armor : Device {
                 return killHP;
             }
         }
-
         var absorbed = Math.Min(hp, p.damageHP);
         hp -= absorbed;
         OnAbsorb(absorbed);
         if (killHP > 0 && absorbed > killHP) {
             killHP = 0;
         }
-
         lastDamageTick = p.world.tick;
-
         p.damageHP -= absorbed;
         if (p.fragment.decay is Decay d) {
             decay.Add(new(d.lifetime, d.rate));
@@ -564,7 +560,7 @@ public class Shield : Device {
         }
     }
     public void Absorb(Projectile p) {
-        var absorbed = Math.Min(maxAbsorb, (int)(p.damageHP * absorbFactor));
+        var absorbed = (int)Math.Clamp(p.damageHP * (1 - p.fragment.shieldPass) * absorbFactor, 0, maxAbsorb);
         if (absorbed > 0) {
             hp -= absorbed;
             lifetimeDamageAbsorbed += absorbed;

@@ -27,24 +27,45 @@ public static class Main {
         e.ElementAt(r.NextInteger(e.Count()));
     public static T GetRandomOrDefault<T>(this IEnumerable<T> e, Rand r) =>
         e.Any() ? e.ElementAt(r.NextInteger(e.Count())) : default(T);
-    public static SetDict<(int, int), T> Downsample<T>(this Dictionary<(int, int), T> from, double scale) {
+    public static SetDict<(int, int), T> Downsample<T>(this Dictionary<(int, int), T> from, double scale, XY offset = null) {
+        offset ??= new(0, 0);
         var result = new SetDict<(int, int), T>();
-        foreach (((int x, int y) p, var items) in from) {
-            result.Add(new XY((p.x / scale), (int)(p.y / scale)).roundDown, items);
+        foreach (((int x, int y) p, var i) in from) {
+            result.Add((((XY)p + offset) / scale).roundDown, i);
         }
         return result;
     }
-    public static SetDict<(int, int), T> DownsampleSet<T>(this Dictionary<(int, int), HashSet<T>> from, double scale) {
+    public static SetDict<(int, int), T> DownsampleSet<T>(this Dictionary<(int, int), HashSet<T>> from, double scale, XY offset = null) {
+        offset ??= new(0, 0);
         var result = new SetDict<(int, int), T>();
         foreach (((int x, int y) p, var items) in from) {
-            result.AddRange(new XY((p.x / scale), (int)(p.y / scale)).roundDown, items);
+            result.AddRange((((XY)p + offset) / scale).roundDown, items);
         }
         return result;
     }
-    public static SetDict<(int, int), T> DownsampleSet<T>(this Dictionary<(int, int), HashSet<T>> from, double scale, Func<T, bool> filter) {
+    public static SetDict<(int, int), T> DownsampleSet<T>(this Dictionary<(int, int), HashSet<T>> from, double scale, Func<T, bool> filter, XY offset = null) {
+        offset ??= new(0, 0);
         var result = new SetDict<(int, int), T>();
         foreach (((int x, int y) p, var items) in from) {
-            result.AddRange(new XY((p.x / scale), (int)(p.y / scale)).roundDown, items.Where(filter));
+            var i = items.Where(filter);
+            if (i.Any()) {
+                result.AddRange((((XY)p + offset) / scale).roundDown, i);
+            }
+        }
+        return result;
+    }
+    public static SetDict<(int, int), T> DownsampleSet<T>(this Dictionary<(int, int), HashSet<T>> from, double scale, Func<T, bool> filter, XY offset = null, Predicate<(int, int)> posFilter = null) {
+        offset ??= new(0, 0);
+        var result = new SetDict<(int, int), T>();
+        foreach (((int x, int y) p, var items) in from) {
+            var scaled = (((XY)p + offset) / scale).roundDown;
+            if (posFilter(scaled)) {
+                var i = items.Where(filter);
+                if (i.Any()) {
+                    result.AddRange(scaled, i);
+                }
+            }
+            
         }
         return result;
     }

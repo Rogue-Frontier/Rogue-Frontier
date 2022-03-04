@@ -368,6 +368,7 @@ public record FragmentDesc {
     [Opt] public int shock;
     [Req] public int lifetime;
     [Opt] public bool passthrough;
+    [Opt] public double shieldPass;
     /// <summary>
     /// If true, then the weapon has Targeting
     /// </summary>
