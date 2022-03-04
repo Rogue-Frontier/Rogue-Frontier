@@ -365,7 +365,7 @@ public record FragmentDesc {
     [Req] public int damageType;
     [Req] public IDice damageHP;
     [Opt] public int knockback;
-    [Opt] public int shock;
+    [Opt] public int shock = 1;
     [Req] public int lifetime;
     [Opt] public bool passthrough;
     [Opt] public double shieldPass;

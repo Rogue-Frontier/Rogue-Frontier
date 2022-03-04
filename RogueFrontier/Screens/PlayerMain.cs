@@ -1285,7 +1285,6 @@ public class Readout : Console {
                     + new ColoredString($"[{totalUsed,3}/{totalMax,3}] Total Power", Color.White, b)
                     );
             }
-
             PrintTotalPower();
             foreach (var reactor in reactors) {
                 ColoredString bar;
@@ -1399,18 +1398,16 @@ public class Readout : Console {
                 foreach (var s in shields) {
                     string name = s.source.type.name;
                     var f = player.energy.off.Contains(s) ? Color.Gray :
-                        s.hp == 0 ? Color.Yellow :
-                        s.delay > 0 ? Color.Yellow :
+                        s.hp == 0 || s.delay > 0 ? Color.Yellow :
                         s.hp < s.desc.maxHP ? Color.Cyan :
                         Color.White;
 
                     int l = 16 * s.hp / s.desc.maxHP;
-                    this.Print(x, y,
-                        new ColoredString("[", f, b)
-                        + new ColoredString(new('>', l), f, b)
-                        + new ColoredString(new('>', 16-l), Color.Gray, b)
-                        + new ColoredString("-[", f, b)
-                        + new ColoredString(name, f, b));
+                    this.Print(x, y, "[", f, b);
+                    this.Print(x + 1, y, new('>', 16), Color.Gray, b);
+                    this.Print(x + 1, y, new('>', l), f, b);
+                    this.Print(x + 1 + 16, y, $"-[{name} [{s.hp} / {s.desc.maxHP}]", f, b);
+
                     y++;
                 }
                 y++;
@@ -1418,14 +1415,15 @@ public class Readout : Console {
             switch (player.ship.damageSystem) {
                 case LayeredArmor las:
                     var back = Color.Black;
-                    las.layers.ForEach(armor => {
+                    foreach(var armor in las.layers.Reverse<Armor>()) {
                         var fore = (player.world.tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
+                        int l = 16 * armor.hp / armor.desc.maxHP;
                         this.Print(x, y, "[", fore, back);
-                        this.Print(x + 1, y, new string('>', 16), Color.Gray, back);
-                        this.Print(x + 1, y, new string('>', 16 * armor.hp / armor.desc.maxHP), fore, back);
-                        this.Print(x + 1 + 16, y, $"-[{armor.source.type.name}", fore, back);
+                        this.Print(x + 1, y, new('>', 16), Color.Gray, back);
+                        this.Print(x + 1, y, new('>', l), fore, back);
+                        this.Print(x + 1 + 16, y, $"-[{armor.source.type.name} [{armor.hp} / {armor.desc.maxHP}]", fore, back);
                         y++;
-                    });
+                    }
                     break;
                 case HP hp:
                     this.Print(x, y, $"HP: {hp.hp}", Color.White, Color.Black);

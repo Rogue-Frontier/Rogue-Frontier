@@ -205,7 +205,7 @@ public class Armor : Device {
         damageDelay = 30;
     }
     public void Absorb(int amount) {
-        if(hp == 0 || amount == 0) {
+        if(hp == 0 || amount < 1) {
             return;
         }
         //Check if we have a kill threshold
@@ -228,7 +228,7 @@ public class Armor : Device {
         }
     }
     public int Absorb(Projectile p) {
-        if (hp == 0 || p.damageHP == 0)
+        if (hp == 0 || p.damageHP < 1)
             return 0;
         //If we're below the drill threshold, then skip this armor
         if(((float)hp / desc.maxHP) < p.fragment.drillFactor) {

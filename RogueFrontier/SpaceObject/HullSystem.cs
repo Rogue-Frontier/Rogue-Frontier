@@ -63,12 +63,24 @@ public class LayeredArmor : HullSystem {
             if (absorbed == 0)
                 goto CheckDamage;
             layer.lastDamageTick = tick;
-            int depth = 2;
-            foreach (var j in Enumerable.Range(i - p.fragment.shock, p.fragment.shock).Reverse().TakeWhile(j => j > -1)) {
-                var nextLayer = layers[j];
-                nextLayer.Absorb(absorbed / depth);
-                nextLayer.lastDamageTick = tick;
-                depth++;
+
+            int factor = p.fragment.shock;
+            if (factor > 1) {
+
+                //Factor:5
+                //Depth Damage
+                //0     100%
+                //1     80%
+                //2     60%
+                //3     40%
+                //4     20%
+                factor--;
+                foreach (var j in Enumerable.Range(i - factor, factor).Reverse().TakeWhile(j => j > -1)) {
+                    var below = layers[j];
+                    below.Absorb((absorbed * factor) / p.fragment.shock);
+                    below.lastDamageTick = tick;
+                    factor--;
+                }
             }
 
             CheckDamage:
