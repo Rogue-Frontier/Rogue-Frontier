@@ -862,16 +862,20 @@ public static class Main {
     }
 
     //https://stackoverflow.com/a/28037434
-    public static double AngleDiff(double angle1, double angle2) {
-        double diff = (angle2 - angle1 + 180) % 360 - 180;
-        //FIX THIS
-        while(diff < 0) {
-            diff += 180;
+    public static double AngleDiffDeg(double from, double to) {
+        void mod(ref double a) {
+            while (a < 0)
+                a += 360;
+            while (a >= 360)
+                a -= 360;
         }
 
-        return diff;
+        mod(ref from);
+        mod(ref to);
+        
+        double diff = (to - from + 180) % 360 - 180;
+        return diff < -180 ? diff + 360 : diff;
     }
-
     public static bool IsRight(double from, double to) =>
         (XY.Polar(to)-XY.Polar(from)).magnitude2 > (XY.Polar(to)-XY.Polar(from - 0.1)).magnitude2;
     public static Func<T, bool> Or<T>(params Func<T, bool>[] f) {
@@ -894,8 +898,7 @@ public static class Main {
         }
         return result;
     }
-    public static T Elvis<T>(this object o, T result) {
-        return o == null ? default(T) : result;
-    }
+    public static T Elvis<T>(this object o, T result) =>
+        o == null ? default(T) : result;
 }
 

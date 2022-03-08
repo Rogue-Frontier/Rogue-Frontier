@@ -18,10 +18,10 @@ public class StationType : IDesignType {
 
     public Station.Behaviors behavior;
     public Sovereign Sovereign;
-    public StaticTile tile;
     public Group<Item> cargo;
     public WeaponList weapons;
 
+    public StaticTile tile;
     public List<SegmentDesc> segments;
     public List<XY> dockPoints;
 
@@ -39,67 +39,82 @@ public class StationType : IDesignType {
 
         behavior = e.TryAttEnum(nameof(behavior), Station.Behaviors.none);
         Sovereign = tc.Lookup<Sovereign>(e.ExpectAtt("sovereign"));
-        tile = new StaticTile(e);
         dockPoints = new();
 
         if (e.HasElement("Weapons", out var xmlWeapons)) {
             weapons = new(xmlWeapons);
         }
-        if (e.HasElement("Segments", out var xmlSegments)) {
-            segments = new();
-            foreach (var xmlSegment in xmlSegments.Elements()) {
-                switch (xmlSegment.Name.LocalName) {
-                    case "MultiPoint": {
-                            var t = new StaticTile(xmlSegment);
-                            int angleInc = xmlSegment.ExpectAttInt("angleInc");
-                            var x = xmlSegment.ExpectAttDouble("offsetX");
-                            var y = xmlSegment.ExpectAttDouble("offsetY");
-                            XY offset = new XY(x, y);
-                            for (int angle = 0; angle < 360; angle += angleInc) {
-                                segments.Add(new SegmentDesc(offset.Rotate(angle * Math.PI / 180), t));
-                            }
-                            break;
-                        }
-                    case "Line": {
-                            var t = new StaticTile(xmlSegment);
-                            var d = xmlSegment.ExpectAttDouble;
-                            var td = xmlSegment.TryAttDouble2;
 
-                            var x = d("offsetX");
-                            var y = d("offsetY");
-                            if(td("deltaX", out var dx, 0) | td("deltaY", out var dy, 0)) {
-                                segments.AddRange(new XY(x, y)
-                                    .LineTo(new(x + dx, y + dy))
-                                    .Select(p => new SegmentDesc(p, t)));
-                            } else if(td("width", out var w, 1) | td("height", out var h, 1)) {
-                                segments.AddRange(new XY(x - w/2, y - h/2)
-                                    .LineTo(new(x + w/2, y + h/2))
-                                    .Select(p => new SegmentDesc(p, t)));
+        if(e.TryAtt("structure", out var structure)) {
+            var sprite = ColorImage.FromFile(structure).Sprite;
+            tile = sprite.TryGetValue((0, 0), out var cg) ? new(cg) : null;
+            sprite.Remove((0, 0));
+            segments = new(sprite.Select((pair) => new SegmentDesc(new(pair.Key), pair.Value)));
+        } else {
+            tile = new(e);
+            if (e.HasElement("Segments", out var xmlSegments)) {
+                segments = new();
+                foreach (var xmlSegment in xmlSegments.Elements()) {
+                    switch (xmlSegment.Name.LocalName) {
+                        case "MultiPoint": {
+                                var t = new StaticTile(xmlSegment);
+                                int angleInc = xmlSegment.ExpectAttInt("angleInc");
+                                var x = xmlSegment.ExpectAttDouble("offsetX");
+                                var y = xmlSegment.ExpectAttDouble("offsetY");
+                                XY offset = new XY(x, y);
+                                for (int angle = 0; angle < 360; angle += angleInc) {
+                                    segments.Add(new SegmentDesc(offset.Rotate(angle * Math.PI / 180), t));
+                                }
+                                break;
                             }
-                            /*
-                            var fromX = d("fromOffsetX");
-                            var fromY = d("fromOffsetY");
-                            var toX = d("toOffsetX");
-                            var toY = d("toOffsetY");
-                            segments.AddRange(new XY(fromX, fromY)
-                                .LineTo(new(toX, toY))
-                                .Select(p => new SegmentDesc(p, t)));
-                            */
+                        case "Line": {
+                                var t = new StaticTile(xmlSegment);
+                                var d = xmlSegment.ExpectAttDouble;
+                                var td = xmlSegment.TryAttDouble2;
 
+                                var x = d("offsetX");
+                                var y = d("offsetY");
+                                if (td("deltaX", out var dx, 0) | td("deltaY", out var dy, 0)) {
+                                    segments.AddRange(new XY(x, y)
+                                        .LineTo(new(x + dx, y + dy))
+                                        .Select(p => new SegmentDesc(p, t)));
+                                } else if (td("width", out var w, 1) | td("height", out var h, 1)) {
+                                    segments.AddRange(new XY(x - w / 2, y - h / 2)
+                                        .LineTo(new(x + w / 2, y + h / 2))
+                                        .Select(p => new SegmentDesc(p, t)));
+                                }
+                                /*
+                                var fromX = d("fromOffsetX");
+                                var fromY = d("fromOffsetY");
+                                var toX = d("toOffsetX");
+                                var toY = d("toOffsetY");
+                                segments.AddRange(new XY(fromX, fromY)
+                                    .LineTo(new(toX, toY))
+                                    .Select(p => new SegmentDesc(p, t)));
+                                */
+
+                                break;
+                            }
+                        case "Ring": {
+                                string foreground = xmlSegment.TryAtt("foreground", "White");
+                                string background = xmlSegment.TryAtt("background", "Transparent");
+                                segments.AddRange(CreateRing(foreground, background));
+                                break;
+                            }
+                        case "Box": {
+                                string foreground = xmlSegment.TryAtt("foreground", "White");
+                                string background = xmlSegment.TryAtt("background", "Transparent");
+                                segments.AddRange(CreateBox(foreground, background));
+                                break;
+                            }
+                        case "Point":
+                            segments.Add(new(xmlSegment));
                             break;
-                        }
-                    case "Ring": {
-                            string foreground = xmlSegment.TryAtt("foreground", "White");
-                            string background = xmlSegment.TryAtt("background", "Transparent");
-                            segments.AddRange(CreateRing(foreground, background));
-                            break;
-                        }
-                    case "Point":
-                        segments.Add(new(xmlSegment));
-                        break;
+                    }
                 }
             }
         }
+
         if (e.HasElement("Satellites", out var xmlSatellites)) {
             satellites = new(xmlSatellites, (XElement e) => SSystemElement.Create(tc, e));
         }
@@ -150,15 +165,29 @@ public class StationType : IDesignType {
         SegmentDesc Create(int x, int y, char c) =>
             new SegmentDesc(new XY(x, y), new StaticTile(c, foreground, background));
         return new() {
-                                Create(0, 1, '-'),
-                                Create(1, 1, '\\'),
-                                Create(1, 0, '|'),
-                                Create(1, -1, '/'),
-                                Create(0, -1, '-'),
-                                Create(-1, -1, '\\'),
-                                Create(-1, 0, '|'),
-                                Create(-1, 1, '/')
-                            };
+            Create(0, 1, '-'),
+            Create(1, 1, '\\'),
+            Create(1, 0, '|'),
+            Create(1, -1, '/'),
+            Create(0, -1, '-'),
+            Create(-1, -1, '\\'),
+            Create(-1, 0, '|'),
+            Create(-1, 1, '/')
+        };
+    }
+    public static List<SegmentDesc> CreateBox(string foreground = "White", string background = "Black") {
+        SegmentDesc Create(int x, int y, char c) =>
+            new SegmentDesc(new XY(x, y), new StaticTile(c, foreground, background));
+        return new() {
+            Create(0, 1,   '-'),
+            Create(1, 1,   '+'),
+            Create(1, 0,   '|'),
+            Create(1, -1,  '+'),
+            Create(0, -1,  '-'),
+            Create(-1, -1, '+'),
+            Create(-1, 0,  '|'),
+            Create(-1, 1,  '+')
+        };
     }
 
     public static List<XY> CreateRing() {

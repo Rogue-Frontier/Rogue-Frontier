@@ -44,7 +44,7 @@
 			<Point offsetX="-3" offsetY="-1"
 				   glyph="\" foreground="Magenta"/>
 			
-			<Ring/>
+			<Ring	foreground="Magenta"/>
 			<Point offsetX="2" offsetY="0"
 				   glyph="&gt;" foreground="Magenta"/>
 			<Point offsetX="-2" offsetY="0"

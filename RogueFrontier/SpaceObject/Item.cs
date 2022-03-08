@@ -617,7 +617,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
     public Item source { get; private set; }
     public WeaponDesc desc;
     [JsonIgnore]
-    int? Device.powerUse => (firing || delay > 0) ? desc.powerUse : desc.powerUse / 10;
+    int? Device.powerUse => (firing || delay > 0 || capacitor?.full == false) ? desc.powerUse : 0;
     public FragmentDesc projectileDesc;
     public Capacitor capacitor;
     public Aiming aiming;
@@ -732,13 +732,15 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             capacitor?.CheckFire(ref firing);
             ammo?.CheckFire(ref firing);
             if (firing && direction.HasValue) {
-                mod = new();
+                //mod = new();
 
-                Fire(owner, direction.Value);
                 delay = desc.fireCooldown;
                 if (beginRepeat) {
                     repeatsLeft = desc.repeat;
                 }
+
+                Fire(owner, direction.Value);
+                
             } else {
                 repeatsLeft = 0;
             }
@@ -847,6 +849,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
 public class Capacitor {
     public CapacitorDesc desc;
     public double charge;
+    public bool full => charge == desc.maxCharge;
     public Capacitor(CapacitorDesc desc) {
         this.desc = desc;
     }
@@ -973,7 +976,7 @@ public class Swivel : Aiming {
         void UpdateDirection(Weapon weapon) {
             if (target != null) {
                 direction = Omnidirectional.GetFireAngle(owner, target, weapon);
-                var diff = Helper.AngleDiff(weaponAngle * 180 / Math.PI, direction.Value * 180 / Math.PI) * Math.PI / 180;
+                var diff = Helper.AngleDiffDeg(weaponAngle * 180 / Math.PI, direction.Value * 180 / Math.PI) * Math.PI / 180;
                 var limit = Helper.IsRight(weaponAngle, direction.Value) ? rightRange : leftRange;
                 if(diff >= limit) {
                     direction = null;

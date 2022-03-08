@@ -456,15 +456,10 @@ public class LocatorDict<T, U> {
         UpdateSpace();
     }
     public bool Contains(T t) => all.Contains(t);
-    public HashSet<T> GetAll(Predicate<U> keySelector) {
-        HashSet<T> result = new HashSet<T>();
-        foreach ((var key, var set) in space) {
-            if (keySelector(key)) {
-                result.UnionWith(set);
-            }
-        }
-        return result;
-    }
+    public IEnumerable<T> GetAll(Predicate<U> keySelector) =>
+        space.Where(pair => keySelector(pair.Key)).SelectMany(pair => pair.Value);
+    public IEnumerable<T> GetAll(Predicate<U> keySelector, Func<T, bool> valueSelector) =>
+    space.Where(pair => keySelector(pair.Key)).SelectMany(pair => pair.Value.Where(valueSelector));
     public Dictionary<U, HashSet<T>> GetScaledSpace(Func<U, U> scale) {
         var space = new Dictionary<U, HashSet<T>>();
         void Initialize(U u) {

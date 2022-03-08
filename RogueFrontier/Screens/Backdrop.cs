@@ -133,7 +133,7 @@ public class CompositeColorLayer {
     public Color GetTile(XY point) {
         if (layers.Any()) {
             var apparent = point.roundDown;
-            var top = layers.Last()[apparent.xi, apparent.yi];
+            var top = layers.Last().At(apparent.xi, apparent.yi);
             for (int i = layers.Count - 2; i > -1; i--) {
                 Blend(layers[i][apparent.xi, apparent.yi]);
             }

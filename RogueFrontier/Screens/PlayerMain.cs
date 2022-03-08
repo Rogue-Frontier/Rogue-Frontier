@@ -746,6 +746,11 @@ public class Megamap : Console {
             }
             XY screenSize = new XY(Width, Height);
             XY screenCenter = screenSize / 2;
+
+
+
+
+
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
                     var offset = new XY((x - screenCenter.x) * viewScale, (y - screenCenter.y) * viewScale).Rotate(-camera.rotation);
@@ -794,10 +799,15 @@ public class Megamap : Console {
                         var e = visible.ElementAt((int)time % visible.Count());
                         var t = new ColoredGlyph(e.tile.Foreground, this.GetBackground(x, y), e.tile.Glyph);
                         this.SetCellAppearance(x, y, t);
-                        rendered.Add((x, y));
+                        //rendered.Add((x, y));
                     }
                 }
             }
+            /*
+            Parallel.ForEach(scaledEntities.space, pair => {
+                (var offset, var ent) = pair;
+            });
+            */
             /*
             var scaledEffects = player.world.effects.space.DownsampleSet(viewScale);
             foreach ((var p, HashSet<Effect> set) in scaledEffects.space) {
@@ -888,7 +898,7 @@ public class Vignette : Console {
             }
         }
 
-        foreach (var p in particles) {
+        Parallel.ForEach(particles, p => {
             p.position += p.Velocity / Program.TICKS_PER_SECOND;
             p.lifetime--;
             p.Velocity -= p.Velocity / 15;
@@ -896,7 +906,7 @@ public class Vignette : Console {
             p.tile.Foreground = p.tile.Foreground.SetAlpha(
                 (byte)(255 * Math.Min(p.lifetime / 30f, 1))
                 );
-        }
+        });
         particles.RemoveWhere(p => !p.active);
 
         base.Update(delta);
@@ -987,7 +997,6 @@ public class Vignette : Console {
                 this.SetBackground(x, y, c);
             }
         }
-
         foreach (var p in particles) {
             var (x, y) = p.position;
             var (fore, glyph) = (p.tile.Foreground, p.tile.Glyph);
@@ -1321,13 +1330,11 @@ public class Readout : Console {
             }
             foreach (var s in solars) {
                 ColoredString bar;
-                var back = Color.Black;
-
                 int length = (int)Math.Ceiling(16d * s.maxOutput / s.desc.maxOutput);
                 int sublength = s.maxOutput > 0 ? (int)Math.Ceiling(length * (-s.energyDelta) / s.maxOutput) : 0;
                 bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
-                    + new ColoredString(new string('=', length - sublength), Color.Cyan, back)
-                    + new ColoredString(new string('=', 16 - length), Color.Gray, back);
+                    + new ColoredString(new string('=', length - sublength), Color.Cyan, b)
+                    + new ColoredString(new string('=', 16 - length), Color.Gray, b);
                 /*
                 int l = (int)Math.Ceiling(-16f * s.maxOutput / s.desc.maxOutput);
                 for (int i = 0; i < l; i++) {
@@ -1336,11 +1343,11 @@ public class Readout : Console {
                 }
                 */
                 this.Print(x, y,
-                    new ColoredString("[", Color.White, back)
+                    new ColoredString("[", Color.White, b)
                     + bar
-                    + new ColoredString("]", Color.White, back)
+                    + new ColoredString("]", Color.White, b)
                     + " "
-                    + new ColoredString($"[{Math.Abs(s.energyDelta),3}/{s.maxOutput,3}] {s.source.type.name}", Color.White, back)
+                    + new ColoredString($"[{Math.Abs(s.energyDelta),3}/{s.maxOutput,3}] {s.source.type.name}", Color.White, b)
                     );
                 y++;
             }
@@ -1381,53 +1388,50 @@ public class Readout : Console {
                 foreach (var m in misc) {
                     string tag = m.source.type.name;
                     var f = Color.White;
-                    this.Print(x, y,
-                        new ColoredString("[", Color.White, b)
-                        + new ColoredString(new string('.', 16), f, b)
-                        + new ColoredString("]", Color.White, b)
-                        + " "
-                        + new ColoredString(tag, f, b));
+                    this.Print(x, y, $"[{new string('-', 16)}] {tag}", f, b);
                     y++;
                     i++;
                 }
-
                 y++;
             }
             var shields = player.ship.devices.Shield;
             if (shields.Any()) {
-                foreach (var s in shields) {
+                foreach (var s in shields.Reverse<Shield>()) {
                     string name = s.source.type.name;
                     var f = player.energy.off.Contains(s) ? Color.Gray :
                         s.hp == 0 || s.delay > 0 ? Color.Yellow :
                         s.hp < s.desc.maxHP ? Color.Cyan :
                         Color.White;
-
                     int l = 16 * s.hp / s.desc.maxHP;
                     this.Print(x, y, "[", f, b);
                     this.Print(x + 1, y, new('>', 16), Color.Gray, b);
                     this.Print(x + 1, y, new('>', l), f, b);
                     this.Print(x + 1 + 16, y, $"-[{name} [{s.hp} / {s.desc.maxHP}]", f, b);
-
                     y++;
                 }
                 y++;
             }
             switch (player.ship.damageSystem) {
-                case LayeredArmor las:
-                    var back = Color.Black;
-                    foreach(var armor in las.layers.Reverse<Armor>()) {
-                        var fore = (player.world.tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
-                        int l = 16 * armor.hp / armor.desc.maxHP;
-                        this.Print(x, y, "[", fore, back);
-                        this.Print(x + 1, y, new('>', 16), Color.Gray, back);
-                        this.Print(x + 1, y, new('>', l), fore, back);
-                        this.Print(x + 1 + 16, y, $"-[{armor.source.type.name} [{armor.hp} / {armor.desc.maxHP}]", fore, back);
-                        y++;
+                case LayeredArmor las: {
+                        foreach (var armor in las.layers.Reverse<Armor>()) {
+                            var f = (player.world.tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
+                            int l = 16 * armor.hp / armor.desc.maxHP;
+                            this.Print(x, y, "[", f, b);
+                            this.Print(x + 1, y, new('>', 16), Color.Gray, b);
+                            this.Print(x + 1, y, new('>', l), f, b);
+                            this.Print(x + 1 + 16, y, $"-[{armor.source.type.name} [{armor.hp} / {armor.desc.maxHP}]", f, b);
+                            y++;
+                        }
+                        break;
                     }
-                    break;
-                case HP hp:
-                    this.Print(x, y, $"HP: {hp.hp}", Color.White, Color.Black);
-                    break;
+                case HP hp: {
+                        var f = Color.White;
+                        this.Print(x, y, "[", f, b);
+                        this.Print(x + 1, y, new('>', 16), Color.Gray, b);
+                        this.Print(x + 1, y, new('>', 16 * hp.hp / hp.maxHP), f, b);
+                        this.Print(x + 1 + 16, y, $"-[HP: {hp.hp}", f, b);
+                        break;
+                    }
             }
         }
 
@@ -1478,32 +1482,34 @@ public class Edgemap : Console {
         var halfWidth = Width / 2;
         var halfHeight = Height / 2;
         var range = 192;
-        var nearby = player.world.entities.GetAll(((int, int) p) => (player.position - p).maxCoord < range);
-        foreach (var entity in nearby) {
-            if(entity.tile is null) {
-                continue;
-            }
+        var nearby = player.world.entities.GetAll(
+            ((int, int) p) => (player.position - p).maxCoord < range,
+            entity => entity.tile != null && entity is not ISegment);
+
+        foreach(var entity in nearby) {
             var offset = (entity.position - player.position).Rotate(-camera.rotation);
             var (x, y) = (offset / viewScale).abs;
             if (x > halfWidth || y > halfHeight) {
                 //Do not show Segments beyond edge
-                if (entity is ISegment) {
-                    continue;
-                }
                 (x, y) = Helper.GetBoundaryPoint(screenSize, offset.angleRad);
                 PrintTile(x, y, entity);
             } else if (x > halfWidth - 4 || y > halfHeight - 4) {
                 (x, y) = ((screenCenter + offset) + new XY(1, 1));
                 PrintTile(x, y, entity);
             }
-            void PrintTile(int x, int y, Entity e) {
-                Color c = e switch {
-                    ActiveObject so => so.tile.Foreground,
-                    Projectile p => p.tile.Foreground,
-                    _ => Color.Transparent
-                };
-                this.SetCellAppearance(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
-            }
+        }
+        /*
+        nearby.AsParallel().ForAll(entity => {
+            
+        });
+        */
+        void PrintTile(int x, int y, Entity e) {
+            Color c = e switch {
+                ActiveObject so => so.tile.Foreground,
+                Projectile p => p.tile.Foreground,
+                _ => Color.Transparent
+            };
+            this.SetCellAppearance(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
         }
         base.Render(drawTime);
     }
@@ -1532,14 +1538,14 @@ public class Minimap : Console {
         var mapScale = (range / halfSize);
 
         var mapSample = playerShip.world.entities.space.DownsampleSet(mapScale);
-        for (int x = 0; x < Width; x++) {
+        
+        for(int x = 0; x < Width; x++) {
+
             for (int y = 0; y < Height; y++) {
                 var entities = mapSample[(
                     (x - halfSize + playerShip.position.xi / mapScale),
                     (halfSize - y + playerShip.position.yi / mapScale))]
-                    .Where(e => !(e is ISegment))
-                    .Where(e => e.tile != null);
-
+                    .Where(e => !(e is ISegment) && e.tile != null);
                 if (entities.Any()) {
                     var t = entities.ElementAt((int)time % entities.Count()).tile;
 
@@ -1558,11 +1564,13 @@ public class Minimap : Console {
                 }
             }
         }
+        /*
+        Parallel.For(0, Width, x => {
+        });
+        */
         base.Render(delta);
     }
 }
-
-
 public class CommunicationsMenu : Console {
     PlayerShip playerShip;
     int ticks;
@@ -1602,7 +1610,6 @@ public class CommunicationsMenu : Console {
         return base.ProcessKeyboard(info);
     }
     public override void Render(TimeSpan delta) {
-
         if (menu.IsVisible) {
             menu.Render(delta);
             return;

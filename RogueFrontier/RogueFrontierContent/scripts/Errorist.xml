@@ -31,7 +31,6 @@
 				count=			"9"
 						
 				ricochet=		"4"
-						
 				hitProjectile=	"true"
 
 				glyph=			"."
@@ -66,13 +65,12 @@
 			</Projectile>
 		</Weapon>
 	</ItemType>
-
-	<ItemType	codename=	"item_sand_bomb_cannon"
+	<ItemType	codename=	"item_sand_blaster"
 		name=		"Sand blaster"
 		mass=		"5000"
 		level=		"1"
 
-		desc=		"The Errorist-made sand bomb explodes into a deadly cloud of radioactive sand."
+		desc=		"This modified sand cannon launches a narrow barrage of sand."
 		>
 		<Weapon
 			powerUse=		"30"
@@ -82,14 +80,13 @@
 			<Projectile
 				count=			"4"
 				spreadAngle=	"8"
-					
+
 				missileSpeed=	"20"
 				damageType=		"2"
 				damageHP=		"2"
 				lifetime=		"150"
 					
-				hitProjectile=	"true"
-					
+				hitProjectile=	"true"					
 				ricochet=		"4"
 					
 				glyph=			"."
@@ -178,11 +175,9 @@
 		name=				"Toxin-class raider"
 		thrust=				"0.3"
 		maxSpeed=			"15"
-
 		rotationAccel=		"3"
 		rotationDecel=		"6"
 		rotationMaxSpeed=	"4"
-
 		glyph=				"e"
 		foreground=			"LightGreen"
 		>
@@ -199,17 +194,15 @@
 		name=				"Mutant-class destroyer"
 		thrust=				"0.25"
 		maxSpeed=			"12"
-
 		rotationAccel=		"3"
 		rotationDecel=		"6"
 		rotationMaxSpeed=	"4"
-
 		glyph=				"E"
 		foreground=			"LightGreen"
 		>
 		<Devices>
 			<Weapon	codename="item_sludge_cannon"/>
-			<Weapon codename="item_sand_bomb_cannon"/>
+			<Weapon codename="item_sand_blaster"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="item_radiant_plate"/>
@@ -225,9 +218,7 @@
 	<StationType	codename="station_errorist_compound"
 		name=		"Errorist compound"
 		sovereign=	"sovereign_errorist"
-
 		hp=			"250"
-
 		glyph=		"E"
 		foreground="LightGreen"
 		>
@@ -247,7 +238,6 @@
 			<Point offsetX="1" offsetY="-1"
 				   glyph="/" foreground="YellowGreen"/>
 
-
 			<Point offsetX="-1" offsetY="0"
 				   glyph="-" foreground="YellowGreen"/>
 			<Point offsetX="-2" offsetY="0"
@@ -261,9 +251,7 @@
 				   glyph="-" foreground="YellowGreen"/>
 			<Point offsetX="3" offsetY="0"
 				   glyph="+" foreground="YellowGreen"/>
-
 		</Segments>
-
 		<Explosion
 			missileSpeed=	"5"
 			damageType=		"2"

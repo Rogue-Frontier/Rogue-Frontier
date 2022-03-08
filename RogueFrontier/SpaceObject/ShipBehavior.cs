@@ -184,7 +184,7 @@ public class ApproachOrder : IShipOrder {
             //var Face = new FaceOrder(Helper.CalcFireAngle(target.Position - owner.Position, target.Velocity - owner.Velocity, owner.ShipClass.thrust * 30, out _));
             face.Update(owner);
             //If we're facing close enough
-            if (Math.Abs(Helper.AngleDiff(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10 && (velProjection.magnitude < offset.magnitude / 2 || velDiff.magnitude == 0)) {
+            if (Math.Abs(Helper.AngleDiffDeg(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10 && (velProjection.magnitude < offset.magnitude / 2 || velDiff.magnitude == 0)) {
                 //Go
                 owner.SetThrusting(true);
             }
@@ -353,7 +353,6 @@ public class AttackOrder : IShipOrder {
     public void ClearTarget() => this.target = null;
     public void SetTarget(ActiveObject target) {
         this.target = target;
-
         this.aim = new(target, 0);
         this.approach = new(target);
     }
@@ -373,7 +372,7 @@ public class AttackOrder : IShipOrder {
             }
         }
         if(owner.world != target.world) {
-            gate = new GateOrder(owner.world.FindGateTo(target.world));
+            gate = new(owner.world.FindGateTo(target.world));
             gate.Update(owner);
             return;
         }
@@ -394,7 +393,6 @@ public class AttackOrder : IShipOrder {
                 .FirstOrDefault(w => w.aiming == null)
                 ?? primary;
         }
-        bool RangeCheck() => (owner.position - target.position).magnitude2 < primary.projectileDesc.range2;
         //Remove dock
         if (owner.dock != null) {
             owner.dock = null;
@@ -420,7 +418,7 @@ public class AttackOrder : IShipOrder {
         } else {
             var range = primary.projectileDesc.range;
             bool freeAim = primary.aiming != null && dist < range;
-            if (dist < range / 2) {
+            if (dist < range) {
                 //If we are in range, then aim and fire
                 //Aim at the target
                 aim.missileSpeed = primary.projectileDesc.missileSpeed;
@@ -439,7 +437,7 @@ public class AttackOrder : IShipOrder {
                 approach.Update(owner);
                 //Fire if our angle is good enough
                 if (freeAim
-                    || Math.Abs(aim.GetAngleDiff(owner)) * dist < 6 && RangeCheck()) {
+                    || Math.Abs(aim.GetAngleDiff(owner)) * dist < 6) {
                     SetFiringPrimary();
                 }
 
@@ -678,7 +676,7 @@ public class ApproachOrbitOrder : IShipOrder {
             face.Update(owner);
 
             //If we're facing close enough
-            if (Math.Abs(Helper.AngleDiff(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10 && speedTowards < 10) {
+            if (Math.Abs(Helper.AngleDiffDeg(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10 && speedTowards < 10) {
 
                 //Go
                 owner.SetThrusting(true);
@@ -705,7 +703,7 @@ public class AimOrder : IShipOrder {
     public StructureObject target;
     public double missileSpeed;
     public double GetTargetRads(AIShip owner) => Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
-    public double GetAngleDiff(AIShip owner) => Helper.AngleDiff(owner.rotationDeg, GetTargetRads(owner) * 180 / Math.PI);
+    public double GetAngleDiff(AIShip owner) => Helper.AngleDiffDeg(owner.rotationDeg, GetTargetRads(owner) * 180 / Math.PI);
 
     public AimOrder(StructureObject target, double missileSpeed) {
         this.target = target;

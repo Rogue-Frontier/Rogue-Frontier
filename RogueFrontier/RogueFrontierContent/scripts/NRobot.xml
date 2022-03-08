@@ -68,7 +68,6 @@
 			fireCooldown=	"60"
 			>
 			<Projectile
-				acquireTarget=	"true"
 				missileSpeed=	"50"
 				damageType=		"1"
 				damageHP=		"3"
@@ -129,13 +128,48 @@
 					name=		"NRobot fortress"
 					sovereign=	"sovereign_nrobot"
 
-					hp=			"250"
+					hp=			"600"
 
 					glyph=		"N"
-					foreground=	"Cyan"
+					foreground=	"A0A0FFFF"
 		>
+		<Weapons>
+			<Weapon codename="item_lightning_cannon"	posX="4" posY="-4"/>
+			<Weapon codename="item_lightning_cannon"	posX="-4" posY="4"/>
+		</Weapons>
 		<Segments>
+			<Point offsetX="-4" offsetY="-4"	glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="-4" offsetY="-3"	glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="-4" offsetY="-2"	glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="-4" offsetY="-1"	glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="-4" offsetY="0"	glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="-4" offsetY="1"	glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="-4" offsetY="2"	glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="-4" offsetY="3"	glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="-4" offsetY="4"	glyph="*" foreground="A0A0FFFF"/>
+			<Point offsetX="-3" offsetY="3"	glyph="\" foreground="A0A0FFFF"/>
+			<Point offsetX="-2" offsetY="2"	glyph="\" foreground="A0A0FFFF"/>
 
+			<Point offsetX="0" offsetY="1"		glyph="-" foreground="A0A0FFFF"/>
+			<Point offsetX="1" offsetY="1"		glyph="\" foreground="A0A0FFFF"/>
+			<Point offsetX="1" offsetY="0"		glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="1" offsetY="-1"		glyph="X" foreground="A0A0FFFF"/>
+			<Point offsetX="0" offsetY="-1"		glyph="-" foreground="A0A0FFFF"/>
+			<Point offsetX="-1" offsetY="-1"	glyph="\" foreground="A0A0FFFF"/>
+			<Point offsetX="-1" offsetY="0"		glyph="-" foreground="A0A0FFFF"/>
+			<Point offsetX="-1" offsetY="1"		glyph="X" foreground="A0A0FFFF"/>
+
+			<Point offsetX="2" offsetY="-2"		glyph="\" foreground="A0A0FFFF"/>
+			<Point offsetX="3" offsetY="-3"		glyph="\" foreground="A0A0FFFF"/>
+			<Point offsetX="4" offsetY="-4"		glyph="*" foreground="A0A0FFFF"/>
+			<Point offsetX="4" offsetY="-3"		glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="4" offsetY="-2"		glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="4" offsetY="-1"		glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="4" offsetY="0"		glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="4" offsetY="1"	glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="4" offsetY="2"	glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="4" offsetY="3"	glyph="|" foreground="A0A0FFFF"/>
+			<Point offsetX="4" offsetY="4"	glyph="|" foreground="A0A0FFFF"/>
 		</Segments>
 		<Ships>
 			<Ship codename="ship_flawless" count="4" order="guard"/>

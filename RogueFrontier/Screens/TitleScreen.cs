@@ -317,6 +317,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         World.UpdatePresent();
         tiles.Clear();
         World.PlaceTiles(tiles);
+
         if (World.entities.all.OfType<IShip>().Count() < 5) {
             var shipClasses = World.types.Get<ShipClass>();
             var shipClass = shipClasses.ElementAt(World.karma.NextInteger(shipClasses.Count));
@@ -388,6 +389,60 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
                 descY++;
             }
         }
+        foreach(var x in Enumerable.Range(0, Width)) {
+            foreach(var y in Enumerable.Range(0, Height)) {
+                var g = this.GetGlyph(x, y);
+                var offset = new XY(x, Height - y) - new XY(Width / 2, Height / 2);
+                var location = camera + offset;
+                if (g == 0 || g == ' ' || this.GetForeground(x, y).A == 0) {
+                    if (tiles.TryGetValue(location.roundDown, out var tile)) {
+                        if (tile.Background.A < 255) {
+                            tile.Background = World.backdrop.GetBackground(location, camera).Blend(tile.Background);
+                        }
+                        this.SetCellAppearance(x, y, tile);
+                    } else {
+                        this.SetCellAppearance(x, y, World.backdrop.GetTile(location, camera));
+                    }
+                } else {
+                    this.SetBackground(x, y, World.backdrop.GetBackground(location, camera));
+                }
+            }
+        }
+        
+        /*
+        int tiling = 2;
+        int w = Width / tiling;
+        int h = Height / tiling;
+        Parallel.For(0, tiling * tiling, i => {
+            (int _x, int _y) = (w * (i % tiling), h * (i / tiling));
+
+            foreach(var x in Enumerable.Range(_x, w)) {
+                foreach(var y in Enumerable.Range(_y, h)) {
+
+                    var g = this.GetGlyph(x, y);
+
+                    var offset = new XY(x, Height - y) - new XY(Width / 2, Height / 2);
+                    var location = camera + offset;
+                    if (g == 0 || g == ' ' || this.GetForeground(x, y).A == 0) {
+
+
+                        if (tiles.TryGetValue(location.roundDown, out var tile)) {
+                            if (tile.Background == Color.Transparent) {
+                                tile.Background = World.backdrop.GetBackground(location, camera);
+                            }
+                            this.SetCellAppearance(x, y, tile);
+                        } else {
+                            this.SetCellAppearance(x, y, World.backdrop.GetTile(location, camera));
+                        }
+                    } else {
+                        this.SetBackground(x, y, World.backdrop.GetBackground(location, camera));
+                    }
+                }
+            }
+        });
+        */
+
+        /*
         for (int x = 0; x < Width; x++) {
             for (int y = 0; y < Height; y++) {
                 var g = this.GetGlyph(x, y);
@@ -411,6 +466,29 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
 
             }
         }
+        */
+        /*
+        Parallel.For(0, Width * Height, i => {
+            (int x, int y) = (i % Width, i / Width);
+            var g = this.GetGlyph(x, y);
+            var offset = new XY(x, Height - y) - new XY(Width / 2, Height / 2);
+            var location = camera + offset;
+            if (g == 0 || g == ' ' || this.GetForeground(x, y).A == 0) {
+
+
+                if (tiles.TryGetValue(location.roundDown, out var tile)) {
+                    if (tile.Background == Color.Transparent) {
+                        tile.Background = World.backdrop.GetBackground(location, camera);
+                    }
+                    this.SetCellAppearance(x, y, tile);
+                } else {
+                    this.SetCellAppearance(x, y, World.backdrop.GetTile(location, camera));
+                }
+            } else {
+                this.SetBackground(x, y, World.backdrop.GetBackground(location, camera));
+            }
+        });
+        */
         base.Render(drawTime);
     }
     public override bool ProcessKeyboard(Keyboard info) {

@@ -3,6 +3,7 @@ using SadConsole;
 using SadRogue.Primitives;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Console = SadConsole.Console;
 namespace RogueFrontier;
 
@@ -27,11 +28,9 @@ public class Viewport : Console {
         int ViewHeight = Height;
         int HalfViewWidth = ViewWidth / 2;
         int HalfViewHeight = ViewHeight / 2;
-
         for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
             for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
                 XY location = camera.position + new XY(x, y).Rotate(camera.rotation);
-
                 if (tiles.TryGetValue(location.roundDown, out var tile)) {
                     var xScreen = x + HalfViewWidth;
                     var yScreen = HalfViewHeight - y;
@@ -39,6 +38,10 @@ public class Viewport : Console {
                 }
             }
         }
+        /*
+        Parallel.For(-HalfViewWidth, HalfViewWidth, x => {
+        });
+        */
         base.Render(delta);
     }
     public ColoredGlyph GetTile(int x, int y) {

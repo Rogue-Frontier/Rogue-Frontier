@@ -187,7 +187,7 @@
 				rotationMaxSpeed=	"4"
 
 				glyph=				"r"
-				foreground=			"Blue"
+				foreground=			"70AEFFFF"
 		>
 		<Devices>
 			<Weapon	codename="item_orion_bolter" modifierChance="10/100" damageHPInc="4"/>
@@ -212,7 +212,7 @@
 				rotationMaxSpeed=	"4"
 
 				glyph=				"R"
-				foreground=			"Blue"
+				foreground=			"70AEFFFF"
 		>
 		<Devices>
 			<Weapon	codename="item_orion_longbow"/>
@@ -257,7 +257,7 @@
 					hp=			"250"
 
 					glyph=		"c"
-					foreground="Blue"
+					foreground="70AEFFFF"
 		>
 		<Segments>
 			<Ring/>
@@ -278,7 +278,7 @@
 					hp=			"500"
 
 					glyph=		"c"
-					foreground="Blue"
+					foreground="70AEFFFF"
 		>
 		<Segments>
 			<Point offsetX="2" offsetY="3"	glyph="-" foreground="LightBlue"/>
