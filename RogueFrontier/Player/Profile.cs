@@ -23,8 +23,7 @@ public class Profile {
     public HashSet<Achievement> achievements = new();
     
     public static bool Load(out Profile p) {
-        if (File.Exists(file)) {
-            p = (Profile)SaveGame.Deserialize(File.ReadAllText(file));
+        if (File.Exists(file) && (p = (Profile)SaveGame.Deserialize(File.ReadAllText(file))) != null) {
             return true;
         } else {
             p = null;

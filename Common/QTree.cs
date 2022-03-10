@@ -3,15 +3,12 @@ using System.Collections.Generic;
 namespace Common;
 
 public static class SGrid {
-    public static T Get<T>(this GridTree<T> g, XY xy) {
-        return g.Get(xy.xi, xy.yi);
-    }
-    public static T At<T>(this GridTree<T> g, XY xy) {
-        return g.At(xy.xi, xy.yi);
-    }
-    public static void Set<T>(this GridTree<T> g, XY xy, T t) {
+    public static T Get<T>(this GridTree<T> g, XY xy) =>
+        g.Get(xy.xi, xy.yi);
+    public static T At<T>(this GridTree<T> g, XY xy) =>
+        g.At(xy.xi, xy.yi);
+    public static void Set<T>(this GridTree<T> g, XY xy, T t) =>
         g.Set(xy.xi, xy.yi, t);
-    }
     public static bool IsInit<T>(this GeneratedGrid<T> g, XY xy, out T t) {
         if (g.IsInit(xy.xi, xy.yi)) {
             t = g.Get(xy.xi, xy.yi);
@@ -35,23 +32,23 @@ public class QTree<T> : GridTree<T> {
     public int segmentCount => q1.Count + q2.Count + q3.Count + q4.Count;
     public uint size => (uint)Math.Pow(scale, level);
     public QTree(uint level = 1, uint scale = 32) {
-        q1 = new Dictionary<(uint, uint), Section>();
-        q2 = new Dictionary<(uint, uint), Section>();
-        q3 = new Dictionary<(uint, uint), Section>();
-        q4 = new Dictionary<(uint, uint), Section>();
-        xPositive = new Dictionary<uint, Segment>();
-        xNegative = new Dictionary<uint, Segment>();
-        yPositive = new Dictionary<uint, Segment>();
-        yNegative = new Dictionary<uint, Segment>();
+        q1 = new();
+        q2 = new();
+        q3 = new();
+        q4 = new();
+        xPositive = new();
+        xNegative = new();
+        yPositive = new();
+        yNegative = new();
         this.level = level;
         this.scale = scale;
     }
     public void Clear() {
         center = default(T);
-        foreach (var d in new Dictionary<(uint, uint), Section>[] { q1, q2, q3, q4 }) {
+        foreach (var d in new[] { q1, q2, q3, q4 }) {
             d.Clear();
         }
-        foreach (var d in new Dictionary<uint, Segment>[] { xPositive, xNegative, yPositive, yNegative }) {
+        foreach (var d in new[] { xPositive, xNegative, yPositive, yNegative }) {
             d.Clear();
         }
     }
@@ -68,7 +65,6 @@ public class QTree<T> : GridTree<T> {
     public const int CODE_QUADRANT_3 = (-1 + CODE_OFFSET) | ((-1 + CODE_OFFSET) << CODE_SHIFT);
     public const int CODE_QUADRANT_4 = (1 + CODE_OFFSET) | ((-1 + CODE_OFFSET) << CODE_SHIFT);
     public static int SignCode(int x, int y) => (Math.Sign(x) + CODE_OFFSET) | ((Math.Sign(y) + CODE_OFFSET) << CODE_SHIFT);
-
     public ref T this[(int x, int y) p] => ref At(p.x, p.y);
     public T Get(int x, int y) {
         switch (SignCode(x, y)) {
@@ -213,20 +209,10 @@ public class QTree<T> : GridTree<T> {
             section.Set(xa - xIndex * size, ya - yIndex * size, t);
         }
     }
-    private void Initialize(out Section section) {
-        if (level == 1) {
-            section = new Leaf(scale);
-        } else {
-            section = new Quadrant(level - 1, scale);
-        }
-    }
-    private void Initialize(out Segment segment) {
-        if (level == 1) {
-            segment = new Slice(scale);
-        } else {
-            segment = new Strip(level - 1, scale);
-        }
-    }
+    private void Initialize(out Section section) =>
+        section = level == 1 ? new Leaf(scale) : new Quadrant(level - 1, scale);
+    private void Initialize(out Segment segment) =>
+        segment = level == 1 ? new Slice(scale) : new Strip(level - 1, scale);
 
     public interface Segment {
         T Get(uint i);
@@ -239,7 +225,7 @@ public class QTree<T> : GridTree<T> {
         public uint level;
         public uint size => (uint)Math.Pow(scale, level);
         public Strip(uint level, uint scale = 8) {
-            segments = new Dictionary<uint, Segment>();
+            segments = new();
             this.level = level;
             this.scale = scale;
         }
@@ -269,30 +255,17 @@ public class QTree<T> : GridTree<T> {
             }
             section.Set(i - index * size, t);
         }
-        private void Initialize(out Segment section) {
-            if (level == 1) {
-                section = new Slice(scale);
-            } else {
-                section = new Strip(level - 1, scale);
-            }
-        }
+        private void Initialize(out Segment section) =>
+            section = level == 1 ? new Slice(scale) : new Strip(level - 1, scale);
     }
     public class Slice : Segment {
         public T[] items;
         public uint scale;
-        public Slice(uint scale) {
-            this.scale = scale;
-            items = new T[scale];
-        }
-        public T Get(uint i) {
-            return items[i];
-        }
-        public ref T At(uint i) {
-            return ref items[i];
-        }
-        public void Set(uint i, T t) {
-            items[i] = t;
-        }
+        public Slice(uint scale) => (this.scale, items) = (scale, new T[scale]);
+        public T Get(uint i) => items[i];
+        public ref T At(uint i) => ref items[i];
+        public void Set(uint i, T t) => items[i] = t;
+        
     }
 
     public interface Section {
@@ -306,7 +279,7 @@ public class QTree<T> : GridTree<T> {
         public uint level;
         public uint size => (uint)Math.Pow(scale, level);
         public Quadrant(uint level, uint scale = 8) {
-            sections = new Dictionary<(uint, uint), Section>();
+            sections = new();
             this.level = level;
             this.scale = scale;
         }
@@ -339,30 +312,16 @@ public class QTree<T> : GridTree<T> {
             }
             section.Set(x - xIndex * size, y - yIndex * size, t);
         }
-        private void Initialize(out Section section) {
-            if (level == 1) {
-                section = new Leaf(scale);
-            } else {
-                section = new Quadrant(level - 1, scale);
-            }
-        }
-
+        private void Initialize(out Section section) =>
+            section = level == 1 ? new Leaf(scale) : new Quadrant(level - 1, scale);
     }
     class Leaf : Section {
         public T[,] items;
         public uint scale;
-        public Leaf(uint scale) {
-            this.scale = scale;
-            items = new T[scale, scale];
-        }
-        public T Get(uint x, uint y) {
-            return items[x, y];
-        }
-        public ref T At(uint x, uint y) {
-            return ref items[x, y];
-        }
-        public void Set(uint x, uint y, T t) {
-            items[x, y] = t;
-        }
+        public Leaf(uint scale) =>
+            (this.scale, items) = (scale, new T[scale, scale]);
+        public T Get(uint x, uint y) => items[x, y];
+        public ref T At(uint x, uint y) => ref items[x, y];
+        public void Set(uint x, uint y, T t) => items[x, y] = t;
     }
 }

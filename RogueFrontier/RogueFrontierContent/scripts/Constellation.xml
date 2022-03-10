@@ -35,7 +35,9 @@
 			<MultiPoint offsetX="4" offsetY="0" angleInc="90"/>
 		</Dock>
 		<Ships>
+			<!--
 			<Ship	count="1"	codename="ship_beowulf" order="patrolCircuit" patrolRadius="20"/>
+			-->
 			<Ship	count="3"	codename="ship_beowulf"/>
 			<Ship	count="2"	codename="ship_amethyst"/>
 			<Ship	count="1"	codename="ship_clark_merchant"/>
@@ -49,6 +51,7 @@
 			<Item count="60"	codename="item_dynamite_charge"/>
 		</Cargo>
 		<Weapons>
+			<Weapon codename="item_musket_cannon"/>
 		</Weapons>
 		<Dock type="united_constellation"/>
 		<HeroImage path="RogueFrontierContent/sprites/ConstellationAstra.asc.cg"/>
@@ -77,6 +80,7 @@
 
 		<Ships>
 			<Ship	count="2"	codename="ship_clark"/>
+			<Ship	count="1"	codename="ship_amethyst"/>
 		</Ships>
 		<Weapons>
 		</Weapons>
@@ -84,43 +88,11 @@
 		<HeroImage path="RogueFrontierContent/ConstellationAstra.asc"/>
 		-->
 	</StationType>
-
-	<StationType	codename="station_raisu"
-				name=		"Constellation habitat Raisu"
-				sovereign=	"sovereign_constellation"
-
-				hp=			"200"
-				crimeOnDestroy="true"
-
-				glyph=		"H"
-				foreground="BB6633FF"
-		>
-		<Segments>
-			<Point offsetX="0"
-				   offsetY="-1"
-				   glyph="#"
-				   foreground="White"/>
-			<Point offsetX="0"
-				   offsetY="1"
-				   glyph="#"
-				   foreground="White"/>
-		</Segments>
-
-		<Ships>
-			<Ship	count="6"	codename="ship_orion_raider" sovereign="sovereign_orion_warlords" order="patrol" patrolRadius="20"/>
-		</Ships>
-		<Weapons>
-		</Weapons>
-		<!--
-		<HeroImage path="RogueFrontierContent/ConstellationAstra.asc"/>
-		-->
-	</StationType>
-
 	<StationType	codename="station_armor_shop"
 					name=		"Armor shop"
 					sovereign=	"sovereign_constellation"
 
-					hp=			"250"
+					hp=			"400"
 					crimeOnDestroy="true"
 
 					glyph=		"A"
@@ -154,6 +126,7 @@
 			<Item count="8" codename="item_bumpersteel_plate"/>
 		</Cargo>
 		<Weapons>
+			<Weapon codename="item_missile_defender"/>
 		</Weapons>
 	</StationType>
 
@@ -161,7 +134,7 @@
 					name=		"Arms dealer"
 					sovereign=	"sovereign_constellation"
 
-					hp=			"250"
+					hp=			"400"
 					crimeOnDestroy="true"
 
 					glyph=		"A"
@@ -189,7 +162,6 @@
 			<Ship	count="1"	codename="ship_clark"/>
 		</Ships>
 		<Cargo>
-
 			<Item count="8" codename="item_amethyst_laser"/>
 			<Item count="8" codename="item_dynamite_cannon"/>
 			<Item count="120" codename="item_dynamite_charge"/>
@@ -200,7 +172,50 @@
 			<Item count="8" codename="item_missile_defender"/>
 		</Cargo>
 		<Weapons>
+			<Weapon codename="item_beowulf_dual_laser_cannon"/>
 		</Weapons>
 	</StationType>
 
+	<StationType	codename="station_constellation_guard_tower"
+				name=		"Constellation guard tower"
+				sovereign=	"sovereign_constellation"
+
+				hp=			"300"
+				crimeOnDestroy="true"
+
+				glyph=		"#"
+				foreground="LightGray"
+		>
+		<Segments>
+			<Point offsetX="1" offsetY="0"
+				   glyph="+" foreground="White"/>
+			<Point offsetX="-1" offsetY="0"
+				   glyph="+" foreground="White"/>
+			<Point offsetX="0" offsetY="1"
+				   glyph="+" foreground="White"/>
+			<Point offsetX="0" offsetY="-1"
+				   glyph="+" foreground="White"/>
+		</Segments>
+		<Dock>
+			<Point offsetX="2" offsetY="0"/>
+			<Point offsetX="-2" offsetY="0"/>
+		</Dock>
+		<Ships>
+			<Ship	count="2"	codename="ship_beowulf" order="patrolCircuit" patrolRadius="20"/>
+			<Ship	count="3"	codename="ship_beowulf" order="guard"/>
+		</Ships>
+		<Cargo>
+			<Item count="8" codename="item_amethyst_laser"/>
+			<Item count="8" codename="item_dynamite_cannon"/>
+			<Item count="120" codename="item_dynamite_charge"/>
+			<Item count="8" codename="item_beowulf_dual_laser_cannon"/>
+			<Item count="8" codename="item_klaw_missile_launcher"/>
+			<Item count="250" codename="item_klaw_missile"/>
+			<Item count="4"	codename="item_musket_cannon"/>
+			<Item count="8" codename="item_missile_defender"/>
+		</Cargo>
+		<Weapons>
+			<Weapon codename="item_beowulf_dual_laser_cannon"/>
+		</Weapons>
+	</StationType>
 </Module>

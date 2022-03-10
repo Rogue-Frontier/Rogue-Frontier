@@ -5,7 +5,17 @@
     <RootNamespace>RogueFrontier</RootNamespace>
 	<ApplicationManifest>app.manifest</ApplicationManifest>
 	<StartupObject>RogueFrontier.Program</StartupObject>
+	<ApplicationIcon>RogueFrontierContent\Icon.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="RogueFrontierContent\Quietus.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="RogueFrontierContent\Icon.ico" />
+    <Content Include="RogueFrontierContent\Quietus.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CoreCLR-NCalc" Version="2.2.92" />
     <PackageReference Include="CsvHelper" Version="27.2.1" />
@@ -39,6 +49,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\sprites\NRobotFortress.asc.cg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="RogueFrontierContent\sprites\NRobotPowerStation.asc.cg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="RogueFrontierContent\sprites\station_orion_warlords_camp.asc.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierServer.bat">
@@ -194,10 +210,15 @@
     <None Update="RogueFrontierContent\scripts\Constellation.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+	  
+    <None Update="RogueFrontierContent\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Behavior\" />
-    <Folder Include="RogueFrontierContent\text\" />
+	  <Folder Include="RogueFrontierContent\text\" />
+	  <Folder Include="RogueFrontierContent\scripts\" />
   </ItemGroup>
   <Import Project="..\Common\Common.projitems" Label="Shared" />
 </Project>

@@ -202,7 +202,7 @@ public static class SGenerator {
     }
 }
 public record Group<T>() : IGenerator<T> {
-    public List<IGenerator<T>> generators;
+    public List<IGenerator<T>> generators=new();
     public static List<T> From(TypeCollection tc, Parse<IGenerator<T>> parse, string str) => new Group<T>(XElement.Parse(str), parse).Generate(tc);
     public Group(XElement e, Parse<IGenerator<T>> parse) : this() {
         generators = new();

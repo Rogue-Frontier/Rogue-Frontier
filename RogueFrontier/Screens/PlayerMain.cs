@@ -1141,7 +1141,7 @@ public class Readout : Console {
                 var messagePos = (player.position + screenCenterOffset).roundDown;
 
                 var sourcePos = t.source.position.roundDown;
-                sourcePos = player.position + (sourcePos - player.position).Rotate(-camera.rotation);
+                sourcePos = player.position + (sourcePos - player.position).Rotate(-camera.rotation) / viewScale;
                 if (messagePos.yi == sourcePos.yi) {
                     continue;
                 }

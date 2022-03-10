@@ -35,11 +35,12 @@
 				>
 		<Weapon		powerUse=		"15"
 					fireCooldown=	"20"
-					initialCharges=	"200"
+					initialCharges=	"300"
+					drill=			"0.1"
 			>
 			<Projectile	missileSpeed=	"60"
 						damageType=		"2"
-						damageHP=		"5"
+						damageHP=		"4"
 						lifetime=		"60"
 						glyph=			"-"
 						foreground=		"White"
@@ -47,7 +48,34 @@
 			<Capacitor
 					minChargeToFire=		"10"
 					dischargeOnFire=		"10"
-					rechargePerTick=			"8/30"
+					rechargePerTick=			"6/30"
+					maxCharge=				"100"
+				/>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_hull_puncher"
+		name=		"Hull Puncher"
+		mass=		"3000"
+		level=		"2"
+		desc=		"This powerful mass driver can punch holes in armor, cutting down to the hull with ease."
+				>
+		<Weapon		powerUse=		"15"
+					fireCooldown=	"20"
+					initialCharges=	"180"
+					drill=			"0.3"
+			>
+			<Projectile	missileSpeed=	"60"
+						damageType=		"2"
+						damageHP=		"6"
+						lifetime=		"60"
+						glyph=			"-"
+						foreground=		"White"
+				/>
+			<Capacitor
+					minChargeToFire=		"10"
+					dischargeOnFire=		"10"
+					rechargePerTick=			"6/30"
 					maxCharge=				"100"
 				/>
 		</Weapon>
@@ -94,7 +122,7 @@
 				name=		"Ironside plate"
 				mass=		"5000"
 				level=		"2"
-				desc=		"It will take a very strong attack to bring down this armor plate."
+				desc=		"It takes a very strong attack to bring down the old Ironside plate."
 		>
 		<Armor	maxHP=		"90"
 				killHP=		"6"/>
@@ -111,6 +139,9 @@
 				glyph=				"i"
 				foreground=			"Yellow"
 		>
+		<Cargo>
+			<Item count="12" codename="item_iron_hook"/>
+		</Cargo>
 		<Devices>
 			<Weapon	codename="item_iron_driver"/>
 			<Weapon	codename="item_iron_hook_cannon"/>
@@ -132,9 +163,6 @@
 				glyph=				"I"
 				foreground=			"Yellow"
 		>
-		<Cargo>
-			<Item count="36"	codename="item_iron_hook"/>
-		</Cargo>
 		<Devices>
 			<Weapon	codename="item_iron_cannon"/>
 			<Weapon	codename="item_iron_driver" omnidirectional="true"/>
@@ -154,7 +182,7 @@
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 				
-				glyph=				"I"
+				glyph=				"7"
 				foreground=			"Yellow"
 		>
 		<Cargo>
@@ -172,6 +200,38 @@
 			<Armor	codename="item_ironside_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
+
+	<ShipClass	codename=			"ship_iron_frigate"
+			name=				"Iron frigate"
+			thrust=				"0.3"
+			maxSpeed=			"15"
+
+			rotationAccel=		"3"
+			rotationDecel=		"6"
+			rotationMaxSpeed=	"4"
+				
+			glyph=				"F"
+			foreground=			"LightYellow"
+		>
+		<Names>
+			Tom Swift
+			John Hawkins
+		</Names>
+		<Cargo>
+			<Item count="120"	codename="item_iron_hook"/>
+		</Cargo>
+		<Devices>
+			<Weapon	codename="item_iron_hook_cannon" omnidirectional="true"/>
+			<Weapon	codename="item_hull_puncher"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor	codename="item_ironside_plate"/>
+			<Armor	codename="item_ironside_plate"/>
+			<Armor	codename="item_ironside_plate"/>
+			<Armor	codename="item_ironside_plate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
+	
 	<StationType	codename="station_iron_pirates_hideout"
 					name=		"Iron Pirates hideout"
 					sovereign=	"sovereign_iron_pirates"

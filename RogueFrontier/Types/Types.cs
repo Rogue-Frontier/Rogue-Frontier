@@ -188,6 +188,10 @@ public record StaticTile() : ITile {
         (foreground, background, glyph) = (cg.Foreground, cg.Background, cg.GlyphCharacter);
     public StaticTile(char c) : this() =>
         (foreground, background, glyph) = (Color.White, Color.Black, c);
+
+    public StaticTile(char c, Color foreground, Color background) : this() =>
+        (this.foreground, this.background, glyph) = (foreground, background, c);
+
     public StaticTile(char c, string foreground, string background) : this() {
         this.foreground=(Color)typeof(Color).GetField(foreground).GetValue(null);
         this.background=(Color)typeof(Color).GetField(background).GetValue(null);

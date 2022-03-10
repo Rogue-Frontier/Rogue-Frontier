@@ -254,13 +254,15 @@
 
 					stealth="2"
 					
+					behavior=	"orionWarlords"
+					
 					hp=			"250"
 
 					glyph=		"c"
 					foreground="70AEFFFF"
 		>
 		<Segments>
-			<Ring/>
+			<Ring foreground="70AEFFFF"/>
 		</Segments>
 		<Ships>
 			<Ship	count="7"	codename="ship_orion_raider"/>
@@ -274,6 +276,8 @@
 					sovereign=	"sovereign_orion_warlords"
 
 					stealth="2"
+					
+					behavior=	"orionWarlords"
 					
 					hp=			"500"
 
@@ -300,7 +304,7 @@
 			<Point offsetX="-3" offsetY="-3"	glyph="+" foreground="LightBlue"/>
 			<Point offsetX="-3" offsetY="-2"	glyph="|" foreground="LightBlue"/>
 			<Point offsetX="-2" offsetY="-2"	glyph="/" foreground="LightBlue"/>
-			<Ring/>
+			<Ring foreground="70AEFFFF"/>
 		</Segments>
 		<Ships>
 			<Ship	count="13"	codename="ship_orion_raider"/>

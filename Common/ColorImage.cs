@@ -5,23 +5,19 @@ using System.Linq;
 using SadConsole;
 using System.IO;
 using Console = SadConsole.Console;
-
 namespace Common;
-
 public class ColorImage {
     public Dictionary<(int x, int y), ColoredGlyph> Sprite;
     public Point Size;
-    public ColorImage(Dictionary<(int x, int y), TileValue> sprite) {
-        int left = sprite.Keys.Min(p => p.x);
-        int top = sprite.Keys.Min(p => p.y);
-        int right = sprite.Keys.Max(p => p.x);
-        int bottom = sprite.Keys.Max(p => p.y);
-
-        Size = new Point(right - left, bottom - top);
-
+    public ColorImage(Dictionary<(int x, int y), TileValue> Sprite) {
+        int left = Sprite.Keys.Min(p => p.x);
+        int top = Sprite.Keys.Min(p => p.y);
+        int right = Sprite.Keys.Max(p => p.x);
+        int bottom = Sprite.Keys.Max(p => p.y);
+        Size = new(right - left, bottom - top);
         var origin = new Point(left, top);
-        this.Sprite = new Dictionary<(int x, int y), ColoredGlyph>();
-        foreach ((var p, var t) in sprite) {
+        this.Sprite = new();
+        foreach ((var p, var t) in Sprite) {
             this.Sprite[p - origin] = t;
         }
     }
@@ -31,5 +27,5 @@ public class ColorImage {
             onto.SetCellAppearance(x, y, t);
         }
     }
-    public static ColorImage FromFile(string file) => new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText(file)));
+    public static ColorImage FromFile(string file) => new ColorImage(ASECIILoader.LoadCG(file));
 }

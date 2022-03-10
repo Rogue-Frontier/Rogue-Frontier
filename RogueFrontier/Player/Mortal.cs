@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RogueFrontier;
 
-public struct Mortal {
+public class Mortal {
     public int chances = 3;
     public double time = 0;
 }

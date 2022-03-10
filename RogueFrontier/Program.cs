@@ -12,6 +12,8 @@ using System;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
+using Microsoft.Xna.Framework.Media;
+
 namespace RogueFrontier;
 partial class Program {
     public static int TICKS_PER_SECOND = 60;
@@ -24,6 +26,11 @@ partial class Program {
     public static string main = ExpectFile("RogueFrontierContent/scripts/Main.xml");
     public static string cover = ExpectFile("RogueFrontierContent/sprites/RogueFrontierPosterV2.asc.cg");
     public static string splash = ExpectFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
+
+    public static string theme = ExpectFile("RogueFrontierContent/Quietus.mp3");
+
+
+
     static void Main(string[] args) {
 
         /*
@@ -136,6 +143,9 @@ partial class Program {
 #endif
 
         void ShowSplash() {
+            var p = Path.GetFullPath(theme);
+            MediaPlayer.Play(Song.FromUri(p, new(p)));
+
             index = 1;
             SplashScreen c = null;
             c = new SplashScreen(() => ShowCrawl(c));

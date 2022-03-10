@@ -705,6 +705,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             ammo?.Update(owner);
             //Stations always fire for now
             firing = true;
+
             bool beginRepeat = true;
             if (repeatsLeft > 0) {
                 repeatsLeft--;
@@ -728,10 +729,40 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                     return desc.spray;
                 }
             }
+
+
+            if (!direction.HasValue) {
+                goto Done;
+            }
+            bool clear = true;
+            var d = XY.Polar(direction.Value);
+            var p = owner.position;
+            for (int i = 0; i < projectileDesc.range; i++) {
+                p += d;
+                foreach (var other in owner.world.entities[p].Select(s => s is ISegment seg ? seg.parent : s).Distinct()) {
+                    if(other == owner)
+                        continue;
+                    if (other == aiming?.target)
+                        goto LineCheckDone;
+                    switch (other) {
+                        case AIShip ai when owner.guards.Contains(ai):
+                            continue;
+                        case ActiveObject a when owner.CanTarget(a):
+                            goto LineCheckDone;
+                        default:
+                            clear = false;
+                            goto LineCheckDone;
+                    }
+                }
+            }
+        LineCheckDone:
+
+            firing &= clear;
+
             //bool allowFire = (firing || true) && (capacitor?.AllowFire ?? true);
             capacitor?.CheckFire(ref firing);
             ammo?.CheckFire(ref firing);
-            if (firing && direction.HasValue) {
+            if (firing) {
                 //mod = new();
 
                 delay = desc.fireCooldown;
@@ -745,11 +776,13 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                 repeatsLeft = 0;
             }
         }
+
+        Done:
         firing = false;
     }
     public void Update(IShip owner) {
         UpdateProjectileDesc();
-        double? direction = owner.rotationRad + angle;
+        double direction = owner.rotationRad + angle;
         if (aiming != null) {
             aiming.Update(owner, this);
             direction = aiming.GetFireAngle() ?? direction;
@@ -779,6 +812,8 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                 }
             }
 
+
+
             //bool allowFire = firing && (capacitor?.AllowFire ?? true);
             capacitor?.CheckFire(ref firing);
             ammo?.CheckFire(ref firing);
@@ -789,11 +824,11 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                     repeatsLeft = desc.repeat;
                 }
 
-                Fire(owner, direction.Value);
+                Fire(owner, direction);
 
                 //Apply on next tick (create a delta-momentum variable)
                 if (desc.recoil > 0) {
-                    owner.velocity += XY.Polar(direction.Value + Math.PI, desc.recoil);
+                    owner.velocity += XY.Polar(direction + Math.PI, desc.recoil);
                 }
 
             } else {

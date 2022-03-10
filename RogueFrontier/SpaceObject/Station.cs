@@ -137,13 +137,15 @@ public class Station : ActiveObject, ITrader, IDockable {
         pirate,
         reinforceNearby,
         constellationShipyard,
-        amethystStore
+        amethystStore,
+        orionWarlords
     }
     public void InitBehavior(Behaviors behavior) {
         this.behavior = behavior switch {
             Behaviors.raisu => null,
             Behaviors.pirate => new PirateStation(),
             Behaviors.reinforceNearby => new ReinforceNearby(),
+            Behaviors.orionWarlords => new OrionWarlordsStation(this),
             Behaviors.none => null,
             _ => null
         };
@@ -173,8 +175,8 @@ public class Station : ActiveObject, ITrader, IDockable {
     
     public XY GetDockPoint() =>
         type.dockPoints.Except(GetDocked().Select(s => s.dock?.Offset)).FirstOrDefault() ?? XY.Zero;
-    public void UpdateGuardList() {
-        guards = new List<AIShip>(world.entities.all.OfType<AIShip>()
+    public List<AIShip> UpdateGuardList() {
+        return guards = new(world.entities.all.OfType<AIShip>()
             .Where(s => s.behavior switch {
                 GuardOrder g => g.home == this,
                 PatrolOrbitOrder p => p.patrolTarget == this,

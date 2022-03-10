@@ -129,53 +129,51 @@ public record SystemOrbital() : SystemElement {
 
     public int count;
 
-    public int angle;
-    public bool randomAngle;
+    public IDice angle;
+    public IDice angleInc;
 
-    public int increment;
-    public bool randomInc;
+    public IDice increment;
     public bool equidistant;
 
     public int radius;
     public SystemOrbital(XElement e, Parse<SystemElement> parse) : this() {
         subelements = e.Elements().Select(e => parse(e)).ToList();
         count = e.TryAttInt(nameof(count), 1);
-        switch (e.ExpectAtt(nameof(angle))) {
-            case "random":
-                randomAngle = true;
-                //Default to random increment
-                randomInc = true;
-                break;
-            case var i when int.TryParse(i, out var a):
-                angle = a;
-                break;
-            case var unknown:
-                throw new Exception($"Invalid angle {unknown}");
+
+        if (e.TryAtt(nameof(angle), out var a)) {
+            switch (a) {
+                case "random":
+                    angle = new DiceRange(0, 360, 0);
+                    break;
+                case var i when IDice.TryParse(i, out var d):
+                    angle = d;
+                    break;
+                case var unknown:
+                    throw new Exception($"Invalid angle {unknown}");
+            }
+        } else if (e.TryAtt(nameof(angleInc), out var ai)) {
+            angleInc = IDice.Parse(ai);
         }
         switch (e.TryAttNullable(nameof(increment))) {
             case null:
                 break;
             case "random":
-                randomInc = true;
+                increment = new DiceRange(0, 360, 0);
                 break;
             case "equidistant":
                 equidistant = true;
                 break;
-            case var i when int.TryParse(i, out var inc):
-                increment = inc;
+            case var i when IDice.TryParse(i, out var d):
+                increment = d;
                 break;
             case var unknown:
                 throw new Exception($"Invalid increment {unknown}");
         }
-        radius = e.ExpectAttInt(nameof(radius));
+        radius = e.TryAttInt(nameof(radius), 0);
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
-        var angle = this.angle;
-        var increment = this.increment;
+        var angle = this.angle?.Roll() ?? lc.angle + angleInc?.Roll()??0;
         int equidistantInterval = 360 / (subelements.Count * count);
-        if (randomAngle) {
-            angle = lc.world.karma.NextInteger(360);
-        }
         for (int i = 0; i < count; i++) {
             foreach (var sub in subelements) {
                 var loc = lc with {
@@ -186,10 +184,9 @@ public record SystemOrbital() : SystemElement {
                     index = i
                 };
                 sub.Generate(loc, tc, result);
-                if (increment > 0) {
-                    angle += increment;
-                } else if (randomInc) {
-                    angle = lc.world.karma.NextInteger(360);
+
+                if (increment is IDice d) {
+                    angle += d.Roll();
                 } else if (equidistant) {
                     angle += equidistantInterval;
                 }

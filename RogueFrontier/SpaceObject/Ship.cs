@@ -191,6 +191,7 @@ public class BaseShip : StructureObject {
         foreach (var on in onDestroyed) {
             on.Value.Invoke(this, source, wreck);
         }
+        (source as PlayerShip)?.FireOnDestroyed(source, wreck);
     }
     public void Update() {
         UpdateControl();
@@ -465,7 +466,7 @@ public class PlayerShip : IShip {
         };
     }
 
-    public void FireOnDestroyed(BaseShip s, ActiveObject source, Wreck wreck) {
+    public void FireOnDestroyed(ActiveObject source, Wreck wreck) {
         onDestroyed.set.RemoveWhere(d => d.Value == null);
         foreach (var f in onDestroyed.set) f.Value.Invoke(this, source, wreck);
     }

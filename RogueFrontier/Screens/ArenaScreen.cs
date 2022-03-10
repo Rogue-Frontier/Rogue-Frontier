@@ -39,6 +39,8 @@ class ArenaScreen : Console {
     public ActiveObject pov;
     ActiveObject nearest;
     public PlayerMain playerMain;
+
+    bool passTime = true;
     public ArenaScreen(TitleScreen prev, Settings settings, System World) : base(prev.Width, prev.Height) {
         this.prev = prev;
         this.settings = settings;
@@ -131,6 +133,8 @@ class ArenaScreen : Console {
 
                             station.CreateSegments();
                             station.CreateGuards();
+
+                            UpdatePresent();
                         });
 
                         if (++i > 16) {
@@ -180,6 +184,8 @@ class ArenaScreen : Console {
 
                             World.AddEntity(ship);
                             World.AddEffect(new Heading(ship));
+
+                            UpdatePresent();
                         });
 
                         if (++i > 16) {
@@ -322,6 +328,12 @@ class ArenaScreen : Console {
             c.IsVisible = true;
         }
     }
+    private void UpdatePresent() {
+        World.UpdateAdded();
+        World.UpdateRemoved();
+        tiles.Clear();
+        World.PlaceTiles(tiles);
+    }
     public override void Update(TimeSpan timeSpan) {
         if (playerMain != null) {
             playerMain.IsFocused = true;
@@ -332,13 +344,18 @@ class ArenaScreen : Console {
         }
 
         base.Update(timeSpan);
-        World.UpdateAdded();
 
-        World.UpdateActive();
-        World.UpdateRemoved();
+        if (passTime) {
 
-        tiles.Clear();
-        World.PlaceTiles(tiles);
+            World.UpdateAdded();
+
+            World.UpdateActive();
+            World.UpdateRemoved();
+
+            tiles.Clear();
+            World.PlaceTiles(tiles);
+
+        }
 
         if (pov?.active == false) {
             pov = null;
@@ -438,7 +455,10 @@ class ArenaScreen : Console {
         if (info.IsKeyPressed(Tab)) {
             ToggleArena();
         }
-        if (info.IsKeyPressed(Keys.A)) {
+        if (info.IsKeyPressed(Keys.Space)) {
+            passTime = !passTime;
+        }
+        if (info.IsKeyPressed(A)) {
             if (nearest is AIShip a) {
                 a.ship.active = false;
                 World.RemoveEntity(a);

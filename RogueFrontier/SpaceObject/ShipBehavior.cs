@@ -214,6 +214,12 @@ public class GuardOrder : IShipOrder {
         attackOrder = new(null);
         attackTime = 0;
     }
+    public GuardOrder(ActiveObject home, ActiveObject attackTarget) {
+        this.home = home;
+        approach = new(home);
+        attackOrder = new(attackTarget);
+        attackTime = -1;
+    }
     public override string ToString() => $"guard {home.name} {(attackOrder?.Active == true ? $"(attack {attackOrder.target.name})" : "")}";
     public void SetHome(ActiveObject home) {
         this.home = home;

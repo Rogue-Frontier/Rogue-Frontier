@@ -19,20 +19,11 @@
 
 			<Orbital count="5"
 					 radius="300"
-					 angle="random">
+					 angle="random"
+					 increment="30-60"
+					 >
 
 				<Station	codename="station_orion_warlords_camp"/>
-			</Orbital>
-
-			<Orbital radius="600"
-					 angle="random">
-				<Group>
-					<Asteroids angle="60" size="60"/>
-					<Station codename="station_raisu"/>
-					<Sibling radiusInc="200" angleInc="10">
-						<Station codename="station_arnold_habitat"/>
-					</Sibling>
-				</Group>
 			</Orbital>
 			<Orbital radius="400"
 					 angle="random">
@@ -41,47 +32,50 @@
 				<Planet radius="20"
 						showOrbit="true"
 							/>
-
+				<!--Starting area-->
 				<Orbital angle="random"
-						 increment="80"
-						 radius="0">
+						 increment="80">
 
-					<!--Tiny Moon-->
+					<!--tiny moon with warlord camp-->
 					<Group radius="60">
 					
-						<Planet radius="3"/>
-						<Orbital angle="random" radius="10">
+						<Planet radius="5"/>
+						<Orbital count="2" angle="random" increment="90-150" radius="10">
 							<Station	codename="station_orion_warlords_camp"/>
 						</Orbital>
+						<Orbital angleInc="-90" radius="50">
+							<Station	codename="station_orion_warlords_stronghold"/>
+						</Orbital>
+						
 					</Group>
 
-
+					<!--small moon with ring of stations-->
 					<Group radius="80">
-						<!--Small Moon-->
 						<Planet radius="10"/>
-
-						<!--Ring of stations-->
 						<Orbital radius="30" angle="random" increment="20" count="5">
 							<Group>
+								<!--Astra + Village-->
 								<Station	codename="station_constellation_astra"/>
+								<Sibling	radiusInc="20">
+									<Station codename="station_constellation_habitat"/>
+								</Sibling>
+								
+								<!--Accompanying special stations-->
 								<At index="1">
-									<Sibling	radiusInc="-10">
+									<Sibling	radiusInc="-15">
 										<Station codename="station_armor_shop"/>
 									</Sibling>
 								</At>
 								<At index="2">
-									<Sibling radiusInc="-10">
+									<Sibling radiusInc="-15">
 										<Station codename="station_amethyst_store"/>
 									</Sibling>
 								</At>
 								<At index="3">
-									<Sibling	radiusInc="-10">
+									<Sibling	radiusInc="-15">
 										<Station codename="station_arms_dealer"/>
 									</Sibling>
 								</At>
-								<Sibling	radiusInc="20">
-									<Station codename="station_constellation_habitat"/>
-								</Sibling>
 							</Group>
 						</Orbital>
 					</Group>
@@ -102,6 +96,15 @@
 						</Orbital>
 					</Group>
 				</Orbital>
+			</Orbital>
+			<Orbital radius="240" angle="random">
+				<Group>
+					<Planet radius="15"/>
+					<Orbital radius="15" angle="random" increment="45-90">
+						<Station codename="station_arms_dealer"/>
+						<Station codename="station_arms_dealer"/>
+					</Orbital>
+				</Group>
 			</Orbital>
 		</SystemGroup>
 	</SystemType>
@@ -125,14 +128,14 @@
 			
 			<Orbital count="3"
 					 radius="300"
-					 angle="random">
-
+					 angle="random"
+					 increment="random">
 				<Station	codename="station_iron_pirates_hideout"/>
 			</Orbital>
 			<Orbital count="5"
 					 radius="800"
-					 angle="random">
-
+					 angle="random"
+					 increment="random">
 				<Station	codename="station_orion_warlords_camp"/>
 			</Orbital>
 		</SystemGroup>

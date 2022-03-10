@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 namespace RogueFrontier;
-
 public class DeviceSystem {
     public List<Device> Installed=new();
     public List<Device> Powered=new();

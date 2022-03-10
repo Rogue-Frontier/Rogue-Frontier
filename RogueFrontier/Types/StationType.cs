@@ -5,6 +5,7 @@ using Color = SadRogue.Primitives.Color;
 using System;
 using SadConsole;
 using System.Linq;
+using ASECII;
 
 namespace RogueFrontier;
 
@@ -46,7 +47,9 @@ public class StationType : IDesignType {
         }
 
         if(e.TryAtt("structure", out var structure)) {
-            var sprite = ColorImage.FromFile(structure).Sprite;
+            var sprite = ASECIILoader.LoadCG(structure).ToDictionary(
+                pair => (pair.Key.Item1, -pair.Key.Item2),
+                pair => pair.Value.cg);
             tile = sprite.TryGetValue((0, 0), out var cg) ? new(cg) : null;
             sprite.Remove((0, 0));
             segments = new(sprite.Select((pair) => new SegmentDesc(new(pair.Key), pair.Value)));
@@ -96,9 +99,9 @@ public class StationType : IDesignType {
                                 break;
                             }
                         case "Ring": {
-                                string foreground = xmlSegment.TryAtt("foreground", "White");
-                                string background = xmlSegment.TryAtt("background", "Transparent");
-                                segments.AddRange(CreateRing(foreground, background));
+                                var f = xmlSegment.TryAttColor("foreground", Color.White);
+                                var b = xmlSegment.TryAttColor("background", Color.Transparent);
+                                segments.AddRange(CreateRing(f, b));
                                 break;
                             }
                         case "Box": {
@@ -161,9 +164,11 @@ public class StationType : IDesignType {
         }
 
     }
-    public static List<SegmentDesc> CreateRing(string foreground = "White", string background = "Black") {
+    public static List<SegmentDesc> CreateRing(Color? f = null, Color? b = null) {
+        f ??= Color.White;
+        b ??= Color.Black;
         SegmentDesc Create(int x, int y, char c) =>
-            new SegmentDesc(new XY(x, y), new StaticTile(c, foreground, background));
+            new SegmentDesc(new XY(x, y), new StaticTile(c, f.Value, b.Value));
         return new() {
             Create(0, 1, '-'),
             Create(1, 1, '\\'),

@@ -145,9 +145,9 @@
 		</PlayerSettings>
 	</ShipClass>
 
-	<ShipClass    codename="ship_beowulf_ii"
+	<ShipClass    codename="ship_ulysses"
 			  inherit="ship_beowulf"
-			  name="Beowulf II-class gunship"
+			  name="Ulysses-class gunship"
         >
 		<Items>
 			<Item codename="item_klaw_missile" count="64"/>
@@ -169,7 +169,7 @@
 		</LayeredArmorSystem>
 		<PlayerSettings
 			startingClass="false"
-			description="The Beowulf II is an upgraded version of the Beowulf-class gunship."
+			description="The Ulysses is an upgraded version of the Beowulf-class gunship."
         />
 	</ShipClass>
 
@@ -183,7 +183,7 @@
 			   rotationDecel=       "12"
 			   rotationMaxSpeed=    "8"
 
-               glyph=                "w"
+               glyph=                "c"
                foreground=          "Orange"
 			   background=			"Black"
         >
@@ -252,7 +252,35 @@
 		</Items>
 		<PlayerSettings startingClass="false"/>
 	</ShipClass>
-    <!--
+
+	<ShipClass codename=            "ship_lewis"
+			   inherit=				"ship_clark"
+               name=                "Lewis-class transport"
+        >
+		<Items>
+			<Item codename="item_simple_fuel_rod" count="24"/>
+			<Item codename="item_armor_repair_patch"	count="8"/>
+		</Items>
+		<Devices>
+			<Weapon codename="item_musket_cannon"/>
+			<Weapon codename="item_missile_defender"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_10mw_storage_battery"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="item_bumpersteel_plate"/>
+			<Armor  codename="item_bumpersteel_plate"/>
+		</LayeredArmorSystem>
+		<PlayerSettings
+            startingClass=  "false"
+            description=    "The Lewis-class transport is an upgrade to the Clark-class transport."
+            >
+		</PlayerSettings>
+	</ShipClass>
+
+
+
+	<!--
     <ShipClass codename="scFlatbed"
         
         >

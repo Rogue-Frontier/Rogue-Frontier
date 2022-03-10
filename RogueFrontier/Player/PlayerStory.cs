@@ -617,24 +617,21 @@ public class PlayerStory {
     }
     delegate Con GetDockScreen(Con prev, PlayerShip playerShip, Station source);
     public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
-        Con sc;
-        sc = mainInteractions.Select(m => m.GetScene(prev, playerShip, d)).FirstOrDefault(s => s != null);
-        if (sc != null) {
-            return sc;
-        } else {
-            if (d is Station source) {
-                string codename = source.type.codename;
-                Dictionary<string, GetDockScreen> funcMap = new Dictionary<string, GetDockScreen> {
-                        {"station_amethyst_store", AmethystStore },
-                        {"station_constellation_astra", ConstellationAstra},
-                        {"station_constellation_habitat", ConstellationHabitat },
-                        {"station_armor_shop", ArmorDealer },
-                        {"station_arms_dealer", ArmsDealer },
-                        {"station_orion_warlords_camp", OrionWarlordsCamp }
-                    };
-                if (funcMap.TryGetValue(codename, out var f)) {
-                    return f(prev, playerShip, source);
-                }
+        if (mainInteractions.Select(m => m.GetScene(prev, playerShip, d)).FirstOrDefault(s => s != null) is Con c) {
+            return c;
+        }
+        if (d is Station source) {
+            GetDockScreen f = source.type.codename switch {
+                "station_amethyst_store" => AmethystStore,
+                "station_constellation_astra" => ConstellationAstra,
+                "station_constellation_habitat" => ConstellationVillage,
+                "station_armor_shop" => ArmorDealer,
+                "station_arms_dealer" => ArmsDealer,
+                "station_orion_warlords_camp" => OrionWarlordsCamp,
+                _ => null
+            };
+            if (f != null) {
+                return f(prev, playerShip, source);
             }
         }
         return null;
@@ -698,7 +695,7 @@ There will be no trial.",
     }
     public IEnumerable<ICrime> GetConstellationCrimes(PlayerShip p, Station source) {
         return p.crimeRecord.Where(c => c is DestructionCrime d
-            && object.ReferenceEquals(d.destroyed.sovereign, source.sovereign)
+            && ReferenceEquals(d.destroyed.sovereign, source.sovereign)
             && !d.resolved);
     }
     public Con ArmorDealer(Con prev, PlayerShip playerShip, Station source) {
@@ -748,15 +745,16 @@ There is a modest degree of artificial gravity here.",
         }
         Con Trade(Con from) => TradeStation(from, playerShip, source);
     }
-    public Con ConstellationHabitat(Con prev, PlayerShip playerShip, Station source) {
+    public Con ConstellationVillage(Con prev, PlayerShip playerShip, Station source) {
         var c = GetConstellationCrimes(playerShip, source);
         if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
 
         return Intro(prev);
         Con Intro(Con prev) {
             return new Dialog(prev,
-@"You are docked at a Constellation Habitat,
-a residential station of the United Constellation.",
+@"You are docked at a Constellation Village,
+a residential station assembled out of 
+shipping containers and various spare parts.",
                 new() {
                     new("Meeting Hall", MeetingHall),
                     new("Undock")
@@ -845,7 +843,7 @@ As promised, here's your money - 400 cons""",
             Dialog Reject(Con prev) {
                 return new(prev,
 @"""Oh man, what the hell is it with you people?
-Okay, fine, I'll just find someone else to do it then.""",
+Okay, fine, I'll just find someone else to do it.""",
                     new() {
                         new("Undock")
                     });

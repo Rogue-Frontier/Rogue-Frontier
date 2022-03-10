@@ -112,3 +112,26 @@ public class ReinforceNearby : StationBehavior {
         }
     }
 }
+
+
+
+public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroyed> {
+    public Station.Destroyed Value => (station, destroyer, wreck) => {
+        if (destroyer?.active != true) {
+            return;
+        }
+        if (station.world.entities.all
+            .OfType<Station>()
+            .Where(s => s.active && s.sovereign == station.sovereign && s.UpdateGuardList().Any())
+            .OrderBy(s => (s.position - destroyer.position).magnitude2)
+            .FirstOrDefault() is Station s) {
+            s.guards.ForEach(g => g.behavior = new GuardOrder(s, destroyer));
+        }
+    };
+    public OrionWarlordsStation(Station owner) {
+        owner.onDestroyed += this;
+    }
+    public void Update(Station owner) {
+        
+    }
+}
