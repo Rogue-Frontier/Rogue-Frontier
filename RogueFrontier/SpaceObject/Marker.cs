@@ -20,6 +20,35 @@ class Marker : Entity {
     public void Update() { }
 }
 
+class ActiveMarker : ActiveObject {
+    [JsonIgnore]
+    public ColoredGlyph tile => null;
+    [JsonIgnore]
+    public System world { get; set; }
+    [JsonIgnore]
+    public Sovereign sovereign { get; set; }
+    [JsonIgnore]
+    public int id => -1;
+    //public List<SpaceObject> Nearby;
+    public string name => "marker";
+    public XY position { get; set; }
+    public XY velocity { get; set; }
+    public bool active { get; set; }
+
+    public ActiveMarker(System world, Sovereign sovereign, XY Position) {
+        this.world = world;
+        this.sovereign = sovereign;
+        this.position = Position;
+        this.velocity = new XY();
+        this.active = true;
+    }
+    public void Update() {
+        //Nearby = Owner.world.entities.all.OfType<SpaceObject>().Except(new SpaceObject[] { Owner }).OrderBy(e => (e.position - position).magnitude).ToList();
+    }
+    public void Damage(Projectile p) { }
+    public void Destroy(ActiveObject source = null) { }
+}
+
 class TargetingMarker : ActiveObject {
     [JsonIgnore]
     public ColoredGlyph tile => null;

@@ -108,6 +108,10 @@ public record Clonewall() : PowerEffect {
                 p.onWeaponFire -= this;
                 return;
             }
+            //Don't clone any Power attacks
+            if(w.desc == null) {
+                return;
+            }
             foreach(var projectile in pr) {
                 var fragment = projectile.fragment;
                 int i = 0;
@@ -167,7 +171,7 @@ public class PowerProjectile : PowerEffect {
     }
     //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
     public void Invoke(PlayerShip player) =>
-        new Weapon() { projectileDesc = desc }.Fire(player, player.rotationRad);
+        new Weapon() { projectileDesc = desc}.Fire(player, player.rotationRad);
 }
 public class PowerHeal : PowerEffect {
     public PowerHeal() { }
@@ -264,7 +268,8 @@ public class Power : IPower {
         this.type = type;
     }
     public void OnDestroyCheck(PlayerShip player, Projectile p) {
-        if (type.onDestroyCheck) {
+        if (type.onDestroyCheck && ready) {
+            cooldownLeft = cooldownPeriod;
             p.damageHP = 0;
             player.ship.damageSystem.Restore();
             type.Effect.ForEach(e=>e.Invoke(player));

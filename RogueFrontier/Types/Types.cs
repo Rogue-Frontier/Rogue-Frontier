@@ -15,6 +15,8 @@ public class TypeCollection {
     private Dictionary<string, XElement> sources=new();
     [JsonProperty]
     public Dictionary<string, IDesignType> all=new();
+
+    public HashSet<string> initialized = new();
     [JsonProperty]
     private Dictionary<Type, object> dicts = new() {
         [typeof(GenomeType)] = new Dictionary<string, GenomeType>(),
@@ -61,11 +63,18 @@ public class TypeCollection {
         state = InitState.Initializing;
         //We don't evaluate all sources; just the ones that are used by DesignTypes
         foreach (string key in all.Keys.ToList()) {
-            IDesignType type = all[key];
-            XElement source = sources[key];
-            type.Initialize(this, source);
+            if (initialized.Contains(key)) {
+                continue;
+            }
+            InitializeType(key);
         }
         state = InitState.Initialized;
+    }
+    public void InitializeType(string key) {
+        IDesignType type = all[key];
+        XElement source = sources[key];
+        type.Initialize(this, source);
+        initialized.Add(key);
     }
     public void LoadFile(params string[] modules) {
         foreach (var m in modules) {
@@ -161,6 +170,9 @@ public class TypeCollection {
     }
     public T Lookup<T>(string codename) where T : class, IDesignType {
         var result = Lookup(codename);
+        if (!initialized.Contains(codename)) {
+            result.Initialize(this, sources[codename]);
+        }
         return result as T ??
             throw new Exception($"Type {codename} is <{result.GetType().Name}>, not <{nameof(T)}>");
     }

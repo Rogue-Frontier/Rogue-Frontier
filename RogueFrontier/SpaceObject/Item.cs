@@ -350,7 +350,6 @@ public class Engine : Device {
         }
     }
 }
-
 public class Enhancer : Device {
     [JsonProperty]
     public Item source { get; set; }
@@ -655,12 +654,12 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
     }
     public Weapon Copy(Item source) => desc.GetWeapon(source);
     public string GetReadoutName() {
-        if (ammo is ChargeAmmo c) {
-            return $"{source.type.name} [{c.charges}]";
-        } else if (ammo is ItemAmmo i) {
-            return $"{source.type.name} [{i.count}]";
-        }
-        return source.type.name;
+        string name = source.type.name;
+        return ammo switch {
+            ChargeAmmo c => $"[{c.charges, 4}] {name}",
+            ItemAmmo i => $"[{i.count, 4}] {name}",
+            _ => name
+        };
     }
     public ColoredString GetBar() {
         if (ammo?.AllowFire == false) {
@@ -692,9 +691,11 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
     public void Update(Station owner) {
         UpdateProjectileDesc();
         double? direction = null;
+        var hasAimTarget = false;
         if (aiming != null) {
             aiming.Update(owner, this);
-            if (aiming.target != null && (aiming.target.position - owner.position).magnitude < projectileDesc.range) {
+            hasAimTarget = aiming.target != null && (aiming.target.position - owner.position).magnitude2 < projectileDesc.range2;
+            if (hasAimTarget) {
                 direction = aiming.GetFireAngle();
             }
         }
@@ -702,19 +703,19 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
         if (delay > 0 && repeatsLeft == 0) {
             delay--;
         } else {
-            ammo?.Update(owner);
             //Stations always fire for now
             firing = true;
 
-            bool beginRepeat = true;
+            bool beginRepeat = true, endRepeat = true;
             if (repeatsLeft > 0) {
                 repeatsLeft--;
                 firing = true;
                 beginRepeat = false;
+                endRepeat = repeatsLeft == 0;
             } else if (desc.autoFire) {
-                firing = CheckProjectile() || CheckSpray() || aiming?.target != null;
+                firing = CheckProjectile() || CheckSpray() || hasAimTarget;
                 bool CheckProjectile() {
-                    if(desc.targetProjectile && Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s)) is Projectile target) {
+                    if (desc.targetProjectile && Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s)) is Projectile target) {
                         direction = Omnidirectional.GetFireAngle(owner, target, this);
                         return true;
                     }
@@ -723,7 +724,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                 bool CheckSpray() {
                     direction = desc.spray ? aiming switch {
                         Omnidirectional => new Random().NextDouble() * 2 * Math.PI,
-                        Swivel s => angle + new Random().NextDouble()*(s.leftRange + s.rightRange) - s.leftRange,
+                        Swivel s => angle + new Random().NextDouble() * (s.leftRange + s.rightRange) - s.leftRange,
                         _ => angle
                     } : direction;
                     return desc.spray;
@@ -732,7 +733,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
 
 
             if (!direction.HasValue) {
-                goto Done;
+                goto Cancel;
             }
             bool clear = true;
             var d = XY.Polar(direction.Value);
@@ -759,22 +760,29 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
 
             firing &= clear;
 
+            if (!firing) {
+                goto Cancel;
+            }
+
             //bool allowFire = (firing || true) && (capacitor?.AllowFire ?? true);
             capacitor?.CheckFire(ref firing);
-            ammo?.CheckFire(ref firing);
-            if (firing) {
-                //mod = new();
 
-                delay = desc.fireCooldown;
+            if (ammo != null) {
+                ammo.Update(owner);
+                ammo.CheckFire(ref firing);
+            }
+
+            if (firing) {
+                delay = endRepeat ? desc.fireCooldown : desc.repeatDelay;
                 if (beginRepeat) {
                     repeatsLeft = desc.repeat;
                 }
-
                 Fire(owner, direction.Value);
-                
-            } else {
-                repeatsLeft = 0;
+                goto Done;
             }
+            Cancel:
+
+            repeatsLeft = 0;
         }
 
         Done:
@@ -783,43 +791,59 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
     public void Update(IShip owner) {
         UpdateProjectileDesc();
         double direction = owner.rotationRad + angle;
+
+        var hasAimTarget = false;
         if (aiming != null) {
             aiming.Update(owner, this);
-            direction = aiming.GetFireAngle() ?? direction;
+            hasAimTarget = aiming.target != null && (aiming.target.position - owner.position).magnitude2 < projectileDesc.range2;
+            if (hasAimTarget) {
+                direction = aiming.GetFireAngle() ?? direction;
+            }
         }
         capacitor?.Update();
         if (delay > 0 && repeatsLeft == 0) {
             delay--;
         } else {
-            ammo?.Update(owner);
-            bool beginRepeat = true;
+            bool beginRepeat = true, endRepeat = true;
             if (repeatsLeft > 0) {
                 repeatsLeft--;
                 firing = true;
                 beginRepeat = false;
-            } else if (desc.autoFire) {
-                firing = CheckProjectile() || CheckSpray() || aiming?.target != null;
-                bool CheckProjectile() {
-                    if (desc.targetProjectile && Aiming.AcquireMissile(owner, this, s => SShip.IsEnemy(owner, s)) is Projectile target) {
-                        direction = Omnidirectional.GetFireAngle(owner, target, this);
-                        return true;
+                endRepeat = repeatsLeft == 0;
+            } else {
+                if (desc.autoFire) {
+                    firing = CheckProjectile() || CheckSpray() || hasAimTarget;
+                    bool CheckProjectile() {
+                        if (desc.targetProjectile && Aiming.AcquireMissile(owner, this, s => s != null && SShip.IsEnemy(owner, s)) is Projectile target) {
+                            direction = Omnidirectional.GetFireAngle(owner, target, this);
+                            return true;
+                        }
+                        return false;
                     }
-                    return false;
+                    bool CheckSpray() {
+                        direction = desc.spray ? new Random().NextDouble() * 2 * Math.PI : direction;
+                        return desc.spray;
+                    }
                 }
-                bool CheckSpray() {
-                    direction = desc.spray ? new Random().NextDouble() * 2 * Math.PI : direction;
-                    return desc.spray;
+                /*
+                //Shortcut to skip checks
+                if (!firing) {
+                    goto Cancel;
                 }
+                */
             }
-
 
 
             //bool allowFire = firing && (capacitor?.AllowFire ?? true);
             capacitor?.CheckFire(ref firing);
-            ammo?.CheckFire(ref firing);
+
+            if(ammo != null) {
+                ammo.Update(owner);
+                ammo.CheckFire(ref firing);
+            }
 
             if (firing) {
-                delay = desc.fireCooldown;
+                delay = endRepeat ? desc.fireCooldown : desc.repeatDelay;
                 if (beginRepeat) {
                     repeatsLeft = desc.repeat;
                 }
@@ -830,11 +854,12 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                 if (desc.recoil > 0) {
                     owner.velocity += XY.Polar(direction + Math.PI, desc.recoil);
                 }
-
-            } else {
-                repeatsLeft = 0;
+                goto Done;
             }
+            Cancel:
+            repeatsLeft = 0;
         }
+        Done:
         firing = false;
     }
     public void OnDisable() {
@@ -1065,8 +1090,7 @@ public class ItemAmmo : IAmmo {
     public void Update(Station source) =>
         Update(source.cargo);
     public void Update(HashSet<Item> inventory) {
-        ticks++;
-        if (ticks % 15 != 0) {
+        if (ticks++ % 90 != 0) {
             return;
         }
         this.inventory = inventory;

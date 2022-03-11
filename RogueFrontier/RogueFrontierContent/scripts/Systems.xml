@@ -18,7 +18,7 @@
 			</Orbital>
 
 			<Orbital count="5"
-					 radius="300"
+					 radius="270"
 					 angle="random"
 					 increment="30-60"
 					 >
@@ -83,10 +83,9 @@
 					<Group radius="100">
 						<!--Far-away small Moon-->
 						<Planet radius="8"/>
-
 						<Orbital angle="random" radius="20">
 							<Group>
-								<Station	codename="station_daughters_outpost"/>
+								<Station	codename="station_daughters_outpost" id="daughtersOutpost"/>
 								<Orbital	radius="5"
 											angle="random"
 											>
@@ -99,10 +98,10 @@
 			</Orbital>
 			<Orbital radius="240" angle="random">
 				<Group>
-					<Planet radius="15"/>
-					<Orbital radius="15" angle="random" increment="45-90">
-						<Station codename="station_arms_dealer"/>
-						<Station codename="station_arms_dealer"/>
+					<Planet radius="8"/>
+					<Orbital radius="10" angle="random" increment="45-90">
+						<Station codename="station_constellation_habitat"/>
+						<Station codename="station_constellation_habitat"/>
 					</Orbital>
 				</Group>
 			</Orbital>
@@ -179,8 +178,6 @@
 		>
 		<SystemGroup>
 			<Star	 radius="50"/>
-
-
 			<Orbital radius="150" angle="random">
 				<Group>
 					<Stargate gateId="Next"/>

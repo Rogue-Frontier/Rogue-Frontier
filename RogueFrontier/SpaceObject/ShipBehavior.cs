@@ -39,6 +39,68 @@ public class Sulphin : IShipBehavior {
         }
     }
 }
+public class Merchant : IShipBehavior, IContainer<Station.Destroyed> {
+    public GateOrder gateOrder;
+    public Station target;
+    public int timer;
+
+    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => {
+        s.onDestroyed -= this;
+        if (s == target) {
+            target = null;
+        }
+    };
+    public Merchant() {}
+    public void Update(AIShip owner) {
+
+
+        if (gateOrder != null) {
+            var current = gateOrder.gate.world;
+            if (current == owner.world && owner.world != target.world) {
+                gateOrder.Update(owner);
+                return;
+            } else {
+                gateOrder = null;
+            }
+        }
+
+        if(target == null) {
+
+            target = owner.world.entities.all.OfType<Station>()
+                .Where(s => !s.CanTarget(owner)).GetRandomOrDefault(owner.world.karma);
+            target.onDestroyed += this;
+        }
+        if (target == null) {
+            return;
+        }
+
+        if (owner.world != target.world) {
+            gateOrder = new(owner.world.FindGateTo(target.world));
+            gateOrder.Update(owner);
+            return;
+        }
+
+        if (owner.dock?.Target != target) {
+            if((owner.position - target.position).magnitude2 > 8*8) {
+                new ApproachOrbitOrder(target).Update(owner);
+            } else {
+                owner.dock = new(target);
+                timer = 60*30 + 60 * owner.world.karma.NextInteger(90);
+            }
+        } else if(timer > 0) {
+            timer--;
+        } else {
+            target.onDestroyed -= this;
+            owner.dock = null;
+
+            target = owner.world.entities.all.OfType<Station>()
+                .Where(s => s != target && !s.CanTarget(owner)).GetRandomOrDefault(owner.world.karma)
+                ?? owner.world.universe.GetAllEntities().OfType<Station>()
+                .Where(s => !s.CanTarget(owner)).GetRandomOrDefault(owner.world.karma)
+                ?? throw new Exception("Cannot find friendly station");
+        }
+    }
+}
 
 public interface IShipOrder : IShipBehavior{
     bool Active { get; }
@@ -353,6 +415,8 @@ public class AttackOrder : IShipOrder {
     private GateOrder gate = null;
     [JsonProperty]
     private FaceOrder face = new(0);
+
+    public int aimWaitingTicks = 0;
     public AttackOrder(ActiveObject target) {
         SetTarget(target);
     }
@@ -413,6 +477,7 @@ public class AttackOrder : IShipOrder {
         });
         void SetFiringPrimary() {
             Set(primary);
+            aimWaitingTicks = 0;
         }
         if (dist < 10) {
             //If we are too close, then move away
@@ -433,10 +498,18 @@ public class AttackOrder : IShipOrder {
                     && (owner.velocity - target.velocity).magnitude2 < 5 * 5) {
                     owner.SetThrusting(true);
                 }
+
+                if (aimWaitingTicks%150 > 90) {
+                    owner.SetThrusting(true);
+                }
+
+
                 //Fire if we are close enough
                 if (freeAim
                     || Math.Abs(aim.GetAngleDiff(owner)) * dist < 6) {
                     SetFiringPrimary();
+                } else {
+                    aimWaitingTicks++;
                 }
             } else {
                 //Otherwise, get closer
@@ -445,6 +518,8 @@ public class AttackOrder : IShipOrder {
                 if (freeAim
                     || Math.Abs(aim.GetAngleDiff(owner)) * dist < 6) {
                     SetFiringPrimary();
+                } else {
+                    aimWaitingTicks++;
                 }
 
             }
@@ -461,7 +536,7 @@ public class GateOrder : IShipOrder {
     }
     public bool CanTarget(ActiveObject other) => false;
     public void Update(AIShip owner) {
-        if ((owner.position - gate.position).magnitude2 > 10) {
+        if ((owner.position - gate.position).magnitude2 > 5 * 5) {
             new ApproachOrbitOrder(gate).Update(owner);
         } else {
             gate.Gate(owner);

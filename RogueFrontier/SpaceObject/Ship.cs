@@ -165,13 +165,12 @@ public class BaseShip : StructureObject {
         int knockback = p.fragment.knockback * dmgLeft / dmgFull;
         velocity += (p.velocity - velocity).WithMagnitude(knockback);
         disruption = p.fragment.disruptor?.GetHijack() ?? disruption;
-
     }
     public void Damage(Projectile p) {
         ReduceDamage(p);
         damageSystem.Damage(world.tick, p, () => Destroy(p.source));
     }
-    public void Destroy(ActiveObject source) {
+    public void Destroy(ActiveObject owner) {
         var items = cargo.Concat(
             devices.Installed.Select(d => d.source).Where(i => i != null)
         );
@@ -189,9 +188,9 @@ public class BaseShip : StructureObject {
 
         onDestroyed.set.RemoveWhere(d => d.Value == null);
         foreach (var on in onDestroyed) {
-            on.Value.Invoke(this, source, wreck);
+            on.Value.Invoke(this, owner, wreck);
         }
-        (source as PlayerShip)?.FireOnDestroyed(source, wreck);
+        (owner as PlayerShip)?.FireOnDestroyed(owner, wreck);
     }
     public void Update() {
         UpdateControl();
@@ -301,6 +300,8 @@ public static class SShipBehavior {
                 return o;
             case Sulphin s:
                 return s.order;
+            case Merchant t:
+                return null;
             default:
                 throw new Exception("Unknown behavior type");
         }
@@ -352,7 +353,7 @@ public class AIShip : IShip {
                 ps.crimeRecord.Add(new DestructionCrime(this));
             }
         }
-        ship.Destroy(source);
+        ship.Destroy(this);
     }
     public void Update() {
         behavior?.Update(this);

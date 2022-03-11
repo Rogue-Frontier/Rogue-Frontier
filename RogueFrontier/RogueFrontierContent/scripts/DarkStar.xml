@@ -1,0 +1,121 @@
+﻿<Module>
+	<ItemType	codename=	"item_dagger_cannon"
+					name=		"Dagger cannon"
+					level=		"1"
+					mass=		"2000"
+					value=		"3000"
+
+					desc=		""
+		>
+		<Weapon	initialCharges=	"1200"
+				powerUse=		"20"
+				fireCooldown=	"20"
+				repeat="2"
+				repeatDelay="10"
+			>
+
+			<Projectile
+						missileSpeed=	"60"
+						damageType=		"1"
+						damageHP=		"4"
+						shock=			"2"
+			
+						lifetime=		"240"
+
+						glyph=			"-"
+						foreground=		"White"
+						background=		"505e75FF"
+				/>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_shrapnel_bomb"
+				name=		"Shrapnel bomb"
+				level=		"2"
+				mass=		"200"
+				value=		"8"
+				
+				desc=		""
+		>
+	</ItemType>
+	<ItemType	codename=	"item_bomb_launcher"
+				name=		"Bomb launcher"
+				level=		"2"
+				mass=		"2000"
+				value=		"400"
+
+				invoke=		"installWeapon"
+				
+				desc=		""
+		>
+		<Weapon	powerUse=		"10"
+				fireCooldown=	"90"
+				ammoType=		"item_shrapnel_bomb"
+			>
+
+			<Projectile
+				missileSpeed=	"50"
+				damageType=		"1"
+				damageHP=		"5"
+				lifetime=		"90"
+				glyph=			"b"
+				foreground=		"Gray"
+				background=		"Black"
+				
+				detonateRadius="5"
+				>
+				<Fragment
+					count=			"36"
+					spreadAngle=	"360"
+					missileSpeed=	"40"
+					damageType=		"1"
+					damageHP=		"5"
+					lifetime=		"6"
+					glyph=			"*"
+					foreground=		"Orange"
+					/>
+				<Fragment
+					count=			"15"
+					spreadAngle=	"360"
+					missileSpeed=	"30"
+					damageType=		"1"
+					damageHP=		"5"
+					lifetime=		"60"
+					glyph=			"*"
+					foreground=		"Yellow"
+					/>
+
+			</Projectile>
+		</Weapon>
+	</ItemType>
+
+	<ShipClass    codename=	"ship_brutus"
+				  inherit=	"ship_beowulf"
+				  name=		"Brutus-class gunship"
+        >
+		<Tile glyph="b" foreground="505e75FF" background="Black"/>
+		<Cargo>
+			<Item codename="item_shrapnel_bomb" count="32"/>
+			<Item codename="item_simple_fuel_rod" count="12"/>
+			<Item codename="item_armor_repair_patch"	count="4"/>
+		</Cargo>
+		<Devices>
+			<Weapon codename="item_dagger_cannon"/>
+			<Weapon codename="item_bomb_launcher"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_10mw_storage_battery"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="item_knightsteel_plate"/>
+			<Armor  codename="item_knightsteel_plate"/>
+			<Armor  codename="item_knightsteel_plate"/>
+		</LayeredArmorSystem>
+		<PlayerSettings
+			startingClass="true"
+			description="A starship preferred by space-age bikers, self-protection enthusiasts, and folk heroes alike, a Beowulf-class gunship highlights the tougher and harder parts of one's personality."
+        >
+		</PlayerSettings>
+	</ShipClass>
+
+
+</Module>

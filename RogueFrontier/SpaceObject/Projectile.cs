@@ -30,6 +30,8 @@ public class Projectile : MovingObject {
     [JsonProperty] public int ricochet = 0;
     [JsonProperty] public bool hitHull;
 
+    public HashSet<Entity> exclude = new();
+
     //List of projectiles that were created from the same fragment
     public List<Projectile> siblings = new();
 
@@ -53,6 +55,15 @@ public class Projectile : MovingObject {
         this.maneuver = maneuver;
         this.damageHP = fragment.damageHP.Roll();
         this.ricochet = fragment.ricochet;
+
+        exclude = new() { null, source, this };
+        exclude.UnionWith(source switch {
+            PlayerShip ps => ps.avoidHit,
+            AIShip ai => ai.avoidHit,
+            Station st => st.guards,
+            _ => new HashSet<Entity>()
+        });
+        //exclude.UnionWith(source.world.entities.all.OfType<ActiveObject>().Where(a => a.sovereign == source.sovereign));
     }
     public void Update() {
         if (lifetime > 1) {
@@ -69,28 +80,35 @@ public class Projectile : MovingObject {
             Fragment();
         }
         void UpdateMove() {
-            HashSet<Entity> exclude = new HashSet<Entity> { null, source, this };
-            exclude.UnionWith(source switch {
-                PlayerShip ps => ps.avoidHit,
-                AIShip ai => ai.avoidHit,
-                Station st => st.guards,
-                _ => new HashSet<Entity>()
-            });
             maneuver?.Update(this);
 
             var dest = position + velocity / Program.TICKS_PER_SECOND;
             var inc = velocity.normal * 0.5;
             var steps = velocity.magnitude * 2 / Program.TICKS_PER_SECOND;
+
+            if(fragment.detonateRadius > 0) {
+                var r = fragment.detonateRadius * fragment.detonateRadius;
+                if(world.entities.GetAll(p => (position - p).magnitude2 < r).Select(e => e is ISegment s ? s.parent : e)
+                    .Distinct().Except(exclude).Any(e => e switch {
+                        ActiveObject a when a.active => true,
+                        Projectile p when !exclude.Contains(p.source) && fragment.hitProjectile => true,
+                        _ => false
+                    })) {
+                    lifetime = 0;
+                    Fragment();
+                    return;
+                }
+            }
             for (int i = 0; i < steps; i++) {
                 position += inc;
 
                 bool destroyed = false;
                 bool stop = false;
 
-                foreach (var other in world.entities[position].Select(e => e is ISegment s ? s.parent : e).Distinct().Except(exclude)) {
-
+                var entities = world.entities[position].Select(e => e is ISegment s ? s.parent : e).Distinct().Except(exclude);
+                foreach (var other in entities) {
                     switch (other) {
-                        case ActiveObject hit when !destroyed:
+                        case ActiveObject hit when !destroyed && hit.active:
                             hit.Damage(this);
                             var angle = (hit.position - position).angleRad;
                             world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 10));

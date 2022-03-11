@@ -353,9 +353,10 @@ public class PlayerMain : Console {
         }
         UpdateUI(delta);
         void UpdateUniverse() {
+
             world.UpdateActive();
             world.UpdatePresent();
-            systems.GetNext(1).ForEach(s => {
+            systems.GetNext(3).ForEach(s => {
                 if (s != world) {
                     s.UpdateActive();
                     s.UpdatePresent();
@@ -1406,7 +1407,7 @@ public class Readout : Console {
                     this.Print(x, y, "[", f, b);
                     this.Print(x + 1, y, new('>', 16), Color.Gray, b);
                     this.Print(x + 1, y, new('>', l), f, b);
-                    this.Print(x + 1 + 16, y, $"-[{name} [{s.hp} / {s.desc.maxHP}]", f, b);
+                    this.Print(x + 1 + 16, y, $"] [{s.hp, 3}/{s.desc.maxHP, 3}] {name}", f, b);
                     y++;
                 }
                 y++;
@@ -1419,7 +1420,7 @@ public class Readout : Console {
                             this.Print(x, y, "[", f, b);
                             this.Print(x + 1, y, new('>', 16), Color.Gray, b);
                             this.Print(x + 1, y, new('>', l), f, b);
-                            this.Print(x + 1 + 16, y, $"-[{armor.source.type.name} [{armor.hp} / {armor.desc.maxHP}]", f, b);
+                            this.Print(x + 1 + 16, y, $"] [{armor.hp, 3}/{armor.desc.maxHP, 3}] {armor.source.type.name}", f, b);
                             y++;
                         }
                         break;
@@ -1429,7 +1430,7 @@ public class Readout : Console {
                         this.Print(x, y, "[", f, b);
                         this.Print(x + 1, y, new('>', 16), Color.Gray, b);
                         this.Print(x + 1, y, new('>', 16 * hp.hp / hp.maxHP), f, b);
-                        this.Print(x + 1 + 16, y, $"-[HP: {hp.hp}", f, b);
+                        this.Print(x + 1 + 16, y, $"] HP: {hp.hp}", f, b);
                         break;
                     }
             }

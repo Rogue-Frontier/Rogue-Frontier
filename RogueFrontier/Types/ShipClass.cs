@@ -4,7 +4,7 @@ using System.Xml.Linq;
 namespace RogueFrontier;
 
 public enum EShipBehavior {
-    none, sulphin
+    none, sulphin, trader
 }
 public class ShipClass : IDesignType {
     public static ShipClass empty => new ShipClass() { devices = new(), damageDesc = new HPSystemDesc(), rotationDecel = 1 };
@@ -32,7 +32,6 @@ public class ShipClass : IDesignType {
     }
     public ShipClass() { }
     public void Initialize(TypeCollection collection, XElement e) {
-
         var parent = e.TryAtt("inherit", out string inherit) ? collection.Lookup<ShipClass>(inherit) : null;
         e.Initialize(this, parent);
         if (parent != null) {

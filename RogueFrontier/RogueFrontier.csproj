@@ -39,6 +39,9 @@
     <None Update="RogueFrontierContent\scripts\Amethyst.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="RogueFrontierContent\scripts\DarkStar.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="RogueFrontierContent\scripts\Intro.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -218,7 +221,6 @@
   <ItemGroup>
     <Folder Include="Behavior\" />
 	  <Folder Include="RogueFrontierContent\text\" />
-	  <Folder Include="RogueFrontierContent\scripts\" />
   </ItemGroup>
   <Import Project="..\Common\Common.projitems" Label="Shared" />
 </Project>

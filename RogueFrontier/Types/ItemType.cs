@@ -324,6 +324,7 @@ public record WeaponDesc {
     [Req] public int fireCooldown;
     [Opt] public int recoil = 0;
     [Opt] public int repeat = 0;
+    [Opt] public int repeatDelay = 3;
     public FragmentDesc projectile;
     [Opt] public int initialCharges = -1;
     public CapacitorDesc capacitor;
@@ -375,6 +376,7 @@ public record FragmentDesc {
     [Opt] public bool acquireTarget;
     [Opt] public double maneuver;
     [Opt] public double maneuverRadius;
+    [Opt] public int detonateRadius;
     [Opt] public int fragmentInterval;
     [Opt] public bool hitProjectile;
     [Opt] public bool hitBarrier = true;
@@ -423,7 +425,7 @@ public record FragmentDesc {
         effect = new(e);
     }
     public List<Projectile> GetProjectiles(ActiveObject owner, ActiveObject target, double direction, XY offset = null) {
-        var position = owner.position + offset??new(0,0);
+        var position = owner.position + (offset??new(0,0));
         double angleInterval = spreadAngle / count;
 
         var projectiles = new List<Projectile>();

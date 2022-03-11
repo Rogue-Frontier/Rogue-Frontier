@@ -89,6 +89,9 @@ public static class SSystemElement {
                 return new SystemStargate(tc, e);
             case "Station":
                 return new SystemStation(tc, e);
+            case "Ship":
+            case "Ships":
+                return new SystemShips(tc, e);
             case "At":
                 return new SystemAt(e, f);
             case "Marker":
@@ -107,7 +110,12 @@ public record SystemGroup() : SystemElement {
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var sub_lc = loc.Adjust(lc);
-        subelements.ForEach(g => g.Generate(sub_lc, tc, result));
+        try {
+            subelements.ForEach(g => g.Generate(sub_lc, tc, result));
+        } catch (Exception e) {
+            subelements.Reverse<SystemElement>().ToList().ForEach(g => g.Generate(sub_lc, tc, result));
+        }
+        
     }
 }
 public record SystemAt() : SystemElement {
@@ -375,12 +383,31 @@ public record SystemStar() : SystemElement {
         lc.world.stars.Add(new Star(lc.pos, radius));
     }
 }
+public record SystemShips : SystemElement {
+    //[Opt] public string targetId = "";
+    [Req] public string sovereign;
+    private Sovereign sov;
+    public ShipGenerator ships;
+    public SystemShips() { }
+    public SystemShips(TypeCollection tc, XElement e) {
+        e.Initialize(this);
+        sov = tc.Lookup<Sovereign>(sovereign);
+        ships = SGenerator.ShipFrom(tc, e);
+    }
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
+        //var target = (ActiveObject)lc.world.universe.named[targetId];
+        var m = new ActiveMarker(lc.world, sov, lc.pos);
+        ships.GenerateAndPlace(tc, m);
+    }
+}
 public record SystemStation() : SystemElement {
-    public string codename;
+    [Opt]public string id = "";
+    [Req] public string codename;
+    
     public ShipGroup ships;
     public StationType stationtype;
     public SystemStation(TypeCollection tc, XElement e) : this() {
-        codename = e.ExpectAtt("codename");
+        e.Initialize(this);
 
         ships = e.HasElement("Ships", out var xmlShips) ? new(xmlShips, SGenerator.ParseFrom(tc, SGenerator.ShipFrom)) : null;
         stationtype = tc.Lookup<StationType>(codename);
@@ -388,6 +415,9 @@ public record SystemStation() : SystemElement {
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var w = lc.world;
         var s = new Station(w, stationtype, lc.pos);
+        if (id.Any() == true) {
+            w.universe.named[id] = s;
+        }
         w.AddEntity(s);
         s.CreateSegments();
         s.CreateGuards();

@@ -39,7 +39,7 @@ public enum ShipOrder {
     attack, escort, guard, patrol, patrolCircuit, 
 }
 public class ShipEntry : ShipGenerator {
-    [Opt] public int count = 1;
+    [Opt] public IDice count = new Constant(1);
     [Req] public string codename;
     [Opt] public string sovereign;
     public ShipGroup subordinates;
@@ -54,16 +54,25 @@ public class ShipEntry : ShipGenerator {
         shipClass = tc.Lookup<ShipClass>(codename);
         sov = sovereign?.Any() == true ? tc.Lookup<Sovereign>(sovereign) : null;
         orderDesc = e.TryAttEnum("order", ShipOrder.guard) switch {
-            ShipOrder.attack => new AttackDesc(),
+            ShipOrder.attack => new AttackDesc(e),
             ShipOrder.escort => new EscortDesc(e),
-            ShipOrder.guard => new GuardDesc(),
+            ShipOrder.guard => new GuardDesc(e),
             ShipOrder.patrol => new PatrolOrbitDesc(e),
             ShipOrder.patrolCircuit => new PatrolCircuitDesc(e),
-            _ => new GuardDesc()
+            _ => new GuardDesc(e)
         };
+        behavior = e.TryAttEnum("behavior", EShipBehavior.none);
     }
+    IShipBehavior GetBehavior() =>
+        behavior switch {
+            EShipBehavior.none => null,
+            EShipBehavior.trader => new Merchant()
+        };
     public IEnumerable<AIShip> Generate(TypeCollection tc, ActiveObject owner) {
-        Sovereign s = sov ?? owner.sovereign;
+        Sovereign s = sov ?? owner.sovereign ?? throw new Exception("Sovereign expected");
+
+        var count = this.count.Roll();
+
         Func<int, XY> GetPos = orderDesc switch {
             PatrolOrbitDesc pod => i => owner.position + XY.Polar(
                                         Math.PI * 2 * i / count,
@@ -71,28 +80,36 @@ public class ShipEntry : ShipGenerator {
             _ => i => owner.position
         };
         var ships = Enumerable.Range(0, count).Select(
-            i => new AIShip(new(owner.world, shipClass, GetPos(i)), s, orderDesc.Value(owner))
+            i => new AIShip(new(owner.world, shipClass, GetPos(i)), s, GetBehavior(), orderDesc.Value(owner))
             ).ToList();
         var subShips = ships.SelectMany(ship => subordinates.Generate(tc, ship));
         return ships.Concat(subShips);
     }
 
+
+
     public interface IShipOrderDesc : IContainer<IShipOrder.Create> {}
-    public record AttackDesc : IShipOrderDesc {
-        [JsonIgnore]
-        public IShipOrder.Create Value => target => new AttackOrder(target);
+    public record AttackDesc() : IShipOrderDesc {
+        [Opt] public string targetId = "";
+        public AttackDesc(XElement e) : this() {
+            e.Initialize(this);
+        }
+        [JsonIgnore] public IShipOrder.Create Value => target => new AttackOrder(
+            targetId.Any() ? (ActiveObject)target.world.universe.named[targetId] : target
+            );
     }
     public record GuardDesc : IShipOrderDesc {
-        [JsonIgnore]
-        public IShipOrder.Create Value => target => new GuardOrder(target);
+        public GuardDesc(XElement e) {
+            e.Initialize(this);
+        }
+        [JsonIgnore] public IShipOrder.Create Value => target => new GuardOrder(target);
     }
     public record PatrolOrbitDesc() : IShipOrderDesc {
         [Req] public int patrolRadius;
         public PatrolOrbitDesc(XElement e) : this() {
             e.Initialize(this);
         }
-        [JsonIgnore]
-        public IShipOrder.Create Value => target => new PatrolOrbitOrder(target, patrolRadius);
+        [JsonIgnore] public IShipOrder.Create Value => target => new PatrolOrbitOrder(target, patrolRadius);
     }
     //Patrol an entire cluster of stations (moving out to 50 ls + radius of nearest station)
     public record PatrolCircuitDesc() : IShipOrderDesc {
@@ -100,16 +117,14 @@ public class ShipEntry : ShipGenerator {
         public PatrolCircuitDesc(XElement e) : this() {
             e.Initialize(this);
         }
-        [JsonIgnore]
-        public IShipOrder.Create Value => target => new PatrolCircuitOrder(target, patrolRadius);
+        [JsonIgnore] public IShipOrder.Create Value => target => new PatrolCircuitOrder(target, patrolRadius);
     }
 
     public record EscortDesc() : IShipOrderDesc {
         public EscortDesc(XElement e) : this() {
             e.Initialize(this);
         }
-        [JsonIgnore]
-        public IShipOrder.Create Value => target => new EscortOrder((IShip)target, XY.Polar(0, 2));
+        [JsonIgnore] public IShipOrder.Create Value => target => new EscortOrder((IShip)target, XY.Polar(0, 2));
     }
 }
 public record ModRoll() {

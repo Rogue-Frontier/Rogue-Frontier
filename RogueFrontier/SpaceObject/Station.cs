@@ -195,6 +195,10 @@ public class Station : ActiveObject, ITrader, IDockable {
     */
     public void Damage(Projectile p) {
         damageSystem.Damage(world.tick, p, () => Destroy(p.source));
+
+        if (!active) {
+            return;
+        }
         var source = p.source;
         if (source != null && source.sovereign != sovereign) {
             var guards = world.entities.all.OfType<AIShip>()

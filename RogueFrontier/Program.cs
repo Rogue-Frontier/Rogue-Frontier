@@ -143,8 +143,8 @@ partial class Program {
 #endif
 
         void ShowSplash() {
-            var p = Path.GetFullPath(theme);
-            MediaPlayer.Play(Song.FromUri(p, new(p)));
+            //var p = Path.GetFullPath(theme);
+            //MediaPlayer.Play(Song.FromUri(p, new(p)));
 
             index = 1;
             SplashScreen c = null;

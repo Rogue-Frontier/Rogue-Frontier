@@ -76,18 +76,15 @@ public class Universe {
     public Rand karma;
     public TypeCollection types;
 
-    public Dictionary<string, System> systems;
-    public Dictionary<string, Stargate> stargates;
-    public Dictionary<System, HashSet<Stargate>> systemGates;
+    public Dictionary<string, Entity> named=new();
+    public Dictionary<string, System> systems=new();
+    public Dictionary<string, Stargate> stargates=new();
+    public Dictionary<System, HashSet<Stargate>> systemGates=new();
     public Universe(TypeCollection types = null, Rand karma = null) {
         this.types = types ?? new TypeCollection();
         this.karma = karma ?? new Rand();
-        systems = new();
     }
     public Universe(UniverseDesc desc, TypeCollection types = null, Rand karma = null) : this(types, karma) {
-        systems = new();
-        stargates = new();
-        systemGates = new();
         foreach (var s in desc.systems) {
             System sys = new System(this) { id = s.id, name = s.name };
             systems[s.id] = sys;
@@ -159,4 +156,6 @@ public class Universe {
         }
         return null;
     }
+    public IEnumerable<Entity> GetAllEntities() =>
+        systems.Values.SelectMany(s => s.entities.all);
 }
