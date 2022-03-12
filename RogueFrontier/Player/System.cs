@@ -124,5 +124,19 @@ public class System {
             }
         }
     }
+
+    public void PlaceTilesOver(Dictionary<(int, int), ColoredGlyph> tiles) {
+        foreach (var e in entities.all) {
+            if (e.tile != null) {
+                tiles[e.position.roundDown] = e.tile;
+            }
+        }
+        foreach (var e in effects.all) {
+            if (e.tile != null) {
+                tiles[e.position.roundDown] = e.tile;
+            }
+        }
+    }
+
     public Stargate FindGateTo(System to) => universe.FindGateTo(this, to);
 }

@@ -68,10 +68,11 @@ public class Merchant : IShipBehavior, IContainer<Station.Destroyed> {
 
             target = owner.world.entities.all.OfType<Station>()
                 .Where(s => !s.CanTarget(owner)).GetRandomOrDefault(owner.world.karma);
+
+            if (target == null) {
+                return;
+            }
             target.onDestroyed += this;
-        }
-        if (target == null) {
-            return;
         }
 
         if (owner.world != target.world) {
@@ -97,7 +98,8 @@ public class Merchant : IShipBehavior, IContainer<Station.Destroyed> {
                 .Where(s => s != target && !s.CanTarget(owner)).GetRandomOrDefault(owner.world.karma)
                 ?? owner.world.universe.GetAllEntities().OfType<Station>()
                 .Where(s => !s.CanTarget(owner)).GetRandomOrDefault(owner.world.karma)
-                ?? throw new Exception("Cannot find friendly station");
+                //?? throw new Exception("Cannot find friendly station");
+            ;
         }
     }
 }

@@ -376,10 +376,13 @@ public record FragmentDesc {
     [Opt] public bool acquireTarget;
     [Opt] public double maneuver;
     [Opt] public double maneuverRadius;
+    
     [Opt] public int detonateRadius;
     [Opt] public int fragmentInterval;
+    [Opt] public bool hitSource = false;
     [Opt] public bool hitProjectile;
     [Opt] public bool hitBarrier = true;
+    [Opt] public bool blind;
     [Opt] public int ricochet;
     [Opt] public bool hook;
     [Opt] public bool lightning;    //On hit, the projectile attaches an overlay that automatically makes future shots hit instantly
@@ -387,11 +390,11 @@ public record FragmentDesc {
     /// If armor integrity ratio is below this amount, then we bypass the armor completely and go to the next layer
     /// </summary>
     [Opt] public double drillFactor;
+    public FlashDesc flash;
     public Armor.Decay decay;
-
+    public DisruptorDesc disruptor;
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
     public int range2 => range * range;
-    public DisruptorDesc disruptor;
     public HashSet<FragmentDesc> fragments;
     public StaticTile effect;
     public TrailDesc trail;
@@ -412,6 +415,9 @@ public record FragmentDesc {
         }
         maneuver *= Math.PI / (180);
 
+        if(e.HasElement("Flash", out var xmlFlash)) {
+            flash = new(xmlFlash);
+        }
         if(e.HasElement("Decay", out var xmlDecay)) {
             decay = new(xmlDecay.ExpectAttInt("lifetime"), xmlDecay.ExpectAttDouble("rate"));
         }

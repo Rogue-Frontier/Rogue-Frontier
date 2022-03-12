@@ -58,18 +58,23 @@ public class Hook : Entity {
         for (int i = 0; i < length; i++) {
             segments[i].position = source.position + offset * (i+1) / (length+1);
         }
-        var stretch = offset.magnitude - length;
-        if (stretch > 0) {
+        var nextLength = (int)offset.magnitude;
+
+        if (nextLength >= length) {
+            var inc = nextLength - length;
             var direction = offset.normal;
-            source.velocity += direction * stretch / 30;
-            attached.velocity -= direction * stretch / 30;
-            if(stretch > 5) {
+            source.velocity += direction * (inc + 1) / 30;
+            attached.velocity -= direction * (inc + 1) / 30;
+            if(inc > 8) {
                 active = false;
             }
         } else {
-            int remove = (int)-stretch;
-            segments.GetRange(length - remove, remove).ForEach(s=>s.active=false);
-            segments.RemoveRange(length - remove, remove);
+            nextLength = Math.Max(nextLength, 5);
+            var dec = length - nextLength;
+            if (dec > 0) {
+                segments.GetRange(length - dec, dec).ForEach(s => s.active = false);
+                segments.RemoveRange(length - dec, dec);
+            }
         }
     }
 }

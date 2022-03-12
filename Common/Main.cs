@@ -711,7 +711,7 @@ public static class Main {
                 object ParseBoolNullable() =>
                     value == "null" ? null : ParseBool();
                 object ParseInt() =>
-                    int.TryParse(value, out var result) ? result : throw Error<int>();
+                    value.Any() ? Convert.ToInt32(new Expression(value).Evaluate()) : throw Error<int>();
                 object ParseChar() =>
                     (value.Length == 1 ?
                         value.First() :

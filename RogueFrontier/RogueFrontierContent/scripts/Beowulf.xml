@@ -1,0 +1,63 @@
+﻿<Module>
+	<Sovereign	codename="sovereign_beowulf_club"
+				alignment=	"ConstructiveChaos"
+		/>
+	<StationType	codename="station_beowulf_club"
+				name=		"Beowulf Club"
+				sovereign=	"sovereign_beowulf_club"
+
+				behavior=	"none"
+					
+				hp=			"300"
+					
+				crimeOnDestroy="true"
+
+				structure=	"RogueFrontierContent/sprites/BeowulfClub.asc.cg"
+		>
+		<!--
+		<Satellites>
+			<Orbital count="4" angle="0" increment="90">
+				<Orbital count="4" angleInc="30" radius="6" increment="15">
+					<Station codename="station_barricade"/>
+				</Orbital>
+			</Orbital>
+		</Satellites>
+		-->
+		<Dock>
+			<MultiPoint offsetX="2" offsetY="0" angleInc="90"/>
+			<MultiPoint offsetX="4" offsetY="0" angleInc="90"/>
+			<MultiPoint offsetX="5" offsetY="0" angleInc="90"/>
+			<MultiPoint offsetX="6" offsetY="0" angleInc="90"/>
+			<MultiPoint offsetX="7" offsetY="0" angleInc="90"/>
+		</Dock>
+		<Ships>
+			<Ship	count="4"	codename="ship_beowulf"/>
+			<Ship	count="2"	codename="ship_ulysses"/>
+		</Ships>
+		<Cargo>
+			<Item count="240"	codename="item_klaw_missile"/>
+		</Cargo>
+		<Weapons>
+			<Weapon codename="item_klaw_missile_launcher" posX="2" posY="2"		angle="45"/>
+			<Weapon codename="item_klaw_missile_launcher" posX="2" posY="-2"	angle="-45"/>
+			<Weapon codename="item_klaw_missile_launcher" posX="-2" posY="2"	angle="135"/>
+			<Weapon codename="item_klaw_missile_launcher" posX="-2" posY="-2"	angle="-135"/>
+		</Weapons>
+	</StationType>
+
+
+	<StationType	codename="station_barricade"
+			name=		"Barricade"
+			sovereign=	"sovereign_beowulf_club"
+
+			behavior=	"none"
+					
+			hp=			"150"
+
+			glyph=		"X"
+			foreground=	"White"
+			background=	"Black"
+		>
+	</StationType>
+	
+</Module>

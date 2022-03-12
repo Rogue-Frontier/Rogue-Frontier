@@ -227,6 +227,7 @@ public class PlayerMain : Console {
     public void OnPlayerDestroyed(string message, Wreck wreck) {
         //Clear mortal time so that we don't slow down after the player dies
         playerShip.mortalTime = 0;
+        playerShip.ship.blindTicks = 0;
         HideAll();
         //Get a snapshot of the player
         var size = Height;
@@ -431,7 +432,11 @@ public class PlayerMain : Console {
         }
     }
     public void PlaceTiles(TimeSpan delta) {
-        viewport.Update(delta);
+        if (playerShip.ship.blindTicks > 0) {
+            viewport.UpdateBlind(delta);
+        } else {
+            viewport.Update(delta);
+        }
         /*
         foreach((var key, var value) in viewport.tiles) {
             viewport.tiles[key] = new(value.Foreground, value.Background, '?');
@@ -452,7 +457,7 @@ public class PlayerMain : Console {
             viewport.Render(drawTime);
             vignette.Render(drawTime);
             sceneContainer.Render(drawTime);
-        } else {
+        } else if(playerShip.active) {
             if (uiMain.IsVisible) {
                 //If the megamap is completely visible, then skip main render so we can fast travel
                 if (uiMegamap.alpha < 255) {
@@ -512,6 +517,9 @@ public class PlayerMain : Console {
             if (communicationsMenu.IsVisible) {
                 communicationsMenu.Render(drawTime);
             }
+        } else {
+            back.Render(drawTime);
+            viewport.Render(drawTime);
         }
         //frameRendered = true;
         updatesSinceRender = 0;

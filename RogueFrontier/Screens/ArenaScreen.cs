@@ -130,7 +130,7 @@ class ArenaScreen : Console {
                             }
 
                             World.AddEntity(station);
-
+                            station.CreateSatellites(new() { pos = camera, focus=camera, world=World });
                             station.CreateSegments();
                             station.CreateGuards();
 

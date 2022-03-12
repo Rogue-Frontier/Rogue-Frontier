@@ -570,7 +570,6 @@ public class PlayerStory {
             { "item_ironside_plate", 0 },
             { "item_grinder", 0 },
             { "item_deflect_device", 0 },
-            { "item_shutdown_cannon", 0 },
             { "item_lightning_cannon", 0 },
             { "item_orion_bolter", 400 },
             { "item_orion_longbow", 800 },

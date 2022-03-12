@@ -56,7 +56,9 @@ public class Projectile : MovingObject {
         this.damageHP = fragment.damageHP.Roll();
         this.ricochet = fragment.ricochet;
 
-        exclude = new() { null, source, this };
+        exclude = fragment.hitSource ?
+            new() { null, this } :
+            new() { null, source, this };
         exclude.UnionWith(source switch {
             PlayerShip ps => ps.avoidHit,
             AIShip ai => ai.avoidHit,
@@ -161,6 +163,10 @@ public class Projectile : MovingObject {
         }
     }
     public void Fragment() {
+        if (fragment.flash is FlashDesc fl) {
+            fl.Create(world, position);
+        }
+
         if (fragment.fragments == null) return;
         foreach (var f in fragment.fragments) {
             Fragment(f);

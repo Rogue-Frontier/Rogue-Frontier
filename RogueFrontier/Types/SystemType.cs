@@ -43,21 +43,23 @@ public record LocationContext {
     public int index;
 }
 public record LocationMod {
-    public int? radius;
-    public int radiusInc;
+    [Opt] public IDice radius = null;
+    [Opt] public IDice radiusInc = new Constant(0);
 
-    public double? angle;
-    public double angleInc;
+    [Opt] public IDice angle = null;
+    [Opt] public IDice angleInc = new Constant(0);
+
+    [Opt] public IDice arcInc = new Constant(0);
     public LocationMod() { }
     public LocationMod(XElement e) {
-        radius = e.TryAttIntNullable(nameof(radius));
-        radiusInc = e.TryAttInt(nameof(radiusInc));
-        angle = e.TryAttIntNullable(nameof(angle));
-        angleInc = e.TryAttInt(nameof(angleInc));
+        e.Initialize(this);
+    }
+    public void Get(LocationContext lc, out double r, out double a) {
+        r = radius?.Roll() ?? (lc.radius + radiusInc.Roll());
+        a = angle?.Roll() ?? (lc.angle + angleInc.Roll() + (r == 0 ? 0 : arcInc.Roll() / r));
     }
     public LocationContext Adjust(LocationContext lc) {
-        var r = radius ?? lc.radius + radiusInc;
-        var a = angle ?? lc.angle + angleInc;
+        Get(lc, out var r, out var a);
         var p = lc.focus + XY.Polar(a * Math.PI / 180, r);
         return lc with { radius = r, angle = a, pos = p };
     }
@@ -135,7 +137,7 @@ public record SystemAt() : SystemElement {
 public record SystemOrbital() : SystemElement {
     public List<SystemElement> subelements;
 
-    public int count;
+    [Opt] public IDice count = new Constant(1);
 
     public IDice angle;
     public IDice angleInc;
@@ -146,12 +148,13 @@ public record SystemOrbital() : SystemElement {
     public int radius;
     public SystemOrbital(XElement e, Parse<SystemElement> parse) : this() {
         subelements = e.Elements().Select(e => parse(e)).ToList();
-        count = e.TryAttInt(nameof(count), 1);
+
+        e.Initialize(this);
 
         if (e.TryAtt(nameof(angle), out var a)) {
             switch (a) {
                 case "random":
-                    angle = new DiceRange(0, 360, 0);
+                    angle = new IntRange(0, 360);
                     break;
                 case var i when IDice.TryParse(i, out var d):
                     angle = d;
@@ -166,7 +169,7 @@ public record SystemOrbital() : SystemElement {
             case null:
                 break;
             case "random":
-                increment = new DiceRange(0, 360, 0);
+                increment = new IntRange(0, 360);
                 break;
             case "equidistant":
                 equidistant = true;
@@ -180,7 +183,9 @@ public record SystemOrbital() : SystemElement {
         radius = e.TryAttInt(nameof(radius), 0);
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
-        var angle = this.angle?.Roll() ?? lc.angle + angleInc?.Roll()??0;
+        var count = this.count.Roll();
+        var angle = this.angle?.Roll() ?? (lc.angle + (angleInc?.Roll()??0));
+
         int equidistantInterval = 360 / (subelements.Count * count);
         for (int i = 0; i < count; i++) {
             foreach (var sub in subelements) {
@@ -307,12 +312,9 @@ public record SystemNebula() : SystemElement {
         double arc = lc.radius * angle;
         double halfArc = arc / 2;
         for (double i = -halfArc; i < halfArc; i += 0.1) {
-
             int localSize = (int)(lc.world.karma.NextDouble() * 2 * size * Math.Abs(Math.Abs(i) - halfArc) / halfArc);
 
             for (int j = -localSize / 2; j < localSize / 2; j++) {
-
-
                 var p = XY.Polar(lc.angleRad + i / lc.radius, lc.radius + j);
 
                 var tile = new ColoredGlyph(Color.Violet.SetAlpha((byte)(64 + 128 * lc.world.karma.NextDouble())), Color.Transparent, '%');
@@ -322,27 +324,38 @@ public record SystemNebula() : SystemElement {
     }
 }
 public record SystemSibling() : SystemElement {
-    public int arcInc;
-    public int angleInc;
-    public int radiusInc;
-
+    [Opt] public IDice count = new Constant(1);
+    [Opt] public IDice increment = new IntRange(0, 360);
+    public LocationMod mod;
     public List<SystemElement> subelements;
     public SystemSibling(XElement e, Parse<SystemElement> parse) : this() {
-        arcInc = e.TryAttInt(nameof(arcInc), 0);
-        angleInc = e.TryAttInt(nameof(angleInc), 0);
-        radiusInc = e.TryAttInt(nameof(radiusInc), 0);
-
+        e.Initialize(this);
+        mod = new(e);
         subelements = e.Elements().Select(e => parse(e)).ToList();
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
-        var angle = lc.angle + angleInc + arcInc / lc.radius;
-        var radius = lc.radius + radiusInc;
+        var count = this.count.Roll();
+
+        mod.Get(lc, out var r, out var a);
         var sub_lc = lc with {
-            angle = angle,
-            radius = radius,
-            pos = lc.focus + XY.Polar(angle * Math.PI / 180, radius)
+            angle = a,
+            radius = r,
+            pos = lc.focus + XY.Polar(a * Math.PI / 180, r)
         };
+
+        Generate:
         subelements.ForEach(s => s.Generate(sub_lc, tc));
+        if (count > 1) {
+            count--;
+
+            a += increment.Roll();
+            sub_lc = lc with {
+                angle = a,
+                radius = r,
+                pos = lc.focus + XY.Polar(a * Math.PI / 180, r)
+            };
+            goto Generate;
+        }
     }
 }
 public record LightGenerator() : IGridGenerator<Color> {

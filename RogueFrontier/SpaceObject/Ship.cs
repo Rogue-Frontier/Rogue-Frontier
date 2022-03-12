@@ -103,6 +103,8 @@ public class BaseShip : StructureObject {
     [JsonProperty]
     public HullSystem damageSystem { get; private set; }
     [JsonProperty]
+    public int blindTicks;
+    [JsonProperty]
     public Disrupt disruption;
     [JsonProperty]
     public Rand destiny;
@@ -116,9 +118,6 @@ public class BaseShip : StructureObject {
 
     public delegate void Destroyed(BaseShip ship, ActiveObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
-
-
-
     public BaseShip() { }
     public BaseShip(System world, ShipClass shipClass, XY Position) {
         this.world = world;
@@ -162,6 +161,9 @@ public class BaseShip : StructureObject {
         }
         if (dmgLeft == 0) return;
 
+        if (p.fragment.blind) {
+            blindTicks += world.karma.NextInteger(30) + 15;
+        }
         int knockback = p.fragment.knockback * dmgLeft / dmgFull;
         velocity += (p.velocity - velocity).WithMagnitude(knockback);
         disruption = p.fragment.disruptor?.GetHijack() ?? disruption;
@@ -198,6 +200,10 @@ public class BaseShip : StructureObject {
         //Devices.Update(this);
     }
     public void UpdateControl() {
+        if(blindTicks > 0) {
+            blindTicks--;
+            devices.Weapon.ForEach(w => w.blind = true);
+        }
         if (disruption != null) {
             thrusting = disruption.thrustMode ?? thrusting;
             rotating = disruption.turnMode switch {
@@ -345,7 +351,10 @@ public class AIShip : IShip {
     public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
     public void SetDecelerating(bool decelerating = true) => ship.SetDecelerating(decelerating);
-    public void Damage(Projectile p) => ship.damageSystem.Damage(world.tick, p, () => Destroy(p.source));
+    public void Damage(Projectile p) {
+        ship.ReduceDamage(p);
+        ship.damageSystem.Damage(world.tick, p, () => Destroy(p.source));
+    }
     public void Destroy(ActiveObject source) {
         if (source is PlayerShip ps) {
             ps.shipsDestroyed.Add(this);
@@ -646,12 +655,12 @@ public class PlayerShip : IShip {
     public void ResetAutoAim() {
         var primary = GetPrimary();
         if(primary?.target == targetList[targetIndex]) {
-            primary.OverrideTarget(null);
+            primary.SetTarget(null);
         }
     }
     //Remember to call this after we set the targetIndex > -1
     public void UpdateAutoAim() {
-        GetPrimary()?.OverrideTarget(targetList[targetIndex]);
+        GetPrimary()?.SetTarget(targetList[targetIndex]);
     }
     //Stop targeting, but remember our remaining targets
     public void ForgetTarget() {
@@ -736,6 +745,7 @@ public class PlayerShip : IShip {
 
     public double GetVisibleDistanceLeft(Entity e) => visibleDistanceLeft.TryGetValue(e, out var d) ? d : double.PositiveInfinity;
     public void Update() {
+
         messages.ForEach(m => m.Update());
         messages.RemoveAll(m => !m.Active);
 

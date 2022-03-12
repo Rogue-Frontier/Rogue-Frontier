@@ -16,15 +16,6 @@
 					-->
 				</Group>
 			</Orbital>
-
-			<Orbital count="5"
-					 radius="270"
-					 angle="random"
-					 increment="30-60"
-					 >
-
-				<Station	codename="station_orion_warlords_camp"/>
-			</Orbital>
 			<Orbital radius="400"
 					 angle="random">
 
@@ -33,8 +24,7 @@
 						showOrbit="true"
 							/>
 				<!--Starting area-->
-				<Orbital angle="random"
-						 increment="80">
+				<Orbital angle="random">
 
 					<!--tiny moon with warlord camp-->
 					<Group radius="60">
@@ -50,7 +40,7 @@
 					</Group>
 
 					<!--small moon with ring of stations-->
-					<Group radius="80">
+					<Group radius="80" angleInc="80">
 						<Planet radius="10"/>
 						<Orbital radius="30" angle="random" increment="20" count="5">
 							<Group>
@@ -80,7 +70,7 @@
 						</Orbital>
 					</Group>
 
-					<Group radius="100">
+					<Group radius="100" angleInc="160">
 						<!--Far-away small Moon-->
 						<Planet radius="8"/>
 						<Orbital angle="random" radius="20">
@@ -103,6 +93,15 @@
 						<Station codename="station_constellation_habitat"/>
 						<Station codename="station_constellation_habitat"/>
 					</Orbital>
+
+					
+					<Sibling count="5"
+						 radius="270"
+						 angleInc="60-90"
+						 increment="30-60"
+						 >
+						<Station	codename="station_orion_warlords_camp"/>
+					</Sibling>
 				</Group>
 			</Orbital>
 		</SystemGroup>

@@ -36,7 +36,7 @@
 		<Weapon		powerUse=		"15"
 					fireCooldown=	"20"
 					initialCharges=	"300"
-					drill=			"0.1"
+					drillFactor=	"0.1"
 			>
 			<Projectile	missileSpeed=	"60"
 						damageType=		"2"
@@ -46,9 +46,10 @@
 						foreground=		"White"
 				/>
 			<Capacitor
+					bonusDamagePerCharge=	"2/100"
 					minChargeToFire=		"10"
 					dischargeOnFire=		"10"
-					rechargePerTick=			"6/30"
+					rechargePerTick=		"6/30"
 					maxCharge=				"100"
 				/>
 		</Weapon>
@@ -63,13 +64,13 @@
 		<Weapon		powerUse=		"15"
 					fireCooldown=	"20"
 					initialCharges=	"180"
-					drill=			"0.3"
+					drillFactor=	"0.3"
 			>
 			<Projectile	missileSpeed=	"60"
 						damageType=		"2"
-						damageHP=		"6"
+						damageHP=		"8"
 						lifetime=		"60"
-						glyph=			"-"
+						glyph=			"+"
 						foreground=		"White"
 				/>
 			<Capacitor
@@ -190,8 +191,8 @@
 		</Cargo>
 		<Devices>
 			<Weapon	codename="item_iron_hook_cannon" omnidirectional="true"/>
-			<Weapon	codename="item_iron_driver"/>
-			<Weapon	codename="item_iron_driver"/>
+			<Weapon	codename="item_iron_driver" omnidirectional="true"/>
+			<Weapon	codename="item_iron_driver" omnidirectional="true"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="item_ironside_plate"/>
@@ -222,7 +223,7 @@
 		</Cargo>
 		<Devices>
 			<Weapon	codename="item_iron_hook_cannon" omnidirectional="true"/>
-			<Weapon	codename="item_hull_puncher"/>
+			<Weapon	codename="item_hull_puncher" omnidirectional="true"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="item_ironside_plate"/>

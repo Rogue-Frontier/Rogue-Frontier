@@ -70,9 +70,7 @@ public class ShipEntry : ShipGenerator {
         };
     public IEnumerable<AIShip> Generate(TypeCollection tc, ActiveObject owner) {
         Sovereign s = sov ?? owner.sovereign ?? throw new Exception("Sovereign expected");
-
         var count = this.count.Roll();
-
         Func<int, XY> GetPos = orderDesc switch {
             PatrolOrbitDesc pod => i => owner.position + XY.Polar(
                                         Math.PI * 2 * i / count,
@@ -85,9 +83,6 @@ public class ShipEntry : ShipGenerator {
         var subShips = ships.SelectMany(ship => subordinates.Generate(tc, ship));
         return ships.Concat(subShips);
     }
-
-
-
     public interface IShipOrderDesc : IContainer<IShipOrder.Create> {}
     public record AttackDesc() : IShipOrderDesc {
         [Opt] public string targetId = "";

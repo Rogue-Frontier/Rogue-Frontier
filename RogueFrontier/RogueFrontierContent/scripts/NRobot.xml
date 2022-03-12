@@ -18,44 +18,6 @@
 		>
 		<Service interval="10" type="missileJack" powerUse="5"/>
 	</ItemType>
-	<ItemType	codename=	"item_shutdown_cannon"
-		name=		"SHUTDOWN cannon"
-		level=		"3"
-		mass=		"4000"
-		desc=		"."
-		>
-		<Weapon
-			powerUse=		"30"
-			fireCooldown=	"60"
-			>
-			<Projectile
-				missileSpeed=	"60"
-				damageType=		"1"
-				damageHP=		"1"
-				lifetime=		"60"
-				glyph=			"*"
-				foreground=		"Cyan"
-				>
-				<Disruptor
-					thrustMode="off"
-					turnMode="off"
-					brakeMode="on"
-					fireMode="off"
-					lifetime="120"
-				/>
-			</Projectile>
-			
-			<Capacitor
-				minChargeToFire=		"35"
-				dischargeOnFire=		"35"
-				rechargePerTick=			"35/90"
-				maxCharge=				"100"
-				bonusSpeedPerCharge=	"30/100"
-				bonusDamagePerCharge=	"30/100"
-				bonusLifetimePerCharge=	"30/100"
-				/>
-		</Weapon>
-	</ItemType>
 
 	<ItemType	codename=	"item_lightning_cannon"
 		name=		"Lightning cannon"
@@ -87,6 +49,46 @@
 				
 				bonusDamagePerCharge=	"6/100"
 				/>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_flashbang_cannon"
+				name=		"Flashbang cannon"
+				level=		"2"
+				mass=		"2000"
+				
+				desc=		""
+		>
+		<Weapon	powerUse=		"10"
+				fireCooldown=	"90"
+			>
+
+			<Projectile
+				missileSpeed=	"50"
+				damageType=		"1"
+				damageHP=		"5"
+				lifetime=		"60"
+				glyph=			"*"
+				foreground=		"Cyan"
+				background=		"Black"
+				
+				detonateRadius="5"
+				>
+				<Flash intensity="60"/>
+				<Fragment
+					hitSource=		"true"
+					count=			"36*4"
+					spreadAngle=	"360"
+					missileSpeed=	"200"
+					damageType=		"1"
+					damageHP=		"8"
+					lifetime=		"8"
+					glyph=			" "
+					foreground=		"Transparent"
+					background=		"Transparent"
+					blind=			"true"
+					/>
+			</Projectile>
 		</Weapon>
 	</ItemType>
 
@@ -147,7 +149,8 @@
 		>
 		<Devices>
 			<Service codename="item_deflect_device"/>
-			<Weapon codename="item_lightning_cannon"/>
+			<Weapon codename="item_flashbang_cannon"/>
+			<Weapon codename="item_lightning_cannon" omnidirectional="true"/>
 			<Reactor codename="item_50mw_generator"/>
 			<Reactor codename="item_30mw_storage_battery"/>
 			<Reactor codename="item_30mw_storage_battery"/>

@@ -22,6 +22,10 @@ public class Viewport : Console {
         world.PlaceTiles(tiles);
         base.Update(delta);
     }
+    public void UpdateBlind(TimeSpan delta) {
+        world.PlaceTilesOver(tiles);
+        base.Update(delta);
+    }
     public override void Render(TimeSpan delta) {
         this.Clear();
         int ViewWidth = Width;
