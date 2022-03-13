@@ -33,8 +33,12 @@ public static class SShip {
     }
 }
 public static class SStealth {
-    public static bool IsVisible(this PlayerShip p, Entity e) => p.GetVisibleDistanceLeft(e) > 0;
-    public static double GetVisibleDistanceLeft(this PlayerShip p, Entity e) => e switch {
+    public static bool IsVisible(this Entity e, Entity other) => e switch {
+        PlayerShip p => p.CanSee(other),
+        _ => e.GetVisibleDistanceLeft(other) > 0
+    };
+
+    public static double GetVisibleDistanceLeft(this Entity p, Entity e) => e switch {
         AIShip ai => GetVisibleRange(ai.ship.stealth) - (e.position - p.position).magnitude,
         Station st => GetVisibleRange(st.stealth) - (e.position - p.position).magnitude,
         _ => double.PositiveInfinity
@@ -170,10 +174,15 @@ public class BaseShip {
         active = false;
     }
     public void Update() {
-        if(world.tick%6 == 0) {
+        if(world.tick%15 == 0) {
             stealth = shipClass.stealth;
             devices.Shield.ForEach(s => stealth += s.stealth);
             stealth += (damageSystem as LayeredArmor)?.layers.LastOrDefault(a => a.hp > 0)?.stealth ?? 0;
+
+            var weapons = devices.Weapon;
+            if (weapons.Any()) {
+                stealth *= 1 - weapons.Max(w => ((double)w.delay / w.desc.fireCooldown));
+            }
         }
         UpdateControl();
         UpdateMotion();
@@ -356,7 +365,7 @@ public class AIShip : IShip {
         dock?.Update(this);
 
         ship.Update();
-        if(world.tick%6 == 0 && dock?.Target is Station st) {
+        if(world.tick%15 == 0 && dock?.Target is Station st) {
             ship.stealth = Math.Max(ship.stealth, st.stealth);
         }
 
@@ -791,8 +800,7 @@ public class PlayerShip : IShip {
 
         dock?.Update(this);
 
-        ship.UpdateControl();
-        ship.UpdateMotion();
+        ship.Update();
 
         //We update the ship's devices as ourselves because they need to know who the exact owner is
         //In case someone other than us needs to know who we are through our devices

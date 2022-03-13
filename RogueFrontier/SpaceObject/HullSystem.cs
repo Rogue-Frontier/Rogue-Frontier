@@ -49,6 +49,7 @@ public class LayeredArmor : HullSystem {
     public List<Armor> layers;
     public int tick;
     public LayeredArmor(List<Armor> layers) {
+        layers.Reverse();
         this.layers = layers;
     }
     public void Damage(int tick, Projectile p, Action Destroy) {

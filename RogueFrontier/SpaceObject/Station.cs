@@ -267,12 +267,10 @@ public class Station : ActiveObject, ITrader, IDockable {
         }
     }
     public void Update() {
-        if(world.tick%6 == 0) {
-
+        if(world.tick%15 == 0) {
             stealth = type.stealth;
-            if (stealth > 0 && weapons.Any()) {
-                var c = weapons.Min(w => 1 - ((float)w.delay / w.desc.fireCooldown));
-                stealth = stealth * c;
+            if (weapons.Any()) {
+                stealth *= 1 - weapons.Max(w => ((double)w.delay / w.desc.fireCooldown));
             }
         }
         weapons?.ForEach(w => w.Update(this));

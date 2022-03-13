@@ -977,16 +977,18 @@ public class Targeting : Aiming {
     public ActiveObject target { get; set; }
     public Targeting() { }
     public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
-        if (target?.active != true
-            || (owner.position - target.position).magnitude > weapon.projectileDesc.range
-            ) {
-            target = Aiming.AcquireTarget(owner, weapon, filter);
+        if (target?.active == true
+            && owner.IsVisible(target)
+            && (owner.position - target.position).magnitude2 < weapon.projectileDesc.range2) {
+            return;
         }
+        target = Aiming.AcquireTarget(owner, weapon, filter);
     }
     public void Update(Station owner, Weapon weapon) =>
-        Update(owner, weapon, s => SStation.IsEnemy(owner, s));
-    public void Update(IShip owner, Weapon weapon) =>
-        Update(owner, weapon, s => SShip.IsEnemy(owner, s));
+        Update(owner, weapon, other => owner.IsVisible(other) && SStation.IsEnemy(owner, other));
+    public void Update(IShip owner, Weapon weapon) {
+        Update(owner, weapon, other => owner.IsVisible(other) && SShip.IsEnemy(owner, other));
+    }
     public void ClearTarget() => target = null;
     public void SetTarget(ActiveObject target) => this.target = target;
     public void UpdateTarget(ActiveObject target) =>
@@ -1002,7 +1004,9 @@ public class Omnidirectional : Aiming {
             w.projectileDesc.missileSpeed, out var _);
 
     public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
-        if (target?.active == true) {
+        if (target?.active == true
+            && owner.IsVisible(target)
+            && (owner.position - target.position).magnitude2 < weapon.projectileDesc.range2) {
             UpdateDirection(weapon);
         } else {
             direction = null;
@@ -1013,11 +1017,9 @@ public class Omnidirectional : Aiming {
             }
         }
         void UpdateDirection(Weapon weapon) {
-            if (target != null) {
-                direction = GetFireAngle(owner, target, weapon);
-                Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
-                Heading.Crosshair(owner.world, target.position);
-            }
+            direction = GetFireAngle(owner, target, weapon);
+            Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
+            Heading.Crosshair(owner.world, target.position);
         }
     }
     public void Update(Station owner, Weapon weapon) =>
@@ -1040,7 +1042,9 @@ public class Swivel : Aiming {
     public Swivel(double range) { leftRange = rightRange = range / 2; }
     public Swivel(double left, double right) => (this.leftRange, this.rightRange) = (left, right);
     public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
-        if (target?.active == true) {
+        if (target?.active == true
+            && owner.IsVisible(target)
+            && (owner.position - target.position).magnitude2 < weapon.projectileDesc.range2) {
             UpdateDirection(weapon);
         } else {
             direction = null;
@@ -1051,17 +1055,16 @@ public class Swivel : Aiming {
             }
         }
         void UpdateDirection(Weapon weapon) {
-            if (target != null) {
-                direction = Omnidirectional.GetFireAngle(owner, target, weapon);
-                var diff = Helper.AngleDiffDeg(weaponAngle * 180 / Math.PI, direction.Value * 180 / Math.PI) * Math.PI / 180;
-                var limit = Helper.IsRight(weaponAngle, direction.Value) ? rightRange : leftRange;
-                if(diff >= limit) {
-                    direction = null;
-                    return;
-                }
-                Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
-                Heading.Crosshair(owner.world, target.position);
+
+            direction = Omnidirectional.GetFireAngle(owner, target, weapon);
+            var diff = Helper.AngleDiffDeg(weaponAngle * 180 / Math.PI, direction.Value * 180 / Math.PI) * Math.PI / 180;
+            var limit = Helper.IsRight(weaponAngle, direction.Value) ? rightRange : leftRange;
+            if (diff >= limit) {
+                direction = null;
+                return;
             }
+            Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
+            Heading.Crosshair(owner.world, target.position);
         }
     }
     public void Update(Station owner, Weapon weapon) {
