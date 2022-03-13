@@ -22,8 +22,14 @@ public class Viewport : Console {
         world.PlaceTiles(tiles);
         base.Update(delta);
     }
-    public void UpdateBlind(TimeSpan delta) {
-        world.PlaceTilesOver(tiles);
+
+    public void UpdateVisible(TimeSpan delta, Func<Entity, double> getVisibleDistanceLeft) {
+        tiles.Clear();
+        world.PlaceTilesVisible(tiles, getVisibleDistanceLeft);
+        base.Update(delta);
+    }
+    public void UpdateBlind(TimeSpan delta, Func<Entity, double> getVisibleDistanceLeft) {
+        world.PlaceTilesOver(tiles, getVisibleDistanceLeft);
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {

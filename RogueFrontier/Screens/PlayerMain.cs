@@ -433,9 +433,9 @@ public class PlayerMain : Console {
     }
     public void PlaceTiles(TimeSpan delta) {
         if (playerShip.ship.blindTicks > 0) {
-            viewport.UpdateBlind(delta);
+            viewport.UpdateBlind(delta, playerShip.GetVisibleDistanceLeft);
         } else {
-            viewport.Update(delta);
+            viewport.UpdateVisible(delta, playerShip.GetVisibleDistanceLeft);
         }
         /*
         foreach((var key, var value) in viewport.tiles) {
@@ -803,10 +803,24 @@ public class Megamap : Console {
                 x += 1;
                 y = Height - y - 1;
                 if (x > -1 && x < Width && y > -1 && y < Height) {
-                    var visible = ent.Where(t => t is not ISegment && t.tile != null);
-                    if (visible.Any()) {
-                        var e = visible.ElementAt((int)time % visible.Count());
-                        var t = new ColoredGlyph(e.tile.Foreground, this.GetBackground(x, y), e.tile.Glyph);
+                    var visible = ent.Where(t => t is not ISegment && t.tile != null)
+                        .Select(e => player.GetVisibleDistanceLeft(e) is double dist && dist > 0 ? new {entity= e, distance= dist} : null)
+                        .Where(s => s != null)
+                        .ToList();
+                    if (visible.Count > 0) {
+                        var s = visible[(int)time % visible.Count];
+
+                        var t = s.entity.tile;
+                        var f = t.Foreground;
+
+                        //Apply stealth
+                        const double threshold = 16;
+                        if(s.distance < threshold) {
+                            f = f.SetAlpha((byte)(255*s.distance / threshold));
+                        }
+
+
+                        t = new ColoredGlyph(f, this.GetBackground(x, y), t.Glyph);
                         this.SetCellAppearance(x, y, t);
                         //rendered.Add((x, y));
                     }
@@ -1554,14 +1568,22 @@ public class Minimap : Console {
                 var entities = mapSample[(
                     (x - halfSize + playerShip.position.xi / mapScale),
                     (halfSize - y + playerShip.position.yi / mapScale))]
-                    .Where(e => !(e is ISegment) && e.tile != null);
+                    .Where(e => !(e is ISegment) && e.tile != null)
+                    .Select(e => playerShip.GetVisibleDistanceLeft(e) is double dist && dist > 0 ? new { entity = e, distance = dist } : null)
+                    .Where(s => s != null)
+                    .ToList();
                 if (entities.Any()) {
-                    var t = entities.ElementAt((int)time % entities.Count()).tile;
+                    var t = entities[(int)time % entities.Count()];
 
-                    this.SetCellAppearance(x, y,
-                        new ColoredGlyph(t.Foreground, Color.Black, t.Glyph)
-                            .PremultiplySet(alpha)
-                        );
+                    var g = t.entity.tile.Glyph;
+                    var f = t.entity.tile.Foreground;
+
+                    const double threshold = 16;
+                    if(t.distance < threshold) {
+                        f = f.SetAlpha((byte)(255 * t.distance / threshold));
+                    }
+
+                    this.SetCellAppearance(x, y, new ColoredGlyph(f, Color.Black, g).PremultiplySet(alpha));
                 } else {
                     var foreground = new Color(
                                 255, 255, 255,
