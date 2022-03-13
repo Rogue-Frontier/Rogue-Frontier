@@ -1,4 +1,22 @@
 ﻿<Module>
+	
+	<!--
+		Scenario: The player can join the Constellation's police force,
+		taking on combat missions and getting access to military gateway.
+		When the player reaches a certain rank, they get a mission in which
+		they have to recon an unidentified station:
+		
+		"There's an unidentified structure %distance% about light-seconds 
+		from here. We're not sure whether it's some new warlord camp or
+		drug lab or bomb stockpile or what, so we want you to go recon it.
+		If it turns out to be something illegal, then be sure to destroy it
+		before you come back. Otherwise, just ask them to identify themselves
+		and we'll take it from there."
+		
+		The unidentified station is a Beowulf Club. The player has two options:
+		1. Destroy the Beowulf Club and call it an outlaw base.
+		2. Dock with the Beowulf Club and join its members.
+	-->
 	<Sovereign	codename="sovereign_beowulf_club"
 				alignment=	"ConstructiveChaos"
 		/>

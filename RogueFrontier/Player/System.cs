@@ -1,6 +1,8 @@
 ﻿using Common;
 using Newtonsoft.Json;
 using SadConsole;
+using SadRogue.Primitives;
+using System;
 using System.Collections.Generic;
 
 namespace RogueFrontier;
@@ -112,29 +114,74 @@ public class System {
 
     public void PlaceTiles(Dictionary<(int, int), ColoredGlyph> tiles) {
         foreach (var e in entities.all) {
+            if (e.tile == null) continue;
             var p = e.position.roundDown;
-            if (e.tile != null && (!tiles.ContainsKey(p) || e is ISegment)) {
+            if (!tiles.ContainsKey(p) || e is ISegment) {
                 tiles[p] = e.tile;
             }
         }
         foreach (var e in effects.all) {
+            if (e.tile == null) continue;
             var p = e.position.roundDown;
-            if (e.tile != null && !tiles.ContainsKey(p)) {
+            if (!tiles.ContainsKey(p)) {
+                tiles[p] = e.tile;
+            }
+        }
+    }
+    public void PlaceTilesVisible(Dictionary<(int, int), ColoredGlyph> tiles, Func<Entity, double> getVisibleDistanceLeft) {
+        foreach (var e in entities.all) {
+            if (e.tile == null) continue;
+            var dist = getVisibleDistanceLeft(e);
+            if (dist<0) {
+                continue;
+            }
+
+            var p = e.position.roundDown;
+            if (!tiles.ContainsKey(p) || e is ISegment) {
+
+                var t = e.tile;
+                const double threshold = 8;
+                if (dist < threshold) {
+                    t = t.Clone();
+                    t.Foreground = t.Foreground.SetAlpha((byte)(255 * dist / threshold));
+                }
+
+                tiles[p] = t;
+            }
+        }
+        foreach (var e in effects.all) {
+            if (e.tile == null) continue;
+            var p = e.position.roundDown;
+            if (!tiles.ContainsKey(p)) {
                 tiles[p] = e.tile;
             }
         }
     }
 
-    public void PlaceTilesOver(Dictionary<(int, int), ColoredGlyph> tiles) {
+    public void PlaceTilesOver(Dictionary<(int, int), ColoredGlyph> tiles, Func<Entity, double> getVisibleDistanceLeft) {
+        //Add probabilistic overwrites
+        //To do: Handle stealth
         foreach (var e in entities.all) {
-            if (e.tile != null) {
-                tiles[e.position.roundDown] = e.tile;
+            if (e.tile == null) continue;
+
+
+            var dist = getVisibleDistanceLeft(e);
+            if (dist < 0) {
+                continue;
             }
+
+            var t = e.tile;
+            const double threshold = 16;
+            if (dist < threshold) {
+                t = t.Clone();
+                t.Background = t.Background.SetAlpha((byte)(255 * dist / threshold));
+            }
+
+            tiles[e.position.roundDown] = t;
         }
         foreach (var e in effects.all) {
-            if (e.tile != null) {
-                tiles[e.position.roundDown] = e.tile;
-            }
+            if (e.tile == null) continue;
+            tiles[e.position.roundDown] = e.tile;
         }
     }
 

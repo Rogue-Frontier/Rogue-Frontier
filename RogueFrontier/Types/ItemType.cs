@@ -246,6 +246,7 @@ public record ArmorDesc() {
     [Opt] public double recoveryRate;
     [Opt] public double regenRate;
     [Opt] public int killHP;
+    [Opt] public double stealth;
     
     public Armor GetArmor(Item i) => new(i, this);
     public ArmorDesc(XElement e) : this() {
@@ -382,7 +383,7 @@ public record FragmentDesc {
     [Opt] public bool hitSource = false;
     [Opt] public bool hitProjectile;
     [Opt] public bool hitBarrier = true;
-    [Opt] public bool blind;
+    [Opt] public IDice blind;
     [Opt] public int ricochet;
     [Opt] public bool hook;
     [Opt] public bool lightning;    //On hit, the projectile attaches an overlay that automatically makes future shots hit instantly
@@ -534,6 +535,7 @@ public record ShieldDesc {
     [Req] public int damageDelay, depletionDelay;
     [Req] public double regen;
     [Opt] public double absorbFactor = 1;
+    [Opt] public int stealth;
     public Shield GetShield(Item i) => new(i, this);
     public ShieldDesc() { }
     public ShieldDesc(XElement e) {

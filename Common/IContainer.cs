@@ -35,6 +35,9 @@ public static class SFuncSet {
             a(t.Value);
         }
     }
+    public static void RemoveNull<T>(this FuncSet<IContainer<T>> f) {
+        f.set.RemoveWhere(f => f.Value == null);
+    }
 }
 public class FuncSet<T> {
     public HashSet<T> set = new HashSet<T>();

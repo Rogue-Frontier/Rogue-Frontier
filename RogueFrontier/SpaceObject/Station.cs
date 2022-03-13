@@ -114,6 +114,8 @@ public class Station : ActiveObject, ITrader, IDockable {
     [JsonProperty]
     public List<AIShip> guards;
 
+    public double stealth;
+
     public delegate void Destroyed(Station station, ActiveObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
     public Station() { }
@@ -265,6 +267,14 @@ public class Station : ActiveObject, ITrader, IDockable {
         }
     }
     public void Update() {
+        if(world.tick%6 == 0) {
+
+            stealth = type.stealth;
+            if (stealth > 0 && weapons.Any()) {
+                var c = weapons.Min(w => 1 - ((float)w.delay / w.desc.fireCooldown));
+                stealth = stealth * c;
+            }
+        }
         weapons?.ForEach(w => w.Update(this));
         behavior?.Update(this);
     }

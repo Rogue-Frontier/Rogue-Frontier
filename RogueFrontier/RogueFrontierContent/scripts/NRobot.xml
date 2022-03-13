@@ -76,17 +76,17 @@
 				>
 				<Flash intensity="60"/>
 				<Fragment
+					blind=			"15d4"
 					hitSource=		"true"
-					count=			"36*4"
+					count=			"36*5"
 					spreadAngle=	"360"
 					missileSpeed=	"200"
 					damageType=		"1"
-					damageHP=		"8"
+					damageHP=		"4"
 					lifetime=		"8"
 					glyph=			" "
 					foreground=		"Transparent"
 					background=		"Transparent"
-					blind=			"true"
 					/>
 			</Projectile>
 		</Weapon>

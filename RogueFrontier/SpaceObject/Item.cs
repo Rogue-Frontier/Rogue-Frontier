@@ -135,6 +135,8 @@ public class Armor : Device {
 
     public int damageDelay;
 
+    public double stealth => desc.stealth == 0 ? 0 : damageDelay > 0 ? 0 : desc.stealth * hp / desc.maxHP;
+
     public int lifetimeDamageAbsorbed;
     public int lastDamageTick;
 
@@ -512,6 +514,10 @@ public class Shield : Device {
     public double absorbFactor => desc.absorbFactor;
     public int maxAbsorb => hp;
     public int lifetimeDamageAbsorbed;
+
+    public int stealth => desc.stealth == 0 ? 0 :
+        delay > 0 ? 0 :
+        desc.stealth * hp / desc.maxHP;
     /*
     public int maxAbsorb => desc.absorbMaxHP == -1 ?
         hp : Math.Min(hp, absorbHP);
