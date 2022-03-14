@@ -15,11 +15,9 @@ public interface StationBehavior {
     public void RegisterGuard(AIShip guard) { }
 }
 public class PirateStation : StationBehavior {
-    int ticks = 0;
     public PirateStation() { }
     public void Update(Station owner) {
-        ticks++;
-        if (ticks % 300 == 0) {
+        if (owner.world.tick % 300 == 0) {
             //Clear any pirate attacks where the target has too many defenders
             foreach (var g in owner.guards) {
                 if (g.behavior.GetOrder() is GuardOrder o
@@ -68,11 +66,9 @@ public class PirateStation : StationBehavior {
     }
 }
 public class ReinforceNearby : StationBehavior {
-    int ticks = 0;
     public ReinforceNearby() { }
     public void Update(Station owner) {
-        ticks++;
-        if (ticks % 150 == 0) {
+        if (owner.world.tick % 150 == 0) {
             owner.UpdateGuardList();
             if (owner.guards.Count < 5) {
                 var world = owner.world;

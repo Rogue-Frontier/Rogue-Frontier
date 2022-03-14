@@ -44,7 +44,11 @@ public static class SStealth {
         _ => double.PositiveInfinity
     };
     public static double GetVisibleRange(double stealth) => stealth switch {
+#if true
         > 0 => 250 / stealth,
+#else
+        > 0 => double.PositiveInfinity,
+#endif
         0 => double.PositiveInfinity,
         < 0 => throw new Exception($"Invalid stealth {stealth}")
     };
@@ -751,14 +755,14 @@ public class PlayerShip : IShip {
             }
         });
 
-        if (firingPrimary && primary.Has(out var w)) {
-            if (!energy.off.Contains(w))
+        if (firingPrimary) {
+            if (primary.Has(out var w) && !energy.off.Contains(w))
                 w.SetFiring(true, target);
             firingPrimary = false;
         }
 
-        if (firingSecondary && secondary.Has(out w)) {
-            if (!energy.off.Contains(w))
+        if (firingSecondary) {
+            if (secondary.Has(out var w) && !energy.off.Contains(w))
                 w.SetFiring(true, target);
             firingSecondary = false;
         }

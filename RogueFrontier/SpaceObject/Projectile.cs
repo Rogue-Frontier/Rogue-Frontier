@@ -110,6 +110,10 @@ public class Projectile : MovingObject {
                 var entities = world.entities[position].Select(e => e is ISegment s ? s.parent : e).Distinct().Except(exclude);
                 foreach (var other in entities) {
                     switch (other) {
+                        case Asteroid a:
+                            lifetime = 0;
+                            destroyed = true;
+                            break;
                         case ActiveObject hit when !destroyed && hit.active:
                             hit.Damage(this);
                             var angle = (hit.position - position).angleRad;

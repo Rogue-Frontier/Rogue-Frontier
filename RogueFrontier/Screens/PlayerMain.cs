@@ -1522,17 +1522,19 @@ public class Edgemap : Console {
                 }
             });
         void PrintTile(int x, int y, double distance, Entity e) {
-            Color c = e switch {
-                ActiveObject so => so.tile.Foreground,
-                Projectile p => p.tile.Foreground,
-                _ => Color.Transparent
-            };
-
-            const int threshold = 16;
-            if(distance < threshold) {
-                c = c.SetAlpha((byte)(255 * distance / threshold));
+            switch(e) {
+                case ActiveObject:
+                case Projectile:
+                case Wreck:
+                    var c = e.tile.Foreground;
+                    const int threshold = 16;
+                    if (distance < threshold) {
+                        c = c.SetAlpha((byte)(255 * distance / threshold));
+                    }
+                    this.SetCellAppearance(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
+                    break;
+                default: return;
             }
-            this.SetCellAppearance(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
         }
         base.Render(drawTime);
     }

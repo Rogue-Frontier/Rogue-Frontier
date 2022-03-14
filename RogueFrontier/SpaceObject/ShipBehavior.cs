@@ -106,7 +106,11 @@ public interface IShipOrder : IShipBehavior{
     public delegate IShipOrder Create(ActiveObject target);
 }
 public interface IDestructionEvents : IContainer<Station.Destroyed>, IContainer<AIShip.Destroyed>, IContainer<PlayerShip.Destroyed> {
-
+    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => Value(s, d);
+    AIShip.Destroyed IContainer<AIShip.Destroyed>.Value => (s, d, w) => Value(s, d);
+    PlayerShip.Destroyed IContainer<PlayerShip.Destroyed>.Value => (s, d, w) => Value(s, d);
+    public delegate void Destroyed(ActiveObject destroyed, ActiveObject destroyer);
+    public Destroyed Value => null;
 }
 public record OrderOnDestroy(AIShip ship, IShipOrder current, IShipOrder next) : IContainer<Station.Destroyed>, IContainer<AIShip.Destroyed>, IContainer<PlayerShip.Destroyed> {
     Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => Do();
@@ -330,12 +334,11 @@ public class GuardOrder : IShipOrder {
         } else {
             approach.Update(owner);
         }
-
         bool FindTarget(out ActiveObject target) =>
             (target = owner.world.entities
-                .GetAll(p => (home.position - p).magnitude2 < 50 * 50)
+                .GetAll(e => (home.position - e).magnitude2 < 50 * 50)
                 .OfType<ActiveObject>()
-                .Where(o => !o.IsEqual(owner) && home.CanTarget(o))
+                .Where(e => !e.IsEqual(owner) && home.CanTarget(e))
                 .GetRandomOrDefault(owner.destiny)) != null;
         
     }

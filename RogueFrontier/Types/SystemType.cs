@@ -150,7 +150,6 @@ public record SystemOrbital() : SystemElement {
         subelements = e.Elements().Select(e => parse(e)).ToList();
 
         e.Initialize(this);
-
         if (e.TryAtt(nameof(angle), out var a)) {
             switch (a) {
                 case "random":
@@ -183,6 +182,9 @@ public record SystemOrbital() : SystemElement {
         radius = e.TryAttInt(nameof(radius), 0);
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
+
+        if (subelements.Count == 0) return;
+
         var count = this.count.Roll();
         var angle = this.angle?.Roll() ?? (lc.angle + (angleInc?.Roll()??0));
 
@@ -275,28 +277,23 @@ public record SystemPlanet() : SystemElement {
     }
 }
 public record SystemAsteroids() : SystemElement {
-    public double angle;
-    public int size;
+    [Req] public double angle;
+    [Req] public int size;
     public SystemAsteroids(XElement e) : this() {
-        angle = e.ExpectAttDouble(nameof(angle)) * Math.PI / 180;
-        size = e.ExpectAttInt(nameof(size));
+        e.Initialize(this);
+        angle *= Math.PI / 180;
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         double arc = lc.radius * angle;
         double halfArc = arc / 2;
         for (double i = -halfArc; i < halfArc; i++) {
-
             int localSize = (int)(size * Math.Abs(Math.Abs(i) - halfArc) / halfArc);
-
             for (int j = -localSize / 2; j < localSize / 2; j++) {
-                if (lc.world.karma.NextDouble() > 0.25) {
+                if (lc.world.karma.NextDouble() > 0.02) {
                     continue;
                 }
-
                 var p = XY.Polar(lc.angleRad + i / lc.radius, lc.radius + j);
-
-                var tile = new ColoredGlyph(Color.Gray, Color.Black, '%');
-                lc.world.backdrop.planets.tiles[p] = tile;
+                lc.world.AddEntity(new Asteroid(lc.world, p));
             }
         }
     }

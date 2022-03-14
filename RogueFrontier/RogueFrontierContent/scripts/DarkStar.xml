@@ -24,7 +24,7 @@
 						damageHP=		"4"
 						shock=			"2"
 			
-						lifetime=		"240"
+						lifetime=		"180"
 
 						glyph=			"-"
 						foreground=		"White"
