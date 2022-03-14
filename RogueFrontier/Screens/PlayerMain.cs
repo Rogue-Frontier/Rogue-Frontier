@@ -1505,33 +1505,33 @@ public class Edgemap : Console {
         var halfWidth = Width / 2;
         var halfHeight = Height / 2;
         var range = 192;
-        var nearby = player.world.entities.GetAll(
+        player.world.entities.GetAll(
             ((int, int) p) => (player.position - p).maxCoord < range,
-            entity => entity.tile != null && entity is not ISegment);
-
-        foreach(var entity in nearby) {
-            var offset = (entity.position - player.position).Rotate(-camera.rotation);
-            var (x, y) = (offset / viewScale).abs;
-            if (x > halfWidth || y > halfHeight) {
-                //Do not show Segments beyond edge
-                (x, y) = Helper.GetBoundaryPoint(screenSize, offset.angleRad);
-                PrintTile(x, y, entity);
-            } else if (x > halfWidth - 4 || y > halfHeight - 4) {
-                (x, y) = ((screenCenter + offset) + new XY(1, 1));
-                PrintTile(x, y, entity);
-            }
-        }
-        /*
-        nearby.AsParallel().ForAll(entity => {
-            
-        });
-        */
-        void PrintTile(int x, int y, Entity e) {
+            entity => entity.tile != null && entity is not ISegment)
+            .Select(entity => player.GetVisibleDistanceLeft(entity) is double d && d > 0 ? new { distance = d, entity = entity } : null)
+            .Where(pair => pair != null).ToList().ForEach(pair => {
+                (var dist, var entity) = (pair.distance, pair.entity);
+                var offset = (entity.position - player.position).Rotate(-camera.rotation);
+                var (x, y) = (offset / viewScale).abs;
+                if (x > halfWidth || y > halfHeight) {
+                    (x, y) = Helper.GetBoundaryPoint(screenSize, offset.angleRad);
+                    PrintTile(x, y, dist, entity);
+                } else if (x > halfWidth - 4 || y > halfHeight - 4) {
+                    (x, y) = screenCenter + offset + new XY(1, 1);
+                    PrintTile(x, y, dist, entity);
+                }
+            });
+        void PrintTile(int x, int y, double distance, Entity e) {
             Color c = e switch {
                 ActiveObject so => so.tile.Foreground,
                 Projectile p => p.tile.Foreground,
                 _ => Color.Transparent
             };
+
+            const int threshold = 16;
+            if(distance < threshold) {
+                c = c.SetAlpha((byte)(255 * distance / threshold));
+            }
             this.SetCellAppearance(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
         }
         base.Render(drawTime);

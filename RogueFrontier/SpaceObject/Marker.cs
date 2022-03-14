@@ -46,7 +46,7 @@ class ActiveMarker : ActiveObject {
         //Nearby = Owner.world.entities.all.OfType<SpaceObject>().Except(new SpaceObject[] { Owner }).OrderBy(e => (e.position - position).magnitude).ToList();
     }
     public void Damage(Projectile p) { }
-    public void Destroy(ActiveObject source = null) { }
+    public void Destroy(ActiveObject source = null) { active = false; }
 }
 
 class TargetingMarker : ActiveObject {

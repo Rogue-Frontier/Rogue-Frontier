@@ -30,11 +30,18 @@ public static class SSpaceObject {
     }
 
     public static bool CanTarget(this ActiveObject owner, ActiveObject target) {
-        if(owner is TargetingMarker t) {
+        if(owner is TargetingMarker t)
             owner = t.Owner;
-        }
-        return target.active && !IsEqual(owner, target) && target is not Wreck
-            && (owner.sovereign.IsEnemy(target.sovereign)
-                || (owner is AIShip s && s.behavior.GetOrder().CanTarget(target)));
+        if (!target.active)
+            return false;
+        if(IsEqual(owner, target))
+            return false;
+        if (target is Wreck)
+            return false;
+        if(target is Stargate)
+            return false;
+        
+        return owner.sovereign.IsEnemy(target.sovereign)
+                || (owner is AIShip s && s.behavior.GetOrder().CanTarget(target));
     }
 }

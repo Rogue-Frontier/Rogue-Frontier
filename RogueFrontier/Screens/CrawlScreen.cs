@@ -20,33 +20,27 @@ class CrawlScreen : Console {
         };
     private readonly string[] text = new string[] {
 @"In a dreaming I could see
-the words of a deity borne
-The Orator who would speak
-a 
+the words of a deity spoken
+The Dictator who decreed
+a world would soon be broken",
 
-",
+@"As humans took to stars,
+and prospered in the dark,
+warlords held their cannons:
+""The world will now be ours!""",
 
-@"...In a time far beyond what
-mankind currently knows as time,
-where the reality is familiar yet
-altogether remade new entirely,
-a different mankind grows out of
-the metaphorical ashes of our
-own mortal era...",
-
-@"
-In the vision, I could see
+@"In a future, I could see
 of troubles forever more
-The Orator now then speaks
+Now The Orator speaks
 a request for piety sworn",
 
-@"...But only those who are willing
-to meet the Orator at their home
-in the Galactic Core are worthy
-of witnessing the After World...",
+@"""There shall be an answer,
+if you heed my calls -
+Find the Celestial Center,
+before civilization falls.""",
 
-@"Somehow,    
-I know it was much more than a dream." }.Select(line => line.Replace("\r", "")).ToArray();
+@"To H311 with The Dictator!
+To H34V3N with the cause!" }.Select(line => line.Replace("\r", "")).ToArray();
 
     //to do: website
     //to do: portraits

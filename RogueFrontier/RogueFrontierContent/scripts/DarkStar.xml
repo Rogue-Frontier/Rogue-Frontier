@@ -1,4 +1,8 @@
 ﻿<Module>
+
+	<Sovereign	codename=	"sovereign_dark_star"
+				alignment=	"DestructiveOrder"
+	/>
 	<ItemType	codename=	"item_dagger_cannon"
 					name=		"Dagger cannon"
 					level=		"1"
@@ -177,7 +181,7 @@
 			<Weapon codename="item_bomb_launcher"/>
 			<Shield codename="item_cloaking_shield"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_10mw_storage_battery"/>
+			<Reactor codename="item_30mw_storage_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_darkened_knightsteel_plate"/>
@@ -205,7 +209,7 @@
 			<Weapon codename="item_bomb_launcher"/>
 			<Shield codename="item_cloaking_shield"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_10mw_storage_battery"/>
+			<Reactor codename="item_30mw_storage_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_darkened_knightsteel_plate"/>
@@ -218,5 +222,24 @@
 		</PlayerSettings>
 	</ShipClass>
 
+	<StationType	codename="station_dark_star_fortress"
+					name=		"Dark Star fortress"
+					sovereign=	"sovereign_dark_star"
 
+					hp=			"600"
+					
+					structure="RogueFrontierContent/sprites/DarkStarFortress.asc.cg"
+		>
+		<Weapons>
+			<Weapon codename="item_dagger_cannon"	posX="3" posY="0"/>
+			<Weapon codename="item_dagger_cannon"	posX="-3" posY="0"/>
+		</Weapons>
+		<Construction max="20">
+			<Construct time="300" codename="ship_brutus" order="patrol" patrolRadius="20"/>
+		</Construction>
+		<Ships>
+			<Ship codename="ship_brutus" count="4" order="guard"/>
+			<Ship codename="ship_machiavelli" count="4" order="guard"/>
+		</Ships>
+	</StationType>
 </Module>

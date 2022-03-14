@@ -53,14 +53,7 @@ public class ShipEntry : ShipGenerator {
         subordinates = e.HasElement("Ships", out var xmlSub) ? new(xmlSub, SGenerator.ParseFrom(tc, SGenerator.ShipFrom)) : new();
         shipClass = tc.Lookup<ShipClass>(codename);
         sov = sovereign?.Any() == true ? tc.Lookup<Sovereign>(sovereign) : null;
-        orderDesc = e.TryAttEnum("order", ShipOrder.guard) switch {
-            ShipOrder.attack => new AttackDesc(e),
-            ShipOrder.escort => new EscortDesc(e),
-            ShipOrder.guard => new GuardDesc(e),
-            ShipOrder.patrol => new PatrolOrbitDesc(e),
-            ShipOrder.patrolCircuit => new PatrolCircuitDesc(e),
-            _ => new GuardDesc(e)
-        };
+        orderDesc = IShipOrderDesc.Get(e);
         behavior = e.TryAttEnum("behavior", EShipBehavior.none);
     }
     IShipBehavior GetBehavior() =>
@@ -83,7 +76,16 @@ public class ShipEntry : ShipGenerator {
         var subShips = ships.SelectMany(ship => subordinates.Generate(tc, ship));
         return ships.Concat(subShips);
     }
-    public interface IShipOrderDesc : IContainer<IShipOrder.Create> {}
+    public interface IShipOrderDesc : IContainer<IShipOrder.Create> {
+        public static IShipOrderDesc Get(XElement e) => e.TryAttEnum("order", ShipOrder.guard) switch {
+            ShipOrder.attack => new AttackDesc(e),
+            ShipOrder.escort => new EscortDesc(e),
+            ShipOrder.guard => new GuardDesc(e),
+            ShipOrder.patrol => new PatrolOrbitDesc(e),
+            ShipOrder.patrolCircuit => new PatrolCircuitDesc(e),
+            _ => new GuardDesc(e)
+        };
+    }
     public record AttackDesc() : IShipOrderDesc {
         [Opt] public string targetId = "";
         public AttackDesc(XElement e) : this() {

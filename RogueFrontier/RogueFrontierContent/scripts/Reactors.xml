@@ -32,7 +32,7 @@
 		>
 		<Reactor
 			maxOutput=		"10"
-			capacity=		"3000"
+			capacity=		"6000"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>
@@ -58,7 +58,7 @@
 		>
 		<Reactor
 			maxOutput=		"30"
-			capacity=		"9000"
+			capacity=		"18000"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>

@@ -114,6 +114,8 @@ public class Station : ActiveObject, ITrader, IDockable {
     [JsonProperty]
     public List<AIShip> guards;
 
+    public ConstructionJob construction;
+
     public double stealth;
 
     public delegate void Destroyed(Station station, ActiveObject destroyer, Wreck wreck);
@@ -272,9 +274,23 @@ public class Station : ActiveObject, ITrader, IDockable {
             if (weapons.Any()) {
                 stealth *= 1 - weapons.Max(w => ((double)w.delay / w.desc.fireCooldown));
             }
+            if(construction != null) {
+                construction.time -= 15;
+                if (construction.time < 1) {
+                    var s = new AIShip(new(world, construction.desc.type, position), sovereign, construction.desc.order.Value(this));
+                    world.AddEntity(s);
+                    guards.Add(s);
+                    construction = null;
+                }
+            } else if(type.construction != null) {
+                if(guards.Count < type.construction.max) {
+                    construction = type.construction.catalog.GetRandom(world.karma);
+                }
+            }
         }
         weapons?.ForEach(w => w.Update(this));
         behavior?.Update(this);
+
     }
     public Console GetDockScene(Console prev, PlayerShip playerShip) => null;
     [JsonIgnore]

@@ -19,13 +19,17 @@ public class StationType : IDesignType {
 
     public Station.Behaviors behavior;
     public Sovereign Sovereign;
-    public Group<Item> cargo;
-    public WeaponList weapons;
 
     public StaticTile tile;
     public List<SegmentDesc> segments;
     public List<XY> dockPoints;
 
+
+    public Group<Item> cargo;
+    public WeaponList weapons;
+
+
+    public ConstructionDesc construction;
     public ShipGroup ships;
     public SystemGroup satellites;
 
@@ -150,6 +154,9 @@ public class StationType : IDesignType {
         if (e.HasElement("Cargo", out XElement xmlCargo) || e.HasElement("Items", out xmlCargo)) {
             cargo = new(xmlCargo, SGenerator.ParseFrom(tc, SGenerator.ItemFrom));
         }
+
+        construction = e.HasElement("Construction", out var xmlConstruction) ? new ConstructionDesc(tc, xmlConstruction) : null;
+
         if (e.HasElement("Ships", out var xmlShips)) {
             ships = new(xmlShips, SGenerator.ParseFrom(tc, SGenerator.ShipFrom));
         }
@@ -224,5 +231,33 @@ public class StationType : IDesignType {
             offset = new(x, y);
             tile = new(e);
         }
+    }
+
+    public record ConstructionDesc {
+        [Opt]public int max = int.MaxValue;
+        public List<ConstructionEntry> catalog;
+        public ConstructionDesc() {
+        }
+        public ConstructionDesc(TypeCollection tc, XElement e) {
+            e.Initialize(this);
+            catalog = e.Elements("Construct").Select(s => new ConstructionEntry(tc, s)).ToList();
+        }
+    }
+    public record ConstructionEntry {
+        [Req] public int time;
+        public ShipClass type;
+        public ShipEntry.IShipOrderDesc order;
+        public ConstructionEntry() { }
+        public ConstructionEntry(TypeCollection tc, XElement e) {
+            e.Initialize(this);
+            type = tc.Lookup<ShipClass>(e.ExpectAtt("codename"));
+            order = ShipEntry.IShipOrderDesc.Get(e);
+        }
+        public static implicit operator ConstructionJob(ConstructionEntry e) => new() { time=e.time, desc=e};
+    }
+
+    public class ConstructionJob {
+        public int time;
+        public ConstructionEntry desc;
     }
 }

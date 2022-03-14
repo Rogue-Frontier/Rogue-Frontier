@@ -153,25 +153,30 @@
 	</ItemType>
 
 	<ItemType	codename=	"item_hunterscale_plate"
-				name=		"Hunterscale plate"
-				mass=		"1000"
-				level=		"1"
+		name=		"Hunter's plate"
+		mass=		"1000"
+		level=		"1"
 
-				value=		"250"
+		value=		"250"
+				
+		desc=		"This low-tech armor provides modest stealth."
 		>
-		<Armor	maxHP=		"40"
+		<Armor	maxHP=		"40"	
+				stealth="2"
 			>
 		</Armor>
 	</ItemType>
 	<ItemType	codename=	"item_skullhelm_plate"
-				name=		"Skullhelm plate"
-				mass=		"5000"
-				level=		"2"
+		name=		"Skullhelm plate"
+		mass=		"5000"
+		level=		"2"
 
-				value=		"600"
+		value=		"600"
+				
+		desc=		"This hardened low-tech armor provides modest stealth."
 		>
 		<Armor	maxHP=		"120"
-
+				stealth="2"
 			>
 		</Armor>
 	</ItemType>
@@ -190,7 +195,7 @@
 				foreground=			"70AEFFFF"
 		>
 		<Devices>
-			<Weapon	codename="item_orion_bolter" modifierChance="10/100" damageHPInc="4"/>
+			<Weapon	codename="item_orion_bolter" modifierChance="40/100" damageHPInc="4"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="item_hunterscale_plate"/>
@@ -205,7 +210,6 @@
 				thrust=				"0.3"
 				maxSpeed=			"15"
 				
-				stealth="2"
 
 				rotationAccel=		"3"
 				rotationDecel=		"6"
@@ -215,7 +219,7 @@
 				foreground=			"70AEFFFF"
 		>
 		<Devices>
-			<Weapon	codename="item_orion_longbow"/>
+			<Weapon	codename="item_orion_longbow" modifierChance="40/100" damageHPInc="8"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="item_skullhelm_plate"/>
@@ -252,7 +256,7 @@
 					name=		"Orion Warlords camp"
 					sovereign=	"sovereign_orion_warlords"
 
-					stealth="2"
+					stealth=	"4"
 					
 					behavior=	"orionWarlords"
 					
@@ -275,7 +279,7 @@
 					name=		"Orion Warlords stronghold"
 					sovereign=	"sovereign_orion_warlords"
 
-					stealth="2"
+					stealth=	"4"
 					
 					behavior=	"orionWarlords"
 					

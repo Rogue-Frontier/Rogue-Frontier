@@ -9,8 +9,6 @@ using SadConsole;
 using SadRogue.Primitives;
 
 namespace RogueFrontier;
-
-
 public interface IShipBehavior {
     void Update(AIShip owner);
 }
@@ -43,7 +41,6 @@ public class Merchant : IShipBehavior, IContainer<Station.Destroyed> {
     public GateOrder gateOrder;
     public Station target;
     public int timer;
-
     Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => {
         s.onDestroyed -= this;
         if (s == target) {
@@ -52,8 +49,6 @@ public class Merchant : IShipBehavior, IContainer<Station.Destroyed> {
     };
     public Merchant() {}
     public void Update(AIShip owner) {
-
-
         if (gateOrder != null) {
             var current = gateOrder.gate.world;
             if (current == owner.world && owner.world != target.world) {
@@ -103,7 +98,6 @@ public class Merchant : IShipBehavior, IContainer<Station.Destroyed> {
         }
     }
 }
-
 public interface IShipOrder : IShipBehavior{
     bool Active { get; }
     //void Update(AIShip owner);
@@ -111,7 +105,6 @@ public interface IShipOrder : IShipBehavior{
 
     public delegate IShipOrder Create(ActiveObject target);
 }
-
 public interface IDestructionEvents : IContainer<Station.Destroyed>, IContainer<AIShip.Destroyed>, IContainer<PlayerShip.Destroyed> {
 
 }
@@ -134,11 +127,14 @@ public record OrderOnDestroy(AIShip ship, IShipOrder current, IShipOrder next) :
     }
 }
 public class CompoundOrder : IShipOrder {
-    public List<IShipOrder> orders;
-    public IShipOrder current => orders.Any() ? orders[0] : null;
+    public List<IShipOrder> orders=new();
+    public IShipOrder current => orders.FirstOrDefault();
+
+    public delegate void OnOrderCompleted(IShipOrder order);
+    public FuncSet<IContainer<OnOrderCompleted>> onOrderCompleted=new();
     public CompoundOrder() { }
     public CompoundOrder(params IShipOrder[] orders) {
-        this.orders = new List<IShipOrder>(orders);
+        this.orders.AddRange(orders);
     }
     public void Update(AIShip owner) {
     Start:
@@ -148,6 +144,7 @@ public class CompoundOrder : IShipOrder {
                 first.Update(owner);
                 return;
             case false:
+                onOrderCompleted.ForEach(f => f(first));
                 orders.RemoveAt(0);
                 goto Start;
             default:
@@ -303,6 +300,7 @@ public class GuardOrder : IShipOrder {
         //If we have a target, then attack!
         if (attackOrder.Active == true) {
             attackOrder.Update(owner);
+
             //If we have finite attackTime set, then our attack order expires on time out
             attackTime--;
             if (attackTime == 0) {
@@ -328,7 +326,7 @@ public class GuardOrder : IShipOrder {
         }
         //At this point, we definitely don't have an attack target so we return
         if ((owner.position - home.position).magnitude2 < 6 * 6) {
-            owner.dock = new(home, (home as Station).GetDockPoint() ?? XY.Zero);
+            owner.dock = new(home, (home as Station)?.GetDockPoint() ?? XY.Zero);
         } else {
             approach.Update(owner);
         }
@@ -343,6 +341,7 @@ public class GuardOrder : IShipOrder {
     }
     public bool Active => home.active;
 }
+
 public class AttackAllOrder : IShipOrder {
     public int sleepTicks;
     public AttackOrder attack;
