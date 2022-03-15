@@ -601,7 +601,11 @@ public class PlayerMain : Console {
             }
 
             //bool moved = mouseScreenPos != state.SurfaceCellPosition;
-            var mouseScreenPos = state.SurfaceCellPosition;
+            //var mouseScreenPos = state.SurfaceCellPosition;
+            var mouseScreenPos = new XY(state.SurfacePixelPosition) / FontSize - new XY(0.5, 0.75);
+
+            //(var a, var b) = (state.SurfaceCellPosition, state.SurfacePixelPosition);
+
 
             //Placeholder for mouse wheel-based weapon selection
             if (state.Mouse.ScrollWheelValueChange > 100) {
@@ -610,7 +614,7 @@ public class PlayerMain : Console {
                 playerShip.PrevPrimary();
             }
 
-            var centerOffset = new XY(mouseScreenPos.X, Height - mouseScreenPos.Y) - new XY(Width / 2, Height / 2);
+            var centerOffset = new XY(mouseScreenPos.x, Height - mouseScreenPos.y) - new XY(Width / 2, Height / 2);
             centerOffset *= uiMegamap.viewScale;
             mouseWorldPos = (centerOffset.Rotate(camera.rotation) + camera.position);
             ActiveObject t;
@@ -707,7 +711,9 @@ public class Megamap : Console {
     Camera camera;
     PlayerShip player;
     GeneratedLayer background;
-    public double viewScale;
+
+    public double targetViewScale = 1;
+    public double viewScale = 1;
     double time;
 
     public byte alpha;
@@ -715,32 +721,45 @@ public class Megamap : Console {
         this.camera = camera;
         this.player = player;
         this.background = back;
-        viewScale = 1;
-        time = 0;
     }
-    public double delta => Math.Min(viewScale / (2 * 30), 1);
+    public double delta => Math.Min(targetViewScale / (2 * 30), 1);
     public override bool ProcessKeyboard(Keyboard info) {
-        if (info.IsKeyPressed(N)) {
-            viewScale /= 2;
-            if (viewScale < 1) {
-                viewScale = 1;
+        var p = (Keys k) => info.IsKeyPressed(k);
+        var d = (Keys k) => info.IsKeyDown(k);
+        if (d(LeftShift) || d(Keys.RightShift)) {
+            if (p(OemMinus)) {
+                targetViewScale *= 2;
+            }
+            if (p(OemPlus)) {
+                targetViewScale /= 2;
+                if (targetViewScale < 1) {
+                    targetViewScale = 1;
+                }
+            }
+        } else {
+            if (d(OemMinus)) {
+                viewScale += delta;
+                targetViewScale = viewScale;
+            }
+            if (d(OemPlus)) {
+                viewScale -= delta;
+                if (viewScale < 1) {
+                    viewScale = 1;
+                }
+                targetViewScale = viewScale;
             }
         }
-        if (info.IsKeyPressed(M)) {
-            viewScale *= 2;
-        }
-        if (info.IsKeyDown(OemMinus)) {
-            viewScale += delta;
-        }
-        if (info.IsKeyDown(OemPlus)) {
-            viewScale -= delta;
-            if (viewScale < 1) {
-                viewScale = 1;
-            }
-        }
+        
         return base.ProcessKeyboard(info);
     }
     public override void Update(TimeSpan delta) {
+        var d = targetViewScale - viewScale;
+        if(Math.Abs(d) < 0.1) {
+            viewScale += d;
+        } else {
+            viewScale += d / 10;
+        }
+
         alpha = (byte)(255 * Math.Min(1, viewScale - 1));
         time += delta.TotalSeconds;
         base.Update(delta);
@@ -855,7 +874,7 @@ public class Megamap : Console {
         base.Render(delta);
     }
 }
-public class Vignette : Console {
+public class Vignette : Console, IContainer<PlayerShip.Damaged> {
     PlayerShip player;
     public float powerAlpha;
     public HashSet<EffectParticle> particles;
@@ -866,14 +885,27 @@ public class Vignette : Console {
     public int[,] grid;
     public bool chargingUp;
     int recoveryTime;
+
+    public int lightningHit;
+    public int flash;
+    PlayerShip.Damaged IContainer<PlayerShip.Damaged>.Value => (pl, pr) => {
+        if (pr.fragment.lightning) {
+            lightningHit = 2;
+        }
+        if (pr.fragment.blind?.Roll() is int db) {
+            flash = Math.Max(db, flash);
+        }
+    };
     public Vignette(PlayerShip player, int width, int height) : base(width, height) {
         this.player = player;
+        player.onDamaged += this;
+
         FocusOnMouseClick = false;
 
         powerAlpha = 0;
-        particles = new HashSet<EffectParticle>();
-        screenCenter = new XY(width / 2, height / 2);
-        r = new Random();
+        particles = new();
+        screenCenter = new(width / 2, height / 2);
+        r = new();
         grid = new int[width, height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
@@ -891,7 +923,7 @@ public class Vignette : Console {
             if (recoveryTime < 360) {
                 recoveryTime++;
             }
-            this.chargingUp = true;
+            chargingUp = true;
         } else {
             if (player.CheckGate(out Stargate gate)) {
                 float targetAlpha = 1;
@@ -899,7 +931,7 @@ public class Vignette : Console {
                     powerAlpha += (targetAlpha - powerAlpha) / 30;
                 }
             } else {
-                this.chargingUp = false;
+                chargingUp = false;
                 powerAlpha -= powerAlpha / 120;
                 if (powerAlpha < 0.01 && recoveryTime > 0) {
                     recoveryTime--;
@@ -916,7 +948,7 @@ public class Vignette : Console {
                     int lifetime = 60;
                     var v = new XY(p.xi == 0 ? speed : p.xi == screenPerimeter.Width - 1 ? -speed : 0,
                                     p.yi == 0 ? speed : p.yi == screenPerimeter.Height - 1 ? -speed : 0);
-                    particles.Add(new EffectParticle(p, new ColoredGlyph(Color.Cyan, Color.Transparent, '#'), lifetime) { Velocity = v });
+                    particles.Add(new EffectParticle(p, new(Color.Cyan, Color.Transparent, '#'), lifetime) { Velocity = v });
                 }
             }
         }
@@ -931,7 +963,8 @@ public class Vignette : Console {
                 );
         });
         particles.RemoveWhere(p => !p.active);
-
+        lightningHit--;
+        flash--;
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
@@ -949,74 +982,64 @@ public class Vignette : Console {
             borderColor = borderColor.Blend(v).Premultiply();
 
             borderSize += (int)(12 * powerAlpha);
-
-            Mortal();
-
-            /*
-            var p = player.position.roundDown;
-            var maxAlpha = powerAlpha * 102;
-            for (int x = 0; x < Width; x++) {
-                for (int y = 0; y < Height; y++) {
-                    int x2 = ((x + p.xi) % Width + Width) % Width;
-                    int y2 = ((y - p.yi) % Height + Height) % Height;
-
-                    var alpha = (Math.Sin((grid[x2, y2] + ticks) * 2 * Math.PI / 240) + 1) * maxAlpha;
-                    this.SetCellAppearance(x, y,
-                        new ColoredGlyph(
-                            borderColor.SetAlpha((byte)(alpha)),
-                            Color.Transparent,
-                            '-'));
-                }
-            }
-            */
-        } else {
-            Mortal();
         }
 
+        Mortal();
         void Mortal() {
             if (player.mortalTime > 0) {
                 borderColor = borderColor.Blend(Color.Red.SetAlpha((byte)(Math.Min(1, player.mortalTime / 4.5) * 255)));
-
-
                 var fraction = (player.mortalTime - Math.Truncate(player.mortalTime));
-
                 borderSize += (int)(6 * fraction);
             }
         }
-
-        if (player.ship.disruption?.ticksLeft > 0) {
+        if(flash > 0) {
+            borderSize += Math.Min(5, 5 * flash / 30);
+            borderColor = borderColor.Blend(Color.White.SetAlpha((byte)Math.Min(255, 255 * flash / 30)));
+        } else if (player.ship.disruption?.ticksLeft > 0) {
             var ticks = player.ship.disruption.ticksLeft;
             var strength = Math.Min(ticks / 60f, 1);
             borderSize += (int)(5 * strength);
-            borderColor = borderColor.Blend(Color.Cyan.SetAlpha(
-                (byte)(128 * strength)
-                ));
-
-
+            borderColor = borderColor.Blend(Color.Cyan.SetAlpha((byte)(128 * strength)));
         } else {
             var b = player.world.backdrop.starlight.GetBackgroundFixed(player.position);
-            borderColor = borderColor.Blend(b.SetAlpha((byte)(255 * b.GetBrightness())));
+            var br = 255 * b.GetBrightness();
+            borderSize += (int)(0*5f * Math.Pow(br / 255, 1.4));
+            borderColor = borderColor.Blend(b.SetAlpha((byte)(br)));
         }
+        if(player.ship.blindTicks > 0) {
+            for (int i = 0; i < borderSize; i++) {
+                var d = 1d * i / borderSize;
+                d = Math.Pow(d, 1.4);
+                byte alpha = (byte)(255 - 255 * d);
+                var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
+                foreach (var point in screenPerimeter.PerimeterPositions()) {
+                    //var back = this.GetBackground(point.X, point.Y).Premultiply();
+                    var (x, y) = point;
 
-        for (int i = 0; i < borderSize; i++) {
-            var d = 1d * i / borderSize;
-            d = Math.Pow(d, 1.4);
-            byte alpha = (byte)(255 - 255 * d);
-            var c = borderColor.SetAlpha(alpha);
-            /*
-            if(i < borderSize / 5) {
-                c = c.Blend(Color.White.SetAlpha((byte)(255 * (powerAlpha - powerAlpha * i / (borderSize / 5)))))
-                    .Premultiply()
-                    .SetAlpha(alpha);
-            } else if(alpha < 153) {
-                continue;
+                    var inc = r.Next(102);
+                    var c = borderColor.Add(inc, inc, inc).Gray().SetAlpha(alpha);
+                    this.SetBackground(x, y, c);
+                }
             }
-            */
-            var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
-            
-            foreach (var point in screenPerimeter.PerimeterPositions()) {
-                //var back = this.GetBackground(point.X, point.Y).Premultiply();
-                var (x, y) = point;
+        } else {
+            for (int i = 0; i < borderSize; i++) {
+                var d = 1d * i / borderSize;
+                d = Math.Pow(d, 1.4);
+                byte alpha = (byte)(255 - 255 * d);
+                var c = borderColor.SetAlpha(alpha);
+                var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
+                foreach (var point in screenPerimeter.PerimeterPositions()) {
+                    //var back = this.GetBackground(point.X, point.Y).Premultiply();
+                    var (x, y) = point;
+                    this.SetBackground(x, y, c);
+                }
+            }
+        }
+        if (lightningHit > 0) {
+            var i = 2;
+            var c = new Color(255, 0, 0, 224);
+            foreach(var p in new Rectangle(i, i, Width - i * 2, Height - i * 2).PerimeterPositions()) {
+                var (x, y) = p;
                 this.SetBackground(x, y, c);
             }
         }
@@ -1025,6 +1048,7 @@ public class Vignette : Console {
             var (fore, glyph) = (p.tile.Foreground, p.tile.Glyph);
             this.SetCellAppearance(x, y, new ColoredGlyph(fore, this.GetBackground(x, y), glyph));
         }
+
         base.Render(delta);
     }
 }
@@ -1041,7 +1065,6 @@ public class Readout : Console {
     public double viewScale;
 
     public int arrowDistance;
-    public int ticks;
 
     XY screenSize => new XY(Width, Height);
     XY screenCenter => screenSize / 2;
@@ -1069,13 +1092,13 @@ public class Readout : Console {
         FocusOnMouseClick = false;
     }
     public override void Update(TimeSpan delta) {
-        ticks++;
         base.Update(delta);
     }
     public override void Render(TimeSpan drawTime) {
         this.Clear();
         var messageY = Height * 3 / 5;
         int targetX = 48, targetY = 1;
+        int tick = player.world.tick;
 
         void DrawTargetArrow(ActiveObject target) {
             var offset = (target.position - player.position) / viewScale;
@@ -1095,63 +1118,6 @@ public class Readout : Console {
             }
         }
 
-        if (player.GetTarget(out ActiveObject playerTarget)) {
-            this.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
-            this.Print(targetX, targetY++, playerTarget.name);
-            PrintTarget(targetX, targetY, playerTarget);
-            DrawTargetArrow(playerTarget);
-            targetX += 32;
-            targetY = 1;
-        }
-        //var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
-        foreach (var autoTarget in player.devices.Weapon.Select(w => w.target)) {
-            if (autoTarget != null && autoTarget != playerTarget) {
-                this.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
-                this.Print(targetX, targetY++, autoTarget.name);
-                PrintTarget(targetX, targetY, autoTarget);
-                DrawTargetArrow(autoTarget);
-            }
-        }
-
-        void PrintTarget(int x, int y, ActiveObject target) {
-            if (target is AIShip ai) {
-                PrintDamageSystem(ai.damageSystem);
-                PrintDeviceSystem(ai.devices);
-            } else if (target is Station s) {
-                PrintDamageSystem(s.damageSystem);
-
-                if (s.weapons?.Any() == true) {
-                    foreach (var w in s.weapons) {
-                        this.Print(x, y++, $"{w.source.type.name}{w.GetBar()}");
-                    }
-                }
-            }
-
-            void PrintDamageSystem(HullSystem s) {
-                if (s is HP hp) {
-                    this.Print(x, y++, $"Hull: {hp.hp} hp");
-                } else if (s is LayeredArmor las) {
-                    this.Print(x, y++, $"[Armor]");
-                    foreach (var layer in las.layers) {
-                        this.Print(x, y++, $"{layer.source.type.name}{new string('>', (16 * layer.hp) / layer.desc.maxHP)}");
-                    }
-                }
-            }
-
-            void PrintDeviceSystem(DeviceSystem ds) {
-                if (ds.Installed.Any()) {
-                    this.Print(x, y++, $"[Devices]");
-                    foreach (var d in ds.Installed) {
-                        if (d is Weapon w) {
-                            this.Print(x, y++, $"{d.source.type.name}{w.GetBar()}");
-                        } else {
-                            this.Print(x, y++, $"{d.source.type.name}");
-                        }
-
-                    }
-                }
-            }
-        }
         for (int i = 0; i < player.messages.Count; i++) {
             var message = player.messages[i];
             var line = message.Draw();
@@ -1264,14 +1230,194 @@ public class Readout : Console {
             }
             messageY++;
         }
-        {
+
+        const int BAR = 8;
+        if (player.GetTarget(out ActiveObject playerTarget)) {
+            this.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
+            this.Print(targetX, targetY++, playerTarget.name);
+            PrintTarget(targetX, targetY, playerTarget);
+            DrawTargetArrow(playerTarget);
+            targetX += 32;
+            targetY = 1;
+        }
+        //var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
+        foreach (var autoTarget in player.devices.Weapon.Select(w => w.target)) {
+            if (autoTarget != null && autoTarget != playerTarget) {
+                this.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
+                this.Print(targetX, targetY++, autoTarget.name);
+                PrintTarget(targetX, targetY, autoTarget);
+                DrawTargetArrow(autoTarget);
+            }
+        }
+        void PrintTarget(int x, int y, ActiveObject target) {
+            var b = Color.Black;
+            if (target is AIShip ai) {
+                Print(ai.devices);
+                PrintHull(ai.damageSystem);
+            } else if (target is Station s) {
+                PrintHull(s.damageSystem);
+            }
+
+            void Print(DeviceSystem devices) {
+
+
+                var solars = devices.Solar;
+                var reactors = devices.Reactor;
+                var weapons = devices.Weapon;
+                var shields = devices.Shield;
+                var misc = devices.Installed.OfType<Service>();
+
+
+                foreach (var reactor in reactors) {
+                    ColoredString bar;
+                    if (reactor.energy > 0) {
+                        Color f = Color.White;
+                        char arrow = '=';
+                        if (reactor.energyDelta < 0) {
+                            f = Color.Yellow;
+                            arrow = '<';
+                        } else if (reactor.energyDelta > 0) {
+                            arrow = '>';
+                            f = Color.Cyan;
+                        }
+                        int length = (int)Math.Ceiling(BAR * reactor.energy / reactor.desc.capacity);
+                        bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
+                            + new ColoredString(new string('=', BAR - length), Color.Gray, b);
+                    } else {
+                        bar = new ColoredString(new string('=', BAR), Color.Gray, b);
+                    }
+
+                    int l = (int)Math.Ceiling(-BAR * (double)reactor.energyDelta / reactor.maxOutput);
+                    for (int i = 0; i < l; i++) {
+                        bar[i].Background = Color.DarkKhaki;
+                    }
+
+                    this.Print(x, y,
+                        new ColoredString("[", Color.White, b)
+                        + bar
+                        + new ColoredString("]", Color.White, b)
+                        + " "
+                        + new ColoredString($"{reactor.source.type.name}", Color.White, b)
+                        );
+                    y++;
+                }
+                if (solars.Any()) {
+                    foreach (var s in solars) {
+                        ColoredString bar;
+                        int length = (int)Math.Ceiling(BAR * (double)s.maxOutput / s.desc.maxOutput);
+                        int sublength = s.maxOutput > 0 ? (int)Math.Ceiling(length * (-s.energyDelta) / s.maxOutput) : 0;
+                        bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
+                            + new ColoredString(new string('=', length - sublength), Color.Cyan, b)
+                            + new ColoredString(new string('=', BAR - length), Color.Gray, b);
+                        /*
+                        int l = (int)Math.Ceiling(-16f * s.maxOutput / s.desc.maxOutput);
+                        for (int i = 0; i < l; i++) {
+                            bar[i].Background = Color.DarkKhaki;
+                            bar[i].Foreground = Color.Yellow;
+                        }
+                        */
+                        this.Print(x, y,
+                            new ColoredString("[", Color.White, b)
+                            + bar
+                            + new ColoredString("]", Color.White, b)
+                            + " "
+                            + new ColoredString($"{s.source.type.name}", Color.White, b)
+                            );
+                        y++;
+                    }
+                    y++;
+                }
+                if (weapons.Any()) {
+                    int i = 0;
+                    foreach (var w in weapons) {
+
+                        string enhancement;
+                        if (w.source.mod?.empty == false) {
+                            enhancement = "[+]";
+                        } else {
+                            enhancement = "";
+                        }
+                        string tag = $"] {w.source.type.name} {enhancement}";
+                        Color foreground;
+                        if (false) {
+                            foreground = Color.Gray;
+                        } else if (w.firing || w.delay > 0) {
+                            foreground = Color.Yellow;
+                        } else {
+                            foreground = Color.White;
+                        }
+                        this.Print(x, y,
+                            new ColoredString("[", Color.White, b)
+                            + w.GetBar(BAR)
+                            + new ColoredString(tag, foreground, b));
+                        y++;
+                        i++;
+                    }
+                    y++;
+                }
+                if (misc.Any()) {
+                    foreach (var m in misc) {
+                        string tag = m.source.type.name;
+                        var f = Color.White;
+                        this.Print(x, y, $"{tag}", f, b);
+                        y++;
+                    }
+                    y++;
+                }
+                if (shields.Any()) {
+                    foreach (var s in shields.Reverse<Shield>()) {
+                        string name = s.source.type.name;
+                        var f = false ? Color.Gray :
+                            s.hp == 0 || s.delay > 0 ? Color.Yellow :
+                            s.hp < s.desc.maxHP ? Color.Cyan :
+                            Color.White;
+                        int l = BAR * s.hp / s.desc.maxHP;
+                        this.Print(x, y, "[", f, b);
+                        this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                        this.Print(x + 1, y, new('=', l), f, b);
+                        this.Print(x + 1 + BAR, y, $"] {name}", f, b);
+                        y++;
+                    }
+                    y++;
+                }
+            }
+            void PrintHull(HullSystem hull) {
+                switch (hull) {
+                    case LayeredArmor las: {
+                            foreach (var armor in las.layers.Reverse<Armor>()) {
+                                var f = (tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
+                                int l = BAR * armor.hp / armor.desc.maxHP;
+                                this.Print(x, y, "[", f, b);
+                                this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                                this.Print(x + 1, y, new('=', l), f, b);
+                                this.Print(x + 1 + BAR, y, $"] {armor.source.type.name}", f, b);
+                                y++;
+                            }
+                            break;
+                        }
+                    case HP hp: {
+                            var f = Color.White;
+                            this.Print(x, y, "[", f, b);
+                            this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                            this.Print(x + 1, y, new('=', BAR * hp.hp / hp.maxHP), f, b);
+                            this.Print(x + 1 + BAR, y, $"] HP: {hp.hp}", f, b);
+                            break;
+                        }
+                }
+            }
+        }
+        PrintPlayer();
+        void PrintPlayer() {
             int x = 3;
             int y = 3;
             var b = Color.Black;
-
-            var solars = player.ship.devices.Solar;
-            var reactors = player.ship.devices.Reactor;
-
+            var ship = player.ship;
+            var devices = ship.devices;
+            var solars = devices.Solar;
+            var reactors = devices.Reactor;
+            var weapons = devices.Weapon;
+            var shields = devices.Shield;
+            var misc = devices.Installed.OfType<Service>();
             void PrintTotalPower() {
                 double totalFuel = reactors.Sum(r => r.energy),
                        maxFuel = reactors.Sum(r => r.desc.capacity),
@@ -1289,23 +1435,23 @@ public class Readout : Console {
                         arrow = '>';
                         f = Color.Cyan;
                     }
-                    int length = (int)Math.Ceiling(16 * totalFuel / maxFuel);
+                    int length = (int)Math.Ceiling(BAR * totalFuel / maxFuel);
                     bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
-                        + new ColoredString(new string('=', 16 - length), Color.Gray, b);
+                        + new ColoredString(new string('=', BAR - length), Color.Gray, b);
                 } else {
-                    bar = new ColoredString(new string('=', 16), Color.Gray, b);
+                    bar = new ColoredString(new string('=', BAR), Color.Gray, b);
                 }
 
                 int totalUsed = player.energy.totalOutputUsed,
                     totalMax = player.energy.totalOutputMax;
                 int l;
 
-                l = (int)Math.Ceiling(16f * totalUsed / totalMax);
+                l = (int)Math.Ceiling(BAR * (double)totalUsed / totalMax);
                 for (int i = 0; i < l; i++) {
                     bar[i].Background = Color.DarkKhaki;
                     //bar[i].Foreground = Color.Yellow;
                 }
-                l = (int)Math.Ceiling(16f * totalSolar / totalMax);
+                l = (int)Math.Ceiling(BAR * (double)totalSolar / totalMax);
                 for (int i = 0; i < l; i++) {
                     bar[i].Background = Color.DarkCyan;
                 }
@@ -1330,14 +1476,14 @@ public class Readout : Console {
                         arrow = '>';
                         f = Color.Cyan;
                     }
-                    int length = (int)Math.Ceiling(16 * reactor.energy / reactor.desc.capacity);
+                    int length = (int)Math.Ceiling(BAR * reactor.energy / reactor.desc.capacity);
                     bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
-                        + new ColoredString(new string('=', 16 - length), Color.Gray, b);
+                        + new ColoredString(new string('=', BAR - length), Color.Gray, b);
                 } else {
-                    bar = new ColoredString(new string('=', 16), Color.Gray, b);
+                    bar = new ColoredString(new string('=', BAR), Color.Gray, b);
                 }
 
-                int l = (int)Math.Ceiling(-16f * reactor.energyDelta / reactor.maxOutput);
+                int l = (int)Math.Ceiling(-BAR * (double)reactor.energyDelta / reactor.maxOutput);
                 for (int i = 0; i < l; i++) {
                     bar[i].Background = Color.DarkKhaki;
                 }
@@ -1351,38 +1497,39 @@ public class Readout : Console {
                     );
                 y++;
             }
-            foreach (var s in solars) {
-                ColoredString bar;
-                int length = (int)Math.Ceiling(16d * s.maxOutput / s.desc.maxOutput);
-                int sublength = s.maxOutput > 0 ? (int)Math.Ceiling(length * (-s.energyDelta) / s.maxOutput) : 0;
-                bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
-                    + new ColoredString(new string('=', length - sublength), Color.Cyan, b)
-                    + new ColoredString(new string('=', 16 - length), Color.Gray, b);
-                /*
-                int l = (int)Math.Ceiling(-16f * s.maxOutput / s.desc.maxOutput);
-                for (int i = 0; i < l; i++) {
-                    bar[i].Background = Color.DarkKhaki;
-                    bar[i].Foreground = Color.Yellow;
+
+            if (solars.Any()) {
+                foreach (var s in solars) {
+                    ColoredString bar;
+                    int length = (int)Math.Ceiling(BAR * (double)s.maxOutput / s.desc.maxOutput);
+                    int sublength = s.maxOutput > 0 ? (int)Math.Ceiling(length * (-s.energyDelta) / s.maxOutput) : 0;
+                    bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
+                        + new ColoredString(new string('=', length - sublength), Color.Cyan, b)
+                        + new ColoredString(new string('=', BAR - length), Color.Gray, b);
+                    /*
+                    int l = (int)Math.Ceiling(-16f * s.maxOutput / s.desc.maxOutput);
+                    for (int i = 0; i < l; i++) {
+                        bar[i].Background = Color.DarkKhaki;
+                        bar[i].Foreground = Color.Yellow;
+                    }
+                    */
+                    this.Print(x, y,
+                        new ColoredString("[", Color.White, b)
+                        + bar
+                        + new ColoredString("]", Color.White, b)
+                        + " "
+                        + new ColoredString($"[{Math.Abs(s.energyDelta),3}/{s.maxOutput,3}] {s.source.type.name}", Color.White, b)
+                        );
+                    y++;
                 }
-                */
-                this.Print(x, y,
-                    new ColoredString("[", Color.White, b)
-                    + bar
-                    + new ColoredString("]", Color.White, b)
-                    + " "
-                    + new ColoredString($"[{Math.Abs(s.energyDelta),3}/{s.maxOutput,3}] {s.source.type.name}", Color.White, b)
-                    );
                 y++;
             }
-
-            y++;
-            var weapons = player.ship.devices.Weapon;
             if (weapons.Any()) {
                 int i = 0;
                 foreach (var w in weapons) {
 
                     string enhancement;
-                    if(w.source.mod?.empty == false) {
+                    if (w.source.mod?.empty == false) {
                         enhancement = "[+]";
                     } else {
                         enhancement = "";
@@ -1398,26 +1545,22 @@ public class Readout : Console {
                     }
                     this.Print(x, y,
                         new ColoredString("[", Color.White, b)
-                        + w.GetBar()
+                        + w.GetBar(BAR)
                         + new ColoredString(tag, foreground, b));
                     y++;
                     i++;
                 }
                 y++;
             }
-            var misc = player.ship.devices.Installed.OfType<Service>();
             if (misc.Any()) {
-                int i = 0;
                 foreach (var m in misc) {
                     string tag = m.source.type.name;
                     var f = Color.White;
-                    this.Print(x, y, $"[{new string('-', 16)}] {tag}", f, b);
+                    this.Print(x, y, $"[{new string('-', BAR)}] {tag}", f, b);
                     y++;
-                    i++;
                 }
                 y++;
             }
-            var shields = player.ship.devices.Shield;
             if (shields.Any()) {
                 foreach (var s in shields.Reverse<Shield>()) {
                     string name = s.source.type.name;
@@ -1425,24 +1568,26 @@ public class Readout : Console {
                         s.hp == 0 || s.delay > 0 ? Color.Yellow :
                         s.hp < s.desc.maxHP ? Color.Cyan :
                         Color.White;
-                    int l = 16 * s.hp / s.desc.maxHP;
+                    int l = BAR * s.hp / s.desc.maxHP;
                     this.Print(x, y, "[", f, b);
-                    this.Print(x + 1, y, new('>', 16), Color.Gray, b);
-                    this.Print(x + 1, y, new('>', l), f, b);
-                    this.Print(x + 1 + 16, y, $"] [{s.hp, 3}/{s.desc.maxHP, 3}] {name}", f, b);
+                    this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                    this.Print(x + 1, y, new('=', l), f, b);
+                    this.Print(x + 1 + BAR, y, $"] [{s.hp,3}/{s.desc.maxHP,3}] {name}", f, b);
                     y++;
                 }
                 y++;
             }
-            switch (player.ship.damageSystem) {
+
+
+            switch (player.hull) {
                 case LayeredArmor las: {
                         foreach (var armor in las.layers.Reverse<Armor>()) {
                             var f = (player.world.tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
-                            int l = 16 * armor.hp / armor.desc.maxHP;
+                            int l = BAR * armor.hp / armor.desc.maxHP;
                             this.Print(x, y, "[", f, b);
-                            this.Print(x + 1, y, new('>', 16), Color.Gray, b);
-                            this.Print(x + 1, y, new('>', l), f, b);
-                            this.Print(x + 1 + 16, y, $"] [{armor.hp, 3}/{armor.desc.maxHP, 3}] {armor.source.type.name}", f, b);
+                            this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                            this.Print(x + 1, y, new('=', l), f, b);
+                            this.Print(x + 1 + BAR, y, $"] [{armor.hp,3}/{armor.desc.maxHP,3}] {armor.source.type.name}", f, b);
                             y++;
                         }
                         break;
@@ -1450,9 +1595,9 @@ public class Readout : Console {
                 case HP hp: {
                         var f = Color.White;
                         this.Print(x, y, "[", f, b);
-                        this.Print(x + 1, y, new('>', 16), Color.Gray, b);
-                        this.Print(x + 1, y, new('>', 16 * hp.hp / hp.maxHP), f, b);
-                        this.Print(x + 1 + 16, y, $"] HP: {hp.hp}", f, b);
+                        this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                        this.Print(x + 1, y, new('=', BAR * hp.hp / hp.maxHP), f, b);
+                        this.Print(x + 1 + BAR, y, $"] HP: {hp.hp}", f, b);
                         break;
                     }
             }

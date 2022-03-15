@@ -402,7 +402,7 @@ public class Launcher : Device {
         weapon.desc.projectile = l.shot;
     }
     public string GetReadoutName() => weapon.GetReadoutName();
-    public ColoredString GetBar() => weapon.GetBar();
+    public ColoredString GetBar(int BAR) => weapon.GetBar(BAR);
     public void Update(Station owner) => weapon.Update(owner);
     public void Update(IShip owner) => weapon.Update(owner);
     public void OnDisable() => weapon.OnDisable();
@@ -668,24 +668,24 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             _ => name
         };
     }
-    public ColoredString GetBar() {
+    public ColoredString GetBar(int BAR) {
         if (ammo?.AllowFire == false) {
-            return new(new(' ', 16), Color.Transparent, Color.Black);
+            return new(new(' ', BAR), Color.Transparent, Color.Black);
         }
-        int fireBar = (int)(16f * (desc.fireCooldown - delay) / desc.fireCooldown);
+        var fireBar = (int)(BAR * (double)(desc.fireCooldown - delay) / desc.fireCooldown);
         ColoredString bar;
         if (capacitor != null && capacitor.desc.minChargeToFire > 0) {
-            var chargeBar = (int)(16 * Math.Min(1, capacitor.charge / capacitor.desc.minChargeToFire));
+            var chargeBar = (int)(BAR * Math.Min(1, capacitor.charge / capacitor.desc.minChargeToFire));
             bar = new ColoredString(new('>', chargeBar), Color.Gray, Color.Black)
-                + new ColoredString(new(' ', 16 - chargeBar), Color.Transparent, Color.Black);
+                + new ColoredString(new(' ', BAR - chargeBar), Color.Transparent, Color.Black);
         } else {
-            bar = new(new('>', 16), Color.Gray, Color.Black);
+            bar = new(new('>', BAR), Color.Gray, Color.Black);
         }
         foreach (var cg in bar.Take(fireBar)) {
             cg.Foreground = Color.White;
         }
         if (capacitor != null) {
-            var n = 16 * capacitor.charge / capacitor.desc.maxCharge;
+            var n = BAR * capacitor.charge / capacitor.desc.maxCharge;
             foreach (var cg in bar.Take((int)n + 1)) {
                 cg.Foreground = cg.Foreground.Blend(Color.Cyan.SetAlpha(128));
             }
@@ -903,6 +903,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
     Projectile.OnHitActive IContainer<Projectile.OnHitActive>.Value => (projectile, hit) => {
         projectile.onHitActive -= this;
         if (projectileDesc.lightning && projectile.hitHull) {
+            //delay = 5;
             hit.world.AddEntity(new LightningRod(hit, this));
         }
     };

@@ -109,7 +109,10 @@ public class ReinforceNearby : StationBehavior {
 
 
 
-public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroyed> {
+public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroyed>, IContainer<GuardOrder.OnDocked> {
+
+    private HashSet<ActiveObject> turretsDeployed = new();
+
     public Station.Destroyed Value => (station, destroyer, wreck) => {
         if (destroyer?.active != true) {
             return;
@@ -132,26 +135,40 @@ public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroye
                 }
             }
         }
-
     };
 
+    GuardOrder.OnDocked IContainer<GuardOrder.OnDocked>.Value => (ship, home) => {
+        if (turretsDeployed.Contains(home)) {
+            return;
+        }
+        turretsDeployed.Add(home);
 
+        var w = ship.world;
+        var turret = new Station(w, turretType, home.position);
+        w.AddEntity(turret);
+        turret.CreateSegments();
+    };
+    StationType turretType;
     public OrionWarlordsStation(Station owner) {
         owner.onDestroyed += this;
+        turretType = owner.world.types.Lookup<StationType>("station_orion_turret");
     }
     public void Update(Station owner) {
-        if(owner.world.tick%1500 == 0) {
+        if(owner.world.tick%1200 == 0) {
             if(owner.guards.Count > 5) {
-                var g = owner.guards.Take(4).ToList();
+                var g = owner.guards.Take(1).ToList();
                 
                 var k = owner.world.karma;
 
                 var enemies = owner.world.entities.all.OfType<ActiveObject>().Where(a => owner.CanTarget(a));
-                for (int i = 0; i < 100; i++) {
-                    XY p = owner.position + XY.Polar(k.NextDouble() * Math.PI * 2, k.NextInteger(40, 200));
-                    if (enemies.All(a => (a.position - p).magnitude > 50) && enemies.Any(a => (a.position - p).magnitude < 100)) {
+
+                foreach(var enemy in enemies) {
+                    XY p = owner.position + XY.Polar(k.NextDouble() * Math.PI * 2, k.NextInteger(80, 400));
+                    if (enemies.All(a => (a.position - p).magnitude > 50) && enemies.Any(a => (a.position - p).magnitude < 150)) {
                         var ambushPoint = new ActiveMarker(owner.world, owner.sovereign, p);
-                        g.ForEach(g => g.behavior = new CompoundOrder(new GuardOrder(ambushPoint), new GuardOrder(owner)));
+                        var o = new GuardOrder(ambushPoint);
+                        o.onDocked += this;
+                        g.ForEach(g => g.behavior = new CompoundOrder(o, new GuardOrder(owner)));
                         break;
                     }
                 }

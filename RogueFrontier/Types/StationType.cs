@@ -12,9 +12,10 @@ namespace RogueFrontier;
 public class StationType : IDesignType {
     [Req] public string codename;
     [Req] public string name;
-    [Req] public int hp;
     [Opt] public bool crimeOnDestroy;
     [Opt] public double stealth;
+
+    public HullSystemDesc hull;
     public FragmentDesc explosionType;
 
     public Station.Behaviors behavior;
@@ -46,21 +47,29 @@ public class StationType : IDesignType {
         Sovereign = tc.Lookup<Sovereign>(e.ExpectAtt("sovereign"));
         dockPoints = new();
 
+        hull = e.HasElement("HP", out var xmlHP) ?
+            new HPSystemDesc(xmlHP) :
+            e.HasElement("LayeredArmor", out var xmlLayeredArmor) ?
+            new LayeredArmorDesc(xmlLayeredArmor) :
+            e.TryAtt("hp", out var hp) ?
+            new HPSystemDesc() { maxHP = int.Parse(hp) } :
+            throw new Exception("Hull system expected");
+
         if (e.HasElement("Weapons", out var xmlWeapons)) {
             weapons = new(xmlWeapons);
         }
 
-        if(e.TryAtt("structure", out var structure)) {
+        segments = new();
+        if (e.TryAtt("structure", out var structure)) {
             var sprite = ASECIILoader.LoadCG(structure).ToDictionary(
                 pair => (pair.Key.Item1, -pair.Key.Item2),
                 pair => pair.Value.cg);
             tile = sprite.TryGetValue((0, 0), out var cg) ? new(cg) : null;
             sprite.Remove((0, 0));
-            segments = new(sprite.Select((pair) => new SegmentDesc(new(pair.Key), pair.Value)));
+            segments.AddRange(sprite.Select((pair) => new SegmentDesc(new(pair.Key), pair.Value)));
         } else {
             tile = new(e);
             if (e.HasElement("Segments", out var xmlSegments)) {
-                segments = new();
                 foreach (var xmlSegment in xmlSegments.Elements()) {
                     switch (xmlSegment.Name.LocalName) {
                         case "MultiPoint": {

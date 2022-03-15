@@ -1,4 +1,5 @@
 ﻿using Common;
+using System;
 
 namespace RogueFrontier;
 
@@ -7,6 +8,11 @@ public class Docking {
     public XY Offset;
     public bool docked;
     public bool justDocked;
+
+    public delegate void OnDocked(IShip owner, Docking d);
+    public FuncSet<IContainer<OnDocked>> onDocked = new();
+
+
     public Docking() { }
     public Docking(StructureObject Target) {
         this.Target = Target;
@@ -18,9 +24,10 @@ public class Docking {
     }
     public void Update(IShip owner) {
         if (!docked) {
-            docked = UpdateDocking(owner);
-            if (docked) {
+            if (docked = UpdateDocking(owner)) {
                 justDocked = true;
+
+                onDocked.ForEach(a => a(owner, this));
             }
         } else {
             owner.position = Target.position;

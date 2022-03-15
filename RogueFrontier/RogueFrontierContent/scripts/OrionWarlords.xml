@@ -275,6 +275,30 @@
 			<Weapon	codename="item_orion_bolter"/>
 		</Weapons>
 	</StationType>
+
+	<StationType	codename="station_orion_turret"
+					name=		"Orion turret"
+					sovereign=	"sovereign_orion_warlords"
+
+					stealth=	"4"
+					
+					hp=			"100"
+
+					glyph=		"T"
+					foreground="70AEFFFF"
+					background="Black"
+		>
+		<Segments>
+			<Point offsetX="1" offsetY="1"	glyph="/" foreground="LightBlue"/>
+			<Point offsetX="1" offsetY="-1"	glyph="\" foreground="LightBlue"/>
+			<Point offsetX="-1" offsetY="1"	glyph="\" foreground="LightBlue"/>
+			<Point offsetX="-1" offsetY="-1"	glyph="/" foreground="LightBlue"/>
+		</Segments>
+		<Weapons>
+			<Weapon	codename="item_orion_bolter"/>
+		</Weapons>
+	</StationType>
+	
 	<StationType	codename="station_orion_warlords_stronghold"
 					name=		"Orion Warlords stronghold"
 					sovereign=	"sovereign_orion_warlords"

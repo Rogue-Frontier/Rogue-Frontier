@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Common;
 
@@ -40,7 +41,7 @@ public static class SFuncSet {
     }
 }
 public class FuncSet<T> {
-    public HashSet<T> set = new HashSet<T>();
+    public HashSet<T> set = new();
     public static FuncSet<T> operator -(FuncSet<T> f, T t) {
         f.set.Remove(t);
         return f;
@@ -49,8 +50,7 @@ public class FuncSet<T> {
         f.set.Add(t);
         return f;
     }
-    public IEnumerator<T> GetEnumerator() {
-        return set.GetEnumerator();
-    }
+    public IEnumerator<T> GetEnumerator() => set.GetEnumerator();
+    public List<T> ToList() => set.ToList();
     public static implicit operator HashSet<T>(FuncSet<T> f) => f.set;
 }

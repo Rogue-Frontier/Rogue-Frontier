@@ -95,6 +95,9 @@ public class LightningRod : Entity, IContainer<Weapon.OnFire>, IContainer<Projec
             weapon.onFire -= this;
             return;
         }
+        if(weapon.aiming?.target is ActiveObject a && a != target) {
+            return;
+        }
         weapon.delay = 5;
         projectiles.ForEach(p => {
             if (!p.active) { return; }
@@ -115,19 +118,20 @@ public class LightningRod : Entity, IContainer<Weapon.OnFire>, IContainer<Projec
             return;
         }
         if (p.hitHull) {
-            lifetime = 60;
+            lifetime = 90;
         }
     };
-
     public int id { get; set; }
-
     public XY position => target.position;
-
     public bool active => target.active && lifetime>0;
-
     public ColoredGlyph tile => null;
-
     public void Update() {
+        if(target.world.tick%10 == 0) {
+            var r = () => target.world.karma.NextDouble();
+            target.world.AddEffect(new EffectParticle(
+                target.position, target.velocity + XY.Polar(r()*Math.PI*2, 4),
+                new ColoredGlyph(Color.Red, Color.Transparent, '%'), 30));
+        }
         lifetime--;
     }
 }

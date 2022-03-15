@@ -44,7 +44,7 @@ public static class SStealth {
         _ => double.PositiveInfinity
     };
     public static double GetVisibleRange(double stealth) => stealth switch {
-#if true
+#if false
         > 0 => 250 / stealth,
 #else
         > 0 => double.PositiveInfinity,
@@ -714,7 +714,7 @@ public class PlayerShip : IShip {
         }
 
         if (!active) {
-            return;
+            goto Done;
         }
         int delta = originalHP - ship.damageSystem.GetHP();
         if (delta > ship.damageSystem.GetHP() / 3) {
@@ -727,6 +727,7 @@ public class PlayerShip : IShip {
                 }
             }
         }
+        Done:
         foreach (var f in onDamaged.set) f.Value.Invoke(this, p);
     }
     public void Destroy(ActiveObject destroyer) {

@@ -263,7 +263,7 @@ public class ApproachOrder : IShipOrder {
     }
     public bool Active => true;
 }
-public class GuardOrder : IShipOrder {
+public class GuardOrder : IShipOrder, IContainer<Docking.OnDocked> {
     [JsonProperty]
     public ActiveObject home { get; private set; }
     [JsonProperty]
@@ -273,6 +273,8 @@ public class GuardOrder : IShipOrder {
     public int attackTime;
     public int ticks;
 
+    public delegate void OnDocked(IShip owner, ActiveObject home);
+    public FuncSet<IContainer<OnDocked>> onDocked = new();
     public GuardOrder(ActiveObject home) {
         this.home = home;
         approach = new(home);
@@ -331,6 +333,7 @@ public class GuardOrder : IShipOrder {
         //At this point, we definitely don't have an attack target so we return
         if ((owner.position - home.position).magnitude2 < 6 * 6) {
             owner.dock = new(home, (home as Station)?.GetDockPoint() ?? XY.Zero);
+            owner.dock.onDocked += this;
         } else {
             approach.Update(owner);
         }
@@ -343,6 +346,8 @@ public class GuardOrder : IShipOrder {
         
     }
     public bool Active => home.active;
+
+    public Docking.OnDocked Value => (owner, docking) => onDocked.ForEach(f => f(owner, home));
 }
 
 public class AttackAllOrder : IShipOrder {

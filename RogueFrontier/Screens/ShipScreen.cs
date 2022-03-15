@@ -113,7 +113,7 @@ class ShipScreen : Console {
         if (weapons.Any()) {
             Print(x, y++, "[Weapons]");
             foreach (var w in weapons) {
-                Print(x, y++, $"{w.source.type.name,-32}{w.GetBar()}");
+                Print(x, y++, $"{w.source.type.name,-32}{w.GetBar(8)}");
                 Print(x, y++, $"Projectile damage: {w.desc.damageHP.str}");
                 Print(x, y++, $"Projectile speed:  {w.desc.missileSpeed}");
                 Print(x, y++, $"Shots per second:  {60f / w.desc.fireCooldown}");

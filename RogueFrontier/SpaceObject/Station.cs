@@ -53,7 +53,6 @@ public class Wreck : MovingObject, IDockable {
     public Console GetDockScene(Console prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
     public void Damage(Projectile p) {
     }
-
     public void Destroy(ActiveObject source) {
         active = false;
     }
@@ -104,15 +103,15 @@ public class Station : ActiveObject, ITrader, IDockable {
     [JsonProperty]
     public StationBehavior behavior;
     [JsonProperty]
-    public List<Segment> segments;
-    [JsonProperty]
     public HullSystem damageSystem;
     [JsonProperty]
-    public HashSet<Item> cargo { get; set; }
+    public List<Segment> segments = new();
     [JsonProperty]
-    public List<Weapon> weapons;
+    public HashSet<Item> cargo { get; set; } = new();
     [JsonProperty]
-    public List<AIShip> guards;
+    public List<Weapon> weapons = new();
+    [JsonProperty]
+    public List<AIShip> guards = new();
 
     public ConstructionJob construction;
 
@@ -121,19 +120,19 @@ public class Station : ActiveObject, ITrader, IDockable {
     public delegate void Destroyed(Station station, ActiveObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
     public Station() { }
-    public Station(System World, StationType Type, XY Position) {
+    public Station(System World, StationType type, XY Position) {
         this.id = World.nextId++;
         this.world = World;
-        this.type = Type;
+        this.type = type;
         this.position = Position;
         this.velocity = new XY();
         this.active = true;
-        this.sovereign = Type.Sovereign;
-        damageSystem = new HP(Type.hp);
-        cargo = new(Type.cargo?.Generate(World.types) ?? new List<Item>());
-        weapons = type.weapons?.Generate(World.types) ?? new();
+        this.sovereign = type.Sovereign;
+        damageSystem = type.hull.Create(world.types);
+        cargo.UnionWith(type.cargo?.Generate(World.types)??new());
+        weapons.AddRange(this.type.weapons?.Generate(World.types) ?? new());
         weapons.ForEach(w => w.aiming ??= new Omnidirectional());
-        InitBehavior(Type.behavior);
+        InitBehavior(type.behavior);
     }
     public enum Behaviors {
         none,
@@ -144,8 +143,8 @@ public class Station : ActiveObject, ITrader, IDockable {
         amethystStore,
         orionWarlords
     }
-    public void InitBehavior(Behaviors behavior) {
-        this.behavior = behavior switch {
+    public void InitBehavior(Behaviors? behavior = null) {
+        this.behavior = (behavior ?? type.behavior) switch {
             Behaviors.raisu => null,
             Behaviors.pirate => new PirateStation(),
             Behaviors.reinforceNearby => new ReinforceNearby(),
@@ -155,15 +154,15 @@ public class Station : ActiveObject, ITrader, IDockable {
         };
     }
     public void CreateSegments() {
-        segments = new();
-        foreach (var segmentDesc in type.segments??new()) {
+        segments.Clear();
+        foreach (var segmentDesc in type.segments) {
             var s = new Segment(this, segmentDesc);
             segments.Add(s);
             world.AddEntity(s);
         }
     }
     public void CreateGuards() {
-        guards = new();
+        guards.Clear();
         foreach (var guard in type.ships?.Generate(world.types, this) ?? guards) {
             guards.Add(guard);
             world.AddEntity(guard);
