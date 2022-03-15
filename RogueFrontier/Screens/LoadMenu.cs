@@ -27,13 +27,14 @@ class LoadMenu : Console {
         int x = 2;
         int y = 0;
 
-        var files = Directory.GetFiles($"{AppDomain.CurrentDomain.BaseDirectory}save", "*.trl");
+        var files = Directory.GetFiles($"{AppDomain.CurrentDomain.BaseDirectory}save", "*.*");
         if (files.Any()) {
             var dir = Path.GetFullPath(".");
             foreach (var file in files) {
 
                 var b = new LabelButton(file.Replace(dir, null), () => {
-                    var loaded = SaveGame.Deserialize(File.ReadAllText(file));
+                    var t = File.ReadAllText(file);
+                    var loaded = SaveGame.Deserialize(t);
 
                     var s = (Console)GameHost.Instance.Screen;
                     int Width = s.Width, Height = s.Height;

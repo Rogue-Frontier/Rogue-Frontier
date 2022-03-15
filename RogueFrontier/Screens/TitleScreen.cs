@@ -96,11 +96,11 @@ public class TitleScreen : Console {
         void StartCrawl(ShipSelectorModel context) {
             var loc = $"{AppDomain.CurrentDomain.BaseDirectory}/save/{context.playerName}";
             string file;
-            do { file = $"{loc}-{new Rand().NextInteger(9999)}.trl"; }
+            do { file = $"{loc}-{new Rand().NextInteger(9999)}.sav"; }
             while (File.Exists(file));
 
 
-            Player player = new Player() {
+            var player = new Player() {
                 Settings = settings,
                 file = file,
                 name = context.playerName,
@@ -241,7 +241,7 @@ public class TitleScreen : Console {
         void CreateGame(ShipSelectorModel context) {
             var loc = $"{AppDomain.CurrentDomain.BaseDirectory}/save/{context.playerName}";
             string file;
-            do { file = $"{loc}-{new Random().Next(9999)}.trl"; }
+            do { file = $"{loc}-{new Random().Next(9999)}.sav"; }
             while (File.Exists(file));
 
 
@@ -549,7 +549,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
     public void QuickStart() {
         var loc = $"{AppDomain.CurrentDomain.BaseDirectory}/save/Debug";
         string file;
-        do { file = $"{loc}-{new Random().Next(9999)}.trl"; }
+        do { file = $"{loc}-{new Random().Next(9999)}.sav"; }
         while (File.Exists(file));
         Player player = new Player() {
             Settings = settings,

@@ -118,7 +118,7 @@ public class ScreenClient : Console {
 
     public MouseWatch mouse = new();
     public Dictionary<(int, int), ColoredGlyph> tiles = new();
-    public Dictionary<int, Entity> entityLookup = new();
+    public Dictionary<long, Entity> entityLookup = new();
     public Dictionary<PlayerShip, PlayerInput> playerControls = new();
     public ScreenClient(int width, int height, TitleScreen prev) : base(width, height) {
         this.prev = prev;

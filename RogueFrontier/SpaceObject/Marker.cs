@@ -5,7 +5,7 @@ using SadConsole;
 namespace RogueFrontier;
 
 class Marker : Entity {
-    public int id => -1;
+    public long id => -1;
     public string Name { get; private set; }
     public XY position { get; set; }
     public bool active { get; set; }
@@ -28,7 +28,7 @@ class ActiveMarker : ActiveObject {
     [JsonIgnore]
     public Sovereign sovereign { get; set; }
     [JsonIgnore]
-    public int id => -1;
+    public long id => -1;
     //public List<SpaceObject> Nearby;
     public string name => "marker";
     public XY position { get; set; }
@@ -57,7 +57,7 @@ class TargetingMarker : ActiveObject {
     [JsonIgnore]
     public Sovereign sovereign => Owner.sovereign;
     [JsonIgnore]
-    public int id => -1;
+    public long id => -1;
 
     public PlayerShip Owner;
     //public List<SpaceObject> Nearby;

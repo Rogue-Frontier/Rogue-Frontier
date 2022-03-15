@@ -10,5 +10,5 @@ public interface Effect {
     void Update();
 }
 public interface Entity : Effect {
-    int id { get; }
+    long id { get; }
 }

@@ -17,7 +17,7 @@ public class Wreck : MovingObject, IDockable {
     [JsonIgnore]
     public ColoredGlyph tile => new ColoredGlyph(new Color(128, 128, 128), Color.Black, creator.tile.GlyphCharacter);
     [JsonProperty]
-    public int id { get; private set; }
+    public long id { get; private set; }
     [JsonProperty]
     public StructureObject creator { get; set; }
     [JsonProperty]
@@ -79,7 +79,7 @@ public class Station : ActiveObject, ITrader, IDockable {
     [JsonIgnore]
     public string name => type.name;
     [JsonProperty]
-    public int id { get; set; }
+    public long id { get; set; }
     [JsonProperty]
     public System world { get; set; }
     [JsonProperty]
@@ -302,7 +302,7 @@ public class Segment : ISegment {
     public XY velocity => parent.velocity;
 
     [JsonProperty]
-    public int id { get; private set; }
+    public long id { get; private set; }
     [JsonProperty]
     public MovingObject parent { get; private set; }
     [JsonProperty]
@@ -332,7 +332,7 @@ public class AngledSegment : ISegment {
     [JsonIgnore]
     public Sovereign sovereign => parent.sovereign;
     [JsonProperty]
-    public int id { get; private set; }
+    public long id { get; private set; }
     [JsonProperty]
     public IShip parent { get; private set; }
     [JsonIgnore]

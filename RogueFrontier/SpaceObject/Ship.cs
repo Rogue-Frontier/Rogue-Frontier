@@ -94,7 +94,7 @@ public class BaseShip {
     public System world;
     public ShipClass shipClass;
     public XY position;
-    public int id;
+    public long id;
     public XY velocity;
     public bool active;
     public HashSet<Item> cargo;
@@ -309,7 +309,7 @@ public static class SShipBehavior {
         behavior.GetOrder()?.GetType().Name ?? "Unknown";
 }
 public class AIShip : IShip {
-    [JsonIgnore] public int id => ship.id;
+    [JsonIgnore] public long id => ship.id;
     [JsonIgnore] public string name => ship.name;
     [JsonIgnore] public System world => ship.world;
     [JsonIgnore] public ShipClass shipClass => ship.shipClass;
@@ -388,7 +388,7 @@ public class PlayerShip : IShip {
     [JsonIgnore]
     public string name => ship.name;
     [JsonIgnore]
-    public int id => ship.id;
+    public long id => ship.id;
     [JsonIgnore]
     public System world => ship.world;
     [JsonIgnore]
@@ -459,7 +459,7 @@ public class PlayerShip : IShip {
 
     public List<AIShip> wingmates = new();
 
-    public Dictionary<Entity, double> visibleDistanceLeft=new();
+    public Dictionary<long, double> visibleDistanceLeft=new();
     public PlayerShip() { }
     public PlayerShip(Player player, BaseShip ship, Sovereign sovereign) {
         this.person = player;
@@ -736,7 +736,7 @@ public class PlayerShip : IShip {
         onDestroyed.ForEach(f => f(this, destroyer, ship.wreck));
     }
     public bool CanSee(Entity e) => GetVisibleDistanceLeft(e) > 0;
-    public double GetVisibleDistanceLeft(Entity e) => visibleDistanceLeft.TryGetValue(e, out var d) ? d : double.PositiveInfinity;
+    public double GetVisibleDistanceLeft(Entity e) => visibleDistanceLeft.TryGetValue(e.id, out var d) ? d : double.PositiveInfinity;
     public void Update() {
 
         messages.ForEach(m => m.Update());
@@ -778,12 +778,12 @@ public class PlayerShip : IShip {
             }
             void Handle(Entity e) {
                 switch (e) {
-                    case Station st: visibleDistanceLeft[e] = SStealth.GetVisibleRange(st.stealth) - (e.position - position).magnitude; break;
-                    case AIShip ai: visibleDistanceLeft[e] = SStealth.GetVisibleRange(ai.ship.stealth) - (e.position - position).magnitude; break;
+                    case Station st: visibleDistanceLeft[e.id] = SStealth.GetVisibleRange(st.stealth) - (e.position - position).magnitude; break;
+                    case AIShip ai: visibleDistanceLeft[e.id] = SStealth.GetVisibleRange(ai.ship.stealth) - (e.position - position).magnitude; break;
                     case ISegment s:
                         switch (s.parent) {
-                            case Station st: visibleDistanceLeft[s] = SStealth.GetVisibleRange(st.stealth) - (e.position - position).magnitude; break;
-                            case AIShip ai: visibleDistanceLeft[s] = SStealth.GetVisibleRange(ai.ship.stealth) - (e.position - position).magnitude; break;
+                            case Station st: visibleDistanceLeft[s.id] = SStealth.GetVisibleRange(st.stealth) - (e.position - position).magnitude; break;
+                            case AIShip ai: visibleDistanceLeft[s.id] = SStealth.GetVisibleRange(ai.ship.stealth) - (e.position - position).magnitude; break;
                         }
                         break;
                 }

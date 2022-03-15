@@ -14,7 +14,7 @@ class CloneBarrier : ProjectileBarrier {
     [JsonIgnore]
     public ColoredGlyph tile => new ColoredGlyph(Color.OrangeRed, Color.Black, '*');
 
-    public int id { get; private set; }
+    public long id { get; private set; }
     public PlayerShip owner;
     public XY offset;
     public int lifetime;

@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 using static RogueFrontier.Weapon;
 namespace RogueFrontier;
 public class Asteroid : Entity {
-    public int id { get; set; }
+    public long id { get; set; }
     public XY position { get; set; }
     public bool active { get; set; }
     public ColoredGlyph tile => new(Color.Gray, Color.Transparent, '%');

@@ -125,7 +125,7 @@ public static class SaveGame {
     public static string Serialize(object o) {
         PrepareConvert();
         STypeConverter.PrepareConvert();
-        return true ? null : JsonConvert.SerializeObject(o, format, settings);
+        return JsonConvert.SerializeObject(o, format, settings);
     }
     public static T Deserialize<T>(string s) {
         PrepareConvert();

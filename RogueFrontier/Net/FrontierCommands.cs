@@ -41,10 +41,10 @@ public interface ITell {
 
 
 public class EntityLocation {
-    public int id;
+    public long id;
     public XY pos;
     public XY vel;
-    public EntityLocation(int id, XY pos, XY vel) {
+    public EntityLocation(long id, XY pos, XY vel) {
         this.id = id;
         this.pos = pos;
         this.vel = vel;
@@ -109,7 +109,7 @@ public static class SFrontierCommon {
             c.ProcessAll();
         }
     }
-    public static void UpdateEntityLookup(this Dictionary<int, Entity> entityLookup, System World) {
+    public static void UpdateEntityLookup(this Dictionary<long, Entity> entityLookup, System World) {
         entityLookup.Clear();
         foreach (var e in World.entities.all) {
             entityLookup[e.id] = e;

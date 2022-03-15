@@ -90,7 +90,7 @@ class FrontierSession : TcpSession {
     }
 
     public void Handle(TellServer.AssumePlayerShip c) {
-        int Id = c.shipId;
+        var Id = c.shipId;
         var ai = (AIShip)game.entityLookup[Id];
         var World = game.World;
         removed = ai;
@@ -111,7 +111,7 @@ class FrontierSession : TcpSession {
 }
 public interface TellServer : ITell {
     public record AssumePlayerShip : TellServer {
-        public int shipId;
+        public long shipId;
     }
     public record LeavePlayerShip : TellServer { }
     public record ControlPlayerShip : TellServer {
@@ -141,7 +141,7 @@ public class ServerMain : Console {
     public XY camera;
     public MouseWatch mouse { get; } = new();
     public Dictionary<(int, int), ColoredGlyph> tiles { get; } = new();
-    public Dictionary<int, Entity> entityLookup = new();
+    public Dictionary<long, Entity> entityLookup = new();
     public Dictionary<PlayerShip, PlayerInput> playerControls = new();
 
     public int requests;
