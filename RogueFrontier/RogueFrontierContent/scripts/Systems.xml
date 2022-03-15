@@ -50,11 +50,11 @@
 					<!--small moon with ring of stations-->
 					<Group radius="100" angleInc="80">
 						<Planet radius="10"/>
-						<Orbital radius="30" angle="random" increment="20" count="5">
+						<Orbital radius="50" angleInc="-30" increment="20" count="5">
 							<Group>
 								<!--Astra + Village-->
 								<Station	codename="station_constellation_astra"/>
-								<Sibling	radiusInc="20">
+								<Sibling	radiusInc="15">
 									<Station codename="station_constellation_habitat"/>
 								</Sibling>
 								
@@ -102,6 +102,9 @@
 			</Orbital>
 			<Orbital radius="420" angle="random">
 				<Asteroids angle="90" size="50"/>
+				<Orbital angleInc="-30-30">
+					<Station codename="station_iron_pirates_hideout"/>
+				</Orbital>
 			</Orbital>
 			<Orbital radius="320" angle="random">
 				

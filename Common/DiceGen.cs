@@ -21,7 +21,7 @@ public interface IDice {
         if ((m = Regex.Match(s, "^(?<value>\\-?[0-9]+$)")).Success) {
             result = new Constant(int.Parse(m.Groups["value"].Value));
         }
-        if ((m = Regex.Match(s, "^(?<min>[0-9]+)-(?<max>[0-9]+)$")).Success) {
+        if ((m = Regex.Match(s, "^(?<min>\\-?[0-9]+)-(?<max>\\-?[0-9]+)$")).Success) {
             result = new IntRange(int.Parse(m.Groups["min"].Value), int.Parse(m.Groups["max"].Value));
         }
         if ((m = Regex.Match(s, "^(?<n>[0-9]+)d(?<m>[0-9]+)((\\+(?<bonus>[0-9]+))|(?<bonus>\\-[0-9]+))?$")).Success) {

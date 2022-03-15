@@ -45,12 +45,11 @@ public record InstallWeapon : ItemUse {
             player.AddMessage(new Message($"Installed weapon {item.type.name}"));
 
             player.cargo.Remove(item);
-            player.devices.Install(item.Install<Weapon>());
+            player.devices.Install(item.Get<Weapon>());
         } else {
             player.AddMessage(new Message($"Removed weapon {item.type.name}"));
 
             player.devices.Remove(item.weapon);
-            item.Remove<Weapon>();
             player.cargo.Add(item);
         }
         callback?.Invoke();

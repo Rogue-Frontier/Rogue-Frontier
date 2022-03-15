@@ -151,7 +151,7 @@ public class PlayerControls {
         ProcessOther();
     }
     public void UpdateInput(Keyboard info) {
-        input = new PlayerInput(playerShip.player.Settings.controls, info);
+        input = new PlayerInput(playerShip.person.Settings.controls, info);
     }
     public void ProcessWithMenu(Keyboard info) {
         UpdateInput(info);

@@ -162,9 +162,9 @@ public class BaseShip {
         disruption = p.fragment.disruptor?.GetHijack() ?? disruption;
     }
     public void Destroy(ActiveObject owner) {
-        var items = cargo.Concat(
-            devices.Installed.Select(d => d.source).Where(i => i != null)
-        );
+        var items = cargo
+            .Concat(devices.Installed.Select(d => d.source).Where(i => i != null))
+            .Concat((damageSystem as LayeredArmor)?.layers.Select(l => l.source) ?? new List<Item>());
         wreck = new Wreck(owner, items);
         world.AddEntity(wreck);
         foreach(var angle in Enumerable.Range(0, 16).Select(i => i * 2 * Math.PI / 16)) {
@@ -410,7 +410,7 @@ public class PlayerShip : IShip {
     [JsonIgnore]
     public HullSystem hull => ship.damageSystem;
 
-    public Player player;
+    public Player person;
     public BaseShip ship;
     public Sovereign sovereign { get; set; }
     public EnergySystem energy;
@@ -462,7 +462,7 @@ public class PlayerShip : IShip {
     public Dictionary<Entity, double> visibleDistanceLeft=new();
     public PlayerShip() { }
     public PlayerShip(Player player, BaseShip ship, Sovereign sovereign) {
-        this.player = player;
+        this.person = player;
         this.ship = ship;
         this.sovereign = sovereign;
 
@@ -831,8 +831,8 @@ public class PlayerShip : IShip {
 
     public string GetMemorial(string epitaph) =>
 @$"
-{player.name} ({player.Genome.subjective}/{player.Genome.objective})
-{player.Genome.name}
+{person.name} ({person.Genome.subjective}/{person.Genome.objective})
+{person.Genome.name}
 
 {epitaph}
 

@@ -38,12 +38,12 @@ public class Item {
         this.type = type;
         this.mod = mod;
 
-        weapon = null;
-        armor = null;
-        shield = null;
-        reactor = null;
-        solar = null;
-        service = null;
+        weapon = type.weapon?.GetWeapon(this);
+        armor = type.armor?.GetArmor(this);
+        shield = type.shield?.GetShield(this);
+        reactor = type.reactor?.GetReactor(this);
+        solar = type.solar?.GetSolar(this);
+        service = type.service?.GetService(this);
     }
     public T Get<T>() where T:class, Device{
         return (T)new Dictionary<Type, Device>() {
@@ -58,40 +58,8 @@ public class Item {
     }
     public bool Get<T>(out T result) where T : class, Device => (result = Get<T>()) != null;
     public bool Has<T>() where T : class, Device => Get<T>() != null;
-    public void Remove<T>() where T : class, Device {
-        new Dictionary<Type, Func<Device>>() {
-            [typeof(Armor)] = () => armor = null,
-            [typeof(Engine)] = () => engine = null,
-            [typeof(Reactor)] = () => reactor = null,
-            [typeof(Service)] = () => service = null,
-            [typeof(Shield)] = () => shield = null,
-            [typeof(Solar)] = () => solar = null,
-            [typeof(Weapon)] = () => weapon = null,
-        }[typeof(T)]();
-    }
-    public T Install<T>() where T:class, Device {
-        return (T) (new Dictionary<Type, Func<Device>>() {
-            [typeof(Armor)] = () => armor ??= type.armor?.GetArmor(this),
-            [typeof(Engine)] = () => engine = type.engine?.GetEngine(this),
-            [typeof(Reactor)] = () => reactor ??= type.reactor?.GetReactor(this),
-            [typeof(Service)] = () => service ??= type.service?.GetService(this),
-            [typeof(Shield)] = () => shield ??= type.shield?.GetShield(this),
-            [typeof(Solar)] = () => solar ??= type.solar?.GetSolar(this),
-            [typeof(Weapon)] = () => weapon ??= type.weapon?.GetWeapon(this),
-        }[typeof(T)]());
-    }
-    public bool Install<T>(out T result) where T:class, Device {
-        return (result = Install<T>()) != null;
-    }
-    public void RemoveAll() {
-        armor = null;
-        engine = null;
-        reactor = null;
-        service = null;
-        shield = null;
-        solar = null;
-        weapon = null;
-    }
+    public bool HasDevice() => (armor ?? engine ?? reactor??service??shield??(Device)solar??weapon) != null;
+    public IEnumerable<Device> GetDevices() => new List<Device> { armor, engine, reactor, shield, solar, weapon }.Where(d => d != null);
 }
 public interface Device {
     Item source { get; }

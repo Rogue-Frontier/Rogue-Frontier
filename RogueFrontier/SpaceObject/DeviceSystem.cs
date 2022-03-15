@@ -16,7 +16,7 @@ public class DeviceSystem {
     public DeviceSystem() {}
     public void Install(IEnumerable<Device> Devices) {
         Installed.AddRange(Devices);
-        Powered.AddRange(Devices.Where(d=>d.powerUse.HasValue));
+        Powered.AddRange(Devices.Where(d => d.powerUse.HasValue));
 
         Engine.AddRange(All<Engine>());
         Enhancer.AddRange(All<Enhancer>());

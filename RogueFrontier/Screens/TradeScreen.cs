@@ -24,7 +24,7 @@ public class TradeMenu : Console {
     GetPrice GetBuyPrice, GetSellPrice;
     public TradeMenu(Console prev, PlayerShip playerShip, ITrader docked, GetPrice GetBuyPrice, GetPrice GetSellPrice) : base(prev.Width, prev.Height) {
         this.prev = prev;
-        this.player = playerShip.player;
+        this.player = playerShip.person;
         model = new(new(playerShip.name, playerShip.cargo), new(docked.name, docked.cargo), Transact, Transition);
         this.GetBuyPrice = GetBuyPrice;
         this.GetSellPrice = GetSellPrice;

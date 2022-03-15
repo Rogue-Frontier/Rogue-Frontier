@@ -277,7 +277,7 @@ class ArenaScreen : Console {
                     int i = 0;
                     foreach (var type in keys) {
                         var item = new Item(itemDict[type]);
-                        var device = (Device)item.Install<Reactor>() ?? (Device)item.Install<Shield>() ?? (Device)item.Install<Weapon>() ?? (Device)item.Install<Service>();
+                        var device = (Device)item.Get<Reactor>() ?? (Device)item.Get<Shield>() ?? (Device)item.Get<Weapon>() ?? (Device)item.Get<Service>();
 
                         if (device == null) {
                             continue;

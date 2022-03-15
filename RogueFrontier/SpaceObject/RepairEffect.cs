@@ -32,13 +32,13 @@ public class RepairEffect : Event {
             return;
         }
         if(armor.hp < armor.desc.maxHP) {
-            var next = player.player.money - costPerHp;
+            var next = player.person.money - costPerHp;
             if (next < 0) {
                 terminated = true;
                 Kill();
             } else {
                 armor.hp++;
-                player.player.money -= costPerHp;
+                player.person.money -= costPerHp;
             }
         } else {
             Kill();

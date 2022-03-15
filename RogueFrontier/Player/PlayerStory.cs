@@ -739,10 +739,16 @@ a spinning pinwheel.
 There is a modest degree of artificial gravity here.",
             new() {
                 new("Trade", Trade),
+                new("Install Devices", DeviceInstall),
+                new("Remove Devices", DeviceRemoval),
+                new("Replace Armor", ArmorReplace),
                 new("Undock")
             }) { background = source.type.heroImage };
         }
         Con Trade(Con from) => TradeStation(from, playerShip, source);
+        Con DeviceInstall(Con from) => SListScreen.DeviceInstallService(from, playerShip, i => 100, null);
+        Con DeviceRemoval(Con from) => SListScreen.DeviceRemovalService(from, playerShip, i => 100, null);
+        Con ArmorReplace(Con from) => SListScreen.ReplaceArmorService(from, playerShip, i => 100, null);
     }
     public Con ConstellationVillage(Con prev, PlayerShip playerShip, Station source) {
         var c = GetConstellationCrimes(playerShip, source);
@@ -833,7 +839,7 @@ As promised, here's your money - 400 cons""",
                         });
                 }
                 Dialog Debriefed(Con prev) {
-                    playerShip.player.money += 400;
+                    playerShip.person.money += 400;
                     mainInteractions.Remove(mission);
                     //completedInteractions.Add(mission);
                     return null;

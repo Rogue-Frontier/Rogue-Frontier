@@ -151,7 +151,7 @@ public static class SaveGame {
 }
 public class LiveGame {
     public System world;
-    public Player player => playerShip.player;
+    public Player player => playerShip.person;
     public PlayerShip playerShip;
     public IContainer<LoadHook> hook;
 
@@ -176,7 +176,7 @@ public class DeadGame {
     public DeadGame() { }
     public DeadGame(System world, PlayerShip playerShip, Epitaph epitaph) {
         this.world = world;
-        this.player = playerShip.player;
+        this.player = playerShip.person;
         this.playerShip = playerShip;
         this.epitaph = epitaph;
     }

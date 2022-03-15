@@ -57,7 +57,7 @@ public class PauseMenu : Console {
         {
             int x = Width / 2 + 8;
             int y = 6;
-            var controls = playerMain.playerShip.player.Settings;
+            var controls = playerMain.playerShip.person.Settings;
             foreach (var line in controls.GetString().Replace("\r", null).Split('\n')) {
                 this.Print(x, y++, line.PadRight(Width - x - 4), Color.White, Color.Black);
             }
@@ -79,7 +79,7 @@ public class PauseMenu : Console {
         new LiveGame(playerMain.world, ps).Save();
     }
     public void Delete() {
-        File.Delete(playerMain.playerShip.player.file);
+        File.Delete(playerMain.playerShip.person.file);
     }
     public void SaveContinue() {
         //Temporarily PlayerMain events before saving
@@ -111,11 +111,9 @@ public class PauseMenu : Console {
 
     public void SelfDestruct() {
         var p = playerMain.playerShip;
-        var items = p.cargo.Concat(p.devices.Installed.Select(d => d.source)
-            .Where(i => i != null).Select(i => {
-                i.Remove<Armor>();
-                return i;
-            }));
+        var items = p.cargo
+            .Concat(p.devices.Installed.Select(d => d.source).Where(i => i != null))
+            .Concat((p.hull as LayeredArmor)?.layers.Select(l => l.source)??new List<Item>());
         Wreck w = new Wreck(p, items);
         playerMain.world.AddEntity(w);
 

@@ -72,7 +72,7 @@ class ShipScreen : Console {
         x = Width / 2;
         y = 2;
 
-        var pl = playerShip.player;
+        var pl = playerShip.person;
         Print(x, y++, "[Player]");
         Print(x, y++, $"Name:       {pl.name}");
         Print(x, y++, $"Identity:   {pl.Genome.name}");
@@ -688,6 +688,7 @@ public class SListScreen {
                 int delta = a.desc.maxHP - a.hp;
                 result.Add(new($"Cost per HP: {unitPrice}"));
                 result.Add(new($"Total cost:  {unitPrice * delta}"));
+                result.Add(new($"Your money:  {player.person.money}"));
                 result.Add(new(""));
                 if (delta <= 0) {
                     result.Add(new("This armor is at full HP", Color.Yellow, Color.Black));
@@ -698,7 +699,7 @@ public class SListScreen {
                         result.Add(new("Please wait for current repair job to finish", Color.Yellow, Color.Black));
                     }
                 } else {
-                    if (unitPrice > player.player.money) {
+                    if (unitPrice > player.person.money) {
                         result.Add(new($"You cannot afford repairs", Color.Yellow, Color.Black));
                     } else {
                         result.Add(new($"Order repairs", Color.Yellow, Color.Black));
@@ -717,7 +718,7 @@ public class SListScreen {
             }
             int unitPrice = GetPrice(a);
             int price = delta * unitPrice;
-            if(price > player.player.money) {
+            if(price > player.person.money) {
                 return;
             }
             job = new RepairEffect(player, a, 6, unitPrice, Done);
@@ -743,6 +744,254 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
+
+
+
+    public static ListScreen<Device> DeviceRemovalService(Console prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
+        ListScreen<Device> screen = null;
+        var installed = player.devices.Installed;
+        return screen = new(prev,
+            player,
+            installed,
+            GetName,
+            GetDesc,
+            Invoke,
+            Escape
+            ) { IsFocused = true };
+
+        string GetName(Device a) => $"{a.source.type.name}";
+        List<ColoredString> GetDesc(Device a) {
+            var item = a.source;
+
+            var result = new List<ColoredString>();
+
+            var desc = item.type.desc.SplitLine(64);
+            if (desc.Any()) {
+                result.AddRange(desc.Select(Main.ToColoredString));
+                result.Add(new(""));
+            }
+
+
+            int unitPrice = GetPrice(a);
+            if (unitPrice < 0) {
+                result.Add(new("Removal services are unavailable for this device", Color.Yellow, Color.Black));
+            } else {
+
+                result.Add(new($"Removal fee: {unitPrice}"));
+                result.Add(new($"Your money:  {player.person.money}"));
+                result.Add(new(""));
+                if (unitPrice > player.person.money) {
+                    result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
+                } else {
+                    result.Add(new($"Remove device", Color.Yellow, Color.Black));
+                }
+            }
+            return result;
+        }
+        void Invoke(Device a) {
+            var price = GetPrice(a);
+            ref var money = ref player.person.money;
+            if (price > money) {
+                return;
+            }
+            money -= price;
+            player.devices.Remove(a);
+            player.cargo.Add(a.source);
+            player.AddMessage(new Message($"Removed {GetName(a)}"));
+            callback?.Invoke();
+        }
+        void Escape() {
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.Children.Add(prev);
+            p.IsFocused = true;
+        }
+    }
+
+    public static ListScreen<Item> DeviceInstallService(Console prev, PlayerShip player, Func<Item, int> GetPrice, Action callback) {
+        ListScreen<Item> screen = null;
+        var cargo = player.cargo.Where(i => i.HasDevice());
+        return screen = new(prev,
+            player,
+            cargo,
+            GetName,
+            GetDesc,
+            Invoke,
+            Escape
+            ) { IsFocused = true };
+
+        string GetName(Item a) => $"{a.type.name}";
+        List<ColoredString> GetDesc(Item a) {
+            var item = a;
+
+            var result = new List<ColoredString>();
+
+            var desc = item.type.desc.SplitLine(64);
+            if (desc.Any()) {
+                result.AddRange(desc.Select(Main.ToColoredString));
+                result.Add(new(""));
+            }
+
+
+            int price = GetPrice(a);
+            if (price < 0) {
+                result.Add(new("Install services are unavailable for this device", Color.Yellow, Color.Black));
+            } else {
+                result.Add(new($"Install fee: {price}"));
+                result.Add(new($"Your money:  {player.person.money}"));
+                result.Add(new(""));
+                if (price > player.person.money) {
+                    result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
+                } else {
+                    result.Add(new($"Remove device", Color.Yellow, Color.Black));
+                }
+            }
+            return result;
+        }
+        void Invoke(Item a) {
+            var price = GetPrice(a);
+            ref var money = ref player.person.money;
+            if (price > money) {
+                return;
+            }
+            money -= price;
+
+            player.cargo.Remove(a);
+            player.devices.Install(a.GetDevices());
+
+            player.AddMessage(new Message($"Installed {GetName(a)}"));
+            callback?.Invoke();
+        }
+        void Escape() {
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.Children.Add(prev);
+            p.IsFocused = true;
+        }
+    }
+
+    public static ListScreen<Armor> ReplaceArmorService(Console prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
+        ListScreen<Armor> screen = null;
+        var armor = (player.hull as LayeredArmor)?.layers??new List<Armor>();
+        return screen = new(prev,
+            player,
+            armor,
+            GetName,
+            GetDesc,
+            Invoke,
+            Escape
+            ) { IsFocused = true };
+
+        string GetName(Armor a) => $"{a.source.type.name}";
+        List<ColoredString> GetDesc(Armor a) {
+            var item = a.source;
+
+            var result = new List<ColoredString>();
+
+            var desc = item.type.desc.SplitLine(64);
+            if (desc.Any()) {
+                result.AddRange(desc.Select(Main.ToColoredString));
+                result.Add(new(""));
+            }
+
+
+            int price = GetPrice(a);
+            if (price < 0) {
+                result.Add(new("Removal services are unavailable for this armor", Color.Yellow, Color.Black));
+            } else {
+                result.Add(new($"Removal fee: {price}"));
+                result.Add(new($"Your money:  {player.person.money}"));
+                result.Add(new(""));
+                if (price > player.person.money) {
+                    result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
+                } else {
+                    result.Add(new($"Select replacement", Color.Yellow, Color.Black));
+                }
+            }
+            return result;
+        }
+        void Invoke(Armor removed) {
+            var removalPrice = GetPrice(removed);
+            ref var money = ref player.person.money;
+            if (removalPrice > money) {
+                return;
+            }
+
+
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.Children.Add(GetReplacement());
+            ListScreen<Armor> GetReplacement() {
+                ListScreen<Armor> screen = null;
+                var armor = player.cargo.Select(i => i.armor).Where(i => i != null);
+                return screen = new(prev,
+                    player,
+                    armor,
+                    GetName,
+                    GetDesc,
+                    Invoke,
+                    Escape
+                    ) { IsFocused = true };
+                string GetName(Armor a) => $"{a.source.type.name}";
+                List<ColoredString> GetDesc(Armor a) {
+                    var item = a.source;
+                    var result = new List<ColoredString>();
+                    var desc = item.type.desc.SplitLine(64);
+                    if (desc.Any()) {
+                        result.AddRange(desc.Select(Main.ToColoredString));
+                        result.Add(new(""));
+                    }
+                    int installPrice = GetPrice(a);
+                    if (installPrice < 0) {
+                        result.Add(new("Install services are unavailable for this armor", Color.Yellow, Color.Black));
+                    } else {
+                        var totalCost = removalPrice + installPrice;
+                        result.Add(new($"Removal fee: {removalPrice}"));
+                        result.Add(new($"Install fee: {installPrice}"));
+                        result.Add(new($"Total cost:  {totalCost}"));
+                        result.Add(new($"Your money:  {player.person.money}"));
+                        result.Add(new(""));
+                        if (totalCost > player.person.money) {
+                            result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
+                        } else {
+                            result.Add(new($"Replace with this armor", Color.Yellow, Color.Black));
+                        }
+                    }
+                    return result;
+                }
+                void Invoke(Armor installed) {
+                    var price = removalPrice + GetPrice(installed);
+                    ref var money = ref player.person.money;
+                    if (price > money) {
+                        return;
+                    }
+                    money -= price;
+                    var l = ((LayeredArmor)player.hull).layers;
+                    l[l.IndexOf(removed)] = installed;
+                    player.cargo.Add(removed.source);
+                    player.cargo.Remove(installed.source);
+
+                    callback?.Invoke();
+                }
+                void Escape() {
+                    var p = screen.Parent;
+                    p.Children.Remove(screen);
+                    p.Children.Add(prev);
+                    p.IsFocused = true;
+                }
+            }
+        }
+        void Escape() {
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.Children.Add(prev);
+            p.IsFocused = true;
+        }
+    }
+
+
+
+
 
 
 

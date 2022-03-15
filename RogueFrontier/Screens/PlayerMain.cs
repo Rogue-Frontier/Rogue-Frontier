@@ -256,7 +256,7 @@ public class PlayerMain : Console {
             deathFrame = deathFrame,
             wreck = wreck
         };
-        playerShip.player.Epitaphs.Add(ep);
+        playerShip.person.Epitaphs.Add(ep);
 
         playerShip.autopilot = false;
         //Bug: Background is not included because it is a separate console

@@ -318,7 +318,7 @@ public record ArmorEntry() : IGenerator<Armor> {
 }
 public static class SDevice {
     private static T Install<T>(TypeCollection tc, string codename, ModRoll mod) where T : class, Device =>
-        new Item(tc.Lookup<ItemType>(codename), mod.Generate()).Install<T>();
+        new Item(tc.Lookup<ItemType>(codename), mod.Generate()).Get<T>();
     public static T Generate<T>(TypeCollection tc, string codename, ModRoll mod) where T : class, Device =>
         Install<T>(tc, codename, mod) ??
             throw new Exception($"Expected <ItemType> type with <{typeof(T).Name}> desc: {codename}");

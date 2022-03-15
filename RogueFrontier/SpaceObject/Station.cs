@@ -42,10 +42,7 @@ public class Wreck : MovingObject, IDockable {
         this.position = creator.position;
         this.velocity = creator.velocity;
         this.active = true;
-        this.cargo = new HashSet<Item>();
-        if (cargo?.Any() == true) {
-            this.cargo.UnionWith(cargo);
-        }
+        this.cargo = new(cargo ?? new List<Item>());
 
         gravity = new XY(0, 0);
     }
@@ -225,14 +222,11 @@ public class Station : ActiveObject, ITrader, IDockable {
         if(type.explosionType != null)
             new Weapon() { projectileDesc = type.explosionType, aiming = new Targeting() { target = source } }.Fire(this, rotation);
 
-        var wreck = new Wreck(this);
-        var drop = weapons?.Select(w => w.source);
-        if (drop != null) {
-            foreach (var item in drop) {
-                item.Remove<Weapon>();
-                wreck.cargo.Add(item);
-            }
-        }
+
+        var drop = weapons.Select(w => w.source)
+            .Concat(cargo)
+            .Concat((damageSystem as LayeredArmor)?.layers.Select(l => l.source) ?? new List<Item>());
+        var wreck = new Wreck(this, drop);
         world.AddEntity(wreck);
         if (segments != null) {
             foreach (var segment in segments) {
