@@ -59,6 +59,50 @@
 		<Dock type="united_constellation"/>
 		<HeroImage path="RogueFrontierContent/sprites/ConstellationAstra.asc.cg"/>
 	</StationType>
+
+	<StationType	codename="station_constellation_missile_silo"
+				name=		"Constellation missile silo"
+				sovereign=	"sovereign_constellation"
+
+				hp=			"200"
+				crimeOnDestroy="true"
+
+				glyph=		"M"
+				foreground="BB6633FF"
+		>
+		<Segments>
+			<Point offsetX="0"
+				   offsetY="-1"
+				   glyph="-"
+				   foreground="White"/>
+			<Point offsetX="0"
+				   offsetY="1"
+				   glyph="-"
+				   foreground="White"/>
+		</Segments>
+		<Cargo>
+			<Item codename="item_nova_missile" count="64"/>
+		</Cargo>
+		<Weapons>
+			<Weapon codename="item_nova_missile_launcher"/>
+		</Weapons>
+		<Explosion
+			missileSpeed=	"100"
+			damageType=		"2"
+			damageHP=		"90"
+			shock=			"5"
+			
+			lifetime=		"60"
+			spreadAngle=	"360"
+			count=			"120"
+
+			hitProjectile=	"true"
+						
+			glyph=			"*"
+			foreground=		"Orange"
+			background=		"Transparent"
+			/>
+	</StationType>
 	<StationType	codename="station_constellation_habitat"
 					name=		"Constellation Habitat"
 					sovereign=	"sovereign_constellation"

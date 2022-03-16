@@ -128,17 +128,17 @@ public record Clonewall() : PowerEffect {
             if(w.desc == null) {
                 return;
             }
-            foreach(var projectile in pr) {
-                var fragment = projectile.fragment;
-                int i = 0;
-                var target = w.target;
-                offsets.ForEach(o => {
-                    var l = fragment.GetProjectiles(owner, target, directions[i++]);
-                    l.ForEach(p => p.position += o);
-                    l.ForEach(owner.world.AddEntity);
-                    w.ammo?.OnFire();
-                });
-            }
+            
+            var fragment = w.projectileDesc;
+            int i = 0;
+            var target = w.target;
+            offsets.ForEach(o => {
+                var l = fragment.GetProjectiles(owner, target, directions[i++]);
+                l.ForEach(p => p.position += o);
+                l.ForEach(owner.world.AddEntity);
+                w.ammo?.OnFire();
+            });
+
         };
         public void Update() {
             ticks++;

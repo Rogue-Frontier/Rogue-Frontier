@@ -22,18 +22,28 @@ public class Backdrop {
             var layer = new GeneratedLayer(1f / (i * i * 1.5 + i + 1), r);
             layers.Insert(0, layer);
         }
-        planets = new GridLayer(1);
-        orbits = new GridLayer(1);
-        nebulae = new GridLayer(1);
-        starlight = new CompositeColorLayer();
+        planets = new(1);
+        orbits = new(1);
+        nebulae = new(1);
+        starlight = new();
     }
     public Color GetBackgroundFixed(XY point) => GetBackground(point, XY.Zero);
     public Color GetBackground(XY point, XY camera) {
-        Color result = Color.Black;
-        foreach (var layer in layers) {
-            result = result.Blend(layer.GetTile(point, camera).Background);
+        //ColoredGlyph result = new ColoredGlyph(Color.Transparent, Color.Black, ' ');
+        var b = Color.Transparent;
+        layers.Reverse<GeneratedLayer>()
+            .ToList()
+            .ForEach(l => Blend(l.GetBackground(point, camera)));
+        void Blend(Color c) {
+            if (c.A > 0) {
+                b = b.Premultiply().Blend(c);
+            }
         }
-        return result;
+        Blend(starlight.GetBackgroundFixed(point));
+        Blend(orbits.GetBackground(point, camera));
+        Blend(planets.GetBackground(point, camera));
+        Blend(nebulae.GetBackground(point, camera));
+        return b;
     }
     public ColoredGlyph GetTile(XY point, XY camera) {
         //ColoredGlyph result = new ColoredGlyph(Color.Transparent, Color.Black, ' ');
@@ -57,7 +67,7 @@ public class Backdrop {
             }
         }
 
-        BlendBack(starlight.GetTile(point));
+        BlendBack(starlight.GetBackgroundFixed(point));
         Blend(orbits.GetTile(point, camera));
         Blend(planets.GetTile(point, camera));
         Blend(nebulae.GetTile(point, camera));
@@ -79,6 +89,10 @@ public class GridLayer : ILayer {
     public ColoredGlyph GetTile(XY point, XY camera) {
         var apparent = point - camera * (1 - parallaxFactor);
         return tiles.TryGetValue(apparent.roundDown, out var result) ? result : new ColoredGlyph(Color.Transparent, Color.Transparent, ' ');
+    }
+    public Color GetBackground(XY point, XY camera) {
+        var apparent = point - camera * (1 - parallaxFactor);
+        return tiles.TryGetValue(apparent.roundDown, out var result) ? result.Background : Color.Transparent;
     }
 }
 public class CompositeLayer : ILayer {
@@ -123,27 +137,12 @@ public class CompositeColorLayer {
     public CompositeColorLayer() { }
 
     public Color GetBackgroundFixed(XY point) {
-        Color result = Color.Black;
-        foreach (var layer in layers.AsEnumerable().Reverse()) {
+        Color result = Color.Transparent;
+        foreach (var layer in layers.Reverse<GeneratedGrid<Color>>()) {
             var apparent = point.roundDown;
-            result = result.Blend(layer[apparent.xi, apparent.yi]);
+            result = result.Premultiply().Blend(layer[apparent.xi, apparent.yi]);
         }
         return result;
-    }
-    public Color GetTile(XY point) {
-        if (layers.Any()) {
-            var apparent = point.roundDown;
-            var top = layers.Last().At(apparent.xi, apparent.yi);
-            for (int i = layers.Count - 2; i > -1; i--) {
-                Blend(layers[i][apparent.xi, apparent.yi]);
-            }
-            void Blend(Color tile) {
-                top = top.Premultiply().Blend(tile);
-            }
-            return top;
-        } else {
-            return Color.Transparent;
-        }
     }
 }
 public class SpaceGenerator : IGridGenerator<ColoredGlyph> {
@@ -203,13 +202,14 @@ public class GeneratedLayer : ILayer {
     public GeneratedLayer(double parallaxFactor, Rand random) {
         //Random r = new Random();
         this.parallaxFactor = parallaxFactor;
-        tiles = new GeneratedGrid<ColoredGlyph>(new SpaceGenerator(this, random));
+        tiles = new(new SpaceGenerator(this, random));
     }
     public ColoredGlyph GetTile(XY point, XY camera) {
         var apparent = point - camera * (1 - parallaxFactor);
         apparent = apparent.roundDown;
         return tiles[apparent.xi, apparent.yi];
     }
+    public Color GetBackground(XY point, XY camera) => GetTile(point, camera).Background;
     public ColoredGlyph GetTileFixed(XY point) {
         point = point.roundDown;
         return tiles[point.xi, point.yi];

@@ -366,11 +366,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
     public override void Render(TimeSpan drawTime) {
         this.Clear();
         var titleY = 0;
-        foreach (var line in title) {
-            this.Print(0, titleY, line, Color.White, Color.Black);
-            titleY++;
-        }
-
+        title.ToList().ForEach(line => this.Print(0, titleY++, line, Color.White, Color.Black));
         //Wait until we are focused to print the POV desc
         //This will happen when TitleSlide transition finishes
         if (IsFocused) {
@@ -404,11 +400,12 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
                         this.SetCellAppearance(x, y, World.backdrop.GetTile(location, camera));
                     }
                 } else {
+
                     this.SetBackground(x, y, World.backdrop.GetBackground(location, camera));
                 }
             }
         }
-        
+
         /*
         int tiling = 2;
         int w = Width / tiling;
@@ -489,6 +486,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             }
         });
         */
+
         base.Render(drawTime);
     }
     public override bool ProcessKeyboard(Keyboard info) {

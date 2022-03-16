@@ -67,6 +67,10 @@
 								<At index="2">
 									<Sibling radiusInc="-15">
 										<Station codename="station_amethyst_store"/>
+
+										<Sibling radiusInc="-15">
+											<Station codename="station_constellation_missile_silo"/>
+										</Sibling>
 									</Sibling>
 								</At>
 								<At index="3">

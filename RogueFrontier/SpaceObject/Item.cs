@@ -560,7 +560,7 @@ public class Solar : Device, PowerSource {
     public Solar Copy(Item source) => desc.GetSolar(source);
     public void Update(IShip owner) {
         void Update() {
-            var t = owner.world.backdrop.starlight.GetTile(owner.position);
+            var t = owner.world.backdrop.starlight.GetBackgroundFixed(owner.position);
             var b = t.A;
             maxOutput = (b * desc.maxOutput / 255);
         }
@@ -669,9 +669,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
 
         double? direction = null;
         var hasAimTarget = false;
-        if (blind) {
-            blind = false;
-        } else if (aiming != null) {
+        if (!blind && aiming != null) {
             aiming.Update(owner, this);
             hasAimTarget = aiming.target != null && (aiming.target.position - owner.position).magnitude2 < projectileDesc.range2;
             if (hasAimTarget) {
@@ -768,17 +766,16 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             repeatsLeft = 0;
         }
 
-        Done:
+    Done:
         firing = false;
+        blind = false;
     }
     public void Update(IShip owner) {
         UpdateProjectileDesc();
         double direction = owner.rotationRad + angle;
 
         var hasAimTarget = false;
-        if (blind) {
-            blind = false;
-        } else if (aiming != null) {
+        if (!blind && aiming != null) {
             aiming.Update(owner, this);
             hasAimTarget = aiming.target != null && (aiming.target.position - owner.position).magnitude2 < projectileDesc.range2;
             if (hasAimTarget) {
@@ -844,8 +841,9 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             Cancel:
             repeatsLeft = 0;
         }
-        Done:
+    Done:
         firing = false;
+        blind = false;
     }
     public void OnDisable() {
         delay = desc.fireCooldown;

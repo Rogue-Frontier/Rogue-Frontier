@@ -115,7 +115,7 @@ public class PlayerMain : Console {
         uiEdge = new(camera, playerShip, Width, Height);
         uiMinimap = new(this, playerShip, 16);
         communicationsMenu = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
-        powerMenu = new(31, 12, this) { IsVisible = false, Position = new(3, 32) };
+        powerMenu = new(31, 16, this) { IsVisible = false, Position = new(3, 32) };
         pauseMenu = new(this) { IsVisible = false };
         crosshair = new(playerShip, "Mouse Cursor", new XY());
 
@@ -801,7 +801,7 @@ public class Megamap : Console {
                         Render(environment);
                         continue;
                     }
-                    var starlight = player.world.backdrop.starlight.GetTile(pos).PremultiplySet(255);
+                    var starlight = player.world.backdrop.starlight.GetBackgroundFixed(pos).PremultiplySet(255);
                     var cg = this.background.GetTileFixed(new XY(x, y));
                     //Make sure to clone this so that we don't apply alpha changes to the original
                     var glyph = cg.Glyph;
@@ -890,7 +890,7 @@ public class Vignette : Console, IContainer<PlayerShip.Damaged> {
     public int flash;
     PlayerShip.Damaged IContainer<PlayerShip.Damaged>.Value => (pl, pr) => {
         if (pr.fragment.lightning) {
-            lightningHit = 2;
+            lightningHit = 5;
         }
         if (pr.fragment.blind?.Roll() is int db) {
             flash = Math.Max(db, flash);
@@ -1037,7 +1037,7 @@ public class Vignette : Console, IContainer<PlayerShip.Damaged> {
         }
         if (lightningHit > 0) {
             var i = 2;
-            var c = new Color(255, 0, 0, 224);
+            var c = new Color(255, 0, 0, 200 * lightningHit/5);
             foreach(var p in new Rectangle(i, i, Width - i * 2, Height - i * 2).PerimeterPositions()) {
                 var (x, y) = p;
                 this.SetBackground(x, y, c);

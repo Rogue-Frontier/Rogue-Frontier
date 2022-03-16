@@ -118,7 +118,7 @@
 				spreadAngle=	"15"
 				missileSpeed=	"40"
 				damageType=		"1"
-				damageHP=		"4"
+				damageHP=		"1d8"
 				
 				lifetime=		"40"
 				glyph=			"*"

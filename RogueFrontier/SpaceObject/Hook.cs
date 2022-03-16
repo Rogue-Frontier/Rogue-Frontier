@@ -98,6 +98,9 @@ public class LightningRod : Entity, IContainer<Weapon.OnFire>, IContainer<Projec
         if(weapon.aiming?.target is ActiveObject a && a != target) {
             return;
         }
+        if (weapon.blind) {
+            return;
+        }
         weapon.delay = 5;
         projectiles.ForEach(p => {
             if (!p.active) { return; }

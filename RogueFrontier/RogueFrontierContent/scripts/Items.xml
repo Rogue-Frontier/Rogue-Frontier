@@ -244,6 +244,44 @@
 		</Weapon>
 	</ItemType>
 
+
+	<ItemType	codename=	"item_nova_missile"
+				name=		"Nova missile"
+				level=		"2"
+				mass=		"200"
+				value=		"40"
+				
+				desc=		"The Nova missile can track targets over extremely long distances."
+		>
+	</ItemType>
+	<ItemType	codename=	"item_nova_missile_launcher"
+				name=		"Nova missile launcher"
+				level=		"2"
+				mass=		"2000"
+				value=		"400"
+				
+				desc=		"The Nova missile system is designed for targeted destruction over extremely long range."
+		>
+		<Weapon	powerUse=		"10"
+				fireCooldown=	"300"
+				ammoType="item_nova_missile"
+			>
+			<Projectile	count=			"1"
+						maneuver=		"4"
+						missileSpeed=	"60"
+						damageType=		"1"
+						damageHP=		"40"
+						shock=			"5"
+			
+						lifetime=		"900"
+
+						glyph=			"N"
+						foreground=		"White"
+				/>
+		</Weapon>
+	</ItemType>
+	
+
 	<ItemType	codename=	"item_musket_cannon"
 				name=		"Musket turret"
 				level=		"2"
