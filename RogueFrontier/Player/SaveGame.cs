@@ -103,7 +103,6 @@ public class ColoredGlyphConverter : TypeConverter {
         return result;
     }
 }
-
 public static class SaveGame {
     public static void PrepareConvert() {
         //TypeDescriptor.AddAttributes(typeof(ColoredString), new TypeConverterAttribute(typeof(ColoredStringConverter)));

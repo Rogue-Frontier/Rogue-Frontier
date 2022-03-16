@@ -25,6 +25,7 @@ public record PowerType() : IDesignType {
             "Jump" => new PowerJump(e),
             "Storm" => new PowerStorm(e),
             "Clonewall" => new Clonewall(e),
+            "RechargeWeapon" => new PowerRechargeWeapon(collection, e),
             _ => throw new Exception($"Unknown PowerEffect type: {e.Name.LocalName} ### {e} ### {e.Parent}")
         })));
         if(Effect.Count == 0) {
@@ -35,6 +36,21 @@ public record PowerType() : IDesignType {
 }
 public interface PowerEffect {
     void Invoke(PlayerShip player);
+}
+public record PowerRechargeWeapon() : PowerEffect {
+    [Req] public int maxCharges;
+    WeaponDesc weaponType;
+    public PowerRechargeWeapon(TypeCollection tc, XElement e) : this() {
+        e.Initialize(this);
+        weaponType = tc.Lookup<ItemType>(e.ExpectAtt("codename")).weapon
+                        ?? throw new Exception();
+    }
+    public void Invoke(PlayerShip player) {
+        if(player.devices.Weapon.FirstOrDefault(w => w.desc == weaponType) is Weapon w) {
+            ref int c = ref ((ChargeAmmo)w.ammo).charges;
+            c = Math.Max(c, maxCharges);
+        }
+    }
 }
 public record PowerJump() : PowerEffect {
     [Opt] public int distance = 100;

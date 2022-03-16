@@ -13,6 +13,7 @@
 	    >
 	    <Devices>
 			<Weapon codename="item_amethyst_laser"/>
+			<Weapon codename="item_magic_blaster_i"/>
 			<Shield codename="item_shimmer_shield"/>
 			<Reactor codename="item_20mw_generator"/>
 			<Reactor codename="item_10mw_storage_battery"/>
@@ -86,6 +87,7 @@
 
 	<ShipClass    codename="ship_beowulf"
 				  name="Beowulf-class gunship"
+				  attributes=	"BeowulfClub"
 				  thrust="1"
 				  maxSpeed="30"
 
@@ -145,9 +147,10 @@
 		</PlayerSettings>
 	</ShipClass>
 
-	<ShipClass    codename="ship_ulysses"
-			  inherit="ship_beowulf"
-			  name="Ulysses-class gunship"
+	<ShipClass  codename="ship_ulysses"
+				inherit="ship_beowulf"
+				name="Ulysses-class gunship"
+				attributes=	"BeowulfClub"
         >
 		<Items>
 			<Item codename="item_klaw_missile" count="64"/>

@@ -16,15 +16,13 @@ public class IntroMeeting : IPlayerInteraction {
         this.story = story;
     }
     public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
-        if (d is Station s && s.type.codename == "station_daughters_outpost") {
-            var heroImage = s.type.heroImage;
-            /*
-            var benedictPortrait = SScene.LoadImage("RogueFrontierContent/BenedictPortrait.asc.cg").Translate(new Point(heroImage.Max(p => p.Key.Item1), 4));
-            var outpostLobby = SScene.LoadImage("RogueFrontierContent/DaughtersOutpostDock.asc.cg").Translate(new Point(benedictPortrait.Max(p => p.Key.Item1), 4));
-            */
-            return Intro();
-            Con Intro() {
-                var t =
+        var t = (d as Station)?.type;
+        if(t?.codename != "station_daughters_outpost")
+            return null;
+        var heroImage = t.heroImage;
+        return Intro();
+        Dialog Intro() {
+            var t =
 @"Docking at the front entrance of the abbey, the great
 magenta tower seems to reach into the oblivion above
 your head. It looks much more massive from the view of
@@ -32,17 +30,15 @@ the platform that juts out the side of the docking ring
 The rows of stained glass windows glow warmly with
 orange light. Nevertheless, you can't help but think...
 
-You are a complete stranger here.".Replace("\r", null);
-                var sc = new Dialog(prev, t, new() {
-                    new("Continue", Intro2),
-                    new("Leave", Intro2b, NavFlags.ESC)
-                }) { background = heroImage };
-                return sc;
-            }
-
-            Con Intro2(Con from) {
-
-                var t =
+You are a complete stranger here.";
+            var sc = new Dialog(prev, t, new() {
+                new("Continue", Intro2),
+                new("Leave", Intro2b, NavFlags.ESC)
+            }) { background = heroImage };
+            return sc;
+        }
+        Dialog Intro2(Con from) {
+            var t =
 @"Walking into the main hall, You see a great monolith of
 sparkling crystals and glowing symbols. A low hum reflectes
 throughout the room. If you stand still, you can hear
@@ -51,29 +47,24 @@ some indistinct whispering from somewhere behind.
 A stout man stands for reception duty near a wide door.
 
 ""Ah, hello. A meeting is in session right now.
-You must be new here... May I help you with anything?""
-".Replace("\r", null);
-                var sc = new Dialog(prev, t, new() {
-                    new(@"""I heard a voice...""", Intro3)
-                }) { background = heroImage };
-                return sc;
-            }
-
-
-            Con Intro2b(Con from) {
-
-                var t =
+You must be new here... May I help you with anything?""";
+            var sc = new Dialog(prev, t, new() {
+                new(@"""I heard a voice...""", Intro3)
+            }) { background = heroImage };
+            return sc;
+        }
+        Dialog Intro2b(Con from) {
+            var t =
 @"You decide to step away from the station,
 much to the possible chagrin of some mysterious
 entity and several possibly preferred timelines.".Replace("\r", null);
-                var sc = new Dialog(prev, t, new() {
-                    new("Undock")
-                }) { background = heroImage };
-                return sc;
-            }
-
-            Con Intro3(Con from) {
-                var t =
+            var sc = new Dialog(prev, t, new() {
+                new("Undock")
+            }) { background = heroImage };
+            return sc;
+        }
+        Dialog Intro3(Con from) {
+            var t =
 @"""I heard a voice.
 It calls itself...The Orator.
 And I thought you might know
@@ -82,13 +73,13 @@ something about it,"" you say.
 ""...Yes, we are quite experienced with The Orator.
 You are the first guest we've had in a while.
 What did you hear?"" The man replied.";
-                var sc = new Dialog(prev, t, new() {
-                    new(@"""The Orator told me...""", Intro4)
-                }) { background = heroImage };
-                return sc;
-            }
-            Con Intro4(Con from) {
-                string t =
+            var sc = new Dialog(prev, t, new() {
+                new(@"""The Orator told me...""", Intro4)
+            }) { background = heroImage };
+            return sc;
+        }
+        Dialog Intro4(Con from) {
+            string t =
 @"""The Orator told me...
 that there is something terribly wrong
 happening to us. All of us. Humanity.
@@ -113,13 +104,13 @@ And...""
 Wait, how are you saying all of this- Your mind blanks out.
 
 ""...And I... I witnessed all of this in a strange dream I had.""";
-                var sc = new Dialog(prev, t, new() {
-                    new("Continue", Intro5)
-                }) { background = heroImage };
-                return sc;
-            }
-            Con Intro5(Con from) {
-                string t =
+            var sc = new Dialog(prev, t, new() {
+                new("Continue", Intro5)
+            }) { background = heroImage };
+            return sc;
+        }
+        Dialog Intro5(Con from) {
+            string t =
 @"The man replies, ""...I understand. That reminds me of
 my own first encounter with The Orator.""
 
@@ -141,15 +132,14 @@ us safety from The Dictator. I welcome you to reside here.""
 shining through the window, ""...far out there.""
 
 ""Does it?""";
-                t = t.Replace("\r", null);
-                var sc = new Dialog(prev, t, new() {
-                    new(@"""It does.""", Intro6, NavFlags.ESC)
-                }) { background = heroImage };
-                return sc;
+            var sc = new Dialog(prev, t, new() {
+                new(@"""It does.""", Intro6, NavFlags.ESC)
+            }) { background = heroImage };
+            return sc;
 
-            }
-            Dialog Intro6(Con from) {
-                string t =
+        }
+        Dialog Intro6(Con from) {
+            string t =
 @"
 After a long pause, you respond.
 
@@ -163,14 +153,13 @@ We don't really see modern builds like yours
 around here... Not since the last war ended.
 
 You really intend to see what's out there.""";
-                t = t.Replace("\r", null);
-                return new(prev, t, new() {
-                    new(@"""That is correct.""", Intro7, NavFlags.ESC)
-                }) { background = heroImage }; ;
-            }
-            Dialog Intro7(Con from) {
-                string t =
-@"He glares at you.
+            return new(prev, t, new() {
+                new(@"""That is correct.""", Intro7, NavFlags.ESC)
+            }) { background = heroImage }; ;
+        }
+        Dialog Intro7(Con from) {
+            string t =
+@"He looks at you with doubt.
 
 ""So you understand that... this? This is not
 the first time that The Orator has spoken,
@@ -181,13 +170,13 @@ I don't care how ready you think you are
 to go wherever you think you're going.
 
 Are you prepared to die?""";
-                return new(prev, t, new() {
-                    new(@"""Huh?!?!?!""", Intro8)
-                }) { background = heroImage };
-            }
-            Dialog Intro8(Con from) {
-                string t =
-@"He looks increasingly tense.
+            return new(prev, t, new() {
+                new(@"""Huh?!?!?!""", Intro8)
+            }) { background = heroImage };
+        }
+        Dialog Intro8(Con from) {
+            string t =
+@"He looks somewhat tense.
 
 ""The Orator definitely calls to people. We know that this
 happens occasionally but predictably. We see a new person
@@ -203,9 +192,6 @@ Until they show up in a news report in which
 someone identifies them as an unwitting traveler
 who got blown up in the middle of a war zone...
 
-And you know that the rest of the world is currently
-in the middle of the most destructive war in decades.
-
 You'd have better chances of surviving if you joined
 the Constellation Fleet. Not much better, mind you.
 At least I got out when they were about to send us
@@ -213,14 +199,14 @@ through the gateway... before they'd shut the door
 and lock it behind us.
 
 So, tell me, what is it that you intend to do?""";
-                return new Dialog(prev, t, new() {
-                    new(@"""I intend to reach the Celestial Center.""", Intro9a),
-                    new("...", Intro9b)
-                }) { background = heroImage };
-            }
-            Dialog Intro9a(Con from) {
-                story.mainInteractions.Remove(this);
-                string t =
+            return new Dialog(prev, t, new() {
+                new(@"""I intend to reach the Celestial Center.""", Intro9a),
+                new("...", Intro9b)
+            }) { background = heroImage };
+        }
+        Dialog Intro9a(Con from) {
+            story.mainInteractions.Remove(this);
+            string t =
 @"""So you do. Okay. Alright. I won't try to change
 your mind.""
 
@@ -232,33 +218,33 @@ seek the Celestial Center. I won't tell you what
 to do, but here are the basics.""
 
 The man takes out a script and reads from it.";
-                return new(prev, t, new() {
-                    new("Continue", Intro11)
-                }) { background = heroImage };
-            }
-            Dialog Intro9b(Con from) {
-                story.mainInteractions.Remove(this);
-                string t =
+            return new(prev, t, new() {
+                new("Continue", Intro11)
+            }) { background = heroImage };
+        }
+        Dialog Intro9b(Con from) {
+            story.mainInteractions.Remove(this);
+            string t =
 @"You pause for a moment.";
-                t = t.Replace("\r", null);
-                return new(prev, t, new() {
-                    new('I', @"""I intend to reach the Celestial Center.""", Intro10a),
-                }) { background = heroImage }; ;
-            }
+            t = t.Replace("\r", null);
+            return new(prev, t, new() {
+                new('I', @"""I intend to reach the Celestial Center.""", Intro10a),
+            }) { background = heroImage }; ;
+        }
 
-            Dialog Intro10a(Con prev) {
-                story.mainInteractions.Remove(this);
-                string t =
+        Dialog Intro10a(Con prev) {
+            story.mainInteractions.Remove(this);
+            string t =
 @"""You sound uncertain there.
 Do you truly intend to do that?""";
-                t = t.Replace("\r", null);
-                return new(prev, t, new() {
-                    new('I', @"I intend to reach the Galactic Core.", Intro9a),
-                }) { background = heroImage };
-            }
-            Dialog Intro11(Con prev) {
-                story.mainInteractions.Remove(this);
-                string t =
+            t = t.Replace("\r", null);
+            return new(prev, t, new() {
+                new('I', @"I intend to reach the Galactic Core.", Intro9a),
+            }) { background = heroImage };
+        }
+        Dialog Intro11(Con prev) {
+            story.mainInteractions.Remove(this);
+            string t =
 @"""You will meet many different friends and foes
 during your journey. Especially on the frontier,
 you might be surprised at the kind of people that
@@ -277,79 +263,12 @@ Orator, have seen enough of that happen.
 
 Take note of your complete surroundings as well as
 yourself and your starship. Be sure to maintain your
-ship's hull systems, energy systems, weapon systems,
-
-""";
-                t = t.Replace("\r", null);
-                return new(prev, t, new() {
-                    new('C', @"Continue", Intro11),
-                }) { background = heroImage };
-            }
-
-            /*
-            Dialog Destroy1(Con prev) {
-                string t =
-@"""I intend to destroy the United Constellation,"" you say.
-
-""What?!?!"" the man says out loud.";
-                t = t.Replace("\r", null);
-                return new(prev, t, new() {
-                    new('I', @"It's simple. I hate them a lot.", Destroy2),
-                    new('G', @"It's for their own good.", Destroy2)
-                }) { background = heroImage };
-            }
-            Dialog Destroy2(Con prev) {
-                string t =
-@"You feel an energy welling up within you
-as you speak.
-
-""The United Constellation is a failed state!
-They are built on monumental idiocy and inaction.
-They cannot even protect their own people!""
-
-""If the United Constellation cannot decide
-their own wars, then maybe... I will.""
-
-""Only then, can we begin reconstruction towards
-a new era.""
-
-You state your intentions firmly.";
-                t = t.Replace("\r", null);
-                return new(prev, t, new() {
-                    new("Continue", Destroy3)
-                }) { background = heroImage };
-            }
-            //Placeholder dialogue
-            //Should add more complicated stuff later
-            Dialog Destroy3(Con prev) {
-                string t =
-@"""You know what, that sounds like a good idea.
-Allow me to join you on your mission.""
-
-""My name is Benjamin, by the way""";
-                t = t.Replace("\r", null);
-                return new(prev, t, new() {
-                    new("Continue", BenjaminJoin)
-                }) { background = heroImage };
-            }
-            Dialog BenjaminJoin(Con prev) {
-                story.mainInteractions.Remove(this);
-
-                var w = playerShip.world;
-                var wingmateClass = w.types.Lookup<ShipClass>("ship_beowulf");
-                var wingmate = new AIShip(new BaseShip(w, wingmateClass, playerShip.sovereign, s.position),
-                    new Wingmate(playerShip) { order = new EscortOrder(playerShip, new XY(-5, 0)) }
-                    );
-                w.AddEntity(wingmate);
-                w.AddEffect(new Heading(wingmate));
-
-                playerShip.wingmates.Add(wingmate);
-
-                return null;
-            }
-            */
-        } else {
-            return null;
+ship's hull system, energy system, and weapon system
+regularly to ensure your survival.""";
+            t = t.Replace("\r", null);
+            return new(prev, t, new() {
+                new('C', @"Continue", Intro11),
+            }) { background = heroImage };
         }
     }
 }
@@ -622,6 +541,8 @@ public class PlayerStory {
         if (d is Station source) {
             GetDockScreen f = source.type.codename switch {
                 "station_amethyst_store" => AmethystStore,
+                "station_beowulf_club" => BeowulfClub,
+                "station_camper_outpost" => CamperOutpost,
                 "station_constellation_astra" => ConstellationAstra,
                 "station_constellation_habitat" => ConstellationVillage,
                 "station_armor_shop" => ArmorDealer,
@@ -644,8 +565,11 @@ public class PlayerStory {
         Dialog Intro() {
             return new(prev,
 @"You are docked at The Amethyst Store,
-one of several corporate stations owned
-by Amethyst, Inc. ",
+one of several commercial stations
+established by Amethyst, Inc to serve
+all your Amethyst-related needs,
+including but not limited to, product
+purchases and repair services.",
             new() {
                 new("Trade", Trade),
                 new("Repair Armor", ArmorServices),
@@ -664,6 +588,68 @@ by Amethyst, Inc. ",
             i => i.type.attributes.Contains("Amethyst") ? GetStdPrice(i) / 10 : -1);
         Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, (playerShip.hull as LayeredArmor)?.layers, GetPrice, null);
     }
+
+
+    public Con BeowulfClub(Con prev, PlayerShip playerShip, Station source) {
+        if (!playerShip.shipClass.attributes.Contains("BeowulfClub")) {
+            return new Dialog(prev,
+@"You are docked at an independent chapter
+of the Beowulf Club, a galaxy-wide organization
+serving civilian gunship pilots.
+
+A heavily armored stationhand calls out to you.
+""Hey! We only serve *gunships* around here!""", new() { new("Undock immediately") });
+        }
+        return Intro();
+        Dialog Intro() {
+            return new(prev,
+@"You are docked at an independent chapter
+of the Beowulf Club, a galaxy-wide organization
+serving civilian gunship pilots.",
+            new() {
+                new("Trade", Trade),
+                new("Repair Armor", ArmorServices),
+                new("Undock")
+            });
+        }
+        int GetPrice(Armor a) {
+            if (a.source.type.attributes.Contains("Amethyst")) {
+                return 6;
+            }
+
+            return 3;
+        }
+        Con Trade(Con from) => new TradeMenu(from, playerShip, source,
+            i => GetStdPrice(i),
+            i => GetStdPrice(i));
+        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, (playerShip.hull as LayeredArmor)?.layers, GetPrice, null);
+    }
+
+    public Con CamperOutpost(Con prev, PlayerShip playerShip, Station source) {
+        return Intro();
+        Dialog Intro() {
+            return new(prev,
+@"You are docked at a Campers Outpost,
+an independent enclave of tinkers,
+craftspersons, and adventurers.",
+            new() {
+                new("Trade", Trade),
+                new("Repair Armor", ArmorServices),
+                new("Undock")
+            });
+        }
+        int GetPrice(Armor a) {
+            if (a.source.type.attributes.Contains("Amethyst")) {
+                return 6;
+            }
+            return 3;
+        }
+        Con Trade(Con from) => new TradeMenu(from, playerShip, source,
+            i => GetStdPrice(i),
+            i => GetStdPrice(i));
+        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, (playerShip.hull as LayeredArmor)?.layers, GetPrice, null);
+    }
+
     public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>
         new (prev, playerShip, source, GetStdPrice, i => GetStdPrice(i) / 2);
     public Con ConstellationArrest(Con prev, PlayerShip playerShip, Station source, ICrime c) {

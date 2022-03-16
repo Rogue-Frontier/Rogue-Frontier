@@ -1,5 +1,7 @@
 ﻿using Common;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 namespace RogueFrontier;
 
@@ -8,7 +10,7 @@ public enum EShipBehavior {
 }
 public class ShipClass : IDesignType {
     public static ShipClass empty => new ShipClass() { devices = new(), damageDesc = new HPSystemDesc(), rotationDecel = 1 };
-
+    public HashSet<string> attributes;
     [Req] public string codename;
     [Req] public string name;
     [Req] public double thrust;
@@ -40,6 +42,9 @@ public class ShipClass : IDesignType {
         } else {
             tile = new(e);
         }
+
+
+        attributes = e.TryAtt("attributes", out string att) ? att.Split(";").ToHashSet() : parent?.attributes ?? new();
         behavior = e.TryAttEnum(nameof(behavior), parent?.behavior ?? EShipBehavior.none);
 
         damageDesc = e.HasElement("HPSystem", out var xmlHPSystem) ?

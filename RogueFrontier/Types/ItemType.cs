@@ -382,6 +382,7 @@ public record FragmentDesc {
     [Opt] public bool hitSource = false;
     [Opt] public bool hitProjectile;
     [Opt] public bool hitBarrier = true;
+    [Opt] public bool magic;
     [Opt] public IDice blind;
     [Opt] public int ricochet;
     [Opt] public bool hook;

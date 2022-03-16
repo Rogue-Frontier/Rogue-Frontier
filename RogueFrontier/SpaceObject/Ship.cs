@@ -187,6 +187,8 @@ public class BaseShip {
             if (weapons.Any()) {
                 stealth *= 1 - weapons.Max(w => ((double)w.delay / w.desc.fireCooldown));
             }
+
+            stealth = Math.Max(stealth, 0);
         }
         UpdateControl();
         UpdateMotion();

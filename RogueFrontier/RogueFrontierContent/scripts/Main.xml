@@ -3,6 +3,7 @@
 
 	<Module file="Amethyst.xml"/>
 	<Module file="Beowulf.xml"/>
+	<Module file="Campers.xml"/>
 	<Module file="Constellation.xml"/>
 	<Module file="ConstellationMilitia.xml"/>
 	<Module file="Daughters.xml"/>

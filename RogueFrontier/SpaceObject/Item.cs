@@ -103,7 +103,7 @@ public class Armor : Device {
 
     public int damageDelay;
 
-    public double stealth => desc.stealth == 0 ? 0 : damageDelay > 0 ? 0 : desc.stealth * hp / desc.maxHP;
+    public double stealth => desc.stealth == 0 ? 0 : desc.stealth * hp / desc.maxHP;
 
     public int lifetimeDamageAbsorbed;
     public int lastDamageTick;

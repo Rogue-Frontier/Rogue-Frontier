@@ -79,7 +79,7 @@
 				
 				attributes= "Amethyst"
 
-				desc=		"The Amethyst laser cannon (manufactured by Amethyst, Inc. for the Amethyst-class yacht) is the only laser cannon that fires a magenta-colored beam. Not that you'll ever get to see it."
+				desc=		"The Amethyst laser cannon (manufactured by Amethyst, Inc. for the Amethyst-class yacht) is the only one that fires a magenta-colored beam. Not that you'll ever get to see it."
 		>
 		<Weapon
 			initialCharges=	"1200"
@@ -96,6 +96,44 @@
 				/>
 		</Weapon>
 	</ItemType>
+
+
+	<ItemType	codename=	"item_magic_blaster_i"
+			name=		"Magic Blaster I"
+			level=		"1"
+			mass=		"1000"
+			value=		"4800"
+				
+			attributes= "Amethyst"
+
+			desc=		"The directed-energy technology of the Magic Blaster is sufficiently proprietary as to be indistinguishable from magic."
+		>
+		<Weapon
+			initialCharges=	"240"
+			powerUse=		"10"
+			fireCooldown=	"20"
+			>
+			<Projectile
+				count=			"5"
+				spreadAngle=	"15"
+				missileSpeed=	"40"
+				damageType=		"1"
+				damageHP=		"4"
+				
+				lifetime=		"40"
+				glyph=			"*"
+				foreground=		"FF55FFFF"
+				>
+				<Decay lifetime="300" rate="1/60"/>
+				<Trail
+					lifetime=	"20"
+					glyph=		"*"
+					foreground=	"FF55FFFF"
+					background=	"BB77DDFF"/>
+			</Projectile>
+		</Weapon>
+	</ItemType>
+	
 	<ItemType	codename=	"item_amethyst_laser_ii"
 			name=		"Amethyst laser cannon II"
 			level=		"1"
@@ -180,7 +218,8 @@
 				
 		desc=		"Designed for the Amethyst-class yacht, this semicrystalline armor maintains its aesthetic beauty at any condition. It glows brightly when exposed to starlight, so it's not good for stealth ships."
 		>
-		<Armor	maxHP=		"90"
+		<Armor	maxHP=		"75"
+				stealth=	"-2"
 			/>
 	</ItemType>
 

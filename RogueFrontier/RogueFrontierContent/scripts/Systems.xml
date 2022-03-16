@@ -95,7 +95,7 @@
 				</Orbital>
 			</Orbital>
 			<Orbital radius="640" angle="random">
-				
+				<Station codename="station_beowulf_club"/>
 			</Orbital>
 			<Orbital radius="520" angle="random">
 				
@@ -119,7 +119,7 @@
 				</Group>
 			</Orbital>
 			<Orbital radius="160" angle="random">
-				
+				<Station codename="station_camper_outpost"/>
 			</Orbital>
 			<Orbital radius="100" angle="random">
 
