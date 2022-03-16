@@ -58,7 +58,7 @@ I plan to write story and implement long-term player progression.
 
 For a particularly advanced goal, I would like to implement station docking as a turn-based roguelike sub-game where the player can walk around ASCII-style station floors and interact with characters in person.
 
-The second part of *Transcendence* is titled "The Vault of the Galaxy." In kind, I plan to title the second part of *Rogue Frontier* as "The Hall of the GALASCII" (Galactic Alien Lifeforms A la Star Control II)
+If Rogue Frontier ever gets a second chapter, it will be called *The Hall of the GALASCII* (Galactic Allied Lifeforms And Sentient Creatures II)
 
 # Island Hopper
 Island Hopper is a horrible roguelike parodying PlayerUnknown's Battlegrounds with the gameplay of Dwarf Fortress and the writing of Team Fortress 2
