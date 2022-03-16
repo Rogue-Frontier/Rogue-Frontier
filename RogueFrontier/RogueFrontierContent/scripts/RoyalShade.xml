@@ -132,7 +132,7 @@
 			<Item count="25" codename="item_thorn_missile"/>
 		</Items>
         <LayeredArmorSystem>
-			<Armor  codename="item_gemsteel_plate"/>
+			<Armor  codename="item_gemsteel_plate_i"/>
         </LayeredArmorSystem>
     </ShipClass>
 	<StationType	codename="station_royal_tower"

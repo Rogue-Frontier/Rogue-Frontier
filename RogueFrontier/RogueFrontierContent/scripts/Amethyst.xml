@@ -57,11 +57,11 @@
 			<Ship	count="4"	codename="ship_amethyst"/>
 		</Ships>
 		<Cargo>
-			<Item count="12"	codename="item_amethyst_laser"/>
+			<Item count="12"	codename="item_amethyst_laser_i"/>
 			<Item count="12"	codename="item_amethyst_laser_ii"/>
-			<Item count="24"	codename="item_gemsteel_plate"/>
+			<Item count="24"	codename="item_gemsteel_plate_i"/>
 			<Item count="24"	codename="item_gemsteel_plate_ii"/>
-			<Item count="12"	codename="item_shimmer_shield"/>
+			<Item count="12"	codename="item_shimmer_shield_i"/>
 		</Cargo>
 		<Weapons>
 			<Weapon codename="item_amethyst_laser_ii" posX="2" posY="2"		angle="90" leftRange="90" rightRange="135"/>
@@ -71,7 +71,7 @@
 		</Weapons>
 	</StationType>
 
-	<ItemType	codename=	"item_amethyst_laser"
+	<ItemType	codename=	"item_amethyst_laser_i"
 				name=		"Amethyst laser cannon I"
 				level=		"1"
 				mass=		"1000"
@@ -187,8 +187,8 @@
 	</ItemType>
 
 
-	<ItemType	codename=	"item_shimmer_shield"
-		name=		"Shimmer shield"
+	<ItemType	codename=	"item_shimmer_shield_i"
+		name=		"Shimmer shield I"
 		level=		"2"
 		mass=		"200"
 		value=		"400"
@@ -208,7 +208,7 @@
 		</Shield>
 	</ItemType>
 
-	<ItemType	codename=	"item_gemsteel_plate"
+	<ItemType	codename=	"item_gemsteel_plate_i"
 		name=		"Gemsteel plate I"
 		mass=		"4000"
 		level=		"1"

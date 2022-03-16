@@ -472,10 +472,10 @@ public class PlayerStory {
     public PlayerStory(PlayerShip playerShip) {
         var i = playerShip.world.types.GetDict<ItemType>();
         stdPrice = new Dictionary<string, int>() {
-            { "item_amethyst_laser", 5000 },
+            { "item_amethyst_laser_i", 5000 },
             { "item_amethyst_laser_ii", 12000 },
-            { "item_shimmer_shield", 400 },
-            { "item_gemsteel_plate", 1500 },
+            { "item_shimmer_shield_i", 400 },
+            { "item_gemsteel_plate_i", 1500 },
             { "item_gemsteel_plate_ii", 4000 },
             { "itMarksmanRifle", 0 },
             { "itMarshalRepeater", 0 },

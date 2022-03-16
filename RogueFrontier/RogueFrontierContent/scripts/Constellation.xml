@@ -123,7 +123,7 @@
 		</Ships>
 		<Cargo>
 			<Item count="40"	codename="item_armor_repair_patch"/>
-			<Item count="8" codename="item_gemsteel_plate"/>
+			<Item count="8" codename="item_gemsteel_plate_i"/>
 			<Item count="8" codename="item_knightsteel_plate"/>
 			<Item count="8" codename="item_bumpersteel_plate"/>
 		</Cargo>
@@ -164,7 +164,7 @@
 			<Ship	count="1"	codename="ship_clark"/>
 		</Ships>
 		<Cargo>
-			<Item count="8" codename="item_amethyst_laser"/>
+			<Item count="8" codename="item_amethyst_laser_i"/>
 			<Item count="8" codename="item_dynamite_cannon"/>
 			<Item count="120" codename="item_dynamite_charge"/>
 			<Item count="8" codename="item_beowulf_dual_laser_cannon"/>
@@ -207,7 +207,7 @@
 			<Ship	count="3"	codename="ship_beowulf" order="guard"/>
 		</Ships>
 		<Cargo>
-			<Item count="8" codename="item_amethyst_laser"/>
+			<Item count="8" codename="item_amethyst_laser_i"/>
 			<Item count="8" codename="item_dynamite_cannon"/>
 			<Item count="120" codename="item_dynamite_charge"/>
 			<Item count="8" codename="item_beowulf_dual_laser_cannon"/>

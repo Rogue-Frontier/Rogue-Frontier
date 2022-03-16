@@ -12,9 +12,9 @@
                 foreground="Magenta"
 	    >
 	    <Devices>
-			<Weapon codename="item_amethyst_laser"/>
+			<Weapon codename="item_amethyst_laser_i"/>
 			<Weapon codename="item_magic_blaster_i"/>
-			<Shield codename="item_shimmer_shield"/>
+			<Shield codename="item_shimmer_shield_i"/>
 			<Reactor codename="item_20mw_generator"/>
 			<Reactor codename="item_10mw_storage_battery"/>
 			<Solar codename="item_solar_panel"/>
@@ -24,8 +24,8 @@
 			<Item codename="item_amethyst_warranty_card"	count="1"/>
 		</Items>
         <LayeredArmorSystem>
-			<Armor  codename="item_gemsteel_plate"/>
-			<Armor  codename="item_gemsteel_plate"/>
+			<Armor  codename="item_gemsteel_plate_i"/>
+			<Armor  codename="item_gemsteel_plate_i"/>
         </LayeredArmorSystem>
         <PlayerSettings
             startingClass="true"
