@@ -2,19 +2,19 @@
 using SadConsole;
 using System;
 using System.Collections.Generic;
-using Console = SadConsole.Console;
+using Con = SadConsole.ScreenSurface;
 using SadConsole.Input;
 
 namespace RogueFrontier;
 
-public class DeathPause : Console {
+public class DeathPause : Con {
     PlayerMain prev;
     DeathTransition next;
 
     public double time;
     public bool done;
     Viewport view;
-    public DeathPause(PlayerMain prev, DeathTransition next) : base(prev.Width, prev.Height) {
+    public DeathPause(PlayerMain prev, DeathTransition next) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         this.next = next;
         view = new Viewport(prev, prev.camera, prev.world);
@@ -35,15 +35,17 @@ public class DeathPause : Console {
         base.Render(delta);
     }
 }
-public class DeathTransition : Console {
-    Console prev, next;
+public class DeathTransition : ScreenSurface {
+    ScreenSurface prev, next;
+    int Width => Surface.Width;
+    int Height => Surface.Height;
     public class Particle {
         public int x, destY;
         public double y, delay;
     }
     HashSet<Particle> particles;
     double time;
-    public DeathTransition(Console prev, Console next) : base(prev.Width, prev.Height) {
+    public DeathTransition(ScreenSurface prev, ScreenSurface next) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         this.next = next;
         particles = new HashSet<Particle>();
@@ -100,9 +102,9 @@ public class DeathTransition : Console {
     public override void Render(TimeSpan delta) {
         prev.Render(delta);
         base.Render(delta);
-        this.Clear();
+        Surface.Clear();
         foreach (var p in particles) {
-            this.SetCellAppearance(p.x, (int)p.y, new ColoredGlyph(Color.Black, Color.Black, ' '));
+            Surface.SetCellAppearance(p.x, (int)p.y, new ColoredGlyph(Color.Black, Color.Black, ' '));
         }
     }
 }

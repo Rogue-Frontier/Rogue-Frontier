@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Common;
 using Newtonsoft.Json;
-using Con = SadConsole.Console;
+using Con = SadConsole.ScreenSurface;
 
 namespace RogueFrontier;
 

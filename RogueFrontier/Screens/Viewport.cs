@@ -7,15 +7,16 @@ using System.Threading.Tasks;
 using Console = SadConsole.Console;
 namespace RogueFrontier;
 
-public class Viewport : Console {
+public class Viewport : ScreenSurface {
+
+    public int Width => Surface.Width;
+    public int Height => Surface.Height;
     public Camera camera;
     public System world;
-    public Dictionary<(int, int), ColoredGlyph> tiles;
-    public Viewport(Console prev, Camera camera, System world) : base(prev.Width, prev.Height) {
+    public Dictionary<(int, int), ColoredGlyph> tiles=new();
+    public Viewport(ScreenSurface prev, Camera camera, System world) : base(prev.Surface.Width, prev.Surface.Height) {
         this.camera = camera;
         this.world = world;
-        this.tiles = new();
-
     }
     public override void Update(TimeSpan delta) {
         tiles.Clear();
@@ -33,7 +34,7 @@ public class Viewport : Console {
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
-        this.Clear();
+        Surface.Clear();
         int ViewWidth = Width;
         int ViewHeight = Height;
         int HalfViewWidth = ViewWidth / 2;
@@ -44,7 +45,7 @@ public class Viewport : Console {
                 if (tiles.TryGetValue(location.roundDown, out var tile)) {
                     var xScreen = x + HalfViewWidth;
                     var yScreen = HalfViewHeight - y;
-                    this.SetCellAppearance(xScreen, yScreen, tile);
+                    Surface.SetCellAppearance(xScreen, yScreen, tile);
                 }
             }
         }

@@ -71,36 +71,25 @@ public interface SystemElement {
 public static class SSystemElement {
     public static SystemElement Create(TypeCollection tc, XElement e) {
         var f = SGenerator.ParseFrom(tc, Create);
-        switch (e.Name.LocalName) {
-            case "System":
-            case "Group":
-                return new SystemGroup(e, f);
-            case "Orbital":
-                return new SystemOrbital(e, f);
-            case "Planet":
-                return new SystemPlanet(e);
-            case "Asteroids":
-                return new SystemAsteroids(e);
-            case "Nebula":
-                return new SystemNebula(e);
-            case "Sibling":
-                return new SystemSibling(e, f);
-            case "Star":
-                return new SystemStar(e);
-            case "Stargate":
-                return new SystemStargate(tc, e);
-            case "Station":
-                return new SystemStation(tc, e);
-            case "Ship":
-            case "Ships":
-                return new SystemShips(tc, e);
-            case "At":
-                return new SystemAt(e, f);
-            case "Marker":
-                return new SystemMarker(e);
-            default:
-                throw new Exception($"Unknown system element <{e.Name}>");
-        }
+
+        return e.Name.LocalName switch {
+            "System"    => new SystemGroup(e, f),
+            "Group"     => new SystemGroup(e, f),
+            "Table"     => new SystemTable(e, f),
+            "Orbital"   => new SystemOrbital(e, f),
+            "Planet"    => new SystemPlanet(e),
+            "Asteroids" => new SystemAsteroids(e),
+            "Nebula"    => new SystemNebula(e),
+            "Sibling"   => new SystemSibling(e, f),
+            "Star"      => new SystemStar(e),
+            "Stargate"  => new SystemStargate(tc, e),
+            "Station"   => new SystemStation(tc, e),
+            "Ship"      => new SystemShips(tc, e),
+            "Ships"     => new SystemShips(tc, e),
+            "At"        => new SystemAt(e, f),
+            "Marker"    => new SystemMarker(e),
+            _           => throw new Exception($"Unknown system element <{e.Name}>")
+        };
     }
 }
 public record SystemGroup() : SystemElement {
@@ -120,6 +109,68 @@ public record SystemGroup() : SystemElement {
         
     }
 }
+
+public record SystemTable() : SystemElement {
+    [Opt] public IDice count = new Constant(1);
+    [Opt] public bool replacement = true;
+    public List<(double chance, SystemElement element)> generators;
+    private double totalChance;
+    public SystemTable(XElement e, Parse<SystemElement> parse) : this() {
+        e.Initialize(this);
+        generators = new();
+        foreach (var element in e.Elements()) {
+            var chance = element.ExpectAttDouble("chance");
+            generators.Add((chance, parse(element)));
+            totalChance += chance;
+        }
+    }
+    public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
+        if (replacement) {
+            Enumerable.Range(0, count.Roll()).ToList().ForEach(i => {
+                var c = lc.world.karma.NextDouble() * totalChance;
+                foreach ((var chance, var g) in generators) {
+                    if (c < chance) {
+                        g.Generate(lc, tc, result);
+                        return;
+                    } else {
+                        c -= chance;
+                    }
+                }
+                throw new Exception("Unexpected roll");
+            });
+        } else {
+            List<(double chance, SystemElement element)> choicesLeft;
+            double totalChanceLeft;
+            ResetTable();
+            Enumerable.Range(0, count.Roll()).ToList().ForEach(i => {
+                if (totalChanceLeft > 0) {
+                    ResetTable();
+                }
+                var c = lc.world.karma.NextDouble() * totalChanceLeft;
+                for (int j = 0; j < choicesLeft.Count; j++) {
+                    (var chance, var g) = generators[j];
+                    if (c < chance) {
+                        generators.RemoveAt(j);
+                        totalChanceLeft -= chance;
+                        g.Generate(lc, tc, result);
+                        return;
+                    } else {
+                        c -= chance;
+                    }
+                }
+                throw new Exception("Unexpected roll");
+            });
+
+            void ResetTable() {
+                choicesLeft = new(generators);
+                totalChanceLeft = totalChance;
+            }
+
+        }
+    }
+}
+
+
 public record SystemAt() : SystemElement {
     public List<SystemElement> subelements;
     public int index = -1;

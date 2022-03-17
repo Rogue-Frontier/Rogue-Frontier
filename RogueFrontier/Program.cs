@@ -232,8 +232,7 @@ more than just a dream...
             };
 
             //Note that FadeIn automatically replaces the child console
-            Console c = null;
-            c = new FadeIn(pause);
+            var c = new FadeIn(pause);
 
             prev.Parent.Children.Add(c);
             prev.Parent.Children.Remove(prev);

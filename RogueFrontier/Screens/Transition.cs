@@ -8,14 +8,14 @@ using SadConsole.Input;
 
 namespace RogueFrontier;
 public class TitleSlideOpening : Console {
-    public Console next;
+    public ScreenSurface next;
     int x = 0;
     double time = 0;
     double interval;
     bool fast;
     bool updateNext;
-    public TitleSlideOpening(Console next, bool updateNext = true) : base(next.Width, next.Height) {
-        x = next.Width;
+    public TitleSlideOpening(ScreenSurface next, bool updateNext = true) : base(next.Surface.Width, next.Surface.Height) {
+        x = next.Surface.Width;
         this.next = next;
         this.updateNext = updateNext;
         interval = 4f / Width;
@@ -55,13 +55,13 @@ public class TitleSlideOpening : Console {
             }
             for (int x = Math.Max(0, this.x); x < Math.Min(Width, this.x + 16); x++) {
 
-                var glyph = next.GetGlyph(x, y);
+                var glyph = next.Surface.GetGlyph(x, y);
                 var value = 255 - 255 / 16 * (x - this.x);
 
-                var fore = next.GetForeground(x, y);
+                var fore = next.Surface.GetForeground(x, y);
                 fore = fore.Premultiply().Blend(Color.Black.WithValues(alpha: value));
 
-                var back = next.GetBackground(x, y);
+                var back = next.Surface.GetBackground(x, y);
                 back = back.Premultiply().Blend(Color.Black.WithValues(alpha: value));
 
                 this.SetCellAppearance(x, y, new ColoredGlyph(fore, back, glyph));
@@ -194,12 +194,11 @@ public class TitleSlideIn : Console {
         }
     }
 }
-public class FadeIn : Console {
-    Console next;
+public class FadeIn : ScreenSurface {
+    ScreenSurface next;
     float alpha;
-    public FadeIn(Console next) : base(next.Width, next.Height) {
+    public FadeIn(ScreenSurface next) : base(next.Surface.Width, next.Surface.Height) {
         this.next = next;
-        DefaultBackground = Color.Transparent;
         Render(new TimeSpan());
     }
     public override void Update(TimeSpan delta) {
@@ -217,11 +216,11 @@ public class FadeIn : Console {
         }
     }
     public override void Render(TimeSpan delta) {
-        this.Clear();
+        Surface.Clear();
         var g = new ColoredGlyph(Color.Black, new Color(0, 0, 0, 1 - alpha));
-        for (int y = 0; y < Height; y++) {
-            for (int x = 0; x < Width; x++) {
-                this.SetCellAppearance(x, y, g);
+        for (int y = 0; y < Surface.Height; y++) {
+            for (int x = 0; x < Surface.Width; x++) {
+                Surface.SetCellAppearance(x, y, g);
             }
         }
         next.Render(delta);
@@ -263,11 +262,11 @@ public class FadeOut : Console {
     }
 }
 
-public class Pause : Console {
+public class Pause : ScreenSurface {
     Action next;
-    Console background;
+    ScreenSurface background;
     double time;
-    public Pause(Console background, Action next, int time = 5) : base(background.Width, background.Height) {
+    public Pause(ScreenSurface background, Action next, int time = 5) : base(background.Surface.Width, background.Surface.Height) {
         this.background = background;
         this.time = time;
         this.next = next;

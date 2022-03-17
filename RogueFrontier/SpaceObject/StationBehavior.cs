@@ -8,6 +8,7 @@ using static RogueFrontier.StationType;
 using Console = SadConsole.Console;
 using Newtonsoft.Json;
 using static RogueFrontier.Weapon;
+using Kodi.Linq.Extensions;
 
 namespace RogueFrontier;
 public interface StationBehavior {
@@ -155,16 +156,19 @@ public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroye
     }
     public void Update(Station owner) {
         if(owner.world.tick%1200 == 0) {
-            if(owner.guards.Count > 5) {
+            if(owner.guards.Count > 4) {
                 var g = owner.guards.Take(1).ToList();
                 
                 var k = owner.world.karma;
 
-                var enemies = owner.world.entities.all.OfType<ActiveObject>().Where(a => owner.CanTarget(a));
+                var enemies = owner.world.entities.all
+                    .OfType<Station>()
+                    .Where(a => owner.CanTarget(a))
+                    .Shuffle();
 
                 foreach(var enemy in enemies) {
-                    XY p = owner.position + XY.Polar(k.NextDouble() * Math.PI * 2, k.NextInteger(80, 400));
-                    if (enemies.All(a => (a.position - p).magnitude > 50) && enemies.Any(a => (a.position - p).magnitude < 150)) {
+                    XY p = enemy.position + XY.Polar(k.NextDouble() * Math.PI * 2, k.NextInteger(80, 200));
+                    if (enemies.All(a => (a.position - p).magnitude > 70) && enemies.Any(a => (a.position - p).magnitude < 200)) {
                         var ambushPoint = new ActiveMarker(owner.world, owner.sovereign, p);
                         var o = new GuardOrder(ambushPoint);
                         o.onDocked += this;

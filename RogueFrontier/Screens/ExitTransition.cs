@@ -8,21 +8,16 @@ using SadConsole.Input;
 namespace RogueFrontier;
 
 public class ExitTransition : Console {
-    Console prev, next;
+    ScreenSurface prev, next;
     public class Particle {
         public int x, destY;
         public double y, delay;
     }
     HashSet<Particle> particles;
     double time;
-    public ExitTransition(Console prev, Console next) : base(prev.Width, prev.Height) {
+    public ExitTransition(ScreenSurface prev, ScreenSurface next) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         this.next = next;
-        InitParticles();
-    }
-    public ExitTransition(Console prev, Func<Console> next) : base(prev.Width, prev.Height) {
-        this.prev = prev;
-        this.next = next();
         InitParticles();
     }
     public void InitParticles() {

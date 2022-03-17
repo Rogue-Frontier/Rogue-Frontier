@@ -11,18 +11,18 @@ using Common;
 using ArchConsole;
 namespace RogueFrontier;
 
-class ShipScreen : Console {
-    public Console prev;
+class ShipScreen : ScreenSurface {
+    public ScreenSurface prev;
     public PlayerShip playerShip;
     public PlayerStory story;
     //Idea: Show an ASCII-art map of the ship where the player can walk around
-    public ShipScreen(Console prev, PlayerShip playerShip, PlayerStory story) : base(prev.Width, prev.Height) {
+    public ShipScreen(ScreenSurface prev, PlayerShip playerShip, PlayerStory story) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
 
         this.playerShip = playerShip;
         this.story = story;
 
-        int x = 1, y = Height - 9;
+        int x = 1, y = Surface.Height - 9;
         Children.Add(new LabelButton("[A] Active Devices", ShowPower) { Position = (x, y++) });
         Children.Add(new LabelButton("[C] Cargo", ShowCargo) { Position = (x, y++) });
         Children.Add(new LabelButton("[D] Devices", ShowCargo) { Position = (x, y++) });
@@ -36,22 +36,22 @@ class ShipScreen : Console {
 
 
 
-        this.Clear();
+        Surface.Clear();
         this.RenderBackground();
         var name = playerShip.shipClass.name;
-        var x = Width / 4 - name.Length / 2;
+        var x = Surface.Width / 4 - name.Length / 2;
         var y = 4;
 
         void Print(int x, int y, string s) =>
-            this.Print(x, y, s, Color.White, Color.Black);
+            Surface.Print(x, y, s, Color.White, Color.Black);
         void Print2(int x, int y, string s) =>
-            this.Print(x, y, s, Color.White, Color.Black.SetAlpha(102));
+            Surface.Print(x, y, s, Color.White, Color.Black.SetAlpha(102));
 
         Print(x, y, name);
 
 
         var map = playerShip.shipClass.playerSettings?.map ?? new string[] { "" };
-        x = Math.Max(0, Width / 4 - map.Select(line => line.Length).Max() / 2);
+        x = Math.Max(0, Surface.Width / 4 - map.Select(line => line.Length).Max() / 2);
         y = 2;
 
         int width = map.Max(l => l.Length);
@@ -69,7 +69,7 @@ class ShipScreen : Console {
         y++;
         Print(x, y, $"{"",-16}{$"Rotate max speed:    {playerShip.shipClass.rotationMaxSpeed * 30,3} deg/s^2"}");
 
-        x = Width / 2;
+        x = Surface.Width / 2;
         y = 2;
 
         var pl = playerShip.person;
@@ -137,7 +137,7 @@ class ShipScreen : Console {
         if (playerShip.messages.Any()) {
             Print(x, y++, "[Messages]");
             foreach (var m in playerShip.messages) {
-                this.Print(x, y++, m.Draw());
+                Surface.Print(x, y++, m.Draw());
             }
             y++;
         }
@@ -180,14 +180,14 @@ class ShipScreen : Console {
     public void ShowLogs() => Transition(SListScreen.LogScreen(this, playerShip));
     public void ShowMissions() => Transition(SListScreen.MissionScreen(this, playerShip, story));
     public void ShowRefuel() => Transition(SListScreen.RefuelScreen1(this, playerShip));
-    public void Transition(Console s) {
+    public void Transition(ScreenSurface s) {
         Parent.Children.Add(s);
         Parent.Children.Remove(this);
         s.IsFocused = true;
     }
 }
 public class SListScreen {
-    public static ListScreen<IPlayerMessage> LogScreen(Console prev, PlayerShip player) {
+    public static ListScreen<IPlayerMessage> LogScreen(ScreenSurface prev, PlayerShip player) {
         ListScreen<IPlayerMessage> screen = null;
         List<IPlayerMessage> logs = player.logs;
 
@@ -222,7 +222,7 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<IPlayerInteraction> MissionScreen(Console prev, PlayerShip player, PlayerStory story) {
+    public static ListScreen<IPlayerInteraction> MissionScreen(ScreenSurface prev, PlayerShip player, PlayerStory story) {
         ListScreen<IPlayerInteraction> screen = null;
         List<IPlayerInteraction> missions = new();
         void UpdateList() {
@@ -284,7 +284,7 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Item> InvokableScreen(Console prev, PlayerShip player) {
+    public static ListScreen<Item> InvokableScreen(ScreenSurface prev, PlayerShip player) {
         ListScreen<Item> screen = null;
         IEnumerable<Item> cargoInvokable;
         IEnumerable<Item> installedInvokable;
@@ -336,7 +336,7 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Device> LoadoutScreen(Console prev, PlayerShip player) {
+    public static ListScreen<Device> LoadoutScreen(ScreenSurface prev, PlayerShip player) {
         ListScreen<Device> screen = null;
         var devices = player.devices.Installed;
         return screen = new(prev,
@@ -376,7 +376,7 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Item> CargoScreen(Console prev, PlayerShip player) {
+    public static ListScreen<Item> CargoScreen(ScreenSurface prev, PlayerShip player) {
         ListScreen<Item> screen = null;
         var items = player.cargo;
         return screen = new ListScreen<Item>(prev,
@@ -414,7 +414,7 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Device> PowerScreen(Console prev, PlayerShip player) {
+    public static ListScreen<Device> PowerScreen(ScreenSurface prev, PlayerShip player) {
         ListScreen<Device> screen = null;
         var disabled = player.energy.off;
         var powered = player.devices.Powered;
@@ -458,7 +458,7 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Device> UninstallScreen(Console prev, PlayerShip player) {
+    public static ListScreen<Device> UninstallScreen(ScreenSurface prev, PlayerShip player) {
         ListScreen<Device> screen = null;
         var devices = player.devices.Installed;
         return screen = new(prev,
@@ -502,7 +502,7 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Armor> RepairArmorScreen(Console prev, PlayerShip player, Item source, RepairArmor repair, Action callback) {
+    public static ListScreen<Armor> RepairArmorScreen(ScreenSurface prev, PlayerShip player, Item source, RepairArmor repair, Action callback) {
         ListScreen<Armor> screen = null;
         var devices = (player.hull as LayeredArmor).layers;
         return screen = new(prev,
@@ -554,7 +554,7 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Reactor> RefuelReactor(Console prev, PlayerShip player, Item source, Refuel refuel, Action callback) {
+    public static ListScreen<Reactor> RefuelReactor(ScreenSurface prev, PlayerShip player, Item source, Refuel refuel, Action callback) {
         ListScreen<Reactor> screen = null;
         var devices = player.devices.Reactor;
         return screen = new(prev,
@@ -606,7 +606,7 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Device> ReplaceDevice(Console prev, PlayerShip player, Item source, ReplaceDevice replace, Action callback) {
+    public static ListScreen<Device> ReplaceDevice(ScreenSurface prev, PlayerShip player, Item source, ReplaceDevice replace, Action callback) {
         ListScreen<Device> screen = null;
         var devices = player.devices.Installed.Where(i => i.source.type == replace.from);
         return screen = new(prev,
@@ -653,7 +653,7 @@ public class SListScreen {
     }
 
 
-    public static ListScreen<Armor> ArmorRepairService(Console prev, PlayerShip player, List<Armor> layers, Func<Armor, int> GetPrice, Action callback) {
+    public static ListScreen<Armor> ArmorRepairService(ScreenSurface prev, PlayerShip player, List<Armor> layers, Func<Armor, int> GetPrice, Action callback) {
         ListScreen<Armor> screen = null;
 
         RepairEffect job = null;
@@ -747,7 +747,7 @@ public class SListScreen {
 
 
 
-    public static ListScreen<Device> DeviceRemovalService(Console prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
+    public static ListScreen<Device> DeviceRemovalService(ScreenSurface prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
         ListScreen<Device> screen = null;
         var installed = player.devices.Installed;
         return screen = new(prev,
@@ -808,7 +808,7 @@ public class SListScreen {
         }
     }
 
-    public static ListScreen<Item> DeviceInstallService(Console prev, PlayerShip player, Func<Item, int> GetPrice, Action callback) {
+    public static ListScreen<Item> DeviceInstallService(ScreenSurface prev, PlayerShip player, Func<Item, int> GetPrice, Action callback) {
         ListScreen<Item> screen = null;
         var cargo = player.cargo.Where(i => i.HasDevice());
         return screen = new(prev,
@@ -870,7 +870,7 @@ public class SListScreen {
         }
     }
 
-    public static ListScreen<Armor> ReplaceArmorService(Console prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
+    public static ListScreen<Armor> ReplaceArmorService(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
         ListScreen<Armor> screen = null;
         var armor = (player.hull as LayeredArmor)?.layers??new List<Armor>();
         return screen = new(prev,
@@ -995,7 +995,7 @@ public class SListScreen {
 
 
 
-    public static ListScreen<Item> SetMod(Console prev, PlayerShip player, Item source, Modifier mod, Action callback) {
+    public static ListScreen<Item> SetMod(ScreenSurface prev, PlayerShip player, Item source, Modifier mod, Action callback) {
         ListScreen<Item> screen = null;
         IEnumerable<Item> cargo;
         IEnumerable<Item> installed;
@@ -1046,7 +1046,7 @@ public class SListScreen {
     }
 
 
-    public static ListScreen<Reactor> RefuelScreen1(Console prev, PlayerShip player) {
+    public static ListScreen<Reactor> RefuelScreen1(ScreenSurface prev, PlayerShip player) {
         ListScreen<Reactor> screen = null;
         var devices = player.devices.Reactor;
         return screen = new(prev,
@@ -1085,7 +1085,7 @@ public class SListScreen {
                 p.Children.Add(RefuelScreen2(prev, player));
             }
 
-            ListScreen<Item> RefuelScreen2(Console prev, PlayerShip player) {
+            ListScreen<Item> RefuelScreen2(ScreenSurface prev, PlayerShip player) {
                 ListScreen<Item> screen = null;
                 var items = player.cargo.Where(i => i.type.invoke is Refuel r);
                 return screen = new(prev, player, items,
@@ -1134,8 +1134,8 @@ public class SListScreen {
 
 
 }
-public class ListScreen<T> : Console {
-    Console prev;
+public class ListScreen<T> : ScreenSurface {
+    ScreenSurface prev;
     PlayerShip player;
 
     public bool groupMode = true;
@@ -1153,7 +1153,7 @@ public class ListScreen<T> : Console {
     public delegate List<ColoredString> GetDesc(T t);
     public delegate void Invoke(T t);
     public delegate void Escape();
-    public ListScreen(Console prev, PlayerShip player, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Width, prev.Height) {
+    public ListScreen(ScreenSurface prev, PlayerShip player, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         this.player = player;
         this.items = items;
@@ -1255,14 +1255,14 @@ public class ListScreen<T> : Console {
         int y = 16;
 
         void line(Point from, Point to, int glyph) {
-            this.DrawLine(from, to, '-', Color.White, null);
+            Surface.DrawLine(from, to, '-', Color.White, null);
         }
 
         this.RenderBackground();
 
         //this.Fill(new Rectangle(x, y, 32, 26), Color.Gray, null, '.');
-        this.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(Color.Yellow, Color.Black, '-'));
-        this.Print(x, y - 2, player.name, Color.Yellow, Color.Black);
+        Surface.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(Color.Yellow, Color.Black, '-'));
+        Surface.Print(x, y - 2, player.name, Color.Yellow, Color.Black);
         int start = 0;
         int? highlight = null;
         if (index.HasValue) {
@@ -1297,7 +1297,7 @@ public class ListScreen<T> : Console {
                 }
                 var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", highlightColor, Color.Black)
                          + new ColoredString(n, highlightColor, Color.Black);
-                this.Print(x, y, name);
+                Surface.Print(x, y, name);
 
                 i++;
                 y++;
@@ -1313,7 +1313,7 @@ public class ListScreen<T> : Console {
                 ColoredGlyph cg = (i < barStart || i > barEnd) ?
                     new ColoredGlyph(Color.LightGray, Color.Black, '|') :
                     new ColoredGlyph(Color.White, Color.Black, '#');
-                this.SetCellAppearance(barX, 16 + i, cg);
+                Surface.SetCellAppearance(barX, 16 + i, cg);
             }
 
             line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
@@ -1322,7 +1322,7 @@ public class ListScreen<T> : Console {
         } else {
             var highlightColor = Color.Yellow;
             var name = new ColoredString("<Empty>", highlightColor, Color.Black);
-            this.Print(x, y, name);
+            Surface.Print(x, y, name);
 
             int barX = x - 2;
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
@@ -1333,19 +1333,19 @@ public class ListScreen<T> : Console {
 
         //this.DrawLine(new Point(x, y));
 
-        y = Height - 16;
+        y = Surface.Height - 16;
         foreach (var m in player.messages) {
-            this.Print(x, y++, m.Draw());
+            Surface.Print(x, y++, m.Draw());
         }
 
         x += 32 + 2;
         y = 14;
         var item = currentItem;
         if (item != null) {
-            this.Print(x, y, getName(item), Color.Yellow, Color.Black);
+            Surface.Print(x, y, getName(item), Color.Yellow, Color.Black);
             y += 2;
             foreach (var l in getDesc(item)) {
-                this.Print(x, y++, l);
+                Surface.Print(x, y++, l);
             }
         }
 

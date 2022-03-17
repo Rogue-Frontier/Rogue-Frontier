@@ -67,11 +67,11 @@ public enum NavFlags : long {
     ESC = 0b1,
     ENTER = 0b10
 }
-public record SceneOption(char key, string name, Func<Console, Console> next, NavFlags flags = 0) {
+public record SceneOption(char key, string name, Func<ScreenSurface, ScreenSurface> next, NavFlags flags = 0) {
     
     public SceneOption() : this('\0', "", null, 0) { }
     public SceneOption(string name) : this(name, null, 0) { }
-    public SceneOption(string name, Func<Console, Console> next, NavFlags flags = 0) : this(name.FirstOrDefault(char.IsLetterOrDigit), name, next, flags) { }
+    public SceneOption(string name, Func<ScreenSurface, ScreenSurface> next, NavFlags flags = 0) : this(name.FirstOrDefault(char.IsLetterOrDigit), name, next, flags) { }
 }
 public static class SScene {
     public static Dictionary<(int, int), U> Normalize<U>(this Dictionary<(int, int), U> d) {
@@ -142,8 +142,8 @@ public static class SScene {
             c.ProcessMouse(new MouseScreenObjectState(c, m));
         }
     }
-    public static void RenderBackground(this Console c) {
-        c.Fill(Color.Black, Color.Black.SetAlpha(128), ' ');
+    public static void RenderBackground(this ScreenSurface c) {
+        c.Surface.Fill(Color.Black, Color.Black.SetAlpha(128), ' ');
 
         /*
         var back = new Console(c.Width, c.Height);
@@ -189,7 +189,7 @@ public class Dialog : Console {
     int descY => 8;
 
     public static int maxCharge = 48;
-    public Dialog(Console prev, string desc, List<SceneOption> navigation) : base(prev.Width, prev.Height) {
+    public Dialog(ScreenSurface prev, string desc, List<SceneOption> navigation) : base(prev.Surface.Width, prev.Surface.Height) {
         this.desc = desc.Replace("\r", null);
         navigation.RemoveAll(s => s == null);
         this.navigation = navigation;
@@ -272,7 +272,7 @@ public class Dialog : Console {
 
         base.Update(delta);
     }
-    public void Transition(Console next) {
+    public void Transition(ScreenSurface next) {
         var p = Parent;
         var c = Parent.Children;
         c.Remove(this);

@@ -7,9 +7,9 @@ using Console = SadConsole.Console;
 namespace RogueFrontier;
 
 public class SceneScan : Console {
-    Console next;
+    ScreenSurface next;
     int y;
-    public SceneScan(Console next) : base(next.Width, next.Height) {
+    public SceneScan(ScreenSurface next) : base(next.Surface.Width, next.Surface.Height) {
         y = 0;
         this.next = next;
         next.Render(new TimeSpan());
@@ -22,7 +22,7 @@ public class SceneScan : Console {
         return base.ProcessKeyboard(keyboard);
     }
     public override void Update(TimeSpan delta) {
-        if (y < next.Height) {
+        if (y < next.Surface.Height) {
             y += 1;
         } else {
             Transition();
@@ -44,7 +44,7 @@ public class SceneScan : Console {
         int y;
         for (y = 0; y < last; y++) {
             for (int x = 0; x < Width; x++) {
-                this.SetCellAppearance(x, y, next.GetCellAppearance(x, y));
+                this.SetCellAppearance(x, y, next.Surface.GetCellAppearance(x, y));
             }
         }
         y = last;

@@ -4,7 +4,7 @@ using SadConsole;
 namespace RogueFrontier;
 public interface IDockable : StructureObject {
     XY GetDockPoint();
-    Console GetDockScene(Console prev, PlayerShip player);
+    ScreenSurface GetDockScene(ScreenSurface prev, PlayerShip player);
 }
 public interface MovingObject : Entity {
 

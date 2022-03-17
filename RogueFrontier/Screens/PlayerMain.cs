@@ -60,7 +60,10 @@ public class Camera {
         right = right.Rotate(angle);
     }
 }
-public class PlayerMain : Console {
+public class PlayerMain : ScreenSurface {
+
+    public int Width => Surface.Width;
+    public int Height => Surface.Height;
     public System world => playerShip.world;
     public Camera camera { get; private set; }
     public Profile profile;
@@ -94,8 +97,6 @@ public class PlayerMain : Console {
     //EventWaitHandle smooth = new(true, EventResetMode.AutoReset);
 
     public PlayerMain(int Width, int Height, Profile profile, PlayerShip playerShip) : base(Width, Height) {
-        DefaultBackground = Color.Transparent;
-        DefaultForeground = Color.Transparent;
         UseMouse = true;
         UseKeyboard = true;
         camera = new();
@@ -185,11 +186,11 @@ public class PlayerMain : Console {
     }
     public void OnIntermission(Container<LiveGame.LoadHook> hook = null) {
         HideAll();
-        Game.Instance.Screen = new ExitTransition(this, EndCrawl) { IsFocused = true };
-        Console EndCrawl() {
+        Game.Instance.Screen = new ExitTransition(this, EndCrawl()) { IsFocused = true };
+        ScreenSurface EndCrawl() {
             SimpleCrawl ds = null;
             ds = new SimpleCrawl("Intermission\n\n", EndPause) {
-                Position = new Point(Width / 4, 8), IsFocused = true
+                Position = new Point(Surface.Width / 4, 8), IsFocused = true
             };
             void EndPause() {
                 Game.Instance.Screen = new Pause(ds, EndGame, 3) { IsFocused = true };
@@ -206,10 +207,10 @@ public class PlayerMain : Console {
     public void OnPlayerLeft() {
         HideAll();
         world.entities.Remove(playerShip);
-        SadConsole.Game.Instance.Screen = new ExitTransition(this, EndCrawl) { IsFocused = true };
-        Console EndCrawl() {
+        SadConsole.Game.Instance.Screen = new ExitTransition(this, EndCrawl()) { IsFocused = true };
+        ScreenSurface EndCrawl() {
             SimpleCrawl ds = null;
-            ds = new SimpleCrawl("You have left Human Space.\n\n", EndPause) { Position = new Point(Width / 4, 8), IsFocused = true };
+            ds = new SimpleCrawl("You have left Human Space.\n\n", EndPause) { Position = new Point(Surface.Width / 4, 8), IsFocused = true };
             void EndPause() {
                 Game.Instance.Screen = new Pause(ds, EndGame, 3) { IsFocused = true };
             }
@@ -230,7 +231,7 @@ public class PlayerMain : Console {
         playerShip.ship.blindTicks = 0;
         HideAll();
         //Get a snapshot of the player
-        var size = Height;
+        var size = Surface.Height;
         var deathFrame = new ColoredGlyph[size, size];
         XY center = new XY(size / 2, size / 2);
         for (int y = 0; y < size; y++) {
@@ -315,7 +316,7 @@ public class PlayerMain : Console {
             }
             var dock = playerShip.dock;
             if (dock?.justDocked == true && dock.Target is IDockable d) {
-                Console scene = story.GetScene(this, playerShip, d) ?? d.GetDockScene(this, playerShip);
+                var scene = story.GetScene(this, playerShip, d) ?? d.GetDockScene(this, playerShip);
                 if (scene != null) {
                     playerShip.DisengageAutopilot();
                     playerShip.dock = null;
@@ -387,7 +388,7 @@ public class PlayerMain : Console {
 
             var dock = playerShip.dock;
             if (dock?.justDocked == true && dock.Target is IDockable d) {
-                Console scene = story.GetScene(this, playerShip, d) ?? d.GetDockScene(this, playerShip);
+                var scene = story.GetScene(this, playerShip, d) ?? d.GetDockScene(this, playerShip);
                 if (scene != null) {
                     playerShip.DisengageAutopilot();
                     playerShip.dock = null;
@@ -614,7 +615,7 @@ public class PlayerMain : Console {
                 playerShip.PrevPrimary();
             }
 
-            var centerOffset = new XY(mouseScreenPos.x, Height - mouseScreenPos.y) - new XY(Width / 2, Height / 2);
+            var centerOffset = new XY(mouseScreenPos.x, Surface.Height - mouseScreenPos.y) - new XY(Surface.Width / 2, Surface.Height / 2);
             centerOffset *= uiMegamap.viewScale;
             mouseWorldPos = (centerOffset.Rotate(camera.rotation) + camera.position);
             ActiveObject t;
@@ -671,7 +672,9 @@ public class PlayerMain : Console {
     }
 }
 
-public class BackdropConsole : Console {
+public class BackdropConsole : ScreenSurface {
+    public int Width => Surface.Width;
+    public int Height => Surface.Height;
     public Camera camera;
 
     private readonly XY screenCenter;
@@ -690,13 +693,13 @@ public class BackdropConsole : Console {
         base.Update(delta);
     }
     public override void Render(TimeSpan drawTime) {
-        this.Clear();
+        Surface.Clear();
         for (int x = 0; x < Width; x++) {
             for (int y = 0; y < Height; y++) {
                 //var g = this.GetGlyph(x, y);
                 var offset = new XY(x, Height - y) - screenCenter;
                 var location = camera.position + offset.Rotate(camera.rotation);
-                this.SetCellAppearance(x, y, backdrop.GetTile(location, camera.position));
+                Surface.SetCellAppearance(x, y, backdrop.GetTile(location, camera.position));
             }
         }
         base.Render(drawTime);
@@ -707,7 +710,10 @@ public class BackdropConsole : Console {
         return backdrop.GetTile(location, camera.position);
     }
 }
-public class Megamap : Console {
+public class Megamap : ScreenSurface {
+    int Width => Surface.Width;
+    int Height => Surface.Height;
+
     Camera camera;
     PlayerShip player;
     GeneratedLayer background;
@@ -765,7 +771,7 @@ public class Megamap : Console {
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
-        this.Clear();
+        Surface.Clear();
 
         var alpha = this.alpha;
         if (alpha > 0) {
@@ -789,7 +795,7 @@ public class Megamap : Console {
                         var glyph = cg.Glyph;
                         var background = cg.Background.PremultiplySet(alpha);
                         var foreground = cg.Foreground.PremultiplySet(alpha);
-                        this.SetCellAppearance(x, Height - y, new ColoredGlyph(foreground, background, glyph));
+                        Surface.SetCellAppearance(x, Height - y, new ColoredGlyph(foreground, background, glyph));
                     }
                     var environment = player.world.backdrop.planets.GetTile(pos.Snap(viewScale), XY.Zero);
                     if (IsVisible(environment)) {
@@ -807,13 +813,13 @@ public class Megamap : Console {
                     var glyph = cg.Glyph;
                     var background = cg.Background.BlendPremultiply(starlight, alpha);
                     var foreground = cg.Foreground.PremultiplySet(alpha);
-                    this.SetCellAppearance(x, Height - y, new ColoredGlyph(foreground, background, glyph));
+                    Surface.SetCellAppearance(x, Height - y, new ColoredGlyph(foreground, background, glyph));
                 }
             }
             var visiblePerimeter = new Rectangle(new(Width / 2, Height / 2), (int)(Width / (viewScale * 2) - 1), (int)(Height / (viewScale * 2) - 1));
             foreach (var point in visiblePerimeter.PerimeterPositions()) {
-                var b = this.GetBackground(point.X, point.Y);
-                this.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, (int)(128/viewScale))));
+                var b = Surface.GetBackground(point.X, point.Y);
+                Surface.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, (int)(128/viewScale))));
             }
             var scaledEntities = player.world.entities.space.DownsampleSet(viewScale, -player.position);
             var rendered = new HashSet<(int, int)>();
@@ -839,8 +845,8 @@ public class Megamap : Console {
                         }
 
 
-                        t = new ColoredGlyph(f, this.GetBackground(x, y), t.Glyph);
-                        this.SetCellAppearance(x, y, t);
+                        t = new ColoredGlyph(f, Surface.GetBackground(x, y), t.Glyph);
+                        Surface.SetCellAppearance(x, y, t);
                         //rendered.Add((x, y));
                     }
                 }
@@ -874,7 +880,11 @@ public class Megamap : Console {
         base.Render(delta);
     }
 }
-public class Vignette : Console, IContainer<PlayerShip.Damaged> {
+public class Vignette : ScreenSurface, IContainer<PlayerShip.Damaged> {
+    public int Width => Surface.Width;
+    public int Height => Surface.Height;
+
+
     PlayerShip player;
     public float powerAlpha;
     public HashSet<EffectParticle> particles;
@@ -968,7 +978,7 @@ public class Vignette : Console, IContainer<PlayerShip.Damaged> {
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
-        this.Clear();
+        Surface.Clear();
 
         //XY screenSize = new XY(Width, Height);
 
@@ -1018,7 +1028,7 @@ public class Vignette : Console, IContainer<PlayerShip.Damaged> {
 
                     var inc = r.Next(102);
                     var c = borderColor.Add(inc, inc, inc).Gray().SetAlpha(alpha);
-                    this.SetBackground(x, y, c);
+                    Surface.SetBackground(x, y, c);
                 }
             }
         } else {
@@ -1031,7 +1041,7 @@ public class Vignette : Console, IContainer<PlayerShip.Damaged> {
                 foreach (var point in screenPerimeter.PerimeterPositions()) {
                     //var back = this.GetBackground(point.X, point.Y).Premultiply();
                     var (x, y) = point;
-                    this.SetBackground(x, y, c);
+                    Surface.SetBackground(x, y, c);
                 }
             }
         }
@@ -1040,19 +1050,19 @@ public class Vignette : Console, IContainer<PlayerShip.Damaged> {
             var c = new Color(255, 0, 0, 200 * lightningHit/5);
             foreach(var p in new Rectangle(i, i, Width - i * 2, Height - i * 2).PerimeterPositions()) {
                 var (x, y) = p;
-                this.SetBackground(x, y, c);
+                Surface.SetBackground(x, y, c);
             }
         }
         foreach (var p in particles) {
             var (x, y) = p.position;
             var (fore, glyph) = (p.tile.Foreground, p.tile.Glyph);
-            this.SetCellAppearance(x, y, new ColoredGlyph(fore, this.GetBackground(x, y), glyph));
+            Surface.SetCellAppearance(x, y, new ColoredGlyph(fore, Surface.GetBackground(x, y), glyph));
         }
 
         base.Render(delta);
     }
 }
-public class Readout : Console {
+public class Readout : ScreenSurface {
     /*
     struct Snow {
         public char c;
@@ -1065,7 +1075,8 @@ public class Readout : Console {
     public double viewScale;
 
     public int arrowDistance;
-
+    public int Width => Surface.Width;
+    public int Height => Surface.Height;
     XY screenSize => new XY(Width, Height);
     XY screenCenter => screenSize / 2;
 
@@ -1095,7 +1106,7 @@ public class Readout : Console {
         base.Update(delta);
     }
     public override void Render(TimeSpan drawTime) {
-        this.Clear();
+        Surface.Clear();
         var messageY = Height * 3 / 5;
         int targetX = 48, targetY = 1;
         int tick = player.world.tick;
@@ -1108,12 +1119,12 @@ public class Readout : Console {
                 //var p = screenCenter + offsetNormal * arrowDistance;
                 var p = Main.GetBoundaryPoint(screenSize - (20, 20), offsetNormal.angleRad) + (10, 10);
 
-                this.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '+'));
+                Surface.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '+'));
 
                 var trailLength = 4;
                 for (int i = 1; i < trailLength; i++) {
                     p -= offsetNormal;
-                    this.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '.'));
+                    Surface.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '.'));
                 }
             }
         }
@@ -1122,7 +1133,7 @@ public class Readout : Console {
             var message = player.messages[i];
             var line = message.Draw();
             var x = Width * 3 / 4 - line.Count();
-            this.Print(x, messageY, line);
+            Surface.Print(x, messageY, line);
             if (message is Transmission t) {
                 //Draw a line from message to source
 
@@ -1142,7 +1153,7 @@ public class Readout : Console {
 
                 screenX++;
                 messagePos.x++;
-                this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+                Surface.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
                     e = Line.Double,
                     n = Line.Single,
                     s = Line.Single
@@ -1151,7 +1162,7 @@ public class Readout : Console {
                 messagePos.x++;
 
                 for (int j = 0; j < i; j++) {
-                    this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+                    Surface.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
                         e = Line.Double,
                         w = Line.Double
                     }]));
@@ -1183,7 +1194,7 @@ public class Readout : Console {
                 int screenLineX = offset.xi;
 
                 if (screenLineY != 0) {
-                    this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+                    Surface.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
                         n = offset.y > 0 ? Line.Double : Line.None,
                         s = offset.y < 0 ? Line.Double : Line.None,
                         w = Line.Double
@@ -1192,7 +1203,7 @@ public class Readout : Console {
                     screenLineY -= Math.Sign(screenLineY);
 
                     while (screenLineY != 0) {
-                        this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+                        Surface.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
                             n = Line.Double,
                             s = Line.Double
                         }]));
@@ -1202,7 +1213,7 @@ public class Readout : Console {
                 }
 
                 if (screenLineX != 0) {
-                    this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+                    Surface.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
                         n = offset.y < 0 ? Line.Double : Line.None,
                         s = offset.y > 0 ? Line.Double : Line.None,
 
@@ -1213,7 +1224,7 @@ public class Readout : Console {
                     screenLineX -= Math.Sign(screenLineX);
 
                     while (screenLineX != 0) {
-                        this.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
+                        Surface.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
                             e = Line.Double,
                             w = Line.Double
                         }]));
@@ -1233,8 +1244,8 @@ public class Readout : Console {
 
         const int BAR = 8;
         if (player.GetTarget(out ActiveObject playerTarget)) {
-            this.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
-            this.Print(targetX, targetY++, playerTarget.name);
+            Surface.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
+            Surface.Print(targetX, targetY++, playerTarget.name);
             PrintTarget(targetX, targetY, playerTarget);
             DrawTargetArrow(playerTarget);
             targetX += 32;
@@ -1243,8 +1254,8 @@ public class Readout : Console {
         //var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
         foreach (var autoTarget in player.devices.Weapon.Select(w => w.target)) {
             if (autoTarget != null && autoTarget != playerTarget) {
-                this.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
-                this.Print(targetX, targetY++, autoTarget.name);
+                Surface.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
+                Surface.Print(targetX, targetY++, autoTarget.name);
                 PrintTarget(targetX, targetY, autoTarget);
                 DrawTargetArrow(autoTarget);
             }
@@ -1292,7 +1303,7 @@ public class Readout : Console {
                         bar[i].Background = Color.DarkKhaki;
                     }
 
-                    this.Print(x, y,
+                    Surface.Print(x, y,
                         new ColoredString("[", Color.White, b)
                         + bar
                         + new ColoredString("]", Color.White, b)
@@ -1316,7 +1327,7 @@ public class Readout : Console {
                             bar[i].Foreground = Color.Yellow;
                         }
                         */
-                        this.Print(x, y,
+                        Surface.Print(x, y,
                             new ColoredString("[", Color.White, b)
                             + bar
                             + new ColoredString("]", Color.White, b)
@@ -1346,7 +1357,7 @@ public class Readout : Console {
                         } else {
                             foreground = Color.White;
                         }
-                        this.Print(x, y,
+                        Surface.Print(x, y,
                             new ColoredString("[", Color.White, b)
                             + w.GetBar(BAR)
                             + new ColoredString(tag, foreground, b));
@@ -1359,7 +1370,7 @@ public class Readout : Console {
                     foreach (var m in misc) {
                         string tag = m.source.type.name;
                         var f = Color.White;
-                        this.Print(x, y, $"{tag}", f, b);
+                        Surface.Print(x, y, $"{tag}", f, b);
                         y++;
                     }
                     y++;
@@ -1372,10 +1383,10 @@ public class Readout : Console {
                             s.hp < s.desc.maxHP ? Color.Cyan :
                             Color.White;
                         int l = BAR * s.hp / s.desc.maxHP;
-                        this.Print(x, y, "[", f, b);
-                        this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
-                        this.Print(x + 1, y, new('=', l), f, b);
-                        this.Print(x + 1 + BAR, y, $"] {name}", f, b);
+                        Surface.Print(x, y, "[", f, b);
+                        Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                        Surface.Print(x + 1, y, new('=', l), f, b);
+                        Surface.Print(x + 1 + BAR, y, $"] {name}", f, b);
                         y++;
                     }
                     y++;
@@ -1387,20 +1398,20 @@ public class Readout : Console {
                             foreach (var armor in las.layers.Reverse<Armor>()) {
                                 var f = (tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
                                 int l = BAR * armor.hp / armor.desc.maxHP;
-                                this.Print(x, y, "[", f, b);
-                                this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
-                                this.Print(x + 1, y, new('=', l), f, b);
-                                this.Print(x + 1 + BAR, y, $"] {armor.source.type.name}", f, b);
+                                Surface.Print(x, y, "[", f, b);
+                                Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                                Surface.Print(x + 1, y, new('=', l), f, b);
+                                Surface.Print(x + 1 + BAR, y, $"] {armor.source.type.name}", f, b);
                                 y++;
                             }
                             break;
                         }
                     case HP hp: {
                             var f = Color.White;
-                            this.Print(x, y, "[", f, b);
-                            this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
-                            this.Print(x + 1, y, new('=', BAR * hp.hp / hp.maxHP), f, b);
-                            this.Print(x + 1 + BAR, y, $"] HP: {hp.hp}", f, b);
+                            Surface.Print(x, y, "[", f, b);
+                            Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                            Surface.Print(x + 1, y, new('=', BAR * hp.hp / hp.maxHP), f, b);
+                            Surface.Print(x + 1 + BAR, y, $"] HP: {hp.hp}", f, b);
                             break;
                         }
                 }
@@ -1408,6 +1419,8 @@ public class Readout : Console {
         }
         PrintPlayer();
         void PrintPlayer() {
+
+
             int x = 3;
             int y = 3;
             var b = Color.Black;
@@ -1455,7 +1468,7 @@ public class Readout : Console {
                 for (int i = 0; i < l; i++) {
                     bar[i].Background = Color.DarkCyan;
                 }
-                this.Print(x, y++,
+                Surface.Print(x, y++,
                       new ColoredString("[", Color.White, b)
                     + bar
                     + new ColoredString("]", Color.White, b)
@@ -1488,7 +1501,7 @@ public class Readout : Console {
                     bar[i].Background = Color.DarkKhaki;
                 }
 
-                this.Print(x, y,
+                Surface.Print(x, y,
                     new ColoredString("[", Color.White, b)
                     + bar
                     + new ColoredString("]", Color.White, b)
@@ -1513,7 +1526,7 @@ public class Readout : Console {
                         bar[i].Foreground = Color.Yellow;
                     }
                     */
-                    this.Print(x, y,
+                    Surface.Print(x, y,
                         new ColoredString("[", Color.White, b)
                         + bar
                         + new ColoredString("]", Color.White, b)
@@ -1543,7 +1556,7 @@ public class Readout : Console {
                     } else {
                         foreground = Color.White;
                     }
-                    this.Print(x, y,
+                    Surface.Print(x, y,
                         new ColoredString("[", Color.White, b)
                         + w.GetBar(BAR)
                         + new ColoredString(tag, foreground, b));
@@ -1556,7 +1569,7 @@ public class Readout : Console {
                 foreach (var m in misc) {
                     string tag = m.source.type.name;
                     var f = Color.White;
-                    this.Print(x, y, $"[{new string('-', BAR)}] {tag}", f, b);
+                    Surface.Print(x, y, $"[{new string('-', BAR)}] {tag}", f, b);
                     y++;
                 }
                 y++;
@@ -1569,10 +1582,10 @@ public class Readout : Console {
                         s.hp < s.desc.maxHP ? Color.Cyan :
                         Color.White;
                     int l = BAR * s.hp / s.desc.maxHP;
-                    this.Print(x, y, "[", f, b);
-                    this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
-                    this.Print(x + 1, y, new('=', l), f, b);
-                    this.Print(x + 1 + BAR, y, $"] [{s.hp,3}/{s.desc.maxHP,3}] {name}", f, b);
+                    Surface.Print(x, y, "[", f, b);
+                    Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                    Surface.Print(x + 1, y, new('=', l), f, b);
+                    Surface.Print(x + 1 + BAR, y, $"] [{s.hp,3}/{s.desc.maxHP,3}] {name}", f, b);
                     y++;
                 }
                 y++;
@@ -1584,20 +1597,20 @@ public class Readout : Console {
                         foreach (var armor in las.layers.Reverse<Armor>()) {
                             var f = (player.world.tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
                             int l = BAR * armor.hp / armor.desc.maxHP;
-                            this.Print(x, y, "[", f, b);
-                            this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
-                            this.Print(x + 1, y, new('=', l), f, b);
-                            this.Print(x + 1 + BAR, y, $"] [{armor.hp,3}/{armor.desc.maxHP,3}] {armor.source.type.name}", f, b);
+                            Surface.Print(x, y, "[", f, b);
+                            Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                            Surface.Print(x + 1, y, new('=', l), f, b);
+                            Surface.Print(x + 1 + BAR, y, $"] [{armor.hp,3}/{armor.desc.maxHP,3}] {armor.source.type.name}", f, b);
                             y++;
                         }
                         break;
                     }
                 case HP hp: {
                         var f = Color.White;
-                        this.Print(x, y, "[", f, b);
-                        this.Print(x + 1, y, new('=', BAR), Color.Gray, b);
-                        this.Print(x + 1, y, new('=', BAR * hp.hp / hp.maxHP), f, b);
-                        this.Print(x + 1 + BAR, y, $"] HP: {hp.hp}", f, b);
+                        Surface.Print(x, y, "[", f, b);
+                        Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
+                        Surface.Print(x + 1, y, new('=', BAR * hp.hp / hp.maxHP), f, b);
+                        Surface.Print(x + 1 + BAR, y, $"] HP: {hp.hp}", f, b);
                         break;
                     }
             }
@@ -1630,7 +1643,9 @@ public class Readout : Console {
         base.Render(drawTime);
     }
 }
-public class Edgemap : Console {
+public class Edgemap : ScreenSurface {
+    public int Width => Surface.Width;
+    public int Height => Surface.Height;
     Camera camera;
     PlayerShip player;
     public double viewScale;
@@ -1644,7 +1659,7 @@ public class Edgemap : Console {
         base.Update(delta);
     }
     public override void Render(TimeSpan drawTime) {
-        this.Clear();
+        Surface.Clear();
         var screenSize = new XY(Width - 2, Height - 2);
         var screenCenter = screenSize / 2;
         var halfWidth = Width / 2;
@@ -1676,7 +1691,7 @@ public class Edgemap : Console {
                     if (distance < threshold) {
                         c = c.SetAlpha((byte)(255 * distance / threshold));
                     }
-                    this.SetCellAppearance(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
+                    Surface.SetCellAppearance(x, Height - y - 1, new ColoredGlyph(c, Color.Transparent, '#'));
                     break;
                 default: return;
             }
@@ -1684,13 +1699,13 @@ public class Edgemap : Console {
         base.Render(drawTime);
     }
 }
-public class Minimap : Console {
+public class Minimap : ScreenSurface {
     PlayerShip playerShip;
     public int size;
     public double time;
     public byte alpha;
-    public Minimap(Console parent, PlayerShip playerShip, int size) : base(size, size) {
-        this.Position = new Point(parent.Width - size, 0);
+    public Minimap(ScreenSurface parent, PlayerShip playerShip, int size) : base(size, size) {
+        this.Position = new Point(parent.Surface.Width - size, 0);
         this.playerShip = playerShip;
         this.size = size;
 
@@ -1709,9 +1724,9 @@ public class Minimap : Console {
 
         var mapSample = playerShip.world.entities.space.DownsampleSet(mapScale);
         
-        for(int x = 0; x < Width; x++) {
+        for(int x = 0; x < Surface.Width; x++) {
 
-            for (int y = 0; y < Height; y++) {
+            for (int y = 0; y < Surface.Height; y++) {
                 var entities = mapSample[(
                     (x - halfSize + playerShip.position.xi / mapScale),
                     (halfSize - y + playerShip.position.yi / mapScale))]
@@ -1730,15 +1745,16 @@ public class Minimap : Console {
                         f = f.SetAlpha((byte)(255 * t.distance / threshold));
                     }
 
-                    this.SetCellAppearance(x, y, new ColoredGlyph(f, Color.Black, g).PremultiplySet(alpha));
+                    Surface.SetCellAppearance(x, y, new ColoredGlyph(f, Color.Black, g).PremultiplySet(alpha));
                 } else {
                     var foreground = new Color(
                                 255, 255, 255,
                                 51 + ((x + y) % 2 == 0 ? 0 : 12));
-                    this.SetCellAppearance(x, y,
+                    Surface.SetCellAppearance(x, y,
                         new ColoredGlyph(foreground, Color.Black, '#')
                             .PremultiplySet(alpha)
                         );
+                    
                 }
             }
         }
@@ -1749,7 +1765,7 @@ public class Minimap : Console {
         base.Render(delta);
     }
 }
-public class CommunicationsMenu : Console {
+public class CommunicationsMenu : ScreenSurface {
     PlayerShip playerShip;
     int ticks;
     CommandMenu menu;
@@ -1795,16 +1811,16 @@ public class CommunicationsMenu : Console {
         int x = 0;
         int y = 0;
 
-        this.Clear();
+        Surface.Clear();
 
         Color foreground = Color.White;
         if (ticks % 60 < 30) {
             foreground = Color.Yellow;
         }
         var back = Color.Black;
-        this.Print(x, y++, "[Communications]", foreground, back);
+        Surface.Print(x, y++, "[Communications]", foreground, back);
         //this.Print(x, y++, "[Ship control locked]", foreground, back);
-        this.Print(x, y++, "[ESC     -> cancel]", foreground, back);
+        Surface.Print(x, y++, "[ESC     -> cancel]", foreground, back);
         y++;
         /*
         if (playerShip.wingmates.Count(w => w.active) == 0) {
@@ -1818,19 +1834,19 @@ public class CommunicationsMenu : Console {
         int index = 0;
         foreach (var w in playerShip.wingmates.Take(10)) {
             char key = indexToKey(index++);
-            this.Print(x, y++, $"[{key}] {w.name}: {w.behavior.GetOrderName()}", Color.White, Color.Black);
+            Surface.Print(x, y++, $"[{key}] {w.name}: {w.behavior.GetOrderName()}", Color.White, Color.Black);
         }
 
         //this.SetCellAppearance(Width/2, Height/2, new ColoredGlyph(Color.White, Color.White, 'X'));
 
         base.Render(delta);
     }
-    public class CommandMenu : Console {
+    public class CommandMenu : ScreenSurface {
         //PlayerShip player;
         AIShip subject;
         public int ticks = 0;
         private Dictionary<string, Action> commands;
-        public CommandMenu(Console prev, PlayerShip player, AIShip subject) : base(prev.Width, prev.Height) {
+        public CommandMenu(ScreenSurface prev, PlayerShip player, AIShip subject) : base(prev.Surface.Width, prev.Surface.Height) {
             //this.player = player;
             this.subject = subject;
             EscortOrder GetEscortOrder(int i) {
@@ -1902,30 +1918,30 @@ public class CommunicationsMenu : Console {
             int x = 0;
             int y = 0;
 
-            this.Clear();
+            Surface.Clear();
 
             Color foreground = Color.White;
             if (ticks % 60 < 30) {
                 foreground = Color.Yellow;
             }
             var back = Color.Black;
-            this.Print(x, y++, "[Command]", foreground, back);
+            Surface.Print(x, y++, "[Command]", foreground, back);
             //this.Print(x, y++, "[Ship control locked]", foreground, back);
-            this.Print(x, y++, "[ESC     -> cancel]", foreground, back);
+            Surface.Print(x, y++, "[ESC     -> cancel]", foreground, back);
             y++;
-            this.Print(x, y++, $"{subject.name}:{subject.behavior.GetOrderName()}", Color.White, Color.Black);
+            Surface.Print(x, y++, $"{subject.name}:{subject.behavior.GetOrderName()}", Color.White, Color.Black);
             y++;
             int index = 0;
             foreach (var w in commands.Keys) {
                 char key = indexToKey(index++);
-                this.Print(x, y++, $"[{key}] {w}", Color.White, Color.Black);
+                Surface.Print(x, y++, $"[{key}] {w}", Color.White, Color.Black);
             }
 
             base.Render(delta);
         }
     }
 }
-public class PowerMenu : Console {
+public class PowerMenu : ScreenSurface {
     PlayerShip playerShip;
     PlayerMain main;
     int ticks;
@@ -1933,7 +1949,8 @@ public class PowerMenu : Console {
     public bool blockMouse {
         set {
             _blockMouse = value;
-            DefaultBackground = value ? new Color(0, 0, 0, 127) : Color.Transparent;
+
+            Surface.DefaultBackground = value ? new Color(0, 0, 0, 127) : Color.Transparent;
         }
         get => _blockMouse;
     }
@@ -2044,7 +2061,7 @@ public class PowerMenu : Console {
         int y = 0;
         int index = 0;
 
-        this.Clear();
+        Surface.Clear();
 
 
         Color foreground = Color.White;
@@ -2052,12 +2069,12 @@ public class PowerMenu : Console {
             foreground = Color.Yellow;
         }
         var back = Color.Black;
-        this.Print(x, y++, "[Powers]", foreground, back);
+        Surface.Print(x, y++, "[Powers]", foreground, back);
         //this.Print(x, y++, "[Ship control locked]", foreground, back);
-        this.Print(x, y++, "[ESC     -> cancel]", foreground, back);
-        this.Print(x, y++, "[P       -> close ]", foreground, back);
-        this.Print(x, y++, "[Hold    -> charge]", foreground, back);
-        this.Print(x, y++, "[Release -> invoke]", foreground, back);
+        Surface.Print(x, y++, "[ESC     -> cancel]", foreground, back);
+        Surface.Print(x, y++, "[P       -> close ]", foreground, back);
+        Surface.Print(x, y++, "[Hold    -> charge]", foreground, back);
+        Surface.Print(x, y++, "[Release -> invoke]", foreground, back);
         y++;
 
         var bl = Color.Black;
@@ -2067,7 +2084,7 @@ public class PowerMenu : Console {
             char key = indexToKey(index);
             if (p.cooldownLeft > 0) {
                 int chargeBar = 16 * p.cooldownLeft / p.cooldownPeriod;
-                this.Print(x, y++,
+                Surface.Print(x, y++,
                     new ColoredString($"[{key}] {p.type.name,-8} ", gr, bl) +
                     new ColoredString("[", wh, bl) +
                     new ColoredString(new string('>', 16 - chargeBar), wh, bl) +
@@ -2081,7 +2098,7 @@ public class PowerMenu : Console {
                 if (p.invokeCharge >= p.invokeDelay && ticks % 30 < 15) {
                     c = Color.Orange;
                 }
-                this.Print(x, y++,
+                Surface.Print(x, y++,
                     new ColoredString($"[{key}] {p.type.name,-8} ", c, bl) +
                     new ColoredString("[", c, bl) +
                     new ColoredString(new string('>', chargeMeter), c, bl) +
@@ -2089,7 +2106,7 @@ public class PowerMenu : Console {
                     new ColoredString("]", c, bl)
                     );
             } else {
-                this.Print(x, y++,
+                Surface.Print(x, y++,
                     new ColoredString($"[{key}] {p.type.name,-8} ", wh, bl) +
                     new ColoredString($"[{new string('>', 16)}]", wh, bl));
             }

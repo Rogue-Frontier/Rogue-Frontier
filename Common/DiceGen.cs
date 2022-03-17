@@ -24,7 +24,7 @@ public interface IDice {
         if ((m = Regex.Match(s, "^(?<min>\\-?[0-9]+)-(?<max>\\-?[0-9]+)$")).Success) {
             result = new IntRange(int.Parse(m.Groups["min"].Value), int.Parse(m.Groups["max"].Value));
         }
-        if ((m = Regex.Match(s, "^(?<n>[0-9]+)d(?<m>[0-9]+)((\\+(?<bonus>[0-9]+))|(?<bonus>\\-[0-9]+))?$")).Success) {
+        if ((m = Regex.Match(s, "^(?<n>[0-9]+)d(?<m>\\-?[0-9]+)((\\+(?<bonus>[0-9]+))|(?<bonus>\\-[0-9]+))?$")).Success) {
             result = new DiceRange(int.Parse(m.Groups["n"].Value), int.Parse(m.Groups["m"].Value), m.Groups["bonus"].Value is string { Length:>0} b ? int.Parse(b) : 0);
         }
         return result;
@@ -57,7 +57,7 @@ public record IntRange(int min, int max) :IDice{
 }
 public record DiceRange(int n, int m, int bonus) : IDice {
     public Rand r=new();
-    public int Value => Enumerable.Range(0, n).Select(i => r.NextInteger(m)).Sum() + bonus;
+    public int Value => Enumerable.Range(0, n).Select(i => (int)Math.Ceiling(r.NextDouble()*m)).Sum() + bonus;
     public int Roll() => Value;
     public string str => $"{n}d{m}{IDice.strBonus(bonus)}";
 }

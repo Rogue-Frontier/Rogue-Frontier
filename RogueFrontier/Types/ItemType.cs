@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using SadRogue.Primitives;
-using Console = SadConsole.Console;
+using Con = SadConsole.ScreenSurface;
 using Newtonsoft.Json;
 
 namespace RogueFrontier;
 public interface ItemUse {
     string GetDesc(PlayerShip player, Item item);
-    void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) { }
+    void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) { }
 }
 public record DeployShip : ItemUse {
     [Req] public string shipClass;
@@ -22,7 +22,7 @@ public record DeployShip : ItemUse {
         shipType = tc.Lookup<ShipClass>(shipClass);
     }
     public string GetDesc(PlayerShip player, Item item) => $"Deploy {shipType.name}";
-    public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+    public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         var w = new Wingmate(player);
         var a = new AIShip(
             new(player.world, shipType, player.position),
@@ -40,7 +40,7 @@ public record DeployShip : ItemUse {
 public record InstallWeapon : ItemUse {
     public string GetDesc(PlayerShip player, Item item) =>
         player.cargo.Contains(item) ? "Install this weapon" : "Remove this weapon";
-    public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+    public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         if (player.cargo.Contains(item)) {
             player.AddMessage(new Message($"Installed weapon {item.type.name}"));
 
@@ -62,7 +62,7 @@ public record RepairArmor : ItemUse {
     public RepairArmor(XElement e) {
         e.Initialize(this);
     }
-    public void Invoke(Console prev, PlayerShip player, Item item, Action callback) {
+    public void Invoke(Con prev, PlayerShip player, Item item, Action callback) {
         var p = prev.Parent;
         p.Children.Remove(prev);
         p.Children.Add(SListScreen.RepairArmorScreen(prev, player, item, this, callback));
@@ -79,7 +79,7 @@ public record InvokePower : ItemUse {
     }
     public string GetDesc(PlayerShip player, Item item) =>
         $"Invoke {power.name} ({charges} charges remaining)";
-    public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+    public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         player.AddMessage(new Message($"Invoked the power of {item.type.name}"));
 
         charges--;
@@ -99,7 +99,7 @@ public record Refuel : ItemUse {
     public string GetDesc(PlayerShip player, Item item) {
         return "Refuel reactor";
     }
-    public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+    public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         var p = prev.Parent;
         p.Children.Remove(prev);
         p.Children.Add(SListScreen.RefuelReactor(prev, player, item, this, callback));
@@ -111,7 +111,7 @@ public record DepleteTargetShields() : ItemUse {
     }
     public string GetDesc(PlayerShip player, Item item) =>
         player.GetTarget(out var t) ? $"Deplete shields on {t.name}" : "Deplete shields on target";
-    public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+    public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         if(!player.GetTarget(out var t)) {
             player.AddMessage(new Message($"No target available"));
             return;
@@ -143,7 +143,7 @@ public record ReplaceDevice() : ItemUse {
         (from, to) = (tc.Lookup<ItemType>(e.ExpectAtt("from")), tc.Lookup<ItemType>(e.ExpectAtt("to")));
     public string GetDesc(PlayerShip player, Item item) =>
         $"Replace installed {from.name}";
-    public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+    public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         var p = prev.Parent;
         p.Children.Remove(prev);
         p.Children.Add(SListScreen.ReplaceDevice(prev, player, item, this, callback));
@@ -161,7 +161,7 @@ public record ApplyMod() : ItemUse {
     }
     public string GetDesc(PlayerShip player, Item item) =>
         $"Apply modifier to item (shows menu)";
-    public void Invoke(Console prev, PlayerShip player, Item item, Action callback = null) {
+    public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         var p = prev.Parent;
         p.Children.Remove(prev);
         p.Children.Add(SListScreen.SetMod(prev, player, item, mod, callback));

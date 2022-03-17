@@ -10,9 +10,9 @@ using Console = SadConsole.Console;
 namespace RogueFrontier;
 
 public class WreckScene : Console {
-    Console prev;
+    ScreenSurface prev;
     ExchangeModel model;
-    public WreckScene(Console prev, PlayerShip player, Wreck docked) : base(prev.Width, prev.Height) {
+    public WreckScene(ScreenSurface prev, PlayerShip player, Wreck docked) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         model = new(new(player.name, player.cargo), new(docked.name, docked.cargo), Enter, Exit);
     }

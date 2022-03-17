@@ -47,7 +47,7 @@ public class Wreck : MovingObject, IDockable {
         gravity = new XY(0, 0);
     }
     public XY GetDockPoint() => XY.Zero;
-    public Console GetDockScene(Console prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
+    public ScreenSurface GetDockScene(ScreenSurface prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
     public void Damage(Projectile p) {
     }
     public void Destroy(ActiveObject source) {
@@ -285,7 +285,7 @@ public class Station : ActiveObject, ITrader, IDockable {
         behavior?.Update(this);
 
     }
-    public Console GetDockScene(Console prev, PlayerShip playerShip) => null;
+    public ScreenSurface GetDockScene(ScreenSurface prev, PlayerShip playerShip) => null;
     [JsonIgnore]
     public ColoredGlyph tile => type.tile.Original;
 }

@@ -18,11 +18,11 @@ public interface ITrader {
 }
 public delegate int GetPrice(Item i);
 public class TradeMenu : Console {
-    Console prev;
+    ScreenSurface prev;
     Player player;
     ExchangeModel model;
     GetPrice GetBuyPrice, GetSellPrice;
-    public TradeMenu(Console prev, PlayerShip playerShip, ITrader docked, GetPrice GetBuyPrice, GetPrice GetSellPrice) : base(prev.Width, prev.Height) {
+    public TradeMenu(ScreenSurface prev, PlayerShip playerShip, ITrader docked, GetPrice GetBuyPrice, GetPrice GetSellPrice) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         this.player = playerShip.person;
         model = new(new(playerShip.name, playerShip.cargo), new(docked.name, docked.cargo), Transact, Transition);
