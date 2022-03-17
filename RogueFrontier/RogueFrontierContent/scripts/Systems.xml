@@ -197,12 +197,6 @@
 						<Station chance="1" codename="station_iron_pirates_hideout"/>
 					</Table>
 				</Sibling>
-
-
-				<Sibling angleInc="180">
-
-					<Asteroids angle="45" size="40"/>
-				</Sibling>
 			</Orbital>
 			<Orbital radius="320" angle="random">
 

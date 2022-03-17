@@ -2060,11 +2060,8 @@ public class PowerMenu : ScreenSurface {
         int x = 0;
         int y = 0;
         int index = 0;
-
         Surface.Clear();
-
-
-        Color foreground = Color.White;
+        var foreground = Color.White;
         if (ticks % 60 < 30) {
             foreground = Color.Yellow;
         }

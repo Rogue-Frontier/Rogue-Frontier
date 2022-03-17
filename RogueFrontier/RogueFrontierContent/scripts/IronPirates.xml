@@ -233,46 +233,13 @@
 		</LayeredArmorSystem>
 	</ShipClass>
 	
-	<StationType	codename="station_iron_pirates_hideout"
+	<StationType	codename=	"station_iron_pirates_hideout"
 					name=		"Iron Pirates hideout"
 					sovereign=	"sovereign_iron_pirates"
-
 					hp=			"250"
-
-					glyph=		"O"
-					foreground="White"
-					
 					behavior=	"pirate"
+					structure=	"RogueFrontierContent/sprites/station_iron_pirates_hideout.asc.cg"
 		>
-		<Segments>
-			<Point offsetX="-1" offsetY="1"
-				   glyph="/" foreground="Yellow"/>
-			<Point offsetX="0" offsetY="1"
-				   glyph="-" foreground="Yellow"/>
-			<Point offsetX="1" offsetY="1"
-				   glyph="\" foreground="Yellow"/>
-
-			<Point offsetX="-1" offsetY="-1"
-				   glyph="\" foreground="Yellow"/>
-			<Point offsetX="0" offsetY="-1"
-				   glyph="-" foreground="Yellow"/>
-			<Point offsetX="1" offsetY="-1"
-				   glyph="/" foreground="Yellow"/>
-
-			<Point offsetX="-1" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
-			<Point offsetX="-2" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
-			<Point offsetX="-3" offsetY="0"
-				   glyph="+" foreground="Yellow"/>
-
-			<Point offsetX="1" offsetY="0"
-					glyph="-" foreground="Yellow"/>
-			<Point offsetX="2" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
-			<Point offsetX="3" offsetY="0"
-				   glyph="+" foreground="Yellow"/>
-		</Segments>
 		<Ships>
 			<Ship	count="8"	codename="ship_iron_gunboat"/>
 			<Ship	count="2"	codename="ship_iron_missileship" order="patrol" patrolRadius="25"/>
@@ -285,71 +252,18 @@
 	<StationType	codename="station_iron_pirates_foundry"
 		name=		"Iron Pirates foundry"
 		sovereign=	"sovereign_iron_pirates"
-		hp=			"250"
-		glyph=		"O"
-		foreground="White"
+		hp=			"500"
 		behavior=	"pirate"
+		structure=	"RogueFrontierContent/sprites/station_iron_pirates_foundry.asc.cg"
 		>
-		<Segments>
-
-			
-			<Point offsetX="3" offsetY="-1"
-				   glyph="/" foreground="Yellow"/>
-			<Point offsetX="-3" offsetY="-1"
-				   glyph="\" foreground="Yellow"/>
-			<Line  offsetX="-2"	offsetY="-1" deltaX="4"	glyph="=" foreground="Yellow"/>
-			<Point offsetX="2" offsetY="-2"
-				   glyph="/" foreground="Yellow"/>
-			<Point offsetX="-2" offsetY="-2"
-				   glyph="\" foreground="Yellow"/>
-			<Line  offsetX="-1"	offsetY="-2" deltaX="2"	glyph="-" foreground="Yellow"/>
-			
-			<Point offsetX="3" offsetY="1"
-				   glyph="\" foreground="Yellow"/>
-			<Point offsetX="-3" offsetY="1"
-				   glyph="/" foreground="Yellow"/>
-			<Line  offsetX="-2"	offsetY="1"	 deltaX="4"	glyph="=" foreground="Yellow"/>
-			<Point offsetX="2" offsetY="2"
-				   glyph="\" foreground="Yellow"/>
-			<Point offsetX="-2" offsetY="2"
-				   glyph="/" foreground="Yellow"/>
-			<Line  offsetX="-1"	offsetY="2" deltaX="2"	glyph="-" foreground="Yellow"/>
-			
-			
-			<Point offsetX="-1" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
-			<Point offsetX="-2" offsetY="0"
-				   glyph="+" foreground="White"/>
-			<Point offsetX="-3" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
-			<Point offsetX="-4" offsetY="0"
-				   glyph="&lt;" foreground="White"/>
-			<Point offsetX="-5" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
-			<Point offsetX="-6" offsetY="0"
-				   glyph="+" foreground="White"/>
-
-			<Point offsetX="1" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
-			<Point offsetX="2" offsetY="0"
-				   glyph="+" foreground="White"/>
-			<Point offsetX="3" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
-			<Point offsetX="4" offsetY="0"
-				   glyph="&gt;" foreground="White"/>
-			<Point offsetX="5" offsetY="0"
-				   glyph="-" foreground="Yellow"/>
-			<Point offsetX="6" offsetY="0"
-				   glyph="+" foreground="White"/>
-		</Segments>
 		<Ships>
 			<Ship	count="8"	codename="ship_iron_gunboat"/>
-			<Ship	count="2"	codename="ship_iron_missileship" order="patrol" patrolRadius="10"/>
-			<Ship	count="1"	codename="ship_iron_destroyer" order="patrol" patrolRadius="25">
+			<Ship	count="2"	codename="ship_iron_missileship" order="patrol" patrolRadius="15">
 				<Ships>
-					<Ship count="4" codename="ship_iron_gunboat" order="escort"/>	
+					<Ship count="4" codename="ship_iron_gunboat" order="escort"/>
 				</Ships>
 			</Ship>
+			<Ship	count="1"	codename="ship_iron_destroyer" order="patrol" patrolRadius="30"/>
 		</Ships>
 		<Weapons>
 			<Weapon	codename="item_iron_cannon"/>
