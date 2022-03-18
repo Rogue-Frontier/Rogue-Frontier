@@ -440,7 +440,8 @@ public record SystemStar() : SystemElement {
             }
         }
         */
-        lc.world.backdrop.starlight.layers.Insert(0, new GeneratedGrid<Color>(new LightGenerator(lc, radius)));
+        var rectSize = radius * 16;
+        lc.world.backdrop.starlight.AddLayer(0, new GeneratedGrid<Color>(new LightGenerator(lc, radius)), new(lc.pos, rectSize, rectSize));
         lc.world.stars.Add(new Star(lc.pos, radius));
     }
 }

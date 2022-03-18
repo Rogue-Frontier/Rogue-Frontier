@@ -133,14 +133,22 @@ public class CompositeLayer : ILayer {
 }
 
 public class CompositeColorLayer {
-    public List<GeneratedGrid<Color>> layers = new List<GeneratedGrid<Color>>();
+    Rectangle active = new();
+
+    private List<GeneratedGrid<Color>> layers = new List<GeneratedGrid<Color>>();
     public CompositeColorLayer() { }
+    public void AddLayer(int index, GeneratedGrid<Color> layer, Rectangle area) {
+        layers.Insert(index, layer);
+        active = Rectangle.GetUnion(active, area);
+    }
 
     public Color GetBackgroundFixed(XY point) {
         Color result = Color.Transparent;
-        foreach (var layer in layers.Reverse<GeneratedGrid<Color>>()) {
-            var apparent = point.roundDown;
-            result = result.Premultiply().Blend(layer[apparent.xi, apparent.yi]);
+        if (active.Contains(point)) {
+            foreach (var layer in layers.Reverse<GeneratedGrid<Color>>()) {
+                var apparent = point.roundDown;
+                result = result.Premultiply().Blend(layer[apparent.xi, apparent.yi]);
+            }
         }
         return result;
     }

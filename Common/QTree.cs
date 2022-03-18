@@ -25,8 +25,8 @@ public interface GridTree<T> {
 }
 public class QTree<T> : GridTree<T> {
     public T center;
-    public Dictionary<(uint, uint), Section> q1, q2, q3, q4;
-    public Dictionary<uint, Segment> xPositive, xNegative, yPositive, yNegative;
+    public Dictionary<(ulong, ulong), Section> q1, q2, q3, q4;
+    public Dictionary<ulong, Segment> xPositive, xNegative, yPositive, yNegative;
     public uint level;
     public uint scale;
     public int segmentCount => q1.Count + q2.Count + q3.Count + q4.Count;
@@ -64,7 +64,7 @@ public class QTree<T> : GridTree<T> {
     public const byte CODE_QUADRANT_2 = (-1 + CODE_OFFSET) | ((1 + CODE_OFFSET) << CODE_SHIFT);
     public const byte CODE_QUADRANT_3 = (-1 + CODE_OFFSET) | ((-1 + CODE_OFFSET) << CODE_SHIFT);
     public const byte CODE_QUADRANT_4 = (1 + CODE_OFFSET) | ((-1 + CODE_OFFSET) << CODE_SHIFT);
-    public static int SignCode(long x, long y) => (Math.Sign(x) + CODE_OFFSET) | ((Math.Sign(y) + CODE_OFFSET) << CODE_SHIFT);
+    public static byte SignCode(long x, long y) => (byte)((Math.Sign(x) + CODE_OFFSET) | ((Math.Sign(y) + CODE_OFFSET) << CODE_SHIFT));
     public ref T this[(long x, long y) p] => ref At(p.x, p.y);
     public T Get(long x, long y) {
         switch (SignCode(x, y)) {
@@ -89,20 +89,20 @@ public class QTree<T> : GridTree<T> {
             default:
                 throw new ArgumentOutOfRangeException("Unknown location");
         }
-        T GetSegment(uint ia, Dictionary<uint, Segment> strip) {
-            uint index = ia / size;
+        T GetSegment(ulong ia, Dictionary<ulong, Segment> strip) {
+            ulong index = ia / size;
             if (strip.TryGetValue(index, out Segment segment)) {
                 return segment.Get(ia - index * size);
             } else {
                 return default(T);
             }
         }
-        T GetSection(Dictionary<(uint, uint), Section> quadrant) {
-            uint xa = (uint)Math.Abs(x);
-            uint ya = (uint)Math.Abs(y);
+        T GetSection(Dictionary<(ulong, ulong), Section> quadrant) {
+            var xa = (ulong)Math.Abs(x);
+            var ya = (ulong)Math.Abs(y);
 
-            uint xIndex = xa / size;
-            uint yIndex = ya / size;
+            var xIndex = xa / size;
+            var yIndex = ya / size;
             if (quadrant.TryGetValue((xIndex, yIndex), out Section section)) {
                 return section.Get(xa - xIndex * size, ya - yIndex * size);
             } else {
@@ -116,13 +116,13 @@ public class QTree<T> : GridTree<T> {
             case CODE_ORIGIN:
                 return ref center;
             case CODE_X_NEGATIVE:
-                return ref AtSegment((uint)Math.Abs(x), xNegative);
+                return ref AtSegment((ulong)Math.Abs(x), xNegative);
             case CODE_X_POSITIVE:
-                return ref AtSegment((uint)Math.Abs(x), xPositive);
+                return ref AtSegment((ulong)Math.Abs(x), xPositive);
             case CODE_Y_NEGATIVE:
-                return ref AtSegment((uint)Math.Abs(y), yNegative);
+                return ref AtSegment((ulong)Math.Abs(y), yNegative);
             case CODE_Y_POSITIVE:
-                return ref AtSegment((uint)Math.Abs(y), yPositive);
+                return ref AtSegment((ulong)Math.Abs(y), yPositive);
             case CODE_QUADRANT_1:
                 return ref AtSection(q1);
             case CODE_QUADRANT_2:
@@ -134,20 +134,20 @@ public class QTree<T> : GridTree<T> {
             default:
                 throw new ArgumentOutOfRangeException("Unknown location");
         }
-        ref T AtSegment(uint ia, Dictionary<uint, Segment> strip) {
-            uint index = ia / size;
+        ref T AtSegment(ulong ia, Dictionary<ulong, Segment> strip) {
+            var index = ia / size;
             if (!strip.TryGetValue(index, out Segment segment)) {
                 Initialize(out segment);
                 strip[index] = segment;
             }
             return ref segment.At(ia - index * size);
         }
-        ref T AtSection(Dictionary<(uint, uint), Section> quadrant) {
-            uint xa = (uint)Math.Abs(x);
-            uint ya = (uint)Math.Abs(y);
+        ref T AtSection(Dictionary<(ulong, ulong), Section> quadrant) {
+            var xa = (ulong)Math.Abs(x);
+            var ya = (ulong)Math.Abs(y);
 
-            uint xIndex = xa / size;
-            uint yIndex = ya / size;
+            var xIndex = xa / size;
+            var yIndex = ya / size;
             if (!quadrant.TryGetValue((xIndex, yIndex), out Section section)) {
                 Initialize(out section);
                 quadrant[(xIndex, yIndex)] = section;
@@ -162,16 +162,16 @@ public class QTree<T> : GridTree<T> {
                 center = t;
                 break;
             case CODE_X_NEGATIVE:
-                SetSegment((uint)Math.Abs(x), xNegative);
+                SetSegment((ulong)Math.Abs(x), xNegative);
                 break;
             case CODE_X_POSITIVE:
-                SetSegment((uint)Math.Abs(x), xPositive);
+                SetSegment((ulong)Math.Abs(x), xPositive);
                 break;
             case CODE_Y_NEGATIVE:
-                SetSegment((uint)Math.Abs(y), yNegative);
+                SetSegment((ulong)Math.Abs(y), yNegative);
                 break;
             case CODE_Y_POSITIVE:
-                SetSegment((uint)Math.Abs(y), yPositive);
+                SetSegment((ulong)Math.Abs(y), yPositive);
                 break;
             case CODE_QUADRANT_1:
                 SetSection(q1);
@@ -188,20 +188,20 @@ public class QTree<T> : GridTree<T> {
             default:
                 throw new ArgumentOutOfRangeException("Unknown location");
         }
-        void SetSegment(uint ia, Dictionary<uint, Segment> strip) {
-            uint index = ia / size;
+        void SetSegment(ulong ia, Dictionary<ulong, Segment> strip) {
+            var index = ia / size;
             if (!strip.TryGetValue(index, out Segment segment)) {
                 Initialize(out segment);
                 strip[index] = segment;
             }
             segment.Set(ia - index * size, t);
         }
-        void SetSection(Dictionary<(uint, uint), Section> quadrant) {
-            uint xa = (uint)Math.Abs(x);
-            uint ya = (uint)Math.Abs(y);
+        void SetSection(Dictionary<(ulong, ulong), Section> quadrant) {
+            var xa = (ulong)Math.Abs(x);
+            var ya = (ulong)Math.Abs(y);
 
-            uint xIndex = xa / size;
-            uint yIndex = ya / size;
+            var xIndex = xa / size;
+            var yIndex = ya / size;
             if (!quadrant.TryGetValue((xIndex, yIndex), out Section section)) {
                 Initialize(out section);
                 quadrant[(xIndex, yIndex)] = section;
@@ -215,12 +215,12 @@ public class QTree<T> : GridTree<T> {
         segment = level == 1 ? new Slice(scale) : new Strip(level - 1, scale);
 
     public interface Segment {
-        T Get(uint i);
-        ref T At(uint i);
-        void Set(uint x, T t);
+        T Get(ulong i);
+        ref T At(ulong i);
+        void Set(ulong x, T t);
     }
     public class Strip : Segment {
-        public Dictionary<uint, Segment> segments;
+        public Dictionary<ulong, Segment> segments;
         public uint scale;
         public uint level;
         public uint size => (uint)Math.Pow(scale, level);
@@ -229,16 +229,16 @@ public class QTree<T> : GridTree<T> {
             this.level = level;
             this.scale = scale;
         }
-        public T Get(uint i) {
-            uint index = i / size;
+        public T Get(ulong i) {
+            var index = i / size;
             if (segments.TryGetValue(index, out var segment)) {
                 return segment.Get(i - index * size);
             } else {
                 return default(T);
             }
         }
-        public ref T At(uint i) {
-            uint index = i / size;
+        public ref T At(ulong i) {
+            var index = i / size;
 
             if (!segments.TryGetValue(index, out var segment)) {
                 Initialize(out segment);
@@ -246,8 +246,8 @@ public class QTree<T> : GridTree<T> {
             }
             return ref segment.At(i - index * size);
         }
-        public void Set(uint i, T t) {
-            uint index = i / size;
+        public void Set(ulong i, T t) {
+            var index = i / size;
 
             if (!segments.TryGetValue(index, out var section)) {
                 Initialize(out section);
@@ -262,19 +262,19 @@ public class QTree<T> : GridTree<T> {
         public T[] items;
         public uint scale;
         public Slice(uint scale) => (this.scale, items) = (scale, new T[scale]);
-        public T Get(uint i) => items[i];
-        public ref T At(uint i) => ref items[i];
-        public void Set(uint i, T t) => items[i] = t;
+        public T Get(ulong i) => items[i];
+        public ref T At(ulong i) => ref items[i];
+        public void Set(ulong i, T t) => items[i] = t;
         
     }
 
     public interface Section {
-        T Get(uint x, uint y);
-        ref T At(uint x, uint y);
-        void Set(uint x, uint y, T t);
+        T Get(ulong x, ulong y);
+        ref T At(ulong x, ulong y);
+        void Set(ulong x, ulong y, T t);
     }
     public class Quadrant : Section {
-        public Dictionary<(uint, uint), Section> sections;
+        public Dictionary<(ulong, ulong), Section> sections;
         public uint scale;
         public uint level;
         public uint size => (uint)Math.Pow(scale, level);
@@ -283,18 +283,18 @@ public class QTree<T> : GridTree<T> {
             this.level = level;
             this.scale = scale;
         }
-        public T Get(uint x, uint y) {
-            uint xIndex = x / size;
-            uint yIndex = y / size;
+        public T Get(ulong x, ulong y) {
+            var xIndex = x / size;
+            var yIndex = y / size;
             if (sections.TryGetValue((xIndex, yIndex), out var section)) {
                 return section.Get(x - xIndex * size, y - yIndex * size);
             } else {
                 return default(T);
             }
         }
-        public ref T At(uint x, uint y) {
-            uint xIndex = x / size;
-            uint yIndex = y / size;
+        public ref T At(ulong x, ulong y) {
+            var xIndex = x / size;
+            var yIndex = y / size;
 
             if (!sections.TryGetValue((xIndex, yIndex), out var section)) {
                 Initialize(out section);
@@ -302,9 +302,9 @@ public class QTree<T> : GridTree<T> {
             }
             return ref section.At(x - xIndex * size, y - yIndex * size);
         }
-        public void Set(uint x, uint y, T t) {
-            uint xIndex = x / size;
-            uint yIndex = y / size;
+        public void Set(ulong x, ulong y, T t) {
+            var xIndex = x / size;
+            var yIndex = y / size;
 
             if (!sections.TryGetValue((xIndex, yIndex), out var section)) {
                 Initialize(out section);
@@ -320,8 +320,8 @@ public class QTree<T> : GridTree<T> {
         public uint scale;
         public Leaf(uint scale) =>
             (this.scale, items) = (scale, new T[scale, scale]);
-        public T Get(uint x, uint y) => items[x, y];
-        public ref T At(uint x, uint y) => ref items[x, y];
-        public void Set(uint x, uint y, T t) => items[x, y] = t;
+        public T Get(ulong x, ulong y) => items[x, y];
+        public ref T At(ulong x, ulong y) => ref items[x, y];
+        public void Set(ulong x, ulong y, T t) => items[x, y] = t;
     }
 }
