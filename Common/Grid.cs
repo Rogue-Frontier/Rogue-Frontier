@@ -40,6 +40,7 @@ public class XY {
     public static XY operator -(XY p) => new XY(-p.x, -p.y);
     public static XY operator -(XY p, XY other) => new XY(p.x - other.x, p.y - other.y);
     public static XY operator -(XY p, (int x, int y) other) => new XY(p.x - other.x, p.y - other.y);
+    public static XY operator -(XY p, (long x, long y) other) => new XY(p.x - other.x, p.y - other.y);
     public static XY operator -((int x, int y) p, XY other) => new XY(p.x - other.x, p.y - other.y);
     public static XY operator *(XY p, XY other) => new XY(p.x * other.x, p.y * other.y);
     public static XY operator *(XY p, double scalar) => new XY(p.x * scalar, p.y * scalar);
@@ -455,10 +456,10 @@ public class LocatorDict<T, U> {
         UpdateSpace();
     }
     public bool Contains(T t) => all.Contains(t);
-    public IEnumerable<T> GetAll(Predicate<U> keySelector) =>
+    public IEnumerable<T> FilterKey(Predicate<U> keySelector) =>
         space.Where(pair => keySelector(pair.Key)).SelectMany(pair => pair.Value);
-    public IEnumerable<T> GetAll(Predicate<U> keySelector, Func<T, bool> valueSelector) =>
-    space.Where(pair => keySelector(pair.Key)).SelectMany(pair => pair.Value.Where(valueSelector));
+    public IEnumerable<V> FilterKeySelect<V>(Predicate<U> keySelector, Func<T, V> valueSelector, Func<V, bool> valueFilter) =>
+    space.Where(pair => keySelector(pair.Key)).SelectMany(pair => pair.Value.Select(valueSelector).Where(valueFilter));
     public Dictionary<U, HashSet<T>> Transform(Func<U, U> scale) =>
         LocateAll(all, t => scale(locator.Locate(t)));
     public Dictionary<U, HashSet<T>> Relocate(Func<T, U> locate) =>

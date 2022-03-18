@@ -876,6 +876,22 @@ public static class Main {
         double diff = (to - from + 180) % 360 - 180;
         return diff < -180 ? diff + 360 : diff;
     }
+    public static double AngleDiffRad(double from, double to) {
+        var p = Math.PI;
+        var t = p * 2;
+        void mod(ref double a) {
+            while (a < 0)
+                a += t;
+            while (a >= t)
+                a -= t;
+        }
+
+        mod(ref from);
+        mod(ref to);
+
+        double diff = (to - from + p) % t - p;
+        return diff < -p ? diff + t : diff;
+    }
     public static bool IsRight(double from, double to) =>
         (XY.Polar(to)-XY.Polar(from)).magnitude2 > (XY.Polar(to)-XY.Polar(from - 0.1)).magnitude2;
     public static Func<T, bool> Or<T>(params Func<T, bool>[] f) {

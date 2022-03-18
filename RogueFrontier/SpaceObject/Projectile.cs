@@ -90,7 +90,7 @@ public class Projectile : MovingObject {
 
             if(fragment.detonateRadius > 0) {
                 var r = fragment.detonateRadius * fragment.detonateRadius;
-                if(world.entities.GetAll(p => (position - p).magnitude2 < r).Select(e => e is ISegment s ? s.parent : e)
+                if(world.entities.FilterKey(p => (position - p).magnitude2 < r).Select(e => e is ISegment s ? s.parent : e)
                     .Distinct().Except(exclude).Any(e => e switch {
                         ActiveObject a when a.active => true,
                         Projectile p when !exclude.Contains(p.source) && fragment.hitProjectile => true,

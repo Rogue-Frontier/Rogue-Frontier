@@ -111,7 +111,7 @@ public class PlayerControls {
                     }
                 } else {
                     var dest = playerShip.world.entities
-                        .GetAll(p => (playerShip.position - p).magnitude < 8)
+                        .FilterKey(p => (playerShip.position - p).magnitude < 8)
                         .OfType<IDockable>()
                         .Where(s => s.GetDockPoint() != null)
                         .OrderBy(p => (p.position - playerShip.position).magnitude)

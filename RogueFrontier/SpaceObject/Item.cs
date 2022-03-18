@@ -930,7 +930,7 @@ public interface Aiming {
     void SetTarget(ActiveObject target) { }
     void UpdateTarget(ActiveObject target) { }
     public static ActiveObject AcquireTarget(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) =>
-        owner.world.entities.GetAll(p => (owner.position - p).magnitude2 < weapon.projectileDesc.range2).OfType<ActiveObject>().FirstOrDefault(filter);
+        owner.world.entities.FilterKey(p => (owner.position - p).magnitude2 < weapon.projectileDesc.range2).OfType<ActiveObject>().FirstOrDefault(filter);
     public static Projectile AcquireMissile(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) =>
         owner.world.entities.all
             .OfType<Projectile>()

@@ -339,7 +339,7 @@ public class GuardOrder : IShipOrder, IContainer<Docking.OnDocked> {
         }
         bool FindTarget(out ActiveObject target) =>
             (target = owner.world.entities
-                .GetAll(e => (home.position - e).magnitude2 < 50 * 50)
+                .FilterKey(e => (home.position - e).magnitude2 < 50 * 50)
                 .OfType<ActiveObject>()
                 .Where(e => !e.IsEqual(owner) && home.CanTarget(e))
                 .GetRandomOrDefault(owner.destiny)) != null;

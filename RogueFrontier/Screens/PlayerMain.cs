@@ -87,6 +87,8 @@ public class PlayerMain : ScreenSurface {
     public PowerMenu powerMenu;
     public PauseMenu pauseMenu;
     private TargetingMarker crosshair;
+
+    private double targetCameraRotation;
     private double updateWait;
     public bool autopilotUpdate;
     //public bool frameRendered = true;
@@ -114,7 +116,7 @@ public class PlayerMain : ScreenSurface {
         sceneContainer.Focused += (e, o) => this.IsFocused = true;
         uiMain = new(camera, playerShip, Width, Height);
         uiEdge = new(camera, playerShip, Width, Height);
-        uiMinimap = new(this, playerShip, 16);
+        uiMinimap = new(this, playerShip, 16, camera);
         communicationsMenu = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
         powerMenu = new(31, 16, this) { IsVisible = false, Position = new(3, 32) };
         pauseMenu = new(this) { IsVisible = false };
@@ -404,6 +406,14 @@ public class PlayerMain : ScreenSurface {
         base.Update(delta);
     }
     public void UpdateUI(TimeSpan delta) {
+
+        var d = Main.AngleDiffRad(camera.rotation, targetCameraRotation);
+        if (Math.Abs(d) < 0.01) {
+            camera.rotation += d;
+        } else {
+            camera.rotation += d / 10;
+        }
+
         if (sceneContainer.Children.Any()) {
             sceneContainer.Update(delta);
         } else {
@@ -554,12 +564,26 @@ public class PlayerMain : ScreenSurface {
         } else {
             playerControls.ProcessKeyboard(info);
 
-            if (info.IsKeyDown(OemOpenBrackets)) {
-                camera.rotation += 0.01;
+            var p = (Keys k) => info.IsKeyPressed(k);
+            var d = (Keys k) => info.IsKeyDown(k);
+            if (d(LeftShift) || d(RightShift)) {
+                if (p(OemOpenBrackets)) {
+                    targetCameraRotation += Math.PI/2;
+                }
+                if (p(OemCloseBrackets)) {
+                    targetCameraRotation -= Math.PI/2;
+                }
+            } else {
+                if (d(OemOpenBrackets)) {
+                    camera.rotation += 0.01;
+                    targetCameraRotation = camera.rotation;
+                }
+                if (d(OemCloseBrackets)) {
+                    camera.rotation -= 0.01;
+                    targetCameraRotation = camera.rotation;
+                }
             }
-            if (info.IsKeyDown(OemCloseBrackets)) {
-                camera.rotation -= 0.01;
-            }
+
         }
         return base.ProcessKeyboard(info);
     }
@@ -739,7 +763,7 @@ public class Megamap : ScreenSurface {
     public override bool ProcessKeyboard(Keyboard info) {
         var p = (Keys k) => info.IsKeyPressed(k);
         var d = (Keys k) => info.IsKeyDown(k);
-        if (d(LeftShift) || d(Keys.RightShift)) {
+        if (d(LeftControl) || d(RightControl)) {
             if (p(OemMinus)) {
                 targetViewScale *= 2;
             }
@@ -748,6 +772,9 @@ public class Megamap : ScreenSurface {
                 if (targetViewScale < 1) {
                     targetViewScale = 1;
                 }
+            }
+            if (p(Keys.D0)) {
+                targetViewScale = 1;
             }
         } else {
             if (d(OemMinus)) {
@@ -1658,12 +1685,11 @@ public class Edgemap : ScreenSurface {
         var halfWidth = Width / 2;
         var halfHeight = Height / 2;
         var range = 192;
-        player.world.entities.GetAll(
+        player.world.entities.FilterKeySelect<(Entity entity, double dist)?>(
             ((int, int) p) => (player.position - p).maxCoord < range,
-            entity => entity.tile != null && entity is not ISegment)
-            .Select(entity => player.GetVisibleDistanceLeft(entity) is double d && d > 0 ? new { distance = d, entity = entity } : null)
-            .Where(pair => pair != null).ToList().ForEach(pair => {
-                (var dist, var entity) = (pair.distance, pair.entity);
+            entity => entity.tile != null && entity is not ISegment && player.GetVisibleDistanceLeft(entity) is double d && d > 0 ? (entity, d) : null,
+            v => v != null).ToList().ForEach(pair => {
+                (var entity, var dist) = pair.Value;
                 var offset = (entity.position - player.position).Rotate(-camera.rotation);
                 var (x, y) = (offset / viewScale).abs;
                 if (x > halfWidth || y > halfHeight) {
@@ -1693,14 +1719,23 @@ public class Edgemap : ScreenSurface {
     }
 }
 public class Minimap : ScreenSurface {
-    PlayerShip playerShip;
+    PlayerShip player;
     public int size;
+    Camera camera;
     public double time;
     public byte alpha;
-    public Minimap(ScreenSurface parent, PlayerShip playerShip, int size) : base(size, size) {
+
+    public int Width => Surface.Width;
+    public int Height => Surface.Height;
+    XY screenSize, screenCenter;
+    public Minimap(ScreenSurface parent, PlayerShip playerShip, int size, Camera camera) : base(size, size) {
         this.Position = new Point(parent.Surface.Width - size, 0);
-        this.playerShip = playerShip;
+        this.player = playerShip;
         this.size = size;
+        this.camera = camera;
+
+        screenSize = new(Width, Height);
+        screenCenter = screenSize / 2;
 
         alpha = 255;
     }
@@ -1715,26 +1750,28 @@ public class Minimap : ScreenSurface {
         var range = 192;
         var mapScale = (range / halfSize);
 
-        var mapSample = playerShip.world.entities.space.DownsampleSet(mapScale);
-        
-        for(int x = 0; x < Surface.Width; x++) {
+        var mapSample = player.world.entities.space.DownsampleSet(mapScale);
+
+
+        var scaledEntities = player.world.entities.TransformSelectList<(Entity entity, double distance)?>(
+            e => (screenCenter + ((e.position - player.position) / mapScale).Rotate(-camera.rotation)).flipY + (0, Height),
+            ((int x, int y) p) => p.x > -1 && p.x < Width && p.y > -1 && p.y < Height,
+            ent => ent is not ISegment && ent.tile != null && player.GetVisibleDistanceLeft(ent) is double dist && dist > 0 ? (ent, dist) : null
+        );
+
+
+        for (int x = 0; x < Surface.Width; x++) {
 
             for (int y = 0; y < Surface.Height; y++) {
-                var entities = mapSample[(
-                    (x - halfSize + playerShip.position.xi / mapScale),
-                    (halfSize - y + playerShip.position.yi / mapScale))]
-                    .Select(e => e is not ISegment && e.tile != null && playerShip.GetVisibleDistanceLeft(e) is double dist && dist > 0 ? new { entity = e, distance = dist } : null)
-                    .Where(s => s != null)
-                    .ToList();
-                if (entities.Any()) {
-                    var t = entities[(int)time % entities.Count()];
+                if (scaledEntities.TryGetValue((x, y), out var entities)) {
+                    (var entity, var distance) = entities[(int)time % entities.Count()].Value;
 
-                    var g = t.entity.tile.Glyph;
-                    var f = t.entity.tile.Foreground;
+                    var g = entity.tile.Glyph;
+                    var f = entity.tile.Foreground;
 
                     const double threshold = 16;
-                    if(t.distance < threshold) {
-                        f = f.SetAlpha((byte)(255 * t.distance / threshold));
+                    if(distance < threshold) {
+                        f = f.SetAlpha((byte)(255 * distance / threshold));
                     }
 
                     Surface.SetCellAppearance(x, y, new ColoredGlyph(f, Color.Black, g).PremultiplySet(alpha));

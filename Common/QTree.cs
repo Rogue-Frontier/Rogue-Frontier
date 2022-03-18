@@ -19,9 +19,9 @@ public static class SGrid {
     }
 }
 public interface GridTree<T> {
-    T Get(int x, int y);
-    ref T At(int x, int y);
-    void Set(int x, int y, T t);
+    T Get(long x, long y);
+    ref T At(long x, long y);
+    void Set(long x, long y, T t);
 }
 public class QTree<T> : GridTree<T> {
     public T center;
@@ -52,21 +52,21 @@ public class QTree<T> : GridTree<T> {
             d.Clear();
         }
     }
-    public const int CODE_OFFSET = 2;
-    public const int CODE_SHIFT = 2;
-    public const int CODE_ORIGIN = (0 + CODE_OFFSET) | ((0 + CODE_OFFSET) << CODE_SHIFT);
-    public const int CODE_X_POSITIVE = (1 + CODE_OFFSET) | ((0 + CODE_OFFSET) << CODE_SHIFT);
-    public const int CODE_X_NEGATIVE = (-1 + CODE_OFFSET) | ((0 + CODE_OFFSET) << CODE_SHIFT);
-    public const int CODE_Y_POSITIVE = (0 + CODE_OFFSET) | ((1 + CODE_OFFSET) << CODE_SHIFT);
-    public const int CODE_Y_NEGATIVE = (0 + CODE_OFFSET) | ((-1 + CODE_OFFSET) << CODE_SHIFT);
+    public const byte CODE_OFFSET = 2;
+    public const byte CODE_SHIFT = 2;
+    public const byte CODE_ORIGIN = (0 + CODE_OFFSET) | ((0 + CODE_OFFSET) << CODE_SHIFT);
+    public const byte CODE_X_POSITIVE = (1 + CODE_OFFSET) | ((0 + CODE_OFFSET) << CODE_SHIFT);
+    public const byte CODE_X_NEGATIVE = (-1 + CODE_OFFSET) | ((0 + CODE_OFFSET) << CODE_SHIFT);
+    public const byte CODE_Y_POSITIVE = (0 + CODE_OFFSET) | ((1 + CODE_OFFSET) << CODE_SHIFT);
+    public const byte CODE_Y_NEGATIVE = (0 + CODE_OFFSET) | ((-1 + CODE_OFFSET) << CODE_SHIFT);
 
-    public const int CODE_QUADRANT_1 = (1 + CODE_OFFSET) | ((1 + CODE_OFFSET) << CODE_SHIFT);
-    public const int CODE_QUADRANT_2 = (-1 + CODE_OFFSET) | ((1 + CODE_OFFSET) << CODE_SHIFT);
-    public const int CODE_QUADRANT_3 = (-1 + CODE_OFFSET) | ((-1 + CODE_OFFSET) << CODE_SHIFT);
-    public const int CODE_QUADRANT_4 = (1 + CODE_OFFSET) | ((-1 + CODE_OFFSET) << CODE_SHIFT);
-    public static int SignCode(int x, int y) => (Math.Sign(x) + CODE_OFFSET) | ((Math.Sign(y) + CODE_OFFSET) << CODE_SHIFT);
-    public ref T this[(int x, int y) p] => ref At(p.x, p.y);
-    public T Get(int x, int y) {
+    public const byte CODE_QUADRANT_1 = (1 + CODE_OFFSET) | ((1 + CODE_OFFSET) << CODE_SHIFT);
+    public const byte CODE_QUADRANT_2 = (-1 + CODE_OFFSET) | ((1 + CODE_OFFSET) << CODE_SHIFT);
+    public const byte CODE_QUADRANT_3 = (-1 + CODE_OFFSET) | ((-1 + CODE_OFFSET) << CODE_SHIFT);
+    public const byte CODE_QUADRANT_4 = (1 + CODE_OFFSET) | ((-1 + CODE_OFFSET) << CODE_SHIFT);
+    public static int SignCode(long x, long y) => (Math.Sign(x) + CODE_OFFSET) | ((Math.Sign(y) + CODE_OFFSET) << CODE_SHIFT);
+    public ref T this[(long x, long y) p] => ref At(p.x, p.y);
+    public T Get(long x, long y) {
         switch (SignCode(x, y)) {
             case CODE_ORIGIN:
                 return center;
@@ -110,7 +110,7 @@ public class QTree<T> : GridTree<T> {
             }
         }
     }
-    public ref T At(int x, int y) {
+    public ref T At(long x, long y) {
         var code = SignCode(x, y);
         switch (code) {
             case CODE_ORIGIN:
@@ -155,7 +155,7 @@ public class QTree<T> : GridTree<T> {
             return ref section.At(xa - xIndex * size, ya - yIndex * size);
         }
     }
-    public void Set(int x, int y, T t) {
+    public void Set(long x, long y, T t) {
 
         switch (SignCode(x, y)) {
             case CODE_ORIGIN:

@@ -153,7 +153,7 @@ public class SpaceGenerator : IGridGenerator<ColoredGlyph> {
         this.layer = layer;
         this.random = random;
     }
-    public ColoredGlyph Generate((int, int) p) {
+    public ColoredGlyph Generate((long, long) p) {
         var tiles = layer.tiles;
         var parallaxFactor = layer.parallaxFactor;
 

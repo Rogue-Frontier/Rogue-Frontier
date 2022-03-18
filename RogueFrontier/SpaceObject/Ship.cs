@@ -798,7 +798,7 @@ public class PlayerShip : IShip {
             */
         }
         if (ticks % 60 == 0) {
-            visible = new(world.entities.GetAll(p => (position - p).maxCoord < 50).Where(CanSee));
+            visible = new(world.entities.FilterKey(p => (position - p).maxCoord < 50).Where(CanSee));
             foreach (var s in visible.OfType<Station>().Except(known)) {
                 AddMessage(new Transmission(s, $"Discovered: {s.type.name}"));
                 known.Add(s);

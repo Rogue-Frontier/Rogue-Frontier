@@ -170,7 +170,7 @@ public class Station : ActiveObject, ITrader, IDockable {
         type.satellites?.Generate(lc, world.types);
     }
     public IEnumerable<AIShip> GetDocked() =>
-        world.entities.GetAll(p => (position - p).magnitude < 5)
+        world.entities.FilterKey(p => (position - p).magnitude < 5)
             .OfType<AIShip>().Where(s => s.dock?.Target == this);
     
     public XY GetDockPoint() =>
