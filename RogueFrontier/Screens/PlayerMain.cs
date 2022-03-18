@@ -722,11 +722,18 @@ public class Megamap : ScreenSurface {
     public double viewScale = 1;
     double time;
 
+
+
+    XY screenSize, screenCenter;
+
     public byte alpha;
     public Megamap(Camera camera, PlayerShip player, GeneratedLayer back, int width, int height) : base(width, height) {
         this.camera = camera;
         this.player = player;
         this.background = back;
+
+        screenSize = new(Width, Height);
+        screenCenter = screenSize / 2;
     }
     public double delta => Math.Min(targetViewScale / (2 * 30), 1);
     public override bool ProcessKeyboard(Keyboard info) {
@@ -778,8 +785,6 @@ public class Megamap : ScreenSurface {
             if(alpha < 128) {
                 alpha = (byte)(128 * Math.Sqrt(alpha / 128f));
             }
-            XY screenSize = new XY(Width, Height);
-            XY screenCenter = screenSize / 2;
 
 
 
@@ -787,7 +792,7 @@ public class Megamap : ScreenSurface {
 
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
-                    var offset = new XY((x - screenCenter.x) * viewScale, (y - screenCenter.y) * viewScale).Rotate(-camera.rotation);
+                    var offset = new XY((x - screenCenter.x) * viewScale, (y - screenCenter.y) * viewScale).Rotate(camera.rotation);
                     var pos = player.position + offset;
                     bool IsVisible(ColoredGlyph cg) =>
                         cg.GlyphCharacter != ' ' || cg.Background != Color.Transparent;
@@ -821,35 +826,23 @@ public class Megamap : ScreenSurface {
                 var b = Surface.GetBackground(point.X, point.Y);
                 Surface.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, (int)(128/viewScale))));
             }
-            var scaledEntities = player.world.entities.space.DownsampleSet(viewScale, -player.position);
-            var rendered = new HashSet<(int, int)>();
-            foreach ((var offset, var ent) in scaledEntities.space) {
-                var (x, y) = screenCenter + ((XY)offset).Rotate(-camera.rotation);
-                x += 1;
-                y = Height - y - 1;
-                if (x > -1 && x < Width && y > -1 && y < Height) {
-                    var visible = ent.Where(t => t is not ISegment && t.tile != null)
-                        .Select(e => player.GetVisibleDistanceLeft(e) is double dist && dist > 0 ? new {entity= e, distance= dist} : null)
-                        .Where(s => s != null)
-                        .ToList();
-                    if (visible.Count > 0) {
-                        var s = visible[(int)time % visible.Count];
-
-                        var t = s.entity.tile;
-                        var f = t.Foreground;
-
-                        //Apply stealth
-                        const double threshold = 16;
-                        if(s.distance < threshold) {
-                            f = f.SetAlpha((byte)(255*s.distance / threshold));
-                        }
-
-
-                        t = new ColoredGlyph(f, Surface.GetBackground(x, y), t.Glyph);
-                        Surface.SetCellAppearance(x, y, t);
-                        //rendered.Add((x, y));
-                    }
+            var scaledEntities = player.world.entities.TransformSelectList<(Entity entity, double distance)?>(
+                e => (screenCenter + ((e.position - player.position) / viewScale).Rotate(-camera.rotation)).flipY + (0, Height),
+                ((int x, int y) p) => p.x > -1 && p.x < Width && p.y > -1 && p.y < Height,
+                ent => ent is not ISegment && ent.tile != null && player.GetVisibleDistanceLeft(ent) is double dist && dist > 0 ? (ent, dist) : null
+            );
+            foreach ((var offset, var visible) in scaledEntities) {
+                var (x, y) = offset;
+                (var entity, var distance) = visible[(int)time % visible.Count].Value;
+                var t = entity.tile;
+                var f = t.Foreground;
+                //Apply stealth
+                const double threshold = 16;
+                if (distance < threshold) {
+                    f = f.SetAlpha((byte)(255 * distance / threshold));
                 }
+                t = new(f, Surface.GetBackground(x, y), t.Glyph);
+                Surface.SetCellAppearance(x, y, t);
             }
             /*
             Parallel.ForEach(scaledEntities.space, pair => {
@@ -1730,8 +1723,7 @@ public class Minimap : ScreenSurface {
                 var entities = mapSample[(
                     (x - halfSize + playerShip.position.xi / mapScale),
                     (halfSize - y + playerShip.position.yi / mapScale))]
-                    .Where(e => !(e is ISegment) && e.tile != null)
-                    .Select(e => playerShip.GetVisibleDistanceLeft(e) is double dist && dist > 0 ? new { entity = e, distance = dist } : null)
+                    .Select(e => e is not ISegment && e.tile != null && playerShip.GetVisibleDistanceLeft(e) is double dist && dist > 0 ? new { entity = e, distance = dist } : null)
                     .Where(s => s != null)
                     .ToList();
                 if (entities.Any()) {

@@ -31,7 +31,7 @@ public static class Main {
         offset ??= new(0, 0);
         var result = new SetDict<(int, int), T>();
         foreach (((int x, int y) p, var i) in from) {
-            result.Add((((XY)p + offset) / scale).roundDown, i);
+            result.Add(((offset + p) / scale).roundDown, i);
         }
         return result;
     }
@@ -39,7 +39,7 @@ public static class Main {
         offset ??= new(0, 0);
         var result = new SetDict<(int, int), T>();
         foreach (((int x, int y) p, var items) in from) {
-            result.AddRange((((XY)p + offset) / scale).roundDown, items);
+            result.AddRange(((offset + p) / scale).roundDown, items);
         }
         return result;
     }
@@ -49,7 +49,7 @@ public static class Main {
         foreach (((int x, int y) p, var items) in from) {
             var i = items.Where(filter);
             if (i.Any()) {
-                result.AddRange((((XY)p + offset) / scale).roundDown, i);
+                result.AddRange(((offset + p) / scale).roundDown, i);
             }
         }
         return result;
