@@ -502,6 +502,39 @@
 				/>
 		</Weapon>
 	</ItemType>
+	
+	
+		<ItemType	codename=	"item_tracker_launcher"
+			name=		"Tracker launcher"
+			level=		"2"
+			mass=		"200"
+			value=		"8"
+
+			invoke=		"installWeapon"
+				
+			desc=		"Tracking beacons."
+		>
+
+		<Weapon
+			powerUse=		"30"
+			fireCooldown=	"30"
+			initialCharges= "240"
+			>
+			<Projectile
+				omnidirectional="true"
+			
+				missileSpeed=	"40"
+				damageType=		"1"
+				damageHP=		"1"
+				lifetime=		"240"
+				glyph=			"+"
+				foreground=		"SpringGreen"
+				
+				tracker=		"true"
+				/>
+		</Weapon>
+	</ItemType>
+	
 	<ItemType	codename=	"item_amethyst_warranty_card"
 		name=		"Amethyst warranty card"
 		level=		"1"

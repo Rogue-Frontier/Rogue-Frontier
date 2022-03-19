@@ -563,7 +563,6 @@ public class PlayerMain : ScreenSurface {
             communicationsMenu.ProcessKeyboard(info);
         } else {
             playerControls.ProcessKeyboard(info);
-
             var p = (Keys k) => info.IsKeyPressed(k);
             var d = (Keys k) => info.IsKeyDown(k);
             if (d(LeftShift) || d(RightShift)) {
@@ -592,7 +591,6 @@ public class PlayerMain : ScreenSurface {
                     world.entities.all
                     .OfType<ActiveObject>()
                     .OrderBy(e => (e.position - mouseWorldPos).magnitude)
-                    
                     .Distinct()
                     );
 
@@ -603,7 +601,7 @@ public class PlayerMain : ScreenSurface {
             if (playerShip.GetTarget(out var t) && t == crosshair) {
                 playerShip.ClearTarget();
             } else {
-                playerShip.SetTargetList(new List<ActiveObject>() { crosshair });
+                playerShip.SetTargetList(new() { crosshair });
             }
         } else {
             playerShip.targetList = targetList;
@@ -654,7 +652,7 @@ public class PlayerMain : ScreenSurface {
                 //If we set velocity to match player's velocity, then the weapon will aim directly at the crosshair
                 //If we set the velocity to zero, then the weapon will aim to the lead angle of the crosshair
                 //crosshair.Update();
-                Heading.Crosshair(world, crosshair.position);
+                Heading.Crosshair(world, crosshair.position, Color.Yellow);
                 //Idea: Aiming with crosshair disables mouse turning
                 enableMouseTurn = false;
             }
@@ -1123,6 +1121,33 @@ public class Readout : ScreenSurface {
         FocusOnMouseClick = false;
     }
     public override void Update(TimeSpan delta) {
+        if (player.GetTarget(out ActiveObject playerTarget)) {
+            DrawTargetArrow(playerTarget, Color.Yellow);
+        }
+        foreach (var t in player.trackers.Keys) {
+            DrawTargetArrow(t, Color.SpringGreen);
+        }
+        //var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
+        foreach (var autoTarget in player.devices.Weapon.Select(w => w.target).Where(t => t != null && t != playerTarget)) {
+            DrawTargetArrow(autoTarget, Color.Yellow);
+        }
+        void DrawTargetArrow(ActiveObject target, Color c) {
+            var o = (target.position - player.position);
+            var offset = o / viewScale;
+            if (Math.Abs(offset.x) > Width / 2 - 6 || Math.Abs(offset.y) > Height / 2 - 6) {
+                var offsetNormal = offset.normal.flipY;
+                //var p = screenCenter + offsetNormal * arrowDistance;
+                var smallScreen = screenSize - (20, 20);
+                var smallCenter = smallScreen / 2;
+                var p = Main.GetBoundaryPoint(smallScreen, offsetNormal.angleRad);
+                var centerOffset = (p - smallCenter).flipY;
+
+                var loc = player.position + centerOffset;
+                EffectParticle.DrawArrow(player.world, loc, offset, c);
+            }
+            Heading.Crosshair(target.world, target.position, c);
+        }
+
         base.Update(delta);
     }
     public override void Render(TimeSpan drawTime) {
@@ -1131,23 +1156,6 @@ public class Readout : ScreenSurface {
         int targetX = 48, targetY = 1;
         int tick = player.world.tick;
 
-        void DrawTargetArrow(ActiveObject target) {
-            var offset = (target.position - player.position) / viewScale;
-            if (Math.Abs(offset.x) > Width / 2 - 6 || Math.Abs(offset.y) > Height / 2 - 6) {
-
-                var offsetNormal = offset.normal.flipY;
-                //var p = screenCenter + offsetNormal * arrowDistance;
-                var p = Main.GetBoundaryPoint(screenSize - (20, 20), offsetNormal.angleRad) + (10, 10);
-
-                Surface.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '+'));
-
-                var trailLength = 4;
-                for (int i = 1; i < trailLength; i++) {
-                    p -= offsetNormal;
-                    Surface.SetCellAppearance(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '.'));
-                }
-            }
-        }
 
         for (int i = 0; i < player.messages.Count; i++) {
             var message = player.messages[i];
@@ -1265,19 +1273,19 @@ public class Readout : ScreenSurface {
         const int BAR = 8;
         if (player.GetTarget(out ActiveObject playerTarget)) {
             Surface.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
-            Surface.Print(targetX, targetY++, playerTarget.name);
+            Surface.Print(targetX, targetY++, playerTarget.name, player.trackers.ContainsKey(playerTarget) ? Color.SpringGreen : Color.White, Color.Black);
             PrintTarget(targetX, targetY, playerTarget);
-            DrawTargetArrow(playerTarget);
             targetX += 32;
             targetY = 1;
         }
+
+
         //var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
         foreach (var autoTarget in player.devices.Weapon.Select(w => w.target)) {
             if (autoTarget != null && autoTarget != playerTarget) {
                 Surface.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
-                Surface.Print(targetX, targetY++, autoTarget.name);
+                Surface.Print(targetX, targetY++, autoTarget.name, player.trackers.ContainsKey(autoTarget) ? Color.SpringGreen : Color.White, Color.Black);
                 PrintTarget(targetX, targetY, autoTarget);
-                DrawTargetArrow(autoTarget);
             }
         }
         void PrintTarget(int x, int y, ActiveObject target) {

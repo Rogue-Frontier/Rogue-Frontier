@@ -390,7 +390,7 @@ class ArenaScreen : Console {
 
 
         if (nearest != null) {
-            Heading.Crosshair(World, nearest.position);
+            Heading.Crosshair(World, nearest.position, Color.Yellow);
         }
     }
     public override void Render(TimeSpan drawTime) {

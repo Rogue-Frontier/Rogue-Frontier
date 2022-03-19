@@ -37,14 +37,13 @@ public static class SStealth {
         PlayerShip p => p.CanSee(other),
         _ => e.GetVisibleDistanceLeft(other) > 0
     };
-
     public static double GetVisibleDistanceLeft(this Entity p, Entity e) => e switch {
         AIShip ai => GetVisibleRange(ai.ship.stealth) - (e.position - p.position).magnitude,
         Station st => GetVisibleRange(st.stealth) - (e.position - p.position).magnitude,
         _ => double.PositiveInfinity
     };
     public static double GetVisibleRange(double stealth) => stealth switch {
-#if false
+#if true
         > 0 => 250 / stealth,
 #else
         > 0 => double.PositiveInfinity,
@@ -333,8 +332,6 @@ public class AIShip : IShip {
     public Docking dock { get; set; }
     public delegate void Destroyed(AIShip ship, ActiveObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
-    
-    
     public AIShip() { }
     public AIShip(BaseShip ship, Sovereign sovereign, IShipBehavior behavior = null, IShipOrder order = null) {
         this.ship = ship;
@@ -462,6 +459,8 @@ public class PlayerShip : IShip {
     public List<AIShip> wingmates = new();
 
     public Dictionary<long, double> visibleDistanceLeft=new();
+    public Dictionary<ActiveObject, int> trackers = new();
+
     public PlayerShip() { }
     public PlayerShip(Player player, BaseShip ship, Sovereign sovereign) {
         this.person = player;
@@ -744,9 +743,7 @@ public class PlayerShip : IShip {
         messages.ForEach(m => m.Update());
         messages.RemoveAll(m => !m.Active);
 
-        if (GetTarget(out ActiveObject target)) {
-            Heading.Crosshair(world, target.position);
-        }
+        var target = GetTarget();
 
         powers.ForEach(p => {
             if (p.cooldownLeft > 0) {
@@ -788,6 +785,15 @@ public class PlayerShip : IShip {
                             case AIShip ai: visibleDistanceLeft[s.id] = SStealth.GetVisibleRange(ai.ship.stealth) - (e.position - position).magnitude; break;
                         }
                         break;
+                }
+            }
+
+
+            foreach(var e in trackers.Keys) {
+                visibleDistanceLeft[e.id] = 16;
+                trackers[e] -= 15;
+                if(trackers[e] < 1) {
+                    trackers.Remove(e);
                 }
             }
             /*

@@ -87,10 +87,9 @@ class Heading : Effect {
             World.AddEffect(new EffectParticle(point, bright, 1));
         }
     }
-    public static void Crosshair(System World, XY point) {
+    public static void Crosshair(System World, XY point, Color foreground) {
         //Color foreground = new Color(153, 153, 153);
-        Color foreground = new Color(204, 204, 0);
-        Color background = Color.Transparent;
+        var background = Color.Transparent;
         World.AddEffect(new EffectParticle(point + new XY(1, 0), new ColoredGlyph(foreground, background, '-'), 1));
         World.AddEffect(new EffectParticle(point + new XY(-1, 0), new ColoredGlyph(foreground, background, '-'), 1));
         World.AddEffect(new EffectParticle(point + new XY(0, 1), new ColoredGlyph(foreground, background, '|'), 1));

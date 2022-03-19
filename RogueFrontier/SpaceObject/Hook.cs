@@ -31,15 +31,12 @@ public class Hook : Entity {
         this.attached = attached;
         this.source = source;
         id = attached.world.nextId++;
-
         var offset = attached.position - source.position;
         var distance = (int)offset.magnitude - 1;
-
         if (distance < 1) {
             active = false;
             return;
         }
-
         var direction = offset.normal;
         segments.AddRange(Enumerable.Range(1, distance).Select(
             i => new Cable(this, source.position + direction * i)));
@@ -59,7 +56,6 @@ public class Hook : Entity {
             segments[i].position = source.position + offset * (i+1) / (length+1);
         }
         var nextLength = (int)offset.magnitude;
-
         if (nextLength >= length) {
             var inc = nextLength - length;
             var direction = offset.normal;
@@ -136,5 +132,23 @@ public class LightningRod : Entity, IContainer<Weapon.OnFire>, IContainer<Projec
                 new ColoredGlyph(Color.Red, Color.Transparent, '%'), 30));
         }
         lifetime--;
+    }
+}
+public class StickyBomb : Entity {
+    public StructureObject attached;
+    public ActiveObject source;
+    public FragmentDesc detonate;
+    public StickyBomb(StructureObject attached, ActiveObject source, FragmentDesc detonate) {
+        this.attached = attached;
+        this.source = source;
+        this.detonate = detonate;
+        id = attached.world.nextId++;
+    }
+    public long id { get; set; }
+    public XY position => attached.position - offset.normal;
+    public XY offset => attached.position - source.position;
+    public bool active { get; set; } = true;
+    public ColoredGlyph tile => new(Color.SpringGreen, Color.Black, 'b');
+    public void Update() {
     }
 }

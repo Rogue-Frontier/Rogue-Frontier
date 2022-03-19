@@ -12,6 +12,7 @@
                 foreground="Magenta"
 	    >
 	    <Devices>
+			<Weapon codename="item_tracker_launcher"/>
 			<Weapon codename="item_amethyst_laser_i"/>
 			<Weapon codename="item_magic_blaster_i"/>
 			<Shield codename="item_shimmer_shield_i"/>

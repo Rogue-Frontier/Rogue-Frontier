@@ -385,6 +385,8 @@ public record FragmentDesc {
     [Opt] public bool magic;
     [Opt] public IDice blind;
     [Opt] public int ricochet;
+    [Opt] public bool tracker;
+    [Opt] public bool beacon;
     [Opt] public bool hook;
     [Opt] public bool lightning;    //On hit, the projectile attaches an overlay that automatically makes future shots hit instantly
     /// <summary>

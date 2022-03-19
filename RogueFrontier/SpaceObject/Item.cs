@@ -872,8 +872,15 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             //delay = 5;
             hit.world.AddEntity(new LightningRod(hit, this));
         }
+        if (projectileDesc.hook && projectile.hitHull) {
+            hit.world.AddEntity(new Hook(hit, projectile.source));
+        }
+        if(projectileDesc.tracker && projectile.hitHull) {
+            if(projectile.source is PlayerShip pl) {
+                pl.trackers[hit] = 1800;
+            }
+        }
     };
-
     public ActiveObject target => aiming?.target;
 
     public void SetTarget(ActiveObject target) {
@@ -998,7 +1005,7 @@ public class Omnidirectional : Aiming {
 
             direction = GetFireAngle(owner, target, weapon);
             Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
-            Heading.Crosshair(owner.world, target.position);
+            //Heading.Crosshair(owner.world, target.position);
         } else {
             direction = null;
         }
@@ -1034,7 +1041,7 @@ public class Swivel : Aiming {
         if (targeting.target != null) {
             direction = Omnidirectional.GetFireAngle(owner, target, weapon);
             Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
-            Heading.Crosshair(owner.world, target.position);
+            //Heading.Crosshair(owner.world, target.position);
         } else {
             direction = null;
         }

@@ -124,9 +124,6 @@ public class Projectile : MovingObject {
                                 //velocity += (hit.velocity - velocity) / 2;
                                 //stop = true;
                             } else {
-                                if (fragment.hook && hitHull) {
-                                    world.AddEntity(new Hook(hit, source));
-                                }
                                 onHitActive.ForEach(f => f(this, hit));
                                 Fragment();
                                 
