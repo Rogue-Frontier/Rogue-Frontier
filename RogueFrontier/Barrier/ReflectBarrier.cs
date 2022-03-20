@@ -11,7 +11,7 @@ class ReflectBarrier : ProjectileBarrier {
     public ColoredGlyph tile => new ColoredGlyph(Color.Goldenrod, Color.Black, '*');
 
 
-    public long id { get; private set; }
+    public ulong id { get; private set; }
     public PlayerShip owner;
     public XY offset;
     public int lifetime;

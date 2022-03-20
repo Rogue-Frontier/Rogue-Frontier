@@ -1,6 +1,5 @@
 ﻿<Module>
 	<Module file="Genomes.xml"/>
-
 	<Module file="Amethyst.xml"/>
 	<Module file="Beowulf.xml"/>
 	<Module file="Campers.xml"/>
@@ -11,19 +10,15 @@
 	<Module file="Errorist.xml"/>
 	<Module file="IronPirates.xml"/>
 	<Module file="NRobot.xml"/>
+	<Module file="Olympus.xml"/>
 	<Module file="OrionWarlords.xml"/>
 	<Module file="Player.xml"/>
 	<Module file="RoyalShade.xml"/>
 	<Module file="Shifters.xml"/>
-
 	<Module file="Items.xml"/>
 	<Module file="Powers.xml"/>
 	<Module file="Reactors.xml"/>
-	
 	<Module file="Ships.xml"/>
-	
 	<Module file="Systems.xml"/>
-
-
 	<Module file="Intro.xml"/>
 </Module>

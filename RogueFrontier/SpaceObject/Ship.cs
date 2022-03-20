@@ -93,7 +93,7 @@ public class BaseShip {
     public System world;
     public ShipClass shipClass;
     public XY position;
-    public long id;
+    public ulong id;
     public XY velocity;
     public bool active;
     public HashSet<Item> cargo;
@@ -310,7 +310,7 @@ public static class SShipBehavior {
         behavior.GetOrder()?.GetType().Name ?? "Unknown";
 }
 public class AIShip : IShip {
-    [JsonIgnore] public long id => ship.id;
+    [JsonIgnore] public ulong id => ship.id;
     [JsonIgnore] public string name => ship.name;
     [JsonIgnore] public System world => ship.world;
     [JsonIgnore] public ShipClass shipClass => ship.shipClass;
@@ -387,7 +387,7 @@ public class PlayerShip : IShip {
     [JsonIgnore]
     public string name => ship.name;
     [JsonIgnore]
-    public long id => ship.id;
+    public ulong id => ship.id;
     [JsonIgnore]
     public System world => ship.world;
     [JsonIgnore]
@@ -458,7 +458,7 @@ public class PlayerShip : IShip {
 
     public List<AIShip> wingmates = new();
 
-    public Dictionary<long, double> visibleDistanceLeft=new();
+    public Dictionary<ulong, double> visibleDistanceLeft=new();
     public Dictionary<ActiveObject, int> trackers = new();
 
     public PlayerShip() { }
@@ -575,7 +575,7 @@ public class PlayerShip : IShip {
                 goto CheckTarget;
             } else {
                 //Found target
-                UpdateAutoAim();
+                UpdateWeaponTargets();
             }
         } else {
             targetIndex = -1;
@@ -620,7 +620,7 @@ public class PlayerShip : IShip {
                 goto CheckTarget;
             } else {
                 //Found target
-                UpdateAutoAim();
+                UpdateWeaponTargets();
             }
         } else {
             targetIndex = -1;
@@ -643,22 +643,27 @@ public class PlayerShip : IShip {
         }
     }
     //Remember to call this before we set the targetIndex == -1
-    public void ResetAutoAim() {
+    public void ResetWeaponTargets() {
         var primary = GetPrimary();
         if(primary?.target == targetList[targetIndex]) {
             primary.SetTarget(null);
         }
+        var secondary = GetSecondary();
+        if(secondary?.target == targetList[targetIndex]) {
+            secondary.SetTarget(null);
+        }
     }
     //Remember to call this after we set the targetIndex > -1
-    public void UpdateAutoAim() {
+    public void UpdateWeaponTargets() {
         GetPrimary()?.SetTarget(targetList[targetIndex]);
+        GetSecondary()?.SetTarget(targetList[targetIndex]);
     }
     //Stop targeting, but remember our remaining targets
     public void ForgetTarget() {
         if (targetIndex == -1) {
             return;
         }
-        ResetAutoAim();
+        ResetWeaponTargets();
         targetList = targetList.GetRange(targetIndex, targetList.Count - targetIndex);
         targetIndex = -1;
     }
@@ -667,19 +672,19 @@ public class PlayerShip : IShip {
         if (targetIndex == -1) {
             return;
         }
-        ResetAutoAim();
+        ResetWeaponTargets();
         targetList.Clear();
         targetIndex = -1;
     }
 
     public void SetTargetList(List<ActiveObject> targetList) {
         if (targetIndex > -1) {
-            ResetAutoAim();
+            ResetWeaponTargets();
         }
         this.targetList = targetList;
         if (targetList.Count > 0) {
             targetIndex = 0;
-            UpdateAutoAim();
+            UpdateWeaponTargets();
         } else {
             targetIndex = -1;
 
@@ -787,12 +792,10 @@ public class PlayerShip : IShip {
                         break;
                 }
             }
-
-
             foreach(var e in trackers.Keys) {
                 visibleDistanceLeft[e.id] = 16;
                 trackers[e] -= 15;
-                if(trackers[e] < 1) {
+                if(!e.active || trackers[e] < 1) {
                     trackers.Remove(e);
                 }
             }

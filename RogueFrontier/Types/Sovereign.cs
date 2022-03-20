@@ -53,7 +53,7 @@ public class Sovereign : IDesignType {
     //private Sovereign parent;
 
     public Dict<string, Disposition> sovDispositions;
-    public Dict<Entity, Disposition> entityDispositions;
+    public Dict<ulong, Disposition> entityDispositions;
     public IContainer<AutoSovereign> AutoSovereignDisposition;
 
     public static readonly Dictionary<Alignment, Dictionary<Alignment, Disposition>> dispositionTable = new Dictionary<Alignment, Dictionary<Alignment, Disposition>> {
@@ -94,8 +94,8 @@ public class Sovereign : IDesignType {
     public delegate Disposition AutoSpaceObject(ActiveObject other);
 
     public Sovereign() {
-        sovDispositions = new Dict<string, Disposition>();
-        entityDispositions = new Dict<Entity, Disposition>();
+        sovDispositions = new();
+        entityDispositions = new();
     }
     public void Initialize(TypeCollection tc, XElement e) {
         codename = e.ExpectAtt("codename");
@@ -120,7 +120,7 @@ public class Sovereign : IDesignType {
         }
     }
     public void SetDisposition(Sovereign other, Disposition d) => sovDispositions[other.codename] = d;
-    public void SetDisposition(ActiveObject other, Disposition d) => entityDispositions[other] = d;
+    public void SetDisposition(ActiveObject other, Disposition d) => entityDispositions[other.id] = d;
     public Disposition GetDisposition(Sovereign other) {
         if (sovDispositions.TryGetValue(other.codename, out Disposition d)
             //|| (parent?.sovDispositions.TryGetValue(other, out d) == true)
@@ -133,7 +133,7 @@ public class Sovereign : IDesignType {
     }
     public bool IsEnemy(Sovereign other) => GetDisposition(other) == Disposition.Enemy;
     public Disposition GetDisposition(ActiveObject other) {
-        if (entityDispositions.TryGetValue(other, out Disposition d)
+        if (entityDispositions.TryGetValue(other.id, out Disposition d)
             //|| (parent?.entityDispositions.TryGetValue(other, out d) == true)
             ) {
             return d;
@@ -146,8 +146,8 @@ public class Sovereign : IDesignType {
         //entityDispositions[other] = GetAutoDisposition(other.sovereign);
         //return entityDispositions[other];
     }
-    public bool IsFriend(ActiveObject other) => GetDisposition(other) == Disposition.Friend;
-    public bool IsEnemy(ActiveObject other) => GetDisposition(other) == Disposition.Enemy;
+    public bool IsFriend(ActiveObject other) => GetDisposition(other) == Friend;
+    public bool IsEnemy(ActiveObject other) => GetDisposition(other) == Enemy;
     public Disposition GetAutoDisposition(Sovereign other) {
         var d = AutoSovereignDisposition?.Value?.Invoke(other);
         if (d.HasValue) {

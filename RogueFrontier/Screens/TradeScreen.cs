@@ -78,8 +78,9 @@ public class TradeMenu : Console {
         var item = model.currentItem;
         var value = item == null ? -1 : model.traderIndex == 0 ? GetSellPrice(item) : GetBuyPrice(item);
         if (value > -1) {
-            f = Color.Yellow;
-            this.Print(x, y++, $"       {$"{value}".PadLeft(8)}{(model.traderIndex == 0 ? '+' : '-')}", f, b);
+            var total = player.money + (model.traderIndex == 0 ? value : -value);
+            this.Print(x, y++, $"       {$"{value}".PadLeft(8)}{(model.traderIndex == 0 ? '+' : '-')}", total >= 0 ? Color.Yellow : Color.Red, b);
+            this.Print(x, y++, $"Total: {$"{total}".PadLeft(8)}", Color.White, b);
         }
         if (item != null) {
             x = 33;

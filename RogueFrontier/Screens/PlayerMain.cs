@@ -370,22 +370,36 @@ public class PlayerMain : ScreenSurface {
         if (passTime) {
             back.Update(delta);
             lock (world) {
-                UpdateUniverse();
+
+                
                 if (playerShip.autopilot) {
+                    UpdateUniverse();
+
                     autopilotUpdate = true;
 
                     ProcessKeyboard(prevKeyboard);
                     ProcessMouse(prevMouse);
                     UpdateUniverse();
 
+                    AddCrosshair();
+
                     ProcessKeyboard(prevKeyboard);
                     ProcessMouse(prevMouse);
                     UpdateUniverse();
 
                     autopilotUpdate = false;
+                } else {
+                    AddCrosshair();
+                    UpdateUniverse();
                 }
                 PlaceTiles(delta);
                 transition?.Update(delta);
+
+                void AddCrosshair() {
+                    if (playerShip.GetTarget(out var t) && t == crosshair) {
+                        Heading.Crosshair(world, crosshair.position, Color.Yellow);
+                    }
+                }
             }
 
             var dock = playerShip.dock;
@@ -606,7 +620,7 @@ public class PlayerMain : ScreenSurface {
         } else {
             playerShip.targetList = targetList;
             playerShip.targetIndex = 0;
-            playerShip.UpdateAutoAim();
+            playerShip.UpdateWeaponTargets();
         }
     }
     public override bool ProcessMouse(MouseScreenObjectState state) {
@@ -652,7 +666,6 @@ public class PlayerMain : ScreenSurface {
                 //If we set velocity to match player's velocity, then the weapon will aim directly at the crosshair
                 //If we set the velocity to zero, then the weapon will aim to the lead angle of the crosshair
                 //crosshair.Update();
-                Heading.Crosshair(world, crosshair.position, Color.Yellow);
                 //Idea: Aiming with crosshair disables mouse turning
                 enableMouseTurn = false;
             }

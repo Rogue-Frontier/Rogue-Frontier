@@ -4,17 +4,14 @@ using SadConsole;
 using SadRogue.Primitives;
 using System;
 using System.Collections.Generic;
-
 namespace RogueFrontier;
-
 //Surrounds the playership, any projectile that hits this barrier accelerates to extreme speed
 class CloneBarrier : ProjectileBarrier {
     [JsonIgnore]
     public bool active => lifetime > 0;
     [JsonIgnore]
     public ColoredGlyph tile => new ColoredGlyph(Color.OrangeRed, Color.Black, '*');
-
-    public long id { get; private set; }
+    public ulong id { get; private set; }
     public PlayerShip owner;
     public XY offset;
     public int lifetime;

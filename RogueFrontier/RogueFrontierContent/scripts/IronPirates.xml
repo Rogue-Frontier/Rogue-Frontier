@@ -36,7 +36,7 @@
 		<Weapon		powerUse=		"15"
 					fireCooldown=	"20"
 					initialCharges=	"300"
-					drillFactor=	"0.1"
+					armorDrill=	"0.1"
 			>
 			<Projectile	missileSpeed=	"60"
 						damageType=		"2"
@@ -64,7 +64,7 @@
 		<Weapon		powerUse=		"15"
 					fireCooldown=	"20"
 					initialCharges=	"180"
-					drillFactor=	"0.3"
+					armorDrill=	"0.3"
 			>
 			<Projectile	missileSpeed=	"60"
 						damageType=		"2"

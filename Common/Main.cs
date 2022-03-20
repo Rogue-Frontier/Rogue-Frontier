@@ -635,12 +635,16 @@ public static class Main {
 
     }
     */
-    public static TEnum TryAttEnum<TEnum>(this XElement e, string attribute, TEnum fallback = default) where TEnum : struct {
-        return e.Attribute(attribute)?.ParseEnum(fallback) ?? fallback;
+    public static TEnum TryAttEnum<TEnum>(this XElement e, string attribute, TEnum fallback = default) where TEnum : struct =>
+        e.Attribute(attribute)?.ParseEnum(fallback) ?? fallback;
+
+    public static bool TryAttEnum<TEnum>(this XElement e, string attribute, out TEnum result) where TEnum : struct {
+        bool b = e.TryAtt(attribute, out var s);
+        result = b ? Enum.Parse<TEnum>(s) : default;
+        return b;
     }
-    public static object TryAttEnum(this XElement e, Type t, string attribute, object fallback) {
-        return Convert.ChangeType(e.Attribute(attribute)?.ParseEnum(t, fallback), t) ?? fallback;
-    }
+    public static object TryAttEnum(this XElement e, Type t, string attribute, object fallback) =>
+        Convert.ChangeType(e.Attribute(attribute)?.ParseEnum(t, fallback), t) ?? fallback;
     public static TEnum ExpectAttEnum<TEnum>(this XElement e, string attribute) where TEnum : struct {
         string value = e.ExpectAtt(attribute);
         if (Enum.TryParse(value, out TEnum result)) {

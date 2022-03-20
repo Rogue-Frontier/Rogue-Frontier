@@ -12,7 +12,7 @@
                 foreground="Magenta"
 	    >
 	    <Devices>
-			<Weapon codename="item_tracker_launcher"/>
+			<Weapon codename="item_trackbug_launcher"/>
 			<Weapon codename="item_amethyst_laser_i"/>
 			<Weapon codename="item_magic_blaster_i"/>
 			<Shield codename="item_shimmer_shield_i"/>
@@ -56,36 +56,6 @@
             </Map>
         </PlayerSettings>
     </ShipClass>
-	<!--
-	<ShipClass    codename="ship_balthazar"
-                  name="Balthazar-class gunship"
-                  thrust="1"
-                  maxSpeed="30"
-
-                  rotationAccel="8"
-				  rotationDecel="15"
-				  rotationMaxSpeed="10"
-
-				  glyph="b"
-				  foreground="Gold"
-                  >
-    </ShipClass>
-
-	<ShipClass    codename="ship_brutus"
-				  name="Brutus-class gunship"
-				  thrust="1"
-				  maxSpeed="30"
-
-				  rotationAccel="8"
-				  rotationDecel="15"
-				  rotationMaxSpeed="10"
-
-				  glyph="b"
-				  foreground="Gold"
-                  >
-	</ShipClass>
-	-->
-
 	<ShipClass    codename="ship_beowulf"
 				  name="Beowulf-class gunship"
 				  attributes=	"BeowulfClub"
@@ -147,7 +117,6 @@
             </Map>
 		</PlayerSettings>
 	</ShipClass>
-
 	<ShipClass  codename="ship_ulysses"
 				inherit="ship_beowulf"
 				name="Ulysses-class gunship"
@@ -176,8 +145,6 @@
 			description="The Ulysses is an upgraded version of the Beowulf-class gunship."
         />
 	</ShipClass>
-
-
 	<ShipClass codename=            "ship_clark"
                name=                "Clark-class transport"
                thrust=              "0.3"
@@ -256,7 +223,6 @@
 		</Items>
 		<PlayerSettings startingClass="false"/>
 	</ShipClass>
-
 	<ShipClass codename=            "ship_lewis"
 			   inherit=				"ship_clark"
                name=                "Lewis-class transport"
@@ -281,16 +247,6 @@
             >
 		</PlayerSettings>
 	</ShipClass>
-
-
-
-	<!--
-    <ShipClass codename="scFlatbed"
-        
-        >
-    </ShipClass>
-    -->
-
 	<ShipClass codename=            "ship_errant"
 			   name=                "Knight-Errant-class gunship"
 			   thrust=              "0.15"
@@ -340,7 +296,6 @@
 			description=    "The Knight-Vassal-class gunship is a medium-priced entry in the Knight lineup of defense ships."
             />
 	</ShipClass>
-
     <ShipClass codename=            "ship_templar"
 			   name=                "Templar-class gunship"
 			   thrust=              "0.25"
@@ -361,9 +316,6 @@
             <Armor  codename="item_knightsteel_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
-
-
-
 	<ShipClass codename=            "ship_laser_drone"
 			   name=                "laser drone"
 			   thrust=              "0.15"
@@ -383,5 +335,5 @@
 			<Armor  codename="item_hunterscale_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
-
+    
 </Module>

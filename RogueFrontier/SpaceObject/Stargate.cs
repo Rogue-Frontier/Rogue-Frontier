@@ -18,7 +18,7 @@ public class Stargate : ActiveObject {
     public ColoredGlyph tile => new ColoredGlyph(Color.Violet, Color.DarkBlue, '*');
 
     [JsonProperty]
-    public long id { get; private set; }
+    public ulong id { get; private set; }
     [JsonProperty]
     public System world { get; private set; }
     [JsonProperty]

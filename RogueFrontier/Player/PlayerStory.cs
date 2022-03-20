@@ -477,9 +477,6 @@ public class PlayerStory {
             { "item_shimmer_shield_i", 400 },
             { "item_gemsteel_plate_i", 1500 },
             { "item_gemsteel_plate_ii", 4000 },
-            { "itMarksmanRifle", 0 },
-            { "itMarshalRepeater", 0 },
-            { "itMarshalPlate", 0 },
             { "item_radiant_plate", 0 },
             { "item_sand_cannon", 0 },
             { "item_sludge_cannon", 0 },
@@ -520,7 +517,6 @@ public class PlayerStory {
             { "item_bumpersteel_plate", 4500 },
             { "item_dynamite_charge", 12 },
             { "item_dynamite_cannon", 2000 },
-            { "item_intelligun", 8 },
             { "item_amethyst_warranty_card", 200 },
             { "item_shield_bash", 3000 },
             { "item_20mw_generator", 0 },
@@ -572,21 +568,31 @@ including but not limited to, product
 purchases and repair services.",
             new() {
                 new("Trade", Trade),
-                new("Repair Armor", ArmorServices),
+                new("Install Device", DeviceInstall),
+                new("Remove Device", DeviceRemoval),
+                new("Repair Armor", ArmorRepair),
+                new("Replace Armor", ArmorReplace),
                 new("Undock")
             });
         }
-        int GetPrice(Armor a) {
-            if(!a.source.type.attributes.Contains("Amethyst")) 
-                return -1;
-            if(discount) 
-                return 1;
-            return 3;
-        }
+        int GetRepairPrice(Armor a) =>
+            !a.source.type.attributes.Contains("Amethyst") ? -1 :
+            discount ? 1 :
+            3;
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             i => (int)(GetStdPrice(i) * buyAdj),
             i => i.type.attributes.Contains("Amethyst") ? GetStdPrice(i) / 10 : -1);
-        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, (playerShip.hull as LayeredArmor)?.layers, GetPrice, null);
+        Con ArmorRepair(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetRepairPrice, null);
+        Con DeviceInstall(Con from) => SListScreen.DeviceInstallService(from, playerShip, GetInstallPrice, null);
+        Con DeviceRemoval(Con from) => SListScreen.DeviceRemovalService(from, playerShip, GetRemovePrice, null);
+        Con ArmorReplace(Con from) => SListScreen.ReplaceArmorService(from, playerShip, GetReplacePrice, null);
+
+        int GetInstallPrice(Item i) =>
+            !i.type.attributes.Contains("Amethyst") ? -1 : discount ? 80 : 100;
+        int GetRemovePrice(Device i) =>
+            !i.source.type.attributes.Contains("Amethyst") ? -1 : discount ? 80 : 100;
+        int GetReplacePrice(Device i) =>
+            !i.source.type.attributes.Contains("Amethyst") ? -1 : discount ? 80 : 100;
     }
 
 
@@ -622,7 +628,7 @@ serving civilian gunship pilots.",
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             i => GetStdPrice(i),
             i => GetStdPrice(i));
-        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, (playerShip.hull as LayeredArmor)?.layers, GetPrice, null);
+        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetPrice, null);
     }
 
     public Con CamperOutpost(Con prev, PlayerShip playerShip, Station source) {
@@ -638,18 +644,12 @@ craftspersons, and adventurers.",
                 new("Undock")
             });
         }
-        int GetPrice(Armor a) {
-            if (a.source.type.attributes.Contains("Amethyst")) {
-                return 6;
-            }
-            return 3;
-        }
+        int GetRepairPrice(Armor a) => a.source.type.attributes.Contains("Amethyst") ? 6 : 3;
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             i => GetStdPrice(i),
             i => GetStdPrice(i));
-        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, (playerShip.hull as LayeredArmor)?.layers, GetPrice, null);
+        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetRepairPrice, null);
     }
-
     public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>
         new (prev, playerShip, source, GetStdPrice, i => GetStdPrice(i) / 2);
     public Con ConstellationArrest(Con prev, PlayerShip playerShip, Station source, ICrime c) {
@@ -687,17 +687,17 @@ There will be no trial.",
         var c = GetConstellationCrimes(playerShip, source);
         if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
         return new Dialog(prev,
-@"You are docked at an armor dealing station.", new() {
+@"You are docked at an armor shop station.", new() {
             new("Armor", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
-        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.9 * GetStdPrice(i) : -1));
+        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.8 * GetStdPrice(i) : -1));
     }
     public Con ArmsDealer(Con prev, PlayerShip playerShip, Station source) {
         var c = GetConstellationCrimes(playerShip, source);
         if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
         return new Dialog(prev,
-@"You are docked at an arms dealing station", new() {
+@"You are docked at an arms dealer station", new() {
             new("Weapons", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
@@ -727,14 +727,26 @@ There is a modest degree of artificial gravity here.",
                 new("Trade", Trade),
                 new("Install Devices", DeviceInstall),
                 new("Remove Devices", DeviceRemoval),
+                new("Repair Armor", ArmorRepair),
                 new("Replace Armor", ArmorReplace),
                 new("Undock")
             }) { background = source.type.heroImage };
         }
         Con Trade(Con from) => TradeStation(from, playerShip, source);
-        Con DeviceInstall(Con from) => SListScreen.DeviceInstallService(from, playerShip, i => 100, null);
-        Con DeviceRemoval(Con from) => SListScreen.DeviceRemovalService(from, playerShip, i => 100, null);
-        Con ArmorReplace(Con from) => SListScreen.ReplaceArmorService(from, playerShip, i => 100, null);
+
+        Con ArmorRepair(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetRepairPrice, null);
+        Con DeviceInstall(Con from) => SListScreen.DeviceInstallService(from, playerShip, GetInstallPrice, null);
+        Con DeviceRemoval(Con from) => SListScreen.DeviceRemovalService(from, playerShip, GetRemovePrice, null);
+        Con ArmorReplace(Con from) => SListScreen.ReplaceArmorService(from, playerShip, GetReplacePrice, null);
+
+        int GetRepairPrice(Armor a) =>
+            a.source.type.attributes.Contains("Amethyst") ? 9 : 3;
+        int GetInstallPrice(Item i) =>
+            i.type.attributes.Contains("Amethyst") ? 300 : 100;
+        int GetRemovePrice(Device i) =>
+            i.source.type.attributes.Contains("Amethyst") ? 300 : 100;
+        int GetReplacePrice(Device i) =>
+            i.source.type.attributes.Contains("Amethyst") ? 300 : 100;
     }
     public Con ConstellationVillage(Con prev, PlayerShip playerShip, Station source) {
         var c = GetConstellationCrimes(playerShip, source);

@@ -11,7 +11,7 @@ namespace RogueFrontier;
 
 public class Cable : Entity {
     Hook parent;
-    public long id { get; set; }
+    public ulong id { get; set; }
     public XY position { get; set; }
     public bool active { get; set; } = true;
     public ColoredGlyph tile => new(Color.White, Color.Black, '.');
@@ -42,7 +42,7 @@ public class Hook : Entity {
             i => new Cable(this, source.position + direction * i)));
         segments.ForEach(attached.world.AddEntity);
     }
-    public long id { get; set; }
+    public ulong id { get; set; }
     public XY position => attached.position - offset.normal;
     public XY offset => attached.position - source.position;
     public bool active { get; set; } = true;
@@ -120,7 +120,7 @@ public class LightningRod : Entity, IContainer<Weapon.OnFire>, IContainer<Projec
             lifetime = 90;
         }
     };
-    public long id { get; set; }
+    public ulong id { get; set; }
     public XY position => target.position;
     public bool active => target.active && lifetime>0;
     public ColoredGlyph tile => null;
@@ -144,7 +144,7 @@ public class StickyBomb : Entity {
         this.detonate = detonate;
         id = attached.world.nextId++;
     }
-    public long id { get; set; }
+    public ulong id { get; set; }
     public XY position => attached.position - offset.normal;
     public XY offset => attached.position - source.position;
     public bool active { get; set; } = true;

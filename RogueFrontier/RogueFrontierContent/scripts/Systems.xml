@@ -7,7 +7,9 @@
 			<Orbital radius="150" angle="random">
 				<Group>
 					<Stargate gateId="Next"/>
+					<!--
 					<Marker		name="Start"/>
+					-->
 					<!--
 					<Sibling angleInc="135" radiusInc="100">
 						<Stargate gateId="Prev"/>
@@ -92,9 +94,9 @@
 								<Orbital	radius="5"
 											angle="random"
 											>
-									<!--
+									<!---->
 									<Marker		name="Start"/>
-									-->
+									<!---->
 								</Orbital>
 							</Group>
 						</Orbital>

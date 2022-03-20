@@ -15,7 +15,7 @@ public record SimpleTrail(StaticTile Tile) : ITrail {
     public Effect GetParticle(XY Position) => new EffectParticle(Position, Tile, 3);
 }
 public class Projectile : MovingObject {
-    [JsonProperty] public long id { get; set; }
+    [JsonProperty] public ulong id { get; set; }
     [JsonProperty] public System world { get; set; }
     [JsonProperty] public ActiveObject source;
     [JsonProperty] public XY position { get; set; }

@@ -200,6 +200,7 @@ public record ItemType : IDesignType {
         }[typeof(T).GetType()];
     public enum EItemUse {
         none,
+        fireWeapon,
         deployShip,
         installWeapon,
         repairArmor,
@@ -211,17 +212,20 @@ public record ItemType : IDesignType {
     public void Initialize(TypeCollection tc, XElement e) {
         attributes = e.TryAtt("attributes").Split(";").ToHashSet();
         e.Initialize(this);
-        invoke = e.TryAttEnum(nameof(invoke), EItemUse.none) switch {
-            EItemUse.none => null,
-            EItemUse.deployShip => new DeployShip(tc, e),
-            EItemUse.installWeapon => new InstallWeapon(),
-            EItemUse.repairArmor => new RepairArmor(e),
-            EItemUse.invokePower => new InvokePower(tc, e),
-            EItemUse.refuel => new Refuel(tc, e),
-            EItemUse.depleteTargetShields=>new DepleteTargetShields(e),
-            EItemUse.replaceDevice => new ReplaceDevice(tc, e),
-            _ => null
-        };
+        invoke = e.HasElement("Invoke", out var xmlInvoke) ? ParseInvoke(xmlInvoke) : ParseInvoke(e);
+
+        ItemUse ParseInvoke(XElement e) =>
+            e.TryAttEnum(nameof(invoke), EItemUse.none) switch {
+                EItemUse.none => null,
+                EItemUse.deployShip => new DeployShip(tc, e),
+                EItemUse.installWeapon => new InstallWeapon(),
+                EItemUse.repairArmor => new RepairArmor(e),
+                EItemUse.invokePower => new InvokePower(tc, e),
+                EItemUse.refuel => new Refuel(tc, e),
+                EItemUse.depleteTargetShields => new DepleteTargetShields(e),
+                EItemUse.replaceDevice => new ReplaceDevice(tc, e),
+                _ => null
+            };
         foreach (var (tag, action) in new Dictionary<string, Action<XElement>> {
             ["Ammo"] = e =>     ammo = new(e),
             ["Armor"] = e =>    armor = new(e),
@@ -369,7 +373,13 @@ public record FragmentDesc {
     [Opt] public int shock = 1;
     [Req] public int lifetime;
     [Opt] public bool passthrough;
-    [Opt] public double shieldPass;
+    [Opt] public double shieldDrill;
+    /// <summary>
+    /// If armor integrity ratio is below this amount, then we bypass the armor completely and go to the next layer
+    /// </summary>
+    [Opt] public double armorDrill;
+    [Opt] public double shieldFactor = 1;
+    [Opt] public double armorFactor = 1;
     /// <summary>
     /// If true, then the weapon has Targeting
     /// </summary>
@@ -389,10 +399,6 @@ public record FragmentDesc {
     [Opt] public bool beacon;
     [Opt] public bool hook;
     [Opt] public bool lightning;    //On hit, the projectile attaches an overlay that automatically makes future shots hit instantly
-    /// <summary>
-    /// If armor integrity ratio is below this amount, then we bypass the armor completely and go to the next layer
-    /// </summary>
-    [Opt] public double drillFactor;
     public FlashDesc flash;
     public Armor.Decay decay;
     public DisruptorDesc disruptor;

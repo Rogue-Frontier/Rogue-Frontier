@@ -49,7 +49,7 @@ public class Message : IPlayerMessage {
     public int flashTicks;
     public Message() { }
     public Message(string text, int updateInterval = 3) : this(
-        new ColoredString(text, Color.White, Color.Transparent), updateInterval) {
+        new ColoredString(text, Color.White, Color.Black), updateInterval) {
 
     }
     public Message(ColoredString message, int updateInterval = 3) {

@@ -653,9 +653,9 @@ public class SListScreen {
     }
 
 
-    public static ListScreen<Armor> ArmorRepairService(ScreenSurface prev, PlayerShip player, List<Armor> layers, Func<Armor, int> GetPrice, Action callback) {
+    public static ListScreen<Armor> ArmorRepairService(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
         ListScreen<Armor> screen = null;
-
+        var layers = (player.hull as LayeredArmor)?.layers ?? new();
         RepairEffect job = null;
         return screen = new(prev,
             player,
@@ -843,7 +843,7 @@ public class SListScreen {
                 if (price > player.person.money) {
                     result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
                 } else {
-                    result.Add(new($"Remove device", Color.Yellow, Color.Black));
+                    result.Add(new($"Install device", Color.Yellow, Color.Black));
                 }
             }
             return result;

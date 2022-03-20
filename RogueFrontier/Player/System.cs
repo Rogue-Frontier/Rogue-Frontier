@@ -40,7 +40,9 @@ public class System {
     public Backdrop backdrop;
 
     public int tick;
-    public int nextId;
+    public ulong nextId;
+
+    private bool updating;
 
     public System() {
         this.universe = new Universe();
@@ -50,12 +52,42 @@ public class System {
         this.universe = universe;
         backdrop = new Backdrop();
     }
-    public void AddEvent(Event e) => eventsAdded.Add(e);
-    public void AddEffect(Effect e) => effectsAdded.Add(e);
-    public void AddEntity(Entity e) => entitiesAdded.Add(e);
-    public void RemoveEvent(Event e) => eventsRemoved.Add(e);
-    public void RemoveEffect(Effect e) => effectsRemoved.Add(e);
-    public void RemoveEntity(Entity e) => entitiesRemoved.Add(e);
+    public void AddEvent(Event e) {
+        eventsAdded.Add(e);
+        return;
+        if (updating) eventsAdded.Add(e);
+        else events.Add(e);
+    }
+    public void AddEffect(Effect e) {
+        effectsAdded.Add(e);
+        return;
+        if (updating) effectsAdded.Add(e);
+        else effects.all.Add(e);
+    }
+    public void AddEntity(Entity e) {
+        entitiesAdded.Add(e);
+        return;
+        if (updating) entitiesAdded.Add(e);
+        else entities.all.Add(e);
+    }
+    public void RemoveEvent(Event e) {
+        eventsRemoved.Add(e);
+        return;
+        if (updating) eventsRemoved.Add(e);
+        else events.Add(e);
+    }
+    public void RemoveEffect(Effect e) {
+        effectsRemoved.Add(e);
+        return;
+        if (updating) effectsRemoved.Add(e);
+        else effects.all.Add(e);
+    }
+    public void RemoveEntity(Entity e) {
+        entitiesRemoved.Add(e);
+        return;
+        if (updating) entitiesRemoved.Add(e);
+        else entities.all.Remove(e);
+    }
     public void RemoveAll() {
         events.Clear();
         entities.Clear();
@@ -99,6 +131,7 @@ public class System {
     public void UpdateActive() {
         UpdateSpace();
 
+        //updating = true;
         //Update everything
         foreach (var e in entities.all) {
             e.Update();
@@ -109,6 +142,8 @@ public class System {
         foreach (var e in events) {
             e.Update();
         }
+        //updating = false;
+
         tick++;
     }
 

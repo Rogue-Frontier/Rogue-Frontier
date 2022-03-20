@@ -70,7 +70,15 @@
 			<Weapon codename="item_amethyst_laser_ii" posX="-2" posY="-2"	angle="-90" leftRange="90" rightRange="135"/>
 		</Weapons>
 	</StationType>
+	<ItemType	codename=	"item_amethyst_warranty_card"
+		name=		"Amethyst warranty card"
+		level=		"1"
+		mass=		"2000"
+		value=		"200"
 
+		desc=		"This card provides proof of limited warranty for your Amethyst-class yacht. Present at any licensed Amethyst Store to receive a discount on maintenance services."
+		>
+	</ItemType>
 	<ItemType	codename=	"item_amethyst_laser_i"
 				name=		"Amethyst laser cannon I"
 				level=		"1"

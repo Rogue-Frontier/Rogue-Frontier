@@ -201,7 +201,7 @@ public class Armor : Device {
         if (hp == 0 || p.damageHP < 1)
             return 0;
         //If we're below the drill threshold, then skip this armor
-        if(((float)hp / desc.maxHP) < p.fragment.drillFactor) {
+        if(((float)hp / desc.maxHP) < p.fragment.armorDrill) {
             return 0;
         }
         //Check if we have a kill threshold
@@ -533,12 +533,14 @@ public class Shield : Device {
         }
     }
     public void Absorb(Projectile p) {
-        var absorbed = (int)Math.Clamp(p.damageHP * (1 - p.fragment.shieldPass) * absorbFactor, 0, maxAbsorb);
+        var multiplier = p.fragment.shieldFactor;
+
+        var absorbed = (int)Math.Clamp(p.damageHP * (1 - p.fragment.shieldDrill) * absorbFactor * multiplier, 0, maxAbsorb);
         if (absorbed > 0) {
             hp -= absorbed;
             lifetimeDamageAbsorbed += absorbed;
             delay = (hp == 0 ? desc.depletionDelay : desc.damageDelay);
-            p.damageHP -= absorbed;
+            p.damageHP -= (int)Math.Ceiling(absorbed / multiplier);
         }
     }
 }

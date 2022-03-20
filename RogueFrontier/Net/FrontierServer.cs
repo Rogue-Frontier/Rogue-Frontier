@@ -111,7 +111,7 @@ class FrontierSession : TcpSession {
 }
 public interface TellServer : ITell {
     public record AssumePlayerShip : TellServer {
-        public long shipId;
+        public ulong shipId;
     }
     public record LeavePlayerShip : TellServer { }
     public record ControlPlayerShip : TellServer {
@@ -141,7 +141,7 @@ public class ServerMain : Console {
     public XY camera;
     public MouseWatch mouse { get; } = new();
     public Dictionary<(int, int), ColoredGlyph> tiles { get; } = new();
-    public Dictionary<long, Entity> entityLookup = new();
+    public Dictionary<ulong, Entity> entityLookup = new();
     public Dictionary<PlayerShip, PlayerInput> playerControls = new();
 
     public int requests;

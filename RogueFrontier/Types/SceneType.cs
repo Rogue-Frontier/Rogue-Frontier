@@ -179,6 +179,8 @@ public class Dialog : Console {
 
     Dictionary<char, int> keyMap;
 
+    bool prevEscape;
+
     bool allowEnter;
     bool prevEnter;
     bool enter;
@@ -249,20 +251,24 @@ public class Dialog : Console {
                     charging = false;
                 }
             }
-        } else if (prevEnter && !enter) {
+        }
+        if (prevEnter && !enter) {
             ref int c = ref charge[navIndex];
             if (c >= maxCharge) {
                 //Make sure we aren't sent back to the screen again
                 prevEnter = false;
                 Transition(navigation[navIndex].next?.Invoke(this));
-                c = maxCharge-1;
+                c = maxCharge - 1;
                 /*
                 for(int i = 0; i < charge.Length; i++) {
                     charge[i] = 0;
                 }
                 */
             }
+        } else {
+            prevEnter = enter;
         }
+
         for (int i = 0; i < charge.Length; i++) {
             ref int c = ref charge[i];
             if (c > 0) {
@@ -341,15 +347,13 @@ public class Dialog : Console {
         base.Render(delta);
     }
     public override bool ProcessKeyboard(Keyboard keyboard) {
-        prevEnter = enter;
-
-
-        if (keyboard.IsKeyDown(Keys.Escape)) {
+        if (keyboard.IsKeyPressed(Keys.Escape) || (prevEscape && keyboard.IsKeyDown(Keys.Escape))) {
             navIndex = escapeIndex;
             charging = true;
             enter = true;
+            prevEscape = true;
         } else {
-
+            prevEscape = false;
 
             enter = keyboard.IsKeyDown(Keys.Enter);
             if (enter) {
