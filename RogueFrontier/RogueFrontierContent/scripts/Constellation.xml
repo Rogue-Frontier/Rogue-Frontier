@@ -39,10 +39,10 @@
 			<Ship	count="1"	codename="ship_beowulf" order="patrolCircuit" patrolRadius="20"/>
 			-->
 			<Ship	count="3"	codename="ship_beowulf"/>
-			<Ship	count="2"	codename="ship_amethyst"/>
+			<Ship	count="2"	codename="ship_amethyst_i"/>
 			<Ship	count="1"	codename="ship_clark_merchant"/>
 
-			<Ship	count="1"	codename="ship_amethyst" behavior="trader"/>
+			<Ship	count="1"	codename="ship_amethyst_i" behavior="trader"/>
 			<Ship	count="3"	codename="ship_clark_merchant" behavior="trader"/>
 		</Ships>
 		<Cargo>
@@ -84,7 +84,7 @@
 			<Item codename="item_nova_missile" count="64"/>
 		</Cargo>
 		<Weapons>
-			<Weapon codename="item_nova_missile_launcher"/>
+			<Weapon codename="item_nova_missile_launcher" omnidirectional="true"/>
 		</Weapons>
 		<Explosion
 			missileSpeed=	"100"
@@ -126,7 +126,7 @@
 
 		<Ships>
 			<Ship	count="2"	codename="ship_clark"/>
-			<Ship	count="1"	codename="ship_amethyst"/>
+			<Ship	count="1"	codename="ship_amethyst_i"/>
 		</Ships>
 		<Weapons>
 		</Weapons>
@@ -162,7 +162,7 @@
 		</Dock>
 		<Ships>
 			<Ship	count="1"	codename="ship_beowulf"/>
-			<Ship	count="2"	codename="ship_amethyst"/>
+			<Ship	count="2"	codename="ship_amethyst_i"/>
 			<Ship	count="1"	codename="ship_clark"/>
 		</Ships>
 		<Cargo>
@@ -204,7 +204,7 @@
 		</Dock>
 		<Ships>
 			<Ship	count="2"	codename="ship_beowulf"/>
-			<Ship	count="1"	codename="ship_amethyst"/>
+			<Ship	count="1"	codename="ship_amethyst_i"/>
 			<Ship	count="1"	codename="ship_clark"/>
 		</Ships>
 		<Cargo>

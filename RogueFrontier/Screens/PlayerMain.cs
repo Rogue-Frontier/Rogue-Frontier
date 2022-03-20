@@ -355,7 +355,6 @@ public class PlayerMain : ScreenSurface {
             }
             playerShip.mortalTime -= timePassed;
         }
-        UpdateUI(delta);
         void UpdateUniverse() {
 
             world.UpdateActive();
@@ -414,6 +413,7 @@ public class PlayerMain : ScreenSurface {
                 }
             }
         }
+        UpdateUI(delta);
         camera.position = playerShip.position;
         //frameRendered = false;
         //Required to update children
@@ -841,6 +841,11 @@ public class Megamap : ScreenSurface {
                         Surface.SetCellAppearance(x, Height - y, new ColoredGlyph(foreground, background, glyph));
                     }
                     var environment = player.world.backdrop.planets.GetTile(pos.Snap(viewScale), XY.Zero);
+                    if (IsVisible(environment)) {
+                        Render(environment);
+                        continue;
+                    }
+                    environment = player.world.backdrop.orbits.GetTile(pos.Snap(viewScale), XY.Zero);
                     if (IsVisible(environment)) {
                         Render(environment);
                         continue;
@@ -1518,37 +1523,41 @@ public class Readout : ScreenSurface {
                     );
             }
             PrintTotalPower();
-            foreach (var reactor in reactors) {
-                ColoredString bar;
-                if (reactor.energy > 0) {
-                    Color f = Color.White;
-                    char arrow = '=';
-                    if (reactor.energyDelta < 0) {
-                        f = Color.Yellow;
-                        arrow = '<';
-                    } else if (reactor.energyDelta > 0) {
-                        arrow = '>';
-                        f = Color.Cyan;
+
+            if (reactors.Any()) {
+                foreach (var reactor in reactors) {
+                    ColoredString bar;
+                    if (reactor.energy > 0) {
+                        Color f = Color.White;
+                        char arrow = '=';
+                        if (reactor.energyDelta < 0) {
+                            f = Color.Yellow;
+                            arrow = '<';
+                        } else if (reactor.energyDelta > 0) {
+                            arrow = '>';
+                            f = Color.Cyan;
+                        }
+                        int length = (int)Math.Ceiling(BAR * reactor.energy / reactor.desc.capacity);
+                        bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
+                            + new ColoredString(new string('=', BAR - length), Color.Gray, b);
+                    } else {
+                        bar = new ColoredString(new string('=', BAR), Color.Gray, b);
                     }
-                    int length = (int)Math.Ceiling(BAR * reactor.energy / reactor.desc.capacity);
-                    bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
-                        + new ColoredString(new string('=', BAR - length), Color.Gray, b);
-                } else {
-                    bar = new ColoredString(new string('=', BAR), Color.Gray, b);
-                }
 
-                int l = (int)Math.Ceiling(-BAR * (double)reactor.energyDelta / reactor.maxOutput);
-                for (int i = 0; i < l; i++) {
-                    bar[i].Background = Color.DarkKhaki;
-                }
+                    int l = (int)Math.Ceiling(-BAR * (double)reactor.energyDelta / reactor.maxOutput);
+                    for (int i = 0; i < l; i++) {
+                        bar[i].Background = Color.DarkKhaki;
+                    }
 
-                Surface.Print(x, y,
-                    new ColoredString("[", Color.White, b)
-                    + bar
-                    + new ColoredString("]", Color.White, b)
-                    + " "
-                    + new ColoredString($"[{Math.Abs(reactor.energyDelta),3}/{reactor.maxOutput,3}] {reactor.source.type.name}", Color.White, b)
-                    );
+                    Surface.Print(x, y,
+                        new ColoredString("[", Color.White, b)
+                        + bar
+                        + new ColoredString("]", Color.White, b)
+                        + " "
+                        + new ColoredString($"[{Math.Abs(reactor.energyDelta),3}/{reactor.maxOutput,3}] {reactor.source.type.name}", Color.White, b)
+                        );
+                    y++;
+                }
                 y++;
             }
 
@@ -1629,10 +1638,7 @@ public class Readout : ScreenSurface {
                     Surface.Print(x + 1 + BAR, y, $"] [{s.hp,3}/{s.desc.maxHP,3}] {name}", f, b);
                     y++;
                 }
-                y++;
             }
-
-
             switch (player.hull) {
                 case LayeredArmor las: {
                         foreach (var armor in las.layers.Reverse<Armor>()) {

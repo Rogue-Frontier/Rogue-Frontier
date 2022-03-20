@@ -565,7 +565,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
 
         System w = u.systems["orion"];
         w.UpdatePresent();
-        var quickStartClass = "ship_amethyst";
+        var quickStartClass = "ship_amethyst_i";
         var playerClass = w.types.Lookup<ShipClass>(quickStartClass);
         var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").position;
         var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");

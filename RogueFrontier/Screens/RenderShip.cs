@@ -31,7 +31,7 @@ class RenderShip : Console {
             }
 
             Dictionary<string, Color> c = new Dictionary<string, Color> {
-                    {"ship_amethyst", Color.Violet },
+                    {"ship_amethyst_i", Color.Violet },
                     {"ship_beowulf", Color.LightBlue },
                     {"ship_clark", Color.Wheat},
                 };

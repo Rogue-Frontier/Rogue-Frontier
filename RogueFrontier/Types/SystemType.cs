@@ -316,15 +316,21 @@ public record SystemPlanet() : SystemElement {
                 t.Foreground = t.Foreground.Blend(tiles[from.xi, from.yi].Foreground.SetAlpha((byte)r.NextInteger(0, 51)));
             }
         }
-        /*
-        var orbitFocus = lc.focus;
-        var orbitRadius = lc.radius;
-        var orbitCirc = orbitRadius * 2 * Math.PI;
-        for (int i = 0; i < orbitCirc; i++) {
-            var angle = i / orbitRadius;
-            lc.world.backdrop.orbits.tiles[orbitFocus + XY.Polar(angle, orbitRadius)] = new ColoredGlyph(Color.White, Color.Transparent, '.');
+        if (showOrbit) {
+            var orbitFocus = lc.focus;
+            var orbitRadius = lc.radius;
+            var orbitCirc = orbitRadius * 2 * Math.PI;
+            for (int i = 0; i < orbitCirc; i++) {
+                var angle = i / orbitRadius;
+                lc.world.backdrop.orbits.tiles[orbitFocus + XY.Polar(angle, orbitRadius)] = new ColoredGlyph(Color.LightGray, Color.Transparent, '.');
+
+                for(double j = 0.7; j < orbitRadius / 60; j += 0.7) {
+
+                    lc.world.backdrop.orbits.tiles[orbitFocus + XY.Polar(angle, orbitRadius - j)] = new ColoredGlyph(Color.LightGray, Color.Transparent, '.');
+                    lc.world.backdrop.orbits.tiles[orbitFocus + XY.Polar(angle, orbitRadius + j)] = new ColoredGlyph(Color.LightGray, Color.Transparent, '.');
+                }
+            }
         }
-        */
     }
 }
 public record SystemAsteroids() : SystemElement {

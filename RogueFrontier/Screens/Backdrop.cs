@@ -54,11 +54,9 @@ public class Backdrop {
         }
         void Blend(ColoredGlyph tile) {
             b = b.Premultiply().Blend(tile.Background);
-            if (g == ' ' || g == 0) {
-                if (tile.GlyphCharacter != ' ' && tile.GlyphCharacter != 0) {
-                    f = tile.Foreground;
-                    g = tile.GlyphCharacter;
-                }
+            if (tile.GlyphCharacter != ' ' && tile.GlyphCharacter != 0) {
+                f = tile.Foreground;
+                g = tile.GlyphCharacter;
             }
         }
         void BlendBack(Color back) {
@@ -68,7 +66,7 @@ public class Backdrop {
         }
 
         BlendBack(starlight.GetBackgroundFixed(point));
-        Blend(orbits.GetTile(point, camera));
+        //Blend(orbits.GetTile(point, camera));
         Blend(planets.GetTile(point, camera));
         Blend(nebulae.GetTile(point, camera));
         return new ColoredGlyph(f, b, g);

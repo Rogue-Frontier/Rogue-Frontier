@@ -152,7 +152,23 @@ public record ReplaceDevice() : ItemUse {
         callback?.Invoke();
     }
 }
-
+public record RechargeWeapon() : ItemUse {
+    public WeaponDesc weaponType;
+    [Req] public int charges;
+    public RechargeWeapon(TypeCollection tc, XElement e) : this() {
+        weaponType = tc.Lookup<ItemType>(e.ExpectAtt(nameof(weaponType))).weapon;
+        e.Initialize(this);
+    }
+    public string GetDesc(PlayerShip player, Item item) =>
+        $"Recharged {item.name}";
+    public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
+        var p = prev.Parent;
+        p.Children.Remove(prev);
+        p.Children.Add(SListScreen.RechargeWeapon(prev, player, item, this, callback));
+        player.cargo.Remove(item);
+        callback?.Invoke();
+    }
+}
 public record ApplyMod() : ItemUse {
     Modifier mod;
     public ApplyMod(XElement e) : this() {

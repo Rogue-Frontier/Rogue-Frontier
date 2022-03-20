@@ -20,6 +20,7 @@ public class ShipClass : IDesignType {
     [Req] public double rotationAccel;
     [Opt] public bool crimeOnDestroy;
     [Opt] public double stealth;
+    [Opt] public int capacity;
     public EShipBehavior behavior;
     public StaticTile tile;
     public HullSystemDesc damageDesc;
@@ -68,25 +69,23 @@ public class ShipClass : IDesignType {
 public interface HullSystemDesc {
     HullSystem Create(TypeCollection tc);
 }
-public class HPSystemDesc : HullSystemDesc {
+public record HPSystemDesc : HullSystemDesc {
     public int maxHP;
     public HPSystemDesc() { }
     public HPSystemDesc(XElement e) {
         maxHP = e.ExpectAttInt("maxHP");
     }
-    public HullSystem Create(TypeCollection tc) {
-        return new HP(maxHP);
-    }
+    public HullSystem Create(TypeCollection tc) =>
+        new HP(maxHP);
 }
-public class LayeredArmorDesc : HullSystemDesc {
+public record LayeredArmorDesc : HullSystemDesc {
     public Group<Armor> armorList;
     public LayeredArmorDesc() { }
     public LayeredArmorDesc(XElement e) {
         armorList = new Group<Armor>(e, SGenerator.ArmorFrom);
     }
-    public HullSystem Create(TypeCollection tc) {
-        return new LayeredArmor(armorList.Generate(tc));
-    }
+    public HullSystem Create(TypeCollection tc) =>
+        new LayeredArmor(armorList.Generate(tc));
 }
 public record PlayerSettings() {
     [Req] public bool startingClass;

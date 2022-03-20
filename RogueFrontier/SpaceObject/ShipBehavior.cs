@@ -26,14 +26,34 @@ public class Sulphin : IShipBehavior {
         if (ticks % 150 == 0) {
             var players = owner.world.entities.all
                 .OfType<PlayerShip>()
-                .Except(playersMet)
                 .Where(p => (p.position - owner.position).magnitude < 80);
-            foreach (var p in players) {
-                p.AddMessage(new Transmission(owner, new ColoredString(
-                    @"""Kack! Who the hell are you??""", Color.Yellow, Color.Black
-                    )));
+            if (players.Any() && !(order is GuardOrder g && g.home.world != owner.world)) {
+                var next = owner.world.entities.all
+                    .OfType<Stargate>()
+                    .Select(gate => gate.destWorld)
+                    .Where(w => w != null)
+                    .SelectMany(w => w.entities.all.OfType<Station>().Where(s => s.type.codename == "station_orion_warlords_camp"))
+                    .GetRandomOrDefault(owner.world.karma);
+                if (next != null) {
+                    var gg = new GuardOrder(next);
+                    gg.SetAttack(players.GetRandom(owner.world.karma), 600);
+                    
+                    order = gg;
+                    Announce(@"""Yack! Get away from me!""");
+                } else {
+                    order = new AttackGroupOrder(new(players));
+                    Announce(@"""Yack! I'll tear your hull apart!""");
+                }
+
+                void Announce(string s) {
+                    foreach (var p in players) {
+                        p.AddMessage(new Transmission(owner, new ColoredString(
+                            s, Color.Yellow, Color.Black
+                        )));
+                    }
+                }
+                playersMet.UnionWith(players);
             }
-            playersMet.UnionWith(players);
         }
     }
 }
@@ -178,9 +198,12 @@ public class EscortOrder : IShipOrder {
         }
         if (ticks % 30 == 0) {
             var attacker = owner.world.entities.all
-                .OfType<AIShip>()
-                .FirstOrDefault(s => (s.position - owner.position).magnitude < 100
-                            && (s.behavior.CanTarget(follow.target) || s.behavior.CanTarget(owner)));
+                .OfType<IShip>()
+                .FirstOrDefault(s => (s.position - owner.position).magnitude < 100 && s switch {
+                    AIShip ai => ai.behavior.CanTarget(follow.target) || ai.behavior.CanTarget(owner),
+                    PlayerShip pl => s.sovereign.IsEnemy(follow.target.sovereign),
+                    _ => false
+                });
             if (attacker != null) {
                 attack.SetTarget(attacker);
                 attack.Update(owner);
@@ -270,6 +293,7 @@ public class GuardOrder : IShipOrder, IContainer<Docking.OnDocked> {
     public AttackOrder attackOrder { get; private set; }
     [JsonProperty]
     private ApproachOrbitOrder approach;
+    private GateOrder gateOrder;
     public int attackTime;
     public int ticks;
 
@@ -314,6 +338,27 @@ public class GuardOrder : IShipOrder, IContainer<Docking.OnDocked> {
             }
             return;
         }
+
+
+        if (gateOrder != null) {
+            var current = gateOrder.gate.world;
+            if (current == owner.world && owner.world != home.world) {
+                gateOrder.Update(owner);
+                return;
+            } else {
+                gateOrder = null;
+            }
+        }
+
+        if (ticks % 60 == 0 && owner.world != home.world) {
+            gateOrder = new(owner.world.FindGateTo(home.world));
+            gateOrder.Update(owner);
+            return;
+        }
+
+
+
+
         //Otherwise, we're idle
         //If we're docked, then don't check for enemies every tick
         if (ticks % 150 != 0 && owner.dock?.docked == true) {
@@ -387,11 +432,11 @@ public class AttackAllOrder : IShipOrder {
     public bool Active => true;
 }
 public class AttackGroupOrder : IShipOrder {
-    public HashSet<ActiveObject> targets;
-    public AttackOrder attackOrder;
+    public HashSet<ActiveObject> targets=new();
+    public AttackOrder attackOrder=new(null);
     public bool CanTarget(ActiveObject other) => targets.Contains(other);
-    public AttackGroupOrder() {
-        attackOrder = new AttackOrder(null);
+    public AttackGroupOrder(HashSet<ActiveObject> targets) {
+        this.targets = targets;
     }
     public void Update(AIShip owner) {
         if (owner.devices.Weapon.Count == 0) {
@@ -408,6 +453,9 @@ public class AttackGroupOrder : IShipOrder {
         //If we can't find a target, then give up for a while
         if (target != null) {
             attackOrder.SetTarget(target);
+            attackOrder.Update(owner);
+        } else {
+            //attackOrder.SetTarget(null);
         }
     }
     public bool Active => targets.Any();
@@ -766,7 +814,7 @@ public class ApproachOrbitOrder : IShipOrder {
             face.Update(owner);
 
             //If we're facing close enough
-            if (Math.Abs(Helper.AngleDiffDeg(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10 && speedTowards < 10) {
+            if (Math.Abs(Helper.AngleDiffDeg(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10) {
 
                 //Go
                 owner.SetThrusting(true);

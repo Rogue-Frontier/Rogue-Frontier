@@ -1,5 +1,5 @@
 ﻿<Module>
-    <ShipClass  codename="ship_amethyst"
+    <ShipClass  codename="ship_amethyst_i"
                 name="Amethyst-class yacht"
                 thrust="0.5"
                 maxSpeed="25"
@@ -12,13 +12,11 @@
                 foreground="Magenta"
 	    >
 	    <Devices>
-			<Weapon codename="item_trackbug_launcher"/>
 			<Weapon codename="item_amethyst_laser_i"/>
 			<Weapon codename="item_magic_blaster_i"/>
 			<Shield codename="item_shimmer_shield_i"/>
-			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_amethyst_25mw_generator"/>
 			<Reactor codename="item_10mw_storage_battery"/>
-			<Solar codename="item_solar_panel"/>
         </Devices>
 		<Items>
 			<Item codename="item_simple_fuel_rod" count="12"/>
@@ -30,7 +28,7 @@
         </LayeredArmorSystem>
         <PlayerSettings
             startingClass="true"
-            description="The Amethyst-class yacht, more than just a symbol of middle-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
+            description="The Amethyst-class yacht (64 ton edition), more than just a symbol of middle-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
             >
             <Map>                                     
                        __                       
@@ -167,6 +165,7 @@
 			<Weapon codename="item_missile_defender"/>
 			<Reactor codename="item_20mw_generator"/>
 			<Reactor codename="item_10mw_storage_battery"/>
+			<Solar codename="item_solar_panel"/>
 		</Devices>
         <LayeredArmorSystem>
 			<Armor  codename="item_bumpersteel_plate"/>

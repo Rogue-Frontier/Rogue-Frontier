@@ -3,7 +3,7 @@
 				alignment=	"DestructiveOrder"
 	/>
 	<ItemType	codename=	"item_orion_bolter"
-				name=		"Orion bolter"
+				name=		"Orion's bolter"
 				mass=		"3000"
 				level=		"2"
 				value=		"400"
@@ -36,7 +36,7 @@
 	</ItemType>
 
 	<ItemType	codename=	"item_orion_longbow"
-				name=		"Orion Longbow"
+				name=		"Orion's Longbow"
 				mass=		"5000"
 				level=		"3"
 				value=		"800"
@@ -118,8 +118,8 @@
 		</Weapon>
 	</ItemType>
 
-	<ItemType	codename=	"item_orion_ballista"
-		name=		"Orion crossbow"
+	<ItemType	codename=	"item_orion_skewer"
+		name=		"Orion's skewer"
 		mass=		"8000"
 		level=		"4"
 		value=		"2000"
@@ -132,9 +132,9 @@
 			initialCharges=	"200"
 			>
 			<Projectile
-				missileSpeed=	"20"
+				missileSpeed=	"30"
 				damageType=		"2"
-				damageHP=		"15"
+				damageHP=		"5d5"
 				lifetime=		"60"
 				count=			"3"
 				glyph=			"+"
@@ -145,9 +145,9 @@
 				rechargePerTick=		"1/6"
 				maxCharge=				"100"
 
-				bonusSpeedPerCharge=	"70/100"
-				bonusDamagePerCharge=	"30/100"
-				bonusLifetimePerCharge=	"90/100"
+				bonusSpeedPerCharge=	"60/100"
+				bonusDamagePerCharge=	"25/100"
+				bonusLifetimePerCharge=	"120/100"
 				/>
 		</Weapon>
 	</ItemType>
@@ -176,7 +176,7 @@
 		desc=		"This hardened low-tech armor provides modest stealth."
 		>
 		<Armor	maxHP=		"120"
-				stealth="2"
+				stealth="4"
 			>
 		</Armor>
 	</ItemType>
@@ -232,22 +232,23 @@
 
 	<ShipClass	codename=			"ship_william_sulphin"
 				name=				"William Sulphin"
-				thrust=				"0.2"
-				maxSpeed=			"15"
+				thrust=				"0.4"
+				maxSpeed=			"25"
 
 				rotationAccel=		"3"
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
 
 				glyph=				"R"
-				foreground=			"White"
+				foreground=			"Cyan"
 
 				behavior=			"sulphin"
 		>
 		<Devices>
-			<Weapon	codename="item_orion_ballista"/>
+			<Weapon	codename="item_orion_skewer"/>
 		</Devices>
 		<LayeredArmorSystem>
+			<Armor	codename="item_skullhelm_plate"/>
 			<Armor	codename="item_skullhelm_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>

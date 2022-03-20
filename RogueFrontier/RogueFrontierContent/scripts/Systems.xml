@@ -20,10 +20,23 @@
 			<Orbital radius="900"
 					 angle="random"
 					 >
-				<Sibling	count="8"
+				<Sibling	count="5"
 							radius="1d20+900"
 							increment="8"
 					>
+					<At index="3">
+						<Sibling radiusInc="30">
+							<Station codename="station_orion_warlords_stronghold">
+								<Ships>
+									<Ship codename="ship_william_sulphin" order="guard" sovereign="sovereign_orion_warlords">
+										<Ships>
+											<Ship codename="ship_orion_huntsman" count="4" order="escort" sovereign="sovereign_orion_warlords"/>
+										</Ships>
+									</Ship>
+								</Ships>
+							</Station>
+						</Sibling>
+					</At>
 					<Station	codename="station_orion_warlords_camp"/>
 				</Sibling>
 			</Orbital>
@@ -84,7 +97,6 @@
 							</Group>
 						</Orbital>
 					</Group>
-
 					<Group radius="120" angleInc="160">
 						<!--Far-away small Moon-->
 						<Planet radius="8"/>

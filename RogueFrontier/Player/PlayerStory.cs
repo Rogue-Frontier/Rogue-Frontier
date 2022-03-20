@@ -490,7 +490,7 @@ public class PlayerStory {
             { "item_orion_bolter", 400 },
             { "item_orion_longbow", 800 },
             { "item_traitor_longbow", 1200 },
-            { "item_orion_ballista", 2000 },
+            { "item_orion_skewer", 2000 },
             { "item_hunterscale_plate", 250 },
             { "item_skullhelm_plate", 600 },
             { "item_dark_cannon", 0 },
@@ -644,7 +644,7 @@ craftspersons, and adventurers.",
                 new("Undock")
             });
         }
-        int GetRepairPrice(Armor a) => a.source.type.attributes.Contains("Amethyst") ? 6 : 3;
+        int GetRepairPrice(Armor a) => a.source.type.attributes.Contains("Amethyst") ? 4 : 2;
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             i => GetStdPrice(i),
             i => GetStdPrice(i));

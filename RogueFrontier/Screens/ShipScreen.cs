@@ -505,6 +505,7 @@ public class SListScreen {
     public static ListScreen<Armor> RepairArmorScreen(ScreenSurface prev, PlayerShip player, Item source, RepairArmor repair, Action callback) {
         ListScreen<Armor> screen = null;
         var devices = (player.hull as LayeredArmor).layers;
+
         return screen = new(prev,
             player,
             devices,
@@ -621,7 +622,7 @@ public class SListScreen {
         string GetName(Device d) => $"{d.source.type.name}";
         List<ColoredString> GetDesc(Device r) {
             var item = r.source;
-            
+
             var result = new List<ColoredString>();
 
             var desc = item.type.desc.SplitLine(64);
@@ -635,12 +636,55 @@ public class SListScreen {
         }
         void Invoke(Device d) {
             d.source.type = replace.to;
-            switch(d) {
+            switch (d) {
                 case Weapon w: w.SetWeaponDesc(replace.to.weapon); break;
                 default:
                     throw new Exception("Unsupported ReplaceDevice type");
             }
             player.AddMessage(new Message($"Used {source.type.name} to replace {d.source.type.name} with {replace.to.name}"));
+            callback?.Invoke();
+            Escape();
+        }
+        void Escape() {
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.Children.Add(prev);
+            p.IsFocused = true;
+        }
+    }
+
+
+    public static ListScreen<Weapon> RechargeWeapon(ScreenSurface prev, PlayerShip player, Item source, RechargeWeapon recharge, Action callback) {
+        ListScreen<Weapon> screen = null;
+        var devices = player.devices.Weapon.Where(i => i.desc == recharge.weaponType);
+        return screen = new(prev,
+            player,
+            devices,
+            GetName,
+            GetDesc,
+            Invoke,
+            Escape
+            ) { IsFocused = true };
+
+        string GetName(Weapon d) => $"{d.source.type.name}";
+        List<ColoredString> GetDesc(Weapon r) {
+            var item = r.source;
+
+            var result = new List<ColoredString>();
+
+            var desc = item.type.desc.SplitLine(64);
+            if (desc.Any()) {
+                result.AddRange(desc.Select(Main.ToColoredString));
+                result.Add(new(""));
+            }
+
+            result.Add(new("Recharge this weapon", Color.Yellow, Color.Black));
+            return result;
+        }
+        void Invoke(Weapon d) {
+            var c = (d.ammo as ChargeAmmo);
+            c.charges += recharge.charges;
+            player.AddMessage(new Message($"Recharged {d.source.type.name}"));
             callback?.Invoke();
             Escape();
         }
