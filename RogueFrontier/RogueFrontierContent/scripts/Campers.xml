@@ -22,8 +22,6 @@
 		</Satellites>
 		-->
 		<Dock>
-			<MultiPoint offsetX="8" offsetY="-5" angleInc="90"/>
-			<MultiPoint offsetX="8" offsetY="-4" angleInc="90"/>
 			<MultiPoint offsetX="8" offsetY="-3" angleInc="90"/>
 			<MultiPoint offsetX="8" offsetY="-2" angleInc="90"/>
 			<MultiPoint offsetX="8" offsetY="-1" angleInc="90"/>
@@ -31,8 +29,6 @@
 			<MultiPoint offsetX="8" offsetY="1" angleInc="90"/>
 			<MultiPoint offsetX="8" offsetY="2" angleInc="90"/>
 			<MultiPoint offsetX="8" offsetY="3" angleInc="90"/>
-			<MultiPoint offsetX="8" offsetY="4" angleInc="90"/>
-			<MultiPoint offsetX="8" offsetY="5" angleInc="90"/>
 		</Dock>
 		<Ships>
 			<Ship	count="4"	codename="ship_clark"/>

@@ -99,7 +99,7 @@ public class PlayerControls {
                 if (playerShip.dock.docked) {
                     playerShip.AddMessage(new Message("Undocked"));
                 } else {
-                    playerShip.AddMessage(new Message("Docking sequence canceled"));
+                    playerShip.AddMessage(new Message("Docking canceled"));
                 }
                 playerShip.dock = null;
             } else {
@@ -124,7 +124,7 @@ public class PlayerControls {
                 }
 
                 void Dock(IDockable dest) {
-                    playerShip.AddMessage(new Transmission(dest, "Docking sequence engaged"));
+                    playerShip.AddMessage(new Transmission(dest, "Docking initiated"));
                     playerShip.dock = new Docking(dest, dest.GetDockPoint());
                 }
             }
