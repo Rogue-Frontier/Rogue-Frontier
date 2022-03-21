@@ -15,6 +15,7 @@ using static RogueFrontier.PlayerShip;
 using static RogueFrontier.Station;
 using System.Threading.Tasks;
 using System.IO;
+using System.Threading;
 
 namespace RogueFrontier;
 public class NotifyStationDestroyed : IContainer<Station.Destroyed> {
@@ -271,7 +272,13 @@ public class PlayerMain : ScreenSurface {
             lock (world) {
                 StreamWriter w = null;
                 try {
+#if false
                     new DeadGame(world, playerShip, ep).Save();
+#else
+                    //Task.Delay(2000);
+                    Thread.Sleep(2000);
+#endif
+
                 } catch(Exception e) {
 #if !DEBUG
                     throw;
@@ -845,11 +852,13 @@ public class Megamap : ScreenSurface {
                         Render(environment);
                         continue;
                     }
+                    /*
                     environment = player.world.backdrop.orbits.GetTile(pos.Snap(viewScale), XY.Zero);
                     if (IsVisible(environment)) {
                         Render(environment);
                         continue;
                     }
+                    */
                     environment = player.world.backdrop.nebulae.GetTile(pos.Snap(viewScale), XY.Zero);
                     if (IsVisible(environment)) {
                         Render(environment);

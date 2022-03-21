@@ -56,8 +56,10 @@
 		<Weapons>
 			<Weapon codename="item_musket_cannon"/>
 		</Weapons>
+		<!--
 		<Dock type="united_constellation"/>
 		<HeroImage path="RogueFrontierContent/sprites/ConstellationAstra.asc.cg"/>
+		-->
 	</StationType>
 
 	<StationType	codename="station_constellation_missile_silo"

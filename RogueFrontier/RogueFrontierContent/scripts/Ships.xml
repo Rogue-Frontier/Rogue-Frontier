@@ -1,6 +1,7 @@
 ﻿<Module>
     <ShipClass  codename="ship_amethyst_i"
                 name="Amethyst-class yacht"
+				attributes="Amethyst"
                 thrust="0.5"
                 maxSpeed="25"
 
@@ -13,6 +14,7 @@
 	    >
 	    <Devices>
 			<Weapon codename="item_amethyst_laser_i"/>
+			<Weapon codename="item_light_launcher_i"/>
 			<Weapon codename="item_magic_blaster_i"/>
 			<Shield codename="item_shimmer_shield_i"/>
 			<Reactor codename="item_amethyst_25mw_generator"/>

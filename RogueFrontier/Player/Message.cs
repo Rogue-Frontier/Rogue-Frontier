@@ -78,7 +78,7 @@ public class Message : IPlayerMessage {
     public bool Scrolling => ticks < message.Count();
     public bool Active => ticksRemaining > 0;
     public ColoredString Draw() {
-        var result = message.SubString(0, index).WithOpacity((byte)Math.Min(255, ticksRemaining * 255 / Program.TICKS_PER_SECOND));
+        var result = message.SubString(0, (int)Math.Min(index, message.Length)).WithOpacity((byte)Math.Min(255, ticksRemaining * 255 / Program.TICKS_PER_SECOND));
         if (flashTicks > 0) {
             var value = 255 * Math.Min(1, ticks / (float)Program.TICKS_PER_SECOND);
             result.SetBackground(new Color(value, 0, 0));

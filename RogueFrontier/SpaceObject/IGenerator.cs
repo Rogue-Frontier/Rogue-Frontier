@@ -408,19 +408,21 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
         codename = e.ExpectAtt("codename");
         omnidirectional = e.TryAttBool("omnidirectional", false);
         mod = new(e);
+
+        var p = (string s) => double.Parse(s);
         if(e.TryAtt("posAngle", out var posAngle) && e.TryAtt("posRadius", out var posRadius)) {
-            offset = XY.Polar(double.Parse(posAngle) * Math.PI / 180, double.Parse(posRadius));
+            offset = XY.Polar(p(posAngle) * Math.PI / 180, p(posRadius));
         } else if (e.TryAtt("posX", out var posX) && e.TryAtt("posY", out var posY)) {
-            offset = new(double.Parse(posX), double.Parse(posY));
+            offset = new(p(posX), p(posY));
         }
         if(e.TryAtt("angle", out var angle)) {
-            this.angle = double.Parse(angle)*Math.PI/180;
+            this.angle = p(angle)*Math.PI/180;
         }
         if (e.TryAtt("leftRange", out var leftRange)) {
-            this.leftRange = double.Parse(leftRange) * Math.PI / 180;
+            this.leftRange = p(leftRange) * Math.PI / 180;
         }
         if (e.TryAtt("rightRange", out var rightRange)) {
-            this.rightRange = double.Parse(rightRange) * Math.PI / 180;
+            this.rightRange = p(rightRange) * Math.PI / 180;
         }
     }
     List<Weapon> IGenerator<Weapon>.Generate(TypeCollection tc) =>
@@ -429,11 +431,18 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
         new() { Generate(tc) };
     Weapon Generate(TypeCollection tc) {
         var w = SDevice.Generate<Weapon>(tc, codename, mod);
+
         if (omnidirectional) {
-            w.aiming = new Omnidirectional();
+            w.aiming = new Omnidirectional(GetTargeting());
         } else if(leftRange + rightRange > 0) {
-            w.aiming = new Swivel(leftRange, rightRange);
+            w.aiming = new Swivel(angle, leftRange, rightRange, GetTargeting());
         }
+        Aiming GetTargeting() =>
+            w.aiming switch {
+                Swivel s => s.targeting,
+                Omnidirectional o => o.targeting,
+                _ => w.aiming
+            };
         w.angle = angle;
         w.offset = offset;
         return w;

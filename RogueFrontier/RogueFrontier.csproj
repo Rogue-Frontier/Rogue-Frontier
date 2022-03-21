@@ -7,11 +7,12 @@
 	<StartupObject>RogueFrontier.Program</StartupObject>
 	<ApplicationIcon>RogueFrontierContent\Icon.ico</ApplicationIcon>
   </PropertyGroup>
+	
+    <ItemGroup>
+        <EmbeddedResource Include="RogueFrontierContent/Icon.ico" />
+    </ItemGroup> 
   <ItemGroup>
-    <None Remove="RogueFrontierContent\Quietus.wav" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="RogueFrontierContent\Icon.ico" />
+    <Content Include="RogueFrontierContent\Icon.png" />
     <Content Include="RogueFrontierContent\Quietus.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -71,6 +72,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\sprites\DarkStarFortress.asc.cg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="RogueFrontierContent\sprites\IBMCGA+.font">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="RogueFrontierContent\sprites\IBMCGA+.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\sprites\NRobotFortress.asc.cg">

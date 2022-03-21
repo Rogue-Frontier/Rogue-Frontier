@@ -46,7 +46,6 @@ public class PirateStation : StationBehavior {
                     }
                 }
             }
-
             //Count the number of objects that could defend this target from the attacker
             int CountDefenders(ActiveObject target, ActiveObject attacker) {
                 return target.world.entities.all
@@ -107,9 +106,6 @@ public class ReinforceNearby : StationBehavior {
         }
     }
 }
-
-
-
 public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroyed>, IContainer<GuardOrder.OnDocked> {
 
     private HashSet<ActiveObject> turretsDeployed = new();
@@ -179,5 +175,53 @@ public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroye
             }
             
         }
+    }
+}
+public class AmethystStore : StationBehavior, IContainer<Station.Destroyed>, IContainer<Station.Damaged>, IContainer<Weapon.OnFire> {
+
+    Dictionary<PlayerShip, int> damaged=new();
+    HashSet<PlayerShip> banned = new();
+
+    Weapon.OnFire IContainer<Weapon.OnFire>.Value => (weapon, projectiles) => {
+        weapon.delay /= 2;
+    };
+    Station.Destroyed IContainer<Station.Destroyed>.Value => (station, destroyer, wreck) => {
+        if (destroyer?.active != true) {
+            return;
+        }
+    };
+    Station.Damaged IContainer<Station.Damaged>.Value => (station, projectile) => {
+        var source = projectile.source;
+        if (source?.active != true) {
+            return;
+        }
+        if(source is PlayerShip pl && !banned.Contains(pl)) {
+            if (damaged.TryGetValue(pl, out var d)) {
+                damaged[pl] = d += projectile.damageHP;
+            } else {
+                damaged[pl] = d = projectile.damageHP;
+            }
+            if (d > 80) {
+                //station.weapons.ForEach(w => w.onFire += this);
+                station.weapons.ForEach(w => w.SetTarget(pl));
+
+                banned.Add(pl);
+                if (pl.cargo.RemoveWhere(i => i.type.codename == "item_amethyst_warranty_card") > 0) {
+                    pl.AddMessage(new Transmission(station, new ColoredString("You have violated the Terms of Service. Your warranty is now void.", Color.Red, Color.Black)));
+                } else {
+
+                }
+                if (pl.shipClass.attributes.Contains("Amethyst")) {
+                    pl.AddMessage(new Message("Self-Destruct remotely initiated by vendor."));
+                    pl.world.AddEvent(new SelfDestruct(pl, 1800));
+                }
+            }
+        }
+    };
+    public AmethystStore(Station owner) {
+        owner.onDamaged += this;
+        owner.onDestroyed += this;
+    }
+    public void Update(Station owner) {
     }
 }

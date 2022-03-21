@@ -116,6 +116,10 @@ public class Station : ActiveObject, ITrader, IDockable {
 
     public delegate void Destroyed(Station station, ActiveObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
+
+
+    public delegate void Damaged(Station station, Projectile p);
+    public FuncSet<IContainer<Damaged>> onDamaged = new();
     public Station() { }
     public Station(System World, StationType type, XY Position) {
         this.id = World.nextId++;
@@ -146,6 +150,7 @@ public class Station : ActiveObject, ITrader, IDockable {
             Behaviors.pirate => new PirateStation(),
             Behaviors.reinforceNearby => new ReinforceNearby(),
             Behaviors.orionWarlords => new OrionWarlordsStation(this),
+            Behaviors.amethystStore=>new AmethystStore(this),
             Behaviors.none => null,
             _ => null
         };
@@ -194,7 +199,12 @@ public class Station : ActiveObject, ITrader, IDockable {
     }
     */
     public void Damage(Projectile p) {
+
+        onDamaged.RemoveNull();
+        onDamaged.ForEach(f => f(this, p));
+
         damageSystem.Damage(world.tick, p, () => Destroy(p.source));
+
 
         if (!active) {
             return;
@@ -256,10 +266,8 @@ public class Station : ActiveObject, ITrader, IDockable {
                 }
             }
         }
-        onDestroyed.set.RemoveWhere(d => d.Value == null);
-        foreach (var on in onDestroyed.set) {
-            on.Value.Invoke(this, source, wreck);
-        }
+        onDestroyed.RemoveNull();
+        onDestroyed.ForEach(f => f(this, source, wreck));
     }
     public void Update() {
         if(world.tick%15 == 0) {

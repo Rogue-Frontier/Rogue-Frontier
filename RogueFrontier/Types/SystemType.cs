@@ -316,6 +316,7 @@ public record SystemPlanet() : SystemElement {
                 t.Foreground = t.Foreground.Blend(tiles[from.xi, from.yi].Foreground.SetAlpha((byte)r.NextInteger(0, 51)));
             }
         }
+#if false
         if (showOrbit) {
             var orbitFocus = lc.focus;
             var orbitRadius = lc.radius;
@@ -331,6 +332,7 @@ public record SystemPlanet() : SystemElement {
                 }
             }
         }
+#endif
     }
 }
 public record SystemAsteroids() : SystemElement {

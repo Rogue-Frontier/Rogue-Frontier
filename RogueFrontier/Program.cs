@@ -22,7 +22,7 @@ partial class Program {
         Width = Height * 5 / 3;
     }
     public static int Width, Height;
-    public static string font = ExpectFile("RogueFrontierContent/sprites/IBMCGA.font");
+    public static string font = ExpectFile("RogueFrontierContent/sprites/IBMCGA+.font");
     public static string main = ExpectFile("RogueFrontierContent/scripts/Main.xml");
     public static string cover = ExpectFile("RogueFrontierContent/sprites/RogueFrontierPosterV2.asc.cg");
     public static string splash = ExpectFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
@@ -32,7 +32,7 @@ partial class Program {
 
 
     static void Main(string[] args) {
-
+        SadConsole.Settings.WindowTitle = "Rogue Frontier";
         /*
         var w = new System();
         w.types.LoadFile(main);

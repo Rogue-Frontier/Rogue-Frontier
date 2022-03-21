@@ -35,10 +35,8 @@ public class Viewport : ScreenSurface {
     }
     public override void Render(TimeSpan delta) {
         Surface.Clear();
-        int ViewWidth = Width;
-        int ViewHeight = Height;
-        int HalfViewWidth = ViewWidth / 2;
-        int HalfViewHeight = ViewHeight / 2;
+        int HalfViewWidth = Width / 2;
+        int HalfViewHeight = Height / 2;
         for (int x = -HalfViewWidth; x < HalfViewWidth; x++) {
             for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
                 XY location = camera.position + new XY(x, y).Rotate(camera.rotation);

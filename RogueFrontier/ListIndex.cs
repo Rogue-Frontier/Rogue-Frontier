@@ -21,8 +21,9 @@ public class ListIndex<T> {
         }
     }
     public List<T> list;
-    public T item => list.Any() ? list[index] : default;
+    public T item => index < list.Count ? list[index] : default;
     public bool any => list.Any();
+    public void Reset() => _index = 0;
 
     public bool Has(out T t) { t = item; return list.Any(); }
     public ListIndex(List<T> list) {

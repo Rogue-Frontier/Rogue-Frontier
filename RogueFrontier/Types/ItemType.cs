@@ -400,6 +400,7 @@ public record FragmentDesc {
     /// If true, then the weapon has Targeting
     /// </summary>
     [Opt] public bool acquireTarget;
+    [Opt] public bool multiTarget;
     [Opt] public double maneuver;
     [Opt] public double maneuverRadius;
     

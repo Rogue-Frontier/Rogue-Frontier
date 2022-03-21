@@ -330,6 +330,12 @@ public class AIShip : IShip {
     public IShipBehavior behavior;
     public BaseShip ship;
     public Docking dock { get; set; }
+
+
+
+    public delegate void WeaponFired(AIShip aiShip, Weapon w, List<Projectile> p);
+    public FuncSet<IContainer<WeaponFired>> onWeaponFire = new();
+
     public delegate void Destroyed(AIShip ship, ActiveObject destroyer, Wreck wreck);
     public FuncSet<IContainer<Destroyed>> onDestroyed = new();
     public AIShip() { }

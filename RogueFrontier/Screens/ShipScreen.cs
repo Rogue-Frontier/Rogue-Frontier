@@ -1179,7 +1179,6 @@ public class SListScreen {
 
 }
 public class ListScreen<T> : ScreenSurface {
-    ScreenSurface prev;
     PlayerShip player;
 
     public bool groupMode = true;
@@ -1198,7 +1197,6 @@ public class ListScreen<T> : ScreenSurface {
     public delegate void Invoke(T t);
     public delegate void Escape();
     public ListScreen(ScreenSurface prev, PlayerShip player, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
-        this.prev = prev;
         this.player = player;
         this.items = items;
         this.getName = getName;

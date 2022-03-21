@@ -266,35 +266,39 @@
 	</ItemType>
 	
 	<ItemType	codename=	"item_light_launcher_i"
-		name=		"Light launcher I"
+		name=		"Light launcher"
 		level=		"1"
 		mass=		"1000"
 		value=		"7200"
 				
 		attributes= "Amethyst"
 
-		desc=		"The Light launcher by Amethyst, Inc fires several high-speed missiles that deal extra damage to shields."
+		desc=		"The Light launcher by Amethyst, Inc fires multiple independent high-speed missiles that deal extra damage to shields."
 		>
 		<Weapon
 			powerUse=		"30"
 			fireCooldown=	"30"
-			initialCharges= "180"
+			initialCharges= "720"
+			
+			repeat="5"
 			>
 			<Projectile
-				count=			"5"
-				spreadAngle=	"15"
 				maneuver=		"4"
 				missileSpeed=	"70"
 				damageType=		"1"
 				damageHP=		"1d8"
 				shieldFactor=	"2"
 				
+				multiTarget=	"true"
+				
 				lifetime=		"180"
 				glyph=			"+"
 				foreground=		"Violet"
 				
 				tracker=		"true"
-				/>
+				>
+				<Flash intensity="8"/>
+			</Projectile>
 		</Weapon>
 	</ItemType>
 	

@@ -50,6 +50,8 @@ public class FuncSet<T> {
         f.set.Add(t);
         return f;
     }
+    public bool Add(T t) => set.Add(t);
+    public bool Remove(T t) => set.Remove(t);
     public IEnumerator<T> GetEnumerator() => set.GetEnumerator();
     public List<T> ToList() => set.ToList();
     public static implicit operator HashSet<T>(FuncSet<T> f) => f.set;
