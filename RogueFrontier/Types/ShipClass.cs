@@ -6,7 +6,7 @@ using System.Xml.Linq;
 namespace RogueFrontier;
 
 public enum EShipBehavior {
-    none, sulphin, trader
+    none, sulphin, swift, trader
 }
 public class ShipClass : IDesignType {
     public static ShipClass empty => new ShipClass() { devices = new(), damageDesc = new HPSystemDesc(), rotationDecel = 1 };

@@ -167,7 +167,12 @@ public class PlayerMain : ScreenSurface {
         }
         var destGate = gate.destGate;
         if (destGate == null) {
-            OnPlayerLeft();
+            //OnPlayerLeft(true);
+            world.entities.Remove(playerShip);
+            transition = new GateTransition(new Viewport(this, new Camera(playerShip.position), world), null, () => {
+                transition = null;
+                OnPlayerLeft(false);
+            });
             return;
         }
         var prevViewport = new Viewport(this, new Camera(playerShip.position), world);
@@ -207,10 +212,14 @@ public class PlayerMain : ScreenSurface {
             return ds;
         }
     }
-    public void OnPlayerLeft() {
+    public void OnPlayerLeft(bool transition) {
         HideAll();
         world.entities.Remove(playerShip);
-        SadConsole.Game.Instance.Screen = new ExitTransition(this, EndCrawl()) { IsFocused = true };
+        if (transition) {
+            Game.Instance.Screen = new ExitTransition(this, EndCrawl()) { IsFocused = true };
+        } else {
+            Game.Instance.Screen = EndCrawl();
+        }
         ScreenSurface EndCrawl() {
             SimpleCrawl ds = null;
             ds = new SimpleCrawl("You have left Human Space.\n\n", EndPause) { Position = new Point(Surface.Width / 4, 8), IsFocused = true };

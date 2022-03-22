@@ -15,8 +15,8 @@ public interface StationBehavior {
     void Update(Station owner);
     public void RegisterGuard(AIShip guard) { }
 }
-public class PirateStation : StationBehavior {
-    public PirateStation() { }
+public class IronPirateStation : StationBehavior {
+    public IronPirateStation() { }
     public void Update(Station owner) {
         if (owner.world.tick % 300 == 0) {
             //Clear any pirate attacks where the target has too many defenders
@@ -65,26 +65,26 @@ public class PirateStation : StationBehavior {
         }
     }
 }
-public class ReinforceNearby : StationBehavior {
-    public ReinforceNearby() { }
+public class ConstellationAstra : StationBehavior {
+    public HashSet<StationType> stationTypes;
+    public ConstellationAstra(Station owner) {
+        stationTypes = new() {
+            owner.world.types.Lookup<StationType>("station_constellation_shipyard"),
+            owner.world.types.Lookup<StationType>("station_constellation_bunker")
+        };
+    }
     public void Update(Station owner) {
         if (owner.world.tick % 150 == 0) {
             owner.UpdateGuardList();
             if (owner.guards.Count < 5) {
                 var world = owner.world;
-                var gate = world.entities.all
-                    .OfType<Stargate>()
-                    .OrderBy(g => (g.position - owner.position).magnitude2)
-                    .FirstOrDefault();
-                if (gate == null) {
-                    return;
-                }
-                var generated = owner.type.ships.Generate(world.types, owner);
-                foreach (var guard in generated.Take(5 - owner.guards.Count)) {
-                    guard.position = gate.position;
-                    owner.guards.Add(guard);
-                    world.AddEntity(guard);
-                    world.AddEffect(new Heading(guard));
+                if (owner.world.universe.GetAllEntities().OfType<Station>().FirstOrDefault(s => stationTypes.Contains(s.type) && s.guards.Count > 5) is Station other) {
+                    while (owner.guards.Count < 5 && other.guards.Count > 5) {
+                        var g = other.guards.GetRandom(owner.world.karma);
+                        g.behavior = new GuardOrder(owner);
+                        other.guards.Remove(g);
+                        owner.guards.Add(g);
+                    }
                 }
             } else {
                 var nearbyFriendly = owner.world.entities.all.OfType<Station>()
@@ -106,6 +106,30 @@ public class ReinforceNearby : StationBehavior {
         }
     }
 }
+public class ConstellationShipyard : StationBehavior {
+    public HashSet<ShipClass> guardTypes;
+    public ConstellationShipyard(Station owner) {
+        Func<string, ShipClass> f = owner.world.types.Lookup<ShipClass>;
+        guardTypes = new() {
+            f("ship_ulysses"),
+            f("ship_beowulf")
+        };
+    }
+    public void Update(Station owner) {
+        if (owner.world.tick % 900 == 0) {
+            owner.UpdateGuardList();
+            if(owner.guards.Count < 15) {
+                var s = new AIShip(new(owner.world, guardTypes.GetRandom(owner.world.karma), owner.position),
+                    owner.sovereign, new GuardOrder(owner));
+                owner.guards.Add(s);
+                owner.world.AddEntity(s);
+            }
+        }
+    }
+}
+
+
+
 public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroyed>, IContainer<GuardOrder.OnDocked> {
 
     private HashSet<ActiveObject> turretsDeployed = new();

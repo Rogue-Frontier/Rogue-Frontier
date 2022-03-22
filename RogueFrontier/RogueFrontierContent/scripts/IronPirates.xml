@@ -204,12 +204,14 @@
 
 	<ShipClass	codename=			"ship_iron_frigate"
 			name=				"Iron frigate"
-			thrust=				"0.3"
-			maxSpeed=			"15"
+			thrust=				"0.4"
+			maxSpeed=			"20"
 
 			rotationAccel=		"3"
 			rotationDecel=		"6"
 			rotationMaxSpeed=	"4"
+				
+			behavior=			"swift"
 				
 			glyph=				"F"
 			foreground=			"LightYellow"
@@ -241,7 +243,7 @@
 					structure=	"RogueFrontierContent/sprites/station_iron_pirates_hideout.asc.cg"
 		>
 		<Ships>
-			<Ship	count="8"	codename="ship_iron_gunboat"/>
+			<Ship	count="10"	codename="ship_iron_gunboat"/>
 			<Ship	count="2"	codename="ship_iron_missileship" order="patrol" patrolRadius="25"/>
 		</Ships>
 		<Weapons>
@@ -257,8 +259,8 @@
 		structure=	"RogueFrontierContent/sprites/station_iron_pirates_foundry.asc.cg"
 		>
 		<Ships>
-			<Ship	count="8"	codename="ship_iron_gunboat"/>
-			<Ship	count="2"	codename="ship_iron_missileship" order="patrol" patrolRadius="15">
+			<Ship	count="15"	codename="ship_iron_gunboat"/>
+			<Ship	count="3"	codename="ship_iron_missileship" order="patrol" patrolRadius="15">
 				<Ships>
 					<Ship count="4" codename="ship_iron_gunboat" order="escort"/>
 				</Ships>
@@ -268,5 +270,8 @@
 		<Weapons>
 			<Weapon	codename="item_iron_cannon"/>
 		</Weapons>
+		<Cargo>
+			<Item count="300"	codename="item_iron_hook"/>
+		</Cargo>
 	</StationType>
 </Module>

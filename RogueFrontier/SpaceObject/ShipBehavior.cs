@@ -12,38 +12,49 @@ namespace RogueFrontier;
 public interface IShipBehavior {
     void Update(AIShip owner);
 }
-public class Sulphin : IShipBehavior {
+public class Sulphin : IShipBehavior, IContainer<Station.Destroyed> {
+
+    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => {
+        s.onDestroyed -= this;
+        stationsLost++;
+    };
+
+    private int stationsLost;
+
     public int ticks = 0;
     public HashSet<PlayerShip> playersMet = new();
     public IShipOrder order;
+
+    private HashSet<StationType> stationTypes;
     public Sulphin() { }
-    public Sulphin(IShipOrder order) {
+    public Sulphin(AIShip ai, IShipOrder order) {
         this.order = order;
+
+        Func<string, StationType> f = ai.world.types.Lookup<StationType>;
+        stationTypes = new() { f("station_orion_warlords_camp"), f("station_orion_warlords_stronghold") };
     }
     public void Update(AIShip owner) {
         order?.Update(owner);
-        ticks++;
+        if(ticks == 0) {
+            foreach(var s in owner.world.universe.GetAllEntities().OfType<Station>().Where(s => stationTypes.Contains(s.type))) {
+                s.onDestroyed += this;
+            }
+        }
         if (ticks % 150 == 0) {
             var players = owner.world.entities.all
                 .OfType<PlayerShip>()
                 .Where(p => (p.position - owner.position).magnitude < 80);
-            if (players.Any() && !(order is GuardOrder g && g.home.world != owner.world)) {
-                var next = owner.world.entities.all
-                    .OfType<Stargate>()
-                    .Select(gate => gate.destWorld)
-                    .Where(w => w != null)
-                    .SelectMany(w => w.entities.all.OfType<Station>().Where(s => s.type.codename == "station_orion_warlords_camp"))
-                    .GetRandomOrDefault(owner.world.karma);
-                if (next != null) {
+            if (players.Any()) {
+                if (stationsLost > 5
+                    && !(order is GuardOrder g && g.home.world != owner.world)
+                    && GetNextStation() is Station next) {
                     var gg = new GuardOrder(next);
                     gg.SetAttack(players.GetRandom(owner.world.karma), 600);
                     
                     order = gg;
-                    Announce(@"""Yack! Get away from me!""");
-                } else {
-                    order = new AttackGroupOrder(new(players));
-                    Announce(@"""Yack! I'll tear your hull apart!""");
+                    Announce(@"""Ack! Get away from me!""");
                 }
+                playersMet.UnionWith(players);
 
                 void Announce(string s) {
                     foreach (var p in players) {
@@ -52,11 +63,59 @@ public class Sulphin : IShipBehavior {
                         )));
                     }
                 }
-                playersMet.UnionWith(players);
+
+                Station GetNextStation() =>
+                    owner.world.entities.all
+                    .OfType<Stargate>()
+                    .Select(gate => gate.destWorld)
+                    .Where(w => w != null)
+                    .SelectMany(w => w.entities.all.OfType<Station>().Where(s => s.type.codename == "station_orion_warlords_camp"))
+                    .GetRandomOrDefault(owner.world.karma);
             }
         }
+        ticks++;
     }
 }
+
+
+
+public class Swift : IShipBehavior, IContainer<AIShip.Destroyed> {
+
+    AIShip.Destroyed IContainer<AIShip.Destroyed>.Value => (s, d, w) => {
+        s.onDestroyed -= this;
+        if (d is PlayerShip pl) {
+            frigatesLost++;
+            if (frigatesLost >= 4) {
+                order = new AttackOrder(pl);
+            }
+        }
+    };
+
+    private int frigatesLost;
+
+    public int ticks = 0;
+    public HashSet<PlayerShip> playersMet = new();
+    public IShipOrder order;
+
+    private ShipClass frigateType;
+    public Swift() { }
+    public Swift(AIShip ai, IShipOrder order) {
+        this.order = order;
+
+        Func<string, ShipClass> f = ai.world.types.Lookup<ShipClass>;
+        frigateType = f("ship_iron_destroyer");
+    }
+    public void Update(AIShip owner) {
+        order?.Update(owner);
+        if (ticks == 0) {
+            foreach (var s in owner.world.universe.GetAllEntities().OfType<AIShip>().Where(s => s.shipClass == frigateType)) {
+                s.onDestroyed += this;
+            }
+        }
+        ticks++;
+    }
+}
+
 public class Merchant : IShipBehavior, IContainer<Station.Destroyed> {
     public GateOrder gateOrder;
     public Station target;

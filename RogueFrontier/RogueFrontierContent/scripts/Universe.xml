@@ -4,7 +4,7 @@
 		<System id="orion2" name="Orion's Star 2"	codename="system_2"/>
 		<System id="orion3" name="Orion's Star 3"	codename="system_3"/>
 		<System id="orion4" name="Orion's Star 4"	codename="system_4"/>
-		<System id="orion5" name="Orion's Star 5"	codename="system_4"/>
+		<System id="orion5" name="Orion's Star 5"	codename="system_5"/>
 
 		<Link fromGateId="orion:Next"	toGateId="orion2:Prev"/>
 		<Link fromGateId="orion2:Next"	toGateId="orion3:Prev"/>

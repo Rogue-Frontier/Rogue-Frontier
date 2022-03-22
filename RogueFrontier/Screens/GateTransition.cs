@@ -52,7 +52,6 @@ public class GateTransition : Console {
     }
     public override void Render(TimeSpan delta) {
         this.Clear();
-
         Console particleLayer = new Console(Width, Height);
         particles.ForEach(p => {
             var pos = p.pos;
@@ -62,18 +61,36 @@ public class GateTransition : Console {
 
         Console back = new Console(Width, Height);
 
-        BackdropConsole prevBack = new(prev);
-        BackdropConsole nextBack = new(next);
+        if (next != null) {
+            BackdropConsole prevBack = new(prev);
+            BackdropConsole nextBack = new(next);
 
-        foreach (var y in Enumerable.Range(0, Height)) {
-            foreach (var x in Enumerable.Range(0, Width)) {
-                Point p = new(x, y);
-                (var v, var b) = rect.Contains(p) ? (next, nextBack) : (prev, prevBack);
-                back.SetCellAppearance(x, y, b.GetTile(x, y));
-                ColoredGlyph g = v.GetTile(x, y);
-                //var g = (rect.Contains(p) ? next : prev).GetCellAppearance(x, y);
-                this.SetCellAppearance(x, Height - y, g);
+            foreach (var y in Enumerable.Range(0, Height)) {
+                foreach (var x in Enumerable.Range(0, Width)) {
+                    Point p = new(x, y);
+                    (var v, var b) = rect.Contains(p) ? (next, nextBack) : (prev, prevBack);
+                    back.SetCellAppearance(x, y, b.GetTile(x, y));
+                    ColoredGlyph g = v.GetTile(x, y);
+                    //var g = (rect.Contains(p) ? next : prev).GetCellAppearance(x, y);
+                    this.SetCellAppearance(x, Height - y, g);
 
+                }
+            }
+        } else {
+            BackdropConsole prevBack = new(prev);
+
+            foreach (var y in Enumerable.Range(0, Height)) {
+                foreach (var x in Enumerable.Range(0, Width)) {
+                    Point p = new(x, y);
+                    if (rect.Contains(p)) {
+                        this.SetCellAppearance(x, Height - y, new(Color.Black, Color.Black, 0));
+                    } else {
+                        (var v, var b) = (prev, prevBack);
+                        back.SetCellAppearance(x, y, b.GetTile(x, y));
+                        ColoredGlyph g = v.GetTile(x, y);
+                        this.SetCellAppearance(x, Height - y, g);
+                    }
+                }
             }
         }
         back.Render(delta);

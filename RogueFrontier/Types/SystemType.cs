@@ -173,13 +173,13 @@ public record SystemTable() : SystemElement {
 
 public record SystemAt() : SystemElement {
     public List<SystemElement> subelements;
-    public int index = -1;
+    public HashSet<int> index;
     public SystemAt(XElement e, Parse<SystemElement> parse) : this() {
         subelements = e.Elements().Select(e => parse(e)).ToList();
-        index = e.ExpectAttInt("index");
+        index = e.ExpectAtt("index").Split(",").Select(s => s.Trim()).Select(int.Parse).ToHashSet();
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
-        if (lc.index == index) {
+        if (index.Contains(lc.index)) {
             subelements.ForEach(g => g.Generate(lc, tc, result));
         }
     }

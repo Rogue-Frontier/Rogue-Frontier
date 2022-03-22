@@ -300,6 +300,8 @@ public static class SShipBehavior {
                 return o;
             case Sulphin s:
                 return s.order;
+            case Swift sw:
+                return sw.order;
             case Merchant t:
                 return null;
             default:
@@ -343,7 +345,8 @@ public class AIShip : IShip {
         this.ship = ship;
         this.sovereign = sovereign;
         this.behavior = behavior ?? ship.shipClass.behavior switch {
-            EShipBehavior.sulphin => new Sulphin(order),
+            EShipBehavior.sulphin => new Sulphin(this, order),
+            EShipBehavior.swift => new Swift(this, order),
             EShipBehavior.none => order,
             _ => order
         };
@@ -484,8 +487,9 @@ public class PlayerShip : IShip {
     public void SetFiringSecondary(bool firingSecondary = true) => this.firingSecondary = firingSecondary;
     public void SetRotatingToFace(double targetRads) {
         var facingRads = ship.stoppingRotationWithCounterTurn * Math.PI / 180;
-        var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(targetRads)).magnitude;
-        var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(targetRads)).magnitude;
+        var dest = XY.Polar(targetRads);
+        var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - dest).magnitude;
+        var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - dest).magnitude;
         if (ccw < cw) {
             SetRotating(Rotating.CCW);
         } else if (cw < ccw) {

@@ -57,11 +57,11 @@ public class Projectile : MovingObject {
         this.ricochet = fragment.ricochet;
 
         this.exclude = exclude;
-        if(exclude == null) {
-            exclude = fragment.hitSource ?
+        if(this.exclude == null) {
+            this.exclude = fragment.hitSource ?
                 new() { null, this } :
                 new() { null, source, this };
-            exclude.UnionWith(source switch {
+            this.exclude.UnionWith(source switch {
                 PlayerShip ps => ps.avoidHit,
                 AIShip ai => ai.avoidHit,
                 Station st => st.guards,
