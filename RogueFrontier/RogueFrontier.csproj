@@ -53,8 +53,8 @@
     <None Update="RogueFrontierContent\scripts\Intro.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\scripts\Olympus.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <None Update="RogueFrontierContent\scripts\_Olympus.xml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\scripts\OutlawMiners.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -84,6 +84,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\sprites\NRobotPowerStation.asc.cg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="RogueFrontierContent\sprites\station_constellation_shipyard.asc.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\sprites\station_iron_pirates_foundry.asc.cg">

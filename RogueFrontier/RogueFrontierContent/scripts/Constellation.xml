@@ -62,8 +62,8 @@
 		-->
 	</StationType>
 
-	<StationType	codename="station_constellation_missile_silo"
-				name=		"Constellation missile silo"
+	<StationType	codename="station_constellation_missile_sentry"
+				name=		"Constellation missile sentry"
 				sovereign=	"sovereign_constellation"
 
 				hp=			"200"
@@ -224,8 +224,8 @@
 		</Weapons>
 	</StationType>
 
-	<StationType	codename="station_constellation_guard_tower"
-				name=		"Constellation guard tower"
+	<StationType	codename="station_constellation_bunker"
+				name=		"Constellation bunker"
 				sovereign=	"sovereign_constellation"
 
 				hp=			"300"
@@ -236,31 +236,24 @@
 		>
 		<Segments>
 			<Point offsetX="1" offsetY="0"
-				   glyph="+" foreground="White"/>
+				   glyph="+" foreground="LightGray"/>
 			<Point offsetX="-1" offsetY="0"
-				   glyph="+" foreground="White"/>
+				   glyph="+" foreground="LightGray"/>
 			<Point offsetX="0" offsetY="1"
-				   glyph="+" foreground="White"/>
+				   glyph="+" foreground="LightGray"/>
 			<Point offsetX="0" offsetY="-1"
-				   glyph="+" foreground="White"/>
+				   glyph="+" foreground="LightGray"/>
 		</Segments>
 		<Dock>
 			<Point offsetX="2" offsetY="0"/>
 			<Point offsetX="-2" offsetY="0"/>
 		</Dock>
 		<Ships>
-			<Ship	count="2"	codename="ship_beowulf" order="patrolCircuit" patrolRadius="20"/>
-			<Ship	count="3"	codename="ship_beowulf" order="guard"/>
+			<Ship	count="3"	codename="ship_beowulf" order="patrolCircuit" patrolRadius="20"/>
+			<Ship	count="5"	codename="ship_beowulf" order="guard"/>
+			<Ship	count="3"	codename="ship_ulysses" order="guard"/>
 		</Ships>
 		<Cargo>
-			<Item count="8" codename="item_amethyst_laser_i"/>
-			<Item count="8" codename="item_dynamite_cannon"/>
-			<Item count="120" codename="item_dynamite_charge"/>
-			<Item count="8" codename="item_beowulf_dual_laser_cannon"/>
-			<Item count="8" codename="item_klaw_missile_launcher"/>
-			<Item count="250" codename="item_klaw_missile"/>
-			<Item count="4"	codename="item_musket_cannon"/>
-			<Item count="8" codename="item_missile_defender"/>
 		</Cargo>
 		<Weapons>
 			<Weapon codename="item_beowulf_dual_laser_cannon"/>

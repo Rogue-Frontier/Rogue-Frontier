@@ -468,12 +468,12 @@ public class PlayerShip : IShip {
     public Dictionary<ActiveObject, int> trackers = new();
 
     public PlayerShip() { }
-    public PlayerShip(Player player, BaseShip ship, Sovereign sovereign) {
-        this.person = player;
+    public PlayerShip(Player person, BaseShip ship, Sovereign sovereign) {
+        this.person = person;
         this.ship = ship;
         this.sovereign = sovereign;
 
-        energy = new EnergySystem(ship.devices);
+        energy = new(ship.devices);
         primary = new(ship.devices.Weapon);
         secondary = new(ship.devices.Weapon);
     }
@@ -484,7 +484,6 @@ public class PlayerShip : IShip {
     public void SetFiringSecondary(bool firingSecondary = true) => this.firingSecondary = firingSecondary;
     public void SetRotatingToFace(double targetRads) {
         var facingRads = ship.stoppingRotationWithCounterTurn * Math.PI / 180;
-
         var ccw = (XY.Polar(facingRads + 3 * Math.PI / 180) - XY.Polar(targetRads)).magnitude;
         var cw = (XY.Polar(facingRads - 3 * Math.PI / 180) - XY.Polar(targetRads)).magnitude;
         if (ccw < cw) {
@@ -597,7 +596,7 @@ public class PlayerShip : IShip {
             targetList =
                 world.entities.all
                 .OfType<ActiveObject>()
-                .Where(e => this.IsEnemy(e))
+                .Where(e => this.IsEnemy(e) && e != this)
                 .OrderBy(e => (e.position - position).magnitude)
                 .Distinct()
                 .ToList();
@@ -618,7 +617,7 @@ public class PlayerShip : IShip {
         targetIndex++;
         if (targetIndex < targetList.Count) {
             var target = targetList[targetIndex];
-            if (!this.IsFriendly(target)) {
+            if (this.IsEnemy(target)) {
                 goto CheckTarget;
             } else if (!target.active) {
                 goto CheckTarget;
@@ -641,7 +640,7 @@ public class PlayerShip : IShip {
         void Refresh() {
             targetList = world.entities.all
                 .OfType<ActiveObject>()
-                .Where(e => this.IsFriendly(e))
+                .Where(e => !this.IsEnemy(e) && e != this)
                 .OrderBy(e => (e.position - position).magnitude)
                 .Distinct()
                 .ToList();
@@ -707,6 +706,8 @@ public class PlayerShip : IShip {
         }
         return null;
     }
+    public IEnumerable<ActiveObject> GetWeaponTargets() =>
+        devices.Weapon.SelectMany(w => w.aiming.multiTarget);
     public Weapon GetPrimary() => primary.item;
     public bool GetPrimary(out Weapon result) => (result = GetPrimary()) != null;
     public Weapon GetSecondary() => secondary.item;

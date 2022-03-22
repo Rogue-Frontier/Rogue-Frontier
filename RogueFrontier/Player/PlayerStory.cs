@@ -136,7 +136,6 @@ shining through the window, ""...far out there.""
                 new(@"""It does.""", Intro6, NavFlags.ESC)
             }) { background = heroImage };
             return sc;
-
         }
         Dialog Intro6(Con from) {
             string t =
@@ -527,9 +526,6 @@ public class PlayerStory {
             ["item_magic_blaster_ii"] =         3000,
             ["item_amethyst_laser_iii"] =       8000,
             ["item_light_launcher_i"] =         2500,
-            ["itMarksmanRifle"] =               0,
-            ["itMarshalRepeater"] =             0,
-            ["itMarshalPlate"] =                0,
             ["item_dagger_cannon"] =            3500,
             ["item_shrapnel_bomb"] =            12,
             ["item_bomb_launcher"] =            2500,
@@ -545,9 +541,6 @@ public class PlayerStory {
             ["item_flashbang_cannon"] =         4800,
             ["item_lightning_vent"] =           2400,
             ["item_shining_armor"] =            6400,
-            ["item_trackbug_launcher"] =        0,
-            ["item_popper_cannon"] =            0,
-            ["item_spear_of_truth"] =           0,
             ["item_nova_missile"] =             24,
             ["item_nova_missile_launcher"] =    4800,
             ["item_50mw_generator"] =           12000,

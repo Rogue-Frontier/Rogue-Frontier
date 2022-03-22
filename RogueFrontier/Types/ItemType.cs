@@ -456,7 +456,7 @@ public record FragmentDesc {
             new(xmlTrail) : null;
         effect = new(e);
     }
-    public List<Projectile> GetProjectiles(ActiveObject owner, ActiveObject target, double direction, XY offset = null) {
+    public List<Projectile> GetProjectiles(ActiveObject owner, ActiveObject target, double direction, XY offset = null, HashSet<Entity> exclude = null) {
         var position = owner.position + (offset??new(0,0));
         double angleInterval = spreadAngle / count;
 
@@ -467,8 +467,9 @@ public record FragmentDesc {
                 position + XY.Polar(angle),
                 owner.velocity + XY.Polar(angle, missileSpeed),
                 angle,
-                GetManeuver(target)
-                ) { siblings = projectiles };
+                GetManeuver(target),
+                exclude
+                ) { salvo = projectiles };
         }));
         return projectiles;
     }

@@ -85,7 +85,7 @@
 										<Station codename="station_amethyst_store"/>
 
 										<Sibling radiusInc="-15">
-											<Station codename="station_constellation_missile_silo"/>
+											<Station codename="station_constellation_missile_sentry"/>
 										</Sibling>
 									</Sibling>
 								</At>

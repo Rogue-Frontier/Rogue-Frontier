@@ -852,19 +852,43 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
     public bool AllowFire => ammo?.AllowFire ?? true;
     public bool ReadyToFire => delay == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
     public void Fire(ActiveObject owner, double direction, List<Projectile> result = null) {
-        var projectiles = projectileDesc.GetProjectiles(owner, target, direction, offset);
+        HashSet<Entity> exclude = new() { null };
+        if (!projectileDesc.hitSource) {
+            exclude.Add(owner);
+        }
+
+        var projectiles = projectileDesc.GetProjectiles(owner, target, direction, offset, exclude);
         projectiles.ForEach(owner.world.AddEntity);
         projectiles.ForEach(p => p.onHitActive += this);
+
+        exclude.UnionWith(projectiles);
+
         result?.AddRange(projectiles);
         aiming?.OnFire();
         ammo?.OnFire();
         capacitor?.OnFire();
         onFire.ForEach(f => f(this, projectiles));
-        switch (owner) {
-            case PlayerShip p:  p.onWeaponFire.ForEach(f => f(p, this, projectiles));   break;
-            case AIShip ai:     ai.onWeaponFire.ForEach(f => f(ai, this, projectiles)); break;
 
+        exclude.UnionWith(owner.world.entities.all.OfType<ActiveObject>().Where(a => !owner.CanTarget(a)));
+        switch (owner) {
+            case PlayerShip p:
+                exclude.UnionWith(p.avoidHit);
+                exclude.ExceptWith(p.devices.Weapon.SelectMany(w => w.aiming?.multiTarget ?? new()));
+                p.onWeaponFire.ForEach(f => f(p, this, projectiles));   
+                break;
+            case AIShip ai:
+                exclude.UnionWith(ai.avoidHit);
+                exclude.ExceptWith(ai.devices.Weapon.SelectMany(w => w.aiming?.multiTarget ?? new()));
+                ai.onWeaponFire.ForEach(f => f(ai, this, projectiles)); 
+                break;
+            case Station st:
+                exclude.UnionWith(st.guards);
+                exclude.ExceptWith(st.weapons.SelectMany(w => w.aiming?.multiTarget ?? new()));
+                break;
+            case null:
+                return;
         }
+        
     }
     Projectile.OnHitActive IContainer<Projectile.OnHitActive>.Value => (projectile, hit) => {
         projectile.onHitActive -= this;
@@ -930,6 +954,7 @@ public class Capacitor {
 }
 public interface Aiming {
     public ActiveObject target { get; }
+    public List<ActiveObject> multiTarget => new() { target };
     void Update(Station owner, Weapon weapon);
     void Update(IShip owner, Weapon weapon);
     double? GetFireAngle() => null;
@@ -994,6 +1019,7 @@ public class MultiTargeting : Aiming, IDestructionEvents {
         targets.Remove(s);
         ticks = 0;
     };
+    public List<ActiveObject> multiTarget => targets;
     public List<ActiveObject> targets { get; set; } = new();
     private ListIndex<ActiveObject> index;
     public ActiveObject target => index.item;

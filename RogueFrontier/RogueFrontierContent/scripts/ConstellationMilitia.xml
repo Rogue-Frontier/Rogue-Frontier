@@ -11,120 +11,12 @@
 				hp=			"700"
 				crimeOnDestroy="true"
 
-				glyph=		"S"
-				foreground="BB6633FF"
+				structure="RogueFrontierContent/sprites/station_constellation_shipyard.asc.cg"
 		>
-		<Segments>
-			<Ring/>
-			<Line  offsetX="-2"	offsetY="0"		deltaX=	"-8"	glyph="="
-				   foreground="White"/>
-			<Line  offsetX="2"	offsetY="0"		deltaX=	"8"		glyph="="
-				   foreground="White"/>
-			<Line  offsetX="0"	offsetY="2"		width=	"12"	glyph="-"
-				   foreground="White"/>
-			<Line  offsetX="0"	offsetY="-2"	width=	"12"	glyph="-"
-				   foreground="White"/>
-		</Segments>
 		<Ships>
 			<Ship	count="2"	codename="ship_clark"/>
 		</Ships>
 		<Weapons>
 		</Weapons>
 	</StationType>
-	<ItemType	codename=	"itMarksmanRifle"
-				name=		"Marksman Rifle"
-				mass=		"8000"
-				level=		"4"
-				>
-		<Weapon		powerUse=		"50"
-					fireCooldown=	"60"
-					repeat=			"1"
-					>
-			<Projectile
-						missileSpeed=	"50"
-						damageType=		"2"
-						damageHP=		"8"
-						lifetime=		"60"
-					
-						glyph=			"."
-						foreground=		"White"
-						/>
-		</Weapon>
-	</ItemType>
-	<ItemType	codename=	"itMarshalRepeater"
-				name=		"Marshal repeater"
-				mass=		"8000"
-				level=		"4"
-				>
-		<Weapon			powerUse=		"50"
-						fireCooldown=	"60"
-
-						repeat=			"3"
-			>
-			<Projectile	missileSpeed=	"40"
-						damageType=		"2"
-						damageHP=		"8"
-						lifetime=		"60"
-
-						glyph=			"."
-						foreground=		"White"
-				/>
-		</Weapon>
-	</ItemType>
-
-	<ItemType	codename=	"itMarshalPlate"
-				name=		"Marshal plate"
-				mass=		"3000"
-				level=		"4"
-		>
-		<Armor	maxHP=		"60"
-			>
-		</Armor>
-	</ItemType>
-	<ShipClass	codename=			"ship_constellation_marksman"
-			name=				"marksman-class gunship"
-			thrust=				"0.1"
-			maxSpeed=			"20"
-
-			rotationAccel=		"3"
-			rotationDecel=		"6"
-			rotationMaxSpeed=	"4"
-
-			glyph=				"M"
-			foreground=			"Blue"
-		>
-		<Devices>
-			<Weapon	codename="itMarksmanRifle"/>
-		</Devices>
-		<LayeredArmorSystem>
-			<Armor	codename="itMarshalPlate"/>
-		</LayeredArmorSystem>
-		<PlayerSettings
-			startingClass=  "false"
-			description=    ""
-            />
-	</ShipClass>
-	<ShipClass	codename=			"ship_constellation_marshal"
-				name=				"marshal-class heavy gunship"
-				thrust=				"0.1"
-				maxSpeed=			"20"
-
-				rotationAccel=		"3"
-				rotationDecel=		"6"
-				rotationMaxSpeed=	"4"
-
-				glyph=				"M"
-				foreground=			"Cyan"
-		>
-		<Devices>
-			<Weapon	codename="itMarshalRepeater"/>
-		</Devices>
-		<LayeredArmorSystem>
-			<Armor	codename="itMarshalPlate"/>
-		</LayeredArmorSystem>
-		<PlayerSettings
-			startingClass=  "false"
-			description=    ""
-            />
-	</ShipClass>
 </Module>

@@ -33,7 +33,7 @@ public class Projectile : MovingObject {
     public HashSet<Entity> exclude = new();
 
     //List of projectiles that were created from the same fragment
-    public List<Projectile> siblings = new();
+    public List<Projectile> salvo = new();
 
     public delegate void OnHitActive(Projectile p, ActiveObject other);
     public FuncSet<IContainer<OnHitActive>> onHitActive=new();
@@ -41,7 +41,7 @@ public class Projectile : MovingObject {
     [JsonIgnore]   public bool active => lifetime > 0;
     
     public Projectile() { }
-    public Projectile(ActiveObject source, FragmentDesc fragment, XY position, XY velocity, double? direction = null, Maneuver maneuver = null) {
+    public Projectile(ActiveObject source, FragmentDesc fragment, XY position, XY velocity, double? direction = null, Maneuver maneuver = null, HashSet<Entity> exclude = null) {
         this.id = source.world.nextId++;
         this.source = source;
         this.world = source.world;
@@ -56,15 +56,18 @@ public class Projectile : MovingObject {
         this.damageHP = fragment.damageHP.Roll();
         this.ricochet = fragment.ricochet;
 
-        exclude = fragment.hitSource ?
-            new() { null, this } :
-            new() { null, source, this };
-        exclude.UnionWith(source switch {
-            PlayerShip ps => ps.avoidHit,
-            AIShip ai => ai.avoidHit,
-            Station st => st.guards,
-            _ => new HashSet<Entity>()
-        });
+        this.exclude = exclude;
+        if(exclude == null) {
+            exclude = fragment.hitSource ?
+                new() { null, this } :
+                new() { null, source, this };
+            exclude.UnionWith(source switch {
+                PlayerShip ps => ps.avoidHit,
+                AIShip ai => ai.avoidHit,
+                Station st => st.guards,
+                _ => new HashSet<Entity>()
+            });
+        }
         //exclude.UnionWith(source.world.entities.all.OfType<ActiveObject>().Where(a => a.sovereign == source.sovereign));
     }
     public void Update() {

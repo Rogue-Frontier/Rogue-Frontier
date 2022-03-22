@@ -10,7 +10,6 @@
 	<Module file="Errorist.xml"/>
 	<Module file="IronPirates.xml"/>
 	<Module file="NRobot.xml"/>
-	<Module file="Olympus.xml"/>
 	<Module file="OrionWarlords.xml"/>
 	<Module file="Player.xml"/>
 	<Module file="RoyalShade.xml"/>
