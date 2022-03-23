@@ -123,7 +123,7 @@
 		mass=		"8000"
 		level=		"4"
 		value=		"2000"
-		desc=		"This kinetic weapon fires three shells per shot. It is the smallest kinetic weapon of its kind."
+		desc=		"This kinetic weapon fires three bolts per shot."
 		invoke=		"installWeapon"
 		>
 		<Weapon	
@@ -199,6 +199,7 @@
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="item_hunterscale_plate"/>
+			<Armor	codename="item_hunterscale_plate"/>
 		</LayeredArmorSystem>
 		<PlayerSettings
 			startingClass=  "false"
@@ -223,6 +224,7 @@
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor	codename="item_skullhelm_plate"/>
+			<Armor	codename="item_hunterscale_plate"/>
 		</LayeredArmorSystem>
 		<PlayerSettings
 			startingClass=  "false"

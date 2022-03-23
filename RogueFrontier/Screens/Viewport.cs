@@ -30,7 +30,7 @@ public class Viewport : ScreenSurface {
         base.Update(delta);
     }
     public void UpdateBlind(TimeSpan delta, Func<Entity, double> getVisibleDistanceLeft) {
-        world.PlaceTilesOver(tiles, getVisibleDistanceLeft);
+        world.PlaceTilesVisible(tiles, getVisibleDistanceLeft);
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {

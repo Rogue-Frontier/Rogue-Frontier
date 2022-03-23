@@ -4,6 +4,7 @@ using SadConsole;
 using SadRogue.Primitives;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RogueFrontier;
 
@@ -164,32 +165,32 @@ public class System {
         }
     }
     public void PlaceTilesVisible(Dictionary<(int, int), ColoredGlyph> tiles, Func<Entity, double> getVisibleDistanceLeft) {
+        SetDict<(int, int), ColoredGlyph> all = new();
         foreach (var e in entities.all) {
             if (e.tile == null) continue;
             var dist = getVisibleDistanceLeft(e);
             if (dist<0) {
                 continue;
             }
-
-            var p = e.position.roundDown;
-            if (!tiles.ContainsKey(p) || e is ISegment) {
-
-                var t = e.tile;
-                const double threshold = 8;
-                if (dist < threshold) {
-                    t = t.Clone();
-                    t.Foreground = t.Foreground.SetAlpha((byte)(255 * dist / threshold));
-                }
-
-                tiles[p] = t;
+            var t = e.tile;
+            const double threshold = 8;
+            if (dist < threshold) {
+                t = t.Clone();
+                t.Foreground = t.Foreground.SetAlpha((byte)(255 * dist / threshold));
             }
+            var p = e.position.roundDown;
+            all.Add(p, t);
         }
         foreach (var e in effects.all) {
             if (e.tile == null) continue;
             var p = e.position.roundDown;
-            if (!tiles.ContainsKey(p)) {
-                tiles[p] = e.tile;
-            }
+
+            all.Add(p, e.tile);
+        }
+
+        int time = tick / 30;
+        foreach((var p, var set) in all.space) {
+            tiles[p] = set.ElementAt(time % set.Count);
         }
     }
 

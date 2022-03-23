@@ -5,10 +5,12 @@
 		<System id="orion3" name="Orion's Star 3"	codename="system_3"/>
 		<System id="orion4" name="Orion's Star 4"	codename="system_4"/>
 		<System id="orion5" name="Orion's Star 5"	codename="system_5"/>
+		<System id="orion6" name="Orion's Star 6"	codename="system_6"/>
 
 		<Link fromGateId="orion:Next"	toGateId="orion2:Prev"/>
 		<Link fromGateId="orion2:Next"	toGateId="orion3:Prev"/>
 		<Link fromGateId="orion3:Next"	toGateId="orion4:Prev"/>
 		<Link fromGateId="orion4:Next"	toGateId="orion5:Prev"/>
+		<Link fromGateId="orion5:Next"	toGateId="orion6:Prev"/>
 	</Topology>
 </Universe>

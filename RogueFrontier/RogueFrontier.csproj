@@ -74,6 +74,9 @@
     <None Update="RogueFrontierContent\sprites\DarkStarFortress.asc.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="RogueFrontierContent\sprites\DarkStarShipyard.asc.cg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="RogueFrontierContent\sprites\IBMCGA+.font">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

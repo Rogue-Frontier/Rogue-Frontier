@@ -182,7 +182,7 @@ public class Station : ActiveObject, ITrader, IDockable {
     public XY GetDockPoint() =>
         type.dockPoints.Except(GetDocked().Select(s => s.dock?.Offset)).FirstOrDefault() ?? XY.Zero;
     public List<AIShip> UpdateGuardList() {
-        return guards = new(world.entities.all.OfType<AIShip>()
+        return guards = new(world.universe.GetAllEntities().OfType<AIShip>()
             .Where(s => s.behavior switch {
                 GuardOrder g => g.home == this,
                 PatrolOrbitOrder p => p.patrolTarget == this,

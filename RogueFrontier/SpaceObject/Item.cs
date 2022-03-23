@@ -879,6 +879,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             case null:
                 return;
         }
+        exclude.Remove(target);
 
         void ExcludeTargets(IEnumerable<Weapon> weapons) =>
             exclude.ExceptWith(weapons.Select(w => w.aiming).Where(a => a != null).SelectMany(w => w.GetMultiTarget()));

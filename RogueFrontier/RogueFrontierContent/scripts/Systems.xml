@@ -459,8 +459,15 @@
 					</Sibling>
 				</Group>
 			</Orbital>
-			<Orbital radius="900" angle="random" increment="random" count="10"></Orbital>
-			<Orbital radius="760" angle="random"></Orbital>
+			<Orbital radius="900" angle="random" increment="random" count="10">
+
+			</Orbital>
+			<Orbital radius="760" angle="random">
+				<Planet radius="10"/>
+				<Orbital radius="25" angle="random">
+					<Station codename="station_nrobot_fortress"/>
+				</Orbital>
+			</Orbital>
 			<Orbital radius="640" angle="random">
 				<Group>
 					<Planet radius="25"/>
@@ -474,11 +481,15 @@
 							<Station chance="1" codename="station_amethyst_store"/>
 						</Table>
 					</Orbital>
+
+					<Orbital radius="60" angle="random">
+						<Station chance="1" codename="station_beowulf_club"/>
+					</Orbital>
 				</Group>
 			</Orbital>
 			<Orbital radius="520" angle="random">
 				<Planet radius="20"/>
-				<Orbital radius="35" angle="random">
+				<Orbital radius="50" angle="random">
 					<Station codename="station_nrobot_fortress"/>
 				</Orbital>
 			</Orbital>
@@ -487,8 +498,34 @@
 				<Orbital radius="35" angle="random" increment="60-90" count="2">
 					<Station codename="station_iron_pirates_foundry"/>
 				</Orbital>
+
 			</Orbital>
 			<Orbital radius="320" angle="random">
+				<Group>
+					<Planet radius="10"/>
+
+					<Orbital radius="20" angle="random" increment="30" count="5-8">
+						<At index="0">
+							<Station chance="1" codename="station_constellation_shipyard"/>
+
+						</At>
+						<At index="1,2,3,4,5,6,7">
+							<Table>
+								<Station chance="1" codename="station_constellation_astra"/>
+								<Station chance="1" codename="station_constellation_habitat"/>
+								<Station chance="1" codename="station_constellation_bunker"/>
+								<Station chance="1" codename="station_amethyst_store"/>
+							</Table>
+						</At>
+					</Orbital>
+
+				</Group>
+				<Orbital radius="60" angle="random">
+					<Station codename="station_beowulf_club"/>
+				</Orbital>
+			</Orbital>
+			<Orbital radius="240" angle="random">
+
 				<Group>
 					<Planet radius="12"/>
 
@@ -497,7 +534,103 @@
 					</Orbital>
 				</Group>
 			</Orbital>
+			<Orbital radius="160" angle="random">
+				<Station codename="station_dark_star_fortress"/>
+			</Orbital>
+			<Orbital radius="100" angle="random">
+			</Orbital>
+			<Orbital radius="40" angle="random">
+			</Orbital>
+		</SystemGroup>
+	</SystemType>
+	<SystemType	codename=	"system_6"
+			name=		"Orion"
+		>
+		<SystemGroup>
+			<Star	 radius="50"/>
+			<Orbital radius="450" angle="random">
+				<Group>
+					<Group>
+						<Stargate gateId="Next"/>
+						<Orbital radius="30" angle="random" increment="20-50" count="3">
+							<Table>
+								<Station chance="1" codename="station_dark_star_fortress"/>
+								<Station chance="4" codename="station_nrobot_fortress"/>
+							</Table>
+						</Orbital>
+
+						<Orbital radius="60" angle="random" increment="20-50" count="6">
+							<Table>
+								<Station chance="1" codename="station_dark_star_fortress"/>
+								<Station chance="1" codename="station_nrobot_fortress"/>
+							</Table>
+						</Orbital>
+					</Group>
+					<Sibling angleInc="135" radiusInc="100">
+						<Stargate gateId="Prev"/>
+					</Sibling>
+				</Group>
+			</Orbital>
+			<Orbital radius="900" angle="random">
+
+			</Orbital>
+			<Orbital radius="760" angle="random">
+				<Planet radius="10"/>
+				<Orbital radius="25" angle="random" increment="20-40" count="5">
+					<At index="0">
+						<Station codename="station_constellation_shipyard"/>
+					</At>
+					<At index="1">
+						<Station codename="station_constellation_astra"/>
+					</At>
+					<At index="2,3,4">
+						<Station codename="station_constellation_bunker"/>
+					</At>
+				</Orbital>
+			</Orbital>
+			<Orbital radius="640" angle="random">
+				<Group>
+					<Planet radius="25"/>
+					<Orbital radius="40" angle="random" increment="30-50" count="2">
+						<Station codename="station_dark_star_fortress"/>
+					</Orbital>
+					<Orbital radius="60" angle="random">
+						<Station codename="station_nrobot_fortress"/>
+					</Orbital>
+				</Group>
+			</Orbital>
+			<Orbital radius="520" angle="random">
+				<Planet radius="20"/>
+				<Orbital radius="40" angle="random" increment="30" count="3-5">
+					<Station chance="1" codename="station_constellation_bunker"/>
+				</Orbital>
+			</Orbital>
+			<Orbital radius="420" angle="random">
+				<Planet radius="15"/>
+				<Orbital radius="30" angle="random">
+					<Station codename="station_constellation_shipyard"/>
+				</Orbital>
+
+			</Orbital>
+			<Orbital radius="320" angle="random">
+				<Group>
+					<Planet radius="10"/>
+
+					<Orbital radius="20" angle="random" increment="30" count="3-5">
+						<Station chance="1" codename="station_constellation_bunker"/>
+					</Orbital>
+
+				</Group>
+			</Orbital>
 			<Orbital radius="240" angle="random">
+
+				<Group>
+					<Planet radius="12"/>
+
+					<Orbital radius="24" angle="random">
+						<Station codename="station_dark_star_shipyard"/>
+					</Orbital>
+				</Group>
 			</Orbital>
 			<Orbital radius="160" angle="random">
 				<Station codename="station_nrobot_power_station"/>

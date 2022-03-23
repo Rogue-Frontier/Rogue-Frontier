@@ -145,7 +145,7 @@ public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroye
             .FirstOrDefault() is Station s) {
             s.guards.ForEach(g => g.behavior = new GuardOrder(s, destroyer));
         }
-
+        /*
         if(station.world.entities.all.OfType<Stargate>().FirstOrDefault(g => g.destGate != null) is Stargate g) {
             var nextGate = g.destGate;
             var nextSystem = nextGate.world;
@@ -156,6 +156,7 @@ public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroye
                 }
             }
         }
+        */
     };
 
     GuardOrder.OnDocked IContainer<GuardOrder.OnDocked>.Value => (ship, home) => {

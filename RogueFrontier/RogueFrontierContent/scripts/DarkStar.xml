@@ -193,7 +193,6 @@
 		>
 		</PlayerSettings>
 	</ShipClass>
-
 	<ShipClass    codename=	"ship_machiavelli"
 			  inherit=	"ship_beowulf"
 			  name=		"Machiavelli-class gunship"
@@ -228,17 +227,39 @@
 
 					hp=			"600"
 					
+					stealth="2"
+					
 					structure="RogueFrontierContent/sprites/DarkStarFortress.asc.cg"
 		>
 		<Weapons>
 			<Weapon codename="item_dagger_cannon"	posX="3" posY="0"/>
 			<Weapon codename="item_dagger_cannon"	posX="-3" posY="0"/>
 		</Weapons>
-		<Construction max="20">
-			<Construct time="300" codename="ship_brutus" order="patrol" patrolRadius="20"/>
+		<Ships>
+			<Ship codename="ship_brutus" count="8" order="guard"/>
+			<Ship codename="ship_machiavelli" count="4" order="guard"/>
+		</Ships>
+	</StationType>
+
+	<StationType	codename="station_dark_star_shipyard"
+					name=		"Dark Star shipyard"
+					sovereign=	"sovereign_dark_star"
+
+					hp=			"900"
+					
+					stealth="2"
+					
+					structure="RogueFrontierContent/sprites/DarkStarShipyard.asc.cg"
+		>
+		<Weapons>
+			<Weapon codename="item_dagger_cannon"	posX="3" posY="0"/>
+			<Weapon codename="item_dagger_cannon"	posX="-3" posY="0"/>
+		</Weapons>
+		<Construction max="15">
+			<Construct time="900" codename="ship_brutus" order="patrol" patrolRadius="20"/>
 		</Construction>
 		<Ships>
-			<Ship codename="ship_brutus" count="4" order="guard"/>
+			<Ship codename="ship_brutus" count="8" order="guard"/>
 			<Ship codename="ship_machiavelli" count="4" order="guard"/>
 		</Ships>
 	</StationType>
