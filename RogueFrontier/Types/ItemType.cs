@@ -420,6 +420,7 @@ public record FragmentDesc {
     public Armor.Decay decay;
     public DisruptorDesc disruptor;
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
+    public double angleInterval => spreadAngle / count;
     public int range2 => range * range;
     public HashSet<FragmentDesc> fragments;
     public StaticTile effect;
@@ -430,7 +431,6 @@ public record FragmentDesc {
     public FragmentDesc(XElement e) {
         Initialize(e);
     }
-
     public void Initialize(XElement e) {
         e.Initialize(this);
         acquireTarget = acquireTarget || maneuver > 0;
@@ -445,9 +445,8 @@ public record FragmentDesc {
             flash = new(xmlFlash);
         }
         if(e.HasElement("Decay", out var xmlDecay)) {
-            decay = new(xmlDecay.ExpectAttInt("lifetime"), xmlDecay.ExpectAttDouble("rate"));
+            decay = new(xmlDecay);
         }
-
         fragments = e.HasElements("Fragment", out var fragmentsList) ?
             new(fragmentsList.Select(f => new FragmentDesc(f))) : null;
         disruptor = e.HasElement("Disruptor", out var xmlDisruptor) ?
@@ -456,21 +455,21 @@ public record FragmentDesc {
             new(xmlTrail) : null;
         effect = new(e);
     }
+    public IEnumerable<double> GetAngles(double direction) =>
+        Enumerable.Range(0, count).Select(i => direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1));
     public List<Projectile> GetProjectiles(ActiveObject owner, ActiveObject target, double direction, XY offset = null, HashSet<Entity> exclude = null) {
         var position = owner.position + (offset??new(0,0));
-        double angleInterval = spreadAngle / count;
 
         var projectiles = new List<Projectile>();
-        projectiles.AddRange(Enumerable.Range(0, count).Select(i => {
-            double angle = direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);
-            return new Projectile(owner, this,
+        projectiles.AddRange(GetAngles(direction).Select(angle =>
+            new Projectile(owner, this,
                 position + XY.Polar(angle),
                 owner.velocity + XY.Polar(angle, missileSpeed),
                 angle,
                 GetManeuver(target),
                 exclude
-                ) { salvo = projectiles };
-        }));
+                ) { salvo = projectiles }
+        ));
         return projectiles;
     }
     public Maneuver GetManeuver(ActiveObject target) =>

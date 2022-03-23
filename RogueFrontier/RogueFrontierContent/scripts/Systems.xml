@@ -469,8 +469,8 @@
 							<Station chance="1" codename="station_constellation_astra"/>
 							<Station chance="1" codename="station_constellation_habitat"/>
 							<Station chance="1" codename="station_constellation_bunker"/>
-							<Station chance="1" codename="station_constellation_armor_shop"/>
-							<Station chance="1" codename="station_constellation_arms_dealer"/>
+							<Station chance="1" codename="station_armor_shop"/>
+							<Station chance="1" codename="station_arms_dealer"/>
 							<Station chance="1" codename="station_amethyst_store"/>
 						</Table>
 					</Orbital>

@@ -177,11 +177,13 @@ public class PlayerMain : ScreenSurface {
         }
         var prevViewport = new Viewport(this, new Camera(playerShip.position), world);
         world.entities.Remove(playerShip);
-        playerShip.ship.world = destGate.world;
+
+        var nextWorld = destGate.world;
+        playerShip.ship.world = nextWorld;
         playerShip.ship.position = destGate.position + (playerShip.ship.position - gate.position);
-        world.AddEntity(playerShip);
-        world.AddEffect(new Heading(playerShip));
-        var nextViewport = new Viewport(this, this.camera, world);
+        nextWorld.entities.Add(playerShip);
+        nextWorld.effects.Add(new Heading(playerShip));
+        var nextViewport = new Viewport(this, this.camera, nextWorld);
 
         back = new(nextViewport);
         viewport = nextViewport;
@@ -375,7 +377,7 @@ public class PlayerMain : ScreenSurface {
 
             world.UpdateActive();
             world.UpdatePresent();
-            systems.GetNext(3).ForEach(s => {
+            systems.GetNext(1).ForEach(s => {
                 if (s != world) {
                     s.UpdateActive();
                     s.UpdatePresent();

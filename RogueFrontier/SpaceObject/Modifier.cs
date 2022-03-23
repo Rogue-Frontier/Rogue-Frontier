@@ -10,20 +10,14 @@ namespace RogueFrontier;
 public record Modifier() {
     [Opt] public bool
         curse = false;
-    [Opt] public int
-        damageHPInc = 0,
-        missileSpeedInc = 0,
-        lifetimeInc = 0;
-    [Opt] public double
-        damageHPFactor = 1,
-        missileSpeedFactor = 1,
-        lifetimeFactor = 1;
-    [Opt] public int
-        maxHPInc = 0;
-    [Opt] public double
-        maxHPFactor = 1;
+
+    public IntMod damageHP, missileSpeed, lifetime, maxHP;
     public Modifier(XElement e) : this() {
         e.Initialize(this);
+        damageHP = new(e, nameof(damageHP));
+        missileSpeed = new(e, nameof(missileSpeed));
+        lifetime = new(e, nameof(lifetime));
+        maxHP = new(e, nameof(maxHP));
     }
     public static Modifier Sum(params Modifier[] mods) {
         Modifier result = new();
@@ -34,33 +28,46 @@ public record Modifier() {
         y == null ? x : 
         new() {
             curse = y.curse,
-            damageHPInc = x.damageHPInc + y.damageHPInc,
-            missileSpeedInc = x.missileSpeedInc + y.missileSpeedInc,
-            lifetimeInc = x.lifetimeInc + y.lifetimeInc,
-            damageHPFactor = x.damageHPFactor * y.damageHPFactor,
-            missileSpeedFactor = x.missileSpeedFactor * y.missileSpeedFactor,
-            lifetimeFactor = x.lifetimeFactor * y.lifetimeFactor,
-            maxHPInc = x.maxHPInc + y.maxHPInc,
-            maxHPFactor = x.maxHPFactor * y.maxHPFactor
+            damageHP = x.damageHP + y.damageHP,
+            missileSpeed=x.missileSpeed + y.missileSpeed,
+            lifetime = x.lifetime + y.lifetime,
+            maxHP=x.maxHP + y.maxHP
         };
     public static FragmentDesc operator *(Modifier x, FragmentDesc y) =>
         y with {
-            damageHP = IDice.Apply(y.damageHP, x.damageHPFactor, x.damageHPInc),
-            missileSpeed = (int)((y.missileSpeed * x.missileSpeedFactor) + x.missileSpeedInc),
-            lifetime = (int)((y.lifetime * x.lifetimeFactor) + x.lifetimeFactor),
+            damageHP = x.damageHP?.Modify(y.damageHP) ?? y.damageHP,
+            missileSpeed = x.missileSpeed?.Modify(y.missileSpeed) ?? y.missileSpeed,
+            lifetime = x.lifetime?.Modify(y.lifetime) ?? y.lifetime,
         };
     public static ArmorDesc operator *(Modifier x, ArmorDesc y) =>
         y with {
-            maxHP = (int)((y.maxHP * x.maxHPFactor) + x.maxHPInc),
+            maxHP = x.maxHP.Modify(y.maxHP),
         };
     public bool empty => this is Modifier {
         curse: false,
-        damageHPInc: 0, missileSpeedInc: 0, lifetimeInc: 0,
-        damageHPFactor: 1, missileSpeedFactor: 1, lifetimeFactor: 1
+        damageHP: { factor:1, inc: 0},
+        missileSpeed: { factor:1, inc: 0},
+        lifetime: { factor:1, inc: 0},
+        maxHP: { factor:1, inc: 0},
     };
     public void ModifyRemoval(ref bool removable) {
         if (curse) {
             removable = false;
         }
     }
+}
+public record IntMod(int inc = 0, double factor = 1) {
+    public IntMod(XElement e, string name) : this(
+        e.TryAttInt($"{name}Inc", 0),
+        e.TryAttDouble($"{name}Factor", 1)
+        ) {
+    }
+    public int Modify(int n) => (int)((n * factor) + inc);
+    public IDice Modify(IDice n) => IDice.Apply(n, factor, inc);
+    public static IntMod operator +(IntMod x, IntMod y) =>
+        x == null ? y :
+        new() {
+            inc = x.inc + y.inc,
+            factor = x.factor * y.factor
+        };
 }

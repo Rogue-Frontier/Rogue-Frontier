@@ -710,8 +710,6 @@ public class PlayerShip : IShip {
         }
         return null;
     }
-    public IEnumerable<ActiveObject> GetWeaponTargets() =>
-        devices.Weapon.SelectMany(w => w.aiming.multiTarget);
     public Weapon GetPrimary() => primary.item;
     public bool GetPrimary(out Weapon result) => (result = GetPrimary()) != null;
     public Weapon GetSecondary() => secondary.item;

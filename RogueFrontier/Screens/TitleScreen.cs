@@ -100,6 +100,7 @@ public class TitleScreen : Console {
             while (File.Exists(file));
 
 
+
             var player = new Player() {
                 Settings = settings,
                 file = file,
@@ -119,11 +120,17 @@ public class TitleScreen : Console {
 
             void CreateWorld() {
 
+                var universeDesc = new UniverseDesc(World.types, XElement.Parse(
+                    File.ReadAllText("RogueFrontierContent/scripts/Universe.xml")
+                    ));
+
                 //Name is seed
                 var seed = player.name.GetHashCode();
-                var u = new Universe(World.types, new(seed));
-                var w = new System(u);
-                w.types.Lookup<SystemType>("system_orion").Generate(w);
+                var u = new Universe(universeDesc, World.types, new Rand(seed));
+
+                var w = u.systems["orion"];
+
+
                 w.UpdatePresent();
 
                 var start = w.entities.all.OfType<Marker>().First(m => m.Name == "Start");
@@ -157,7 +164,7 @@ public class TitleScreen : Console {
                 crawl.next = () => (new FlashTransition(Width, Height, crawl, Transition));
 
                 void Transition() {
-                    GameHost.Instance.Screen = new Pause((Console)GameHost.Instance.Screen, Transition2, 1);
+                    GameHost.Instance.Screen = new Pause((ScreenSurface)GameHost.Instance.Screen, Transition2, 1);
                 }
 
                 void Transition2() {
