@@ -504,10 +504,9 @@ public class LocatorDict<T, U> {
         }
         return space;
     }
-
-    public Dictionary<U, List<V>> TransformSelectList<V>(Func<T, U> locate, Func<U, bool> posFilter, Func<T, V> select) =>
+#nullable enable
+    public Dictionary<U, List<V>> TransformSelectList<V>(Func<T, U> locate, Func<U, bool> posFilter, Func<T, V?> select) =>
         TransformSelectList(all, locate, posFilter, select);
-
     public static Dictionary<U, List<V>> TransformSelectList<V>(IEnumerable<T> all, Func<T, U> locate, Func<U, bool> posFilter, Func<T, V?> select) {
         var space = new Dictionary<U, List<V>>();
         List<V> Initialize(U u) =>
@@ -515,7 +514,7 @@ public class LocatorDict<T, U> {
         foreach (var t in all) {
             var u = locate(t);
             if (posFilter(u)) {
-                var v = select(t);
+                V? v = select(t);
                 if (v != null) {
                     Initialize(u).Add(v);
                 }
@@ -523,7 +522,7 @@ public class LocatorDict<T, U> {
         }
         return space;
     }
-
+#nullable restore
 }
 
 public class SetDict<U, T> {

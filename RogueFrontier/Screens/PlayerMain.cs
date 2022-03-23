@@ -775,7 +775,7 @@ public class Megamap : ScreenSurface {
     public double viewScale = 1;
     double time;
 
-
+    Dictionary<(int, int), List<(Entity entity, double distance)?>> scaledEntities;
 
     XY screenSize, screenCenter;
 
@@ -831,6 +831,15 @@ public class Megamap : ScreenSurface {
 
         alpha = (byte)(255 * Math.Min(1, viewScale - 1));
         time += delta.TotalSeconds;
+
+
+
+        scaledEntities = player.world.entities.TransformSelectList<(Entity entity, double distance)?>(
+                e => (screenCenter + ((e.position - player.position) / viewScale).Rotate(-camera.rotation)).flipY + (0, Height),
+                ((int x, int y) p) => p.x > -1 && p.x < Width && p.y > -1 && p.y < Height,
+                ent => ent is not ISegment && ent.tile != null && player.GetVisibleDistanceLeft(ent) is double dist && dist > 0 ? (ent, dist) : null
+            );
+        
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
@@ -889,11 +898,7 @@ public class Megamap : ScreenSurface {
                 var b = Surface.GetBackground(point.X, point.Y);
                 Surface.SetBackground(point.X, point.Y, b.BlendPremultiply(new Color(255, 255, 255, (int)(128/viewScale))));
             }
-            var scaledEntities = player.world.entities.TransformSelectList<(Entity entity, double distance)?>(
-                e => (screenCenter + ((e.position - player.position) / viewScale).Rotate(-camera.rotation)).flipY + (0, Height),
-                ((int x, int y) p) => p.x > -1 && p.x < Width && p.y > -1 && p.y < Height,
-                ent => ent is not ISegment && ent.tile != null && player.GetVisibleDistanceLeft(ent) is double dist && dist > 0 ? (ent, dist) : null
-            );
+            
             foreach ((var offset, var visible) in scaledEntities) {
                 var (x, y) = offset;
                 (var entity, var distance) = visible[(int)time % visible.Count].Value;
