@@ -1183,7 +1183,12 @@ public class Readout : ScreenSurface {
                 var loc = player.position + centerOffset;
                 EffectParticle.DrawArrow(player.world, loc, offset, c);
             }
-            Heading.Crosshair(target.world, target.position, c);
+            if(target is Station st) {
+                Heading.Box(st, c);
+            } else {
+                Heading.Crosshair(target.world, target.position, c);
+            }
+            
         }
 
         base.Update(delta);

@@ -430,9 +430,10 @@ public class PlayerShip : IShip {
     };
     public Docking dock { get; set; }
 
-    public int targetIndex = -1;
     public bool targetFriends = false;
     public List<ActiveObject> targetList = new();
+
+    public int targetIndex = -1;
 
     public bool firingPrimary = false;
     public bool firingSecondary = false;
@@ -564,35 +565,26 @@ public class PlayerShip : IShip {
     */
     public void NextTargetEnemy() {
         bool canRefresh = true;
-
         if (targetFriends) {
             Refresh();
             targetFriends = false;
-        } else if (targetIndex >= targetList.Count - 1) {
-            Refresh();
         }
 
     CheckTarget:
         targetIndex++;
         if (targetIndex < targetList.Count) {
-            var target = targetList[targetIndex];
-            if (target is ActiveObject a && !this.IsEnemy(a)) {
-                goto CheckTarget;
-            } else if (!target.active) {
-                goto CheckTarget;
-            } else if ((target.position - position).magnitude > 100) {
-                goto CheckTarget;
-            } else {
-                //Found target
+            var t = targetList[targetIndex];
+            if(this.IsEnemy(t) && t.active && (t.position - position).magnitude < 100) {
                 UpdateWeaponTargets();
+            } else {
+                goto CheckTarget;
             }
         } else {
-            targetIndex = -1;
             if (canRefresh) {
                 Refresh();
                 goto CheckTarget;
             } else {
-                //Could not find target
+                targetIndex = -1;
             }
         }
 
@@ -604,6 +596,7 @@ public class PlayerShip : IShip {
                 .OrderBy(e => (e.position - position).magnitude)
                 .Distinct()
                 .ToList();
+            targetIndex = -1;
             canRefresh = false;
         }
     }
@@ -613,31 +606,23 @@ public class PlayerShip : IShip {
         if (!targetFriends) {
             Refresh();
             targetFriends = true;
-        } else if (targetIndex >= targetList.Count - 1) {
-            Refresh();
         }
 
     CheckTarget:
         targetIndex++;
         if (targetIndex < targetList.Count) {
-            var target = targetList[targetIndex];
-            if (this.IsEnemy(target)) {
-                goto CheckTarget;
-            } else if (!target.active) {
-                goto CheckTarget;
-            } else if ((target.position - position).magnitude > 100) {
-                goto CheckTarget;
-            } else {
-                //Found target
+            var t = targetList[targetIndex];
+            if (!this.IsEnemy(t) && t.active && (t.position - position).magnitude < 100) {
                 UpdateWeaponTargets();
+            } else {
+                goto CheckTarget;
             }
         } else {
-            targetIndex = -1;
             if (canRefresh) {
                 Refresh();
                 goto CheckTarget;
             } else {
-                //Could not find target
+                targetIndex = -1;
             }
         }
 
@@ -648,6 +633,7 @@ public class PlayerShip : IShip {
                 .OrderBy(e => (e.position - position).magnitude)
                 .Distinct()
                 .ToList();
+            targetIndex = -1;
             canRefresh = false;
         }
     }
