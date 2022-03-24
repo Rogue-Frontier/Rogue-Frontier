@@ -586,9 +586,8 @@ public class AttackOrder : IShipOrder {
         var offset = (target.position - owner.position);
         var dist = offset.magnitude;
         secondary.ForEach(w => {
-            if (dist < w.projectileDesc.range
-                && (w.aiming.GetFireAngle() != null || (w.aiming is Targeting t && t.target != null))) {
-                Set(w);
+            if (w.aiming.target != null) {
+                w.SetFiring(true);
             }
         });
         void SetFiringPrimary() {

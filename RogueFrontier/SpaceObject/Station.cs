@@ -56,9 +56,8 @@ public class Wreck : MovingObject, IDockable {
 
     public void Update() {
         position += velocity / Program.TICKS_PER_SECOND;
-
-        ticks++;
-        if (ticks % 30 == 0) {
+#if false
+        if (world.tick % 30 == 0) {
             gravity = new XY(0, 0);
             double stress = 0;
             foreach (var star in world.stars) {
@@ -73,6 +72,13 @@ public class Wreck : MovingObject, IDockable {
             }
         }
         velocity += gravity;
+#else
+        if(velocity.magnitude2 > 1) {
+            velocity -= velocity.normal;
+        } else {
+            velocity = new(0,0);
+        }
+#endif
     }
 }
 public class Station : ActiveObject, ITrader, IDockable {

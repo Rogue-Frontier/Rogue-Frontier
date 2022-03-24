@@ -690,7 +690,7 @@ public class PlayerMain : ScreenSurface {
             //Also enable mouse turn with Power Menu
             if (enableMouseTurn && playerShip.ship.rotating == Rotating.None) {
                 var playerOffset = mouseWorldPos - playerShip.position;
-                if (playerOffset.xi != 0 && playerOffset.yi != 0) {
+                if (playerOffset.xi != 0 || playerOffset.yi != 0) {
                     var radius = playerOffset.magnitude;
                     var facing = XY.Polar(playerShip.rotationRad, radius);
                     var aim = playerShip.position + facing;
@@ -831,9 +831,7 @@ public class Megamap : ScreenSurface {
 
         alpha = (byte)(255 * Math.Min(1, viewScale - 1));
         time += delta.TotalSeconds;
-
-
-
+#nullable enable
         scaledEntities = player.world.entities.TransformSelectList<(Entity entity, double distance)?>(
                 e => (screenCenter + ((e.position - player.position) / viewScale).Rotate(-camera.rotation)).flipY + (0, Height),
                 ((int x, int y) p) => p.x > -1 && p.x < Width && p.y > -1 && p.y < Height,

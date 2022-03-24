@@ -684,12 +684,8 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             delay--;
         } else {
 
-            double? direction = null;
-            var hasAimAngle = false;
-            if (aiming?.GetFireAngle() is double aimAngle) {
-                hasAimAngle = true;
-                direction = aimAngle;
-            }
+            double? direction = aiming?.GetFireAngle();
+            var hasAimAngle = direction != null;
 
             firing = direction.HasValue;
 
@@ -720,6 +716,10 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                     goto Cancel;
                 }
             } else if (!firing) {
+                goto Cancel;
+            }
+
+            if(direction == null) {
                 goto Cancel;
             }
             bool clear = true;

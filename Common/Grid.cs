@@ -422,16 +422,16 @@ public class Space<T> {
 public interface ILocator<T, U> {
     U Locate(T t);
 }
-public class LocatorDict<T, U> {
-    public HashSet<T> all=new();
+public class LocatorDict<TValue, TKey> {
+    public HashSet<TValue> all=new();
 
-    public Dictionary<U, HashSet<T>> space { get; private set; } = new();
-    public ILocator<T, U> locator;
-    public HashSet<T> this[U u] => space.TryGetValue(u, out var value) ? value : new HashSet<T>();
-    public LocatorDict(ILocator<T, U> locator) {
+    public Dictionary<TKey, HashSet<TValue>> space { get; private set; } = new();
+    public ILocator<TValue, TKey> locator;
+    public HashSet<TValue> this[TKey u] => space.TryGetValue(u, out var value) ? value : new HashSet<TValue>();
+    public LocatorDict(ILocator<TValue, TKey> locator) {
         this.locator = locator;
     }
-    public LocatorDict(ILocator<T, U> locator, IEnumerable<T> items) {
+    public LocatorDict(ILocator<TValue, TKey> locator, IEnumerable<TValue> items) {
         this.locator = locator;
         foreach (var i in items) Add(i);
     }
@@ -442,42 +442,42 @@ public class LocatorDict<T, U> {
             Initialize(locator.Locate(t)).Add(t);
         }
     }
-    private HashSet<T> Initialize(U u) 
+    private HashSet<TValue> Initialize(TKey u) 
         => space.TryGetValue(u, out var result) ? result : space[u] = new();
     
-    public void Add(T t) {
+    public void Add(TValue t) {
         if (all.Add(t))
             Place(locator.Locate(t), t);
     }
-    private void Place(U u, T t) =>
+    private void Place(TKey u, TValue t) =>
         Initialize(u).Add(t);
-    public void Remove(T t) {
+    public void Remove(TValue t) {
         all.Remove(t);
         UpdateSpace();
     }
-    public bool Contains(T t) => all.Contains(t);
-    public IEnumerable<T> FilterKey(Predicate<U> keySelector) =>
+    public bool Contains(TValue t) => all.Contains(t);
+    public IEnumerable<TValue> FilterKey(Predicate<TKey> keySelector) =>
         space.Where(pair => keySelector(pair.Key)).SelectMany(pair => pair.Value);
-    public IEnumerable<V> FilterKeySelect<V>(Predicate<U> keySelector, Func<T, V> valueSelector, Func<V, bool> valueFilter) =>
+    public IEnumerable<V> FilterKeySelect<V>(Predicate<TKey> keySelector, Func<TValue, V> valueSelector, Func<V, bool> valueFilter) =>
     space.Where(pair => keySelector(pair.Key)).SelectMany(pair => pair.Value.Select(valueSelector).Where(valueFilter));
-    public Dictionary<U, HashSet<T>> Transform(Func<U, U> scale) =>
+    public Dictionary<TKey, HashSet<TValue>> Transform(Func<TKey, TKey> scale) =>
         LocateAll(all, t => scale(locator.Locate(t)));
-    public Dictionary<U, HashSet<T>> Relocate(Func<T, U> locate) =>
+    public Dictionary<TKey, HashSet<TValue>> Relocate(Func<TValue, TKey> locate) =>
         LocateAll(all, locate);
-    public static Dictionary<U, HashSet<T>> LocateAll(IEnumerable<T> all, Func<T, U> locate) {
-        var space = new Dictionary<U, HashSet<T>>();
-        HashSet<T> Initialize(U u) =>
+    public static Dictionary<TKey, HashSet<TValue>> LocateAll(IEnumerable<TValue> all, Func<TValue, TKey> locate) {
+        var space = new Dictionary<TKey, HashSet<TValue>>();
+        HashSet<TValue> Initialize(TKey u) =>
             space.TryGetValue(u, out var result) ? result : space[u] = new();
         foreach (var t in all) {
             Initialize(locate(t)).Add(t);
         }
         return space;
     }
-    public Dictionary<U, HashSet<T>> Transform(Func<T, U> locate, Func<U, bool> posFilter) =>
+    public Dictionary<TKey, HashSet<TValue>> Transform(Func<TValue, TKey> locate, Func<TKey, bool> posFilter) =>
         Transform(all, locate, posFilter);
-    public static Dictionary<U, HashSet<T>> Transform(IEnumerable<T> all, Func<T, U> locate, Func<U, bool> posFilter) {
-        var space = new Dictionary<U, HashSet<T>>();
-        HashSet<T> Initialize(U u) =>
+    public static Dictionary<TKey, HashSet<TValue>> Transform(IEnumerable<TValue> all, Func<TValue, TKey> locate, Func<TKey, bool> posFilter) {
+        var space = new Dictionary<TKey, HashSet<TValue>>();
+        HashSet<TValue> Initialize(TKey u) =>
             space.TryGetValue(u, out var result) ? result : space[u] = new();
         foreach (var t in all) {
             var u = locate(t);
@@ -486,12 +486,11 @@ public class LocatorDict<T, U> {
         }
         return space;
     }
-    public Dictionary<U, HashSet<V>> TransformSelect<V>(Func<T, U> locate, Func<U, bool> posFilter, Func<T, V> select) =>
+    public Dictionary<TKey, HashSet<TResult>> TransformSelect<TResult>(Func<TValue, TKey> locate, Func<TKey, bool> posFilter, Func<TValue, TResult> select) =>
         TransformSelect(all, locate, posFilter, select);
-
-    public static Dictionary<U, HashSet<V>> TransformSelect<V>(IEnumerable<T> all, Func<T, U> locate, Func<U, bool> posFilter, Func<T, V?> select) {
-        var space = new Dictionary<U, HashSet<V>>();
-        HashSet<V> Initialize(U u) =>
+    public static Dictionary<TKey, HashSet<TItem>> TransformSelect<TItem>(IEnumerable<TValue> all, Func<TValue, TKey> locate, Func<TKey, bool> posFilter, Func<TValue, TItem?> select) {
+        var space = new Dictionary<TKey, HashSet<TItem>>();
+        HashSet<TItem> Initialize(TKey u) =>
             space.TryGetValue(u, out var result) ? result : space[u] = new();
         foreach (var t in all) {
             var u = locate(t);
@@ -505,16 +504,16 @@ public class LocatorDict<T, U> {
         return space;
     }
 #nullable enable
-    public Dictionary<U, List<V>> TransformSelectList<V>(Func<T, U> locate, Func<U, bool> posFilter, Func<T, V?> select) =>
+    public Dictionary<TKey, List<TResult>> TransformSelectList<TResult>(Func<TValue, TKey> locate, Func<TKey, bool> posFilter, Func<TValue, TResult?> select) =>
         TransformSelectList(all, locate, posFilter, select);
-    public static Dictionary<U, List<V>> TransformSelectList<V>(IEnumerable<T> all, Func<T, U> locate, Func<U, bool> posFilter, Func<T, V?> select) {
-        var space = new Dictionary<U, List<V>>();
-        List<V> Initialize(U u) =>
+    public static Dictionary<TKey, List<TResult>> TransformSelectList<TResult>(IEnumerable<TValue> all, Func<TValue, TKey> locate, Func<TKey, bool> posFilter, Func<TValue, TResult?> select) {
+        var space = new Dictionary<TKey, List<TResult>>();
+        List<TResult> Initialize(TKey u) =>
             space.TryGetValue(u, out var result) ? result : space[u] = new();
         foreach (var t in all) {
             var u = locate(t);
             if (posFilter(u)) {
-                V? v = select(t);
+                TResult? v = select(t);
                 if (v != null) {
                     Initialize(u).Add(v);
                 }
@@ -526,12 +525,10 @@ public class LocatorDict<T, U> {
 }
 
 public class SetDict<U, T> {
-    HashSet<T> all;
-    public Dictionary<U, HashSet<T>> space { get; private set; }
+    HashSet<T> all = new();
+    public Dictionary<U, HashSet<T>> space { get; private set; } = new();
     public HashSet<T> this[U u] => space.TryGetValue(u, out var value) ? value : new HashSet<T>();
     public SetDict() {
-        all = new HashSet<T>();
-        space = new Dictionary<U, HashSet<T>>();
     }
     public void Clear() {
         all.Clear();
@@ -548,18 +545,12 @@ public class SetDict<U, T> {
         return result;
     }
     public void Add(U u, T t) {
-        Initialize(u);
-        this[u].Add(t);
+        Initialize(u).Add(t);
         all.Add(t);
     }
     public void AddRange(U u, IEnumerable<T> t) {
-        Initialize(u);
-        this[u].UnionWith(t);
+        Initialize(u).UnionWith(t);
         all.UnionWith(t);
     }
-    private void Initialize(U u) {
-        if (!space.ContainsKey(u)) {
-            space[u] = new HashSet<T>();
-        }
-    }
+    private HashSet<T> Initialize(U u) => space.TryGetValue(u, out var t) ? t : space[u] = new();
 }

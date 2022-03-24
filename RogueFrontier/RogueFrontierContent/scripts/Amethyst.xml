@@ -79,16 +79,19 @@
 				inherit=	"ship_amethyst_i"
 				capacity=	"32"
 	    >
+		<PlayerSettings startingClass="false"/>
 	</ShipClass>
 	<ShipClass  codename="ship_amethyst_i_64t"
 				inherit=	"ship_amethyst_i"
 				capacity=	"64"
 	    >
+		<PlayerSettings startingClass="false"/>
 	</ShipClass>
 	<ShipClass  codename="ship_amethyst_i_128t"
 				inherit=	"ship_amethyst_i"
-				capacity=	"64"
+				capacity=	"120"
 		>
+		<PlayerSettings startingClass="false"/>
 	</ShipClass>
 	<ItemType	codename=	"item_amethyst_warranty_card"
 		name=		"Amethyst warranty card"

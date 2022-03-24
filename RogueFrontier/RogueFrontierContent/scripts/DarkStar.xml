@@ -13,7 +13,7 @@
 		>
 		<Weapon	initialCharges=	"1200"
 				powerUse=		"20"
-				fireCooldown=	"20"
+				fireCooldown=	"30"
 				repeat="2"
 				repeatDelay="10"
 			>
@@ -69,17 +69,17 @@
 				detonateRadius="5"
 				>
 				<Fragment
-					count=			"360/10"
+					count=			"18"
 					spreadAngle=	"360"
 					missileSpeed=	"30"
 					damageType=		"1"
 					damageHP=		"3"
 					lifetime=		"10"
 					glyph=			"*"
-					foreground=		"Orange"
+					foreground=		"OrangeRed"
 					/>
 				<Fragment
-					count=			"360/15"
+					count=			"18"
 					spreadAngle=	"360"
 					missileSpeed=	"30"
 					damageType=		"1"
@@ -89,12 +89,12 @@
 					foreground=		"Orange"
 					/>
 				<Fragment
-					count=			"360/20"
+					count=			"18"
 					spreadAngle=	"360"
 					missileSpeed=	"30"
 					damageType=		"1"
 					damageHP=		"3"
-					lifetime=		"60"
+					lifetime=		"30"
 					glyph=			"*"
 					foreground=		"Yellow"
 					/>
@@ -159,7 +159,7 @@
 		value=		"5000"
 		desc=		"This version of knightsteel plate is darkened with a stealthing compound"
 		>
-		<Armor	maxHP=		"120"
+		<Armor	maxHP=		"180"
 			stealth="8"
 			>
 		</Armor>

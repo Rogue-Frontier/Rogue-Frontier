@@ -42,14 +42,17 @@ You are a complete stranger here.";
 @"Walking into the main hall, You see a great monolith of
 sparkling crystals and glowing symbols. A low hum reflectes
 throughout the room. If you stand still, you can hear
-some indistinct whispering from somewhere behind.
+some indistinct whispering from your side.
 
-A stout man stands for reception duty near a wide door.
+A stout guard stands for reception duty next to a gate.
 
-""Ah, hello. A meeting is in session right now.
-You must be new here... May I help you with anything?""";
+""Ah, hello! A gathering is currently in session.
+You must be new here - We are currently listening
+for the Galactic Song, a magical harmony unlike
+any other. We may also receive a message from
+The Orator!"" the guard says.";
             var sc = new Dialog(prev, t, new() {
-                new(@"""I heard a voice...""", Intro3)
+                new(@"""Ummm, yeah, The Orator?""", Intro3)
             }) { background = heroImage };
             return sc;
         }
@@ -58,29 +61,29 @@ You must be new here... May I help you with anything?""";
 @"You decide to step away from the station,
 much to the possible chagrin of some mysterious
 entity and several possibly preferred timelines.".Replace("\r", null);
-            var sc = new Dialog(prev, t, new() {
+            return new (prev, t, new() {
                 new("Undock")
             }) { background = heroImage };
-            return sc;
         }
         Dialog Intro3(Con from) {
             var t =
-@"""I heard a voice.
-It calls itself...The Orator.
-And I thought you might know
-something about it,"" you say.
+@"""Ummm, yeah, The Orator?""
 
-""...Yes, we are quite experienced with The Orator.
-You are the first guest we've had in a while.
-What did you hear?"" The man replied.";
+The guard replies:
+
+""From Pericles to Ston, yes, it is The Orator we hear!
+The Orator tells us truth and truth only, and grants us
+the power to break silences. But interestingly, to hear
+The Orator also requires holding silence. So, to be a
+good Listener means knowing the right time to speak!""";
             var sc = new Dialog(prev, t, new() {
-                new(@"""The Orator told me...""", Intro4)
+                new(@"""Well, The Orator told me...""", Intro4)
             }) { background = heroImage };
             return sc;
         }
         Dialog Intro4(Con from) {
             string t =
-@"""The Orator told me...
+@"""Well, The Orator told me...
 that there is something terribly wrong
 happening to us. All of us. Humanity.
 
@@ -111,22 +114,28 @@ Wait, how are you saying all of this- Your mind blanks out.
         }
         Dialog Intro5(Con from) {
             string t =
-@"The man replies, ""...I understand. That reminds me of
-my own first encounter with The Orator.""
+@"The guard replies:
 
-""In that dream, I could see everything - horrible conflicts
+""...I see. So you're one of those who were called to
+leave Human Space. I remember having one dream that
+was just like that.""
+
+""In that dream, I could see everything - horrible battles,
+ships pulverized by plasma, stations destroyed by missiles,
 in distant star systems I could never even fathom visiting.
 But I was terribly fearful of the Dictator - so fearful that
 I vowed to see the Celestial Center and personally destroy
 everything that I could find of The Dictator myself.""
 
-""But now I know of older followers who discovered that
-leaving for the Celestial Center was not the only answer.""
+""But then I figured that it was just a dream, not a destiny.
+Now I know of older followers who understand that leaving
+for the Celestial Center is not the only answer.""
 
 ""The old survivors built this place to provide a shelter
 for those who seek a different kind of answer - one that
 values peace from within. Our bond with The Orator grants
-us safety from The Dictator. I welcome you to reside here.""
+us safety from The Dictator. As a disciple of the
+Daughters of the Orator, I welcome you to reside here.""
 
 ""Unless, your answer rests..."" he points to a distant star
 shining through the window, ""...far out there.""
@@ -144,7 +153,7 @@ After a long pause, you respond.
 
 ""It does.""
 
-The man thinks for a minute.
+The guard thinks for a minute.
 
 ""I figured. You have your own starship, fit for
 leaving this system and exploring the stars beyond.
@@ -206,17 +215,10 @@ So, tell me, what is it that you intend to do?""";
         Dialog Intro9a(Con from) {
             story.mainInteractions.Remove(this);
             string t =
-@"""So you do. Okay. Alright. I won't try to change
-your mind.""
+@"The man sighs and stares at the ground for a second.
 
-The man sighs and stares at the ground for a second.
-
-""The Matriarch who runs this place said that we
-need to give more training to those who decide to
-seek the Celestial Center. I won't tell you what
-to do, but here are the basics.""
-
-The man takes out a script and reads from it.";
+""So you do. Okay. I won't try to change your mind.
+Just remember...""";
             return new(prev, t, new() {
                 new("Continue", Intro11)
             }) { background = heroImage };
@@ -236,7 +238,6 @@ The man takes out a script and reads from it.";
             string t =
 @"""You sound uncertain there.
 Do you truly intend to do that?""";
-            t = t.Replace("\r", null);
             return new(prev, t, new() {
                 new('I', @"I intend to reach the Galactic Core.", Intro9a),
             }) { background = heroImage };
@@ -257,17 +258,23 @@ opinion on how you ought to conduct yourself, but
 we advise you to do only what feels right to you.
 
 Please, please, do not abuse whatever magical powers
-The Orator has granted you. We, the Daughters of the
+The Orator has given to you. We, the Daughters of the
 Orator, have seen enough of that happen.
 
 Take note of your complete surroundings as well as
 yourself and your starship. Be sure to maintain your
 ship's hull system, energy system, and weapon system
-regularly to ensure your survival.""";
+to ensure your survival.
+
+That is all.""";
             t = t.Replace("\r", null);
             return new(prev, t, new() {
-                new('C', @"Continue", Intro11),
+                new('C', @"Undock", Done),
             }) { background = heroImage };
+        }
+        Dialog Done(Con prev) {
+            story.mainInteractions.Remove(this);
+            return null;
         }
     }
 }
@@ -597,10 +604,10 @@ including but not limited to, product
 purchases and repair services.",
             new() {
                 new("Trade", Trade),
-                new("Install Device", DeviceInstall),
-                new("Remove Device", DeviceRemoval),
-                new("Repair Armor", ArmorRepair),
-                new("Replace Armor", ArmorReplace),
+                new("Service: Device Install", DeviceInstall),
+                new("Service: Device Removal", DeviceRemoval),
+                new("Service: Armor Repair", ArmorRepair),
+                new("Service: Armor Replacement", ArmorReplace),
                 new("Undock")
             });
         }
@@ -643,7 +650,7 @@ of the Beowulf Club, a galaxy-wide organization
 serving civilian gunship pilots.",
             new() {
                 new("Trade", Trade),
-                new("Repair Armor", ArmorServices),
+                new("Service: Repair Armor", ArmorServices),
                 new("Undock")
             });
         }
@@ -669,7 +676,7 @@ an independent enclave of tinkers,
 craftspersons, and adventurers.",
             new() {
                 new("Trade", Trade),
-                new("Repair Armor", ArmorServices),
+                new("Service: Repair Armor", ArmorServices),
                 new("Undock")
             });
         }
@@ -717,7 +724,7 @@ There will be no trial.",
         if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
         return new Dialog(prev,
 @"You are docked at an armor shop station.", new() {
-            new("Armor", Trade),
+            new("Trade: Armor", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
         TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.8 * GetStdPrice(i) : -1));
@@ -727,7 +734,7 @@ There will be no trial.",
         if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
         return new Dialog(prev,
 @"You are docked at an arms dealer station", new() {
-            new("Weapons", Trade),
+            new("Trade: Weapons", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
         TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
@@ -754,10 +761,10 @@ a spinning pinwheel.
 There is a modest degree of artificial gravity here.",
             new() {
                 new("Trade", Trade),
-                new("Install Devices", DeviceInstall),
-                new("Remove Devices", DeviceRemoval),
-                new("Repair Armor", ArmorRepair),
-                new("Replace Armor", ArmorReplace),
+                new("Service: Device Install", DeviceInstall),
+                new("Service: Device Removal", DeviceRemoval),
+                new("Service: Armor Repair", ArmorRepair),
+                new("Service: Armor Replacement", ArmorReplace),
                 new("Undock")
             }) { background = source.type.heroImage };
         }
@@ -904,6 +911,9 @@ originating from this station.",
                 Wreck wreck = null;
                 Container<Station.Destroyed> hook = new((s, d, w) => wreck = w);
                 source.onDestroyed.set.Add(hook);
+
+                if(source.behavior is IContainer<Station.Destroyed> d)
+                    source.onDestroyed -= d;
                 source.Destroy(playerShip);
                 source.onDestroyed.set.Remove(hook);
 

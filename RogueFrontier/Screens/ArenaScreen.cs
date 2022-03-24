@@ -16,19 +16,10 @@ namespace RogueFrontier;
 public interface IConsoleHook {
 
 }
-class ArenaScreenReset : IContainer<Destroyed>, IConsoleHook {
-    public ArenaScreenReset(ArenaScreen arena) {
-        this.arena = arena;
-    }
-    //[JsonIgnore]
-    private ArenaScreen arena;
-    [JsonIgnore]
-    public Destroyed Value => arena is ArenaScreen a ?
-        (p, s, w) => a.Reset() : null;
-    
-    public override bool Equals(object obj) => obj is ArenaScreenReset r && r.arena == arena;
-}
-class ArenaScreen : Console {
+class ArenaScreen : Console, IContainer<PlayerShip.Destroyed> {
+    PlayerShip.Destroyed IContainer<PlayerShip.Destroyed>.Value => (s, d, w) => Reset();
+
+
     TitleScreen prev;
     Settings settings;
     System World;
@@ -468,7 +459,7 @@ class ArenaScreen : Console {
 
                 playerMain = new PlayerMain(Width, Height, null, playerShip) { IsFocused = true };
                 playerMain.camera.position = camera;
-                playerShip.onDestroyed += new ArenaScreenReset(this);
+                playerShip.onDestroyed += this;
                 World.AddEntity(playerShip);
                 World.AddEffect(new Heading(playerShip));
 
