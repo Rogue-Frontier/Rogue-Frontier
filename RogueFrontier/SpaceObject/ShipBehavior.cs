@@ -613,12 +613,9 @@ public class AttackOrder : IShipOrder {
                     && (owner.velocity - target.velocity).magnitude2 < 5 * 5) {
                     owner.SetThrusting(true);
                 }
-
                 if (aimWaitingTicks%150 > 90) {
                     owner.SetThrusting(true);
                 }
-
-
                 //Fire if we are close enough
                 if (freeAim
                     || Math.Abs(aim.GetAngleDiff(owner)) * dist < 6) {
@@ -636,13 +633,11 @@ public class AttackOrder : IShipOrder {
                 } else {
                     aimWaitingTicks++;
                 }
-
             }
         }
     }
     public bool Active => target?.active == true;
 }
-
 public class GateOrder : IShipOrder {
     public Stargate gate;
     public GateOrder(Stargate gate) {
@@ -738,8 +733,6 @@ public class PatrolCircuitOrder : IShipOrder {
             attackOrder.Update(owner);
             return;
         }
-
-
         //Look for an attack target periodically
         if (tick % 15 == 0) {
             List<ActiveObject> except = new List<ActiveObject> { owner, patrolTarget };
@@ -759,9 +752,6 @@ public class PatrolCircuitOrder : IShipOrder {
                 return;
             }
         }
-
-
-
         //Update our awareness of friendly stations periodically
         if (tick % 300 == 0) {
             var friendlyStations = owner.world.entities.all.OfType<Station>()
@@ -775,33 +765,24 @@ public class PatrolCircuitOrder : IShipOrder {
                     nearbyFriends.Add(s);
                 }
             }
-
         }
-
         var offsetFromTarget = (owner.position - patrolTarget.position);
         var dist = offsetFromTarget.magnitude;
-
         var patrolRadius = this.patrolRadius;
-
         //Update our nearest friend periodically
         if (tick % 15 == 0) {
             nearestFriend = nearbyFriends?.OrderBy(s => (s.position - owner.position).magnitude2).FirstOrDefault();
         }
-
         if (nearestFriend != null) {
             patrolRadius += (nearestFriend.position - patrolTarget.position).magnitude;
         }
-
         var deltaDist = patrolRadius - dist;
-
         var nextDist = Math.Abs(deltaDist) > 25 ?
             dist + Math.Sign(deltaDist) * 25 :
             patrolRadius;
-
         var nextOffset = offsetFromTarget
             .Rotate(2 * Math.PI / 16)
             .WithMagnitude(nextDist);
-
         var deltaOffset = nextOffset - offsetFromTarget;
         face.targetRads = deltaOffset.angleRad;
         face.Update(owner);
@@ -809,7 +790,6 @@ public class PatrolCircuitOrder : IShipOrder {
     }
     public bool Active => patrolTarget.active;
 }
-
 public class SnipeOrder : IShipOrder {
     public ActiveObject target;
     public Weapon weapon;
@@ -828,13 +808,12 @@ public class SnipeOrder : IShipOrder {
                 return;
             }
             aim.missileSpeed = weapon.projectileDesc.missileSpeed;
-        } else if (!weapon.ReadyToFire && weapons.Count > 1) {
-            weapon = weapons.FirstOrDefault(w => w.ReadyToFire) ?? weapon;
+        } else if (!weapon.ReadyToFire && weapons.Count > 1 && weapons.FirstOrDefault(w => w.ReadyToFire) is Weapon next) {
+            weapon = next;
             aim.missileSpeed = weapon.projectileDesc.missileSpeed;
         }
         //Aim at the target
         aim.Update(owner);
-
         //Fire if we are close enough
         if (weapon.projectileDesc.omnidirectional || Math.Abs(aim.GetAngleDiff(owner)) < 30) {
             weapon.SetFiring(true, target);
@@ -850,7 +829,6 @@ public class ApproachOrbitOrder : IShipOrder {
         this.target = target;
         this.face = new(0);
     }
-
     public void Update(AIShip owner) {
         //Remove dock
         owner.dock = null;
@@ -866,14 +844,11 @@ public class ApproachOrbitOrder : IShipOrder {
             owner.SetThrusting(true);
         } else {
             //Approach
-
             //Face the target
             face.targetRads = offset.angleRad;
             face.Update(owner);
-
             //If we're facing close enough
             if (Math.Abs(Helper.AngleDiffDeg(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10) {
-
                 //Go
                 owner.SetThrusting(true);
             }
@@ -881,7 +856,6 @@ public class ApproachOrbitOrder : IShipOrder {
     }
     public bool Active => true;
 }
-
 public class AimOnceOrder : IShipOrder {
     public AimOrder order;
     public AimOnceOrder(StructureObject target, double missileSpeed) {
@@ -900,14 +874,13 @@ public class AimOrder : IShipOrder {
     public double missileSpeed;
     public double GetTargetRads(AIShip owner) => Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
     public double GetAngleDiff(AIShip owner) => Helper.AngleDiffDeg(owner.rotationDeg, GetTargetRads(owner) * 180 / Math.PI);
-
     public AimOrder(StructureObject target, double missileSpeed) {
         this.target = target;
         this.missileSpeed = missileSpeed;
     }
     public bool Active => true;
     public void Update(AIShip owner) {
-        var targetRads = this.GetTargetRads(owner);
+        var targetRads = GetTargetRads(owner);
         var facingRads = owner.stoppingRotation * Math.PI / 180;
 
         var ccw = (XY.Polar(facingRads + 1 * Math.PI / 180) - XY.Polar(targetRads)).magnitude2;

@@ -16,7 +16,6 @@ using static RogueFrontier.Station;
 using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
-
 namespace RogueFrontier;
 public class NotifyStationDestroyed : IContainer<Station.Destroyed> {
     public PlayerShip playerShip;
@@ -31,17 +30,6 @@ public class NotifyStationDestroyed : IContainer<Station.Destroyed> {
         this.source = source;
     }
 }
-public class EndGamePlayerDestroyed : IContainer<PlayerShip.Destroyed> {
-    [JsonIgnore]
-    private PlayerMain main;
-    [JsonIgnore]
-    public PlayerShip.Destroyed Value => main is PlayerMain pm ?
-        (p, d, w) => pm.OnPlayerDestroyed($"Destroyed by {d?.name ?? "unknown forces"}", w)
-        : null;
-    public EndGamePlayerDestroyed(PlayerMain main) {
-        this.main = main;
-    }
-}
 public class Camera {
     public XY position;
     //For now we don't allow shearing
@@ -49,7 +37,6 @@ public class Camera {
     public XY up => right.Rotate(Math.PI / 2);
     public XY right;
     public Camera(XY position) {
-
         this.position = position;
         right = new XY(1, 0);
     }
@@ -61,8 +48,9 @@ public class Camera {
         right = right.Rotate(angle);
     }
 }
-public class PlayerMain : ScreenSurface {
-
+public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
+    PlayerShip.Destroyed IContainer<PlayerShip.Destroyed>.Value =>
+        (p, d, w) => OnPlayerDestroyed($"Destroyed by {d?.name ?? "unknown forces"}", w);
     public int Width => Surface.Width;
     public int Height => Surface.Height;
     public System world => playerShip.world;
@@ -87,6 +75,7 @@ public class PlayerMain : ScreenSurface {
     public CommunicationsMenu communicationsMenu;
     public PowerMenu powerMenu;
     public PauseMenu pauseMenu;
+    public GalaxyMap galaxyMap;
     private TargetingMarker crosshair;
 
     private double targetCameraRotation;
@@ -121,6 +110,8 @@ public class PlayerMain : ScreenSurface {
         communicationsMenu = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
         powerMenu = new(31, 16, this) { IsVisible = false, Position = new(3, 32) };
         pauseMenu = new(this) { IsVisible = false };
+        galaxyMap = new(this) { IsVisible = false };
+
         crosshair = new(playerShip, "Mouse Cursor", new XY());
 
         systems = new(new(playerShip.world.universe.systems.Values));
@@ -143,9 +134,11 @@ public class PlayerMain : ScreenSurface {
         //Force exit power menu
         powerMenu.IsVisible = false;
         communicationsMenu.IsVisible = false;
+        uiMain.IsVisible = false;
+
+
         //Pretty sure this can't happen but make sure
         pauseMenu.IsVisible = false;
-        uiMain.IsVisible = false;
     }
 
     public void Jump() {
@@ -359,6 +352,12 @@ public class PlayerMain : ScreenSurface {
             pauseMenu.Update(delta);
             return;
         }
+        if (galaxyMap.IsVisible) {
+            galaxyMap.Update(delta);
+            return;
+        }
+
+
         //If the player is in mortality, then slow down time
         bool passTime = true;
         if (playerShip.active && playerShip.mortalTime > 0) {
@@ -495,6 +494,8 @@ public class PlayerMain : ScreenSurface {
             viewport.Render(drawTime);
             vignette.Render(drawTime);
             pauseMenu.Render(drawTime);
+        } else if (galaxyMap.IsVisible) {
+            galaxyMap.Render(drawTime);
         } else if (sceneContainer.Children.Count > 0) {
             back.Render(drawTime);
             viewport.Render(drawTime);
@@ -584,9 +585,17 @@ public class PlayerMain : ScreenSurface {
         */
         prevKeyboard = info;
 
+#if false
+        if (info.IsKeyPressed(N)) {
+            galaxyMap.IsVisible = !galaxyMap.IsVisible;
+        }
+#endif
+
         //Intercept the alphanumeric/Escape keys if the power menu is active
         if (pauseMenu.IsVisible) {
             pauseMenu.ProcessKeyboard(info);
+        } else if (galaxyMap.IsVisible) {
+            galaxyMap.ProcessKeyboard(info);
         } else if (powerMenu.IsVisible) {
             playerControls.ProcessWithMenu(info);
             powerMenu.ProcessKeyboard(info);
@@ -644,6 +653,8 @@ public class PlayerMain : ScreenSurface {
     public override bool ProcessMouse(MouseScreenObjectState state) {
         if (pauseMenu.IsVisible) {
             pauseMenu.ProcessMouseTree(state.Mouse);
+        } else if (galaxyMap.IsVisible) {
+            galaxyMap.ProcessMouseTree(state.Mouse);
         } else if (sceneContainer.Children.Any()) {
             sceneContainer.ProcessMouseTree(state.Mouse);
         } else if (powerMenu.IsVisible
@@ -802,7 +813,7 @@ public class Megamap : ScreenSurface {
                     targetViewScale = 1;
                 }
             }
-            if (p(Keys.D0)) {
+            if (p(D0)) {
                 targetViewScale = 1;
             }
         } else {
@@ -818,7 +829,13 @@ public class Megamap : ScreenSurface {
                 targetViewScale = viewScale;
             }
         }
-        
+        if (p(M)) {
+            if(targetViewScale >= 4) {
+                targetViewScale = 1.0;
+            } else {
+                targetViewScale = Math.Floor(targetViewScale) + 1;
+            }
+        }
         return base.ProcessKeyboard(info);
     }
     public override void Update(TimeSpan delta) {
@@ -828,7 +845,6 @@ public class Megamap : ScreenSurface {
         } else {
             viewScale += d / 10;
         }
-
         alpha = (byte)(255 * Math.Min(1, viewScale - 1));
         time += delta.TotalSeconds;
 #nullable enable
@@ -837,7 +853,6 @@ public class Megamap : ScreenSurface {
                 ((int x, int y) p) => p.x > -1 && p.x < Width && p.y > -1 && p.y < Height,
                 ent => ent is not ISegment && ent.tile != null && player.GetVisibleDistanceLeft(ent) is double dist && dist > 0 ? (ent, dist) : null
             );
-        
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
@@ -1582,7 +1597,7 @@ public class Readout : ScreenSurface {
                         + bar
                         + new ColoredString("]", Color.White, b)
                         + " "
-                        + new ColoredString($"[{Math.Abs(reactor.energyDelta),3}/{reactor.maxOutput,3}] {reactor.source.type.name}", Color.White, b)
+                        + new ColoredString($"[{Math.Abs(reactor.energyDelta),3}/{reactor.maxOutput,3}] {reactor.source.type.name}", reactor.energy > 0 ? Color.White : Color.Gray, b)
                         );
                     y++;
                 }

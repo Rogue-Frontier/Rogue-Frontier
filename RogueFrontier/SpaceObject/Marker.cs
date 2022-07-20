@@ -11,7 +11,9 @@ class Marker : Entity {
     public bool active { get; set; }
     public ColoredGlyph tile => null;
     public XY Velocity { get; set; }
-    public Marker(string Name, XY Position) {
+    public System world;
+    public Marker(System world, string Name, XY Position) {
+        this.world = world;
         this.Name = Name;
         this.position = Position;
         this.Velocity = new XY();

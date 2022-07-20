@@ -118,42 +118,42 @@ public static class Main {
     }
     public static Color NextGray(this Random r, int range) {
         var value = r.Next(range);
-        return new Color(value, value, value);
+        return new (value, value, value);
     }
     public static Color Noise(this Color c, Random r, double range) {
         double increaseFactor = r.NextDouble() * range;
         double multiplier = 1 + increaseFactor;
-        return new Color((int)Math.Min(255, c.R * multiplier), (int)Math.Min(255, c.G * multiplier), (int)Math.Min(255, c.B * multiplier));
+        return new ((int)Math.Min(255, c.R * multiplier), (int)Math.Min(255, c.G * multiplier), (int)Math.Min(255, c.B * multiplier));
     }
     public static Color NextColor(this Random r, int range) => 
-        new Color(r.Next(range), r.Next(range), r.Next(range));
+        new (r.Next(range), r.Next(range), r.Next(range));
     public static Color Round(this Color c, int factor) => 
-        new Color(factor * (c.R / factor), factor * (c.G / factor), factor * (c.B / factor));
+        new (factor * (c.R / factor), factor * (c.G / factor), factor * (c.B / factor));
     //public static Color Add(this Color c, int value) => c.Add(new Color(value, value, value));
     public static Color Add(this Color c1, int r = 0, int g = 0, int b = 0) => 
-        new Color(Math.Min(255, c1.R + r), Math.Min(255, c1.G + g), Math.Min(255, c1.B + b));
+        new (Math.Min(255, c1.R + r), Math.Min(255, c1.G + g), Math.Min(255, c1.B + b));
     public static Color Add(this Color c1, Color c2) => 
-        new Color(Math.Min(255, c1.R + c2.R), Math.Min(255, c1.G + c2.G), Math.Min(255, c1.B + c2.B));
+        new (Math.Min(255, c1.R + c2.R), Math.Min(255, c1.G + c2.G), Math.Min(255, c1.B + c2.B));
     public static Color Subtract(this Color c, int value) => 
         c.Subtract(new Color(value, value, value));
     public static Color Subtract(this Color c1, Color c2) =>
-        new Color(Math.Max(0, c1.R - c2.R), Math.Max(0, c1.G - c2.G), Math.Max(0, c1.B - c2.B));
+        new (Math.Max(0, c1.R - c2.R), Math.Max(0, c1.G - c2.G), Math.Max(0, c1.B - c2.B));
     public static Color Divide(this Color c, int scale) =>
-        new Color(c.R / scale, c.G / scale, c.B / scale);
+        new (c.R / scale, c.G / scale, c.B / scale);
     public static Color Multiply(this Color c, double r = 1, double g = 1, double b = 1, double a = 1) =>
-        new Color((int)(c.R * r), (int)(c.G * g), (int)(c.B * b), (int)(c.A * a));
+        new ((int)(c.R * r), (int)(c.G * g), (int)(c.B * b), (int)(c.A * a));
     public static Color Divide(this Color c, double scale) =>
-        new Color((int)(c.R / scale), (int)(c.G / scale), (int)(c.B / scale));
+        new ((int)(c.R / scale), (int)(c.G / scale), (int)(c.B / scale));
     public static Color Clamp(this Color c, int max) =>
-        new Color(Math.Min(c.R, max), Math.Min(c.G, max), Math.Min(c.B, max));
+        new (Math.Min(c.R, max), Math.Min(c.G, max), Math.Min(c.B, max));
     public static Color Gray(int value) => 
-        new Color(value, value, value, 255);
+        new (value, value, value, 255);
     public static Color Gray(this Color c) => 
         Color.FromHSL(0, 0, c.GetBrightness());
     public static ColoredGlyph Gray(this ColoredGlyph cg) =>
-        new ColoredGlyph(cg.Foreground.Gray(), cg.Background.Gray(), cg.Glyph);
+        new (cg.Foreground.Gray(), cg.Background.Gray(), cg.Glyph);
     public static Color WithValues(this Color c, int? red = null, int? green = null, int? blue = null, int? alpha = null) =>
-        new Color(red ?? c.R, green ?? c.G, blue ?? c.B, alpha ?? c.A);
+        new(red ?? c.R, green ?? c.G, blue ?? c.B, alpha ?? c.A);
     
     public static Color SetBrightness(this Color c, float brightness) =>
         Color.FromHSL(c.GetHue(), c.GetSaturation(), brightness);
@@ -209,7 +209,7 @@ public static class Main {
     public static string FlipLines(this string s) {
         var lines = new List<string>(s.Split('\n'));
         lines.Reverse();
-        StringBuilder result = new StringBuilder(s.Length - s.LineCount());
+        var result = new StringBuilder(s.Length - s.LineCount());
         for (int i = 0; i < lines.Count - 1; i++) {
             result.AppendLine(lines[i]);
         }
@@ -223,11 +223,11 @@ public static class Main {
         }
     }
     public static List<XYZ> GetWithin(int radius) {
-        List<XYZ> result = new List<XYZ>();
+        var result = new List<XYZ>();
         for (int i = 0; i < radius; i++) {
             result.AddRange(GetSurrounding(i));
         }
-        result = new List<XYZ>(result.Distinct(new XYZGridComparer()));
+        result = new(result.Distinct(new XYZGridComparer()));
         return result;
     }
     //This function calculates all the points on a hollow cube of given radius around an origin of (0, 0, 0)
@@ -334,7 +334,7 @@ public static class Main {
             if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
                 return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
             } else try {
-                    FieldInfo f = typeof(Color).GetField(s);
+                    var f = typeof(Color).GetField(s);
                     return (Color)(f?.GetValue(null) ?? throw e.Invalid<Color>(attribute));
                 } catch {
                     throw e.Invalid<Color>(attribute);
@@ -369,7 +369,7 @@ public static class Main {
                 return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
             } else try {
                 return (Color)typeof(Color).GetField(s).GetValue(null);
-            } catch (Exception ex) {
+            } catch {
                 throw e.Invalid<Color>(key);
             }
         } else {
@@ -382,17 +382,17 @@ public static class Main {
             throw e.Missing<int>(key);
 
     public static IDice ExpectAttDice(this XElement e, string key) =>
-    e.Attribute(key) is XAttribute a ?
-        ExpectAttributeDice(a) :
-        throw new Exception($"<{e.Name}> requires dice range attribute: {key} ### {e} ### {e.Parent}");
+        e.Attribute(key) is XAttribute a ?
+            ExpectAttributeDice(a) :
+            throw new Exception($"<{e.Name}> requires dice range attribute: {key} ### {e} ### {e.Parent}");
     public static int ExpectAttributeInt(this XAttribute a) =>
         int.TryParse(a.Value, out int result) ? result :
-        a.Value.Any() ? Convert.ToInt32(new Expression(a.Value).Evaluate()) :
-        throw new Exception($"int value / equation expected: {a.Name} = \"{a.Value}\"");
+            a.Value.Any() ? Convert.ToInt32(new Expression(a.Value).Evaluate()) :
+            throw new Exception($"int value / equation expected: {a.Name} = \"{a.Value}\"");
 
     public static IDice ExpectAttributeDice(this XAttribute a) =>
         IDice.Parse(a.Value) ?? 
-        throw new Exception($"int value / equation expected: {a.Name} = \"{a.Value}\"");
+            throw new Exception($"int value / equation expected: {a.Name} = \"{a.Value}\"");
 
     public static double ExpectAttDouble(this XElement e, string key) =>
         e.TryAtt(key, out var value) ? 
@@ -421,10 +421,10 @@ public static class Main {
         return b;
     }
     public static List<string> SplitLine(this string s, int width) {
-        List<string> result = new List<string>();
-        int column = 0;
-        StringBuilder line = new StringBuilder();
-        StringBuilder word = new StringBuilder();
+        var result = new List<string>();
+        var column = 0;
+        var line = new StringBuilder();
+        var word = new StringBuilder();
 
         void AddWord() {
             line.Append(word.ToString());
@@ -466,7 +466,7 @@ public static class Main {
 
     public static List<ColoredString> SplitLine(this ColoredString s, int width) {
         var result = new List<ColoredString>();
-        int column = 0;
+        var column = 0;
         var line = new List<ColoredGlyph>();
         var word = new List<ColoredGlyph>();
 
@@ -509,9 +509,9 @@ public static class Main {
         return result;
     }
     public static void InheritAttributes(this XElement sub, XElement source) {
-        foreach (var attribute in source.Attributes()) {
-            if (sub.Attribute(attribute.Name) == null) {
-                sub.SetAttributeValue(attribute.Name, attribute.Value);
+        foreach (var att in source.Attributes()) {
+            if (sub.Attribute(att.Name) == null) {
+                sub.SetAttributeValue(att.Name, att.Value);
             }
         }
     }
@@ -556,7 +556,7 @@ public static class Main {
     }
 
     public static List<string> Wrap(this string s, int width) {
-        List<string> lines = new List<string> { "" };
+        var lines = new List<string> { "" };
         foreach (var word in Regex.Split(s, $"({Regex.Escape(" ")})")) {
             if (lines.Last().Length + word.Length < width) {
                 lines[lines.Count - 1] += word;
@@ -571,24 +571,18 @@ public static class Main {
         }
         return lines;
     }
-    public static void PaintCentered(this Window w, string s, int x, int y) {
+    public static void PaintCentered(this Window w, string s, int x, int y)=>
         w.Print(x - s.Length / 2, y, s);
-    }
-    public static int ParseInt(this string s, int fallback = 0) {
-        return int.TryParse(s, out int result) ? result : fallback;
-    }
-    public static int ParseIntMin(this string s, int min, int fallback = 0) {
-        return Math.Max(s.ParseInt(fallback), min);
-    }
-    public static int ParseIntMax(this string s, int max, int fallback = 0) {
-        return Math.Min(s.ParseInt(fallback), max);
-    }
-    public static int ParseIntBounded(this string s, int min, int max, int fallback = 0) {
-        return Range(min, s.ParseInt(fallback), max);
-    }
-    public static int Range(int min, int max, int n) {
-        return Math.Min(max, Math.Max(min, n));
-    }
+    public static int ParseInt(this string s, int fallback = 0) =>
+        int.TryParse(s, out int result) ? result : fallback;
+    public static int ParseIntMin(this string s, int min, int fallback = 0) =>
+        Math.Max(s.ParseInt(fallback), min);
+    public static int ParseIntMax(this string s, int max, int fallback = 0) =>
+        Math.Min(s.ParseInt(fallback), max);
+    public static int ParseIntBounded(this string s, int min, int max, int fallback = 0) =>
+        Range(min, s.ParseInt(fallback), max);
+    public static int Range(int min, int max, int n) =>
+        Math.Min(max, Math.Max(min, n));
     public static bool ParseBool(this string s, bool fallback = false) {
         return s == "true" ?
             true : (s == "false" ?
@@ -685,12 +679,11 @@ public static class Main {
 
                     if(source != null) {
                         p.SetValue(obj, p.GetValue(source));
-                        continue;
                     } else if (a is Opt) {
-                        continue;
                     } else {
                         throw new Exception($"<{e.Name}> requires {p.FieldType.Name} attribute: {key} ### {e.Parent.Name}");
                     }
+                    continue;
                 }
 
                 object parsed = new Dictionary<Type, Func<object>>() {
@@ -730,36 +723,29 @@ public static class Main {
         }
     }
 
-    public static TValue TryLookup<TKey, TValue>(this Dictionary<TKey, TValue> d, TKey key, TValue fallback = default) {
-        if (d.ContainsKey(key)) {
-            return d[key];
-        } else {
-            return fallback;
-        }
-    }
-
+    public static TValue TryLookup<TKey, TValue>(this Dictionary<TKey, TValue> d, TKey key, TValue fallback = default) =>
+        d.ContainsKey(key) ? d[key] : fallback;
     public static int CalcAccuracy(int difficulty, int skill, Random karma) {
         if (skill > difficulty) {
             return 100;
         } else {
-            int miss = difficulty - skill;
+            var miss = difficulty - skill;
             return 100 - karma.Next(miss);
         }
     }
     //Chance that the shot is blocked by an obstacle
-    public static bool CalcBlocked(int coverage, int accuracy, Random karma) {
-        return karma.Next(coverage) > karma.Next(accuracy);
-    }
-    public static ColoredGlyph Colored(char c, Color? f = null, Color? b = null) {
-        return new ColoredGlyph(f??Color.White, b??Color.Black, c);
-    }
+    public static bool CalcBlocked(int coverage, int accuracy, Random karma) =>
+        karma.Next(coverage) > karma.Next(accuracy);
+    
+    public static ColoredGlyph Colored(char c, Color? f = null, Color? b = null) =>
+        new(f??Color.White, b??Color.Black, c);
     public static ColoredString WithBackground(this ColoredString c, Color? Background = null) {
         var result = c.SubString(0, c.Count());
         result.SetBackground(Background ?? Color.Black);
         return result;
     }
     public static ColoredString Adjust(this ColoredString c, Color foregroundInc) {
-        ColoredString result = c.SubString(0, c.Count());
+        var result = c.SubString(0, c.Count());
         foreach (var g in result) {
             g.Foreground = Sum(g.Foreground, foregroundInc);
         }
@@ -768,15 +754,15 @@ public static class Main {
     public static ColoredString WithOpacity(this ColoredString s, byte alpha) {
         s = s.Clone();
         foreach (var c in s) {
-            c.Foreground = new Color(c.Foreground.R, c.Foreground.G, c.Foreground.B, alpha);
+            c.Foreground = new (c.Foreground.R, c.Foreground.G, c.Foreground.B, alpha);
         }
         return s;
     }
     public static ColoredString Brighten(this ColoredString s, int intensity) {
-        return s.Adjust(new Color(intensity, intensity, intensity, 0));
+        return s.Adjust(new(intensity, intensity, intensity, 0));
     }
     public static ColoredGlyphEffect ToEffect(this ColoredGlyph cg) {
-        return new ColoredGlyphEffect() {
+        return new() {
             Foreground = cg.Foreground,
             Background = cg.Background,
             Glyph = cg.Glyph
@@ -787,15 +773,15 @@ public static class Main {
     public static ColoredString Colored(this string s, Color? f = null, Color? b = null) =>
         new(s, f ?? Color.White, b ?? Color.Black);
     public static ColoredString ToColoredString(this ColoredGlyph c) =>
-        new ColoredString(c.ToEffect());
+        new(c.ToEffect());
     
     public static ColoredGlyph Brighten(this ColoredGlyph c, int intensity) {
-        ColoredGlyph result = c.Clone();
+        var result = c.Clone();
         result.Foreground = Sum(result.Foreground, new Color(intensity, intensity, intensity, 0));
         return result;
     }
     public static ColoredString Adjust(this ColoredString c, Color foregroundInc, Color backgroundInc) {
-        ColoredString result = c.SubString(0, c.Count());
+        var result = c.SubString(0, c.Count());
         foreach (var g in result) {
             g.Foreground = Sum(g.Foreground, foregroundInc);
             g.Background = Sum(g.Background, backgroundInc);
@@ -803,24 +789,24 @@ public static class Main {
         return result;
     }
     public static ColoredGlyph Adjust(this ColoredGlyph c, Color foregroundInc) {
-        ColoredGlyph result = c.Clone();
+        var result = c.Clone();
         result.Foreground = Sum(result.Foreground, foregroundInc);
         return result;
     }
     public static Color Sum(Color c, Color c2) =>
-        new Color(Range(0, 255, c.R + c2.R), Range(0, 255, c.G + c2.G), Range(0, 255, c.B + c2.B), Range(0, 255, c.A + c2.A));
+        new(Range(0, 255, c.R + c2.R), Range(0, 255, c.G + c2.G), Range(0, 255, c.B + c2.B), Range(0, 255, c.A + c2.A));
     
     //Essentially the same as blending this color over Color.Black
-    public static Color Premultiply(this Color c) => new Color((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, c.A);
+    public static Color Premultiply(this Color c) => new((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, c.A);
     //Premultiply and also set the alpha
-    public static Color PremultiplySet(this Color c, int alpha) => new Color((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, alpha);
+    public static Color PremultiplySet(this Color c, int alpha) => new((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, alpha);
 
     //Premultiplies this color and the blends another color over it
     public static Color BlendPremultiply(this Color background, Color foreground, byte setAlpha = 0xff) {
 
-        byte alpha = (byte)(foreground.A);
-        byte inv_alpha = (byte)(255 - foreground.A);
-        return new Color(
+        var alpha = (byte)(foreground.A);
+        var inv_alpha = (byte)(255 - foreground.A);
+        return new(
             r: (byte)((alpha * foreground.R + inv_alpha * background.R * background.A / 255) >> 8),
             g: (byte)((alpha * foreground.G + inv_alpha * background.G * background.A / 255) >> 8),
             b: (byte)((alpha * foreground.B + inv_alpha * background.B * background.A / 255) >> 8),
@@ -832,9 +818,9 @@ public static class Main {
     //Blend another color over this color
     public static Color Blend(this Color background, Color foreground, byte setAlpha = 0xff) {
         //Background should be premultiplied because we ignore its alpha value
-        byte alpha = (byte)(foreground.A);
-        byte inv_alpha = (byte)(255 - foreground.A);
-        return new Color(
+        var alpha = (byte)(foreground.A);
+        var inv_alpha = (byte)(255 - foreground.A);
+        return new(
             r: (byte)((alpha * foreground.R + inv_alpha * background.R) >> 8),
             g: (byte)((alpha * foreground.G + inv_alpha * background.G) >> 8),
             b: (byte)((alpha * foreground.B + inv_alpha * background.B) >> 8),
@@ -842,27 +828,27 @@ public static class Main {
             );
     }
     public static ColoredGlyph Blend(this ColoredGlyph back, ColoredGlyph front) {
-        List<CellDecorator> d = new List<CellDecorator>();
-        Color f = back.Foreground;
-        Color b = back.Background;
+        var d = new List<CellDecorator>();
+        var f = back.Foreground;
+        var b = back.Background;
         int g = back.Glyph;
 
         if (front.Glyph != 0 && front.Glyph != ' ' && front.Foreground.A != 0) {
-            d.Add(new CellDecorator(f, g, Mirror.None));
+            d.Add(new(f, g, Mirror.None));
 
             f = front.Foreground;
             g = front.Glyph;
         }
         b = b.Premultiply().Blend(front.Background);
 
-        return new ColoredGlyph(f, b, g) { Decorators = d.ToArray() };
+        return new(f, b, g) { Decorators = d.ToArray() };
     }
 
     public static ColoredGlyph PremultiplySet(this ColoredGlyph cg, int alpha) {
         if (alpha == 255) {
             return cg;
         }
-        return new ColoredGlyph(cg.Foreground.PremultiplySet(alpha), cg.Background.PremultiplySet(alpha), cg.Glyph);
+        return new(cg.Foreground.PremultiplySet(alpha), cg.Background.PremultiplySet(alpha), cg.Glyph);
     }
 
     //https://stackoverflow.com/a/28037434

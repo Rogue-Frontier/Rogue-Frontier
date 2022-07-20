@@ -67,6 +67,7 @@
 			<Item count="32"	codename="item_gemsteel_plate_ii"/>
 			<Item count="8"	codename="item_shimmer_shield_i"/>
 		</Cargo>
+		
 		<Weapons>
 			<Weapon codename="item_amethyst_laser_ii" posX="2" posY="2"		angle="90" leftRange="90" rightRange="135"/>
 			<Weapon codename="item_amethyst_laser_ii" posX="2" posY="-2"	angle="-90" leftRange="135" rightRange="90"/>
@@ -93,13 +94,12 @@
 		>
 		<PlayerSettings startingClass="false"/>
 	</ShipClass>
-	<ItemType	codename=	"item_amethyst_warranty_card"
-		name=		"Amethyst warranty card"
+	<ItemType	codename=	"item_amethyst_member_card"
+		name=		"Amethyst membership card"
 		level=		"1"
 		mass=		"2000"
 		value=		"200"
-
-		desc=		"This card provides proof of purchase for your Amethyst-class yacht. Present at any licensed Amethyst Store to receive a discount on maintenance services."
+		desc=		"This card is made from a laser-carved slab of translucent amethyst crystal. It provides proof of purchase for your Amethyst-class yacht. Present at any licensed Amethyst Store to receive a discount on maintenance services."
 		>
 	</ItemType>
 	
@@ -129,6 +129,8 @@
 			initialCharges=	"1200"
 			powerUse=		"10"
 			fireCooldown=	"20"
+			
+			angleRange=		"60"
 			>
 			<Projectile
 				missileSpeed=	"100"
@@ -176,7 +178,6 @@
 			</Projectile>
 		</Weapon>
 	</ItemType>
-	
 	<ItemType	codename=	"item_amethyst_laser_ii"
 			name=		"Amethyst laser cannon"
 			level=		"1"
@@ -185,12 +186,14 @@
 				
 			attributes= "Amethyst"
 
-			desc=		"The second-generation Amethyst laser cannon, featuring improved damage output."
+			desc=		"The second-generation Amethyst laser cannon features improved damage output. Its internal specifications are protected behind several layers of legal fees."
 		>
 		<Weapon
 			initialCharges=	"1800"
 			powerUse=		"10"
 			fireCooldown=	"15"
+			
+			angleRange=		"60"
 			>
 			<Projectile
 				missileSpeed=	"100"
@@ -203,7 +206,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_magic_blaster_ii"
 		name=		"Magic Blaster"
 		level=		"1"
@@ -212,7 +214,7 @@
 				
 		attributes= "Amethyst"
 
-		desc=		"The second-generation Magic Blaster is even more proprietary."
+		desc=		"The second-generation Magic Blaster is even more proprietary (and therefore more magical)."
 		>
 		<Weapon
 			initialCharges=	"240"
@@ -248,12 +250,14 @@
 				
 		attributes= "Amethyst"
 
-		desc=		"The third-generation Amethyst laser cannon, featuring improved damage output."
+		desc=		"The third-generation Amethyst laser cannon features yet improved damage output."
 		>
 		<Weapon
 			initialCharges=	"1800"
 			powerUse=		"10"
 			fireCooldown=	"15"
+			
+			angleRange=		"60"
 			>
 			<Projectile
 				missileSpeed=	"100"
@@ -325,6 +329,20 @@
 			>
 		</Shield>
 	</ItemType>
+	<ItemType	codename=	"item_amethyst_repair_kit"
+				name=		"Amethyst Armor Repair Kit"
+				level=		"1"
+				mass=		"1000"
+				value=		"500"
+				
+				attributes=	"Amethyst"
+
+				invoke=		"repairArmor"
+				repairHP=	"75"
+
+				desc=		"Gemsteel plate is ONLY repairable using the patented Amethyst Armor Repair Kit"
+		>
+	</ItemType>
 	<ItemType	codename=	"item_gemsteel_plate_i"
 		name=		"Gemsteel plate"
 		mass=		"4000"
@@ -335,11 +353,14 @@
 				
 		desc=		"Designed for the Amethyst-class yacht, this semicrystalline armor maintains its aesthetic beauty at any condition. It glows brightly when exposed to starlight, so it's not good for stealth ships."
 		>
-		<Armor	maxHP=		"75"
+		<Armor	initialHP=	"100"
+				maxHP=		"75"
 				stealth=	"-2"
-			/>
+				lifetimeDegrade="1 / 750"
+			>
+			<RestrictRepair hasAttributes="Amethyst"/>
+		</Armor>
 	</ItemType>
-
 	<ItemType	codename=	"item_gemsteel_plate_ii"
 		name=		"Gemsteel plate"
 		mass=		"4000"
@@ -350,8 +371,12 @@
 				
 		desc=		"Second-generation Gemsteel armor has improved durability."
 		>
-		<Armor	maxHP=		"150"
+		<Armor	initialHP=	"200"
+				maxHP=		"150"
 				stealth=	"-2"
-			/>
+				lifetimeDegrade="1 / 1500"
+			>
+			<RestrictRepair hasAttributes="Amethyst"/>
+		</Armor>
 	</ItemType>
 </Module>

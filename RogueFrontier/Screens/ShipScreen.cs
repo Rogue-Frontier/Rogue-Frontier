@@ -527,8 +527,9 @@ public class SListScreen {
                 result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
-
-            if (d.hp < d.desc.maxHP) {
+            if (d.desc.restrictRepair?.Matches(source) == false) {
+                result.Add(new("This armor is not compatible", Color.Yellow, Color.Black));
+            } else if (d.hp < d.desc.maxHP) {
                 result.Add(new("[Enter] Repair this armor", Color.Yellow, Color.Black));
             } else {
                 result.Add(new("This armor is at full HP", Color.Yellow, Color.Black));
@@ -536,6 +537,10 @@ public class SListScreen {
             return result;
         }
         void Repair(Armor segment) {
+            if(segment.desc.restrictRepair?.Matches(source) == false) {
+                return;
+            }
+
             var before = segment.hp;
             var repairHP = Math.Min(repair.repairHP, segment.desc.maxHP - segment.hp);
 

@@ -231,7 +231,7 @@ public class AmethystStore : StationBehavior, IContainer<Station.Destroyed>, ICo
                 station.weapons.ForEach(w => w.SetTarget(pl));
 
                 banned.Add(pl);
-                if (pl.cargo.RemoveWhere(i => i.type.codename == "item_amethyst_warranty_card") > 0) {
+                if (pl.cargo.RemoveWhere(i => i.type.codename == "item_amethyst_member_card") > 0) {
                     pl.AddMessage(new Transmission(station, new ColoredString("You have violated the Terms of Service. Your warranty is now void.", Color.Red, Color.Black)));
                 } else {
 

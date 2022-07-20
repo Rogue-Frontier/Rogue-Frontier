@@ -114,7 +114,6 @@ public class Armor : Device {
     public record Decay {
         [Req] public int lifetime;
         [Req] public double rate;
-
         public Decay() { }
         public Decay(XElement e) => e.Initialize(this);
         public Decay(int lifetime, double rate) => (this.lifetime, this.rate) = (lifetime, rate);
@@ -123,7 +122,7 @@ public class Armor : Device {
     public Armor(Item source, ArmorDesc desc) {
         this.source = source;
         this.desc = desc;
-        this.hp = desc.maxHP;
+        this.hp = desc.initialHP != -1 ? desc.initialHP : desc.maxHP;
     }
     public Armor Copy(Item source) => desc.GetArmor(source);
     public void Update(IShip owner) {
@@ -209,33 +208,51 @@ public class Armor : Device {
         if(((float)hp / desc.maxHP) < p.fragment.armorDrill) {
             return 0;
         }
+        //If we're active and the projectile has armor skip, then skip us now.
+        if(p.armorSkip > 0) {
+            p.armorSkip--;
+            return 0;
+        }
         //Check if we have a kill threshold
         if (hp <= killHP) {
             if (p.damageHP < killHP) {
                 var amount = p.damageHP;
                 p.damageHP = 0;
-
                 //Remember this but take no damage
                 OnAbsorb(amount);
                 return amount;
             } else {
                 p.damageHP -= killHP;
                 lastDamageTick = p.world.tick;
-
                 //Otherwise, we fall
                 hp = 0;
                 OnAbsorb(killHP);
                 return killHP;
             }
         }
-        var absorbed = Math.Min(hp, p.damageHP);
+
+        /*
+
+        var multiplier = p.fragment.shieldFactor;
+
+        var absorbed = (int)Math.Clamp(p.damageHP * (1 - p.fragment.shieldDrill) * absorbFactor * multiplier, 0, maxAbsorb);
+        if (absorbed > 0) {
+            hp -= absorbed;
+            lifetimeDamageAbsorbed += absorbed;
+            delay = (hp == 0 ? desc.depletionDelay : desc.damageDelay);
+            p.damageHP -= (int)Math.Ceiling(absorbed / multiplier);
+        }
+         * */
+
+        var multiplier = p.fragment.armorFactor + lifetimeDamageAbsorbed * desc.lifetimeDegrade;
+        var absorbed = (int)Math.Clamp(p.damageHP * multiplier, 0, hp);
         hp -= absorbed;
         OnAbsorb(absorbed);
         if (killHP > 0 && absorbed > killHP) {
             killHP = 0;
         }
         lastDamageTick = p.world.tick;
-        p.damageHP -= absorbed;
+        p.damageHP -= (int)Math.Ceiling(absorbed / multiplier);
         if (p.fragment.decay is Decay d) {
             decay.Add(new(d.lifetime, d.rate));
         }
@@ -628,14 +645,15 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
         } else if (desc.ammoType != null) {
             ammo = new ItemAmmo(desc.ammoType);
         }
-
         aiming = desc.projectile.multiTarget ? new MultiTargeting() :
             desc.projectile.acquireTarget ? new Targeting() : null;
-
-        if (desc.projectile.omnidirectional) {
+        if (desc.projectile.omnidirectional || desc.omnidirectional) {
             aiming = new Omnidirectional(aiming);
+        } else if (desc.angleRange > 0) {
+            aiming = new Swivel(desc.angleRange, aiming);
+        } else if(desc.leftRange + desc.rightRange > 0) {
+            aiming = new Swivel(desc.leftRange, desc.rightRange, aiming);
         }
-
         UpdateProjectileDesc();
     }
     public Weapon Copy(Item source) => desc.GetWeapon(source);
@@ -1064,7 +1082,6 @@ public class MultiTargeting : Aiming, IDestructionEvents {
 
 
 public class Omnidirectional : Aiming {
-
     public Aiming targeting= new Targeting();
     public ActiveObject target {
         get => targeting.target;
@@ -1081,7 +1098,6 @@ public class Omnidirectional : Aiming {
             w.projectileDesc.missileSpeed, out var _);
     public void UpdateDirection(ActiveObject owner, Weapon weapon) {
         if (targeting.target != null) {
-
             direction = GetFireAngle(owner, target, weapon);
             Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
             //Heading.Crosshair(owner.world, target.position);
@@ -1097,7 +1113,6 @@ public class Omnidirectional : Aiming {
         targeting.Update(owner, weapon);
         UpdateDirection(owner, weapon);
     }
-
     public void OnFire() => targeting.OnFire();
     public double? GetFireAngle() => direction;
     public void ClearTarget() => target = null;
@@ -1105,11 +1120,9 @@ public class Omnidirectional : Aiming {
     public void UpdateTarget(ActiveObject target) =>
         this.target = target ?? this.target;
 }
-
-
 public class Swivel : Aiming {
-    public double weaponAngle;
-    public double leftRange, rightRange;
+    private double facing;
+    public readonly double leftRange, rightRange;
     public Aiming targeting = new Targeting();
     public ActiveObject target {
         get => targeting.target;
@@ -1117,20 +1130,25 @@ public class Swivel : Aiming {
     }
     public IEnumerable<ActiveObject> GetMultiTarget() => targeting.GetMultiTarget();
     double? direction;
-    public Swivel(double angle, double range, Aiming targeting = null) {
-        weaponAngle = angle;
+    public Swivel(double range, Aiming targeting = null) {
         leftRange = rightRange = range / 2;
         this.targeting = targeting ?? this.targeting;
     }
-    public Swivel(double angle, double left, double right, Aiming targeting = null) {
-        weaponAngle = angle;
-        leftRange = left;
+    public Swivel(double left, double right, Aiming targeting = null) {
+        leftRange = left * Math.PI / 180;
         rightRange = right;
         this.targeting = targeting ?? this.targeting;
     }
     public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
         if (targeting.target != null) {
             direction = Omnidirectional.GetFireAngle(owner, target, weapon);
+
+            var deltaRad = Main.AngleDiffRad(facing, direction.Value);
+            if(deltaRad > 0 ? deltaRad > leftRange : -deltaRad > rightRange) {
+                direction = null;
+                targeting.ClearTarget();
+                return;
+            }
             Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
             //Heading.Crosshair(owner.world, target.position);
         } else {
@@ -1138,12 +1156,12 @@ public class Swivel : Aiming {
         }
     }
     public void Update(Station owner, Weapon weapon) {
-        weaponAngle = owner.rotation + weapon.angle;
+        facing = owner.rotation + weapon.angle;
         targeting.Update(owner, weapon);
         Update(owner, weapon, s => SStation.IsEnemy(owner, s));
     }
     public void Update(IShip owner, Weapon weapon) {
-        weaponAngle = owner.rotationRad + weapon.angle;
+        facing = owner.rotationRad + weapon.angle;
         targeting.Update(owner, weapon);
         Update(owner, weapon, s => SShip.IsEnemy(owner, s));
     }

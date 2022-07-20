@@ -6,69 +6,58 @@ using System.Xml.Linq;
 namespace RogueFrontier;
 
 public class UniverseDesc {
-    public List<SystemDesc> systems;
-    public List<LinkDesc> links;
+    public List<SystemDesc> systems=new();
+    public List<LinkDesc> links=new();
     public UniverseDesc(TypeCollection tc, XElement e) {
-        systems = new();
-        links = new();
-
         if (e.HasElement("Topology", out var xmlTopology)) {
             foreach (var element in xmlTopology.Elements()) {
                 switch (element.Name.LocalName) {
                     case "System":
-                        systems.Add(new SystemDesc(tc, element));
+                        systems.Add(new(tc, element));
                         break;
                     case "Link":
-                        links.Add(new LinkDesc(element));
+                        links.Add(new(element));
                         break;
                 }
             }
         }
         if (e.HasElement("Links", out var xmlLinks)) {
-            foreach (var element in xmlLinks.Elements()) {
-                links.Add(new LinkDesc(element));
-            }
+            links.AddRange(xmlLinks.Elements().Select(e => new LinkDesc(e)));
         }
     }
 
-    public class SystemDesc {
-        public string id;
-        public string name;
+    public record SystemDesc {
+        [Req] public string id;
+        [Req] public string name;
+        [Req] public string codename;
+        [Opt] public int x, y;
         public SystemGroup systemGroup;
-        public string codename;
 
         public List<GlobalStargateDesc> globalStargates;
 
         public SystemDesc() { }
         public SystemDesc(TypeCollection tc, XElement e) {
-            id = e.ExpectAtt(nameof(id));
-            name = e.ExpectAtt(nameof(name));
+            e.Initialize(this);
             if (e.HasElement("SystemGroup", out var xmlSystemGroup)) {
-                systemGroup = new SystemGroup(xmlSystemGroup, SGenerator.ParseFrom(tc, SSystemElement.Create));
+                systemGroup = new(xmlSystemGroup, SGenerator.ParseFrom(tc, SSystemElement.Create));
             }
-            codename = e.TryAtt(nameof(codename));
-            globalStargates = new();
-            foreach (var g in e.Elements("GlobalStargate")) {
-                globalStargates.Add(new GlobalStargateDesc(g));
-            }
+            globalStargates = new(e.Elements("GlobalStargate").Select(g => new GlobalStargateDesc(g)));
         }
     }
-    public class GlobalStargateDesc {
-        public string globalId;
-        public string gateId;
+    public record GlobalStargateDesc {
+        [Req] public string globalId;
+        [Req] public string gateId;
         public GlobalStargateDesc() { }
         public GlobalStargateDesc(XElement e) {
-            globalId = e.ExpectAtt(nameof(globalId));
-            gateId = e.ExpectAtt(nameof(gateId));
+            e.Initialize(this);
         }
     }
-    public class LinkDesc {
-        public string fromGateId;
-        public string toGateId;
+    public record LinkDesc {
+        [Req] public string fromGateId;
+        [Req] public string toGateId;
         public LinkDesc() { }
         public LinkDesc(XElement e) {
-            fromGateId = e.ExpectAtt(nameof(fromGateId));
-            toGateId = e.ExpectAtt(nameof(toGateId));
+            e.Initialize(this);
         }
     }
 }
@@ -79,26 +68,26 @@ public class Universe {
     public Dictionary<string, Entity> named=new();
     public Dictionary<string, System> systems=new();
     public Dictionary<string, Stargate> stargates=new();
-    public Dictionary<System, HashSet<Stargate>> systemGates=new();
+    public Dictionary<string, HashSet<Stargate>> systemGates=new();
+    public Dictionary<string, (int, int)> grid = new();
     public Universe(TypeCollection types = null, Rand karma = null) {
         this.types = types ?? new TypeCollection();
         this.karma = karma ?? new Rand();
     }
     public Universe(UniverseDesc desc, TypeCollection types = null, Rand karma = null) : this(types, karma) {
-        foreach (var s in desc.systems) {
-            System sys = new System(this) { id = s.id, name = s.name };
-            systems[s.id] = sys;
-        }
-        //Record all the system stargates
-        foreach (var s in desc.systems) {
-            var sys = systems[s.id];
-            types.Lookup<SystemType>(s.codename).Generate(sys);
-            sys.UpdatePresent();
+        foreach (var entry in desc.systems) {
+            var s = new System(this) { id = entry.id, name = entry.name };
+            systems[entry.id] = s;
+            grid[s.id] = (entry.x, entry.y);
 
-            var gates = sys.entities.all.OfType<Stargate>();
-            systemGates[sys] = new(gates);
+            types.Lookup<SystemType>(entry.codename).Generate(s);
+            s.UpdatePresent();
+
+            //Record all the system stargates
+            var gates = s.entities.all.OfType<Stargate>();
+            systemGates[s.id] = new(gates);
             foreach (var g in gates) {
-                stargates[$"{s.id}:{g.gateId}"] = g;
+                stargates[$"{entry.id}:{g.gateId}"] = g;
             }
         }
         //Record any global stargates
@@ -124,7 +113,8 @@ public class Universe {
         }
         //Build links
         foreach (var l in desc.links) {
-            Stargate fromGate = stargates[l.fromGateId], toGate = stargates[l.toGateId];
+            var fromGate = stargates[l.fromGateId];
+            var toGate = stargates[l.toGateId];
             fromGate.destGate = toGate;
             toGate.destGate = fromGate;
         }
@@ -140,7 +130,7 @@ public class Universe {
         while (q.Any()) {
             var top = q.Dequeue();
 
-            foreach (var g in systemGates[top].Where(g => g.destGate != null)) {
+            foreach (var g in systemGates[top.id].Where(g => g.destGate != null)) {
                 if (visited.Add(g.destGate.world)) {
                     gateTo[g.destGate.world] = g;
                     q.Enqueue(g.destGate.world);

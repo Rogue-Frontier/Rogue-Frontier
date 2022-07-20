@@ -27,6 +27,7 @@ public class Projectile : MovingObject {
     [JsonProperty] public FragmentDesc fragment;
     [JsonProperty] public Maneuver maneuver;
     [JsonProperty] public int damageHP;
+    [JsonProperty] public int armorSkip;
     [JsonProperty] public int ricochet = 0;
     [JsonProperty] public bool hitHull;
 
@@ -54,6 +55,7 @@ public class Projectile : MovingObject {
         this.trail = (ITrail)fragment.trail ?? new SimpleTrail(fragment.effect.Original);
         this.maneuver = maneuver;
         this.damageHP = fragment.damageHP.Roll();
+        this.armorSkip = fragment.armorSkip;
         this.ricochet = fragment.ricochet;
 
         this.exclude = exclude;

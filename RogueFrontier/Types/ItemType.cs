@@ -42,12 +42,18 @@ public record InstallWeapon : ItemUse {
         player.cargo.Contains(item) ? "Install this weapon" : "Remove this weapon";
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         if (player.cargo.Contains(item)) {
-            player.AddMessage(new Message($"Installed weapon {item.type.name}"));
 
-            player.cargo.Remove(item);
-            player.devices.Install(item.Get<Weapon>());
+            if(player.shipClass.restrictWeapon?.Matches(item) == false) {
+                player.AddMessage(new Message($"Unable to install weapon (incompatible): {item.type.name}"));
+            } else {
+                player.AddMessage(new Message($"Installed weapon: {item.type.name}"));
+
+                player.cargo.Remove(item);
+                player.devices.Install(item.Get<Weapon>());
+            }
+
         } else {
-            player.AddMessage(new Message($"Removed weapon {item.type.name}"));
+            player.AddMessage(new Message($"Removed weapon: {item.type.name}"));
 
             player.devices.Remove(item.weapon);
             player.cargo.Add(item);
@@ -261,15 +267,20 @@ public record ItemType : IDesignType {
 }
 public record ArmorDesc() {
     [Req] public int maxHP;
+    [Opt] public int initialHP = -1;
     [Opt] public double recoveryFactor;
     [Opt] public double recoveryRate;
     [Opt] public double regenRate;
     [Opt] public int killHP;
     [Opt] public double stealth;
+    [Opt] public double lifetimeDegrade = 0;
+    public ItemFilter restrictRepair;
     
     public Armor GetArmor(Item i) => new(i, this);
     public ArmorDesc(XElement e) : this() {
         e.Initialize(this);
+        restrictRepair = e.HasElement("RestrictRepair", out var xmlRestrictRepair) ?
+            new(xmlRestrictRepair) : null;
     }
 }
 public record EngineDesc {
@@ -352,6 +363,9 @@ public record WeaponDesc {
     public bool targetProjectile;
     [Opt] public bool autoFire;
     public bool spray;
+
+    [Opt] public bool omnidirectional = false;
+    [Opt] public double angle = 0, angleRange, leftRange, rightRange = 0;
     public int missileSpeed => projectile.missileSpeed;
     public int damageType => projectile.damageType;
     public IDice damageHP => projectile.damageHP;
@@ -361,6 +375,13 @@ public record WeaponDesc {
     public WeaponDesc() { }
     public WeaponDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
+
+        angle *= Math.PI / 180;
+        angleRange *= Math.PI / 180;
+        leftRange *= Math.PI / 180;
+        rightRange *= Math.PI / 180;
+
+
         projectile = new(e.Element("Projectile"));
         capacitor = e.HasElement("Capacitor", out var xmlCapacitor) ?
             new(xmlCapacitor) : null;
@@ -389,6 +410,7 @@ public record FragmentDesc {
     [Opt] public int shock = 1;
     [Req] public int lifetime;
     [Opt] public bool passthrough;
+    [Opt] public int armorSkip = 0;
     [Opt] public double shieldDrill;
     /// <summary>
     /// If armor integrity ratio is below this amount, then we bypass the armor completely and go to the next layer

@@ -133,40 +133,42 @@ public class PlayerControls {
             playerMain.sceneContainer?.Children.Add(new ShipScreen(playerMain, playerShip, playerMain.story) { IsFocused = true });
         }
     }
-    public void ProcessOther() {
-        if (input.Escape) {
-            playerMain.pauseMenu.IsVisible = true;
-        }
-        if (input.Powers) {
-            if (playerMain.powerMenu != null) {
-                playerMain.powerMenu.IsVisible = !playerMain.powerMenu.IsVisible;
-            }
-        }
-    }
     public void ProcessAll() {
         ProcessArrows();
         ProcessTargeting();
         ProcessCommon();
-        ProcessOther();
     }
-    public void UpdateInput(Keyboard info) {
+    public void UpdateInput(Keyboard info) =>
         input = new(playerShip.person.Settings.controls, info);
-    }
     public void ProcessWithMenu(Keyboard info) {
         UpdateInput(info);
+
         ProcessArrows();
         ProcessTargeting();
         ProcessCommon();
     }
     public void ProcessKeyboard(Keyboard info) {
         UpdateInput(info);
+
         ProcessArrows();
         ProcessTargeting();
         ProcessCommon();
-        ProcessOther();
-        if (info.IsKeyPressed(C)) {
-            if (playerMain.communicationsMenu != null) {
-                playerMain.communicationsMenu.IsVisible = !playerMain.communicationsMenu.IsVisible;
+        if (input.Escape) {
+            playerMain.pauseMenu.IsVisible = true;
+        }
+        if (input.Powers) {
+            if (playerMain.powerMenu is var m) {
+                m.IsVisible = !m.IsVisible;
+            }
+        }
+        if (input.Communications) {
+            if (playerMain.communicationsMenu is var m) {
+                m.IsVisible = !m.IsVisible;
+            }
+        }
+        if (input.Galaxy) {
+            if (playerMain.galaxyMap is var m) {
+                m.IsVisible = !m.IsVisible;
             }
         }
         if (info.IsKeyPressed(F1)) {
@@ -189,8 +191,6 @@ public class PlayerControls {
         */
 #endif
     }
-
-
     public static Dictionary<Control, Keys> standard => new() {
         { Thrust, Up },
         { TurnRight, Right },
@@ -214,8 +214,9 @@ public class PlayerControls {
 public class PlayerInput {
     public bool Thrust, TurnLeft, TurnRight, Brake;
     public bool TargetFriendly, TargetMouse, TargetEnemy, ClearTarget, NextPrimary, NextSecondary, FirePrimary, FireSecondary, AutoAim;
+    public bool QuickZoom;
     public bool ToggleUI, Gate, Autopilot, Dock, ShipMenu;
-    public bool Escape, Powers;
+    public bool Escape, Powers, Communications, Galaxy;
     public PlayerInput() { }
     public PlayerInput(Dictionary<Control, Keys> controls, Keyboard info) {
         var p = (Control c) => info.IsKeyPressed(controls[c]);
@@ -243,6 +244,10 @@ public class PlayerInput {
         ShipMenu =      p(Control.ShipMenu);
         Escape =        info.IsKeyPressed(Keys.Escape);
         Powers =        p(Control.Powers);
+        Communications= info.IsKeyPressed(Keys.C);
+        Galaxy=         info.IsKeyPressed(Keys.N);
+        QuickZoom =     info.IsKeyPressed(M);
+
     }
     public void ClientOnly() {
         Autopilot = false;

@@ -16,7 +16,7 @@ namespace RogueFrontier;
 public interface IConsoleHook {
 
 }
-class ArenaScreen : Console, IContainer<PlayerShip.Destroyed> {
+public class ArenaScreen : Console, IContainer<PlayerShip.Destroyed> {
     PlayerShip.Destroyed IContainer<PlayerShip.Destroyed>.Value => (s, d, w) => Reset();
 
 

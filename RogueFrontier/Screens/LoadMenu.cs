@@ -44,7 +44,7 @@ class LoadMenu : Console {
                                 var playerMain = new PlayerMain(Width, Height, profile, live.playerShip) { IsFocused = true };
                                 //live.playerShip.player.Settings;
 
-                                live.playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
+                                live.playerShip.onDestroyed += playerMain;
                                 GameHost.Instance.Screen = playerMain;
                                 //If we have any load hooks, trigger them now
                                 live.hook?.Value(playerMain);
@@ -55,7 +55,7 @@ class LoadMenu : Console {
                                 playerMain.camera.position = dead.playerShip.position;
                                 playerMain.PlaceTiles(new());
                                 var deathScreen = new DeathScreen(playerMain, dead.epitaph);
-                                dead.playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
+                                dead.playerShip.onDestroyed +=playerMain;
                                 GameHost.Instance.Screen = deathScreen;
                                 deathScreen.IsFocused = true;
                                 break;

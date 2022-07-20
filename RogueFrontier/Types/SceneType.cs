@@ -94,7 +94,7 @@ public static class SScene {
     }
 
     public static Dictionary<(int, int), ColoredGlyph> ToImage(this string[] image, Color tint) {
-        Dictionary<(int, int), ColoredGlyph> result = new Dictionary<(int, int), ColoredGlyph>();
+        var result = new Dictionary<(int, int), ColoredGlyph>();
         for (int y = 0; y < image.Length; y++) {
             var line = image[y];
             for (int x = 0; x < line.Length; x++) {
@@ -105,14 +105,14 @@ public static class SScene {
         return result;
     }
     public static Dictionary<(int, int), U> Translate<U>(this Dictionary<(int, int), U> image, Point translate) {
-        Dictionary<(int, int), U> result = new Dictionary<(int, int), U>();
+        var result = new Dictionary<(int, int), U>();
         foreach (((var x, var y), var u) in image) {
             result[(x + translate.X, y + translate.Y)] = u;
         }
         return result;
     }
     public static Dictionary<(int, int), U> CenterVertical<U>(this Dictionary<(int, int), U> image, Console c, int deltaX = 0) {
-        Dictionary<(int x, int y), U> result = new Dictionary<(int, int), U>();
+        var result = new Dictionary<(int, int), U>();
 
         int deltaY = (c.Height - (image.Max(pair => pair.Key.Item2) - image.Min(pair => pair.Key.Item2))) / 2;
         foreach (((var x, var y), var u) in image) {
@@ -121,7 +121,7 @@ public static class SScene {
         return result;
     }
     public static Dictionary<(int, int), U> Flatten<U>(params Dictionary<(int, int), U>[] images) {
-        Dictionary<(int x, int y), U> result = new Dictionary<(int x, int y), U>();
+        var result = new Dictionary<(int x, int y), U>();
         foreach (var image in images) {
             foreach (((var x, var y), var u) in image) {
                 result[(x, y)] = u;
@@ -175,9 +175,9 @@ public class Dialog : Console {
     public int navIndex = 0;
     int[] charge;
 
-    public Dictionary<(int, int), ColoredGlyph> background;
+    public Dictionary<(int, int), ColoredGlyph> background = new();
 
-    Dictionary<char, int> keyMap;
+    Dictionary<char, int> keyMap = new();
 
     bool prevEscape;
 
@@ -202,14 +202,9 @@ public class Dialog : Console {
         escapeIndex = navigation.FindIndex(o => (o.flags & NavFlags.ESC) != 0);
         if (escapeIndex == -1) escapeIndex = navigation.Count-1;
 
-        background = new Dictionary<(int, int), ColoredGlyph>();
-
-        keyMap = new Dictionary<char, int>();
-
         UseMouse = true;
         UseKeyboard = true;
     }
-
     public override void Update(TimeSpan delta) {
         bool f = IsFocused;
 
@@ -229,7 +224,7 @@ public class Dialog : Console {
 
                     keyMap[char.ToUpper(option.key)] = index;
                     Children.Add(new LabelButton(option.name) {
-                        Position = new Point(x, y++),
+                        Position = new(x, y++),
                         leftHold = () => {
                             navIndex = index;
                             charging = true;
@@ -268,14 +263,12 @@ public class Dialog : Console {
         } else {
             prevEnter = enter;
         }
-
         for (int i = 0; i < charge.Length; i++) {
             ref int c = ref charge[i];
             if (c > 0) {
                 c--;
             }
         }
-
         base.Update(delta);
     }
     public void Transition(ScreenSurface next) {
@@ -284,7 +277,7 @@ public class Dialog : Console {
         c.Remove(this);
         if (next != null) {
             c.Add(next);
-            next.Render(new TimeSpan());
+            next.Render(new());
             next.IsFocused = true;
         } else {
             p.IsFocused = true;
@@ -292,19 +285,15 @@ public class Dialog : Console {
     }
     public override void Render(TimeSpan delta) {
         this.RenderBackground();
-
-        if (background?.Any() == true) {
+        if(background != null) {
             foreach (((var px, var py), var cg) in background) {
                 this.SetCellAppearance(px, py, cg);
             }
         }
-
         int left = descX;
         int top = descY;
-
         int y = top;
         int x = left;
-
         for (int i = 0; i < descIndex; i++) {
             switch (desc[i]) {
                 case '\n':
@@ -312,36 +301,24 @@ public class Dialog : Console {
                     y++;
                     break;
                 default:
-                    this.SetCellAppearance(x, y, new ColoredGlyph(Color.LightBlue, Color.Black, desc[i]));
+                    this.SetCellAppearance(x, y, new(Color.LightBlue, Color.Black, desc[i]));
                     x++;
                     break;
             }
         }
         if (descIndex < desc.Length) {
-            this.SetCellAppearance(x, y, new ColoredGlyph(Color.LightBlue, Color.Black, '>'));
+            this.SetCellAppearance(x, y, new(Color.LightBlue, Color.Black, '>'));
         } else {
-            x = descX;
+            var barLength = maxCharge / 6;
+            x = descX - barLength;
             y = descY + desc.Count(c => c == '\n') + 3;
-
-            var barLength = maxCharge / 3;
-
-            for (int i = 0; i < charge.Length; i++) {
-                int c = charge[i];
-                if (c < maxCharge) {
-                    this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', c / 3), Color.White, Color.Black));
-                } else {
-                    this.Print(x + navigation[i].name.Length, y + i, new ColoredString(new string('>', barLength), Color.White, Color.Black));
-                }
+            foreach(var (c, i) in charge.Select((c, i) => (c, i))) {
+                this.Print(x, y + i, new ColoredString("------->".Substring(0, Math.Min(c / 6, barLength)), Color.Gray, Color.Black));
             }
             if (navIndex > -1) {
-                this.Print(x - 4, y + navIndex, new ColoredString("--->", Color.Yellow, Color.Black));
-
-                this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Gray, Color.Black));
-                if (charge[navIndex] < maxCharge) {
-                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', charge[navIndex] / 3), Color.Yellow, Color.Black));
-                } else {
-                    this.Print(x + navigation[navIndex].name.Length, y + navIndex, new ColoredString(new string('>', barLength), Color.Orange, Color.Black));
-                }
+                this.Print(x, y + navIndex, new ColoredString("------->", Color.Gray, Color.Black));
+                var ch = charge[navIndex];
+                this.Print(x, y + navIndex, new ColoredString("------->".Substring(0, Math.Min(ch / 6, barLength)), ch < maxCharge ? Color.Yellow : Color.Orange, Color.Black));
             }
         }
         base.Render(delta);
@@ -354,7 +331,6 @@ public class Dialog : Console {
             prevEscape = true;
         } else {
             prevEscape = false;
-
             enter = keyboard.IsKeyDown(Keys.Enter);
             if (enter) {
                 if (descIndex < desc.Length - 1) {
@@ -371,7 +347,6 @@ public class Dialog : Console {
             } else {
                 allowEnter = true;
             }
-
             foreach (var c in keyboard.KeysDown.Select(k => k.Character).Where(c => char.IsLetterOrDigit(c)).Select(c => char.ToUpper(c))) {
                 if (keyMap.TryGetValue(c, out int index)) {
                     navIndex = index;
@@ -379,7 +354,6 @@ public class Dialog : Console {
                     enter = true;
                 }
             }
-
             if (keyboard.IsKeyPressed(Keys.Up)) {
                 navIndex = (navIndex - 1 + navigation.Count) % navigation.Count;
             }

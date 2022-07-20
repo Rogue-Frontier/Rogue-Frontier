@@ -239,7 +239,7 @@ Just remember...""";
 @"""You sound uncertain there.
 Do you truly intend to do that?""";
             return new(prev, t, new() {
-                new('I', @"I intend to reach the Galactic Core.", Intro9a),
+                new('I', @"I intend to reach the Celestial Center.", Intro9a),
             }) { background = heroImage };
         }
         Dialog Intro11(Con prev) {
@@ -503,7 +503,8 @@ public class PlayerStory {
             ["item_thorn_missile"] =            16,
             ["item_thorn_missile_system"] =     3200,
             ["item_simple_fuel_rod"] =          50,
-            ["item_armor_repair_patch"] =       200,
+            ["item_armor_repair_patch"] = 200,
+            ["item_amethyst_repair_kit"] =      400,
             ["item_orator_charm_silence"] =     3000,
             ["item_dictator_charm_silence"] =   3000,
             ["item_emp_cannon"] =               2400,
@@ -523,7 +524,7 @@ public class PlayerStory {
             ["item_bumpersteel_plate"] =        4500,
             ["item_dynamite_charge"] =          12,
             ["item_dynamite_cannon"] =          2000,
-            ["item_amethyst_warranty_card"] =   200,
+            ["item_amethyst_member_card"] =   200,
             ["item_shield_bash"] =              3000,
             ["item_20mw_generator"] =           5000,
             ["item_10mw_storage_battery"] =     5000,
@@ -591,17 +592,24 @@ public class PlayerStory {
     public Con AmethystStore(Con prev, PlayerShip playerShip, Station source) {
         var c = GetConstellationCrimes(playerShip, source);
         if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
-        var discount = playerShip.cargo.Any(i => i.type.codename == "item_amethyst_warranty_card");
+        var discount = playerShip.cargo.Any(i => i.type.codename == "item_amethyst_member_card");
         var buyAdj = discount ? 0.8 : 1;
         return Intro();
         Dialog Intro() {
             return new(prev,
-@"You are docked at The Amethyst Store,
+@$"You are docked at The Amethyst Store,
 one of several commercial stations
 established by Amethyst, Inc to serve
 all your Amethyst-related needs,
 including but not limited to, product
-purchases and repair services.",
+purchases and repair services.
+
+{(discount ?
+"You scan your Amethyst membership card" +
+"at the entrance to receive discounts on" +
+"maintenance and upgrades at this station."
+: "")}
+",
             new() {
                 new("Trade", Trade),
                 new("Service: Device Install", DeviceInstall),

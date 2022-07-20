@@ -38,7 +38,7 @@ public class System {
     public TypeCollection types => universe.types;
     [JsonIgnore]
     public Rand karma => universe.karma;
-    public Backdrop backdrop;
+    public Backdrop backdrop=new();
 
     public int tick;
     public ulong nextId;
@@ -46,12 +46,10 @@ public class System {
     private bool updating;
 
     public System() {
-        this.universe = new Universe();
-        backdrop = new Backdrop();
+        this.universe = new();
     }
     public System(Universe universe) {
         this.universe = universe;
-        backdrop = new Backdrop();
     }
     public void AddEvent(Event e) {
         eventsAdded.Add(e);
@@ -165,7 +163,10 @@ public class System {
         }
     }
     public void PlaceTilesVisible(Dictionary<(int, int), ColoredGlyph> tiles, Func<Entity, double> getVisibleDistanceLeft) {
-        SetDict<(int, int), ColoredGlyph> all = new();
+        
+        Dictionary<(int, int), List<ColoredGlyph>> all = new();
+        List<ColoredGlyph> Initialize((int, int) key) => 
+            all.TryGetValue(key, out var l) ? l : all[key] = new(10);
         foreach (var e in entities.all) {
             if (e.tile == null) continue;
             var dist = getVisibleDistanceLeft(e);
@@ -179,18 +180,17 @@ public class System {
                 t.Foreground = t.Foreground.SetAlpha((byte)(255 * dist / threshold));
             }
             var p = e.position.roundDown;
-            all.Add(p, t);
+            Initialize(p).Add(t);
         }
         foreach (var e in effects.all) {
             if (e.tile == null) continue;
             var p = e.position.roundDown;
-
-            all.Add(p, e.tile);
+            Initialize(p).Add(e.tile);
         }
 
         int time = tick / 30;
-        foreach((var p, var set) in all.space) {
-            tiles[p] = set.ElementAt(time % set.Count);
+        foreach((var p, var set) in all) {
+            tiles[p] = set[time % set.Count];
         }
     }
 

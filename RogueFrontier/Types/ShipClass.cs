@@ -27,6 +27,7 @@ public class ShipClass : IDesignType {
     public Group<Item> cargo;
     public Group<Device> devices;
     public PlayerSettings playerSettings;
+    public ItemFilter restrictWeapon, restrictArmor;
 
     public void Validate() {
         if (rotationDecel == 0) {
@@ -43,8 +44,6 @@ public class ShipClass : IDesignType {
         } else {
             tile = new(e);
         }
-
-
         attributes = e.TryAtt("attributes", out string att) ? att.Split(";").ToHashSet() : parent?.attributes ?? new();
         behavior = e.TryAttEnum(nameof(behavior), parent?.behavior ?? EShipBehavior.none);
 
@@ -64,6 +63,12 @@ public class ShipClass : IDesignType {
         playerSettings = e.HasElement("PlayerSettings", out var xmlPlayerSettings) ?
             new(xmlPlayerSettings, parent?.playerSettings) :
             parent?.playerSettings;
+        restrictArmor = e.HasElement("RestrictArmor", out var xmlRequireArmor) ?
+            new(xmlRequireArmor) :
+            parent?.restrictArmor;
+        restrictWeapon = e.HasElement("RestrictWeapon", out var xmlRequireWeapon) ?
+            new(xmlRequireWeapon) :
+            parent?.restrictWeapon;
     }
 }
 public interface HullSystemDesc {

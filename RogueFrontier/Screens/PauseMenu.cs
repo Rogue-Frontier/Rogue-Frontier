@@ -84,7 +84,7 @@ public class PauseMenu : Console {
     public void SaveContinue() {
         //Temporarily PlayerMain events before saving
         var ps = playerMain.playerShip;
-        var endgame = new HashSet<EndGamePlayerDestroyed>(ps.onDestroyed.set.OfType<EndGamePlayerDestroyed>());
+        var endgame = ps.onDestroyed.set.Where(c => c is IScreenObject).ToList();
         ps.onDestroyed.set.ExceptWith(endgame);
 
         Save();
@@ -95,7 +95,7 @@ public class PauseMenu : Console {
     }
     public void SaveQuit() {
         //Remove PlayerMain events
-        playerMain.playerShip.onDestroyed.set.RemoveWhere(d => d is EndGamePlayerDestroyed);
+        playerMain.playerShip.onDestroyed.set.RemoveWhere(d => d is IScreenObject);
 
         Save();
         Quit();
@@ -103,7 +103,7 @@ public class PauseMenu : Console {
 
     public void DeleteQuit() {
         //Remove PlayerMain events
-        playerMain.playerShip.onDestroyed.set.RemoveWhere(d => d is EndGamePlayerDestroyed);
+        playerMain.playerShip.onDestroyed.set.RemoveWhere(d => d is IScreenObject);
 
         Delete();
         Quit();

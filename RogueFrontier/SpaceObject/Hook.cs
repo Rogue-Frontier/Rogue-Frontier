@@ -14,7 +14,7 @@ public class Cable : Entity {
     public ulong id { get; set; }
     public XY position { get; set; }
     public bool active { get; set; } = true;
-    public ColoredGlyph tile => new(Color.White, Color.Black, '.');
+    public ColoredGlyph tile => new(Color.LightGray, Color.Transparent, '.');
     public Cable(Hook parent, XY position) {
         this.parent = parent;
         id = parent.attached.world.nextId++;
@@ -46,7 +46,7 @@ public class Hook : Entity {
     public XY position => attached.position - offset.normal;
     public XY offset => attached.position - source.position;
     public bool active { get; set; } = true;
-    public ColoredGlyph tile => new(Color.White, Color.Black, '?');
+    public ColoredGlyph tile => new(Color.LightGray, Color.Transparent, '?');
     public void Update() {
         active &= attached.active && source.active;
         var offset = attached.position - source.position;

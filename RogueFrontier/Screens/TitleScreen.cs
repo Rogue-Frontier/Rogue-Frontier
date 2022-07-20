@@ -46,8 +46,8 @@ public class TitleScreen : Console {
 
         //screenCenter = new XY(Width / 2, Height / 2);
 
-        camera = new XY(0, 0);
-        tiles = new Dictionary<(int, int), ColoredGlyph>();
+        camera = new(0, 0);
+        tiles = new();
 
         int x = 2;
         int y = 9;
@@ -65,7 +65,7 @@ public class TitleScreen : Console {
         Button("[Escape]    Exit", Exit);
 
         void Button(string s, Action a) =>
-            Children.Add(new LabelButton(s, a) { Position = new Point(x, y++), FontSize = fs });
+            Children.Add(new LabelButton(s, a) { Position = new(x, y++), FontSize = fs });
 
 
         var f = "Settings.json";
@@ -74,9 +74,9 @@ public class TitleScreen : Console {
         } else {
             settings = Settings.standard;
         }
-        config = new ConfigMenu(48, 64, settings) { Position = new Point(0, 30), FontSize = fs };
-        load = new LoadMenu(48, 64, profile) { Position = new Point(0, 30), FontSize = fs };
-        credits = new Console(48, 64) { Position = new Point(0, 30), FontSize = fs };
+        config = new(48, 64, settings) { Position = new(0, 30), FontSize = fs };
+        load = new(48, 64, profile) { Position = new(0, 30), FontSize = fs };
+        credits = new(48, 64) { Position = new(0, 30), FontSize = fs };
 
         y = 0;
         credits.Children.Add(new Label("[Credits]") { Position = new(0, y++) });
@@ -112,7 +112,7 @@ public class TitleScreen : Console {
             var playerClass = playable[index];
 
             CrawlScreen crawl = null;
-            crawl = new CrawlScreen(Width, Height, () => null) { IsFocused = true };
+            crawl = new(Width, Height, () => null) { IsFocused = true };
             SadConsole.Game.Instance.Screen = crawl;
 
             Task.Run(CreateWorld);
@@ -126,14 +126,10 @@ public class TitleScreen : Console {
 
                 //Name is seed
                 var seed = player.name.GetHashCode();
-                var u = new Universe(universeDesc, World.types, new Rand(seed));
+                var u = new Universe(universeDesc, World.types, new(seed));
 
-                var w = u.systems["orion"];
-
-
-                w.UpdatePresent();
-
-                var start = w.entities.all.OfType<Marker>().First(m => m.Name == "Start");
+                var start = u.GetAllEntities().OfType<Marker>().First(m => m.Name == "Start");
+                var w = start.world;
                 start.active = false;
                 var playerStart = start.position;
                 var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
@@ -155,7 +151,7 @@ public class TitleScreen : Console {
 
                 var playerMain = new PlayerMain(Width, Height, profile, playerShip);
                 playerMain.HideUI();
-                playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
+                playerShip.onDestroyed += playerMain;
 
                 playerMain.Update(new());
                 playerMain.PlaceTiles(new());
@@ -290,7 +286,7 @@ public class TitleScreen : Console {
             playerShip.powers.AddRange(World.types.Get<PowerType>().Select(pt => new Power(pt)));
 
             var playerMain = new PlayerMain(Width, Height, profile, playerShip);
-            playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
+            playerShip.onDestroyed += playerMain;
 
             playerMain.Update(new());
             playerMain.PlaceTiles(new());
@@ -570,11 +566,12 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         var seed = player.name.GetHashCode();
         Universe u = new Universe(universeDesc, World.types, new Rand(seed));
 
-        System w = u.systems["orion"];
-        w.UpdatePresent();
         var quickStartClass = "ship_amethyst_i";
+        var ent = u.GetAllEntities().OfType<Marker>().ToList();
+        var marker = ent.First(e => e.Name == "Start");
+        var w = marker.world;
         var playerClass = w.types.Lookup<ShipClass>(quickStartClass);
-        var playerStart = w.entities.all.First(e => e is Marker m && m.Name == "Start").position;
+        var playerStart = marker.position;
         var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
         var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerStart), playerSovereign);
         //playerShip.powers.Add(new Power(w.types.Lookup<PowerType>("power_declare")));
@@ -599,7 +596,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
 
 
         var playerMain = new PlayerMain(Width, Height, profile, playerShip);
-        playerShip.onDestroyed += new EndGamePlayerDestroyed(playerMain);
+        playerShip.onDestroyed += playerMain;
 
 
         playerMain.IsFocused = true;
