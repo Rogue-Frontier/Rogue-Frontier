@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using SadRogue.Primitives;
 using System.Linq;
 using SadConsole;
-using System.IO;
 using Console = SadConsole.Console;
 namespace Common;
 public class ColorImage {

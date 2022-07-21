@@ -90,10 +90,10 @@ public class ShopConsole : Console {
 
                 Func<int, int> next = r.NextInteger;
 
-                World.entities.PlaceNew(new Item(s[r.NextInteger(s.Length)], World, new XYZ(next(World.voxels.Width), next(World.voxels.Height), 1)));
-                World.entities.PlaceNew(new Enemy(World, new XYZ(next(World.voxels.Width), next(World.voxels.Height), 1)));
+                World.entities.Add(new Item(s[r.NextInteger(s.Length)], World, new XYZ(next(World.voxels.Width), next(World.voxels.Height), 1)));
+                World.entities.Add(new Enemy(World, new XYZ(next(World.voxels.Width), next(World.voxels.Height), 1)));
             }
-            World.entities.PlaceNew(World.player);
+            World.entities.Add(World.player);
             //            World.entities.Place(new Enemy(World, new XYZ(35, 35, 1)));
 
             var plane = new Plane(World, new XYZ(60, 20, 1), new XYZ(0, 0, 0));

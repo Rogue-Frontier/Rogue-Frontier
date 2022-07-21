@@ -77,7 +77,7 @@ class PlayerMain : ControlsConsole {
             for (int y = -HalfViewHeight; y < HalfViewHeight; y++) {
                 XYZ location = World.camera + new XYZ(x, y, 0);
 
-                this.Print(x + HalfWidth, Height - (y + HalfHeight), GetGlyph(location));
+                this.SetCellAppearance(x + HalfWidth, Height - (y + HalfHeight), GetGlyph(location));
             }
         }
 
@@ -144,7 +144,7 @@ class PlayerMain : ControlsConsole {
             for (int x = -PreviewWidth / 2; x < PreviewWidth / 2; x++) {
                 for (int y = -PreviewHeight / 2; y < PreviewHeight / 2; y++) {
                     XYZ location = watching.Position + new XYZ(x, y, 0);
-                    this.Print(x + previewX, -y + previewY, GetGlyph(location));
+                    this.SetCellAppearance(x + previewX, -y + previewY, GetGlyph(location));
                 }
             }
             previewY += PreviewHeight;
@@ -322,7 +322,7 @@ class PlayerMain : ControlsConsole {
             Children.Add(new ListMenu<IItem>(Width, Height, "Select inventory items to drop. Press ESC to finish.", player.Inventory.Select(Item => new ListItem(Item)), item => {
                 //Just drop the item for now
                 player.Inventory.Remove(item);
-                World.entities.PlaceNew(item);
+                World.entities.Add(item);
 
                 World.player.AddMessage(new InfoEvent(new ColoredString("You drop: ") + item.Name.WithBackground(Color.Black)));
                 return true;

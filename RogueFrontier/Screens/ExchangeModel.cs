@@ -165,9 +165,10 @@ public class ExchangeModel {
         tick++;
     }
     public void Render(Console con) {
-        int x = 16;
+        int x = 6;
         int y = 16;
 
+        const int lineWidth = 36;
         con.RenderBackground();
 
         var player = traders[0];
@@ -183,7 +184,7 @@ public class ExchangeModel {
 
 
         Color c = playerSide ? Color.Yellow : Color.White;
-        con.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(c, Color.Black, '-'));
+        con.DrawBox(new Rectangle(x - 2, y - 3, lineWidth + 8, 3), new ColoredGlyph(c, Color.Black, '-'));
         con.Print(x, y - 2, traders[0].name, c, Color.Black);
         int start = 0;
         int? highlight = null;
@@ -206,18 +207,18 @@ public class ExchangeModel {
             while (i < end) {
                 var highlightColor = i == highlight ? Color.Yellow : Color.White;
                 var n = NameAt(i);
-                if (n.Length > 26) {
+                if (n.Length > lineWidth) {
                     if (i == highlight) {
                         //((tick / 15) % (n.Length - 25));
                         int initialDelay = 60;
-                        int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - 26);
+                        int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - lineWidth);
 
                         n = n.Substring(index);
-                        if (n.Length > 26) {
-                            n = $"{n.Substring(0, 23)}...";
+                        if (n.Length > lineWidth) {
+                            n = $"{n.Substring(0, lineWidth - 3)}...";
                         }
                     } else {
-                        n = $"{n.Substring(0, 23)}...";
+                        n = $"{n.Substring(0, lineWidth - 3)}...";
                     }
                 }
                 
@@ -238,8 +239,8 @@ public class ExchangeModel {
                     new ColoredGlyph(Color.White, Color.Black, '#');
                 con.SetCellAppearance(barX, 16 + i, cg);
             }
-            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
-            barX += 33;
+            line(new Point(barX, 16 + 26), new Point(barX + lineWidth + 7, 16 + 26), '-');
+            barX += lineWidth + 7;
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         } else {
             var highlightColor = playerSide ? Color.Yellow : Color.White;
@@ -248,12 +249,12 @@ public class ExchangeModel {
 
             int barX = x - 2;
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
-            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
-            barX += 33;
+            line(new Point(barX, 16 + 26), new Point(barX + lineWidth + 7, 16 + 26), '-');
+            barX += lineWidth + 7;
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         }
 
-        x += 32 + 4;
+        x += lineWidth + 10;
         y = 16;
 
         var docked = traders[1];
@@ -269,7 +270,7 @@ public class ExchangeModel {
             (i => docked.items.ElementAt(i).type.name);
 
         c = !playerSide ? Color.Yellow : Color.White;
-        con.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(c, Color.Black, '-'));
+        con.DrawBox(new Rectangle(x - 2, y - 3, lineWidth + 8, 3), new ColoredGlyph(c, Color.Black, '-'));
         con.Print(x, y - 2, docked.name, c, Color.Black);
 
         start = 0;
@@ -288,18 +289,18 @@ public class ExchangeModel {
             while (i < end) {
                 var highlightColor = i == highlight ? Color.Yellow : Color.White;
                 var n = NameAt(i);
-                if (n.Length > 26) {
+                if (n.Length > lineWidth) {
                     if (i == highlight) {
                         //((tick / 15) % (n.Length - 25));
                         int initialDelay = 60;
-                        int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - 26);
+                        int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - lineWidth);
 
                         n = n.Substring(index);
-                        if (n.Length > 26) {
-                            n = $"{n.Substring(0, 23)}...";
+                        if (n.Length > lineWidth) {
+                            n = $"{n.Substring(0, lineWidth - 3)}...";
                         }
                     } else {
-                        n = $"{n.Substring(0, 23)}...";
+                        n = $"{n.Substring(0, lineWidth - 3)}...";
                     }
                 }
 
@@ -320,8 +321,8 @@ public class ExchangeModel {
                     new ColoredGlyph(Color.White, Color.Black, '#');
                 con.SetCellAppearance(barX, 16 + i, cg);
             }
-            con.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-', Color.White, null);
-            barX += 33;
+            con.DrawLine(new Point(barX, 16 + 26), new Point(barX + lineWidth + 7, 16 + 26), '-', Color.White, null);
+            barX += lineWidth + 7;
             con.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), '|', Color.White, null);
         } else {
             var highlightColor = !playerSide ? Color.Yellow : Color.White;
@@ -331,8 +332,8 @@ public class ExchangeModel {
 
             int barX = x - 2;
             con.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), '|', Color.White, null);
-            con.DrawLine(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-', Color.White, null);
-            barX += 33;
+            con.DrawLine(new Point(barX, 16 + 26), new Point(barX + lineWidth + 7, 16 + 26), '-', Color.White, null);
+            barX += lineWidth + 7;
             con.DrawLine(new Point(barX, 16), new Point(barX, 16 + 25), '|', Color.White, null);
         }
     }

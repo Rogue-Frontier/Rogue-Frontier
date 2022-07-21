@@ -70,27 +70,30 @@ public class TradeMenu : Console {
     }
     public override void Render(TimeSpan delta) {
         model.Render(this);
-        int x = 16;
-        int y = 10;
+        int x = 6;
+        int y = 4;
         var f = Color.White;
         var b = Color.Black;
         this.Print(x, y++, $"Money: {$"{player.money}".PadLeft(8)}", f, b);
         var item = model.currentItem;
+
+        if(item == null) {
+            goto Done;
+        }
         var value = item == null ? -1 : model.traderIndex == 0 ? GetSellPrice(item) : GetBuyPrice(item);
         if (value > -1) {
             var total = player.money + (model.traderIndex == 0 ? value : -value);
             this.Print(x, y++, $"       {$"{value}".PadLeft(8)}{(model.traderIndex == 0 ? '+' : '-')}", total >= 0 ? Color.Yellow : Color.Red, b);
-            this.Print(x, y++, $"Total: {$"{total}".PadLeft(8)}", Color.White, b);
+            this.Print(x, y++, $"Total: {$"{total}".PadLeft(8)}", f, b);
         }
-        if (item != null) {
-            x = 33;
-            y = 4;
-            this.Print(x, y++, item.type.name, Color.White, Color.Black);
-            y++;
-            foreach(var line in item.type.desc.SplitLine(90)) {
-                this.Print(x, y++, line, Color.White, Color.Black);
-            }
+        x = 27;
+        y = 4;
+        this.Print(x, y++, item.type.name, Color.Yellow, b);
+        y++;
+        foreach (var line in item.type.desc.SplitLine(92)) {
+            this.Print(x, y++, line, f, b);
         }
+    Done:
         base.Render(delta);
     }
 }

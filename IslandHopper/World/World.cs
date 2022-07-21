@@ -13,8 +13,8 @@ public class Island {
     public Player player { get; set; }              //	Player object that controls the game
     public TypeCollection types;
 
-    public void AddEffect(Effect e) => effects.PlaceNew(e);
-    public void AddEntity(Entity e) => entities.PlaceNew(e);
+    public void AddEffect(Effect e) => effects.Add(e);
+    public void AddEntity(Entity e) => entities.Add(e);
     public void RemoveEntity(Entity e) {
         entities.Remove(e);
     }

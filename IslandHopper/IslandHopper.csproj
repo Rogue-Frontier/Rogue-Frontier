@@ -5,6 +5,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>IslandHopper</RootNamespace>
 	<ApplicationManifest>app.manifest</ApplicationManifest>
+	<StartupObject>IslandHopper.IslandHopper</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,10 +17,10 @@
 
   <ItemGroup>
     <Reference Include="ArchConsole">
-      <HintPath>..\..\ArchConsole\ArchConsole\bin\Debug\netstandard2.1\ArchConsole.dll</HintPath>
+      <HintPath>..\..\ArchConsole\ArchConsole\bin\Release\net6.0\ArchConsole.dll</HintPath>
     </Reference>
     <Reference Include="ASECII">
-      <HintPath>..\..\ASECII\ASECII\bin\Debug\netcoreapp3.1\ASECII.dll</HintPath>
+      <HintPath>..\..\ASECII\ASECII\bin\Release\net6.0\ASECII.dll</HintPath>
     </Reference>
   </ItemGroup>
 
