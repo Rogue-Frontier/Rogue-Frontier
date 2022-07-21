@@ -332,7 +332,9 @@ public class SListScreen {
         void Escape() {
             var p = screen.Parent;
             p.Children.Remove(screen);
-            p.Children.Add(prev);
+            if (prev != null && prev != p) {
+                p.Children.Add(prev);
+            }
             p.IsFocused = true;
         }
     }
@@ -943,13 +945,12 @@ public class SListScreen {
                 result.Add(new(""));
             }
 
-
             int price = GetPrice(a);
             if (price < 0) {
                 result.Add(new("Removal services are unavailable for this armor", Color.Yellow, Color.Black));
             } else {
-                result.Add(new($"Removal fee: {price}"));
                 result.Add(new($"Your money:  {player.person.money}"));
+                result.Add(new($"Removal fee: {price}"));
                 result.Add(new(""));
                 if (price > player.person.money) {
                     result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
@@ -990,25 +991,37 @@ public class SListScreen {
                         result.AddRange(desc.Select(Main.ToColoredString));
                         result.Add(new(""));
                     }
+
+
+                    if (player.shipClass.restrictArmor?.Matches(a.source) == false) {
+                        result.Add(new("This armor is not compatible", Color.Yellow, Color.Black));
+                        return result;
+                    }
+
                     int installPrice = GetPrice(a);
                     if (installPrice < 0) {
                         result.Add(new("Install services are unavailable for this armor", Color.Yellow, Color.Black));
-                    } else {
-                        var totalCost = removalPrice + installPrice;
-                        result.Add(new($"Removal fee: {removalPrice}"));
-                        result.Add(new($"Install fee: {installPrice}"));
-                        result.Add(new($"Total cost:  {totalCost}"));
-                        result.Add(new($"Your money:  {player.person.money}"));
-                        result.Add(new(""));
-                        if (totalCost > player.person.money) {
-                            result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
-                        } else {
-                            result.Add(new($"Replace with this armor", Color.Yellow, Color.Black));
-                        }
+                        return result;
                     }
+
+                    var totalCost = removalPrice + installPrice;
+                    result.Add(new($"Your money:  {player.person.money}"));
+                    result.Add(new($"Removal fee: {removalPrice}"));
+                    result.Add(new($"Install fee: {installPrice}"));
+                    result.Add(new($"Total cost:  {totalCost}"));
+                    result.Add(new(""));
+
+                    if(totalCost > player.person.money) {
+                        result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
+                        return result;
+                    }
+                    result.Add(new($"Replace with this armor", Color.Yellow, Color.Black));
                     return result;
                 }
                 void Invoke(Armor installed) {
+                    if (player.shipClass.restrictArmor?.Matches(installed.source) == false) {
+                        return;
+                    }
                     var price = removalPrice + GetPrice(installed);
                     ref var money = ref player.person.money;
                     if (price > money) {
@@ -1037,13 +1050,6 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-
-
-
-
-
-
-
     public static ListScreen<Item> SetMod(ScreenSurface prev, PlayerShip player, Item source, Modifier mod, Action callback) {
         ListScreen<Item> screen = null;
         IEnumerable<Item> cargo;
@@ -1080,7 +1086,6 @@ public class SListScreen {
         }
         void InvokeItem(Item item) {
             item.mod = mod;
-
             player.cargo.Remove(source);
             player.AddMessage(new Message($"Applied {source.name} to {item.name}"));
             callback?.Invoke();
@@ -1093,8 +1098,6 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-
-
     public static ListScreen<Reactor> RefuelScreen1(ScreenSurface prev, PlayerShip player) {
         ListScreen<Reactor> screen = null;
         var devices = player.devices.Reactor;
@@ -1111,15 +1114,13 @@ public class SListScreen {
         List<ColoredString> GetDesc(Reactor r) {
             var item = r.source;
             var invoke = item.type.invoke;
-
             var result = new List<ColoredString>();
-
             var desc = item.type.desc.SplitLine(64);
             if (desc.Any()) {
                 result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
-
+            var a = (string s) => result.Add(new(s));
             if (r.energy < r.desc.capacity) {
                 result.Add(new("[Enter] Refuel this reactor", Color.Yellow, Color.Black));
             } else {
@@ -1133,7 +1134,6 @@ public class SListScreen {
                 p.Children.Remove(screen);
                 p.Children.Add(RefuelScreen2(prev, player));
             }
-
             ListScreen<Item> RefuelScreen2(ScreenSurface prev, PlayerShip player) {
                 ListScreen<Item> screen = null;
                 var items = player.cargo.Where(i => i.type.invoke is Refuel r);
@@ -1180,12 +1180,9 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-
-
 }
 public class ListScreen<T> : ScreenSurface {
     PlayerShip player;
-
     public bool groupMode = true;
     public IEnumerable<T> items;
     public IEnumerable<(T item, int count)> groups;
@@ -1298,18 +1295,273 @@ public class ListScreen<T> : ScreenSurface {
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
-        int x = 16;
+        int x = 6;
         int y = 16;
 
         void line(Point from, Point to, int glyph) {
             Surface.DrawLine(from, to, '-', Color.White, null);
         }
-
         this.RenderBackground();
-
         //this.Fill(new Rectangle(x, y, 32, 26), Color.Gray, null, '.');
-        Surface.DrawBox(new Rectangle(x - 2, y - 3, 34, 3), new ColoredGlyph(Color.Yellow, Color.Black, '-'));
+        const int lineWidth = 36;
+        Surface.DrawBox(new Rectangle(x - 2, y - 3, lineWidth + 8, 3), new ColoredGlyph(Color.Yellow, Color.Black, '-'));
         Surface.Print(x, y - 2, player.name, Color.Yellow, Color.Black);
+        int start = 0;
+        int? highlight = null;
+        if (index.HasValue) {
+            start = Math.Max(index.Value - 16, 0);
+            highlight = index;
+        }
+        Func<int, string> NameAt = groupMode ? i => {
+            var g = groups.ElementAt(i);
+            return $"{g.count}x {getName(g.item)}";
+        } : i => getName(items.ElementAt(i));
+        int end = Math.Min(count, start + 26);
+
+        if (count > 0) {
+            int i = start;
+            while (i < end) {
+                var highlightColor = i == highlight ? Color.Yellow : Color.White;
+                var n = NameAt(i);
+                if (n.Length > lineWidth) {
+                    if (i == highlight) {
+                        //((tick / 15) % (n.Length - 25));
+                        int initialDelay = 60;
+                        int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - lineWidth);
+
+                        n = n.Substring(index);
+                        if (n.Length > lineWidth) {
+                            n = $"{n.Substring(0, lineWidth-3)}...";
+                        }
+                    } else {
+                        n = $"{n.Substring(0, lineWidth-3)}...";
+                    }
+                }
+                var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", highlightColor, Color.Black)
+                         + new ColoredString(n, highlightColor, Color.Black);
+                Surface.Print(x, y, name);
+                i++;
+                y++;
+            }
+            int height = 26;
+            int barStart = (height * (start)) / count;
+            int barEnd = (height * (end)) / count;
+            int barX = x - 2;
+
+            for (i = 0; i < height; i++) {
+                ColoredGlyph cg = (i < barStart || i > barEnd) ?
+                    new ColoredGlyph(Color.LightGray, Color.Black, '|') :
+                    new ColoredGlyph(Color.White, Color.Black, '#');
+                Surface.SetCellAppearance(barX, 16 + i, cg);
+            }
+
+            line(new Point(barX, 16 + 26), new Point(barX + lineWidth + 7, 16 + 26), '-');
+            barX += lineWidth + 7;
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+        } else {
+            var highlightColor = Color.Yellow;
+            var name = new ColoredString("<Empty>", highlightColor, Color.Black);
+            Surface.Print(x, y, name);
+
+            int barX = x - 2;
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+            line(new Point(barX, 16 + 26), new Point(barX + lineWidth + 7, 16 + 26), '-');
+            barX += 33;
+            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+        }
+        //this.DrawLine(new Point(x, y));
+        y = Surface.Height - 16;
+        foreach (var m in player.messages) {
+            Surface.Print(x, y++, m.Draw());
+        }
+        x += lineWidth + 7 + 1;
+        y = 14;
+        var item = currentItem;
+        if (item != null) {
+            Surface.Print(x, y, getName(item), Color.Yellow, Color.Black);
+            y += 2;
+            foreach (var l in getDesc(item)) {
+                Surface.Print(x, y++, l);
+            }
+        }
+        base.Render(delta);
+    }
+}
+public static class SListWidget {
+    public static ListWidget<Item> InvokableWidget(ScreenSurface prev, PlayerShip player) {
+        ListWidget<Item> screen = null;
+        IEnumerable<Item> cargoInvokable;
+        IEnumerable<Item> installedInvokable;
+        List<Item> usable = new();
+        void UpdateList() {
+            cargoInvokable = player.cargo.Where(i => i.type.invoke != null);
+            installedInvokable = player.devices.Installed.Select(d => d.source).Where(i => i.type.invoke != null);
+            usable.Clear();
+            usable.AddRange(installedInvokable.Concat(cargoInvokable));
+        }
+        UpdateList();
+
+        return screen = new(prev,
+            player,
+            usable,
+            GetName,
+            GetDesc,
+            InvokeItem,
+            Escape
+            );
+
+        string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "Equip> " : "Cargo> ")}{i.type.name}";
+        List<ColoredString> GetDesc(Item item) {
+            var invoke = item.type.invoke;
+            List<ColoredString> result = new();
+            var desc = item.type.desc.SplitLine(64);
+            if (desc.Any()) {
+                result.AddRange(desc.Select(Main.ToColoredString));
+                result.Add(new(""));
+            }
+            if (invoke != null) {
+                string action = $"[Enter] {invoke.GetDesc(player, item)}";
+                result.Add(new(action, Color.Yellow, Color.Black));
+            }
+            return result;
+        }
+        void InvokeItem(Item item) {
+            item.type.invoke?.Invoke(screen, player, item, Update);
+            screen.UpdateIndex();
+        }
+        void Update() {
+            UpdateList();
+            screen.UpdateIndex();
+        }
+        void Escape() {
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.IsFocused = true;
+        }
+    }
+}
+public class ListWidget<T> : ScreenSurface {
+    PlayerShip player;
+    public bool groupMode = true;
+    public IEnumerable<T> items;
+    public IEnumerable<(T item, int count)> groups;
+    public int count => groupMode ? groups.Count() : items.Count();
+    public T currentItem => index.HasValue ? (groupMode ? groups.ElementAt(index.Value).item : items.ElementAt(index.Value)) : default;
+    int? index;
+    GetName getName;
+    GetDesc getDesc;
+    Invoke invoke;
+    Escape escape;
+    int tick;
+    public delegate string GetName(T t);
+    public delegate List<ColoredString> GetDesc(T t);
+    public delegate void Invoke(T t);
+    public delegate void Escape();
+    public ListWidget(ScreenSurface prev, PlayerShip player, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
+        this.player = player;
+        this.items = items;
+        this.getName = getName;
+        this.getDesc = getDesc;
+        this.invoke = invoke;
+        this.escape = escape;
+        UpdateIndex();
+    }
+    public void UpdateGroups() {
+        var l = items.ToList();
+        groups = items.GroupBy(i => getName(i))
+            .OrderBy(g => l.IndexOf(g.First()))
+            .Select(g => (g.Last(), g.Count()))
+            .ToHashSet();
+
+    }
+    public void UpdateIndex() {
+        if (groupMode) UpdateGroups();
+        index = count > 0 ? Math.Min(index ?? 0, count - 1) : null;
+        tick = 0;
+    }
+
+    public override bool ProcessKeyboard(Keyboard keyboard) {
+        foreach (var key in keyboard.KeysPressed) {
+            switch (key.Key) {
+                case Keys.Up:
+                    index = count > 0 ?
+                        (index == null ? (count - 1) :
+                            index == 0 ? null :
+                            Math.Max(index.Value - 1, 0))
+                        : null;
+                    tick = 0;
+                    break;
+                case Keys.PageUp:
+                    index = count > 0 ?
+                        (index == null ? (count - 1) :
+                            index == 0 ? null :
+                            Math.Max(index.Value - 26, 0))
+                        : null;
+                    tick = 0;
+                    break;
+                case Keys.Down:
+                    index = count > 0 ?
+                        (index == null ? 0 :
+                            index == count - 1 ? null :
+                            Math.Min(index.Value + 1, count - 1))
+                        : null;
+                    tick = 0;
+                    break;
+                case Keys.PageDown:
+                    index = count > 0 ?
+                        (index == null ? 0 :
+                            index == count - 1 ? null :
+                            Math.Min(index.Value + 26, count - 1))
+                        : null;
+                    tick = 0;
+                    break;
+                case Keys.Enter:
+                    var i = currentItem;
+                    if (i != null) {
+                        invoke(i);
+                        UpdateIndex();
+                    }
+                    break;
+                case Keys.Escape:
+                    /*
+                    var parent = Parent;
+                    parent.Children.Remove(this);
+                    prev.IsFocused = true;
+                    */
+                    escape();
+                    break;
+                default:
+                    var ch = char.ToLower(key.Character);
+                    if (ch >= 'a' && ch <= 'z') {
+                        int start = Math.Max((index ?? 0) - 13, 0);
+                        var letterIndex = start + letterToIndex(ch);
+                        if (letterIndex == index) {
+                            invoke(currentItem);
+                            UpdateIndex();
+                        } else if (letterIndex < count) {
+                            //var item = items.ElementAt(letterIndex);
+                            index = letterIndex;
+                            tick = 0;
+                        }
+                    }
+                    break;
+            }
+        }
+        return base.ProcessKeyboard(keyboard);
+    }
+    public override void Update(TimeSpan delta) {
+        tick++;
+        base.Update(delta);
+    }
+    public override void Render(TimeSpan delta) {
+        int x = 5;
+        int y = 16;
+
+        void line(Point from, Point to, int glyph) {
+            Surface.DrawLine(from, to, '-', Color.White, null);
+        }
+        const int WIDTH = 36;
+        Surface.Clear();
         int start = 0;
         int? highlight = null;
         if (index.HasValue) {
@@ -1320,26 +1572,29 @@ public class ListScreen<T> : ScreenSurface {
         Func<int, string> NameAt = groupMode ? i => {
             var g = groups.ElementAt(i);
             return $"{g.count}x {getName(g.item)}";
-        } : i => getName(items.ElementAt(i));
+        }
+        : i => getName(items.ElementAt(i));
 
         int end = Math.Min(count, start + 26);
+
+
         if (count > 0) {
             int i = start;
             while (i < end) {
                 var highlightColor = i == highlight ? Color.Yellow : Color.White;
                 var n = NameAt(i);
-                if (n.Length > 26) {
+                if (n.Length > WIDTH) {
                     if (i == highlight) {
                         //((tick / 15) % (n.Length - 25));
                         int initialDelay = 60;
-                        int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - 26);
+                        int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - WIDTH);
 
                         n = n.Substring(index);
-                        if (n.Length > 26) {
-                            n = $"{n.Substring(0, 23)}...";
+                        if (n.Length > WIDTH) {
+                            n = $"{n.Substring(0, WIDTH-3)}...";
                         }
                     } else {
-                        n = $"{n.Substring(0, 23)}...";
+                        n = $"{n.Substring(0, WIDTH-3)}...";
                     }
                 }
                 var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", highlightColor, Color.Black)
@@ -1363,8 +1618,9 @@ public class ListScreen<T> : ScreenSurface {
                 Surface.SetCellAppearance(barX, 16 + i, cg);
             }
 
-            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
-            barX += 33;
+            line(new(barX, 15), new(barX + WIDTH + 7, 15), '-');
+            line(new(barX, 16 + 26), new(barX + WIDTH + 7, 16 + 26), '-');
+            barX += WIDTH + 7;
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         } else {
             var highlightColor = Color.Yellow;
@@ -1372,21 +1628,15 @@ public class ListScreen<T> : ScreenSurface {
             Surface.Print(x, y, name);
 
             int barX = x - 2;
+            line(new(barX, 15), new(barX + WIDTH + 7, 15), '-');
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
-            line(new Point(barX, 16 + 26), new Point(barX + 33, 16 + 26), '-');
-            barX += 33;
+            line(new Point(barX, 16 + 26), new Point(barX + WIDTH + 7, 16 + 26), '-');
+            barX += WIDTH + 7;
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         }
 
-        //this.DrawLine(new Point(x, y));
-
-        y = Surface.Height - 16;
-        foreach (var m in player.messages) {
-            Surface.Print(x, y++, m.Draw());
-        }
-
-        x += 32 + 2;
-        y = 14;
+        x += WIDTH + 7;
+        y = 16;
         var item = currentItem;
         if (item != null) {
             Surface.Print(x, y, getName(item), Color.Yellow, Color.Black);

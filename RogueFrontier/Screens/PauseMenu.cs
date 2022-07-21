@@ -11,10 +11,10 @@ using System.Linq;
 
 namespace RogueFrontier;
 
-public class PauseMenu : Console {
+public class PauseScreen : Console {
     public PlayerMain playerMain;
     public SparkleFilter sparkle;
-    public PauseMenu(PlayerMain playerMain) : base(playerMain.Width, playerMain.Height) {
+    public PauseScreen(PlayerMain playerMain) : base(playerMain.Width, playerMain.Height) {
         this.playerMain = playerMain;
         this.sparkle = new SparkleFilter(Width, Height);
 

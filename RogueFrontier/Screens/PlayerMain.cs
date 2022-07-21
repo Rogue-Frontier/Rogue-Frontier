@@ -72,10 +72,11 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
     public Readout uiMain;  //If this is visible, then all other ui Consoles are visible
     public Edgemap uiEdge;
     public Minimap uiMinimap;
-    public CommunicationsMenu communicationsMenu;
-    public PowerMenu powerMenu;
-    public PauseMenu pauseMenu;
-    public GalaxyMap galaxyMap;
+    public CommunicationsWidget communicationsWidget;
+    public PowerWidget powerWidget;
+    public ListWidget<Item> invokeWidget;
+    public PauseScreen pauseScreen;
+    public GalaxyMap networkMap;
     private TargetingMarker crosshair;
 
     private double targetCameraRotation;
@@ -107,10 +108,11 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         uiMain = new(camera, playerShip, Width, Height);
         uiEdge = new(camera, playerShip, Width, Height);
         uiMinimap = new(this, playerShip, 16, camera);
-        communicationsMenu = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
-        powerMenu = new(31, 16, this) { IsVisible = false, Position = new(3, 32) };
-        pauseMenu = new(this) { IsVisible = false };
-        galaxyMap = new(this) { IsVisible = false };
+        communicationsWidget = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
+        powerWidget = new(31, 16, this) { IsVisible = false, Position = new(3, 32) };
+
+        pauseScreen = new(this) { IsVisible = false };
+        networkMap = new(this) { IsVisible = false };
 
         crosshair = new(playerShip, "Mouse Cursor", new XY());
 
@@ -132,13 +134,13 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         //Force exit any scenes
         sceneContainer.Children.Clear();
         //Force exit power menu
-        powerMenu.IsVisible = false;
-        communicationsMenu.IsVisible = false;
+        powerWidget.IsVisible = false;
+        communicationsWidget.IsVisible = false;
         uiMain.IsVisible = false;
 
 
         //Pretty sure this can't happen but make sure
-        pauseMenu.IsVisible = false;
+        pauseScreen.IsVisible = false;
     }
 
     public void Jump() {
@@ -348,12 +350,12 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         //if(!frameRendered) return;
         if (updatesSinceRender > 2) return;
         updatesSinceRender++;
-        if (pauseMenu.IsVisible) {
-            pauseMenu.Update(delta);
+        if (pauseScreen.IsVisible) {
+            pauseScreen.Update(delta);
             return;
         }
-        if (galaxyMap.IsVisible) {
-            galaxyMap.Update(delta);
+        if (networkMap.IsVisible) {
+            networkMap.Update(delta);
             return;
         }
 
@@ -465,11 +467,11 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
                 uiMegamap.Update(delta);
                 vignette.Update(delta);
             }
-            if (powerMenu.IsVisible) {
-                powerMenu.Update(delta);
+            if (powerWidget.IsVisible) {
+                powerWidget.Update(delta);
             }
-            if (communicationsMenu.IsVisible) {
-                communicationsMenu.Update(delta);
+            if (communicationsWidget.IsVisible) {
+                communicationsWidget.Update(delta);
             }
         }
     }
@@ -489,13 +491,13 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         viewport.Render(delta);
     }
     public override void Render(TimeSpan drawTime) {
-        if (pauseMenu.IsVisible) {
+        if (pauseScreen.IsVisible) {
             back.Render(drawTime);
             viewport.Render(drawTime);
             vignette.Render(drawTime);
-            pauseMenu.Render(drawTime);
-        } else if (galaxyMap.IsVisible) {
-            galaxyMap.Render(drawTime);
+            pauseScreen.Render(drawTime);
+        } else if (networkMap.IsVisible) {
+            networkMap.Render(drawTime);
         } else if (sceneContainer.Children.Count > 0) {
             back.Render(drawTime);
             viewport.Render(drawTime);
@@ -555,11 +557,11 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
                     vignette.Render(drawTime);
                 }
             }
-            if (powerMenu.IsVisible) {
-                powerMenu.Render(drawTime);
+            if (powerWidget.IsVisible) {
+                powerWidget.Render(drawTime);
             }
-            if (communicationsMenu.IsVisible) {
-                communicationsMenu.Render(drawTime);
+            if (communicationsWidget.IsVisible) {
+                communicationsWidget.Render(drawTime);
             }
         } else {
             back.Render(drawTime);
@@ -592,16 +594,16 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
 #endif
 
         //Intercept the alphanumeric/Escape keys if the power menu is active
-        if (pauseMenu.IsVisible) {
-            pauseMenu.ProcessKeyboard(info);
-        } else if (galaxyMap.IsVisible) {
-            galaxyMap.ProcessKeyboard(info);
-        } else if (powerMenu.IsVisible) {
+        if (pauseScreen.IsVisible) {
+            pauseScreen.ProcessKeyboard(info);
+        } else if (networkMap.IsVisible) {
+            networkMap.ProcessKeyboard(info);
+        } else if (powerWidget.IsVisible) {
             playerControls.ProcessWithMenu(info);
-            powerMenu.ProcessKeyboard(info);
-        } else if (communicationsMenu.IsVisible) {
+            powerWidget.ProcessKeyboard(info);
+        } else if (communicationsWidget.IsVisible) {
             playerControls.ProcessWithMenu(info);
-            communicationsMenu.ProcessKeyboard(info);
+            communicationsWidget.ProcessKeyboard(info);
         } else {
             playerControls.ProcessKeyboard(info);
             var p = (Keys k) => info.IsKeyPressed(k);
@@ -651,16 +653,16 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         }
     }
     public override bool ProcessMouse(MouseScreenObjectState state) {
-        if (pauseMenu.IsVisible) {
-            pauseMenu.ProcessMouseTree(state.Mouse);
-        } else if (galaxyMap.IsVisible) {
-            galaxyMap.ProcessMouseTree(state.Mouse);
+        if (pauseScreen.IsVisible) {
+            pauseScreen.ProcessMouseTree(state.Mouse);
+        } else if (networkMap.IsVisible) {
+            networkMap.ProcessMouseTree(state.Mouse);
         } else if (sceneContainer.Children.Any()) {
             sceneContainer.ProcessMouseTree(state.Mouse);
-        } else if (powerMenu.IsVisible
-            && powerMenu.blockMouse
-            && new MouseScreenObjectState(powerMenu, state.Mouse).IsOnScreenObject) {
-            powerMenu.ProcessMouseTree(state.Mouse);
+        } else if (powerWidget.IsVisible
+            && powerWidget.blockMouse
+            && new MouseScreenObjectState(powerWidget, state.Mouse).IsOnScreenObject) {
+            powerWidget.ProcessMouseTree(state.Mouse);
         } else if (state.IsOnScreenObject) {
             if(sleepMouse) {
                 sleepMouse = state.SurfacePixelPosition.Equals(prevMouse.SurfacePixelPosition);
@@ -1864,11 +1866,11 @@ public class Minimap : ScreenSurface {
         base.Render(delta);
     }
 }
-public class CommunicationsMenu : ScreenSurface {
+public class CommunicationsWidget : ScreenSurface {
     PlayerShip playerShip;
     int ticks;
     CommandMenu menu;
-    public CommunicationsMenu(int width, int height, PlayerShip playerShip) : base(width, height) {
+    public CommunicationsWidget(int width, int height, PlayerShip playerShip) : base(width, height) {
         this.playerShip = playerShip;
         menu = new(this, null, null) { IsVisible = false };
     }
@@ -2040,7 +2042,7 @@ public class CommunicationsMenu : ScreenSurface {
         }
     }
 }
-public class PowerMenu : ScreenSurface {
+public class PowerWidget : ScreenSurface {
     PlayerShip playerShip;
     PlayerMain main;
     int ticks;
@@ -2053,7 +2055,7 @@ public class PowerMenu : ScreenSurface {
         }
         get => _blockMouse;
     }
-    public PowerMenu(int width, int height, PlayerMain main) : base(width, height) {
+    public PowerWidget(int width, int height, PlayerMain main) : base(width, height) {
         this.playerShip = main.playerShip;
         this.main = main;
         FocusOnMouseClick = false;

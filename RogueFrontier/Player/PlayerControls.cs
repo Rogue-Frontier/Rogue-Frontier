@@ -154,20 +154,23 @@ public class PlayerControls {
         ProcessTargeting();
         ProcessCommon();
         if (input.Escape) {
-            playerMain.pauseMenu.IsVisible = true;
+            playerMain.pauseScreen.IsVisible = true;
         }
         if (input.Powers) {
-            if (playerMain.powerMenu is var m) {
+            if (playerMain.powerWidget is var m) {
                 m.IsVisible = !m.IsVisible;
             }
         }
+        if (info.IsKeyPressed(I)) {
+            playerMain.sceneContainer?.Children.Add(SListScreen.InvokableScreen(playerMain.sceneContainer, playerShip));
+        }
         if (input.Communications) {
-            if (playerMain.communicationsMenu is var m) {
+            if (playerMain.communicationsWidget is var m) {
                 m.IsVisible = !m.IsVisible;
             }
         }
         if (input.Galaxy) {
-            if (playerMain.galaxyMap is var m) {
+            if (playerMain.networkMap is var m) {
                 m.IsVisible = !m.IsVisible;
             }
         }
