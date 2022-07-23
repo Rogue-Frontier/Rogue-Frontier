@@ -151,9 +151,8 @@
 			>
 		</Shield>
 	</ItemType>
-
 	<ItemType	codename=	"item_darkened_knightsteel_plate"
-		name=		"Darkened Knightscale plate"
+		name=		"Dark Knightsteel plate"
 		mass=		"6000"
 		level=		"1"
 		value=		"5000"
@@ -164,8 +163,6 @@
 			>
 		</Armor>
 	</ItemType>
-	
-	
 	<ShipClass    codename=	"ship_brutus"
 				  inherit=	"ship_beowulf"
 				  name=		"Brutus-class gunship"
@@ -220,15 +217,11 @@
 		>
 		</PlayerSettings>
 	</ShipClass>
-
 	<StationType	codename="station_dark_star_fortress"
 					name=		"Dark Star fortress"
 					sovereign=	"sovereign_dark_star"
-
 					hp=			"600"
-					
 					stealth="2"
-					
 					structure="RogueFrontierContent/sprites/DarkStarFortress.asc.cg"
 		>
 		<Weapons>
@@ -240,15 +233,11 @@
 			<Ship codename="ship_machiavelli" count="4" order="guard"/>
 		</Ships>
 	</StationType>
-
 	<StationType	codename="station_dark_star_shipyard"
 					name=		"Dark Star shipyard"
 					sovereign=	"sovereign_dark_star"
-
 					hp=			"900"
-					
 					stealth="2"
-					
 					structure="RogueFrontierContent/sprites/DarkStarShipyard.asc.cg"
 		>
 		<Weapons>

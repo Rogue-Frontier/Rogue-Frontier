@@ -31,6 +31,7 @@ public record DeployShip : ItemUse {
             );
         player.onDestroyed += w;
         player.world.AddEntity(a);
+        player.world.AddEffect(new Heading(a));
         player.wingmates.Add(a);
         player.AddMessage(new Transmission(a, $"Deployed {shipType.name}"));
         player.cargo.Remove(item);
@@ -434,7 +435,7 @@ public record FragmentDesc {
     [Opt] public bool magic;
     [Opt] public IDice blind;
     [Opt] public int ricochet;
-    [Opt] public bool tracker;
+    [Opt] public int tracker;
     [Opt] public bool beacon;
     [Opt] public bool hook;
     [Opt] public bool lightning;    //On hit, the projectile attaches an overlay that automatically makes future shots hit instantly

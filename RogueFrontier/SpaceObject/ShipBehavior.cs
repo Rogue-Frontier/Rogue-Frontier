@@ -490,6 +490,73 @@ public class AttackAllOrder : IShipOrder {
     }
     public bool Active => true;
 }
+public class FireTrackerOrder : IShipOrder, IContainer<Weapon.OnHitActive> {
+    public int sleepTicks;
+    public AttackOrder attack;
+    public bool CanTarget(ActiveObject other) => other == attack.target;
+    Weapon.OnHitActive IContainer<Weapon.OnHitActive>.Value => (w, p, h) => {
+        if (p.hitHull) {
+            _active = false;
+        }
+    };
+    public FireTrackerOrder(Weapon w, ActiveObject target) {
+        attack = new(target);
+        w.onHitActive += this;
+    }
+    public void Update(AIShip owner) {
+        if (sleepTicks > 0) {
+            sleepTicks--;
+            return;
+        }
+        if (attack.Active == true) {
+            attack.Update(owner);
+            return;
+        }
+        sleepTicks = 150;
+        _active = false;
+    }
+    private bool _active = true;
+    public bool Active => _active;
+}
+public class FireTrackerNearbyOrder : IShipOrder, IContainer<Weapon.OnHitActive> {
+    public int sleepTicks;
+    public AttackOrder attack;
+    public bool CanTarget(ActiveObject other) => other == attack.target;
+    Weapon.OnHitActive IContainer<Weapon.OnHitActive>.Value => (w, p, h) => {
+        if (p.hitHull && h == attack.target) {
+            attack.ClearTarget();
+        }
+    };
+    public FireTrackerNearbyOrder(Weapon w) {
+        attack = new(null);
+        w.onHitActive += this;
+    }
+    public void Update(AIShip owner) {
+        if (sleepTicks > 0) {
+            sleepTicks--;
+            return;
+        }
+        if (attack.Active == true) {
+            attack.Update(owner);
+            return;
+        }
+
+        var target = owner.world.entities.all
+            .OfType<ActiveObject>()
+            .Where(o => owner.IsEnemy(o) && !owner.IsEqual(o))
+            .GetRandomOrDefault(owner.destiny);
+
+        //If we can't find a target, then give up
+        if (target != null) {
+            attack.SetTarget(target);
+            return;
+        }
+        _active = false;
+    }
+    private bool _active = true;
+    public bool Active => _active;
+}
+
 public class AttackGroupOrder : IShipOrder {
     public HashSet<ActiveObject> targets=new();
     public AttackOrder attackOrder=new(null);

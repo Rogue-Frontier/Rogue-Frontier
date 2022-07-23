@@ -333,8 +333,6 @@ public class AIShip : IShip {
     public BaseShip ship;
     public Docking dock { get; set; }
 
-
-
     public delegate void WeaponFired(AIShip aiShip, Weapon w, List<Projectile> p);
     public FuncSet<IContainer<WeaponFired>> onWeaponFire = new();
 
@@ -377,9 +375,10 @@ public class AIShip : IShip {
         dock?.Update(this);
 
         ship.Update();
-        if(world.tick%15 == 0 && dock?.Target is Station st) {
+        if(world.tick%30 == 0 && dock?.Target is Station st) {
             ship.stealth = Math.Max(ship.stealth, st.stealth);
         }
+
 
         //We update the ship's devices as ourselves because they need to know who the exact owner is
         //In case someone other than us needs to know who we are through our devices
@@ -469,7 +468,7 @@ public class PlayerShip : IShip {
     public List<AIShip> wingmates = new();
 
     public Dictionary<ulong, double> visibleDistanceLeft=new();
-    public Dictionary<ActiveObject, int> trackers = new();
+    public Dictionary<ActiveObject, int> tracking = new();
 
     public PlayerShip() { }
     public PlayerShip(Player person, BaseShip ship, Sovereign sovereign) {
@@ -787,11 +786,11 @@ public class PlayerShip : IShip {
                         break;
                 }
             }
-            foreach(var e in trackers.Keys) {
+            foreach(var e in tracking.Keys) {
                 visibleDistanceLeft[e.id] = 16;
-                trackers[e] -= 15;
-                if(!e.active || trackers[e] < 1) {
-                    trackers.Remove(e);
+                tracking[e] -= 15;
+                if(!e.active || tracking[e] < 1) {
+                    tracking.Remove(e);
                 }
             }
             /*

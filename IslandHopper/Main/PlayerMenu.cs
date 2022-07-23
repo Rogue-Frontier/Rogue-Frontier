@@ -40,7 +40,7 @@ class ListEntity : ListChoice<Entity> {
 }
 class ListMenu<T> : Console {
     string hint;
-    HashSet<ListChoice<T>> Choices;
+    List<ListChoice<T>> Choices;
     Func<T, bool> select;       //Fires when we select an item. If true, then we remove the item from the selections
     int startIndex;
     public static ListMenu<IItem> itemSelector(int Width, int Height, string hint, IEnumerable<IItem> Items, Func<IItem, bool> select) {
@@ -50,7 +50,7 @@ class ListMenu<T> : Console {
         UseKeyboard = true;
 
         this.hint = hint;
-        this.Choices = new HashSet<ListChoice<T>>(Choices);
+        this.Choices = new List<ListChoice<T>>(Choices);
         this.select = select;
         startIndex = 0;
     }
@@ -61,31 +61,32 @@ class ListMenu<T> : Console {
         this.Clear();
         int x = 5;
         int y = 5;
-        this.Print(x, y, hint, Color.White, Color.Black);
+
+        var printbw = (int x, int y, string s) => this.Print(x, y, s, Color.White, Color.Black);
+        printbw(x, y, hint);
         y++;
         if (Choices.Count > 0) {
             string UP = ((char)24).ToString();
             string LEFT = ((char)27).ToString();
-            this.Print(x, y, "    ", foreground: Color.White, background: Color.Black);
+            printbw(x, y, "    ");
             if (CanScrollUp) {
-                this.Print(x, y, UP, Color.White, Color.Black);
+                printbw(x, y, UP);
                 if (CanPageUp)
-                    this.Print(x + 2, y, LEFT, Color.White, Color.Black);
-                this.Print(x + 4, y, startIndex.ToString(), Color.White, Color.Black);
+                    printbw(x + 2, y, LEFT);
+                printbw(x + 4, y, startIndex.ToString());
             } else {
-                this.Print(x, y, "-", Color.White, Color.Black);
+                printbw(x, y, "-");
             }
             y++;
 
-            List<ListChoice<T>> list = Choices.ToList();
             for (int i = startIndex; i < startIndex + 26; i++) {
                 if (i < Choices.Count) {
                     char binding = (char)('a' + (i - startIndex));
                     this.Print(x, y, "" + binding, Color.LimeGreen, Color.Black);
                     this.Print(x + 1, y, " ", Color.Black, Color.Black);
-                    this.Print(x + 2, y, list[i].GetSymbolCenter().ToColoredString());
+                    this.Print(x + 2, y, Choices[i].GetSymbolCenter().ToColoredString());
                     this.Print(x + 3, y, " ", Color.Black, Color.Black);
-                    this.Print(x + 4, y, list[i].GetName());
+                    this.Print(x + 4, y, Choices[i].GetName());
                 } else {
                     this.Print(x, y, ".", Color.Gray, Color.Black);
                 }
@@ -94,14 +95,14 @@ class ListMenu<T> : Console {
 
             string DOWN = ((char)25).ToString();
             string RIGHT = ((char)26).ToString();
-            this.Print(x, y, "    ", foreground: Color.White, background: Color.Black);
+            printbw(x, y, "    ");
             if (CanScrollDown) {
-                this.Print(x, y, DOWN, Color.White, Color.Black);
+                printbw(x, y, DOWN);
                 if (CanPageDown)
-                    this.Print(x + 2, y, RIGHT, Color.White, Color.Black);
-                this.Print(x + 4, y, ((Choices.Count - 26) - startIndex).ToString(), Color.White, Color.Black);
+                    printbw(x + 2, y, RIGHT);
+                printbw(x + 4, y, ((Choices.Count - 26) - startIndex).ToString());
             } else {
-                this.Print(x, y, "-", Color.White, Color.Black);
+                printbw(x, y, "-");
             }
 
             y++;
@@ -150,7 +151,7 @@ class ListMenu<T> : Console {
                     int index = (key - Keys.A) + startIndex;
                     if (index < Choices.Count) {
                         //Select the item
-                        ListChoice<T> selected = Choices.ToList()[index];
+                        var selected = Choices.ElementAt(index);
                         if (select.Invoke(selected.Value)) {
                             Choices.Remove(selected);
 
@@ -191,9 +192,9 @@ class ReloadMenu : Console {
         ((Console)ammoSelector ?? itemSelector).Render(drawTime);
     }
     public void UpdateItemSelector() {
-        itemSelector = new ListMenu<IItem>(Width, Height, "Select item to reload. ESC to cancel.", p.Inventory.Where(Item => Item.Gun != null).Select(Item => new ListItem(Item)), target => {
+        itemSelector = new(Width, Height, "Select item to reload. ESC to cancel.", p.Inventory.Where(Item => Item.Gun != null).Select(Item => new ListItem(Item)), target => {
             //Remove the item selector and add a location selector
-            ammoSelector = new ListMenu<IItem>(Width, Height, "Select item to consume. ESC to cancel.",
+            ammoSelector = new(Width, Height, "Select item to consume. ESC to cancel.",
                 p.Inventory.Where(i => i.Type.ammo != null).Select(i => new ListItem(i)), ammo => {
                     var g = target.Gun;
                     p.Actions.Add(new ReloadAction(g, ammo.Type.ammo.amount));
@@ -257,9 +258,9 @@ class ShootMenu : Console {
         ((Console)targetSelector ?? itemSelector).Render(drawTime);
     }
     public void UpdateItemSelector() {
-        itemSelector = new ListMenu<IItem>(Width, Height, "Select item to shoot with. ESC to cancel.", p.Inventory.Where(Item => Item.Gun != null).Select(Item => new ListItem(Item)), item => {
+        itemSelector = new(Width, Height, "Select item to shoot with. ESC to cancel.", p.Inventory.Where(Item => Item.Gun != null).Select(Item => new ListItem(Item)), item => {
             //Remove the item selector and add a location selector
-            targetSelector = new LookMenu(Width, Height, w, "Select target to shoot at. Enter to select a general location. ESC to cancel.", target => {
+            targetSelector = new(Width, Height, w, "Select target to shoot at. Enter to select a general location. ESC to cancel.", target => {
                 p.Actions.Add(new ShootAction(p, item, new TargetEntity(target)));
                 Close();
                 return false;
@@ -330,8 +331,8 @@ class ThrowMenu : Console {
         ((Console)targetSelector ?? itemSelector).Render(drawTime);
     }
     public void UpdateItemSelector() {
-        itemSelector = new ListMenu<IItem>(Width, Height, "Select item to throw. ESC to cancel.", p.Inventory.Select(Item => new ListItem(Item)), item => {
-            targetSelector = new LookMenu(Width, Height, w, "Select target to throw item at. Enter to select a general location. ESC to cancel.", target => {
+        itemSelector = new(Width, Height, "Select item to throw. ESC to cancel.", p.Inventory.Select(Item => new ListItem(Item)), item => {
+            targetSelector = new(Width, Height, w, "Select target to throw item at. Enter to select a general location. ESC to cancel.", target => {
                 ThrowItem(target, item);
                 Close();
                 return false;
@@ -458,7 +459,7 @@ class LookMenu : Console {
         this.Clear();
         if (cursorVisible) {
             this.DebugInfo($"Draw Cursor @ ({Width / 2}, {Height / 2})");
-            this.Print(Width / 2, Height / 2, cursor);
+            this.SetCellAppearance(Width / 2, Height / 2, cursor);
         }
         base.Render(delta);
         examineMenu?.Render(delta);
@@ -471,7 +472,7 @@ class LookMenu : Console {
     public void UpdateExamine() {
         var ent = world.entities[world.camera];
         if (ent != null) {
-            examineMenu = new ListMenu<Entity>(Width, Height, hint, ent.Select(e => new ListEntity(e)), select) {
+            examineMenu = new(Width, Height, hint, ent.Select(e => new ListEntity(e)), select) {
                 IsVisible = true,
             };
         }
@@ -485,8 +486,8 @@ class MeleeMenu : Console {
         this.p = player;
         this.Transparent();
 
-        targetSelector = new ListMenu<Entity>(Width, Height, "Select an entity to attack", targets.Select(t => new ListEntity(t)), target => {
-            weaponSelector = new ListMenu<IItem>(Width, Height, "Select an item to attack with", player.Inventory.Select(i => new ListItem(i)), weapon => {
+        targetSelector = new(Width, Height, "Select an entity to attack", targets.Select(t => new ListEntity(t)), target => {
+            weaponSelector = new(Width, Height, "Select an item to attack with", player.Inventory.Select(i => new ListItem(i)), weapon => {
                 if (!player.Actions.OfType<AttackAction>().Any()) {
                     player.Actions.Add(new AttackAction(player, target, weapon));
                     Close();

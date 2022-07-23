@@ -578,19 +578,19 @@ public class SListScreen {
         List<ColoredString> GetDesc(Reactor r) {
             var item = r.source;
             var invoke = item.type.invoke;
-
             var result = new List<ColoredString>();
-
             var desc = item.type.desc.SplitLine(64);
             if (desc.Any()) {
                 result.AddRange(desc.Select(Main.ToColoredString));
                 result.Add(new(""));
             }
-
+            result.Add(new($"Refuel amount: {refuel.energy}"));
+            result.Add(new($"Fuel needed:   {r.desc.capacity - (int)r.energy}"));
+            result.Add(new(""));
             if (r.energy < r.desc.capacity) {
-                result.Add(new("[Enter] Refuel this reactor", Color.Yellow, Color.Black));
+                result.Add(new("[Enter] Refuel", Color.Yellow, Color.Black));
             } else {
-                result.Add(new("This reactor is at full capacity", Color.Yellow, Color.Black));
+                result.Add(new("This reactor is full", Color.Yellow, Color.Black));
             }
             return result;
         }

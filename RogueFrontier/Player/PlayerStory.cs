@@ -50,7 +50,7 @@ A stout guard stands for reception duty next to a gate.
 You must be new here - We are currently listening
 for the Galactic Song, a magical harmony unlike
 any other. We may also receive a message from
-The Orator!"" the guard says.";
+The Orator today!"" the guard says.";
             var sc = new Dialog(prev, t, new() {
                 new(@"""Ummm, yeah, The Orator?""", Intro3)
             }) { background = heroImage };
@@ -87,8 +87,8 @@ good Listener means knowing the right time to speak!""";
 that there is something terribly wrong
 happening to us. All of us. Humanity.
 
-Forces of conflict are emanating from the Celestial Center
-and causing extremely deadly wars throughout our civilization.
+Forces of conflict are coming from the Celestial Center
+and causing some horrible wars throughout our civilization.
 A voice known as The Dictator seeks to control us in horrible ways.
 
 I asked The Orator about what The Dictator's intentions were, and then
@@ -97,10 +97,10 @@ raising itself into a dreadful yell. My senses began falling apart.
 One voice shouted ""SILENCE"" at the other Voice and both went quiet,
 then The Orator spoke a final message.
 
-The Orator told me, that They had an answer. And that
-if I went to Them, taking a journey to the Celestial Center,
+The Orator told me... that They had an answer. And that
+if I went to Them via journey to the Celestial Center,
 and I listened to Their words, and I wielded Their powers,
-then They would bring forth an ultimate peace.
+then... They would bring forth an ultimate peace.
 
 And...""
 
@@ -508,7 +508,7 @@ public class PlayerStory {
             ["item_orator_charm_silence"] =     3000,
             ["item_dictator_charm_silence"] =   3000,
             ["item_emp_cannon"] =               2400,
-            ["item_laser_pointer"] =            600,
+            ["item_tracking_laser"] =            600,
             ["item_beowulf_dual_laser_cannon"] =    3000,
             ["item_beowulf_dual_laser_repeater"] =  3000,
             ["item_beowulf_dual_laser_upgrade"] =   3000,
@@ -517,7 +517,7 @@ public class PlayerStory {
             ["item_klaw_missile_launcher"] =    400,
             ["item_musket_cannon"] =            3500,
             ["item_missile_defender"] =         4000,
-            ["item_laser_drone"] =              1500,
+            ["item_scanner_drone"] =              1500,
             ["item_flintlock"] =                1500,
             ["item_sabre"] =                    2500,
             ["item_knightsteel_plate"] =        5000,

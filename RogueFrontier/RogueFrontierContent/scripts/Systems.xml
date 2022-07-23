@@ -51,10 +51,8 @@
 							/>
 				<!--Starting area-->
 				<Orbital angle="random">
-
 					<!--tiny moon with warlord camp-->
 					<Group radius="80">
-					
 						<Planet radius="5"/>
 						<Orbital count="2" angle="random" increment="90-150" radius="10">
 							<Station	codename="station_orion_warlords_camp"/>
@@ -63,9 +61,7 @@
 						<Orbital angleInc="-90" radius="70">
 							<Station	codename="station_orion_warlords_stronghold"/>
 						</Orbital>
-						
 					</Group>
-
 					<!--small moon with ring of stations-->
 					<Group radius="100" angleInc="80">
 						<Planet radius="10"/>

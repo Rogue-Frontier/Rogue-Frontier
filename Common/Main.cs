@@ -227,7 +227,7 @@ public static class Main {
         for (int i = 0; i < radius; i++) {
             result.AddRange(GetSurrounding(i));
         }
-        result = new(result.Distinct(new XYZGridComparer()));
+        result = new(result.Distinct(new XYZGridComparer()).Where(p => p.Magnitude2 < radius * radius));
         return result;
     }
     //This function calculates all the points on a hollow cube of given radius around an origin of (0, 0, 0)

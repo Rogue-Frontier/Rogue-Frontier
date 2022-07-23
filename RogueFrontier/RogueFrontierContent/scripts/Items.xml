@@ -90,24 +90,25 @@
 		</Weapon>
 	</ItemType>
 
-	<ItemType	codename=	"item_laser_pointer"
-				name=		"cheap laser cannon"
+	<ItemType	codename=	"item_tracking_laser"
+				name=		"Tracking laser"
 				level=		"1"
 				mass=		"1000"
 
-				desc=		"Advancements in technology have allowed laser cannons to shrink to the size of a pistol."
+				desc=		"This anti-stealth laser cannon marks targets for easy tracking."
 		>
 		<Weapon
 			initialCharges=	"900"
 			powerUse=		"5"
-			fireCooldown=	"30"
+			fireCooldown=	"15"
 			>
 			<Projectile	missileSpeed=	"100"
 						damageType=		"1"
-						damageHP=		"1"
-						lifetime=		"30"
+						damageHP=		"3"
+						lifetime=		"60"
 						glyph=			"+"
-						foreground=		"Yellow"
+						foreground=		"White"
+						tracker=		"900"
 				/>
 		</Weapon>
 		
@@ -336,16 +337,16 @@
 				/>
 		</Weapon>
 	</ItemType>
-	<ItemType	codename=	"item_laser_drone"
-				name=		"Deployable laser drone"
+	<ItemType	codename=	"item_scanner_drone"
+				name=		"scanner drone"
 				level=		"2"
 				mass=		"12000"
 				value=		"1500"
 
 				invoke=		"deployShip"
-				shipClass=	"ship_laser_drone"
+				shipClass=	"ship_scanner_drone"
 				
-				desc=		"Deployable laser drone"
+				desc=		"The scanner drone marks enemies with a tracking laser, allowing you to break enemy stealth with ease."
 		>
 	</ItemType>
 

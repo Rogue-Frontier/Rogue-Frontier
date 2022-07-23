@@ -865,19 +865,15 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
         if (!projectileDesc.hitSource) {
             exclude.Add(owner);
         }
-
         var projectiles = projectileDesc.GetProjectiles(owner, target, direction, offset, exclude);
         projectiles.ForEach(owner.world.AddEntity);
         projectiles.ForEach(p => p.onHitActive += this);
-
         exclude.UnionWith(projectiles);
-
         result?.AddRange(projectiles);
         aiming?.OnFire();
         ammo?.OnFire();
         capacitor?.OnFire();
         onFire.ForEach(f => f(this, projectiles));
-
         exclude.UnionWith(owner.world.entities.all.OfType<ActiveObject>().Where(a => !owner.CanTarget(a)));
         switch (owner) {
             case PlayerShip p:
@@ -898,15 +894,14 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                 return;
         }
         exclude.Remove(target);
-
         void ExcludeTargets(IEnumerable<Weapon> weapons) =>
             exclude.ExceptWith(weapons.Select(w => w.aiming).Where(a => a != null).SelectMany(w => w.GetMultiTarget()));
-        
-        
     }
+    public delegate void OnHitActive(Weapon w, Projectile p, ActiveObject hit);
+    public FuncSet<IContainer<OnHitActive>> onHitActive = new();
     Projectile.OnHitActive IContainer<Projectile.OnHitActive>.Value => (projectile, hit) => {
         projectile.onHitActive -= this;
-
+        onHitActive.ForEach(a => a(this, projectile, hit));
         if (projectile.hitHull) {
             if (projectileDesc.lightning) {
                 //delay = 5;
@@ -915,9 +910,14 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             if (projectileDesc.hook) {
                 hit.world.AddEntity(new Hook(hit, projectile.source));
             }
-            if (projectileDesc.tracker) {
+            if (projectileDesc.tracker != 0) {
                 switch (projectile.source) {
-                    case PlayerShip pl: pl.trackers[hit] = 1800; break;
+                    case PlayerShip pl:
+                        pl.tracking[hit] = projectileDesc.tracker;
+                        break;
+                    case AIShip ai when ai.behavior is Wingmate w:
+                        w.player.tracking[hit] = projectileDesc.tracker;
+                        break;
                 }
             }
         }

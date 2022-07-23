@@ -73,7 +73,6 @@
         >
 		<Items>
 			<Item codename="item_beowulf_dual_laser_upgrade" count="1"/>
-			<Item codename="item_laser_drone"  count="2"/>
 			<Item codename="item_klaw_missile" count="16"/>
 			<Item codename="item_simple_fuel_rod" count="12"/>
 			<Item codename="item_armor_repair_patch"	count="4"/>
@@ -160,8 +159,9 @@
 			   background=			"Black"
         >
 		<Items>
-			<Item codename="item_simple_fuel_rod" count="24"/>
+			<Item codename="item_simple_fuel_rod"	count="24"/>
 			<Item codename="item_armor_repair_patch"	count="8"/>
+			<Item codename="item_scanner_drone"	count="4"/>
 		</Items>
         <Devices>
 			<Weapon codename="item_musket_cannon"/>
@@ -216,7 +216,7 @@
 				<Item chance="1" codename="item_simple_fuel_rod" count="4"/>
 				<Item chance="1" codename="item_klaw_missile_launcher" count="1"/>
 				<Item chance="1" codename="item_klaw_missile" count="20"/>
-				<Item chance="1" codename="item_laser_drone" count="1"/>
+				<Item chance="1" codename="item_scanner_drone" count="1"/>
 				<Item chance="1" codename="item_dynamite_cannon" count="1"/>
 				<Item chance="1" codename="item_dynamite_charge" count="10"/>
 				<Item chance="1" codename="item_shield_bash" count="1"/>
@@ -318,23 +318,23 @@
             <Armor  codename="item_knightsteel_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
-	<ShipClass codename=            "ship_laser_drone"
-			   name=                "laser drone"
-			   thrust=              "0.15"
-			   maxSpeed=            "10"
+	<ShipClass codename=            "ship_scanner_drone"
+			   name=                "scanner drone"
+			   thrust=              "0.4"
+			   maxSpeed=            "25"
 
 			   rotationAccel=       "4"
 			   rotationDecel=       "8"
 			   rotationMaxSpeed=    "4"
 
-			   glyph=                "l"
+			   glyph=                "d"
 			   foreground=          "White"
         >
 		<Devices>
-			<Weapon codename="item_laser_pointer"/>
+			<Weapon codename="item_tracking_laser"/>
 		</Devices>
 		<LayeredArmorSystem>
-			<Armor  codename="item_hunterscale_plate"/>
+			<Armor  codename="item_bumpersteel_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
     

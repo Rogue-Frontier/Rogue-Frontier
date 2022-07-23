@@ -865,11 +865,6 @@ public class Megamap : ScreenSurface {
             if(alpha < 128) {
                 alpha = (byte)(128 * Math.Sqrt(alpha / 128f));
             }
-
-
-
-
-
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
                     var offset = new XY((x - screenCenter.x) * viewScale, (y - screenCenter.y) * viewScale).Rotate(camera.rotation);
@@ -924,7 +919,7 @@ public class Megamap : ScreenSurface {
                 if (distance < threshold) {
                     f = f.SetAlpha((byte)(255 * distance / threshold));
                 }
-                t = new(f, Surface.GetBackground(x, y), t.Glyph);
+                t = new(f, Surface.GetBackground(x, y).Blend(t.Background), t.Glyph);
                 Surface.SetCellAppearance(x, y, t);
             }
             /*
@@ -1182,7 +1177,7 @@ public class Readout : ScreenSurface {
         if (player.GetTarget(out ActiveObject playerTarget)) {
             DrawTargetArrow(playerTarget, Color.Yellow);
         }
-        foreach (var t in player.trackers.Keys) {
+        foreach (var t in player.tracking.Keys) {
             DrawTargetArrow(t, Color.SpringGreen);
         }
         //var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
@@ -1288,7 +1283,8 @@ public class Readout : ScreenSurface {
                     Surface.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
                         n = offset.y > 0 ? Line.Double : Line.None,
                         s = offset.y < 0 ? Line.Double : Line.None,
-                        w = Line.Double
+                        w = Line.Double,
+                        e = offset.y == 0 ? Line.Double : Line.None
                     }]));
                     screenY -= Math.Sign(screenLineY);
                     screenLineY -= Math.Sign(screenLineY);
@@ -1336,7 +1332,7 @@ public class Readout : ScreenSurface {
         const int BAR = 8;
         if (player.GetTarget(out ActiveObject playerTarget)) {
             Surface.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
-            Surface.Print(targetX, targetY++, playerTarget.name, player.trackers.ContainsKey(playerTarget) ? Color.SpringGreen : Color.White, Color.Black);
+            Surface.Print(targetX, targetY++, playerTarget.name, player.tracking.ContainsKey(playerTarget) ? Color.SpringGreen : Color.White, Color.Black);
             PrintTarget(targetX, targetY, playerTarget);
             targetX += 32;
             targetY = 1;
@@ -1347,7 +1343,7 @@ public class Readout : ScreenSurface {
         foreach (var autoTarget in player.devices.Weapon.Select(w => w.target)) {
             if (autoTarget != null && autoTarget != playerTarget) {
                 Surface.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
-                Surface.Print(targetX, targetY++, autoTarget.name, player.trackers.ContainsKey(autoTarget) ? Color.SpringGreen : Color.White, Color.Black);
+                Surface.Print(targetX, targetY++, autoTarget.name, player.tracking.ContainsKey(autoTarget) ? Color.SpringGreen : Color.White, Color.Black);
                 PrintTarget(targetX, targetY, autoTarget);
             }
         }
@@ -1967,10 +1963,21 @@ public class CommunicationsWidget : ScreenSurface {
                         w.order = GetEscortOrder(0);
                     };
 
+                    if(subject.devices.Weapon.FirstOrDefault(w => w.projectileDesc.tracker != 0) is Weapon weapon) {
+                        commands["Fire Tracker"] = () => {
+                            if (!player.GetTarget(out ActiveObject target)) {
+                                player.AddMessage(new Transmission(subject, $"{subject.name}: Firing tracker at nearby enemies"));
+                                w.order = new FireTrackerNearbyOrder(weapon);
+                                return;
+                            }
+                            player.AddMessage(new Transmission(subject, $"{subject.name}: Firing tracker at target"));
+                            w.order = new FireTrackerOrder(weapon, target);
+                        };
+                    }
                     commands["Attack Target"] = () => {
                         if (player.GetTarget(out ActiveObject target)) {
                             w.order = new AttackOrder(target);
-                            player.AddMessage(new Transmission(subject, $"Ordered {subject.name} to Attack Target"));
+                            player.AddMessage(new Transmission(subject, $"{subject.name}: Attacking target"));
                         } else {
                             player.AddMessage(new Transmission(subject, $"No target selected"));
                         }

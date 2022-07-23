@@ -603,15 +603,11 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         SadConsole.Game.Instance.Screen = playerMain;
     }
 #endif
-
-
     void AddStarterKit(PlayerShip playerShip) {
         var tc = playerShip.world.types;
         playerShip.cargo.UnionWith(Group<Item>.From(tc, SGenerator.ParseFrom(tc, SGenerator.ItemFrom),
           @"<Items>
                 <Item codename=""item_orator_charm_silence""       count=""1""/>
-                <Item codename=""item_armor_repair_patch""  count=""4""/>
-                <Item codename=""item_simple_fuel_rod""     count=""4""/>
             </Items>"));
     }
 }

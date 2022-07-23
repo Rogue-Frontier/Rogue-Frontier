@@ -11,7 +11,7 @@ namespace IslandHopper;
 
 public class ShopConsole : Console {
     ItemType preview;
-    DictCounter<ItemType> items = new DictCounter<ItemType>();
+    DictCounter<ItemType> items = new();
     public ShopConsole(int Width, int Height) : base(Width, Height) {
         DefaultBackground = Color.Black;
         DefaultForeground = Color.White;
@@ -26,12 +26,9 @@ public class ShopConsole : Console {
             var it = s;
             var name = s.name;
 
-            var label = new Label(name) { Position = new Point(x, y) };
+            var label = new Label(name) { Position = new(x, y) };
 
-            label.MouseEnter += Row_MouseEnter;
-            void Row_MouseEnter(object sender, MouseScreenObjectState e) {
-                preview = it;
-            }
+            label.MouseEnter += (o, e) => preview = it;
             Children.Add(label);
 
             int x2 = 24;
@@ -39,15 +36,15 @@ public class ShopConsole : Console {
             Children.Add(new LabelButton("-", () => {
                 items.Decrement(it);
                 UpdateCount();
-            }) { Position = new Point(x2, y) });
+            }) { Position = new(x2, y) });
 
-            count = new Label("0") { Position = new Point(x2 + 2, y) };
+            count = new Label("0") { Position = new(x2 + 2, y) };
             Children.Add(count);
 
             Children.Add(new LabelButton("+", () => {
                 items.Increment(it);
                 UpdateCount();
-            }) { Position = new Point(x2 + 2 + 2 + 2, y) });
+            }) { Position = new(x2 + 2 + 2 + 2, y) });
             void UpdateCount() => count.text = new ColoredString(items[it].ToString(), Color.White, Color.Black);
             y++;
         }
@@ -57,11 +54,11 @@ public class ShopConsole : Console {
             int size = 128;
             int height = 30;
             var World = new Island() {
-                karma = new Rand(0),
-                entities = new LocatorDict<Entity, (int, int, int)>(new EntityPosition()),
-                effects = new LocatorDict<Effect, (int, int, int)>(new EffectPosition()),
-                voxels = new ArraySpace<Voxel>(size, size, height, new Air()),
-                camera = new XYZ(0, 0, 0),
+                karma = new(0),
+                entities = new(new EntityPosition()),
+                effects = new(new EffectPosition()),
+                voxels = new(size, size, height, new Air()),
+                camera = new(0, 0, 0),
                 types = null
                 //types = new TypeCollection(XElement.Parse(File.ReadAllText("IslandHopperContent/Items.xml")))
             };
@@ -123,7 +120,6 @@ public class ShopConsole : Console {
             Children.Add(new Label(l + " ") { Position = new Point(x, y++) });
         }
     }
-
     public override void Render(TimeSpan delta) {
         this.Clear();
         if (preview != null) {
