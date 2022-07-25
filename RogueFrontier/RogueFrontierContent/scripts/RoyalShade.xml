@@ -126,7 +126,7 @@
 			<Weapon codename="item_dark_cannon"/>
 		    <Weapon codename="item_thorn_missile_system"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_10mw_storage_battery"/>
+			<Reactor codename="item_10mw_battery"/>
         </Devices>
 		<Items>
 			<Item count="25" codename="item_thorn_missile"/>

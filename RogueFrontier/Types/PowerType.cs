@@ -106,6 +106,7 @@ public record Clonewall() : PowerEffect {
         private List<XY> offsets;
         private double[] directions;
         private FragmentDesc ready;
+        private bool busy = false;
         public Overlay(PlayerShip owner) {
             this.owner = owner;
             UpdateOffsets();
@@ -129,17 +130,22 @@ public record Clonewall() : PowerEffect {
             if(w.desc == null) {
                 return;
             }
-            
+            if(busy) {
+                return;
+            }
             var fragment = w.projectileDesc;
             int i = 0;
             var target = w.target;
+            busy = true;
             offsets.ForEach(o => {
-                var l = fragment.GetProjectiles(owner, target, directions[i++]);
+                var l = w.CreateProjectiles(owner, target, directions[i++]);
                 l.ForEach(p => p.position += o);
                 l.ForEach(owner.world.AddEntity);
                 w.ammo?.OnFire();
-            });
 
+                w.onFire.ForEach(f => f(w, l));
+            });
+            busy = false;
         };
         public void Update() {
             ticks++;

@@ -870,7 +870,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
         (user.position - target.position).magnitude < projectileDesc.range;
     public bool AllowFire => ammo?.AllowFire ?? true;
     public bool ReadyToFire => delay == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
-    public void CreateProjectiles(ActiveObject owner, double direction, List<Projectile> result = null) {
+    public List<Projectile> CreateProjectiles(ActiveObject owner, ActiveObject target, double direction) {
         HashSet<Entity> exclude = new() { null };
         if (!projectileDesc.hitSource) {
             exclude.Add(owner);
@@ -882,10 +882,8 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                 p.damageHP *= 3;
             }
         }
-        projectiles.ForEach(owner.world.AddEntity);
         projectiles.ForEach(p => p.onHitActive += this);
         exclude.UnionWith(projectiles);
-        result?.AddRange(projectiles);
         exclude.UnionWith(owner.world.entities.all.OfType<ActiveObject>().Where(a => !owner.CanTarget(a)));
         switch (owner) {
             case PlayerShip p:
@@ -903,54 +901,23 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                 AllowWeaponTargets(st.weapons);
                 break;
             case null:
-                return;
+                return projectiles;
         }
         exclude.Remove(target);
+        return projectiles;
         void AllowWeaponTargets(IEnumerable<Weapon> weapons) =>
             exclude.ExceptWith(weapons.Select(w => w.aiming).Where(a => a != null).SelectMany(w => w.GetMultiTarget()));
     }
     public void Fire(ActiveObject owner, double direction, List<Projectile> result = null) {
-        HashSet<Entity> exclude = new() { null };
-        if (!projectileDesc.hitSource) {
-            exclude.Add(owner);
-        }
-        var projectiles = projectileDesc.GetProjectiles(owner, target, direction, offset, exclude);
-        var criticalChance = 1.0 / (1 + criticalFactor);
-        foreach(var p in projectiles) {
-            if(owner.world.karma.NextDouble() < criticalChance) {
-                p.damageHP *= 3;
-            }
-        }
+        var projectiles = CreateProjectiles(owner, target, direction);
         projectiles.ForEach(owner.world.AddEntity);
-        projectiles.ForEach(p => p.onHitActive += this);
-        exclude.UnionWith(projectiles);
         result?.AddRange(projectiles);
+
         aiming?.OnFire();
         ammo?.OnFire();
         capacitor?.OnFire();
         onFire.ForEach(f => f(this, projectiles));
-        exclude.UnionWith(owner.world.entities.all.OfType<ActiveObject>().Where(a => !owner.CanTarget(a)));
-        switch (owner) {
-            case PlayerShip p:
-                exclude.UnionWith(p.avoidHit);
-                AllowWeaponTargets(p.devices.Weapon);
-                p.onWeaponFire.ForEach(f => f(p, this, projectiles));   
-                break;
-            case AIShip ai:
-                exclude.UnionWith(ai.avoidHit);
-                AllowWeaponTargets(ai.devices.Weapon);
-                ai.onWeaponFire.ForEach(f => f(ai, this, projectiles)); 
-                break;
-            case Station st:
-                exclude.UnionWith(st.guards);
-                AllowWeaponTargets(st.weapons);
-                break;
-            case null:
-                return;
-        }
-        exclude.Remove(target);
-        void AllowWeaponTargets(IEnumerable<Weapon> weapons) =>
-            exclude.ExceptWith(weapons.Select(w => w.aiming).Where(a => a != null).SelectMany(w => w.GetMultiTarget()));
+
     }
     public delegate void OnHitActive(Weapon w, Projectile p, ActiveObject hit);
     public FuncSet<IContainer<OnHitActive>> onHitActive = new();

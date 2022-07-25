@@ -144,6 +144,19 @@
 			description="The Ulysses is an upgraded version of the Beowulf-class gunship."
         />
 	</ShipClass>
+	
+	<ShipClass  codename="ship_flawless_player"
+				inherit="ship_flawless"
+				name="Flawless-class gunship"
+				attributes=	""
+        >
+		<PlayerSettings
+			startingClass="true"
+			description="[DEBUG ONLY] The Flawless-class gunship is the ship of choice for NRobots"
+        />
+	</ShipClass>
+
+
 	<ShipClass codename=            "ship_clark"
                name=                "Clark-class transport"
                thrust=              "0.3"
