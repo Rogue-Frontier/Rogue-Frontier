@@ -561,7 +561,6 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         var universeDesc = new UniverseDesc(World.types, XElement.Parse(
             File.ReadAllText("RogueFrontierContent/scripts/Universe.xml")
             ));
-
         //Name is seed
         var seed = player.name.GetHashCode();
         Universe u = new Universe(universeDesc, World.types, new Rand(seed));
@@ -582,23 +581,15 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         w.AddEntity(playerShip);
 
         AddStarterKit(playerShip);
-
-
         //new LiveGame(w, player, playerShip).Save();
-
         /*
         var wingmateClass = w.types.Lookup<ShipClass>("ship_beowulf");
-
         var wingmate = new AIShip(new BaseShip(w, wingmateClass, playerSovereign, playerStart), new EscortOrder(playerShip, new XY(-5, 0)));
         w.AddEntity(wingmate);
         w.AddEffect(new Heading(wingmate));
         */
-
-
         var playerMain = new PlayerMain(Width, Height, profile, playerShip);
         playerShip.onDestroyed += playerMain;
-
-
         playerMain.IsFocused = true;
         SadConsole.Game.Instance.Screen = playerMain;
     }

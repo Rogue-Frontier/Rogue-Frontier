@@ -176,6 +176,28 @@ public record RechargeWeapon() : ItemUse {
         callback?.Invoke();
     }
 }
+public record UnlockPrescience() : ItemUse {
+    Power prescience = new Power(new() {
+        codename="power_prescience",
+        name="PRESCIENCE",
+        cooldownTime=9000,
+        invokeDelay=90,
+        message="You invoked PRESCIENCE!",
+        Effect = new()
+    });
+    public string GetDesc(PlayerShip player, Item item) =>
+        $"Read book";
+    public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
+        if (player.powers.Contains(prescience)) {
+            player.AddMessage(new Message("You already have PRESCIENCE!"));
+        } else {
+            player.powers.Add(prescience);
+            player.AddMessage(new Message("You have gained PRESCIENCE!"));
+        }
+
+        callback?.Invoke();
+    }
+}
 public record ApplyMod() : ItemUse {
     Modifier mod;
     public ApplyMod(XElement e) : this() {
@@ -230,13 +252,13 @@ public record ItemType : IDesignType {
         invokePower,
         refuel,
         depleteTargetShields,
-        replaceDevice
+        replaceDevice,
+        unlockPrescience
     }
     public void Initialize(TypeCollection tc, XElement e) {
         attributes = e.TryAtt("attributes").Split(";").ToHashSet();
         e.Initialize(this);
         invoke = e.HasElement("Invoke", out var xmlInvoke) ? ParseInvoke(xmlInvoke) : ParseInvoke(e);
-
         ItemUse ParseInvoke(XElement e) =>
             e.TryAttEnum(nameof(invoke), EItemUse.none) switch {
                 EItemUse.none => null,
@@ -247,6 +269,7 @@ public record ItemType : IDesignType {
                 EItemUse.refuel => new Refuel(tc, e),
                 EItemUse.depleteTargetShields => new DepleteTargetShields(e),
                 EItemUse.replaceDevice => new ReplaceDevice(tc, e),
+                EItemUse.unlockPrescience => new UnlockPrescience(),
                 _ => null
             };
         foreach (var (tag, action) in new Dictionary<string, Action<XElement>> {
@@ -276,7 +299,6 @@ public record ArmorDesc() {
     [Opt] public double stealth;
     [Opt] public double lifetimeDegrade = 0;
     public ItemFilter restrictRepair;
-    
     public Armor GetArmor(Item i) => new(i, this);
     public ArmorDesc(XElement e) : this() {
         e.Initialize(this);
@@ -365,6 +387,8 @@ public record WeaponDesc {
     [Opt] public bool autoFire;
     public bool spray;
 
+
+    [Opt] public bool structural;
     [Opt] public bool omnidirectional = false;
     [Opt] public double angle = 0, angleRange, leftRange, rightRange = 0;
     public int missileSpeed => projectile.missileSpeed;

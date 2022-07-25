@@ -174,7 +174,7 @@
 		</Weapon>
 	</ItemType>
 	<ItemType	codename=	"item_beowulf_dual_laser_upgrade"
-		name=		"Beowulf dual laser upgrade module"
+		name=		"Beowulf dual laser upgrade"
 		level=		"1"
 		mass=		"2000"
 		value=		"3000"
@@ -183,7 +183,7 @@
 		from=		"item_beowulf_dual_laser_cannon"
 		to=			"item_beowulf_dual_laser_repeater"
 
-		desc=		"This module converts a Beowulf dual laser cannon into a dual laser repeater."
+		desc=		"This module upgrades a Beowulf dual laser cannon into a Beowulf dual laser repeater."
 		>
 	</ItemType>
 	<ItemType	codename=	"item_buckler_shield"
@@ -212,7 +212,7 @@
 				mass=		"200"
 				value=		"8"
 				
-				desc=		"A Klaw missile seeks its target somewhat aggressively."
+				desc=		"The Klaw is the standard homing missile of the Beowulf gunship."
 		>
 	</ItemType>
 	<ItemType	codename=	"item_klaw_missile_launcher"
@@ -265,7 +265,8 @@
 		>
 		<Weapon	powerUse=		"10"
 				fireCooldown=	"300"
-				ammoType="item_nova_missile"
+				ammoType=		"item_nova_missile"
+				structural=		"true"
 			>
 			<Projectile	count=			"1"
 						maneuver=		"4"
@@ -283,7 +284,7 @@
 	</ItemType>
 	
 
-	<ItemType	codename=	"item_musket_cannon"
+	<ItemType	codename=	"item_musket_turret"
 				name=		"Musket turret"
 				level=		"2"
 				mass=		"2000"
@@ -292,7 +293,7 @@
 
 				invoke=		"installWeapon"
 
-				desc=		"This lightweight kinetic gun is mounted on an omnidirectional turret for automatic aiming. Like any other disposable weapon, it has limited ammo and easy installation."
+				desc=		"This kinetic gun is mounted on an omnidirectional turret for automatic aiming. It has limited ammo and easy installation."
 		>
 		<Weapon
 			initialCharges=	"500"
@@ -310,7 +311,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_missile_defender"
 				name=		"Kinetic takedown"
 				level=		"3"
@@ -319,7 +319,7 @@
 				
 				invoke=		"installWeapon"
 
-				desc=		"This turret fires lasers at incoming kinetic projectiles to destroy them."
+				desc=		"This automated turret fires lasers to intercept incoming kinetic projectiles."
 		>
 		<Weapon
 			powerUse=		"5"
@@ -337,6 +337,33 @@
 				/>
 		</Weapon>
 	</ItemType>
+	<ItemType	codename=	"item_sidearm_turret"
+				name=		"Sidearm turret"
+				level=		"2"
+				mass=		"2000"
+
+				value=		"3500"
+
+				invoke=		"installWeapon"
+
+				desc=		"This kinetic gun is designed for emergencies that require a lot of firepower"
+		>
+		<Weapon
+			initialCharges=	"100"
+			powerUse=		"0"
+			fireCooldown=	"6"
+			>
+			<Projectile
+				omnidirectional="true"
+				missileSpeed=	"40"
+				damageType=		"2"
+				damageHP=		"12"
+				lifetime=		"120"
+				glyph=			"."
+				foreground=		"White"
+				/>
+		</Weapon>
+	</ItemType>
 	<ItemType	codename=	"item_scanner_drone"
 				name=		"scanner drone"
 				level=		"2"
@@ -346,10 +373,9 @@
 				invoke=		"deployShip"
 				shipClass=	"ship_scanner_drone"
 				
-				desc=		"The scanner drone marks enemies with a tracking laser, allowing you to break enemy stealth with ease."
+				desc=		"The scanner drone marks enemies with a tracking laser, allowing you to break through stealth with ease."
 		>
 	</ItemType>
-
 	<ItemType	codename=	"item_flintlock"
 				name=		"Flintlock mass driver"
 				level=		"2"
@@ -362,7 +388,6 @@
 				fireCooldown=	"20"
 			>
 			<Projectile
-				
 					missileSpeed=	"30"
 					damageType=		"2"
 					damageHP=		"6"
@@ -373,7 +398,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_sabre"
 		name=		"Sabre mass driver"
 		level=		"2"
@@ -408,35 +432,38 @@
 		</Armor>
 	</ItemType>
 	<ItemType	codename=	"item_bumpersteel_plate"
-		name=		"Bumpersteel Plate"
+		name=		"Bumpersteel plate"
 		mass=		"8000"
 		level=		"2"
-				
 		value=		"4500"
-				
-		desc=		"This hardy armor is the main choice of armor plating for the Clark-class."
+		desc=		"This heavy armor is the main choice of plating for the Clark-class."
 		>
 		<Armor	maxHP=		"150"/>
 	</ItemType>
-
-
+	<ItemType	codename=	"item_bandit_plate"
+		name=		"Bandit plate"
+		mass=		"12000"
+		level=		"3"
+		value=		"8000"
+		desc=		"This modified Bumpersteel plate is coated with a stealthing agent."
+		>
+		<Armor	maxHP=		"150"
+				stealth=	"6"/>
+	</ItemType>
 	<ItemType	codename=	"item_dynamite_charge"
 		name=		"Dynamite charge"
 		level=		"1"
 		mass=		"2000"
 		value=		"12"
 
-		desc=		"This cheap explosive is capable of blowing apart a civilian starship (with some difficulty)."
+		desc=		"This cheap explosive bomb is capable of blowing apart a civilian starship (with some difficulty)."
 		/>
-
 	<ItemType	codename=	"item_dynamite_cannon"
 		name=		"Dynamite cannon"
 		level=		"1"
 		mass=		"2000"
 		value=		"2000"
-			
 		invoke=		"installWeapon"
-
 		desc=		"This civilian-grade bomb launcher packs a small but powerful explosion. It requires Dynamite charges. Time and technology have not made it any less unwieldy as a weapon."
 		>
 		<Weapon	
@@ -477,15 +504,21 @@
 		</Weapon>
 	</ItemType>
 	<ItemType	codename=	"item_shield_bash"
-		name=		"SHIELDBASH program"
+		name=		"BASH program"
 		mass=		"1"
 		level=		"2"
-				
 		invoke=		"depleteTargetShields"
-				
+		value=		"3000"
+		desc=		"This one-time program attempts to kill the shields on your selected target."
+		>
+	</ItemType>
+	<ItemType	codename=	"item_book_founders"
+		name=		"digital copy of Founders, World Leaders, and Other Assholes to Avoid"
+		mass=		"1"
+		level=		"2"
 		value=		"3000"
 				
-		desc=		"This one-time program attempts to kill the shields on your selected target."
+		desc=		"."
 		>
 	</ItemType>
 </Module>

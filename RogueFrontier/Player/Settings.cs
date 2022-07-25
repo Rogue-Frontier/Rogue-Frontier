@@ -26,7 +26,7 @@ public class Settings {
 {$"[{controls[TurnRight]}]",indent}Turn right
 {$"[{controls[Brake]}]",indent}Brake
 
-{$"[{controls[Powers]}]",indent}Power menu
+{$"[{controls[InvokePowers]}]",indent}Power menu
 
 {$"[{controls[Autopilot]}]",indent}Autopilot
 {$"[{controls[ShipMenu]}]",indent}Ship Screen

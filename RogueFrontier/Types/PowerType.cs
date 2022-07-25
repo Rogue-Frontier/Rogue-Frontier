@@ -21,6 +21,7 @@ public record PowerType() : IDesignType {
         Effect = new(e.Elements().Select(e => (PowerEffect)(e.Name.LocalName switch {
             "Projectile" => new PowerProjectile(e),
             "Heal" => new PowerHeal(),
+            "Reveal" => new PowerReveal(),
             "ProjectileBarrier" => new PowerBarrier(e),
             "Jump" => new PowerJump(e),
             "Storm" => new PowerStorm(e),
@@ -147,56 +148,64 @@ public record Clonewall() : PowerEffect {
                     ready = w.projectileDesc;
                 }
                 const int interval = 6;
-                if (ticks % interval == 0) {
-                    int i = 0;
-                    UpdateOffsets();
-                    var tile = owner.tile;
-                    var cg = new ColoredGlyph(Color.Transparent, Color.White.Blend(Color.Red.SetAlpha(204)).SetAlpha(204), ' ');
-                    offsets.ForEach(o => {
-                        var p = owner.position + o;
-
-                        //owner.world.AddEffect(new EffectParticle(p, cg, interval * 5));
-
-                        owner.world.AddEffect(new EffectParticle(p, tile, interval + 2));
-                        if (ready == null) {
-                            Heading.AimLine(owner.world, p, directions[i++], interval);
-                        } else {
-                            double d;
-                            var t = w.target ?? owner.GetTarget();
-                            if (t != null) {
-                                d = Main.CalcFireAngle(t.position - (owner.position + o),
-                                    t.velocity - owner.velocity, ready.missileSpeed, out var _);
-                            } else {
-                                d = owner.rotationRad;
-                            }
-                            directions[i++] = d;
-                            Heading.AimLine(owner.world, p, d, interval);
-                        }
-                    });
+                if (ticks % interval != 0) {
+                    return;
                 }
+                int i = 0;
+                UpdateOffsets();
+                var tile = owner.tile;
+                var cg = new ColoredGlyph(Color.Transparent, Color.White.Blend(Color.Red.SetAlpha(204)).SetAlpha(204), ' ');
+                offsets.ForEach(o => {
+                    var p = owner.position + o;
+                    owner.world.AddEffect(new EffectParticle(p, tile, interval + 2));
+                    if (ready != null) {
+                        var t = w.target ?? owner.GetTarget();
+                        directions[i] = t == null ? owner.rotationRad :
+                            Main.CalcFireAngle(t.position - p, t.velocity - owner.velocity, ready.missileSpeed, out var _);
+                    }
+                    Heading.AimLine(owner.world, p, directions[i], interval);
+                    i++;
+                    //Bug: friendly fire issues
+                });
             }
         }
     }
 }
 //Power that generates a weapon effect
-public class PowerProjectile : PowerEffect {
+public record PowerProjectile() : PowerEffect {
     public FragmentDesc desc;
-    public PowerProjectile() { }
-    public PowerProjectile(XElement e) {
+    public PowerProjectile(XElement e) : this() {
         desc = new FragmentDesc(e);
     }
     //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
     public void Invoke(PlayerShip player) =>
         new Weapon() { projectileDesc = desc}.Fire(player, player.rotationRad);
 }
-public class PowerHeal : PowerEffect {
-    public PowerHeal() { }
-    public PowerHeal(XElement e) {}
+public record PowerHeal() : PowerEffect {
+    public PowerHeal(XElement e) : this() { }
     //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
     public void Invoke(PlayerShip player) {
         player.hull.Restore();
         player.devices.Shield.ForEach(s => s.hp = s.desc.maxHP);
         player.devices.Reactor.ForEach(r => r.energy = r.desc.capacity);
+    }
+}
+public record PowerReveal() : PowerEffect {
+    public PowerReveal(XElement e) : this(){ }
+    //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
+    public void Invoke(PlayerShip player) {
+        var enemies = player.world.entities.all
+            .OfType<ActiveObject>()
+            .Where(a => (a.position - player.position).magnitude2 < 360 * 360
+                        && a.CanTarget(player)
+                        && SStealth.GetStealth(a) > 0);
+        foreach (var e in enemies) {
+            var time = 1800;
+            if(player.tracking.TryGetValue(e, out var t)) {
+                time = Math.Max(time, t);
+            }
+            player.tracking[e] = time;
+        }
     }
 }
 public class PowerBarrier : PowerEffect {
@@ -289,6 +298,9 @@ public class Power : IPower {
             p.damageHP = 0;
             player.ship.damageSystem.Restore();
             type.Effect.ForEach(e=>e.Invoke(player));
+            if (type.message != null) {
+                player.AddMessage(new Message(type.message));
+            }
         }
     }
 }

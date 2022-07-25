@@ -114,7 +114,7 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         pauseScreen = new(this) { IsVisible = false };
         networkMap = new(this) { IsVisible = false };
 
-        crosshair = new(playerShip, "Mouse Cursor", new XY());
+        crosshair = new(playerShip, "Mouse Cursor", new());
 
         systems = new(new(playerShip.world.universe.systems.Values));
 
@@ -144,7 +144,7 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
     }
 
     public void Jump() {
-        var prevViewport = new Viewport(this, new Camera(playerShip.position), world);
+        var prevViewport = new Viewport(this, new(playerShip.position), world);
         var nextViewport = new Viewport(this, this.camera, world);
 
         back = new(nextViewport);
@@ -164,13 +164,13 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         if (destGate == null) {
             //OnPlayerLeft(true);
             world.entities.Remove(playerShip);
-            transition = new GateTransition(new Viewport(this, new Camera(playerShip.position), world), null, () => {
+            transition = new GateTransition(new(this, new(playerShip.position), world), null, () => {
                 transition = null;
                 OnPlayerLeft(false);
             });
             return;
         }
-        var prevViewport = new Viewport(this, new Camera(playerShip.position), world);
+        var prevViewport = new Viewport(this, new(playerShip.position), world);
         world.entities.Remove(playerShip);
 
         var nextWorld = destGate.world;
@@ -194,8 +194,8 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         Game.Instance.Screen = new ExitTransition(this, EndCrawl()) { IsFocused = true };
         ScreenSurface EndCrawl() {
             SimpleCrawl ds = null;
-            ds = new SimpleCrawl("Intermission\n\n", EndPause) {
-                Position = new Point(Surface.Width / 4, 8), IsFocused = true
+            ds = new("Intermission\n\n", EndPause) {
+                Position = new(Surface.Width / 4, 8), IsFocused = true
             };
             void EndPause() {
                 Game.Instance.Screen = new Pause(ds, EndGame, 3) { IsFocused = true };
@@ -219,7 +219,7 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         }
         ScreenSurface EndCrawl() {
             SimpleCrawl ds = null;
-            ds = new SimpleCrawl("You have left Human Space.\n\n", EndPause) { Position = new Point(Surface.Width / 4, 8), IsFocused = true };
+            ds = new("You have left Human Space.\n\n", EndPause) { Position = new(Surface.Width / 4, 8), IsFocused = true };
             void EndPause() {
                 Game.Instance.Screen = new Pause(ds, EndGame, 3) { IsFocused = true };
             }
@@ -227,7 +227,7 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         }
         void EndGame() {
             Game.Instance.Screen = new DeathScreen(this,
-                new Epitaph() {
+                new() {
                     desc = $"Left Human Space",
                     deathFrame = null,
                     wreck = null
@@ -242,7 +242,7 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         //Get a snapshot of the player
         var size = Surface.Height;
         var deathFrame = new ColoredGlyph[size, size];
-        XY center = new XY(size / 2, size / 2);
+        var center = new XY(size / 2, size / 2);
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 var tile = GetTile(camera.position - new XY(x, y) + center);
@@ -253,7 +253,7 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
             var back = world.backdrop.GetTile(xy, camera.position);
             //Round down to ensure we don't get duplicated tiles along the origin
 
-            if (viewport.tiles.TryGetValue(xy.roundDown, out ColoredGlyph g)) {
+            if (viewport.tiles.TryGetValue(xy.roundDown, out var g)) {
                 g = g.Clone();          //Don't modify the source
                 g.Background = back.Background.Premultiply().Blend(g.Background);
                 return g;
@@ -291,7 +291,7 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
 #else
                     if (w == null) {
                         var name = $"[{DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss")}] Save Failed.txt";
-                        w = new StreamWriter(new FileStream(name, FileMode.Create));
+                        w = new(new FileStream(name, FileMode.Create));
                     }
                     w.Write(e.Message);
 #endif
@@ -439,14 +439,12 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         base.Update(delta);
     }
     public void UpdateUI(TimeSpan delta) {
-
         var d = Main.AngleDiffRad(camera.rotation, targetCameraRotation);
         if (Math.Abs(d) < 0.01) {
             camera.rotation += d;
         } else {
             camera.rotation += d / 10;
         }
-
         if (sceneContainer.Children.Any()) {
             sceneContainer.Update(delta);
         } else {
@@ -507,14 +505,12 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
             if (uiMain.IsVisible) {
                 //If the megamap is completely visible, then skip main render so we can fast travel
                 if (uiMegamap.alpha < 255) {
-
                     if (transition != null) {
                         transition.Render(drawTime);
                     } else {
                         back.Render(drawTime);
                         viewport.Render(drawTime);
                     }
-
                     uiMegamap.Render(drawTime);
 
                     vignette.Render(drawTime);
@@ -541,14 +537,12 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
 
                 //If the megamap is completely visible, then skip main render so we can fast travel
                 if (uiMegamap.alpha < 255) {
-
                     if (transition != null) {
                         transition.Render(drawTime);
                     } else {
                         back.Render(drawTime);
                         viewport.Render(drawTime);
                     }
-
                     uiMegamap.Render(drawTime);
 
                     vignette.Render(drawTime);
@@ -578,7 +572,6 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
             }
             return base.ProcessKeyboard(info);
         }
-
         uiMegamap.ProcessKeyboard(info);
         /*
         if (uiMain.IsVisible) {
@@ -586,13 +579,11 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         }
         */
         prevKeyboard = info;
-
 #if false
         if (info.IsKeyPressed(N)) {
             galaxyMap.IsVisible = !galaxyMap.IsVisible;
         }
 #endif
-
         //Intercept the alphanumeric/Escape keys if the power menu is active
         if (pauseScreen.IsVisible) {
             pauseScreen.ProcessKeyboard(info);
@@ -625,7 +616,6 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
                     targetCameraRotation = camera.rotation;
                 }
             }
-
         }
         return base.ProcessKeyboard(info);
     }
@@ -2141,7 +2131,7 @@ public class PowerWidget : ScreenSurface {
                 }
             }
         }
-        if (keyboard.IsKeyPressed(Keys.Escape)) {
+        if (keyboard.IsKeyPressed(Escape)) {
             //Set charge for all powers back to 0
             foreach (var p in playerShip.powers) {
                 p.invokeCharge = 0;
@@ -2150,7 +2140,7 @@ public class PowerWidget : ScreenSurface {
             //Hide menu
             IsVisible = false;
         }
-        if (keyboard.IsKeyPressed(Keys.P)) {
+        if (keyboard.IsKeyPressed(I)) {
             //Set charge for all powers back to 0
             foreach (var p in playerShip.powers) {
                 if (p.invokeCharge < p.invokeDelay) {

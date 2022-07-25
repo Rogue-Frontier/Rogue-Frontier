@@ -18,7 +18,7 @@
 			<Weapon codename="item_magic_blaster_i"/>
 			<Shield codename="item_shimmer_shield_i"/>
 			<Reactor codename="item_amethyst_25mw_generator"/>
-			<Reactor codename="item_10mw_storage_battery"/>
+			<Reactor codename="item_10mw_battery"/>
         </Devices>
 		<Items>
 			<Item codename="item_simple_fuel_rod" count="12"/>
@@ -72,17 +72,16 @@
 				  background="Black"
         >
 		<Items>
-			<Item codename="item_beowulf_dual_laser_upgrade" count="1"/>
-			<Item codename="item_klaw_missile" count="16"/>
-			<Item codename="item_simple_fuel_rod" count="12"/>
-			<Item codename="item_armor_repair_patch"	count="4"/>
+			<Item codename="item_klaw_missile" count="40"/>
+			<Item codename="item_simple_fuel_rod" count="24"/>
+			<Item codename="item_armor_repair_patch"	count="6"/>
 		</Items>
 		<Devices>
 			<Weapon codename="item_beowulf_dual_laser_cannon"/>
 			<Weapon codename="item_klaw_missile_launcher"/>
 			<Shield codename="item_buckler_shield"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_10mw_storage_battery"/>
+			<Reactor codename="item_10mw_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_knightsteel_plate"/>
@@ -132,7 +131,7 @@
 			<Weapon codename="item_klaw_missile_launcher"/>
 			<Shield codename="item_buckler_shield"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_10mw_storage_battery"/>
+			<Reactor codename="item_10mw_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_knightsteel_plate"/>
@@ -162,12 +161,13 @@
 			<Item codename="item_simple_fuel_rod"	count="24"/>
 			<Item codename="item_armor_repair_patch"	count="8"/>
 			<Item codename="item_scanner_drone"	count="4"/>
+			<Item codename="item_sidearm_turret"	count="2"/>
 		</Items>
         <Devices>
-			<Weapon codename="item_musket_cannon"/>
+			<Weapon codename="item_musket_turret"/>
 			<Weapon codename="item_missile_defender"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_10mw_storage_battery"/>
+			<Reactor codename="item_10mw_battery"/>
 			<Solar codename="item_solar_panel"/>
 		</Devices>
         <LayeredArmorSystem>
@@ -234,10 +234,10 @@
 			<Item codename="item_armor_repair_patch"	count="8"/>
 		</Items>
 		<Devices>
-			<Weapon codename="item_musket_cannon"/>
+			<Weapon codename="item_musket_turret"/>
 			<Weapon codename="item_missile_defender"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_10mw_storage_battery"/>
+			<Reactor codename="item_10mw_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_bumpersteel_plate"/>
@@ -337,5 +337,27 @@
 			<Armor  codename="item_bumpersteel_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
-    
+    <ShipClass codename=            "ship_prospector"
+			   name=                "Prospector-class miner"
+			   thrust=              "0.25"
+			   maxSpeed=            "20"
+
+			   rotationAccel=       "4"
+			   rotationDecel=       "8"
+			   rotationMaxSpeed=    "4"
+
+			   glyph=                "p"
+			   foreground=          "LightBlue"
+        >
+		<Devices>
+			<Weapon codename="item_dynamite_cannon"/>
+		</Devices>
+		<Items>
+			<Item codename="item_dynamite_charge" count="32"/>
+		</Items>
+		<LayeredArmorSystem>
+			<Armor  codename="item_bumpersteel_plate"/>
+			<Armor  codename="item_bumpersteel_plate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
 </Module>

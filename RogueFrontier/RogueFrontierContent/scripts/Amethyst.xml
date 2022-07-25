@@ -66,6 +66,7 @@
 			<Item count="32"	codename="item_gemsteel_plate_i"/>
 			<Item count="32"	codename="item_gemsteel_plate_ii"/>
 			<Item count="8"	codename="item_shimmer_shield_i"/>
+			<Item count="8"	codename="item_prescience_book"/>
 		</Cargo>
 		
 		<Weapons>
@@ -378,5 +379,20 @@
 			>
 			<RestrictRepair hasAttributes="Amethyst"/>
 		</Armor>
+	</ItemType>
+
+
+	<ItemType	codename=	"item_prescience_book"
+			name=		"Prospering With Prescience: The Ultimate Guide - Hardcover Edition"
+			level=		"1"
+			mass=		"1000"
+			value=		"500"
+				
+			attributes=	"Amethyst"
+
+			invoke=		"unlockPrescience"
+
+			desc=		"This book written by the founder of Amethyst, Inc. will teach you the secrets of achieving guaranteed prosperity using the power of PRESCIENCE!"
+		>
 	</ItemType>
 </Module>

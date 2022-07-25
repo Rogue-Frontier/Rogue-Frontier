@@ -16,22 +16,22 @@ class EntityLocator : ILocator<Entity, (int, int)> {
 }
 public class System {
     [JsonIgnore]
-    public static readonly System empty = new System(new Universe());
+    public static readonly System empty = new(new());
 
     public string id, name;
 
-    public HashSet<Event> events = new HashSet<Event>();
-    public List<Event> eventsAdded = new List<Event>();
-    public List<Event> eventsRemoved = new List<Event>();
+    public HashSet<Event> events = new();
+    public List<Event> eventsAdded = new();
+    public List<Event> eventsRemoved = new();
 
-    public LocatorDict<Entity, (int, int)> entities = new LocatorDict<Entity, (int, int)>(new EntityLocator());
-    public List<Entity> entitiesAdded = new List<Entity>();
-    public List<Entity> entitiesRemoved = new List<Entity>();
-    public LocatorDict<Effect, (int, int)> effects = new LocatorDict<Effect, (int, int)>(new EffectLocator());
-    public List<Effect> effectsAdded = new List<Effect>();
-    public List<Effect> effectsRemoved = new List<Effect>();
+    public LocatorDict<Entity, (int, int)> entities = new(new EntityLocator());
+    public List<Entity> entitiesAdded = new();
+    public List<Entity> entitiesRemoved = new();
+    public LocatorDict<Effect, (int, int)> effects = new(new EffectLocator());
+    public List<Effect> effectsAdded = new();
+    public List<Effect> effectsRemoved = new();
 
-    public List<Star> stars = new List<Star>();
+    public List<Star> stars = new();
 
     public Universe universe;
     [JsonIgnore]

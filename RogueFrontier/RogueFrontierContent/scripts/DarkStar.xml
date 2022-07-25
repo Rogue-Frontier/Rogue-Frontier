@@ -4,12 +4,12 @@
 				alignment=	"DestructiveOrder"
 	/>
 	<ItemType	codename=	"item_dagger_cannon"
-					name=		"Dagger cannon"
-					level=		"1"
-					mass=		"2000"
-					value=		"3000"
+				name=		"Dagger cannon"
+				level=		"1"
+				mass=		"2000"
+				value=		"3000"
 
-					desc=		""
+				desc=		""
 		>
 		<Weapon	initialCharges=	"1200"
 				powerUse=		"20"
@@ -178,7 +178,7 @@
 			<Weapon codename="item_bomb_launcher"/>
 			<Shield codename="item_cloaking_shield"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_30mw_storage_battery"/>
+			<Reactor codename="item_30mw_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_darkened_knightsteel_plate"/>
@@ -205,7 +205,7 @@
 			<Weapon codename="item_bomb_launcher"/>
 			<Shield codename="item_cloaking_shield"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_30mw_storage_battery"/>
+			<Reactor codename="item_30mw_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_darkened_knightsteel_plate"/>
@@ -217,6 +217,62 @@
 		>
 		</PlayerSettings>
 	</ShipClass>
+
+	<ShipClass    codename=	"ship_bandit"
+			  inherit=	"ship_clark"
+			  name=		"Bandit-class freighter"
+        >
+		<Tile glyph="c" foreground="798cabFF" background="Black"/>
+		<Cargo>
+			<Item codename="item_shrapnel_bomb" count="32"/>
+			<Item codename="item_simple_fuel_rod" count="12"/>
+			<Item codename="item_armor_repair_patch"	count="4"/>
+		</Cargo>
+		<Devices>
+			<Weapon codename="item_dagger_cannon"/>
+			<Weapon codename="item_bomb_launcher"/>
+			<Shield codename="item_cloaking_shield"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_30mw_battery"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="item_bandit_plate"/>
+			<Armor  codename="item_bumpersteel_plate"/>
+			<Armor  codename="item_bumpersteel_plate"/>
+		</LayeredArmorSystem>
+		<PlayerSettings
+			startingClass="false"
+		>
+		</PlayerSettings>
+	</ShipClass>
+	<ShipClass    codename=	"ship_swindler"
+			  inherit=	"ship_clark"
+			  name=		"Swindler-class freighter"
+        >
+		<Tile glyph="c" foreground="505e75FF" background="Black"/>
+		<Cargo>
+			<Item codename="item_shrapnel_bomb" count="32"/>
+			<Item codename="item_simple_fuel_rod" count="12"/>
+			<Item codename="item_armor_repair_patch"	count="4"/>
+		</Cargo>
+		<Devices>
+			<Weapon codename="item_dagger_cannon"/>
+			<Weapon codename="item_bomb_launcher"/>
+			<Shield codename="item_cloaking_shield"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_30mw_battery"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="item_bandit_plate"/>
+			<Armor  codename="item_bumpersteel_plate"/>
+			<Armor  codename="item_bumpersteel_plate"/>
+		</LayeredArmorSystem>
+		<PlayerSettings
+			startingClass="false"
+		>
+		</PlayerSettings>
+	</ShipClass>
+	
 	<StationType	codename="station_dark_star_fortress"
 					name=		"Dark Star fortress"
 					sovereign=	"sovereign_dark_star"

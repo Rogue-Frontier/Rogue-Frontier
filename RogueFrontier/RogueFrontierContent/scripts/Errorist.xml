@@ -108,6 +108,7 @@
 			powerUse=		"0"
 			fireCooldown=	"5"
 			spray=			"true"
+			structural=		"true"
 			>
 			<Projectile
 				omnidirectional="true"
@@ -139,6 +140,7 @@
 			powerUse=		"0"
 			fireCooldown=	"90"
 			spray=			"true"
+			structural=		"true"
 			>
 			<Projectile
 				omnidirectional="true"

@@ -7,7 +7,7 @@
 				mass=		"3000"
 				level=		"2"
 				value=		"400"
-				desc=		"This primitive kinetic cannon is designed to accomodate both close range and long-range encounters. While idle, it charges up power for the next shot. The shells from this weapon can fly scary fast when fully charged."
+				desc=		"This primitive kinetic cannon is designed to accomodate both close-range fighters and long-range snipers. While idle, it charges up power for the next shot. The shells from this weapon can fly scary fast when fully charged."
 				invoke=		"installWeapon"
 		>
 		<Weapon
@@ -22,7 +22,6 @@
 				lifetime=		"60"
 				glyph=			"+"
 				foreground=		"Orange"
-				
 				/>
 			<Capacitor
 				dischargeOnFire=		"50"
@@ -34,13 +33,12 @@
 				/>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_orion_longbow"
 				name=		"Orion's Longbow"
 				mass=		"5000"
 				level=		"3"
 				value=		"800"
-				desc=		"A fully charged shot from this mass driver can be lethal to small gunships. As most of its destructive power comes from charged up shots, it has a relatively simple design compared to other kinetic weapons."				
+				desc=		"A fully charged shot from this mass driver can be lethal to small gunships. As most of its destructive power comes from charged up shots, it has a relatively complicated design compared to other kinetic weapons."				
 				invoke=		"installWeapon"
 		>
 		<Weapon	
@@ -67,8 +65,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-
-
 	<ItemType	codename=	"item_traitor_longbow"
 		name=		"Traitor's Longbow"
 		mass=		"5000"
@@ -151,7 +147,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_hunterscale_plate"
 		name=		"Hunter's plate"
 		mass=		"1000"
@@ -161,7 +156,7 @@
 				
 		desc=		"This low-tech armor provides modest stealth."
 		>
-		<Armor	maxHP=		"40"	
+		<Armor	maxHP=		"40"
 				stealth="2"
 			>
 		</Armor>
@@ -175,7 +170,7 @@
 				
 		desc=		"This hardened low-tech armor provides modest stealth."
 		>
-		<Armor	maxHP=		"120"
+		<Armor	maxHP=		"80"
 				stealth="4"
 			>
 		</Armor>
@@ -254,7 +249,6 @@
 			<Armor	codename="item_skullhelm_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
-
 	<StationType	codename="station_orion_warlords_camp"
 					name=		"Orion Warlords camp"
 					sovereign=	"sovereign_orion_warlords"
@@ -278,7 +272,6 @@
 			<Weapon	codename="item_orion_bolter"/>
 		</Weapons>
 	</StationType>
-
 	<StationType	codename="station_orion_turret"
 					name=		"Orion turret"
 					sovereign=	"sovereign_orion_warlords"

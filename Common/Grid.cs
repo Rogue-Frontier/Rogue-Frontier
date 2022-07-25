@@ -3,6 +3,7 @@ using SadRogue.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace Common;
 
@@ -29,6 +30,16 @@ public class XY {
     public XY(Point p) {
         this.x = p.X;
         this.y = p.Y;
+    }
+    public static XY TryParse(XElement e, XY fallback) {
+        var p = (string s) => double.Parse(s);
+        if (e.TryAtt("posAngle", out var posAngle) && e.TryAtt("posRadius", out var posRadius)) {
+            return Polar(p(posAngle) * Math.PI / 180, p(posRadius));
+        }
+        if (e.TryAtt("posX", out var posX) && e.TryAtt("posY", out var posY)) {
+            return new(p(posX), p(posY));
+        }
+        return fallback;
     }
     public XY(double x, double y) {
         this.x = x;

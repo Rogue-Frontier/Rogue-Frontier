@@ -471,100 +471,106 @@ public class PlayerStory {
     public HashSet<IPlayerInteraction> mainInteractions;
     public HashSet<IPlayerInteraction> secondaryInteractions;
     public HashSet<IPlayerInteraction> completedInteractions;
-
     Dictionary<ItemType, int> stdPrice;
-
     public int GetStdPrice(Item i) => stdPrice.TryGetValue(i.type, out var v) ? v : 0;
     public PlayerStory(PlayerShip playerShip) {
         var i = playerShip.world.types.GetDict<ItemType>();
-        var stdPrice = new Dictionary<string, int>() {
-            ["item_amethyst_laser_i"] =         4000,
-            ["item_amethyst_laser_ii"] =        6000,
-            ["item_shimmer_shield_i"] =         800,
-            ["item_gemsteel_plate_i"] =         2000,
-            ["item_gemsteel_plate_ii"] =        3000,
-            ["item_radiant_plate"] =            3200,
-            ["item_sand_cannon"] =              2000,
-            ["item_sludge_cannon"] =            3600,
-            ["item_iron_driver"] =              3000,
-            ["item_iron_cannon"] =              5000,
-            ["item_ironclad_plate"] =           3600,
-            ["item_ironside_plate"] =           4000,
-            ["item_grinder"] =                  4000,
-            ["item_deflect_device"] =           4000,
-            ["item_lightning_cannon"] =         3500,
-            ["item_orion_bolter"] =             400,
-            ["item_orion_longbow"] =            800,
-            ["item_traitor_longbow"] =          1200,
-            ["item_orion_skewer"] =             2700,
-            ["item_hunterscale_plate"] =        250,
-            ["item_skullhelm_plate"] =          600,
-            ["item_dark_cannon"] =              3000,
-            ["item_thorn_missile"] =            16,
-            ["item_thorn_missile_system"] =     3200,
-            ["item_simple_fuel_rod"] =          50,
-            ["item_armor_repair_patch"] = 200,
-            ["item_amethyst_repair_kit"] =      400,
-            ["item_orator_charm_silence"] =     3000,
-            ["item_dictator_charm_silence"] =   3000,
-            ["item_emp_cannon"] =               2400,
-            ["item_tracking_laser"] =            600,
-            ["item_beowulf_dual_laser_cannon"] =    3000,
-            ["item_beowulf_dual_laser_repeater"] =  3000,
-            ["item_beowulf_dual_laser_upgrade"] =   3000,
-            ["item_buckler_shield"] =           400,
-            ["item_klaw_missile"] =             8,
-            ["item_klaw_missile_launcher"] =    400,
-            ["item_musket_cannon"] =            3500,
-            ["item_missile_defender"] =         4000,
-            ["item_scanner_drone"] =              1500,
-            ["item_flintlock"] =                1500,
-            ["item_sabre"] =                    2500,
-            ["item_knightsteel_plate"] =        5000,
-            ["item_bumpersteel_plate"] =        4500,
-            ["item_dynamite_charge"] =          12,
-            ["item_dynamite_cannon"] =          2000,
-            ["item_amethyst_member_card"] =   200,
-            ["item_shield_bash"] =              3000,
-            ["item_20mw_generator"] =           5000,
-            ["item_10mw_storage_battery"] =     5000,
-            ["item_solar_panel"] =              500,
-            ["item_amethyst_25mw_generator"] =  6000,
-            ["item_magic_blaster_i"] =          2000,
-            ["item_magic_blaster_ii"] =         3000,
-            ["item_amethyst_laser_iii"] =       8000,
-            ["item_light_launcher_i"] =         2500,
-            ["item_dagger_cannon"] =            3500,
-            ["item_shrapnel_bomb"] =            12,
-            ["item_bomb_launcher"] =            2500,
-            ["item_metal_grinder"] =            6000,
-            ["item_cloaking_shield"] =          2400,
-            ["item_darkened_knightsteel_plate"] = 7500,
-            ["item_sand_blaster"] =             1600,
-            ["item_sand_vent"] =                2400,
-            ["item_sludge_vent"] =              2400,
-            ["item_hull_puncher"] =             6000,
-            ["item_iron_hook_cannon"] =         3200,
-            ["item_iron_hook"] =                10,
-            ["item_flashbang_cannon"] =         4800,
-            ["item_lightning_vent"] =           2400,
-            ["item_shining_armor"] =            6400,
-            ["item_nova_missile"] =             24,
-            ["item_nova_missile_launcher"] =    4800,
-            ["item_50mw_generator"] =           12000,
-            ["item_20mw_combat_battery"] =      8000,
-            ["item_30mw_storage_battery"] =     8000,
-            ["item_40mw_combat_battery"] =      10000
+        var stdPriceTable = new {
+            item_amethyst_laser_i =             4000,
+            item_amethyst_laser_ii =            6000,
+            item_shimmer_shield_i =             800,
+            item_gemsteel_plate_i =             2000,
+            item_gemsteel_plate_ii =            3000,
+            item_radiant_plate =                3200,
+            item_sand_cannon =                  2000,
+            item_sludge_cannon =                3600,
+            item_iron_driver =                  3000,
+            item_iron_cannon =                  5000,
+            item_ironclad_plate =               3600,
+            item_ironside_plate =               4000,
+            item_grinder =                      4000,
+            item_deflect_device =               4000,
+            item_lightning_cannon =             3500,
+            item_orion_bolter =                 400,
+            item_orion_longbow =                800,
+            item_traitor_longbow =              1200,
+            item_orion_skewer =                 2700,
+            item_hunterscale_plate =            250,
+            item_skullhelm_plate =              600,
+            item_dark_cannon =                  3000,
+            item_thorn_missile =                16,
+            item_thorn_missile_system =         3200,
+            item_simple_fuel_rod =              50,
+            item_armor_repair_patch =           200,
+            item_amethyst_repair_kit =          400,
+            item_orator_charm_silence =         3000,
+            item_dictator_charm_silence =       3000,
+            item_emp_cannon =                   2400,
+            item_tracking_laser =               600,
+            item_beowulf_dual_laser_cannon =    3000,
+            item_beowulf_dual_laser_repeater =  3000,
+            item_beowulf_dual_laser_upgrade =   3000,
+            item_buckler_shield =               400,
+            item_klaw_missile =                 8,
+            item_klaw_missile_launcher =        400,
+            item_musket_turret =                3500,
+            item_sidearm_turret =               3500,
+            item_missile_defender =             4000,
+            item_scanner_drone =                1500,
+            item_flintlock =                    1500,
+            item_sabre =                        2500,
+            item_knightsteel_plate =            5000,
+            item_bumpersteel_plate =            4500,
+            item_bandit_plate =                 8000,
+            item_dynamite_charge =              12,
+            item_dynamite_cannon =              2000,
+            item_amethyst_member_card =         200,
+            item_shield_bash =                  3000,
+            item_20mw_generator =               5000,
+            item_solar_panel =                  500,
+            item_amethyst_25mw_generator =      6000,
+            item_magic_blaster_i =              2000,
+            item_magic_blaster_ii =             3000,
+            item_amethyst_laser_iii =           8000,
+            item_light_launcher_i =             2500,
+            item_dagger_cannon =                3500,
+            item_shrapnel_bomb =                12,
+            item_bomb_launcher =                2500,
+            item_metal_grinder =                6000,
+            item_cloaking_shield =              2400,
+            item_darkened_knightsteel_plate =   7500,
+            item_sand_blaster =                 1600,
+            item_sand_vent =                    2400,
+            item_sludge_vent =                  2400,
+            item_hull_puncher =                 6000,
+            item_iron_hook_cannon =             3200,
+            item_iron_hook =                    10,
+            item_flashbang_cannon =             4800,
+            item_lightning_vent =               2400,
+            item_shining_armor =                6400,
+            item_nova_missile =                 24,
+            item_nova_missile_launcher =        4800,
+            item_50mw_generator =               12000,
+            item_10mw_battery =                 8000,
+            item_20mw_battery =                 16000,
+            item_30mw_battery =                 24000,
+            item_40mw_battery =                 32000,
+            item_50mw_battery =                 40000,
+            item_60mw_battery =                 48000,
+            item_prescience_book =              1999,
+            item_book_founders=                 1999,
         };
-        this.stdPrice = stdPrice.ToDictionary(pair => i[pair.Key], pair => pair.Value);
-        var missing = i.Keys.Where(k => !stdPrice.ContainsKey(k)).ToList();
+        var pr = stdPriceTable.GetType().GetProperties();
+        stdPrice = pr.ToDictionary(p => i[p.Name], p => (int)p.GetValue(stdPriceTable, null));
+        var codes = pr.Select(p => p.Name).ToHashSet();
+        var missing = i.Keys.Where(k => !codes.Contains(k));
         if (missing.Any()) {
             throw new Exception(string.Join('\n', missing.Select(m => @$"[""{m}""] = 0,")));
         }
-        mainInteractions = new HashSet<IPlayerInteraction>();
+        mainInteractions = new();
         mainInteractions.Add(new IntroMeeting(this));
-        secondaryInteractions = new HashSet<IPlayerInteraction>();
-        completedInteractions = new HashSet<IPlayerInteraction>();
+        secondaryInteractions = new();
+        completedInteractions = new();
     }
     delegate Con GetDockScreen(Con prev, PlayerShip playerShip, Station source);
     public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
@@ -572,7 +578,7 @@ public class PlayerStory {
             return c;
         }
         if (d is Station source) {
-            GetDockScreen f = source.type.codename switch {
+            var f = (GetDockScreen)(source.type.codename switch {
                 "station_amethyst_store" => AmethystStore,
                 "station_beowulf_club" => BeowulfClub,
                 "station_camper_outpost" => CamperOutpost,
@@ -582,7 +588,7 @@ public class PlayerStory {
                 "station_arms_dealer" => ArmsDealer,
                 "station_orion_warlords_camp" => OrionWarlordsCamp,
                 _ => null
-            };
+            });
             if (f != null) {
                 return f(prev, playerShip, source);
             }
@@ -590,11 +596,10 @@ public class PlayerStory {
         return null;
     }
     public Con AmethystStore(Con prev, PlayerShip playerShip, Station source) {
-        var c = GetConstellationCrimes(playerShip, source);
-        if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
         var discount = playerShip.cargo.Any(i => i.type.codename == "item_amethyst_member_card");
         var buyAdj = discount ? 0.8 : 1;
-        return Intro();
+        return CheckConstellationArrest(prev, playerShip, source) ??
+            Intro();
         Dialog Intro() {
             return new(prev,
 @$"You are docked at The Amethyst Store,
@@ -638,8 +643,6 @@ purchases and repair services.
         int GetReplacePrice(Device i) =>
             !i.source.type.attributes.Contains("Amethyst") ? -1 : discount ? 80 : 100;
     }
-
-
     public Con BeowulfClub(Con prev, PlayerShip playerShip, Station source) {
         if (!playerShip.shipClass.attributes.Contains("BeowulfClub")) {
             return new Dialog(prev,
@@ -653,9 +656,9 @@ A heavily armored stationhand calls out to you.
         return Intro();
         Dialog Intro() {
             return new(prev,
-@"You are docked at an independent chapter
-of the Beowulf Club, a galaxy-wide organization
-serving civilian gunship pilots.",
+@"You are docked at an independent branch
+of the Beowulf Club, a galactic society
+of civilian gunship pilots.",
             new() {
                 new("Trade", Trade),
                 new("Service: Repair Armor", ArmorServices),
@@ -670,11 +673,10 @@ serving civilian gunship pilots.",
             return 3;
         }
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
-            i => GetStdPrice(i),
-            i => GetStdPrice(i));
+            GetStdPrice,
+            GetStdPrice);
         Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetPrice, null);
     }
-
     public Con CamperOutpost(Con prev, PlayerShip playerShip, Station source) {
         return Intro();
         Dialog Intro() {
@@ -690,12 +692,17 @@ craftspersons, and adventurers.",
         }
         int GetRepairPrice(Armor a) => a.source.type.attributes.Contains("Amethyst") ? 4 : 2;
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
-            i => GetStdPrice(i),
-            i => GetStdPrice(i));
+            GetStdPrice,
+            GetStdPrice);
         Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetRepairPrice, null);
     }
     public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>
         new (prev, playerShip, source, GetStdPrice, i => GetStdPrice(i) / 2);
+
+    public Con CheckConstellationArrest(Con prev, PlayerShip playerShip, Station source) {
+        return GetConstellationCrimes(playerShip, source).FirstOrDefault() is ICrime c ?
+            ConstellationArrest(prev, playerShip, source, c) : null;
+    }
     public Con ConstellationArrest(Con prev, PlayerShip playerShip, Station source, ICrime c) {
         return new Dialog(prev,
 @"Constellation armed soldiers approach your ship
@@ -728,9 +735,8 @@ There will be no trial.",
             && !d.resolved);
     }
     public Con ArmorDealer(Con prev, PlayerShip playerShip, Station source) {
-        var c = GetConstellationCrimes(playerShip, source);
-        if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
-        return new Dialog(prev,
+        return CheckConstellationArrest(prev, playerShip, source) ??
+            new Dialog(prev,
 @"You are docked at an armor shop station.", new() {
             new("Trade: Armor", Trade),
             new("Undock")
@@ -738,9 +744,8 @@ There will be no trial.",
         TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.8 * GetStdPrice(i) : -1));
     }
     public Con ArmsDealer(Con prev, PlayerShip playerShip, Station source) {
-        var c = GetConstellationCrimes(playerShip, source);
-        if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
-        return new Dialog(prev,
+        return CheckConstellationArrest(prev, playerShip, source) ?? 
+            new Dialog(prev,
 @"You are docked at an arms dealer station", new() {
             new("Trade: Weapons", Trade),
             new("Undock")
@@ -748,10 +753,8 @@ There will be no trial.",
         TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
     }
     public Con ConstellationAstra(Con prev, PlayerShip playerShip, Station source) {
-        var c = GetConstellationCrimes(playerShip, source);
-        if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
-
-        return Intro();
+        return CheckConstellationArrest(prev, playerShip, source) ??
+            Intro();
         Dialog Intro() {
             return new(prev,
 @"You are docked at a Constellation Astra,
@@ -793,10 +796,8 @@ There is a modest degree of artificial gravity here.",
             i.source.type.attributes.Contains("Amethyst") ? 300 : 100;
     }
     public Con ConstellationVillage(Con prev, PlayerShip playerShip, Station source) {
-        var c = GetConstellationCrimes(playerShip, source);
-        if (c.Any()) return ConstellationArrest(prev, playerShip, source, c.First());
-
-        return Intro(prev);
+        return CheckConstellationArrest(prev, playerShip, source) ??
+            Intro(prev);
         Con Intro(Con prev) {
             return new Dialog(prev,
 @"You are docked at a Constellation Village,

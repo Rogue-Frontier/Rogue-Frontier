@@ -240,7 +240,7 @@ public class Station : ActiveObject, ITrader, IDockable {
             new Weapon() { projectileDesc = type.explosionType, aiming = new Targeting() { target = source } }.Fire(this, rotation);
 
 
-        var drop = weapons.Select(w => w.source)
+        var drop = weapons.Where(w => !w.structural).Select(w => w.source)
             .Concat(cargo)
             .Concat((damageSystem as LayeredArmor)?.layers.Select(l => l.source) ?? new List<Item>());
         var wreck = new Wreck(this, drop);

@@ -24,53 +24,74 @@
 			battery=		"false"
 			/>
 	</ItemType>
-
-	<ItemType	codename=	"item_10mw_storage_battery"
-				name=		"10MW storage battery"
+	<ItemType	codename=	"item_10mw_battery"
+				name=		"10MW battery"
 				level=		"1"
 				mass=		"1000"
 		>
 		<Reactor
 			maxOutput=		"10"
-			capacity=		"6000"
+			capacity=		"12000"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>
 	</ItemType>
-	<ItemType	codename=	"item_20mw_combat_battery"
-			name=		"20MW combat battery"
+	<ItemType	codename=	"item_20mw_battery"
+			name=		"20MW battery"
 			level=		"1"
 			mass=		"1000"
 		>
 		<Reactor
 			maxOutput=		"20"
-			capacity=		"1500"
+			capacity=		"6000"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>
 	</ItemType>
-
-
-	<ItemType	codename=	"item_30mw_storage_battery"
+	<ItemType	codename=	"item_30mw_battery"
 			name=		"30MW storage battery"
 			level=		"1"
 			mass=		"1000"
 		>
 		<Reactor
 			maxOutput=		"30"
-			capacity=		"18000"
+			capacity=		"4000"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>
 	</ItemType>
-	<ItemType	codename=	"item_40mw_combat_battery"
-			name=		"40MW combat battery"
+	<ItemType	codename=	"item_40mw_battery"
+			name=		"40MW battery"
+			level=		"1"
+		mass=		"1000"
+		>
+		<Reactor
+			maxOutput=		"40"
+			capacity=		"3000"
+			efficiency=		"1.0"
+			battery=		"true"
+			/>
+	</ItemType>
+	<ItemType	codename=	"item_50mw_battery"
+			name=		"50MW battery"
 			level=		"1"
 			mass=		"1000"
 		>
 		<Reactor
-			maxOutput=		"40"
-			capacity=		"4500"
+			maxOutput=		"50"
+			capacity=		"2400"
+			efficiency=		"1.0"
+			battery=		"true"
+			/>
+	</ItemType>
+	<ItemType	codename=	"item_60mw_battery"
+		name=		"60MW battery"
+		level=		"1"
+		mass=		"1000"
+		>
+		<Reactor
+			maxOutput=		"60"
+			capacity=		"2000"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>

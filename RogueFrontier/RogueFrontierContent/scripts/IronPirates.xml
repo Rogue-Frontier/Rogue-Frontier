@@ -234,7 +234,6 @@
 			<Armor	codename="item_ironside_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
-	
 	<StationType	codename=	"station_iron_pirates_hideout"
 					name=		"Iron Pirates hideout"
 					sovereign=	"sovereign_iron_pirates"
@@ -250,7 +249,6 @@
 			<Weapon	codename="item_iron_driver"/>
 		</Weapons>
 	</StationType>
-
 	<StationType	codename="station_iron_pirates_foundry"
 		name=		"Iron Pirates foundry"
 		sovereign=	"sovereign_iron_pirates"

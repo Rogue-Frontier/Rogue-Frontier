@@ -49,3 +49,49 @@ public class RepairEffect : Event {
         }
     }
 }
+public class RefuelEffect : Event {
+    public bool active { get; set; } = true;
+    public int ticks;
+
+    PlayerShip player;
+    public Reactor reactor;
+    int interval;
+    double costPerEnergy;
+    double balance;
+    Action<RefuelEffect> done;
+    public bool terminated;
+
+    public RefuelEffect(PlayerShip player, Reactor reactor, int interval, double costPerEnergy, Action<RefuelEffect> done) {
+        this.player = player;
+        this.reactor = reactor;
+        this.interval = interval;
+        this.costPerEnergy = costPerEnergy;
+        this.done = done;
+    }
+    public void Update() {
+        ticks++;
+        if (ticks % interval != 0) {
+            return;
+        }
+        if (reactor.energy < reactor.desc.capacity) {
+            var next = player.person.money - costPerEnergy;
+            if (next < 0) {
+                terminated = true;
+                Kill();
+            } else {
+                reactor.energy++;
+                
+                balance += costPerEnergy;
+                var delta = (int)balance;
+                balance -= delta;
+                player.person.money -= delta;
+            }
+        } else {
+            Kill();
+        }
+        void Kill() {
+            active = false;
+            done?.Invoke(this);
+        }
+    }
+}

@@ -20,7 +20,7 @@ public enum Control {
     ShipMenu,
     Gate,
     TargetEnemy,
-    Powers,
+    InvokePowers,
     NextPrimary,
     FirePrimary,
     FireSecondary,
@@ -156,20 +156,20 @@ public class PlayerControls {
         if (input.Escape) {
             playerMain.pauseScreen.IsVisible = true;
         }
-        if (input.Powers) {
+        if (input.InvokePowers) {
             if (playerMain.powerWidget is var m) {
                 m.IsVisible = !m.IsVisible;
             }
         }
-        if (info.IsKeyPressed(I)) {
-            playerMain.sceneContainer?.Children.Add(SListScreen.InvokableScreen(playerMain.sceneContainer, playerShip));
+        if (info.IsKeyPressed(U)) {
+            playerMain.sceneContainer?.Children.Add(SListScreen.UsableScreen(playerMain.sceneContainer, playerShip));
         }
         if (input.Communications) {
             if (playerMain.communicationsWidget is var m) {
                 m.IsVisible = !m.IsVisible;
             }
         }
-        if (input.Galaxy) {
+        if (input.NetworkMap) {
             if (playerMain.networkMap is var m) {
                 m.IsVisible = !m.IsVisible;
             }
@@ -206,26 +206,24 @@ public class PlayerControls {
         { Gate, G },
         { ShipMenu, S },
         { TargetEnemy, T },
-        { Powers, P },
+        { InvokePowers, I },
         { NextPrimary, W },
         { FirePrimary, X },
         { FireSecondary, LeftControl },
         { AutoAim, Z }
     };
 }
-
 public class PlayerInput {
     public bool Thrust, TurnLeft, TurnRight, Brake;
     public bool TargetFriendly, TargetMouse, TargetEnemy, ClearTarget, NextPrimary, NextSecondary, FirePrimary, FireSecondary, AutoAim;
     public bool QuickZoom;
     public bool ToggleUI, Gate, Autopilot, Dock, ShipMenu;
-    public bool Escape, Powers, Communications, Galaxy;
+    public bool Escape, InvokePowers, Communications, NetworkMap;
     public PlayerInput() { }
     public PlayerInput(Dictionary<Control, Keys> controls, Keyboard info) {
         var p = (Control c) => info.IsKeyPressed(controls[c]);
         var d = (Control c) => info.IsKeyDown(controls[c]);
         var ls = info.IsKeyDown(LeftShift);
-
         Thrust =        d(Control.Thrust);
         TurnLeft =      d(Control.TurnLeft);
         TurnRight =     d(Control.TurnRight);
@@ -246,11 +244,10 @@ public class PlayerInput {
         Dock =          p(Control.Dock);
         ShipMenu =      p(Control.ShipMenu);
         Escape =        info.IsKeyPressed(Keys.Escape);
-        Powers =        p(Control.Powers);
-        Communications= info.IsKeyPressed(Keys.C);
-        Galaxy=         info.IsKeyPressed(Keys.N);
+        InvokePowers =  p(Control.InvokePowers);
+        Communications= info.IsKeyPressed(C);
+        NetworkMap=     info.IsKeyPressed(N);
         QuickZoom =     info.IsKeyPressed(M);
-
     }
     public void ClientOnly() {
         Autopilot = false;
@@ -260,6 +257,6 @@ public class PlayerInput {
         Autopilot = false;
         ShipMenu = false;
         Escape = false;
-        Powers = false;
+        InvokePowers = false;
     }
 }

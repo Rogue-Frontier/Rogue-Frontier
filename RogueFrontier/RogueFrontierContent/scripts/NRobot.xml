@@ -11,7 +11,7 @@
 		<Service interval="30" type="grind" powerUse="5"/>
 	</ItemType>
 	<ItemType	codename=	"item_deflect_device"
-		name=		"DEFLECT device"
+		name=		"DEFLECTOR device"
 		level=		"3"
 		mass=		"4000"
 		desc=		"."
@@ -23,7 +23,7 @@
 		name=		"Lightning cannon"
 		level=		"3"
 		mass=		"4000"
-		desc=		"."
+		desc=		"This weapon can unleash a deadly rapid-fire barrage of energy beams onto a target after priming its hull with an initial connecting hit."
 		>
 		<Weapon
 			powerUse=		"60"
@@ -46,7 +46,6 @@
 				rechargePerTick=		"100/60"
 				maxCharge=				"100"
 				
-				
 				bonusDamagePerCharge=	"6/100"
 				/>
 		</Weapon>
@@ -57,9 +56,10 @@
 				level=		"2"
 				mass=		"2000"
 				
-				desc=		""
+				desc=		"A high-power flashbang unleashes a huge blinding explosion, effectively disrupting targeting systems. The flashbang is powerful enough to blind its user though so be careful."
 		>
-		<Weapon	powerUse=		"10"
+		<Weapon	initialCharges="500"
+				powerUse=		"30"
 				fireCooldown=	"90"
 			>
 
@@ -91,17 +91,17 @@
 			</Projectile>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_lightning_vent"
-	name=		"Lightning vent"
-	level=		"3"
-	mass=		"4000"
-	desc=		"."
+		name=		"Lightning vent"
+		level=		"3"
+		mass=		"4000"
+		desc=		"The NRobot power plant discharges excess generated power in the form of lightning storms."
 		>
 		<Weapon
 			powerUse=		"60"
-			fireCooldown=	"20"
+			fireCooldown=	"30"
 			spray=			"true"
+			structural=		"true"
 			>
 			<Projectile
 				missileSpeed=	"50"
@@ -119,19 +119,16 @@
 				dischargeOnFire=		"100"
 				rechargePerTick=		"100/30"
 				maxCharge=				"100"
-				
-				
 				bonusDamagePerCharge=	"6/100"
 				/>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_shining_armor"
 		name=		"Shining armor"
 		mass=		"8000"
-		level=		"2"
-		value=		"8000"
-		desc=		"."
+		level=		"6"
+		value=		"32000"
+		desc=		"This highly valuable armor is made of flawless steel, which naturally rebuilds itself in response to deformation."
 		>
 		<Armor	maxHP=		"150"
 				recoveryFactor="0.8"
@@ -152,8 +149,8 @@
 			<Weapon codename="item_flashbang_cannon"/>
 			<Weapon codename="item_lightning_cannon" omnidirectional="true"/>
 			<Reactor codename="item_50mw_generator"/>
-			<Reactor codename="item_30mw_storage_battery"/>
-			<Reactor codename="item_30mw_storage_battery"/>
+			<Reactor codename="item_30mw_battery"/>
+			<Reactor codename="item_30mw_battery"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_shining_armor"/>
@@ -161,13 +158,10 @@
 			<Armor  codename="item_shining_armor"/>
 		</LayeredArmorSystem>
 	</ShipClass>
-
 	<StationType	codename="station_nrobot_fortress"
 					name=		"NRobot fortress"
 					sovereign=	"sovereign_nrobot"
-
 					hp=			"600"
-					
 					structure="RogueFrontierContent/sprites/NRobotFortress.asc.cg"
 		>
 		<Weapons>
@@ -178,13 +172,10 @@
 			<Ship codename="ship_flawless" count="4" order="guard"/>
 		</Ships>
 	</StationType>
-
 	<StationType	codename="station_nrobot_power_station"
 					name=		"NRobot power station"
 					sovereign=	"sovereign_nrobot"
-
 					hp=			"400"
-					
 					structure="RogueFrontierContent/sprites/NRobotPowerStation.asc.cg"
 		>
 		<Weapons>
@@ -195,5 +186,4 @@
 			<Ship codename="ship_flawless" count="4" order="guard"/>
 		</Ships>
 	</StationType>
-
 </Module>

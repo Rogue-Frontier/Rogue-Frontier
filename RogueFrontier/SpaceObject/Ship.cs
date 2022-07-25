@@ -37,10 +37,13 @@ public static class SStealth {
         PlayerShip p => p.CanSee(other),
         _ => e.GetVisibleDistanceLeft(other) > 0
     };
-    public static double GetVisibleDistanceLeft(this Entity p, Entity e) => e switch {
-        AIShip ai => GetVisibleRange(ai.ship.stealth) - (e.position - p.position).magnitude,
-        Station st => GetVisibleRange(st.stealth) - (e.position - p.position).magnitude,
-        _ => double.PositiveInfinity
+    public static double GetVisibleDistanceLeft(this Entity p, Entity e) =>
+        GetVisibleRange(GetStealth(p)) - (e.position - p.position).magnitude;
+    public static double GetStealth(this Entity e) => e switch {
+        AIShip ai => ai.ship.stealth,
+        Station st => st.stealth,
+        ISegment s => GetStealth(s.parent),
+        _ => 0
     };
     public static double GetVisibleRange(double stealth) => stealth switch {
 #if true
@@ -772,19 +775,7 @@ public class PlayerShip : IShip {
             visibleDistanceLeft.Clear();
 
             foreach (var e in world.entities.all) {
-                Handle(e);
-            }
-            void Handle(Entity e) {
-                switch (e) {
-                    case Station st: visibleDistanceLeft[e.id] = SStealth.GetVisibleRange(st.stealth) - (e.position - position).magnitude; break;
-                    case AIShip ai: visibleDistanceLeft[e.id] = SStealth.GetVisibleRange(ai.ship.stealth) - (e.position - position).magnitude; break;
-                    case ISegment s:
-                        switch (s.parent) {
-                            case Station st: visibleDistanceLeft[s.id] = SStealth.GetVisibleRange(st.stealth) - (e.position - position).magnitude; break;
-                            case AIShip ai: visibleDistanceLeft[s.id] = SStealth.GetVisibleRange(ai.ship.stealth) - (e.position - position).magnitude; break;
-                        }
-                        break;
-                }
+                visibleDistanceLeft[e.id] = SStealth.GetVisibleDistanceLeft(e, this);
             }
             foreach(var e in tracking.Keys) {
                 visibleDistanceLeft[e.id] = 16;

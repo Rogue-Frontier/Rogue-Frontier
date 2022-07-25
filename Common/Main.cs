@@ -694,7 +694,6 @@ public static class Main {
                     [typeof(char)] = ParseChar,
                     [typeof(double)] = ParseDouble,
 
-
                     [typeof(bool?)] = ParseBoolNullable,
                     [typeof(int?)] = () => e.TryAttIntNullable(key),
 
@@ -722,7 +721,6 @@ public static class Main {
             }
         }
     }
-
     public static TValue TryLookup<TKey, TValue>(this Dictionary<TKey, TValue> d, TKey key, TValue fallback = default) =>
         d.ContainsKey(key) ? d[key] : fallback;
     public static int CalcAccuracy(int difficulty, int skill, Random karma) {
@@ -736,7 +734,6 @@ public static class Main {
     //Chance that the shot is blocked by an obstacle
     public static bool CalcBlocked(int coverage, int accuracy, Random karma) =>
         karma.Next(coverage) > karma.Next(accuracy);
-    
     public static ColoredGlyph Colored(char c, Color? f = null, Color? b = null) =>
         new(f??Color.White, b??Color.Black, c);
     public static ColoredString WithBackground(this ColoredString c, Color? Background = null) {

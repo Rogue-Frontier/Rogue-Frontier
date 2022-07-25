@@ -30,7 +30,7 @@ class Heading : Effect {
         if (ticks == 0) {
 
             //Idea: Highlight a segment of the aimline based on the firetime left on the weapon
-            int length = 20;
+            int length = 16;
             int count = length / step;
             particles = new EffectParticle[count];
             for (int i = 0; i < count; i++) {
@@ -96,7 +96,6 @@ class Heading : Effect {
         World.AddEffect(new EffectParticle(point + (0, 1), cg('|'), 1));
         World.AddEffect(new EffectParticle(point + (0, -1), cg('|'), 1));
     }
-
     public static void Box(Station st, Color foreground) {
         //Color foreground = new Color(153, 153, 153);
         var background = Color.Transparent;

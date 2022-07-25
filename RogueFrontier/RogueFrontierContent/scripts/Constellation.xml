@@ -54,7 +54,7 @@
 			<Item count="60"	codename="item_dynamite_charge"/>
 		</Cargo>
 		<Weapons>
-			<Weapon codename="item_musket_cannon"/>
+			<Weapon codename="item_musket_turret"/>
 		</Weapons>
 		<!--
 		<Dock type="united_constellation"/>
@@ -172,6 +172,10 @@
 			<Item count="8" codename="item_gemsteel_plate_i"/>
 			<Item count="8" codename="item_knightsteel_plate"/>
 			<Item count="8" codename="item_bumpersteel_plate"/>
+			
+			<Item count="8" codename="item_buckler_shield"/>
+
+			<Item count="8" codename="item_shimmer_shield_i"/>
 		</Cargo>
 		<Weapons>
 			<Weapon codename="item_missile_defender"/>
@@ -210,20 +214,21 @@
 			<Ship	count="1"	codename="ship_clark"/>
 		</Ships>
 		<Cargo>
+			<Item count="8" codename="item_tracking_laser"/>
 			<Item count="8" codename="item_amethyst_laser_i"/>
 			<Item count="8" codename="item_dynamite_cannon"/>
-			<Item count="120" codename="item_dynamite_charge"/>
+			<Item count="320" codename="item_dynamite_charge"/>
 			<Item count="8" codename="item_beowulf_dual_laser_cannon"/>
 			<Item count="8" codename="item_klaw_missile_launcher"/>
-			<Item count="250" codename="item_klaw_missile"/>
-			<Item count="4"	codename="item_musket_cannon"/>
+			<Item count="240" codename="item_klaw_missile"/>
+			<Item count="8"	codename="item_musket_turret"/>
+			<Item count="8"	codename="item_sidearm_turret"/>
 			<Item count="8" codename="item_missile_defender"/>
 		</Cargo>
 		<Weapons>
 			<Weapon codename="item_beowulf_dual_laser_cannon"/>
 		</Weapons>
 	</StationType>
-
 	<StationType	codename="station_constellation_bunker"
 				name=		"Constellation bunker"
 				sovereign=	"sovereign_constellation"

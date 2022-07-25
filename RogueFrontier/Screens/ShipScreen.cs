@@ -172,7 +172,7 @@ class ShipScreen : ScreenSurface {
         }
         return base.ProcessKeyboard(info);
     }
-    public void ShowInvokable() => Transition(SListScreen.InvokableScreen(this, playerShip));
+    public void ShowInvokable() => Transition(SListScreen.UsableScreen(this, playerShip));
     public void ShowPower() => Transition(SListScreen.PowerScreen(this, playerShip));
     public void ShowCargo() => Transition(SListScreen.CargoScreen(this, playerShip));
     public void ShowLoadout() => Transition(SListScreen.LoadoutScreen(this, playerShip));
@@ -284,7 +284,7 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Item> InvokableScreen(ScreenSurface prev, PlayerShip player) {
+    public static ListScreen<Item> UsableScreen(ScreenSurface prev, PlayerShip player) {
         ListScreen<Item> screen = null;
         IEnumerable<Item> cargoInvokable;
         IEnumerable<Item> installedInvokable;
@@ -703,7 +703,87 @@ public class SListScreen {
         }
     }
 
+    public static ListScreen<Reactor> RefuelService(ScreenSurface prev, PlayerShip player, Func<Reactor, int> GetPrice, Action callback) {
+        ListScreen<Reactor> screen = null;
+        var reactors = player.devices.Reactor;
+        RefuelEffect job = null;
+        return screen = new(prev,
+            player,
+            reactors,
+            GetName,
+            GetDesc, Invoke, Escape) { IsFocused = true };
+        string GetName(Reactor r) => $"{$"[{r.energy:0} / {r.desc.capacity}]",-12} {r.source.type.name}";
+        List<ColoredString> GetDesc(Reactor r) {
+            var item = r.source;
+            var invoke = item.type.invoke;
+            var result = new List<ColoredString>();
+            var desc = item.type.desc.SplitLine(64);
+            if (desc.Any()) {
+                result.AddRange(desc.Select(Main.ToColoredString));
+                result.Add(new(""));
+            }
+            int unitPrice = GetPrice(r);
+            if (unitPrice < 0) {
+                result.Add(new("Refuel services not available for this reactor", Color.Yellow, Color.Black));
+                return result;
+            }
+            var delta = r.desc.capacity - (int)r.energy;
+            result.Add(new($"Fuel needed: {delta}"));
+            result.Add(new($"Total cost:  {unitPrice * delta}"));
+            result.Add(new($"Your money:  {player.person.money}"));
+            result.Add(new(""));
+            if (delta <= 0) {
+                result.Add(new("This reactor is full", Color.Yellow, Color.Black));
+            } else if(job?.active == true) {
+                if(job.reactor == r) {
+                    result.Add(new("This reactor is currently refueling.", Color.Yellow, Color.Black));
+                } else {
+                    result.Add(new("Please wait for current refuel job to finish.", Color.Yellow, Color.Black));
+                }
+            } else if(unitPrice > player.person.money) {
+                result.Add(new($"You cannot afford refueling", Color.Yellow, Color.Black));
+            } else {
+                result.Add(new($"[Enter] Order refueling", Color.Yellow, Color.Black));
+            }
+            return result;
+        }
+        void Invoke(Reactor r) {
+            if (job?.active == true) {
+                return;
+            }
+            int delta = r.desc.capacity - (int)r.energy;
+            if (delta == 0) {
+                return;
+            }
+            int unitPrice = GetPrice(r);
+            int price = delta * unitPrice;
+            if (unitPrice > player.person.money) {
+                return;
+            }
+            job = new RefuelEffect(player, r, 6, unitPrice, Done);
+            player.world.AddEvent(job);
+            player.AddMessage(new Message($"Refuel job initiated..."));
+            callback?.Invoke();
+        }
 
+        void Done(RefuelEffect r) {
+            player.world.RemoveEvent(r);
+            player.AddMessage(new Message($"Refuel job {(r.terminated ? "terminated" : "completed")}"));
+        }
+        void Escape() {
+            if (job?.active == true) {
+                job.active = false;
+                player.world.RemoveEvent(job);
+                job = null;
+                player.AddMessage(new Message($"Refuel job canceled"));
+                return;
+            }
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.Children.Add(prev);
+            p.IsFocused = true;
+        }
+    }
     public static ListScreen<Armor> ArmorRepairService(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
         ListScreen<Armor> screen = null;
         var layers = (player.hull as LayeredArmor)?.layers ?? new();
@@ -734,27 +814,27 @@ public class SListScreen {
 
             int unitPrice = GetPrice(a);
             if (unitPrice < 0) {
-                result.Add(new("Repair services are unavailable for this armor", Color.Yellow, Color.Black));
-            } else {
-                int delta = a.desc.maxHP - a.hp;
-                result.Add(new($"Cost per HP: {unitPrice}"));
-                result.Add(new($"Total cost:  {unitPrice * delta}"));
-                result.Add(new($"Your money:  {player.person.money}"));
-                result.Add(new(""));
-                if (delta <= 0) {
-                    result.Add(new("This armor is at full HP", Color.Yellow, Color.Black));
-                } else if (job?.active == true) {
-                    if (job.armor == a) {
-                        result.Add(new("This armor is currently under repairs", Color.Yellow, Color.Black));
-                    } else {
-                        result.Add(new("Please wait for current repair job to finish", Color.Yellow, Color.Black));
-                    }
+                result.Add(new("Repair services not available for this armor", Color.Yellow, Color.Black));
+                return result;
+            }
+            int delta = a.desc.maxHP - a.hp;
+            result.Add(new($"Cost per HP: {unitPrice}"));
+            result.Add(new($"Total cost:  {unitPrice * delta}"));
+            result.Add(new($"Your money:  {player.person.money}"));
+            result.Add(new(""));
+            if (delta <= 0) {
+                result.Add(new("This armor is at full HP", Color.Yellow, Color.Black));
+            } else if (job?.active == true) {
+                if (job.armor == a) {
+                    result.Add(new("This armor is currently under repairs", Color.Yellow, Color.Black));
                 } else {
-                    if (unitPrice > player.person.money) {
-                        result.Add(new($"You cannot afford repairs", Color.Yellow, Color.Black));
-                    } else {
-                        result.Add(new($"Order repairs", Color.Yellow, Color.Black));
-                    }
+                    result.Add(new("Please wait for current repair job to finish", Color.Yellow, Color.Black));
+                }
+            } else {
+                if (unitPrice > player.person.money) {
+                    result.Add(new($"You cannot afford repairs", Color.Yellow, Color.Black));
+                } else {
+                    result.Add(new($"Order repairs", Color.Yellow, Color.Black));
                 }
             }
             return result;

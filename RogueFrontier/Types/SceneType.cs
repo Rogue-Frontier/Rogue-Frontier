@@ -113,7 +113,6 @@ public static class SScene {
     }
     public static Dictionary<(int, int), U> CenterVertical<U>(this Dictionary<(int, int), U> image, Console c, int deltaX = 0) {
         var result = new Dictionary<(int, int), U>();
-
         int deltaY = (c.Height - (image.Max(pair => pair.Key.Item2) - image.Min(pair => pair.Key.Item2))) / 2;
         foreach (((var x, var y), var u) in image) {
             result[(x + deltaX, y + deltaY)] = u;
@@ -144,7 +143,6 @@ public static class SScene {
     }
     public static void RenderBackground(this ScreenSurface c) {
         c.Surface.Fill(Color.Black, Color.Black.SetAlpha(128), ' ');
-
         /*
         var back = new Console(c.Width, c.Height);
 
@@ -174,22 +172,15 @@ public class Dialog : Console {
     List<SceneOption> navigation;
     public int navIndex = 0;
     int[] charge;
-
     public Dictionary<(int, int), ColoredGlyph> background = new();
-
     Dictionary<char, int> keyMap = new();
-
     bool prevEscape;
-
     bool allowEnter;
     bool prevEnter;
     bool enter;
-
     int escapeIndex;
-
     int descX => Width / 2 - 12;
     int descY => 8;
-
     public static int maxCharge = 48;
     public Dialog(ScreenSurface prev, string desc, List<SceneOption> navigation) : base(prev.Surface.Width, prev.Surface.Height) {
         this.desc = desc.Replace("\r", null);

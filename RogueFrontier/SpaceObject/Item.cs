@@ -615,16 +615,18 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
     public WeaponDesc desc;
     [JsonIgnore]
     int? Device.powerUse => (firing || delay > 0 || capacitor?.full == false) ? desc.powerUse : 0;
-    public FragmentDesc projectileDesc;
     public Capacitor capacitor;
     public Aiming aiming;
     public IAmmo ammo;
     public Modifier mod;
+    public FragmentDesc projectileDesc;
+    public bool structural;
     public int delay;
     public bool firing;
     public int repeatsLeft;
     public double angle;
     public bool blind;
+    public double criticalFactor = 1.0;
     public XY offset=new(0,0);
 
     public delegate void OnFire(Weapon w, List<Projectile> p);
@@ -655,6 +657,8 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             aiming = new Swivel(desc.leftRange, desc.rightRange, aiming);
         }
         UpdateProjectileDesc();
+
+        structural = desc.structural;
     }
     public Weapon Copy(Item source) => desc.GetWeapon(source);
     public string GetReadoutName() {
@@ -689,164 +693,170 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
         }
         return bar;
     }
+    public void PeriodicUpdateProjectileDesc(ActiveObject owner, int interval) {
+        if(owner.world.tick % interval == 0) {
+            UpdateProjectileDesc();
+        }
+    }
     public void UpdateProjectileDesc() {
         projectileDesc = Modifier.Sum(capacitor?.mod, source.mod, mod) * desc.projectile;
     }
     public void Update(Station owner) {
-        UpdateProjectileDesc();
         if (!blind) {
             aiming?.Update(owner, this);
         }
         capacitor?.Update();
         if (delay > 0 && repeatsLeft == 0) {
             delay--;
-        } else {
+            PeriodicUpdateProjectileDesc(owner, 30);
 
-            double? direction = aiming?.GetFireAngle();
-            var hasAimAngle = direction != null;
-
-            firing = direction.HasValue;
-
-            bool beginRepeat = true, endRepeat = true;
-            if (repeatsLeft > 0) {
-                repeatsLeft--;
-                firing = true;
-                beginRepeat = false;
-                endRepeat = repeatsLeft == 0;
-            } else if (desc.autoFire) {
-                bool CheckProjectile() {
-                    if (desc.targetProjectile && !blind && Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s)) is Projectile target) {
-                        direction = Omnidirectional.GetFireAngle(owner, target, this);
-                        return true;
-                    }
-                    return false;
-                }
-                bool CheckSpray() {
-                    direction = desc.spray ? aiming switch {
-                        Omnidirectional => new Random().NextDouble() * 2 * Math.PI,
-                        Swivel s => angle + new Random().NextDouble() * (s.leftRange + s.rightRange) - s.leftRange,
-                        _ => angle
-                    } : direction;
-                    return desc.spray;
-                }
-
-                if (!(firing = CheckProjectile() || CheckSpray() || hasAimAngle)) {
-                    goto Cancel;
-                }
-            } else if (!firing) {
-                goto Cancel;
-            }
-
-            if(direction == null) {
-                goto Cancel;
-            }
-            bool clear = true;
-            var d = XY.Polar(direction.Value);
-            var p = owner.position;
-            for (int i = 0; i < projectileDesc.range; i++) {
-                p += d;
-                foreach (var other in owner.world.entities[p].Select(s => s is ISegment seg ? seg.parent : s).Distinct()) {
-                    if(other == owner)
-                        continue;
-                    if (other == aiming?.target)
-                        goto LineCheckDone;
-                    switch (other) {
-                        case AIShip ai when owner.guards.Contains(ai):
-                            continue;
-                        case ActiveObject a when owner.CanTarget(a):
-                            goto LineCheckDone;
-                        case Wreck:
-                        case Projectile:
-                            continue;
-                        default:
-                            clear = false;
-                            goto LineCheckDone;
-                    }
-                }
-            }
-        LineCheckDone:
-
-            firing &= clear;
-
-            if (!firing) {
-                goto Cancel;
-            }
-            ammo?.Update(owner);
-
-            if (firing && capacitor?.AllowFire != false && ammo?.AllowFire != false) {
-                delay = endRepeat ? desc.fireCooldown : desc.repeatDelay;
-                if (beginRepeat) {
-                    repeatsLeft = desc.repeat;
-                }
-                Fire(owner, direction.Value);
-                goto Done;
-            }
-            Cancel:
-
-            repeatsLeft = 0;
+            goto Done;
         }
+
+        double? direction = aiming?.GetFireAngle();
+        var hasAimAngle = direction != null;
+
+        firing = direction.HasValue;
+
+        bool beginRepeat = true, endRepeat = true;
+        if (repeatsLeft > 0) {
+            repeatsLeft--;
+            firing = true;
+            beginRepeat = false;
+            endRepeat = repeatsLeft == 0;
+        } else if (desc.autoFire) {
+            bool CheckProjectile() {
+                if (desc.targetProjectile && !blind && Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s)) is Projectile target) {
+                    direction = Omnidirectional.GetFireAngle(owner, target, this);
+                    return true;
+                }
+                return false;
+            }
+            bool CheckSpray() {
+                direction = desc.spray ? aiming switch {
+                    Omnidirectional => new Random().NextDouble() * 2 * Math.PI,
+                    Swivel s => angle + new Random().NextDouble() * (s.leftRange + s.rightRange) - s.leftRange,
+                    _ => angle
+                } : direction;
+                return desc.spray;
+            }
+
+            if (!(firing = CheckProjectile() || CheckSpray() || hasAimAngle)) {
+                goto Cancel;
+            }
+        } else if (!firing) {
+            goto Cancel;
+        }
+
+        if (direction == null) {
+            goto Cancel;
+        }
+        bool clear = true;
+        var d = XY.Polar(direction.Value);
+        var p = owner.position;
+        for (int i = 0; i < projectileDesc.range; i++) {
+            p += d;
+            foreach (var other in owner.world.entities[p].Select(s => s is ISegment seg ? seg.parent : s).Distinct()) {
+                if (other == owner)
+                    continue;
+                if (other == aiming?.target)
+                    goto LineCheckDone;
+                switch (other) {
+                    case AIShip ai when owner.guards.Contains(ai):
+                        continue;
+                    case ActiveObject a when owner.CanTarget(a):
+                        goto LineCheckDone;
+                    case Wreck:
+                    case Projectile:
+                        continue;
+                    default:
+                        clear = false;
+                        goto LineCheckDone;
+                }
+            }
+        }
+    LineCheckDone:
+        firing &= clear;
+        ammo?.Update(owner);
+        if (!firing || capacitor?.AllowFire == false || ammo?.AllowFire == false) {
+            goto Cancel;
+        }
+        UpdateProjectileDesc();
+        delay = endRepeat ? desc.fireCooldown : desc.repeatDelay;
+        if (beginRepeat) {
+            repeatsLeft = desc.repeat;
+        }
+        Fire(owner, direction.Value);
+        goto Done;
+
+    Cancel:
+        PeriodicUpdateProjectileDesc(owner, 15);
+        repeatsLeft = 0;
 
     Done:
         firing = false;
         blind = false;
     }
     public void Update(IShip owner) {
-        UpdateProjectileDesc();
         if (!blind) {
             aiming?.Update(owner, this);
         }
         capacitor?.Update();
         if (delay > 0 && repeatsLeft == 0) {
             delay--;
-        } else {
-            ammo?.Update(owner);
-
-            double direction = owner.rotationRad + angle;
-            var hasAimAngle = false;
-            if (aiming?.GetFireAngle() is double aimAngle) {
-                hasAimAngle = true;
-                direction = aimAngle;
-            }
-
-            bool beginRepeat = true, endRepeat = true;
-            if (repeatsLeft > 0) {
-                repeatsLeft--;
-                firing = true;
-                beginRepeat = false;
-                endRepeat = repeatsLeft == 0;
-            } else if (desc.autoFire) {
-                bool CheckProjectile() {
-                    if (desc.targetProjectile && !blind && Aiming.AcquireMissile(owner, this, s => s != null && SShip.IsEnemy(owner, s)) is Projectile target) {
-                        direction = Omnidirectional.GetFireAngle(owner, target, this);
-                        return true;
-                    }
-                    return false;
-                }
-                bool CheckSpray() {
-                    direction = desc.spray ? new Random().NextDouble() * 2 * Math.PI : direction;
-                    return desc.spray;
-                }
-                if (!(firing = CheckProjectile() || CheckSpray() || hasAimAngle)) {
-                    goto Cancel;
-                }
-            }
-            if (firing && capacitor?.AllowFire != false && ammo?.AllowFire != false) {
-                delay = endRepeat ? desc.fireCooldown : desc.repeatDelay;
-                if (beginRepeat) {
-                    repeatsLeft = desc.repeat;
-                }
-
-                Fire(owner, direction);
-
-                //Apply on next tick (create a delta-momentum variable)
-                if (desc.recoil > 0) {
-                    owner.velocity += XY.Polar(direction + Math.PI, desc.recoil);
-                }
-                goto Done;
-            }
-            Cancel:
-            repeatsLeft = 0;
+            PeriodicUpdateProjectileDesc(owner, 30);
+            goto Done;
         }
+        ammo?.Update(owner);
+
+        double direction = owner.rotationRad + angle;
+        var hasAimAngle = false;
+        if (aiming?.GetFireAngle() is double aimAngle) {
+            hasAimAngle = true;
+            direction = aimAngle;
+        }
+
+        bool beginRepeat = true, endRepeat = true;
+        if (repeatsLeft > 0) {
+            repeatsLeft--;
+            firing = true;
+            beginRepeat = false;
+            endRepeat = repeatsLeft == 0;
+        } else if (desc.autoFire) {
+            bool CheckProjectile() {
+                if (desc.targetProjectile && !blind && Aiming.AcquireMissile(owner, this, s => s != null && SShip.IsEnemy(owner, s)) is Projectile target) {
+                    direction = Omnidirectional.GetFireAngle(owner, target, this);
+                    return true;
+                }
+                return false;
+            }
+            bool CheckSpray() {
+                direction = desc.spray ? new Random().NextDouble() * 2 * Math.PI : direction;
+                return desc.spray;
+            }
+            if (!(firing = CheckProjectile() || CheckSpray() || hasAimAngle)) {
+                goto Cancel;
+            }
+        }
+        if (!firing || capacitor?.AllowFire == false || ammo?.AllowFire == false) {
+            goto Cancel;
+        }
+        UpdateProjectileDesc();
+        delay = endRepeat ? desc.fireCooldown : desc.repeatDelay;
+        if (beginRepeat) {
+            repeatsLeft = desc.repeat;
+        }
+
+        Fire(owner, direction);
+
+        //Apply on next tick (create a delta-momentum variable)
+        if (desc.recoil > 0) {
+            owner.velocity += XY.Polar(direction + Math.PI, desc.recoil);
+        }
+        goto Done;
+    Cancel:
+        PeriodicUpdateProjectileDesc(owner, 15);
+        repeatsLeft = 0;
     Done:
         firing = false;
         blind = false;
@@ -860,12 +870,57 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
         (user.position - target.position).magnitude < projectileDesc.range;
     public bool AllowFire => ammo?.AllowFire ?? true;
     public bool ReadyToFire => delay == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
+    public void CreateProjectiles(ActiveObject owner, double direction, List<Projectile> result = null) {
+        HashSet<Entity> exclude = new() { null };
+        if (!projectileDesc.hitSource) {
+            exclude.Add(owner);
+        }
+        var projectiles = projectileDesc.GetProjectiles(owner, target, direction, offset, exclude);
+        var criticalChance = 1.0 / (1 + criticalFactor);
+        foreach (var p in projectiles) {
+            if (owner.world.karma.NextDouble() < criticalChance) {
+                p.damageHP *= 3;
+            }
+        }
+        projectiles.ForEach(owner.world.AddEntity);
+        projectiles.ForEach(p => p.onHitActive += this);
+        exclude.UnionWith(projectiles);
+        result?.AddRange(projectiles);
+        exclude.UnionWith(owner.world.entities.all.OfType<ActiveObject>().Where(a => !owner.CanTarget(a)));
+        switch (owner) {
+            case PlayerShip p:
+                exclude.UnionWith(p.avoidHit);
+                AllowWeaponTargets(p.devices.Weapon);
+                p.onWeaponFire.ForEach(f => f(p, this, projectiles));
+                break;
+            case AIShip ai:
+                exclude.UnionWith(ai.avoidHit);
+                AllowWeaponTargets(ai.devices.Weapon);
+                ai.onWeaponFire.ForEach(f => f(ai, this, projectiles));
+                break;
+            case Station st:
+                exclude.UnionWith(st.guards);
+                AllowWeaponTargets(st.weapons);
+                break;
+            case null:
+                return;
+        }
+        exclude.Remove(target);
+        void AllowWeaponTargets(IEnumerable<Weapon> weapons) =>
+            exclude.ExceptWith(weapons.Select(w => w.aiming).Where(a => a != null).SelectMany(w => w.GetMultiTarget()));
+    }
     public void Fire(ActiveObject owner, double direction, List<Projectile> result = null) {
         HashSet<Entity> exclude = new() { null };
         if (!projectileDesc.hitSource) {
             exclude.Add(owner);
         }
         var projectiles = projectileDesc.GetProjectiles(owner, target, direction, offset, exclude);
+        var criticalChance = 1.0 / (1 + criticalFactor);
+        foreach(var p in projectiles) {
+            if(owner.world.karma.NextDouble() < criticalChance) {
+                p.damageHP *= 3;
+            }
+        }
         projectiles.ForEach(owner.world.AddEntity);
         projectiles.ForEach(p => p.onHitActive += this);
         exclude.UnionWith(projectiles);
@@ -878,23 +933,23 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
         switch (owner) {
             case PlayerShip p:
                 exclude.UnionWith(p.avoidHit);
-                ExcludeTargets(p.devices.Weapon);
+                AllowWeaponTargets(p.devices.Weapon);
                 p.onWeaponFire.ForEach(f => f(p, this, projectiles));   
                 break;
             case AIShip ai:
                 exclude.UnionWith(ai.avoidHit);
-                ExcludeTargets(ai.devices.Weapon);
+                AllowWeaponTargets(ai.devices.Weapon);
                 ai.onWeaponFire.ForEach(f => f(ai, this, projectiles)); 
                 break;
             case Station st:
                 exclude.UnionWith(st.guards);
-                ExcludeTargets(st.weapons);
+                AllowWeaponTargets(st.weapons);
                 break;
             case null:
                 return;
         }
         exclude.Remove(target);
-        void ExcludeTargets(IEnumerable<Weapon> weapons) =>
+        void AllowWeaponTargets(IEnumerable<Weapon> weapons) =>
             exclude.ExceptWith(weapons.Select(w => w.aiming).Where(a => a != null).SelectMany(w => w.GetMultiTarget()));
     }
     public delegate void OnHitActive(Weapon w, Projectile p, ActiveObject hit);
@@ -913,11 +968,18 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             if (projectileDesc.tracker != 0) {
                 switch (projectile.source) {
                     case PlayerShip pl:
-                        pl.tracking[hit] = projectileDesc.tracker;
+                        HandlePlayer(pl);
                         break;
                     case AIShip ai when ai.behavior is Wingmate w:
-                        w.player.tracking[hit] = projectileDesc.tracker;
+                        HandlePlayer(w.player);
                         break;
+                }
+                void HandlePlayer(PlayerShip pl) {
+                    var time = projectileDesc.tracker;
+                    if (pl.tracking.TryGetValue(hit, out var t)) {
+                        time = Math.Max(t, time);
+                    }
+                    pl.tracking[hit] = projectileDesc.tracker;
                 }
             }
         }

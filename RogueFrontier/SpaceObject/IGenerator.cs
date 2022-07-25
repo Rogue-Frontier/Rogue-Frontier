@@ -116,7 +116,6 @@ public class ShipEntry : ShipGenerator {
         }
         [JsonIgnore] public IShipOrder.Create Value => target => new PatrolCircuitOrder(target, patrolRadius);
     }
-
     public record EscortDesc() : IShipOrderDesc {
         public EscortDesc(XElement e) : this() {
             e.Initialize(this);
@@ -182,7 +181,6 @@ public static class SGenerator {
             "Reactor" => new ReactorEntry(element),
             "Solar" => new SolarEntry(element),
             "Service" => new ServiceEntry(element),
-
             "Devices" => new Group<Device>(element, f),
             "DeviceGroup" => new Group<Device>(element, f),
             "DeviceTable" => new Table<Device>(element, f),
@@ -225,7 +223,6 @@ public record Group<T>() : IGenerator<T> {
     public List<T> Generate(TypeCollection tc) =>
         new(generators.SelectMany(g => g.Generate(tc)));
 }
-
 public record Table<T>() : IGenerator<T> {
     [Opt] public IDice count = new Constant(1);
     [Opt] public bool replacement = true;
@@ -275,7 +272,6 @@ public record Table<T>() : IGenerator<T> {
                 }
                 throw new Exception("Unexpected roll");
             }));
-
             void ResetTable() {
                 choicesLeft = new(generators);
                 totalChanceLeft = totalChance;
@@ -350,10 +346,8 @@ public record SolarEntry() : IGenerator<Device> {
         SDevice.Generate<Solar>(tc, codename, mod);
     public void ValidateEager(TypeCollection tc) => Generate(tc);
 }
-
 public record ServiceEntry() : IGenerator<Device> {
     [Req] public string codename;
-
     public ModRoll mod;
     public ServiceEntry(XElement e) : this() {
         e.Initialize(this);
@@ -366,11 +360,10 @@ public record ServiceEntry() : IGenerator<Device> {
 }
 
 public record ShieldEntry() : IGenerator<Device>, IGenerator<Shield> {
-    public string codename;
-
+    [Req] public string codename;
     public ModRoll mod;
     public ShieldEntry(XElement e) : this() {
-        codename = e.ExpectAtt("codename");
+        e.Initialize(this);
         mod = new(e);
     }
     List<Device> IGenerator<Device>.Generate(TypeCollection tc) =>
@@ -399,31 +392,19 @@ public record WeaponList() : IGenerator<Weapon> {
         new(generators.SelectMany(g => g.Generate(tc)));
 }
 public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
-    public string codename;
-    public bool omnidirectional;
-    public XY offset=new(0,0);
-    public double angle, leftRange, rightRange;
+    [Req] public string codename;
+    [Opt] public bool omnidirectional;
+    [Opt] public bool? structural = null;
+    [Opt] public double angle, leftRange, rightRange;
+    public XY offset;
     public ModRoll mod;
     public WeaponEntry(XElement e) : this() {
-        codename = e.ExpectAtt("codename");
-        omnidirectional = e.TryAttBool("omnidirectional", false);
+        e.Initialize(this);
+        angle *= Math.PI / 180;
+        leftRange *= Math.PI / 180;
+        rightRange *= Math.PI / 180;
+        offset = XY.TryParse(e, new(0, 0));
         mod = new(e);
-
-        var p = (string s) => double.Parse(s);
-        if(e.TryAtt("posAngle", out var posAngle) && e.TryAtt("posRadius", out var posRadius)) {
-            offset = XY.Polar(p(posAngle) * Math.PI / 180, p(posRadius));
-        } else if (e.TryAtt("posX", out var posX) && e.TryAtt("posY", out var posY)) {
-            offset = new(p(posX), p(posY));
-        }
-        if(e.TryAtt("angle", out var angle)) {
-            this.angle = p(angle)*Math.PI/180;
-        }
-        if (e.TryAtt("leftRange", out var leftRange)) {
-            this.leftRange = p(leftRange) * Math.PI / 180;
-        }
-        if (e.TryAtt("rightRange", out var rightRange)) {
-            this.rightRange = p(rightRange) * Math.PI / 180;
-        }
     }
     List<Weapon> IGenerator<Weapon>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
@@ -436,6 +417,7 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
                 Omnidirectional o => o.targeting,
                 _ => w.aiming
             };
+        w.structural = structural ?? w.structural;
         if (omnidirectional) {
             w.aiming = new Omnidirectional(GetTargeting());
         } else if(leftRange + rightRange > 0) {
