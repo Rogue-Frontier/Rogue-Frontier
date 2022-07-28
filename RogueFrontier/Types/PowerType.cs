@@ -14,10 +14,13 @@ public record PowerType() : IDesignType {
     [Req] public int invokeDelay;
     [Opt] public bool onDestroyCheck = false;
     [Opt] public string message = null;
+    //public HashSet<string> attributes;
+    [Opt] public bool scareEnemies;
     public List<PowerEffect> Effect;
     public void Initialize(TypeCollection collection, XElement e) {
         var parent = e.TryAtt("inherit", out var inherit) ? collection.Lookup<PowerType>(inherit) : null;
         e.Initialize(this, parent);
+        //attributes = new(e.TryAtt("Attributes", "").Split("; "));
         Effect = new(e.Elements().Select(e => (PowerEffect)(e.Name.LocalName switch {
             "Projectile" => new PowerProjectile(e),
             "Heal" => new PowerHeal(),
@@ -133,7 +136,6 @@ public record Clonewall() : PowerEffect {
             if(busy) {
                 return;
             }
-            var fragment = w.projectileDesc;
             int i = 0;
             var target = w.target;
             busy = true;
@@ -142,8 +144,8 @@ public record Clonewall() : PowerEffect {
                 l.ForEach(p => p.position += o);
                 l.ForEach(owner.world.AddEntity);
                 w.ammo?.OnFire();
-
                 w.onFire.ForEach(f => f(w, l));
+                w.totalTimesFired++;
             });
             busy = false;
         };
@@ -171,13 +173,11 @@ public record Clonewall() : PowerEffect {
                     }
                     Heading.AimLine(owner.world, p, directions[i], interval);
                     i++;
-                    //Bug: friendly fire issues
                 });
             }
         }
     }
 }
-//Power that generates a weapon effect
 public record PowerProjectile() : PowerEffect {
     public FragmentDesc desc;
     public PowerProjectile(XElement e) : this() {
@@ -188,7 +188,6 @@ public record PowerProjectile() : PowerEffect {
         new Weapon() { projectileDesc = desc}.Fire(player, player.rotationRad);
 }
 public record PowerHeal() : PowerEffect {
-    public PowerHeal(XElement e) : this() { }
     //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
     public void Invoke(PlayerShip player) {
         player.hull.Restore();
@@ -197,8 +196,6 @@ public record PowerHeal() : PowerEffect {
     }
 }
 public record PowerReveal() : PowerEffect {
-    public PowerReveal(XElement e) : this(){ }
-    //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
     public void Invoke(PlayerShip player) {
         var enemies = player.world.entities.all
             .OfType<ActiveObject>()
@@ -214,59 +211,94 @@ public record PowerReveal() : PowerEffect {
         }
     }
 }
-public class PowerBarrier : PowerEffect {
+public record PowerBarrier() : PowerEffect {
     public enum BarrierType {
         shield, bubble, bounce, multiplyAttack
     }
+    public enum Shape {
+        circle, diamond
+    }
     public BarrierType barrierType;
+    public Shape shape;
     [Req] public int radius;
     [Req] public int lifetime;
-    public PowerBarrier() { }
-    public PowerBarrier(XElement e) {
+    [Opt] public Color? color = null;
+    public PowerBarrier(XElement e) : this() {
         e.Initialize(this);
         barrierType = e.ExpectAttEnum<BarrierType>(nameof(barrierType));
+        shape = e.TryAttEnum(nameof(shape), Shape.circle);
     }
     //public void Invoke(PlayerMain main) => Invoke(main.playerShip);
-    public void Invoke(PlayerShip player) {
-        var world = player.world;
+
+    private delegate ProjectileBarrier ConstructBarrier(XY pos, int lifetime);
+
+    public void Invoke(PlayerShip player) => Invoke((ActiveObject)player);
+    public void Invoke(ActiveObject owner) {
+        var world = owner.world;
         var end = 2 * Math.PI;
-        Func<XY, int, ProjectileBarrier> construct = null;
+        ConstructBarrier construct = null;
         switch (barrierType) {
             case BarrierType.shield: {
-                    HashSet<Projectile> blocked = new HashSet<Projectile>();
-                    construct = (position, lifetime) => new ShieldBarrier(player, position, lifetime, blocked);
+                    var blocked = new HashSet<Projectile>();
+                    construct = (position, lifetime) => new ShieldBarrier(owner, position, lifetime, blocked, color);
                     break;
                 }
             case BarrierType.bubble: {
-                    HashSet<Projectile> blocked = new HashSet<Projectile>();
-                    construct = (position, lifetime) => new BubbleBarrier(player, position, lifetime, blocked);
+                    var blocked = new HashSet<Projectile>();
+                    construct = (position, lifetime) => new BubbleBarrier(owner, position, lifetime, blocked);
                     break;
                 }
             case BarrierType.multiplyAttack: {
-                    HashSet<Projectile> cloned = new HashSet<Projectile>();
-                    construct = (position, lifetime) => new CloneBarrier(player, position, lifetime, cloned);
+                    var cloned = new HashSet<Projectile>();
+                    construct = (position, lifetime) => new CloneBarrier(owner, position, lifetime, cloned);
                     break;
                 }
             case BarrierType.bounce: {
-                    HashSet<Projectile> reflected = new HashSet<Projectile>();
-                    construct = (position, lifetime) => new ReflectBarrier(player, position, lifetime, reflected);
+                    var reflected = new HashSet<Projectile>();
+                    construct = (position, lifetime) => new ReflectBarrier(owner, position, lifetime, reflected);
                     break;
                 }
         }
         //HashSet<(int, int)> covered = new();
-        for (double r = radius; r < radius + 2; r++) {
-            double step = 1f / (r * 2);
-            for (double angle = 0; angle < end; angle += step) {
-                var p = XY.Polar(angle, r);
-                /*
-                if(covered.Contains(p)) {
-                    continue;
+        switch (shape) {
+            case Shape.circle:
+                for (double r = radius; r < radius + 2; r++) {
+                    double step = 1f / (r * 2);
+                    for (double angle = 0; angle < end; angle += step) {
+                        var p = XY.Polar(angle, r);
+                        /*
+                        if(covered.Contains(p)) {
+                            continue;
+                        }
+                        covered.Add(p);
+                        */
+                        var barrier = construct(p, lifetime);
+                        world.AddEntity(barrier);
+                    }
                 }
-                covered.Add(p);
-                */
-                var barrier = construct(p, lifetime);
-                world.AddEntity(barrier);
-            }
+                break;
+            case Shape.diamond:
+                List<int> Steps(params int[] points) {
+                    int i = 0;
+                    int n = points[i];
+                    var result = new List<int>();
+                    while(i < points.Length) {
+                        var next = points[i];
+                        while(n != next) {
+                            result.Add(n);
+                            n += Math.Sign(next - n);
+                        }
+                        i++;
+                    }
+                    return result;
+                }
+
+                var points = Enumerable.Zip(Steps(0, radius, -radius, 0), Steps(radius, -radius, radius)).Select(p => new XY(p.First, p.Second));
+                foreach(var p in points) {
+                    var barrier = construct(p, lifetime);
+                    world.AddEntity(barrier);
+                }
+                break;
         }
     }
 }
@@ -295,6 +327,9 @@ public class Power : IPower {
     public bool charging { get; set; }
     [JsonIgnore]
     public List<PowerEffect> Effect => type.Effect;
+
+    public delegate void OnInvoked(Power power);
+    public FuncSet<IContainer<OnInvoked>> onInvoked = new();
     public Power(PowerType type) {
         this.type = type;
     }
@@ -308,5 +343,35 @@ public class Power : IPower {
                 player.AddMessage(new Message(type.message));
             }
         }
+    }
+    public void Update(ActiveObject owner) {
+        if(cooldownLeft > 0) {
+            cooldownLeft--;
+        }
+        if (charging) {
+            invokeCharge++;
+            if (fullyCharged) {
+                Invoke(owner);
+            }
+        } else {
+            invokeCharge--;
+        }
+    }
+    public void Invoke(ActiveObject owner) {
+        charging = false;
+        if(owner is PlayerShip pl) {
+            Effect.ForEach(a => a.Invoke(pl));
+        } else {
+            Effect.ForEach(e => {
+                switch (e) {
+                    case PowerBarrier pb:
+                        pb.Invoke(owner);
+                        break;
+                }
+            });
+        }
+        onInvoked.ForEach(a => a(this));
+        invokeCharge = 0;
+        cooldownLeft = cooldownPeriod;
     }
 }

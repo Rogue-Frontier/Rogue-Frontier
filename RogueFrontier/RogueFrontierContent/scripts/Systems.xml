@@ -28,7 +28,7 @@
 						<Sibling radiusInc="30">
 							<Station codename="station_orion_warlords_stronghold">
 								<Ships>
-									<Ship codename="ship_william_sulphin" order="guard" sovereign="sovereign_orion_warlords">
+									<Ship codename="ship_william_sulphin" order="guard" sovereign="sovereign_orion_warlords" id="williamSulphin">
 										<Ships>
 											<Ship codename="ship_orion_huntsman" count="4" order="escort" sovereign="sovereign_orion_warlords"/>
 										</Ships>
@@ -72,10 +72,8 @@
 									<Station	codename="station_constellation_habitat"/>
 								</At>
 								<At index="2">
-									<Station	codename="station_constellation_astra"/>
+									<Station	codename="station_constellation_astra" id="constellationAstraOrion"/>
 								</At>
-								
-								
 								<Sibling	radiusInc="15">
 									<Station codename="station_constellation_habitat"/>
 								</Sibling>
@@ -108,7 +106,7 @@
 						<Planet radius="8"/>
 						<Orbital angle="random" radius="20">
 							<Group>
-								<Station	codename="station_daughters_outpost" id="daughtersOutpost"/>
+								<Station	codename="station_daughters_outpost" id="daughtersOutpostOrion"/>
 								<Orbital	radius="5"
 											angle="random"
 											>

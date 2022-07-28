@@ -155,9 +155,9 @@ public class BaseShip {
             s.Absorb(p);
         }
         if (dmgLeft == 0) return;
-
         if (p.fragment.blind is IDice blind) {
             blindTicks += blind.Roll();
+            blindTicks = Math.Min(blindTicks, 300);
         }
         int knockback = p.fragment.knockback * dmgLeft / dmgFull;
         velocity += (p.velocity - velocity).WithMagnitude(knockback);

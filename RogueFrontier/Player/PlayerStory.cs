@@ -502,7 +502,8 @@ public class PlayerStory {
             item_thorn_missile_system =         3200,
             item_simple_fuel_rod =              50,
             item_armor_repair_patch =           200,
-            item_amethyst_repair_kit =          400,
+            item_amethyst_repair_kit_i =        400,
+            item_amethyst_repair_kit_ii =       800,
             item_orator_charm_silence =         3000,
             item_dictator_charm_silence =       3000,
             item_emp_cannon =                   2400,
@@ -559,6 +560,8 @@ public class PlayerStory {
             item_60mw_battery =                 48000,
             item_prescience_book =              1999,
             item_book_founders=                 1999,
+            item_shine_charm=                   5000,
+            item_gem_of_inner_voice=            500
         };
         var pr = stdPriceTable.GetType().GetProperties();
         stdPrice = pr.ToDictionary(p => i[p.Name], p => (int)p.GetValue(stdPriceTable, null));
@@ -584,6 +587,7 @@ public class PlayerStory {
                 "station_camper_outpost" => CamperOutpost,
                 "station_constellation_astra" => ConstellationAstra,
                 "station_constellation_habitat" => ConstellationVillage,
+                "station_daughters_outpost" => DaughtersOutpost,
                 "station_armor_shop" => ArmorDealer,
                 "station_arms_dealer" => ArmsDealer,
                 "station_orion_warlords_camp" => OrionWarlordsCamp,
@@ -895,6 +899,71 @@ Okay, fine, I'll just find someone else to do it.""",
                     new() {
                         new("Undock")
                     });
+            }
+        }
+    }
+    public Con DaughtersOutpost(Con prev, PlayerShip playerShip, Station source) {
+
+        var status = (DaughtersOutpost)source.behavior;
+
+        return Intro(prev);
+        Con Intro(Con prev) {
+            return new Dialog(prev,
+@"You are docked at an outpost of the
+Daughters of the Orator.",
+                new() {
+                    new("Sanctum", Sanctum),
+                    //new("Donation", null),
+                    new("Undock", null)
+                });
+        }
+        Con Sanctum(Con prev) {
+            return new Dialog(prev,
+@"You are in the sanctum of the Daughters
+of the Orator. You hear a quiet hum all
+around you. " + (status.sanctumReady ? "" :
+
+@"The whole place is in shambles from a
+previous contemplation ritual. Tools and
+scaffolding lie scattered around the room in
+anticipation of a badly delayed repair job.
+
+One of the Daughters stands at the entrance.
+
+""Sorry, the sanctum is closed for repairs.
+We would appreciate any donation you could
+make to help us defray the cost.""
+"),
+                new() {
+                    new("Contemplate", Contemplate, NavFlags.ESC, status.sanctumReady),
+                    new("Leave", Intro)
+                });
+        }
+        Con Contemplate(Con prev) {
+            return new Dialog(prev,
+@"You attune yourself to the hum
+that permeates throughout the sanctum.
+
+An unusual energy strikes and shakes
+the Santum's micro-engraved plasteel-plated
+walls as you contemplate.
+
+Gems and jewels of communication, thrown off
+of their stands on the walls by the tremors,
+litter the floor.
+
+When you are done contemplating, the Sanctum
+is visibly damaged. The walls are scarred and
+burnt from the bursts of channelled energy.
+
+As you leave, abbey technicians
+hurry in and begin checking the walls.",
+                new() {
+                    new("Continue", Done)
+                });
+            Con Done(Con prev) {
+                status.sanctumReady = false;
+                return Sanctum(prev);
             }
         }
     }

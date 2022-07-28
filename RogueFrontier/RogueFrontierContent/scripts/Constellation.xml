@@ -6,7 +6,7 @@
 					name=		"Constellation Astra"
 					sovereign=	"sovereign_constellation"
 
-					hp=			"250"
+					hp=			"600"
 					
 					crimeOnDestroy="true"
 
@@ -109,7 +109,7 @@
 					name=		"Constellation Habitat"
 					sovereign=	"sovereign_constellation"
 
-					hp=			"100"
+					hp=			"250"
 					crimeOnDestroy="true"
 
 					glyph=		"H"
@@ -233,7 +233,7 @@
 				name=		"Constellation bunker"
 				sovereign=	"sovereign_constellation"
 
-				hp=			"300"
+				hp=			"450"
 				crimeOnDestroy="true"
 
 				glyph=		"#"

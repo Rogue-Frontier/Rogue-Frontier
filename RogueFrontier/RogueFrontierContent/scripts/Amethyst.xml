@@ -5,51 +5,12 @@
 
 					behavior=	"amethystStore"
 					
+					structure=	"RogueFrontierContent/sprites/AmethystStore.asc.cg"
+					
 					hp=			"300"
 					
 					crimeOnDestroy="true"
-
-					glyph=		"A"
-					foreground=	"Magenta"
 		>
-		<Segments>
-			<MultiPoint offsetX="2" offsetY="2" angleInc="90"
-				   glyph="*" foreground="Magenta"/>
-
-			<Point offsetX="-1" offsetY="2"
-				   glyph="-" foreground="Magenta"/>
-			<Point offsetX="0" offsetY="2"
-				   glyph="-" foreground="Magenta"/>
-			<Point offsetX="1" offsetY="2"
-				   glyph="-" foreground="Magenta"/>
-			
-			<Point offsetX="3" offsetY="1"
-				   glyph="\" foreground="Magenta"/>
-			<Point offsetX="4" offsetY="0"
-				   glyph="&gt;" foreground="Magenta"/>
-			<Point offsetX="3" offsetY="-1"
-				   glyph="/" foreground="Magenta"/>
-
-			<Point offsetX="-1" offsetY="-2"
-				   glyph="-" foreground="Magenta"/>
-			<Point offsetX="0" offsetY="-2"
-				   glyph="-" foreground="Magenta"/>
-			<Point offsetX="1" offsetY="-2"
-				   glyph="-" foreground="Magenta"/>
-			
-			<Point offsetX="-3" offsetY="1"
-				   glyph="/" foreground="Magenta"/>
-			<Point offsetX="-4" offsetY="0"
-				   glyph="&lt;" foreground="Magenta"/>
-			<Point offsetX="-3" offsetY="-1"
-				   glyph="\" foreground="Magenta"/>
-			
-			<Ring	foreground="Magenta"/>
-			<Point offsetX="2" offsetY="0"
-				   glyph="&gt;" foreground="Magenta"/>
-			<Point offsetX="-2" offsetY="0"
-				   glyph="&lt;" foreground="Magenta"/>
-		</Segments>
 		<Dock>
 			<MultiPoint offsetX="2" offsetY="0" angleInc="90"/>
 		</Dock>
@@ -242,7 +203,6 @@
 			</Projectile>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_amethyst_laser_iii"
 		name=		"Amethyst laser cannon"
 		level=		"1"
@@ -272,7 +232,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-	
 	<ItemType	codename=	"item_light_launcher_i"
 		name=		"Light launcher"
 		level=		"1"
@@ -289,6 +248,7 @@
 			initialCharges= "720"
 			
 			repeat="5"
+			repeatDelay=	"10"
 			>
 			<Projectile
 				maneuver=		"4"
@@ -309,7 +269,6 @@
 			</Projectile>
 		</Weapon>
 	</ItemType>
-	
 	<ItemType	codename=	"item_shimmer_shield_i"
 		name=		"Shimmer shield"
 		level=		"2"
@@ -330,7 +289,7 @@
 			>
 		</Shield>
 	</ItemType>
-	<ItemType	codename=	"item_amethyst_repair_kit"
+	<ItemType	codename=	"item_amethyst_repair_kit_i"
 				name=		"Amethyst Armor Repair Kit"
 				level=		"1"
 				mass=		"1000"
@@ -341,7 +300,21 @@
 				invoke=		"repairArmor"
 				repairHP=	"75"
 
-				desc=		"Gemsteel plate is ONLY repairable using the patented Amethyst Armor Repair Kit"
+				desc=		"Gemsteel plate is ONLY repairable using the patented Amethyst armor repair kit. This kit repairs 75 hp."
+		>
+	</ItemType>
+	<ItemType	codename=	"item_amethyst_repair_kit_ii"
+				name=		"Amethyst Armor Repair Kit"
+				level=		"2"
+				mass=		"1000"
+				value=		"1000"
+				
+				attributes=	"Amethyst"
+
+				invoke=		"repairArmor"
+				repairHP=	"150"
+
+				desc=		"Gemsteel plate is ONLY repairable using the patented Amethyst armor repair kit. This kit repairs 150 hp."
 		>
 	</ItemType>
 	<ItemType	codename=	"item_gemsteel_plate_i"
@@ -349,7 +322,7 @@
 		mass=		"4000"
 		level=		"1"
 		value=		"1500"
-				
+
 		attributes= "Amethyst"
 				
 		desc=		"Designed for the Amethyst-class yacht, this semicrystalline armor maintains its aesthetic beauty at any condition. It glows brightly when exposed to starlight, so it's not good for stealth ships."
@@ -380,8 +353,6 @@
 			<RestrictRepair hasAttributes="Amethyst"/>
 		</Armor>
 	</ItemType>
-
-
 	<ItemType	codename=	"item_prescience_book"
 			name=		"Prospering With Prescience: The Ultimate Guide - Hardcover Edition"
 			level=		"1"
@@ -392,7 +363,27 @@
 
 			invoke=		"unlockPrescience"
 
-			desc=		"This book written by the founder of Amethyst, Inc. will teach you the secrets of achieving guaranteed prosperity using the power of PRESCIENCE!"
+			desc=		"This book from the founder of Amethyst, Inc. will teach you the secrets of achieving guaranteed prosperity using the power of PRESCIENCE!"
 		>
 	</ItemType>
+	<ItemType	codename=	"item_shine_charm"
+			name=		"SHINE charm"
+			level=		"1"
+			mass=		"1000"
+			value=		"3000"
+			invoke=		"invokePower"
+			powerType=	"power_shine"
+			charges=	"5"
+			desc=		""
+		>
+	</ItemType>
+	<PowerType codename="power_shine"
+		name=			"SHINE"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		message=		"You SHINE bright in the light of fire"
+		>
+		<ProjectileBarrier barrierType="shield" lifetime="900" radius="6" shape="diamond" color="FF55FFFF"/>
+		<ProjectileBarrier barrierType="shield" lifetime="900" radius="5" shape="diamond" color="FF55FFFF"/>
+	</PowerType>
 </Module>

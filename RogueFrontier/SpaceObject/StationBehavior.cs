@@ -127,9 +127,11 @@ public class ConstellationShipyard : StationBehavior {
         }
     }
 }
-
-
-
+public class DaughtersOutpost : StationBehavior {
+    public bool sanctumReady = true;
+    public void Update(Station owner) {
+    }
+}
 public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroyed>, IContainer<GuardOrder.OnDocked> {
 
     private HashSet<ActiveObject> turretsDeployed = new();
@@ -202,11 +204,11 @@ public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroye
         }
     }
 }
-public class AmethystStore : StationBehavior, IContainer<Station.Destroyed>, IContainer<Station.Damaged>, IContainer<Weapon.OnFire> {
+public class AmethystStore : StationBehavior, IContainer<Station.Destroyed>, IContainer<Station.Damaged>, IContainer<Weapon.OnFire>, IContainer<Power.OnInvoked> {
 
     Dictionary<PlayerShip, int> damaged=new();
     HashSet<PlayerShip> banned = new();
-
+    int damageTaken;
     Weapon.OnFire IContainer<Weapon.OnFire>.Value => (weapon, projectiles) => {
         weapon.delay /= 2;
     };
@@ -220,12 +222,14 @@ public class AmethystStore : StationBehavior, IContainer<Station.Destroyed>, ICo
         if (source?.active != true) {
             return;
         }
-        if(source is PlayerShip pl && !banned.Contains(pl)) {
-            if (damaged.TryGetValue(pl, out var d)) {
-                damaged[pl] = d += projectile.damageHP;
-            } else {
-                damaged[pl] = d = projectile.damageHP;
+        if(source is PlayerShip pl) {
+            if (banned.Contains(pl)) {
+                return;
             }
+            if (!damaged.TryGetValue(pl, out var d)) {
+                damaged[pl] = 0;
+            }
+            d = damaged[pl] += projectile.damageHP;
             if (d > 80) {
                 //station.weapons.ForEach(w => w.onFire += this);
                 station.weapons.ForEach(w => w.SetTarget(pl));
@@ -233,8 +237,6 @@ public class AmethystStore : StationBehavior, IContainer<Station.Destroyed>, ICo
                 banned.Add(pl);
                 if (pl.cargo.RemoveWhere(i => i.type.codename == "item_amethyst_member_card") > 0) {
                     pl.AddMessage(new Transmission(station, new ColoredString("You have violated the Terms of Service. Your warranty is now void.", Color.Red, Color.Black)));
-                } else {
-
                 }
                 if (pl.shipClass.attributes.Contains("Amethyst")) {
                     pl.AddMessage(new Message("Self-Destruct remotely initiated by vendor."));
@@ -242,11 +244,24 @@ public class AmethystStore : StationBehavior, IContainer<Station.Destroyed>, ICo
                 }
             }
         }
+        damageTaken += projectile.damageHP;
+        if(damageTaken > 80) {
+            if (shine.ready) {
+                shine.Invoke(station);
+            }
+        }
     };
+    Power.OnInvoked IContainer<Power.OnInvoked>.Value => (power) => {
+        damageTaken = 0;
+    };
+    Power shine;
     public AmethystStore(Station owner) {
         owner.onDamaged += this;
         owner.onDestroyed += this;
+        shine = new(owner.world.types.Lookup<PowerType>("power_shine"));
+        shine.onInvoked += this;
     }
     public void Update(Station owner) {
+        shine.Update(owner);
     }
 }

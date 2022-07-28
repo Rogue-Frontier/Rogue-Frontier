@@ -3,6 +3,7 @@
 
 	<PowerType codename="power_silence_orator"
 		name=			"SILENCE"
+		scareEnemies=	"true"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
 		message=		"You channel the energy of SILENCE"
@@ -82,6 +83,7 @@
 	</PowerType>
 	<PowerType codename="power_silence_dictator"
 		name=			"SILENCE"
+		scareEnemies=	"true"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
 		message=		"You channel the energy of SILENCE"
@@ -129,11 +131,12 @@
 		<Jump/>
 	</PowerType>
 	<PowerType codename="power_execute_dictator"
-			name=			"EXECUTE"
-			invokeDelay=	"120"
-			cooldownTime=	"3600"
-			message=		"You EXECUTE anyone who dares to oppose you"
-			>
+		name=			"EXECUTE"
+		scareEnemies=	"true"
+		invokeDelay=	"120"
+		cooldownTime=	"3600"
+		message=		"You EXECUTE anyone who dares to oppose you"
+		>
 		<Clonewall/>
 	</PowerType>
 

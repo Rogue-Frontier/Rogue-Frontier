@@ -600,6 +600,8 @@ public class AttackOrder : IShipOrder {
     private FaceOrder face = new(0);
 
     public int aimWaitingTicks = 0;
+
+    public bool avoid;
     public AttackOrder(ActiveObject target) {
         SetTarget(target);
     }
@@ -631,37 +633,37 @@ public class AttackOrder : IShipOrder {
         }
         var weapons = owner.devices.Weapon;
         if (primary?.AllowFire != true) {
-            var w = weapons.Where(w => w.AllowFire);
-            primary = w.FirstOrDefault(w => w.aiming == null) ?? w.FirstOrDefault();
+            var available = weapons.Where(w => w.AllowFire);
+            primary = available.FirstOrDefault(w => w.aiming == null) ?? available.FirstOrDefault();
             if (primary == null) {
                 //omni = null;
                 return;
             }
             secondary.Clear();
-            secondary.AddRange(w
-               .Where(w => w.aiming != null)
-               .Where(w => w != primary));
+            secondary.AddRange(available.Where(w => w.aiming != null && w != primary));
         } else if (!primary.ReadyToFire && weapons.Count > 1) {
-            primary = weapons.Where(w => w.ReadyToFire)
-                .FirstOrDefault(w => w.aiming == null)
-                ?? primary;
+            primary = weapons.FirstOrDefault(w => w.aiming == null && w.ReadyToFire) ?? primary;
         }
+
         //Remove dock
-        if (owner.dock != null) {
-            owner.dock = null;
-        }
+        owner.dock = null;
+
         var offset = (target.position - owner.position);
         var dist = offset.magnitude;
-        secondary.ForEach(w => {
+        foreach(var w in secondary) {
             if (w.aiming.target != null) {
                 w.SetFiring(true);
             }
-        });
+        }
         void SetFiringPrimary() {
             Set(primary);
             aimWaitingTicks = 0;
         }
-        if (dist < 10) {
+        if(owner.world.tick%30 == 0) {
+            avoid = target is PlayerShip pl && pl.powers.Any(p => p.charging && p.Effect.Any(e => e is PowerProjectile));
+        }
+        var minDist = avoid ? 36 : 12;
+        if (dist < minDist) {
             //If we are too close, then move away
             //Face away from the target
             face.targetRads = offset.angleRad + Math.PI;
@@ -670,7 +672,6 @@ public class AttackOrder : IShipOrder {
             owner.SetThrusting(true);
         } else {
             var range = primary.projectileDesc.range;
-            bool freeAim = primary.aiming != null && dist < range;
             if (dist < range) {
                 //If we are in range, then aim and fire
                 //Aim at the target
@@ -684,8 +685,7 @@ public class AttackOrder : IShipOrder {
                     owner.SetThrusting(true);
                 }
                 //Fire if we are close enough
-                if (freeAim
-                    || Math.Abs(aim.GetAngleDiff(owner)) * dist < 6) {
+                if (primary.aiming != null || Math.Abs(aim.GetAngleDiff(owner)) * dist < 6) {
                     SetFiringPrimary();
                 } else {
                     aimWaitingTicks++;
@@ -693,13 +693,16 @@ public class AttackOrder : IShipOrder {
             } else {
                 //Otherwise, get closer
                 approach.Update(owner);
+                /*
                 //Fire if our angle is good enough
-                if (freeAim
+                if (primary.aiming != null
                     || Math.Abs(aim.GetAngleDiff(owner)) * dist < 6) {
                     SetFiringPrimary();
                 } else {
                     aimWaitingTicks++;
                 }
+                */
+                aimWaitingTicks++;
             }
         }
     }

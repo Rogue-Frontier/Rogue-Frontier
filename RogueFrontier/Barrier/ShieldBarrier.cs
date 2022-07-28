@@ -7,20 +7,23 @@ namespace RogueFrontier;
 //Blocks projectiles from anyone but the player
 class ShieldBarrier : ProjectileBarrier {
     public bool active => lifetime > 0;
-    public ColoredGlyph tile => new ColoredGlyph(Color.DarkCyan, Color.Black, '*');
+    public ColoredGlyph tile => new ColoredGlyph(color, Color.Black, '*');
     public ulong id { get; private set; }
-    public PlayerShip owner;
+    public ActiveObject owner;
     public XY offset;
     public int lifetime;
     public HashSet<Projectile> blocked;
     public XY position { get; set; }
-    public ShieldBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> blocked) {
+
+    public Color color;
+    public ShieldBarrier(ActiveObject owner, XY offset, int lifetime, HashSet<Projectile> blocked, Color? color = null) {
         this.id = owner.world.nextId++;
         this.owner = owner;
         this.offset = offset;
         this.lifetime = lifetime;
         this.blocked = blocked;
         UpdatePosition();
+        this.color = color ?? Color.DarkCyan;
     }
     public void Update() {
         if (owner.active) {
@@ -50,12 +53,12 @@ class BubbleBarrier : ProjectileBarrier {
     public bool active => lifetime > 0;
     public ColoredGlyph tile => new ColoredGlyph(Color.DarkCyan, Color.Black, '*');
     public ulong id { get; private set; }
-    public PlayerShip owner;
+    public ActiveObject owner;
     public XY offset;
     public int lifetime;
     public HashSet<Projectile> blocked;
     public XY position { get; set; }
-    public BubbleBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> blocked) {
+    public BubbleBarrier(ActiveObject owner, XY offset, int lifetime, HashSet<Projectile> blocked) {
         this.id = owner.world.nextId++;
         this.owner = owner;
         this.offset = offset;

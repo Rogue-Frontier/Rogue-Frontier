@@ -67,11 +67,11 @@ public enum NavFlags : long {
     ESC = 0b1,
     ENTER = 0b10
 }
-public record SceneOption(char key, string name, Func<ScreenSurface, ScreenSurface> next, NavFlags flags = 0) {
+public record SceneOption(char key, string name, Func<ScreenSurface, ScreenSurface> next, NavFlags flags = 0, bool enabled = true) {
     
     public SceneOption() : this('\0', "", null, 0) { }
     public SceneOption(string name) : this(name, null, 0) { }
-    public SceneOption(string name, Func<ScreenSurface, ScreenSurface> next, NavFlags flags = 0) : this(name.FirstOrDefault(char.IsLetterOrDigit), name, next, flags) { }
+    public SceneOption(string name, Func<ScreenSurface, ScreenSurface> next, NavFlags flags = 0, bool enabled = true) : this(name.FirstOrDefault(char.IsLetterOrDigit), name, next, flags, enabled) { }
 }
 public static class SScene {
     public static Dictionary<(int, int), U> Normalize<U>(this Dictionary<(int, int), U> d) {
@@ -181,7 +181,7 @@ public class Dialog : Console {
     int escapeIndex;
     int descX => Width / 2 - 12;
     int descY => 8;
-    public static int maxCharge = 48;
+    public static int maxCharge = 36;
     public Dialog(ScreenSurface prev, string desc, List<SceneOption> navigation) : base(prev.Surface.Width, prev.Surface.Height) {
         this.desc = desc.Replace("\r", null);
         navigation.RemoveAll(s => s == null);
@@ -196,13 +196,21 @@ public class Dialog : Console {
         UseMouse = true;
         UseKeyboard = true;
     }
+    int deltaIndex = 2;
     public override void Update(TimeSpan delta) {
         bool f = IsFocused;
 
         ticks++;
-        if (ticks % 2 == 0) {
+        if (ticks % 2*deltaIndex == 0) {
             if (descIndex < desc.Length - 1) {
-                descIndex++;
+                deltaIndex = 1;
+                while(descIndex < desc.Length - 1) {
+                    descIndex++;
+                    deltaIndex++;
+                    if(desc[descIndex] == ' ') {
+                        break;
+                    }
+                }
             } else if (descIndex < desc.Length) {
                 descIndex++;
 
@@ -220,22 +228,20 @@ public class Dialog : Console {
                             navIndex = index;
                             charging = true;
                             enter = true;
-                        }
+                        },
+                        enabled = option.enabled
                     });
-
                     i++;
                 }
             }
         }
 
-        if (charging) {
-            if (navIndex != -1) {
-                ref int c = ref charge[navIndex];
-                if (c < maxCharge + 30) {
-                    c++;
-                    c++;
-                    charging = false;
-                }
+        if (charging && navIndex != -1 && navigation[navIndex].enabled) {
+            ref int c = ref charge[navIndex];
+            if (c < maxCharge + 36) {
+                c++;
+                c++;
+                charging = false;
             }
         }
         if (prevEnter && !enter) {
@@ -304,12 +310,12 @@ public class Dialog : Console {
             x = descX - barLength;
             y = descY + desc.Count(c => c == '\n') + 3;
             foreach(var (c, i) in charge.Select((c, i) => (c, i))) {
-                this.Print(x, y + i, new ColoredString("------->".Substring(0, Math.Min(c / 6, barLength)), Color.Gray, Color.Black));
+                this.Print(x, y + i, new ColoredString("----->".Substring(0, Math.Min(c / 6, barLength)), Color.Gray, Color.Black));
             }
             if (navIndex > -1) {
-                this.Print(x, y + navIndex, new ColoredString("------->", Color.Gray, Color.Black));
+                this.Print(x, y + navIndex, new ColoredString("----->", Color.Gray, Color.Black));
                 var ch = charge[navIndex];
-                this.Print(x, y + navIndex, new ColoredString("------->".Substring(0, Math.Min(ch / 6, barLength)), ch < maxCharge ? Color.Yellow : Color.Orange, Color.Black));
+                this.Print(x, y + navIndex, new ColoredString("----->".Substring(0, Math.Min(ch / 6, barLength)), ch < maxCharge ? Color.Yellow : Color.Orange, Color.Black));
             }
         }
         base.Render(delta);
@@ -357,6 +363,12 @@ public class Dialog : Console {
     public override bool ProcessMouse(MouseScreenObjectState state) {
         foreach (var c in Children) {
             c.ProcessMouse(state);
+        }
+        if (state.Mouse.LeftButtonDown) {
+            if (descIndex < desc.Length - 1) {
+                descIndex = desc.Length - 1;
+                allowEnter = false;
+            }
         }
         return base.ProcessMouse(state);
     }

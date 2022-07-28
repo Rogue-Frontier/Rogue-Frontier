@@ -40,6 +40,7 @@ public enum ShipOrder {
 }
 public class ShipEntry : ShipGenerator {
     [Opt] public IDice count = new Constant(1);
+    [Opt] public string id = "";
     [Req] public string codename;
     [Opt] public string sovereign;
     public ShipGroup subordinates;
@@ -73,6 +74,12 @@ public class ShipEntry : ShipGenerator {
         var ships = Enumerable.Range(0, count).Select(
             i => new AIShip(new(owner.world, shipClass, GetPos(i)), s, GetBehavior(), orderDesc.Value(owner))
             ).ToList();
+        if (id.Any()) {
+            if(count != 1) {
+                throw new Exception("Ship entry with id must have exactly one ship");
+            }
+            owner.world.universe.identifiedObjects[id] = ships.First();
+        }
         var subShips = ships.SelectMany(ship => subordinates.Generate(tc, ship));
         return ships.Concat(subShips);
     }
@@ -92,7 +99,7 @@ public class ShipEntry : ShipGenerator {
             e.Initialize(this);
         }
         [JsonIgnore] public IShipOrder.Create Value => target => new AttackOrder(
-            targetId.Any() ? (ActiveObject)target.world.universe.named[targetId] : target
+            targetId.Any() ? (ActiveObject)target.world.universe.identifiedObjects[targetId] : target
             );
     }
     public record GuardDesc : IShipOrderDesc {

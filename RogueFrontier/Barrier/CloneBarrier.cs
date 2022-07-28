@@ -12,13 +12,13 @@ class CloneBarrier : ProjectileBarrier {
     [JsonIgnore]
     public ColoredGlyph tile => new ColoredGlyph(Color.OrangeRed, Color.Black, '*');
     public ulong id { get; private set; }
-    public PlayerShip owner;
+    public ActiveObject owner;
     public XY offset;
     public int lifetime;
     public HashSet<Projectile> cloned;
     public XY position { get; set; }
     public CloneBarrier() { }
-    public CloneBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> cloned) {
+    public CloneBarrier(ActiveObject owner, XY offset, int lifetime, HashSet<Projectile> cloned) {
         this.id = owner.world.nextId++;
         this.owner = owner;
         this.offset = offset;

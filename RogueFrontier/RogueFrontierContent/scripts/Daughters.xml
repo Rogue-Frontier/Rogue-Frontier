@@ -7,6 +7,7 @@
 				 sovereign=	"sovereign_daughters"
 
 				 hp=		"400"
+				 behavior=  "daughtersOutpost"
 
 				 glyph=		"S"
 				 foreground="Magenta"
@@ -67,4 +68,14 @@
                   |_____________|           
 		</HeroImage>
 	</StationType>
+	<ItemType	codename=	"item_gem_of_inner_voice"
+			name=		"Gem of Inner Voice"
+			level=		"1"
+			mass=		"1000"
+
+			value=		"3000"
+			
+			desc=		"This gem holds channelled energy from The Orator."
+		>
+	</ItemType>
 </Module>

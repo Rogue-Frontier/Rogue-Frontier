@@ -23,7 +23,7 @@
 		<Items>
 			<Item codename="item_simple_fuel_rod" count="12"/>
 			<Item codename="item_amethyst_member_card"	count="1"/>
-			<Item codename="item_amethyst_repair_kit"	count="4"/>
+			<Item codename="item_amethyst_repair_kit_i"	count="4"/>
 		</Items>
         <LayeredArmorSystem>
 			<Armor  codename="item_gemsteel_plate_i"/>
@@ -144,19 +144,6 @@
 			description="The Ulysses is an upgraded version of the Beowulf-class gunship."
         />
 	</ShipClass>
-	
-	<ShipClass  codename="ship_flawless_player"
-				inherit="ship_flawless"
-				name="Flawless-class gunship"
-				attributes=	""
-        >
-		<PlayerSettings
-			startingClass="true"
-			description="[DEBUG ONLY] The Flawless-class gunship is the ship of choice for NRobots"
-        />
-	</ShipClass>
-
-
 	<ShipClass codename=            "ship_clark"
                name=                "Clark-class transport"
                thrust=              "0.3"

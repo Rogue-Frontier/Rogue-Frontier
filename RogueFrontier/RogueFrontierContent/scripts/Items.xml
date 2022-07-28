@@ -436,7 +436,7 @@
 		mass=		"8000"
 		level=		"2"
 		value=		"4500"
-		desc=		"This heavy armor is the main choice of plating for the Clark-class."
+		desc=		"This heavy armor is the main choice of plating for the Clark-class transport."
 		>
 		<Armor	maxHP=		"150"/>
 	</ItemType>

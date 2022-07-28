@@ -27,8 +27,6 @@
 				behavior=	"none"
 					
 				hp=			"300"
-					
-				crimeOnDestroy="true"
 
 				structure=	"RogueFrontierContent/sprites/BeowulfClub.asc.cg"
 		>

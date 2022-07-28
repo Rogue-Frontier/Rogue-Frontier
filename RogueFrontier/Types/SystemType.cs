@@ -486,7 +486,7 @@ public record SystemStation() : SystemElement {
         var w = lc.world;
         var s = new Station(w, stationtype, lc.pos);
         if (id.Any() == true) {
-            w.universe.named[id] = s;
+            w.universe.identifiedObjects[id] = s;
         }
         w.AddEntity(s);
         s.CreateSegments();

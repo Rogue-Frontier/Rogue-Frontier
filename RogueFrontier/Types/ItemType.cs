@@ -379,6 +379,7 @@ public record WeaponDesc {
     [Opt] public int recoil = 0;
     [Opt] public int repeat = 0;
     [Opt] public int repeatDelay = 3;
+    [Opt] public double failureRate = 0;
     public FragmentDesc projectile;
     [Opt] public int initialCharges = -1;
     public CapacitorDesc capacitor;

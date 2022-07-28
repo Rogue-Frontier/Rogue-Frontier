@@ -363,6 +363,13 @@ public static class Main {
             value.Any() ? Convert.ToInt32(new Expression(value).Evaluate()) :
             throw e.Invalid<int?>(key)) :
         fallback;
+    public static int? ExpectAttIntNullable(this XElement e, string key, int? fallback = null) =>
+    e.TryAtt(key, out var value) ?
+        (value == "null" ? null :
+        int.TryParse(value, out int result) ? result :
+        value.Any() ? Convert.ToInt32(new Expression(value).Evaluate()) :
+        throw e.Invalid<int?>(key)) :
+    throw e.Missing<int?>(key);
     public static Color ExpectAttColor(this XElement e, string key) {
         if (e.TryAtt(key, out string s)) {
             if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
@@ -695,10 +702,11 @@ public static class Main {
                     [typeof(double)] = ParseDouble,
 
                     [typeof(bool?)] = ParseBoolNullable,
-                    [typeof(int?)] = () => e.TryAttIntNullable(key),
+                    [typeof(int?)] = () => e.ExpectAttIntNullable(key),
 
                     [typeof(IDice)] = () => e.ExpectAttDice(key),
-                    [typeof(Color)] = () => e.ExpectAttColor(key)
+                    [typeof(Color)] = () => e.ExpectAttColor(key),
+                    [typeof(Color?)] = () => e.ExpectAttColor(key),
                 }[p.FieldType]();
                 p.SetValue(obj, parsed);
 

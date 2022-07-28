@@ -626,8 +626,9 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
     public int repeatsLeft;
     public double angle;
     public bool blind;
-    public double criticalFactor = 1.0;
+    public double criticalFactor = 0.0;
     public XY offset=new(0,0);
+    public int totalTimesFired;
 
     public delegate void OnFire(Weapon w, List<Projectile> p);
     public FuncSet<IContainer<OnFire>> onFire=new();
@@ -706,7 +707,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             aiming?.Update(owner, this);
         }
         capacitor?.Update();
-        if (delay > 0 && repeatsLeft == 0) {
+        if (delay > 0) {
             delay--;
             PeriodicUpdateProjectileDesc(owner, 30);
 
@@ -718,12 +719,11 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
 
         firing = direction.HasValue;
 
-        bool beginRepeat = true, endRepeat = true;
+        bool beginRepeat = true;
         if (repeatsLeft > 0) {
             repeatsLeft--;
             firing = true;
             beginRepeat = false;
-            endRepeat = repeatsLeft == 0;
         } else if (desc.autoFire) {
             bool CheckProjectile() {
                 if (desc.targetProjectile && !blind && Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s)) is Projectile target) {
@@ -740,49 +740,41 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                 } : direction;
                 return desc.spray;
             }
-
             if (!(firing = CheckProjectile() || CheckSpray() || hasAimAngle)) {
                 goto Cancel;
             }
         } else if (!firing) {
             goto Cancel;
         }
-
         if (direction == null) {
             goto Cancel;
         }
-        bool clear = true;
         var d = XY.Polar(direction.Value);
         var p = owner.position;
         for (int i = 0; i < projectileDesc.range; i++) {
             p += d;
             foreach (var other in owner.world.entities[p].Select(s => s is ISegment seg ? seg.parent : s).Distinct()) {
-                if (other == owner)
-                    continue;
-                if (other == aiming?.target)
-                    goto LineCheckDone;
                 switch (other) {
-                    case AIShip ai when owner.guards.Contains(ai):
-                        continue;
-                    case ActiveObject a when owner.CanTarget(a):
+                    case ActiveObject a when aiming?.target == a || owner.CanTarget(a):
                         goto LineCheckDone;
+                    case Station s when s == owner:
+                    case AIShip ai when owner.guards.Contains(ai):
                     case Wreck:
                     case Projectile:
                         continue;
                     default:
-                        clear = false;
+                        firing = false;
                         goto LineCheckDone;
                 }
             }
         }
     LineCheckDone:
-        firing &= clear;
         ammo?.Update(owner);
         if (!firing || capacitor?.AllowFire == false || ammo?.AllowFire == false) {
             goto Cancel;
         }
         UpdateProjectileDesc();
-        delay = endRepeat ? desc.fireCooldown : desc.repeatDelay;
+        delay = repeatsLeft == 0 ? desc.fireCooldown : desc.repeatDelay;
         if (beginRepeat) {
             repeatsLeft = desc.repeat;
         }
@@ -802,26 +794,22 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
             aiming?.Update(owner, this);
         }
         capacitor?.Update();
-        if (delay > 0 && repeatsLeft == 0) {
+        if (delay > 0) {
             delay--;
             PeriodicUpdateProjectileDesc(owner, 30);
             goto Done;
         }
-        ammo?.Update(owner);
-
         double direction = owner.rotationRad + angle;
         var hasAimAngle = false;
         if (aiming?.GetFireAngle() is double aimAngle) {
             hasAimAngle = true;
             direction = aimAngle;
         }
-
-        bool beginRepeat = true, endRepeat = true;
+        bool beginRepeat = true;
         if (repeatsLeft > 0) {
             repeatsLeft--;
             firing = true;
             beginRepeat = false;
-            endRepeat = repeatsLeft == 0;
         } else if (desc.autoFire) {
             bool CheckProjectile() {
                 if (desc.targetProjectile && !blind && Aiming.AcquireMissile(owner, this, s => s != null && SShip.IsEnemy(owner, s)) is Projectile target) {
@@ -838,17 +826,23 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
                 goto Cancel;
             }
         }
+        ammo?.Update(owner);
         if (!firing || capacitor?.AllowFire == false || ammo?.AllowFire == false) {
             goto Cancel;
         }
         UpdateProjectileDesc();
-        delay = endRepeat ? desc.fireCooldown : desc.repeatDelay;
+        delay = repeatsLeft == 0 ? desc.fireCooldown : desc.repeatDelay;
         if (beginRepeat) {
             repeatsLeft = desc.repeat;
         }
-
+        if(desc.failureRate > 0 && owner.world.karma.NextDouble() < desc.failureRate) {
+            repeatsLeft = 0;
+            delay = desc.fireCooldown * 3;
+            if(owner is PlayerShip pl) {
+                pl.AddMessage(new Message("Weapon failed!"));
+            }
+        }
         Fire(owner, direction);
-
         //Apply on next tick (create a delta-momentum variable)
         if (desc.recoil > 0) {
             owner.velocity += XY.Polar(direction + Math.PI, desc.recoil);
@@ -878,7 +872,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
         var projectiles = projectileDesc.GetProjectiles(owner, target, direction, offset, exclude);
         var criticalChance = 1.0 / (1 + criticalFactor);
         foreach (var p in projectiles) {
-            if (owner.world.karma.NextDouble() < criticalChance) {
+            if (owner.world.karma.NextDouble() > criticalChance) {
                 p.damageHP *= 3;
             }
         }
@@ -917,7 +911,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
         ammo?.OnFire();
         capacitor?.OnFire();
         onFire.ForEach(f => f(this, projectiles));
-
+        totalTimesFired++;
     }
     public delegate void OnHitActive(Weapon w, Projectile p, ActiveObject hit);
     public FuncSet<IContainer<OnHitActive>> onHitActive = new();

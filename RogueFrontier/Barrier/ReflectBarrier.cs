@@ -9,15 +9,13 @@ namespace RogueFrontier;
 class ReflectBarrier : ProjectileBarrier {
     public bool active => lifetime > 0;
     public ColoredGlyph tile => new ColoredGlyph(Color.Goldenrod, Color.Black, '*');
-
-
     public ulong id { get; private set; }
-    public PlayerShip owner;
+    public ActiveObject owner;
     public XY offset;
     public int lifetime;
     public HashSet<Projectile> reflected;
     public XY position { get; set; }
-    public ReflectBarrier(PlayerShip owner, XY offset, int lifetime, HashSet<Projectile> reflected) {
+    public ReflectBarrier(ActiveObject owner, XY offset, int lifetime, HashSet<Projectile> reflected) {
         this.id = owner.world.nextId++;
         this.owner = owner;
         this.offset = offset;

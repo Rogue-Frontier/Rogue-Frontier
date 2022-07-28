@@ -65,7 +65,7 @@ public class Universe {
     public Rand karma;
     public TypeCollection types;
 
-    public Dictionary<string, Entity> named=new();
+    public Dictionary<string, Entity> identifiedObjects=new();
     public Dictionary<string, System> systems=new();
     public Dictionary<string, Stargate> stargates=new();
     public Dictionary<string, HashSet<Stargate>> systemGates=new();

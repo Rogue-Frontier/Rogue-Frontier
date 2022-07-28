@@ -148,7 +148,8 @@ public class Station : ActiveObject, ITrader, IDockable {
         reinforceNearby,
         constellationShipyard,
         amethystStore,
-        orionWarlords
+        orionWarlords,
+        daughtersOutpost
     }
     public void InitBehavior(Behaviors? behavior = null) {
         this.behavior = (behavior ?? type.behavior) switch {
@@ -158,6 +159,7 @@ public class Station : ActiveObject, ITrader, IDockable {
             Behaviors.constellationShipyard => new ConstellationShipyard(this),
             Behaviors.orionWarlords => new OrionWarlordsStation(this),
             Behaviors.amethystStore=>new AmethystStore(this),
+            Behaviors.daughtersOutpost => new DaughtersOutpost(),
             Behaviors.none => null,
             _ => null
         };

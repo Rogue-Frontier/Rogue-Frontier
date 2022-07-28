@@ -34,7 +34,7 @@ class Heading : Effect {
             int count = length / step;
             particles = new EffectParticle[count];
             for (int i = 0; i < count; i++) {
-                var point = start + inc * i;
+                var point = start + inc * (i + 1);
                 var value = 153 - Math.Max(1, i) * 153 / length;
                 var cg = new ColoredGlyph(new Color(value, value, value), Color.Transparent, '.');
                 var particle = new EffectParticle(point, cg, interval + 1);

@@ -8,7 +8,7 @@ namespace RogueFrontier;
 
 public class SceneScan : Console {
     ScreenSurface next;
-    int y;
+    double y;
     public SceneScan(ScreenSurface next) : base(next.Surface.Width, next.Surface.Height) {
         y = 0;
         this.next = next;
@@ -23,7 +23,7 @@ public class SceneScan : Console {
     }
     public override void Update(TimeSpan delta) {
         if (y < next.Surface.Height) {
-            y += 1;
+            y += delta.TotalSeconds * Height * 1.5;
         } else {
             Transition();
         }
@@ -39,7 +39,7 @@ public class SceneScan : Console {
     public override void Render(TimeSpan delta) {
         this.Clear();
 
-        var last = this.y - 1;
+        var last = (int)Math.Min(this.y - 1, Height - 1);
 
         int y;
         for (y = 0; y < last; y++) {
