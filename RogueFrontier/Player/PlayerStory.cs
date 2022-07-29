@@ -4,7 +4,7 @@ using System.Linq;
 using Common;
 using Newtonsoft.Json;
 using Con = SadConsole.ScreenSurface;
-
+using G = RogueFrontier.PlayerStory.GetDockScreen;
 namespace RogueFrontier;
 
 public interface IPlayerInteraction {
@@ -563,37 +563,37 @@ public class PlayerStory {
             item_shine_charm=                   5000,
             item_gem_of_inner_voice=            500
         };
-        var pr = stdPriceTable.GetType().GetProperties();
-        stdPrice = pr.ToDictionary(p => i[p.Name], p => (int)p.GetValue(stdPriceTable, null));
-        var codes = pr.Select(p => p.Name).ToHashSet();
-        var missing = i.Keys.Where(k => !codes.Contains(k));
-        if (missing.Any()) {
+        stdPrice = stdPriceTable.ToDict<ItemType, int>(s => i[s]);
+        var missing = i.Keys.Except(stdPriceTable.GetKeys());
+        if (missing.Any())
             throw new Exception(string.Join('\n', missing.Select(m => @$"[""{m}""] = 0,")));
-        }
         mainInteractions = new();
         mainInteractions.Add(new IntroMeeting(this));
         secondaryInteractions = new();
         completedInteractions = new();
     }
-    delegate Con GetDockScreen(Con prev, PlayerShip playerShip, Station source);
+
+    public void Update(PlayerShip playerShip) {
+
+    }
+    public delegate Con GetDockScreen(Con prev, PlayerShip playerShip, Station source);
     public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
         if (mainInteractions.Select(m => m.GetScene(prev, playerShip, d)).FirstOrDefault(s => s != null) is Con c) {
             return c;
         }
         if (d is Station source) {
-            var f = (GetDockScreen)(source.type.codename switch {
-                "station_amethyst_store" => AmethystStore,
-                "station_beowulf_club" => BeowulfClub,
-                "station_camper_outpost" => CamperOutpost,
-                "station_constellation_astra" => ConstellationAstra,
-                "station_constellation_habitat" => ConstellationVillage,
-                "station_daughters_outpost" => DaughtersOutpost,
-                "station_armor_shop" => ArmorDealer,
-                "station_arms_dealer" => ArmsDealer,
-                "station_orion_warlords_camp" => OrionWarlordsCamp,
-                _ => null
-            });
-            if (f != null) {
+            var dict = new {
+                station_amethyst_store =        (G) AmethystStore,
+                station_beowulf_club =          (G) BeowulfClub,
+                station_camper_outpost =        (G) CamperOutpost,
+                station_constellation_astra =   (G) ConstellationAstra,
+                station_constellation_habitat = (G) ConstellationVillage,
+                station_daughters_outpost =     (G) DaughtersOutpost,
+                station_armor_shop =            (G) ArmorDealer,
+                station_arms_dealer =           (G) ArmsDealer,
+                station_orion_warlords_camp =   (G) OrionWarlordsCamp
+            }.ToDict<G>();
+            if (dict.TryGetValue(source.type.codename, out var f)) {
                 return f(prev, playerShip, source);
             }
         }
@@ -654,8 +654,9 @@ purchases and repair services.
 of the Beowulf Club, a galaxy-wide organization
 serving civilian gunship pilots.
 
-A heavily armored stationhand calls out to you.
-""Hey! We only serve *gunships* around here!""", new() { new("Undock immediately") });
+A heavily armored guard calls out to you.
+""Hey! Who do you think you are? Get your
+piece of junk off of this station!""", new() { new("Undock immediately") });
         }
         return Intro();
         Dialog Intro() {
@@ -709,7 +710,7 @@ craftspersons, and adventurers.",
     }
     public Con ConstellationArrest(Con prev, PlayerShip playerShip, Station source, ICrime c) {
         return new Dialog(prev,
-@"Constellation armed soldiers approach your ship
+@"Constellation soldiers approach your ship
 as you dock.",
             new() {
                 new("Continue docking", Arrest),
@@ -717,18 +718,29 @@ as you dock.",
             });
         Con Arrest(Con prev) {
             return new Dialog(prev,
-@$"""You are under immediate arrest for
-{c.name}.""
+@$"The soldiers storm your ship and restrain
+you with a titanium grip, locking your
+jaw faster than you could invoke SILENCE.
 
-There will be no trial.",
-            new() { new("Continue", Surrender) }
+""You are under immediate arrest for
+{c.name}.""",
+            new() { new("Continue", Death) }
             );
         }
         Con Cancel(Con prev) {
-            source.guards.ForEach(s => (s.behavior.GetOrder() as GuardOrder)?.SetAttack(playerShip, 900));
+            if (playerShip.world.karma.NextDouble() < 1) {
+                if(source.behavior is ConstellationAstra c) {
+                    foreach(var g in c.reserves.Take(playerShip.world.karma.NextInteger(4, 8)).ToList()) {
+                        playerShip.world.AddEntity(g);
+                        c.reserves.Remove(g);
+                        (g.behavior.GetOrder() as GuardOrder)?.SetAttack(playerShip, -1);
+                    }
+                }
+                source.guards.ForEach(s => (s.behavior.GetOrder() as GuardOrder)?.SetAttack(playerShip, -1));
+            }
             return null;
         }
-        Con Surrender(Con prev) {
+        Con Death(Con prev) {
             playerShip.Destroy(source);
             return null;
         }
@@ -756,10 +768,13 @@ There will be no trial.",
         }) { background = source.type.heroImage };
         TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
     }
+
+    public HashSet<IShip> militiaRecordedKills = new();
+    public bool constellationMilitiaMember; 
     public Con ConstellationAstra(Con prev, PlayerShip playerShip, Station source) {
         return CheckConstellationArrest(prev, playerShip, source) ??
-            Intro();
-        Dialog Intro() {
+            Intro(prev);
+        Dialog Intro(Con prev) {
             return new(prev,
 @"You are docked at a Constellation Astra,
 a major residential and commercial station
@@ -768,7 +783,7 @@ of the United Constellation.
 The station is a stack of housing units,
 utility-facilities, entertainment districts,
 business sectors, and trading rooms. The governing
-tower protrudes out the roofplate of the station.
+tower protrudes out the ceiling of the station.
 The rotator tower rests on the underside.
 From a distance, the place looks almost like
 a spinning pinwheel.
@@ -780,6 +795,7 @@ There is a modest degree of artificial gravity here.",
                 new("Service: Device Removal", DeviceRemoval),
                 new("Service: Armor Repair", ArmorRepair),
                 new("Service: Armor Replacement", ArmorReplace),
+                new("Militia Headquarters", MilitiaHeadquarters),
                 new("Undock")
             }) { background = source.type.heroImage };
         }
@@ -789,7 +805,93 @@ There is a modest degree of artificial gravity here.",
         Con DeviceInstall(Con from) => SListScreen.DeviceInstallService(from, playerShip, GetInstallPrice, null);
         Con DeviceRemoval(Con from) => SListScreen.DeviceRemovalService(from, playerShip, GetRemovePrice, null);
         Con ArmorReplace(Con from) => SListScreen.ReplaceArmorService(from, playerShip, GetReplacePrice, null);
+        Con MilitiaHeadquarters(Con from) {
+            if (!constellationMilitiaMember) {
+                return new Dialog(from,
+@"The Constellation Militia now offers a new
+Citizens' Defense program in which you shall
+receive reimbursement for combat against ships
+and stations belonging to criminal factions.
 
+The criminal factions are listed as follows:
+- Orion Warlords
+- Iron Pirates
+
+Note that for security purposes, your
+ship will be fitted with a tracking device.
+
+Membership shall be revoked if you are found
+guilty of any criminal activity.
+
+To join, please sign your name on the form.",
+                    new() {
+                        new("Sign", Sign),
+                        new("Decline", Intro)
+                    });
+                Con Sign(Con from) {
+                    constellationMilitiaMember = true;
+                    militiaRecordedKills.UnionWith(playerShip.shipsDestroyed);
+                    return new Dialog(from,
+@"You have joined the Citizens' Defense program.
+
+Thank you for doing your part in maintaining
+our collective security.",
+                        new() {
+                            new("Continue", MilitiaHeadquarters)
+                        });
+                }
+            } else {
+                var rewardTable = new {
+                    ship_orion_raider = 20,
+                    ship_orion_huntsman = 40,
+                    ship_iron_gunboat = 40,
+                    ship_iron_missileship = 80,
+                    ship_iron_destroyer = 60,
+                    ship_iron_frigate = 80
+                }.ToDict<int>();
+                var groups = playerShip.shipsDestroyed
+                    .Except(militiaRecordedKills)
+                    .GroupBy(ship => ship.shipClass)
+                    .Select(g => (
+                        name: g.Key.name,
+                        count: g.Count(),
+                        payment: rewardTable.TryGetValue(g.Key.codename, out var unitValue) ? unitValue * g.Count() : 0
+                        ))
+                    .Where(pair => pair.payment > 0).ToList();
+
+                IPlayerInteraction mission = null;
+                var totalKills = playerShip.shipsDestroyed
+                    .Select(s => s.shipClass.codename)
+                    .Intersect(rewardTable.Keys)
+                    .Count();
+                if(totalKills > 10) {
+                    string desc =
+@"";
+                }
+                return new Dialog(from,
+@"You are in the Militia Headquarters.",
+                    new() {
+                        new("Mission", Mission, enabled:mission != null),
+                        new("Collect", Collect, enabled:groups.Any()),
+                        new("Leave", Intro)
+                        });
+                Con Mission(Con prev) {
+                    return null;
+                }
+                Con Collect(Con prev) {
+                    militiaRecordedKills.UnionWith(playerShip.shipsDestroyed);
+                    playerShip.person.money += groups.Sum(pair => pair.payment);
+                    return new Dialog(prev,
+@$"You collect payment for the following kills:
+
+{string.Join("\n", groups.Select(pair => $"{pair.payment} for {pair.count}x {pair.name}"))}
+
+Thank you for doing your part in maintaining
+our collective security.",
+                        new() { new("Continue", MilitiaHeadquarters) });
+                }
+            }
+        }
         int GetRepairPrice(Armor a) =>
             a.source.type.attributes.Contains("Amethyst") ? 9 : 3;
         int GetInstallPrice(Item i) =>

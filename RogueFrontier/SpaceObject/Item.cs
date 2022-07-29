@@ -125,6 +125,9 @@ public class Armor : Device {
         this.hp = desc.initialHP != -1 ? desc.initialHP : desc.maxHP;
     }
     public Armor Copy(Item source) => desc.GetArmor(source);
+    public void Repair(RepairArmor ra) {
+        hp = Math.Min(desc.maxHP, hp + ra.repairHP);
+    }
     public void Update(IShip owner) {
         if (decay.Any()) {
             foreach (var d in decay) {

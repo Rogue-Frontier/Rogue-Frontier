@@ -28,7 +28,6 @@
 			name=		"Orator's Amulet of Silence"
 			level=		"1"
 			mass=		"1000"
-
 			value=		"3000"
 
 			invoke=		"invokePower"
@@ -427,7 +426,7 @@
 		value=		"5000"
 		desc=		"This strong armor is made for the Knight series of gunships."
 		>
-		<Armor	maxHP=		"120"
+		<Armor	maxHP=		"75"
 			>
 		</Armor>
 	</ItemType>
@@ -438,7 +437,7 @@
 		value=		"4500"
 		desc=		"This heavy armor is the main choice of plating for the Clark-class transport."
 		>
-		<Armor	maxHP=		"150"/>
+		<Armor	maxHP=		"90"/>
 	</ItemType>
 	<ItemType	codename=	"item_bandit_plate"
 		name=		"Bandit plate"
@@ -447,7 +446,7 @@
 		value=		"8000"
 		desc=		"This modified Bumpersteel plate is coated with a stealthing agent."
 		>
-		<Armor	maxHP=		"150"
+		<Armor	maxHP=		"120"
 				stealth=	"6"/>
 	</ItemType>
 	<ItemType	codename=	"item_dynamite_charge"

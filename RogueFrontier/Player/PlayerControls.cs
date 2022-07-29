@@ -214,6 +214,7 @@ public class PlayerControls {
     };
 }
 public class PlayerInput {
+    public bool Shift;
     public bool Thrust, TurnLeft, TurnRight, Brake;
     public bool TargetFriendly, TargetMouse, TargetEnemy, ClearTarget, NextPrimary, NextSecondary, FirePrimary, FireSecondary, AutoAim;
     public bool QuickZoom;
@@ -223,18 +224,18 @@ public class PlayerInput {
     public PlayerInput(Dictionary<Control, Keys> controls, Keyboard info) {
         var p = (Control c) => info.IsKeyPressed(controls[c]);
         var d = (Control c) => info.IsKeyDown(controls[c]);
-        var ls = info.IsKeyDown(LeftShift);
+        Shift = info.IsKeyDown(LeftShift) || info.IsKeyDown(RightShift);
         Thrust =        d(Control.Thrust);
         TurnLeft =      d(Control.TurnLeft);
         TurnRight =     d(Control.TurnRight);
         Brake =         d(Control.Brake);
-        TargetFriendly =p(Control.TargetFriendly) && !ls;
-        TargetMouse =   p(Control.TargetFriendly) && ls;
+        TargetFriendly =p(Control.TargetFriendly) && !Shift;
+        TargetMouse =   p(Control.TargetFriendly) && Shift;
         ClearTarget =   p(Control.ClearTarget);
-        TargetEnemy =   p(Control.TargetEnemy) && !ls;
-        TargetMouse =   p(Control.TargetEnemy) && ls;
-        NextPrimary =   p(Control.NextPrimary) && !ls;
-        NextSecondary = p(Control.NextPrimary) && ls;
+        TargetEnemy =   p(Control.TargetEnemy) && !Shift;
+        TargetMouse =   p(Control.TargetEnemy) && Shift;
+        NextPrimary =   p(Control.NextPrimary) && !Shift;
+        NextSecondary = p(Control.NextPrimary) && Shift;
         FirePrimary =   d(Control.FirePrimary);
         FireSecondary = d(Control.FireSecondary);
         AutoAim =       d(Control.AutoAim);

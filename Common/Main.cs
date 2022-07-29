@@ -427,6 +427,18 @@ public static class Main {
         fallback;
         return b;
     }
+    public static IEnumerable<string> GetKeys(this object o) {
+        var pr = o.GetType().GetProperties();
+        return pr.Select(p => p.Name);
+    }
+    public static Dictionary<string, T> ToDict<T>(this object o) {
+        var pr = o.GetType().GetProperties();
+        return pr.ToDictionary(p => p.Name, p => (T)p.GetValue(o, null));
+    }
+    public static Dictionary<U, T> ToDict<U, T>(this object o, Func<string, U> keyMap) {
+        var pr = o.GetType().GetProperties();
+        return pr.ToDictionary(p => keyMap(p.Name), p => (T)p.GetValue(o, null));
+    }
     public static List<string> SplitLine(this string s, int width) {
         var result = new List<string>();
         var column = 0;

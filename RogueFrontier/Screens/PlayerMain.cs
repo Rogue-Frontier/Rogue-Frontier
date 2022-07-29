@@ -308,6 +308,7 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
         void UpdateUniverse() {
             world.UpdateActive();
             world.UpdatePresent();
+            story.Update(playerShip);
         }
         if (true) {
             back.Update(delta);
@@ -667,17 +668,30 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
 
             //Placeholder for mouse wheel-based weapon selection
             if (state.Mouse.ScrollWheelValueChange > 100) {
-                playerShip.NextPrimary();
+                if (playerControls.input.Shift) {
+                    playerShip.NextSecondary();
+                } else {
+                    playerShip.NextPrimary();
+                }
             } else if (state.Mouse.ScrollWheelValueChange < -100) {
-                playerShip.PrevPrimary();
+                if (playerControls.input.Shift) {
+                    playerShip.PrevSecondary();
+                } else {
+                    playerShip.PrevPrimary();
+                }
             }
 
             var centerOffset = new XY(mouseScreenPos.x, Surface.Height - mouseScreenPos.y) - new XY(Surface.Width / 2, Surface.Height / 2);
             centerOffset *= uiMegamap.viewScale;
             mouseWorldPos = (centerOffset.Rotate(camera.rotation) + camera.position);
             ActiveObject t;
-            if (state.Mouse.MiddleClicked) {
+            if (state.Mouse.MiddleClicked && !playerControls.input.Shift) {
                 TargetMouse();
+            } else if(state.Mouse.MiddleButtonDown) {
+                playerShip.SetFiringPrimary(true);
+                playerControls.input.FirePrimary = true;
+                playerShip.SetFiringSecondary(true);
+                playerControls.input.FireSecondary = true;
             }
             bool enableMouseTurn = !sleepMouse;
             //Update the crosshair if we're aiming with it
@@ -713,15 +727,19 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
                 }
             }
             if (state.Mouse.LeftButtonDown) {
-                playerShip.SetFiringPrimary();
-                playerControls.input.FirePrimary = true;
+                if (playerControls.input.Shift) {
+                    playerShip.SetFiringSecondary();
+                    playerControls.input.FireSecondary = true;
+                } else {
+                    playerShip.SetFiringPrimary();
+                    playerControls.input.FirePrimary = true;
+                }
             }
             if (state.Mouse.RightButtonDown) {
                 playerShip.SetThrusting();
                 playerControls.input.Thrust = true;
             }
         }
-
         Done:
         prevMouse = state;
         return base.ProcessMouse(state);
@@ -1323,6 +1341,8 @@ public class Readout : ScreenSurface {
         if (player.GetTarget(out ActiveObject playerTarget)) {
             Surface.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
             Surface.Print(targetX, targetY++, playerTarget.name, player.tracking.ContainsKey(playerTarget) ? Color.SpringGreen : Color.White, Color.Black);
+            if(playerTarget is AIShip ai)
+                Surface.Print(targetX, targetY++, $"Order: {ai.behavior.GetOrder().ToString()}", Color.White, Color.Black);
             PrintTarget(targetX, targetY, playerTarget);
             targetX += 32;
             targetY = 1;

@@ -381,12 +381,37 @@ public class AIShip : IShip {
         if(world.tick%30 == 0 && dock?.Target is Station st) {
             ship.stealth = Math.Max(ship.stealth, st.stealth);
         }
-
-
         //We update the ship's devices as ourselves because they need to know who the exact owner is
         //In case someone other than us needs to know who we are through our devices
         ship.devices.Update(this);
-        (ship.damageSystem as LayeredArmor)?.layers.ForEach(l => l.Update(this));
+
+        if(ship.damageSystem is LayeredArmor la) {
+            la.Update(this);
+            /*
+            if(world.tick%90 == 0) {
+                var repairers = new HashSet<(Item, RepairArmor)>(cargo.Select(i => (item: i, repair:i.type.invoke)).OfType<(Item, RepairArmor)>());
+                foreach(var l in la.layers) {
+                    var delta = l.desc.maxHP - l.hp;
+                    if(delta < l.desc.maxHP/2) {
+                        continue;
+                    }
+
+                    foreach((Item item, RepairArmor ra) pair in repairers) {
+                        if(pair.ra.repairHP > delta * 1.2) {
+                            continue;
+                        }
+
+                        l.Repair(pair.ra);
+                        cargo.Remove(pair.item);
+                        repairers.Remove(pair);
+                        goto RepairCheckDone;
+                    }
+                }
+            RepairCheckDone:
+                ;
+            }
+            */
+        }
     }
     [JsonIgnore]
     public bool active => ship.active;
@@ -422,6 +447,7 @@ public class PlayerShip : IShip {
 
     public Player person;
     public BaseShip ship;
+    //public PlayerStory story;
     public Sovereign sovereign { get; set; }
     public EnergySystem energy;
     public List<Power> powers = new();
@@ -456,7 +482,6 @@ public class PlayerShip : IShip {
     private int ticks = 0;
     public HashSet<IShip> shipsDestroyed = new();
     public HashSet<Station> stationsDestroyed = new();
-
     public List<ICrime> crimeRecord=new();
 
     public delegate void Destroyed(PlayerShip playerShip, ActiveObject destroyer, Wreck wreck);
@@ -478,6 +503,8 @@ public class PlayerShip : IShip {
         this.person = person;
         this.ship = ship;
         this.sovereign = sovereign;
+
+        //this.story = new(this);
 
         energy = new(ship.devices);
         primary = new(ship.devices.Weapon);

@@ -87,10 +87,11 @@
 								<At index="2">
 									<Sibling radiusInc="-15">
 										<Station codename="station_amethyst_store"/>
-
+										<!--
 										<Sibling radiusInc="-15">
 											<Station codename="station_constellation_missile_sentry"/>
 										</Sibling>
+										-->
 									</Sibling>
 								</At>
 								<At index="3">
@@ -315,9 +316,10 @@
 						<At index="0">
 							<Station chance="1" codename="station_constellation_astra"/>
 						</At>
+						<!--
 						<At index="1">
 							<Station chance="1" codename="station_constellation_missile_sentry"/>
-						</At>
+						</At>-->
 						<At index="2">
 							<Station chance="1" codename="station_constellation_bunker"/>
 						</At>

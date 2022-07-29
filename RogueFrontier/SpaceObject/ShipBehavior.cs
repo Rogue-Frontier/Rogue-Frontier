@@ -345,15 +345,62 @@ public class ApproachOrder : IShipOrder {
     }
     public bool Active => true;
 }
+
+
+public class LootOrder : IShipOrder, IContainer<Docking.OnDocked>/*, IContainer<Wreck.OnDestroyed>*/ {
+    [JsonProperty]
+    public Wreck target { get; private set; }
+    [JsonProperty]
+    private ApproachOrbitOrder approach;
+    public int dockTime;
+    public int ticks;
+
+    public delegate void OnDocked(IShip owner, Wreck target);
+    public FuncSet<IContainer<OnDocked>> onDocked = new();
+    public LootOrder(Wreck target) {
+        this.target = target;
+        approach = new(target);
+        //target.onDestroyed += this;
+        Active = true;
+    }
+    public override string ToString() => $"loot {target.name}";
+    public void Update(AIShip owner) {
+        ticks++;
+        if (!target.active) {
+            owner.dock = null;
+            Active = false;
+            return;
+        }
+        if(owner.dock is Docking d && d.Target == target) {
+            if (d.docked == true && ++dockTime == 150) {
+                owner.dock = null;
+                Active = false;
+                owner.cargo.UnionWith(target.cargo);
+                target.cargo.Clear();
+                target.Destroy(owner);
+            }
+            return;
+        }
+        
+        if (ticks % 10 == 0 && approach.currentOffset.magnitude2 < 6 * 6) {
+            owner.dock = new(target, XY.Zero);
+            owner.dock.onDocked += this;
+        } else {
+            approach.Update(owner);
+        }
+    }
+    public bool Active { get; private set; }
+    Docking.OnDocked IContainer<Docking.OnDocked>.Value => (owner, docking) => onDocked.ForEach(f => f(owner, target));
+    //Wreck.OnDestroyed IContainer<Wreck.OnDestroyed>.Value => w => Active = false;
+}
 public class GuardOrder : IShipOrder, IContainer<Docking.OnDocked> {
     [JsonProperty]
     public ActiveObject home { get; private set; }
     [JsonProperty]
-    public AttackOrder attackOrder { get; private set; }
+    public IShipOrder errand { get; private set; } = null;
     [JsonProperty]
     private ApproachOrbitOrder approach;
-    private GateOrder gateOrder;
-    public int attackTime;
+    public int errandTime;
     public int ticks;
 
     public delegate void OnDocked(IShip owner, ActiveObject home);
@@ -361,96 +408,102 @@ public class GuardOrder : IShipOrder, IContainer<Docking.OnDocked> {
     public GuardOrder(ActiveObject home) {
         this.home = home;
         approach = new(home);
-        attackOrder = new(null);
-        attackTime = 0;
+        errand = null;
+        errandTime = -1;
     }
     public GuardOrder(ActiveObject home, ActiveObject attackTarget) {
         this.home = home;
         approach = new(home);
-        attackOrder = new(attackTarget);
-        attackTime = -1;
+        errand = new AttackOrder(attackTarget);
+        errandTime = -1;
     }
-    public override string ToString() => $"guard {home.name} {(attackOrder?.Active == true ? $"(attack {attackOrder.target.name})" : "")}";
+    public override string ToString() => $"guard {home.name}{errand switch {
+        AttackOrder a => $": attack {a.target.name}",
+        LootOrder l => $": loot {l.target.name}",
+        GateOrder g => $": gate {g.gate.destWorld.name}",
+        _ => ""
+    }}";
     public void SetHome(ActiveObject home) {
         this.home = home;
         approach.target = home;
     }
-    public bool CanTarget(ActiveObject other) => other == attackOrder?.target;
+    public bool CanTarget(ActiveObject other) => errand is AttackOrder a && a.target == other;
     public void SetAttack(ActiveObject target, int attackTime = -1) {
-        this.attackOrder.SetTarget(target);
-        this.attackTime = attackTime;
+        errand = new AttackOrder(target);
+        errandTime = attackTime;
     }
-    public void ClearAttack() {
-        attackOrder.SetTarget(null);
-        attackTime = -1;
+    public void SetLoot(Wreck target) {
+        errand = new LootOrder(target);
+        errandTime = -1;
+    }
+    public void ClearErrand() {
+        errand = null;
+        errandTime = -1;
     }
     public void Update(AIShip owner) {
         ticks++;
         //If we have a target, then attack!
-        if (attackOrder.Active == true) {
-            attackOrder.Update(owner);
-
+        if (errand?.Active == true) {
+            errand.Update(owner);
             //If we have finite attackTime set, then our attack order expires on time out
-            attackTime--;
-            if (attackTime == 0) {
-                attackOrder.ClearTarget();
+            errandTime--;
+            if (errandTime == 0) {
+                errand = null;
             }
             return;
         }
-
-
-        if (gateOrder != null) {
-            var current = gateOrder.gate.world;
-            if (current == owner.world && owner.world != home.world) {
-                gateOrder.Update(owner);
-                return;
-            } else {
-                gateOrder = null;
-            }
-        }
-
         if (ticks % 60 == 0 && owner.world != home.world) {
-            gateOrder = new(owner.world.FindGateTo(home.world));
-            gateOrder.Update(owner);
+            errand = new GateOrder(owner.world.FindGateTo(home.world));
+            errand.Update(owner);
             return;
         }
-
-
-
-
         //Otherwise, we're idle
         //If we're docked, then don't check for enemies every tick
         if (ticks % 150 != 0 && owner.dock?.docked == true) {
             return;
         }
         //Look for a nearby attack target periodically
-        if (ticks % 30 == 0 && FindTarget(out var target)) {
-            //Start attacking
-            SetAttack(target);
-            attackOrder.Update(owner);
-            return;
+        if (ticks % 30 == 0) {
+            if(owner.world.karma.NextDouble() < 1/20f && FindWreck() is Wreck wreck) {
+                SetLoot(wreck);
+                errand.Update(owner);
+                return;
+            } else if (FindEnemy() is ActiveObject target) {
+                //Start attacking
+                SetAttack(target);
+                errand.Update(owner);
+                return;
+            }
         }
         //If we're currently docking, then continue
-        if(owner.dock != null) {
+        if(owner.dock?.Target == home) {
             return;
         }
-        //At this point, we definitely don't have an attack target so we return
-        if ((owner.position - home.position).magnitude2 < 6 * 6) {
-            owner.dock = new(home, (home as Station)?.GetDockPoint() ?? XY.Zero);
+        if (ticks % 10 == 0 && approach.currentOffset.magnitude2 < 6 * 6) {
+            var offset = home switch {
+                Station s => s.GetDockPoint(),
+                _ => XY.Zero
+            };
+            owner.dock = new(home, offset);
             owner.dock.onDocked += this;
         } else {
             approach.Update(owner);
         }
-        bool FindTarget(out ActiveObject target) =>
-            (target = owner.world.entities
+        ActiveObject FindEnemy() =>
+            owner.world.entities
                 .FilterKey(e => (home.position - e).magnitude2 < 50 * 50)
                 .OfType<ActiveObject>()
                 .Where(e => !e.IsEqual(owner) && home.CanTarget(e))
-                .GetRandomOrDefault(owner.destiny)) != null;
-        
+                .GetRandomOrDefault(owner.destiny);
+
+        Wreck FindWreck() =>
+            owner.world.entities
+                .FilterKey(e => (home.position - e).magnitude2 < 100 * 100)
+                .OfType<Wreck>()
+                .Where(e => !e.IsEqual(owner))
+                .GetRandomOrDefault(owner.destiny);
     }
     public bool Active => home.active;
-
     public Docking.OnDocked Value => (owner, docking) => onDocked.ForEach(f => f(owner, home));
 }
 
@@ -605,6 +658,7 @@ public class AttackOrder : IShipOrder {
     public AttackOrder(ActiveObject target) {
         SetTarget(target);
     }
+    public override string ToString() => $"attack {target.name}";
     public void ClearTarget() => this.target = null;
     public void SetTarget(ActiveObject target) {
         this.target = target;
@@ -710,6 +764,7 @@ public class AttackOrder : IShipOrder {
 }
 public class GateOrder : IShipOrder {
     public Stargate gate;
+    public System destWorld => gate.destWorld;
     public GateOrder(Stargate gate) {
         this.gate = gate;
         Active = true;
@@ -892,21 +947,23 @@ public class SnipeOrder : IShipOrder {
     public bool Active => target?.active == true && weapon?.AllowFire == true;
 }
 public class ApproachOrbitOrder : IShipOrder {
-    public ActiveObject target;
+    public MovingObject target;
     [JsonProperty]
     private FaceOrder face;
-    public ApproachOrbitOrder(ActiveObject target) {
+    public XY currentOffset;
+    public ApproachOrbitOrder(MovingObject target) {
         this.target = target;
         this.face = new(0);
+        currentOffset = XY.Zero;
     }
     public void Update(AIShip owner) {
         //Remove dock
         owner.dock = null;
         //Find the direction we need to go
-        var offset = (target.position - owner.position);
-        var randomOffset = new XY((2 * owner.destiny.NextDouble() - 1) * offset.x, (2 * owner.destiny.NextDouble() - 1) * offset.y) / 5;
-        offset += randomOffset;
-        var speedTowards = (owner.velocity - target.velocity).Dot(offset.normal);
+        currentOffset = (target.position - owner.position);
+        var randomOffset = new XY((2 * owner.destiny.NextDouble() - 1) * currentOffset.x, (2 * owner.destiny.NextDouble() - 1) * currentOffset.y) / 5;
+        currentOffset += randomOffset;
+        var speedTowards = (owner.velocity - target.velocity).Dot(currentOffset.normal);
         if (speedTowards < 0) {
             //Decelerate
             face.targetRads = Math.PI + owner.velocity.angleRad;
@@ -915,10 +972,10 @@ public class ApproachOrbitOrder : IShipOrder {
         } else {
             //Approach
             //Face the target
-            face.targetRads = offset.angleRad;
+            face.targetRads = currentOffset.angleRad;
             face.Update(owner);
             //If we're facing close enough
-            if (Math.Abs(Helper.AngleDiffDeg(owner.rotationDeg, offset.angleRad * 180 / Math.PI)) < 10) {
+            if (Math.Abs(Helper.AngleDiffDeg(owner.rotationDeg, currentOffset.angleRad * 180 / Math.PI)) < 10) {
                 //Go
                 owner.SetThrusting(true);
             }

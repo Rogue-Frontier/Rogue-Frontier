@@ -48,7 +48,7 @@ public class Docking {
 
         if (offset.magnitude > 0.25) {
             ship.velocity += XY.Polar(offset.angleRad, ship.shipClass.thrust);
-        } else if ((ship.position - dest).magnitude < 1) {
+        } else if ((ship.position - dest).magnitude2 < 1) {
             ship.velocity = Target.velocity;
             return true;
         }

@@ -22,9 +22,9 @@ public class IronPirateStation : StationBehavior {
             //Clear any pirate attacks where the target has too many defenders
             foreach (var g in owner.guards) {
                 if (g.behavior.GetOrder() is GuardOrder o
-                    && o.attackOrder.Active == true
-                    && CountDefenders(o.attackOrder.target, g) > 2) {
-                    o.ClearAttack();
+                    && o.errand is AttackOrder { Active:true } a
+                    && CountDefenders(a.target, g) > 2) {
+                    o.ClearErrand();
                 }
             }
 
@@ -35,7 +35,7 @@ public class IronPirateStation : StationBehavior {
                         .ToList();
             //Handle all available guards
             foreach (var g in owner.guards) {
-                if (g.behavior.GetOrder() is GuardOrder { attackTime: < 1 } o) {
+                if (g.behavior.GetOrder() is GuardOrder { errandTime: < 1 } o) {
                     var target = targets.FirstOrDefault(
                         s => {
                             int attackers = CountAttackers(s), defenders = CountDefenders(s, g);
@@ -67,11 +67,18 @@ public class IronPirateStation : StationBehavior {
 }
 public class ConstellationAstra : StationBehavior {
     public HashSet<StationType> stationTypes;
+
+    public HashSet<AIShip> reserves;
     public ConstellationAstra(Station owner) {
         stationTypes = new() {
             owner.world.types.Lookup<StationType>("station_constellation_shipyard"),
             owner.world.types.Lookup<StationType>("station_constellation_bunker")
         };
+        reserves = new(Enumerable.Range(0, 16).Select(i => new AIShip(
+            new(owner.world, owner.world.types.Lookup<ShipClass>("ship_beowulf"), owner.position),
+            owner.sovereign,
+            null,
+            new GuardOrder(owner))));
     }
     public void Update(Station owner) {
         if (owner.world.tick % 150 == 0) {

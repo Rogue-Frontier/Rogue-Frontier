@@ -34,6 +34,9 @@ public class Wreck : MovingObject, IDockable {
     public int ticks { get; private set; }
     [JsonProperty]
     public XY gravity { get; private set; }
+
+    public delegate void OnDestroyed(Wreck w);
+    public FuncSet<IContainer<OnDestroyed>> onDestroyed = new();
     public Wreck() { }
     public Wreck(StructureObject creator, IEnumerable<Item> cargo = null) {
         this.id = creator.world.nextId++;
@@ -50,8 +53,10 @@ public class Wreck : MovingObject, IDockable {
     public ScreenSurface GetDockScene(ScreenSurface prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
     public void Damage(Projectile p) {
     }
+    
     public void Destroy(ActiveObject source) {
         active = false;
+        onDestroyed.ForEach(p => p(this));
     }
 
     public void Update() {

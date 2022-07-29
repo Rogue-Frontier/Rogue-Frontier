@@ -52,6 +52,9 @@ public class LayeredArmor : HullSystem {
         layers.Reverse();
         this.layers = layers;
     }
+    public void Update(IShip owner) {
+        layers.ForEach(l => l.Update(owner));
+    }
     public void Damage(int tick, Projectile p, Action Destroy) {
         if (p.damageHP == 0)
             return;
