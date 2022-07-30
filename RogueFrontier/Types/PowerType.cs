@@ -98,7 +98,7 @@ public record Clonewall() : PowerEffect {
         player.world.AddEffect(o);
         player.onWeaponFire += o;
     }
-    public class Overlay : Effect, IContainer<PlayerShip.WeaponFired> {
+    public class Overlay : Effect, Lis<PlayerShip.WeaponFired> {
         int ticks;
         PlayerShip owner;
         public XY position => owner.position;
@@ -124,7 +124,7 @@ public record Clonewall() : PowerEffect {
                         XY.Polar(owner.rotationRad + Math.PI / 2, 4),
                         XY.Polar(owner.rotationRad + Math.PI / 2, 6),
                     };
-        PlayerShip.WeaponFired IContainer<PlayerShip.WeaponFired>.Value => (p, w, pr) => {
+        PlayerShip.WeaponFired Lis<PlayerShip.WeaponFired>.Value => (p, w, pr) => {
             if (!active) {
                 p.onWeaponFire -= this;
                 return;

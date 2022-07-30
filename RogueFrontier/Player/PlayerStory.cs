@@ -564,7 +564,8 @@ public class PlayerStory {
             item_prescience_book =              1999,
             item_book_founders=                 1999,
             item_shine_charm=                   5000,
-            item_gem_of_inner_voice=            500
+            item_gem_of_inner_voice=            500,
+            item_repeater_turret=               9000
         };
         stdPrice = stdPriceTable.ToDict<ItemType, int>(s => i[s]);
         var missing = i.Keys.Except(stdPriceTable.GetKeys());
@@ -575,7 +576,6 @@ public class PlayerStory {
         secondaryInteractions = new();
         completedInteractions = new();
     }
-
     public void Update(PlayerShip playerShip) {
 
     }
@@ -1092,7 +1092,7 @@ originating from this station.",
                 Container<Station.Destroyed> hook = new((s, d, w) => wreck = w);
                 source.onDestroyed.set.Add(hook);
 
-                if(source.behavior is IContainer<Station.Destroyed> d)
+                if(source.behavior is Lis<Station.Destroyed> d)
                     source.onDestroyed -= d;
                 source.Destroy(playerShip);
                 source.onDestroyed.set.Remove(hook);
@@ -1118,7 +1118,7 @@ You leave the station in ruins.",
         return Intro(home);
     }
 }
-class DestroyTarget : IPlayerInteraction, IContainer<AIShip.Destroyed>, IContainer<Station.Destroyed> {
+class DestroyTarget : IPlayerInteraction, Lis<AIShip.Destroyed>, Lis<Station.Destroyed> {
     public PlayerShip attacker;
     public Station source;
     public HashSet<ActiveObject> targets;
@@ -1141,14 +1141,14 @@ class DestroyTarget : IPlayerInteraction, IContainer<AIShip.Destroyed>, IContain
         }
     }
 
-    AIShip.Destroyed IContainer<AIShip.Destroyed>.Value => (s, d, w) => {
+    AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => {
         if (targets.Remove(s) && targets.Count == 0) {
             attacker.AddMessage(new Message("Mission complete!"));
             s.onDestroyed -= this;
         }
     };
 
-    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => {
+    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => {
         if (targets.Remove(s) && targets.Count == 0) {
             attacker.AddMessage(new Message("Mission complete!"));
             s.onDestroyed -= this;

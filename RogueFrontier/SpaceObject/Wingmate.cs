@@ -9,7 +9,7 @@ public enum WingOrder {
     BreakAndAttack,
     Scout,
 }
-public class Wingmate : IShipBehavior, IContainer<PlayerShip.Destroyed> {
+public class Wingmate : IShipBehavior, Lis<PlayerShip.Destroyed> {
     public PlayerShip player;
     public IShipOrder order;
 

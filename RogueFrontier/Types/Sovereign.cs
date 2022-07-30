@@ -11,7 +11,7 @@ public enum Alignment {
     ConstructiveOrder, ConstructiveChaos, Neutral, DestructiveOrder, DestructiveChaos
 }
 public class Sovereign : IDesignType {
-    public class AutoEnemySelf : IContainer<AutoSovereign> {
+    public class AutoEnemySelf : Lis<AutoSovereign> {
         public Sovereign self;
         public AutoEnemySelf(Sovereign self) {
             this.self = self;
@@ -19,11 +19,11 @@ public class Sovereign : IDesignType {
         [JsonIgnore]
         public AutoSovereign Value => s => s == self ? Disposition.Friend : Disposition.Enemy;
     }
-    public class AutoEnemy : IContainer<AutoSovereign> {
+    public class AutoEnemy : Lis<AutoSovereign> {
         [JsonIgnore]
         public AutoSovereign Value => s => Disposition.Enemy;
     }
-    public class AutoNeutral : IContainer<AutoSovereign> {
+    public class AutoNeutral : Lis<AutoSovereign> {
         [JsonIgnore]
         public AutoSovereign Value => s => Disposition.Neutral;
     }
@@ -54,7 +54,7 @@ public class Sovereign : IDesignType {
 
     public Dict<string, Disposition> sovDispositions;
     public Dict<ulong, Disposition> entityDispositions;
-    public IContainer<AutoSovereign> AutoSovereignDisposition;
+    public Lis<AutoSovereign> AutoSovereignDisposition;
 
     public static readonly Dictionary<Alignment, Dictionary<Alignment, Disposition>> dispositionTable = new Dictionary<Alignment, Dictionary<Alignment, Disposition>> {
             { ConstructiveOrder, new Dictionary<Alignment, Disposition>{

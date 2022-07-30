@@ -152,11 +152,11 @@ public class LiveGame {
     public System world;
     public Player player => playerShip.person;
     public PlayerShip playerShip;
-    public IContainer<LoadHook> hook;
+    public Lis<LoadHook> hook;
 
     public delegate void LoadHook(PlayerMain main);
     public LiveGame() { }
-    public LiveGame(System world, PlayerShip playerShip, IContainer<LoadHook> onLoad = null) {
+    public LiveGame(System world, PlayerShip playerShip, Lis<LoadHook> onLoad = null) {
         this.world = world;
         this.playerShip = playerShip;
         this.hook = onLoad;

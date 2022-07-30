@@ -12,8 +12,8 @@ namespace RogueFrontier;
 public interface IShipBehavior {
     void Update(AIShip owner);
 }
-public class Sulphin : IShipBehavior, IContainer<Station.Destroyed> {
-    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => {
+public class Sulphin : IShipBehavior, Lis<Station.Destroyed> {
+    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => {
         s.onDestroyed -= this;
         stationsLost++;
     };
@@ -75,9 +75,9 @@ public class Sulphin : IShipBehavior, IContainer<Station.Destroyed> {
 
 
 
-public class Swift : IShipBehavior, IContainer<AIShip.Destroyed> {
+public class Swift : IShipBehavior, Lis<AIShip.Destroyed> {
 
-    AIShip.Destroyed IContainer<AIShip.Destroyed>.Value => (s, d, w) => {
+    AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => {
         s.onDestroyed -= this;
         if (d is PlayerShip pl) {
             frigatesLost++;
@@ -112,11 +112,11 @@ public class Swift : IShipBehavior, IContainer<AIShip.Destroyed> {
     }
 }
 
-public class Merchant : IShipBehavior, IContainer<Station.Destroyed> {
+public class Merchant : IShipBehavior, Lis<Station.Destroyed> {
     public GateOrder gateOrder;
     public Station target;
     public int timer;
-    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => {
+    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => {
         s.onDestroyed -= this;
         if (s == target) {
             target = null;
@@ -180,17 +180,17 @@ public interface IShipOrder : IShipBehavior{
 
     public delegate IShipOrder Create(ActiveObject target);
 }
-public interface IDestructionEvents : IContainer<Station.Destroyed>, IContainer<AIShip.Destroyed>, IContainer<PlayerShip.Destroyed> {
-    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => Value(s, d);
-    AIShip.Destroyed IContainer<AIShip.Destroyed>.Value => (s, d, w) => Value(s, d);
-    PlayerShip.Destroyed IContainer<PlayerShip.Destroyed>.Value => (s, d, w) => Value(s, d);
+public interface IDestructionEvents : Lis<Station.Destroyed>, Lis<AIShip.Destroyed>, Lis<PlayerShip.Destroyed> {
+    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => Value(s, d);
+    AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => Value(s, d);
+    PlayerShip.Destroyed Lis<PlayerShip.Destroyed>.Value => (s, d, w) => Value(s, d);
     public delegate void Destroyed(ActiveObject destroyed, ActiveObject destroyer);
     public Destroyed Value => null;
 }
-public record OrderOnDestroy(AIShip ship, IShipOrder current, IShipOrder next) : IContainer<Station.Destroyed>, IContainer<AIShip.Destroyed>, IContainer<PlayerShip.Destroyed> {
-    Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => Do();
-    AIShip.Destroyed IContainer<AIShip.Destroyed>.Value => (s, d, w) => Do();
-    PlayerShip.Destroyed IContainer<PlayerShip.Destroyed>.Value => (s, d, w) => Do();
+public record OrderOnDestroy(AIShip ship, IShipOrder current, IShipOrder next) : Lis<Station.Destroyed>, Lis<AIShip.Destroyed>, Lis<PlayerShip.Destroyed> {
+    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => Do();
+    AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => Do();
+    PlayerShip.Destroyed Lis<PlayerShip.Destroyed>.Value => (s, d, w) => Do();
     public bool active => ship.behavior == current;
     public void Do() {
         if (active) {
@@ -343,7 +343,7 @@ public class ApproachOrder : IShipOrder {
 }
 
 
-public class LootOrder : IShipOrder, IContainer<Docking.OnDocked>/*, IContainer<Wreck.OnDestroyed>*/ {
+public class LootOrder : IShipOrder, Lis<Docking.OnDocked>/*, Lis<Wreck.OnDestroyed>*/ {
     [JsonProperty]
     public Wreck target { get; private set; }
     [JsonProperty]
@@ -386,10 +386,10 @@ public class LootOrder : IShipOrder, IContainer<Docking.OnDocked>/*, IContainer<
         }
     }
     public bool Active { get; private set; }
-    Docking.OnDocked IContainer<Docking.OnDocked>.Value => (owner, docking) => onDocked.ForEach(f => f(owner, target));
-    //Wreck.OnDestroyed IContainer<Wreck.OnDestroyed>.Value => w => Active = false;
+    Docking.OnDocked Lis<Docking.OnDocked>.Value => (owner, docking) => onDocked.ForEach(f => f(owner, target));
+    //Wreck.OnDestroyed Lis<Wreck.OnDestroyed>.Value => w => Active = false;
 }
-public class GuardOrder : IShipOrder, IContainer<Docking.OnDocked> {
+public class GuardOrder : IShipOrder, Lis<Docking.OnDocked> {
     [JsonProperty]
     public ActiveObject home { get; private set; }
     [JsonProperty]
@@ -539,11 +539,11 @@ public class AttackAllOrder : IShipOrder {
     }
     public bool Active => true;
 }
-public class FireTrackerOrder : IShipOrder, IContainer<Weapon.OnHitActive> {
+public class FireTrackerOrder : IShipOrder, Lis<Weapon.OnHitActive> {
     public int sleepTicks;
     public AttackOrder attack;
     public bool CanTarget(ActiveObject other) => other == attack.target;
-    Weapon.OnHitActive IContainer<Weapon.OnHitActive>.Value => (w, p, h) => {
+    Weapon.OnHitActive Lis<Weapon.OnHitActive>.Value => (w, p, h) => {
         if (p.hitHull) {
             _active = false;
         }
@@ -567,11 +567,11 @@ public class FireTrackerOrder : IShipOrder, IContainer<Weapon.OnHitActive> {
     private bool _active = true;
     public bool Active => _active;
 }
-public class FireTrackerNearbyOrder : IShipOrder, IContainer<Weapon.OnHitActive> {
+public class FireTrackerNearbyOrder : IShipOrder, Lis<Weapon.OnHitActive> {
     public int sleepTicks;
     public AttackOrder attack;
     public bool CanTarget(ActiveObject other) => other == attack.target;
-    Weapon.OnHitActive IContainer<Weapon.OnHitActive>.Value => (w, p, h) => {
+    Weapon.OnHitActive Lis<Weapon.OnHitActive>.Value => (w, p, h) => {
         if (p.hitHull && h == attack.target) {
             attack.ClearTarget();
         }

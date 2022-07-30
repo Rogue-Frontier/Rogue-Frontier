@@ -37,7 +37,7 @@ public class Projectile : MovingObject {
     public List<Projectile> salvo = new();
 
     public delegate void OnHitActive(Projectile p, ActiveObject other);
-    public FuncSet<IContainer<OnHitActive>> onHitActive=new();
+    public Ev<OnHitActive> onHitActive=new();
 
     [JsonIgnore]   public bool active => lifetime > 0;
     

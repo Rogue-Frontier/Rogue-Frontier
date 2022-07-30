@@ -613,7 +613,7 @@ public class Solar : Device, PowerSource {
         }
     }
 }
-public class Weapon : Device, IContainer<Projectile.OnHitActive> {
+public class Weapon : Device, Lis<Projectile.OnHitActive> {
     [JsonProperty]
     public Item source { get; private set; }
     public WeaponDesc desc;
@@ -919,7 +919,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
     }
     public delegate void OnHitActive(Weapon w, Projectile p, ActiveObject hit);
     public Ev<OnHitActive> onHitActive = new();
-    Projectile.OnHitActive IContainer<Projectile.OnHitActive>.Value => (projectile, hit) => {
+    Projectile.OnHitActive Lis<Projectile.OnHitActive>.Value => (projectile, hit) => {
         projectile.onHitActive -= this;
         onHitActive.ForEach(a => a(this, projectile, hit));
         if (projectile.hitHull) {

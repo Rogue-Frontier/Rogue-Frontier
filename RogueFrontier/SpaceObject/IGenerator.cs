@@ -83,7 +83,7 @@ public class ShipEntry : ShipGenerator {
         var subShips = ships.SelectMany(ship => subordinates.Generate(tc, ship));
         return ships.Concat(subShips);
     }
-    public interface IShipOrderDesc : IContainer<IShipOrder.Create> {
+    public interface IShipOrderDesc : Lis<IShipOrder.Create> {
         public static IShipOrderDesc Get(XElement e) => e.TryAttEnum("order", ShipOrder.guard) switch {
             ShipOrder.attack => new AttackDesc(e),
             ShipOrder.escort => new EscortDesc(e),

@@ -74,7 +74,7 @@ public class Hook : Entity {
         }
     }
 }
-public class LightningRod : Entity, IContainer<Weapon.OnFire>, IContainer<Projectile.OnHitActive> {
+public class LightningRod : Entity, Lis<Weapon.OnFire>, Lis<Projectile.OnHitActive> {
     public ActiveObject target;
     public Weapon source;
     public int lifetime;
@@ -86,7 +86,7 @@ public class LightningRod : Entity, IContainer<Weapon.OnFire>, IContainer<Projec
         this.lifetime = 60;
         source.onFire += this;
     }
-    Weapon.OnFire IContainer<Weapon.OnFire>.Value => (weapon, projectiles) => {
+    Weapon.OnFire Lis<Weapon.OnFire>.Value => (weapon, projectiles) => {
         if (!active) {
             weapon.onFire -= this;
             return;
@@ -109,7 +109,7 @@ public class LightningRod : Entity, IContainer<Weapon.OnFire>, IContainer<Projec
             //p.lifetime = 0;
         });
     };
-    Projectile.OnHitActive IContainer<Projectile.OnHitActive>.Value => (p, hit) => {
+    Projectile.OnHitActive Lis<Projectile.OnHitActive>.Value => (p, hit) => {
         if(hit != target) {
             return;
         }

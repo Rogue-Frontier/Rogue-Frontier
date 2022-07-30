@@ -139,7 +139,7 @@ public class DaughtersOutpost : StationBehavior {
     public void Update(Station owner) {
     }
 }
-public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroyed>, IContainer<GuardOrder.OnDocked> {
+public class OrionWarlordsStation : StationBehavior, Lis<Station.Destroyed>, Lis<GuardOrder.OnDocked> {
 
     private HashSet<ActiveObject> turretsDeployed = new();
 
@@ -168,7 +168,7 @@ public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroye
         */
     };
 
-    GuardOrder.OnDocked IContainer<GuardOrder.OnDocked>.Value => (ship, home) => {
+    GuardOrder.OnDocked Lis<GuardOrder.OnDocked>.Value => (ship, home) => {
         if (turretsDeployed.Contains(home)) {
             return;
         }
@@ -211,20 +211,20 @@ public class OrionWarlordsStation : StationBehavior, IContainer<Station.Destroye
         }
     }
 }
-public class AmethystStore : StationBehavior, IContainer<Station.Destroyed>, IContainer<Station.Damaged>, IContainer<Weapon.OnFire>, IContainer<Power.OnInvoked> {
+public class AmethystStore : StationBehavior, Lis<Station.Destroyed>, Lis<Station.Damaged>, Lis<Weapon.OnFire>, Lis<Power.OnInvoked> {
 
     Dictionary<PlayerShip, int> damaged=new();
     HashSet<PlayerShip> banned = new();
     int damageTaken;
-    Weapon.OnFire IContainer<Weapon.OnFire>.Value => (weapon, projectiles) => {
+    Weapon.OnFire Lis<Weapon.OnFire>.Value => (weapon, projectiles) => {
         weapon.delay /= 2;
     };
-    Station.Destroyed IContainer<Station.Destroyed>.Value => (station, destroyer, wreck) => {
+    Station.Destroyed Lis<Station.Destroyed>.Value => (station, destroyer, wreck) => {
         if (destroyer?.active != true) {
             return;
         }
     };
-    Station.Damaged IContainer<Station.Damaged>.Value => (station, projectile) => {
+    Station.Damaged Lis<Station.Damaged>.Value => (station, projectile) => {
         var source = projectile.source;
         if (source?.active != true) {
             return;
@@ -258,7 +258,7 @@ public class AmethystStore : StationBehavior, IContainer<Station.Destroyed>, ICo
             }
         }
     };
-    Power.OnInvoked IContainer<Power.OnInvoked>.Value => (power) => {
+    Power.OnInvoked Lis<Power.OnInvoked>.Value => (power) => {
         damageTaken = 0;
     };
     Power shine;

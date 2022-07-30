@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
 namespace RogueFrontier;
-public class NotifyStationDestroyed : IContainer<Station.Destroyed> {
+public class NotifyStationDestroyed : Lis<Station.Destroyed> {
     public PlayerShip playerShip;
     public Station source;
     [JsonIgnore]
@@ -48,8 +48,8 @@ public class Camera {
         right = right.Rotate(angle);
     }
 }
-public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
-    PlayerShip.Destroyed IContainer<PlayerShip.Destroyed>.Value =>
+public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
+    PlayerShip.Destroyed Lis<PlayerShip.Destroyed>.Value =>
         (p, d, w) => OnPlayerDestroyed($"Destroyed by {d?.name ?? "unknown forces"}", w);
     public int Width => Surface.Width;
     public int Height => Surface.Height;
@@ -189,7 +189,7 @@ public class PlayerMain : ScreenSurface, IContainer<PlayerShip.Destroyed> {
             }
         });
     }
-    public void OnIntermission(Container<LiveGame.LoadHook> hook = null) {
+    public void OnIntermission(Lis<LiveGame.LoadHook> hook = null) {
         HideAll();
         Game.Instance.Screen = new ExitTransition(this, EndCrawl()) { IsFocused = true };
         ScreenSurface EndCrawl() {
@@ -959,7 +959,7 @@ public class Megamap : ScreenSurface {
         base.Render(delta);
     }
 }
-public class Vignette : ScreenSurface, IContainer<PlayerShip.Damaged> {
+public class Vignette : ScreenSurface, Lis<PlayerShip.Damaged> {
     public int Width => Surface.Width;
     public int Height => Surface.Height;
 
@@ -977,7 +977,7 @@ public class Vignette : ScreenSurface, IContainer<PlayerShip.Damaged> {
 
     public int lightningHit;
     public int flash;
-    PlayerShip.Damaged IContainer<PlayerShip.Damaged>.Value => (pl, pr) => {
+    PlayerShip.Damaged Lis<PlayerShip.Damaged>.Value => (pl, pr) => {
         if (pr.fragment.lightning) {
             lightningHit = 5;
         }
