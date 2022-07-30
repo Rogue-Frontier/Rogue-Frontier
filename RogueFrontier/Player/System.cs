@@ -24,9 +24,11 @@ public class System {
     public List<Event> eventsAdded = new();
     public List<Event> eventsRemoved = new();
 
+    public delegate void EntityAdded(Entity e);
     public LocatorDict<Entity, (int, int)> entities = new(new EntityLocator());
     public List<Entity> entitiesAdded = new();
     public List<Entity> entitiesRemoved = new();
+    public Ev<EntityAdded> onEntityAdded = new();
     public LocatorDict<Effect, (int, int)> effects = new(new EffectLocator());
     public List<Effect> effectsAdded = new();
     public List<Effect> effectsRemoved = new();
@@ -65,6 +67,7 @@ public class System {
     }
     public void AddEntity(Entity e) {
         entitiesAdded.Add(e);
+        onEntityAdded.ForEach(f => f(e));
         return;
         if (updating) entitiesAdded.Add(e);
         else entities.all.Add(e);

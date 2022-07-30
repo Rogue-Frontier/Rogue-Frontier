@@ -25,6 +25,7 @@ public class Item {
 
     public Modifier mod;
 
+    public bool HasAtt(string att) => type.attributes.Contains(att);
     public Item() { }
     public Item(Item copy) {
         type = copy.type;
@@ -634,7 +635,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
     public int totalTimesFired;
 
     public delegate void OnFire(Weapon w, List<Projectile> p);
-    public FuncSet<IContainer<OnFire>> onFire=new();
+    public Ev<OnFire> onFire=new();
     public Weapon() { }
     public Weapon(Item source, WeaponDesc desc) {
         this.source = source;
@@ -917,7 +918,7 @@ public class Weapon : Device, IContainer<Projectile.OnHitActive> {
         totalTimesFired++;
     }
     public delegate void OnHitActive(Weapon w, Projectile p, ActiveObject hit);
-    public FuncSet<IContainer<OnHitActive>> onHitActive = new();
+    public Ev<OnHitActive> onHitActive = new();
     Projectile.OnHitActive IContainer<Projectile.OnHitActive>.Value => (projectile, hit) => {
         projectile.onHitActive -= this;
         onHitActive.ForEach(a => a(this, projectile, hit));

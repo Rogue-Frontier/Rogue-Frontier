@@ -36,7 +36,7 @@ public class Wreck : MovingObject, IDockable {
     public XY gravity { get; private set; }
 
     public delegate void OnDestroyed(Wreck w);
-    public FuncSet<IContainer<OnDestroyed>> onDestroyed = new();
+    public Ev<OnDestroyed> onDestroyed = new();
     public Wreck() { }
     public Wreck(StructureObject creator, IEnumerable<Item> cargo = null) {
         this.id = creator.world.nextId++;
@@ -126,11 +126,11 @@ public class Station : ActiveObject, ITrader, IDockable {
     public double stealth;
 
     public delegate void Destroyed(Station station, ActiveObject destroyer, Wreck wreck);
-    public FuncSet<IContainer<Destroyed>> onDestroyed = new();
+    public Ev<Destroyed> onDestroyed = new();
 
 
     public delegate void Damaged(Station station, Projectile p);
-    public FuncSet<IContainer<Damaged>> onDamaged = new();
+    public Ev<Damaged> onDamaged = new();
     public Station() { }
     public Station(System World, StationType type, XY Position) {
         this.id = World.nextId++;

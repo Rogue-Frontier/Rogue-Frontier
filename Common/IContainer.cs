@@ -7,6 +7,10 @@ namespace Common;
 public interface IContainer<T> {
     T Value { get; }
 }
+public interface Lis<T> : IContainer<T> where T:Delegate {
+    T IContainer<T>.Value => Value;
+    T Value { get; }
+}
 public class Dict<T, U> : IContainer<Dictionary<T, U>> {
     public Dictionary<T, U> Value { get; private set; }
     public U this[T key] {
@@ -55,4 +59,31 @@ public class FuncSet<T> {
     public IEnumerator<T> GetEnumerator() => set.GetEnumerator();
     public List<T> ToList() => set.ToList();
     public static implicit operator HashSet<T>(FuncSet<T> f) => f.set;
+}
+public static class SEv {
+    public static void ForEach<T>(this Ev<T> f, Action<T> a) {
+        foreach (var t in f.set) {
+            a(t.Value);
+        }
+    }
+    public static void RemoveNull<T>(this Ev<T> f) {
+        f.set.RemoveWhere(f => f.Value == null);
+    }
+}
+public class Ev<T> {
+    public HashSet<IContainer<T>> set = new();
+    public IEnumerable<T> values => set.Select(i => i.Value);
+    public static Ev<T> operator -(Ev<T> f, IContainer<T> t) {
+        f.set.Remove(t);
+        return f;
+    }
+    public static Ev<T> operator +(Ev<T> f, IContainer<T> t) {
+        f.set.Add(t);
+        return f;
+    }
+    public bool Add(IContainer<T> t) => set.Add(t);
+    public bool Remove(IContainer<T> t) => set.Remove(t);
+    public IEnumerator<T> GetEnumerator() => values.GetEnumerator();
+    public List<T> ToList() => set.Select(i => i.Value).ToList();
+    public static implicit operator HashSet<T>(Ev<T> f) => f.values.ToHashSet();
 }

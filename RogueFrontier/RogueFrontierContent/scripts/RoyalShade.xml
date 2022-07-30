@@ -1,5 +1,4 @@
 ﻿<Module>
-
 	<Sovereign	codename=	"sovereign_royal_shade"
 				alignment=	"DestructiveOrder"
 	/>
@@ -44,7 +43,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_thorn_missile"
 				name=		"Thorn missile"
 				level=		"2"
@@ -108,7 +106,6 @@
 			</Projectile>
 		</Weapon>
 	</ItemType>
-
 	<ShipClass  codename="ship_royal_guard"
                 name="Royal Guard"
                 thrust="0.5"
@@ -144,9 +141,6 @@
 					glyph=		"R"
 					foreground=	"FF0080FF"
 		>
-		<Segments>
-
-		</Segments>
 		<Ships>
 			<Ship codename="ship_royal_guard" count="4" order="guard"/>
 		</Ships>

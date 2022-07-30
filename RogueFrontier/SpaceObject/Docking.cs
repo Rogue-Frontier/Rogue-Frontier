@@ -10,7 +10,7 @@ public class Docking {
     public bool justDocked;
 
     public delegate void OnDocked(IShip owner, Docking d);
-    public FuncSet<IContainer<OnDocked>> onDocked = new();
+    public Ev<OnDocked> onDocked = new();
 
 
     public Docking() { }

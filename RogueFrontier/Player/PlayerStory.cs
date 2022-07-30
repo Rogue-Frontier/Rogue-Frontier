@@ -467,6 +467,9 @@ have at least a fighting chance when you leave this place.""
         }
     }
 }
+public static class SPlayerStory {
+    public static bool IsAmethyst(this Item i) => i.HasAtt("Amethyst");
+}
 public class PlayerStory {
     public HashSet<IPlayerInteraction> mainInteractions;
     public HashSet<IPlayerInteraction> secondaryInteractions;
@@ -629,23 +632,23 @@ purchases and repair services.
             });
         }
         int GetRepairPrice(Armor a) =>
-            !a.source.type.attributes.Contains("Amethyst") ? -1 :
+            !a.source.IsAmethyst() ? -1 :
             discount ? 1 :
             3;
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             i => (int)(GetStdPrice(i) * buyAdj),
-            i => i.type.attributes.Contains("Amethyst") ? GetStdPrice(i) / 10 : -1);
+            i => i.IsAmethyst() ? GetStdPrice(i) / 10 : -1);
         Con ArmorRepair(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetRepairPrice, null);
         Con DeviceInstall(Con from) => SListScreen.DeviceInstallService(from, playerShip, GetInstallPrice, null);
         Con DeviceRemoval(Con from) => SListScreen.DeviceRemovalService(from, playerShip, GetRemovePrice, null);
         Con ArmorReplace(Con from) => SListScreen.ReplaceArmorService(from, playerShip, GetReplacePrice, null);
 
         int GetInstallPrice(Item i) =>
-            !i.type.attributes.Contains("Amethyst") ? -1 : discount ? 80 : 100;
+            !i.IsAmethyst() ? -1 : discount ? 80 : 100;
         int GetRemovePrice(Device i) =>
-            !i.source.type.attributes.Contains("Amethyst") ? -1 : discount ? 80 : 100;
+            !i.source.IsAmethyst() ? -1 : discount ? 80 : 100;
         int GetReplacePrice(Device i) =>
-            !i.source.type.attributes.Contains("Amethyst") ? -1 : discount ? 80 : 100;
+            !i.source.IsAmethyst() ? -1 : discount ? 80 : 100;
     }
     public Con BeowulfClub(Con prev, PlayerShip playerShip, Station source) {
         if (!playerShip.shipClass.attributes.Contains("BeowulfClub")) {
@@ -671,7 +674,7 @@ of civilian gunship pilots.",
             });
         }
         int GetPrice(Armor a) {
-            if (a.source.type.attributes.Contains("Amethyst")) {
+            if (a.source.IsAmethyst()) {
                 return 6;
             }
 
@@ -695,7 +698,7 @@ craftspersons, and adventurers.",
                 new("Undock")
             });
         }
-        int GetRepairPrice(Armor a) => a.source.type.attributes.Contains("Amethyst") ? 4 : 2;
+        int GetRepairPrice(Armor a) => a.source.IsAmethyst() ? 4 : 2;
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             GetStdPrice,
             GetStdPrice);
@@ -805,6 +808,11 @@ There is a modest degree of artificial gravity here.",
         Con DeviceInstall(Con from) => SListScreen.DeviceInstallService(from, playerShip, GetInstallPrice, null);
         Con DeviceRemoval(Con from) => SListScreen.DeviceRemovalService(from, playerShip, GetRemovePrice, null);
         Con ArmorReplace(Con from) => SListScreen.ReplaceArmorService(from, playerShip, GetReplacePrice, null);
+
+        int GetRepairPrice(Armor a) => a.source.IsAmethyst() ? 9 : 3;
+        int GetInstallPrice(Item i) => i.IsAmethyst() ? 300 : 100;
+        int GetRemovePrice(Device i) => i.source.IsAmethyst() ? 300 : 100;
+        int GetReplacePrice(Device i) => i.source.IsAmethyst() ? 300 : 100;
         Con MilitiaHeadquarters(Con from) {
             if (!constellationMilitiaMember) {
                 return new Dialog(from,
@@ -892,14 +900,6 @@ our collective security.",
                 }
             }
         }
-        int GetRepairPrice(Armor a) =>
-            a.source.type.attributes.Contains("Amethyst") ? 9 : 3;
-        int GetInstallPrice(Item i) =>
-            i.type.attributes.Contains("Amethyst") ? 300 : 100;
-        int GetRemovePrice(Device i) =>
-            i.source.type.attributes.Contains("Amethyst") ? 300 : 100;
-        int GetReplacePrice(Device i) =>
-            i.source.type.attributes.Contains("Amethyst") ? 300 : 100;
     }
     public Con ConstellationVillage(Con prev, PlayerShip playerShip, Station source) {
         return CheckConstellationArrest(prev, playerShip, source) ??

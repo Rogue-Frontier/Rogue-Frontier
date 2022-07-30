@@ -329,7 +329,7 @@ public class Power : IPower {
     public List<PowerEffect> Effect => type.Effect;
 
     public delegate void OnInvoked(Power power);
-    public FuncSet<IContainer<OnInvoked>> onInvoked = new();
+    public Ev<OnInvoked> onInvoked = new();
     public Power(PowerType type) {
         this.type = type;
     }

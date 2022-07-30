@@ -7,15 +7,12 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Newtonsoft.Json;
-
 namespace RogueFrontier;
-
 public class TypeCollection {
     [JsonProperty]
     private Dictionary<string, XElement> sources=new();
     [JsonProperty]
     public Dictionary<string, IDesignType> all=new();
-
     public HashSet<string> initialized = new();
     [JsonProperty]
     private Dictionary<Type, object> dicts = new() {
@@ -30,32 +27,26 @@ public class TypeCollection {
         [typeof(SystemType)] = new Dictionary<string, SystemType>(),
         [typeof(TradeDesc)] = new Dictionary<string, TradeDesc>()
     };
-
     enum InitState {
         InitializePending,
         Initializing,
         Initialized
     }
     InitState state;
-
     //After our first initialization, any types we create later must be initialized immediately. Any dependency types must already be bound
     public TypeCollection() {
         state = InitState.InitializePending;
-
         Debug.Print("TypeCollection created");
-
     }
     public TypeCollection(params string[] modules) : this() {
         LoadFile(modules);
     }
     public TypeCollection(params XElement[] modules) : this() {
-
         //We do two passes
         //The first pass creates DesignType references for each type and stores the source code
         foreach (var m in modules) {
             ProcessRoot("", m);
         }
-
         //The second pass initializes each type from the source code
         Initialize();
     }
@@ -88,23 +79,19 @@ public class TypeCollection {
             Initialize();
         }
     }
-
     void ProcessRoot(string file, XElement root) {
         foreach (var element in root.Elements()) {
             ProcessElement(file, element);
         }
     }
     public void ProcessElement(string file, XElement element) {
-
-
         void ProcessSection(XElement e) => ProcessRoot(file, e);
         Action<XElement> a = element.Name.LocalName switch {
             "Module" => e => {
                 var subfile = Path.Combine(Directory.GetParent(file).FullName, e.ExpectAtt("file"));
                 XElement module = XDocument.Load(subfile).Root;
                 ProcessRoot(file, module);
-            }
-            ,
+            },
             "Source" => AddSource,
             "Content" => ProcessSection,
             "Unused" => e => { },
@@ -120,7 +107,6 @@ public class TypeCollection {
             "SystemType" => AddType<SystemType>,
             "TradeDesc" => AddType<TradeDesc>,
             _ => throw new Exception($"Unknown element <{element.Name}>")
-
         };
         a(element);
     }
@@ -203,7 +189,6 @@ public record StaticTile() : ITile {
 
     public StaticTile(char c, Color foreground, Color background) : this() =>
         (this.foreground, this.background, glyph) = (foreground, background, c);
-
     public StaticTile(char c, string foreground, string background) : this() {
         this.foreground=(Color)typeof(Color).GetField(foreground).GetValue(null);
         this.background=(Color)typeof(Color).GetField(background).GetValue(null);
@@ -212,9 +197,7 @@ public record StaticTile() : ITile {
     public static implicit operator ColoredGlyph(StaticTile t) => t.Original;
     public static implicit operator StaticTile(ColoredGlyph cg) => new StaticTile(cg);
 }
-
 public record AlphaTile() : ITile {
-
     [JsonIgnore]
     public ColoredGlyph Original => new(foreground, background, glyph);
     [JsonProperty]

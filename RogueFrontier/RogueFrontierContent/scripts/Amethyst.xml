@@ -64,7 +64,6 @@
 		desc=		"This card is made from a laser-carved slab of translucent amethyst crystal. It provides proof of purchase for your Amethyst-class yacht. Present at any licensed Amethyst Store to receive a discount on maintenance services."
 		>
 	</ItemType>
-	
 	<ItemType	codename=	"item_amethyst_25mw_generator"
 				name=		"Amethyst 25MW generator"
 				level=		"1"

@@ -337,10 +337,10 @@ public class AIShip : IShip {
     public Docking dock { get; set; }
 
     public delegate void WeaponFired(AIShip aiShip, Weapon w, List<Projectile> p);
-    public FuncSet<IContainer<WeaponFired>> onWeaponFire = new();
+    public Ev<WeaponFired> onWeaponFire = new();
 
     public delegate void Destroyed(AIShip ship, ActiveObject destroyer, Wreck wreck);
-    public FuncSet<IContainer<Destroyed>> onDestroyed = new();
+    public Ev<Destroyed> onDestroyed = new();
     public AIShip() { }
     public AIShip(BaseShip ship, Sovereign sovereign, IShipBehavior behavior = null, IShipOrder order = null) {
         this.ship = ship;
@@ -485,12 +485,12 @@ public class PlayerShip : IShip {
     public List<ICrime> crimeRecord=new();
 
     public delegate void Destroyed(PlayerShip playerShip, ActiveObject destroyer, Wreck wreck);
-    public FuncSet<IContainer<Destroyed>> onDestroyed = new();
+    public Ev<Destroyed> onDestroyed = new();
     public delegate void Damaged(PlayerShip playerShip, Projectile p);
-    public FuncSet<IContainer<Damaged>> onDamaged = new();
+    public Ev<Damaged> onDamaged = new();
 
     public delegate void WeaponFired(PlayerShip playerShip, Weapon w, List<Projectile> p);
-    public FuncSet<IContainer<WeaponFired>> onWeaponFire = new();
+    public Ev<WeaponFired> onWeaponFire = new();
 
 
     public List<AIShip> wingmates = new();

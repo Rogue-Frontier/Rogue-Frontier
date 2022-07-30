@@ -35,4 +35,35 @@
 			<Ship	count="2"	codename="ship_lewis"/>
 		</Ships>
 	</StationType>
+
+	<ItemType	codename=	"item_repeater_turret"
+				name=		"Repeating turret"
+				level=		"2"
+				mass=		"2000"
+
+				value=		"3500"
+
+				invoke=		"installWeapon"
+
+				desc=		"This kinetic gun is mounted on an omnidirectional turret for automatic aiming. It has limited ammo and easy installation."
+		>
+		<Weapon
+			initialCharges=	"1200"
+			powerUse=		"40"
+			fireCooldown=	"30"
+			
+			repeat="2"
+			repeatDelay=	"5"
+			>
+			<Projectile
+				omnidirectional="true"
+				missileSpeed=	"40"
+				damageType=		"2"
+				damageHP=		"12"
+				lifetime=		"120"
+				glyph=			"."
+				foreground=		"White"
+				/>
+		</Weapon>
+	</ItemType>
 </Module>

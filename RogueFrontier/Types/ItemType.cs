@@ -230,6 +230,8 @@ public record ItemType : IDesignType {
     public SolarDesc solar;
     public WeaponDesc weapon;
     public ItemUse invoke;
+
+    public bool HasAtt(string att) => attributes.Contains(att);
     public T Get<T>() =>
         (T)new Dictionary<Type, object>{
             [typeof(FragmentDesc)] = ammo,

@@ -13,18 +13,14 @@ public interface IShipBehavior {
     void Update(AIShip owner);
 }
 public class Sulphin : IShipBehavior, IContainer<Station.Destroyed> {
-
     Station.Destroyed IContainer<Station.Destroyed>.Value => (s, d, w) => {
         s.onDestroyed -= this;
         stationsLost++;
     };
-
     private int stationsLost;
-
     public int ticks = 0;
     public HashSet<PlayerShip> playersMet = new();
     public IShipOrder order;
-
     private HashSet<StationType> stationTypes;
     public Sulphin() { }
     public Sulphin(AIShip ai, IShipOrder order) {
@@ -214,7 +210,7 @@ public class CompoundOrder : IShipOrder {
     public IShipOrder current => orders.FirstOrDefault();
 
     public delegate void OnOrderCompleted(IShipOrder order);
-    public FuncSet<IContainer<OnOrderCompleted>> onOrderCompleted=new();
+    public Ev<OnOrderCompleted> onOrderCompleted=new();
     public CompoundOrder() { }
     public CompoundOrder(params IShipOrder[] orders) {
         this.orders.AddRange(orders);
@@ -356,7 +352,7 @@ public class LootOrder : IShipOrder, IContainer<Docking.OnDocked>/*, IContainer<
     public int ticks;
 
     public delegate void OnDocked(IShip owner, Wreck target);
-    public FuncSet<IContainer<OnDocked>> onDocked = new();
+    public Ev<OnDocked> onDocked = new();
     public LootOrder(Wreck target) {
         this.target = target;
         approach = new(target);
@@ -404,7 +400,7 @@ public class GuardOrder : IShipOrder, IContainer<Docking.OnDocked> {
     public int ticks;
 
     public delegate void OnDocked(IShip owner, ActiveObject home);
-    public FuncSet<IContainer<OnDocked>> onDocked = new();
+    public Ev<OnDocked> onDocked = new();
     public GuardOrder(ActiveObject home) {
         this.home = home;
         approach = new(home);
