@@ -1446,7 +1446,7 @@ public class ListScreen<T> : ScreenSurface {
             int barX = x - 2;
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
             line(new Point(barX, 16 + 26), new Point(barX + lineWidth + 7, 16 + 26), '-');
-            barX += 33;
+            barX += lineWidth + 7;
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
         }
         //this.DrawLine(new Point(x, y));
@@ -1458,8 +1458,10 @@ public class ListScreen<T> : ScreenSurface {
         y = 14;
         var item = currentItem;
         if (item != null) {
-            Surface.Print(x, y, getName(item), Color.Yellow, Color.Black);
-            y += 2;
+            foreach(var l in getName(item).SplitLine(64)) {
+                Surface.Print(x, y++, l, Color.Yellow, Color.Black);
+            }
+            y++;
             foreach (var l in getDesc(item)) {
                 Surface.Print(x, y++, l);
             }

@@ -97,6 +97,7 @@ public class ExchangeModel {
         traders = new() { player, station };
         this.enter = enter;
         this.exit = exit;
+        traderIndex = 1;
     }
     public void ProcessKeyboard(Keyboard keyboard) {
         var fromCount = from.count;

@@ -165,7 +165,7 @@ public static class SScene {
     }
 }
 public class Dialog : Console {
-    public string desc;
+    public ColoredString desc;
     public bool charging;
     public int descIndex;
     public int ticks;
@@ -183,7 +183,17 @@ public class Dialog : Console {
     int descY => 8;
     public static int maxCharge = 36;
     public Dialog(ScreenSurface prev, string desc, List<SceneOption> navigation) : base(prev.Surface.Width, prev.Surface.Height) {
-        this.desc = desc.Replace("\r", null);
+        this.desc = new(desc.Replace("\r", null));
+
+        var quoted = false;
+        foreach(var c in this.desc) {
+            if(c.GlyphCharacter == '"') {
+                quoted = !quoted;
+                c.Foreground = Color.LightBlue;
+            } else if(c.Foreground == Color.White) {
+                c.Foreground = quoted ? Color.LightBlue : Color.Yellow;
+            }
+        }
         navigation.RemoveAll(s => s == null);
         this.navigation = navigation;
         charge = new int[navigation.Count];
@@ -207,7 +217,7 @@ public class Dialog : Console {
                 while(descIndex < desc.Length - 1) {
                     descIndex++;
                     deltaIndex++;
-                    if(desc[descIndex] == ' ') {
+                    if(desc[descIndex].GlyphCharacter == ' ') {
                         break;
                     }
                 }
@@ -215,7 +225,7 @@ public class Dialog : Console {
                 descIndex++;
 
                 int x = descX;
-                int y = descY + desc.Count(c => c == '\n') + 3;
+                int y = descY + desc.Count(c => c.GlyphCharacter == '\n') + 3;
 
                 int i = 0;
                 foreach (var option in navigation) {
@@ -292,13 +302,13 @@ public class Dialog : Console {
         int y = top;
         int x = left;
         for (int i = 0; i < descIndex; i++) {
-            switch (desc[i]) {
+            switch (desc[i].GlyphCharacter) {
                 case '\n':
                     x = left;
                     y++;
                     break;
                 default:
-                    this.SetCellAppearance(x, y, new(Color.LightBlue, Color.Black, desc[i]));
+                    this.SetCellAppearance(x, y, desc[i]);
                     x++;
                     break;
             }
@@ -308,7 +318,7 @@ public class Dialog : Console {
         } else {
             var barLength = maxCharge / 6;
             x = descX - barLength;
-            y = descY + desc.Count(c => c == '\n') + 3;
+            y = descY + desc.Count(c => c.GlyphCharacter == '\n') + 3;
             foreach(var (c, i) in charge.Select((c, i) => (c, i))) {
                 this.Print(x, y + i, new ColoredString("----->".Substring(0, Math.Min(c / 6, barLength)), Color.Gray, Color.Black));
             }

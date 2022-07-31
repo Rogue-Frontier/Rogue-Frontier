@@ -213,13 +213,9 @@ public class Station : ActiveObject, ITrader, IDockable {
     }
     */
     public void Damage(Projectile p) {
-
         onDamaged.RemoveNull();
         onDamaged.ForEach(f => f(this, p));
-
         damageSystem.Damage(world.tick, p, () => Destroy(p.source));
-
-
         if (!active) {
             return;
         }
@@ -242,11 +238,8 @@ public class Station : ActiveObject, ITrader, IDockable {
                 ps.crimeRecord.Add(new DestructionCrime(this));
             }
         }
-
         if(type.explosionType != null)
             new Weapon() { projectileDesc = type.explosionType, aiming = new Targeting() { target = source } }.Fire(this, rotation);
-
-
         var drop = weapons.Where(w => !w.structural).Select(w => w.source)
             .Concat(cargo)
             .Concat((damageSystem as LayeredArmor)?.layers.Select(l => l.source) ?? new List<Item>());
@@ -284,6 +277,7 @@ public class Station : ActiveObject, ITrader, IDockable {
         onDestroyed.ForEach(f => f(this, source, wreck));
     }
     public void Update() {
+        velocity = XY.Zero;
         if(world.tick%15 == 0) {
             stealth = type.stealth;
             if (weapons.Any()) {
@@ -305,7 +299,6 @@ public class Station : ActiveObject, ITrader, IDockable {
         }
         weapons?.ForEach(w => w.Update(this));
         behavior?.Update(this);
-
     }
     public ScreenSurface GetDockScene(ScreenSurface prev, PlayerShip playerShip) => null;
     [JsonIgnore]

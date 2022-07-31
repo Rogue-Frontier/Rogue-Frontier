@@ -283,7 +283,7 @@ public class TitleScreen : Console {
             station.CreateGuards();
 
 
-            playerShip.powers.AddRange(World.types.Get<PowerType>().Select(pt => new Power(pt)));
+            //playerShip.powers.AddRange(World.types.Get<PowerType>().Select(pt => new Power(pt)));
 
             var playerMain = new PlayerMain(Width, Height, profile, playerShip);
             playerShip.onDestroyed += playerMain;
@@ -574,7 +574,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         var playerSovereign = w.types.Lookup<Sovereign>("sovereign_player");
         var playerShip = new PlayerShip(player, new BaseShip(w, playerClass, playerStart), playerSovereign);
         //playerShip.powers.Add(new Power(w.types.Lookup<PowerType>("power_declare")));
-        playerShip.powers.AddRange(w.types.Get<PowerType>().Select(pt => new Power(pt)));
+        //playerShip.powers.AddRange(w.types.Get<PowerType>().Select(pt => new Power(pt)));
         playerShip.AddMessage(new Message("Welcome to the Rogue Frontier!"));
 
         w.AddEffect(new Heading(playerShip));

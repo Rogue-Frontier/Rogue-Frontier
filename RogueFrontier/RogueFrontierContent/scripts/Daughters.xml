@@ -68,8 +68,8 @@
                   |_____________|           
 		</HeroImage>
 	</StationType>
-	<ItemType	codename=	"item_gem_of_inner_voice"
-			name=		"Gem of Inner Voice"
+	<ItemType	codename=	"item_gem_of_monologue"
+			name=		"Gem of monologue"
 			level=		"1"
 			mass=		"1000"
 

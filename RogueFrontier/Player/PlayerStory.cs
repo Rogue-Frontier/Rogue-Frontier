@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Common;
 using Newtonsoft.Json;
+using SadConsole;
+using SadRogue.Primitives;
 using Con = SadConsole.ScreenSurface;
 using G = RogueFrontier.PlayerStory.GetDockScreen;
 namespace RogueFrontier;
@@ -262,9 +264,7 @@ The Orator has given to you. We, the Daughters of the
 Orator, have seen enough of that happen.
 
 Take note of your complete surroundings as well as
-yourself and your starship. Be sure to maintain your
-ship's hull system, energy system, and weapon system
-to ensure your survival.
+of yourself and your starship.
 
 That is all.""";
             t = t.Replace("\r", null);
@@ -470,7 +470,7 @@ have at least a fighting chance when you leave this place.""
 public static class SPlayerStory {
     public static bool IsAmethyst(this Item i) => i.HasAtt("Amethyst");
 }
-public class PlayerStory {
+public class PlayerStory : Lis<EntityAdded>, Lis<Station.Destroyed>, Lis<AIShip.Destroyed> {
     public HashSet<IPlayerInteraction> mainInteractions;
     public HashSet<IPlayerInteraction> secondaryInteractions;
     public HashSet<IPlayerInteraction> completedInteractions;
@@ -564,7 +564,7 @@ public class PlayerStory {
             item_prescience_book =              1999,
             item_book_founders=                 1999,
             item_shine_charm=                   5000,
-            item_gem_of_inner_voice=            500,
+            item_gem_of_monologue=              500,
             item_repeater_turret=               9000
         };
         stdPrice = stdPriceTable.ToDict<ItemType, int>(s => i[s]);
@@ -575,7 +575,24 @@ public class PlayerStory {
         mainInteractions.Add(new IntroMeeting(this));
         secondaryInteractions = new();
         completedInteractions = new();
+        var univ = playerShip.world.universe;
+        foreach(var e in univ.GetAllEntities())
+            Register(e);
+        univ.onEntityAdded += this;
     }
+    EntityAdded Lis<EntityAdded>.Value => Register;
+    public void Register(Entity e) {
+        switch(e) {
+            case Station s: s.onDestroyed += this; break;
+            case AIShip a: a.onDestroyed += this; break;
+        }
+    }
+    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => {
+
+    };
+    AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => {
+        return;
+    };
     public void Update(PlayerShip playerShip) {
 
     }
@@ -1004,9 +1021,15 @@ Okay, fine, I'll just find someone else to do it.""",
             }
         }
     }
+
+    public int contemplationCount;
     public Con DaughtersOutpost(Con prev, PlayerShip playerShip, Station source) {
 
         var status = (DaughtersOutpost)source.behavior;
+        var univ = source.world.universe;
+        void AddPower(string codename) {
+            playerShip.powers.Add(new(univ.types.Lookup<PowerType>(codename)));
+        }
 
         return Intro(prev);
         Con Intro(Con prev) {
@@ -1020,6 +1043,10 @@ Daughters of the Orator.",
                 });
         }
         Con Sanctum(Con prev) {
+            if (!status.sanctumReady && status.funds - 1000 is int i && i >= 0) {
+                status.funds = i;
+                status.sanctumReady = true;
+            }
             return new Dialog(prev,
 @"You are in the sanctum of the Daughters
 of the Orator. You hear a quiet hum all
@@ -1034,19 +1061,47 @@ One of the Daughters stands at the entrance.
 
 ""Sorry, the sanctum is closed for repairs.
 We would appreciate any donation you could
-make to help us defray the cost.""
-"),
+make to help us cover the cost."""),
                 new() {
-                    new("Contemplate", Contemplate, NavFlags.ESC, status.sanctumReady),
+                    new("Contemplate", Contemplate, enabled: status.sanctumReady),
+                    new("Donate", Donate),
                     new("Leave", Intro)
                 });
         }
         Con Contemplate(Con prev) {
+            contemplationCount++;
             return new Dialog(prev,
 @"You attune yourself to the hum
-that permeates throughout the sanctum.
+that permeates throughout the sanctum.",
+                new() { new("Continue", Result) });
+            Con Result(Con prev) {
+                switch (contemplationCount) {
+                    case 1:
+                        AddPower("power_silence_orator");
+                        return Info(prev,
+@"The Orator grants you
+the power of SILENCE.
 
-An unusual energy strikes and shakes
+""If the void is quiet,
+then raise your voice.""");
+                    case 3:
+                        AddPower("power_recite_orator");
+                        return Info(prev,
+@"The Orator grants you
+the power of RECITE.
+
+""If you lose the sight of truth,
+then RECITE the words against doom.""");
+                    default:
+                        return Shambles(prev);
+                }
+
+            }
+            Con Info(Con prev, string desc) =>
+                new Dialog(prev, desc, new() { new("Continue", Shambles) });
+            Con Shambles(Con prev) {
+                return new Dialog(prev,
+@"An unusual energy strikes and shakes
 the Santum's micro-engraved plasteel-plated
 walls as you contemplate.
 
@@ -1063,9 +1118,61 @@ hurry in and begin checking the walls.",
                 new() {
                     new("Continue", Done)
                 });
-            Con Done(Con prev) {
-                status.sanctumReady = false;
-                return Sanctum(prev);
+                Con Done(Con prev) {
+                    status.sanctumReady = false;
+                    return Sanctum(prev);
+                }
+            }
+        }
+        Con Donate(Con prev) {
+            Action a(Action b) => b;
+            ListScreen<Item> screen = null;
+            var dict = new {
+                item_prescience_book = a(() => {
+                    screen.Replace(new Dialog(prev,
+@"""Thank you for your donation of-
+
+Oh. This is garbage.
+
+This book is actual garbage written by
+someone trying to exploit The Orator's
+influence for financial gain...
+
+You didn't read it, did you?""",
+                        new() {
+                            new("Continue", Sanctum)
+                        }));
+                }),
+                item_gem_of_monologue = a(Regular)
+            }.ToDict<Action>();
+            void Regular() {
+                status.funds += stdPrice[screen.currentItem.type];
+                screen.Replace(new Dialog(prev,
+@"""Thank you for your donation of this
+resonant artifact - may The Orator smile
+upon you.""",
+                    new() {
+                        new("Continue", Sanctum)
+                    }));
+            }
+
+            return screen = new(prev, playerShip, playerShip.cargo.Where(i => dict.ContainsKey(i.type.codename)), i => i.name, GetDesc, Choose, Escape);
+            List<ColoredString> GetDesc(Item i) {
+                List<ColoredString> result = new();
+                var desc = i.type.desc.SplitLine(64);
+                if (desc.Any()) {
+                    result.AddRange(desc.Select(Main.ToColoredString));
+                    result.Add(new(""));
+                }
+                result.Add(new("[Enter] Donate", Color.Yellow, Color.Black));
+                return result;
+            }
+            void Choose(Item i) {
+                playerShip.cargo.Remove(i);
+                dict[i.type.codename]();
+            }
+            void Escape() {
+                screen.Replace(prev);
             }
         }
     }

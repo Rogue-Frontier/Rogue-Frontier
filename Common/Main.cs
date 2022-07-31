@@ -14,10 +14,17 @@ using System.IO;
 using System.Reflection;
 using System.Data;
 using NCalc;
-
+using Con = SadConsole.Console;
 namespace Common;
 
 public static class Main {
+
+    public static void Replace(this ScreenSurface c, ScreenSurface next) {
+        var p = c.Parent;
+        p.Children.Remove(c);
+        p.Children.Add(next);
+        p.IsFocused = true;
+    }
     public static string ExpectFile(string path) =>
          (File.Exists(path)) ? path :
             throw new Exception($"File {path} does not exist");

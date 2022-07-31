@@ -4,7 +4,7 @@
 	<PowerType codename="power_silence_orator"
 		name=			"SILENCE"
 		scareEnemies=	"true"
-		invokeDelay=	"120"
+		invokeDelay=	"90"
 		cooldownTime=	"3600"
 		message=		"You channel the energy of SILENCE"
 		>
@@ -39,7 +39,7 @@
 	</PowerType>
 	<PowerType codename="power_protect"
 		name=			"PROTECT"
-		invokeDelay=	"120"
+		invokeDelay=	"150"
 		cooldownTime=	"3600"
 		message=		"You PROTECT yourself from bad faith"
 		>
@@ -47,7 +47,7 @@
 	</PowerType>
 	<PowerType codename="power_enlighten"
 		name=			"ENLIGHTEN"
-		invokeDelay=	"120"
+		invokeDelay=	"180"
 		cooldownTime=	"3600"
 		message=		"You ENLIGHTEN yourself about nearby threats"
 		>
@@ -55,7 +55,7 @@
 	</PowerType>
 	<PowerType codename="power_reflect"
 		name=			"REFLECT"
-		invokeDelay=	"120"
+		invokeDelay=	"210"
 		cooldownTime=	"3600"
 		message=		"In the face of death, you REFLECT on past events"
 		onDestroyCheck=	"true"

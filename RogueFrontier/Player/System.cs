@@ -14,6 +14,8 @@ class EffectLocator : ILocator<Effect, (int, int)> {
 class EntityLocator : ILocator<Entity, (int, int)> {
     public (int, int) Locate(Entity e) => (e.position.xi, e.position.yi);
 }
+
+public delegate void EntityAdded(Entity e);
 public class System {
     [JsonIgnore]
     public static readonly System empty = new(new());
@@ -24,7 +26,6 @@ public class System {
     public List<Event> eventsAdded = new();
     public List<Event> eventsRemoved = new();
 
-    public delegate void EntityAdded(Entity e);
     public LocatorDict<Entity, (int, int)> entities = new(new EntityLocator());
     public List<Entity> entitiesAdded = new();
     public List<Entity> entitiesRemoved = new();

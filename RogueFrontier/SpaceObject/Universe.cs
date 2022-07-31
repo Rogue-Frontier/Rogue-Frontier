@@ -61,7 +61,9 @@ public class UniverseDesc {
         }
     }
 }
-public class Universe {
+public class Universe : Lis<EntityAdded> {
+    EntityAdded Lis<EntityAdded>.Value => e => onEntityAdded.ForEach(f => f(e));
+
     public Rand karma;
     public TypeCollection types;
 
@@ -70,6 +72,7 @@ public class Universe {
     public Dictionary<string, Stargate> stargates=new();
     public Dictionary<string, HashSet<Stargate>> systemGates=new();
     public Dictionary<string, (int, int)> grid = new();
+    public Ev<EntityAdded> onEntityAdded = new();
     public Universe(TypeCollection types = null, Rand karma = null) {
         this.types = types ?? new TypeCollection();
         this.karma = karma ?? new Rand();
@@ -77,6 +80,7 @@ public class Universe {
     public Universe(UniverseDesc desc, TypeCollection types = null, Rand karma = null) : this(types, karma) {
         foreach (var entry in desc.systems) {
             var s = new System(this) { id = entry.id, name = entry.name };
+            s.onEntityAdded += this;
             systems[entry.id] = s;
             grid[s.id] = (entry.x, entry.y);
 

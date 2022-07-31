@@ -136,6 +136,7 @@ public class ConstellationShipyard : StationBehavior {
 }
 public class DaughtersOutpost : StationBehavior {
     public bool sanctumReady = true;
+    public int funds = 1000;
     public void Update(Station owner) {
     }
 }
