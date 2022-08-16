@@ -1,6 +1,6 @@
 # Roguelikes
 Central repository for all MonoGame+SadConsole projects developed by INeedAUniqueUsername
-- [In Development] Rogue Frontier
+- [Canceled] Rogue Frontier
 - [On Hiatus] Island Hopper
 - [On Hiatus] Brain Waves
 # Rogue Frontier
