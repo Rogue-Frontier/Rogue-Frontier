@@ -103,8 +103,10 @@ public class DeathTransition : ScreenSurface {
         prev.Render(delta);
         base.Render(delta);
         Surface.Clear();
+        int brightness = 0;
+        //int brightness = (int)Math.Min(255, 255 * Math.Max(0, time - 6) / 2);
         foreach (var p in particles) {
-            Surface.SetCellAppearance(p.x, (int)p.y, new ColoredGlyph(Color.Black, Color.Black, ' '));
+            Surface.SetCellAppearance(p.x, (int)p.y, new ColoredGlyph(Color.Black, new(brightness, brightness, brightness, 255), ' '));
         }
     }
 }

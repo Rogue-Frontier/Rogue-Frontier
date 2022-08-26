@@ -78,17 +78,13 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
     public PauseScreen pauseScreen;
     public GalaxyMap networkMap;
     private TargetingMarker crosshair;
-
     private double targetCameraRotation;
     private double updateWait;
     public bool autopilotUpdate;
     //public bool frameRendered = true;
     public int updatesSinceRender = 0;
-
     private ListIndex<System> systems;
-
     //EventWaitHandle smooth = new(true, EventResetMode.AutoReset);
-
     public PlayerMain(int Width, int Height, Profile profile, PlayerShip playerShip) : base(Width, Height) {
         UseMouse = true;
         UseKeyboard = true;
@@ -142,7 +138,6 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
         //Pretty sure this can't happen but make sure
         pauseScreen.IsVisible = false;
     }
-
     public void Jump() {
         var prevViewport = new Viewport(this, new(playerShip.position), world);
         var nextViewport = new Viewport(this, this.camera, world);
@@ -236,6 +231,7 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
     }
     public void OnPlayerDestroyed(string message, Wreck wreck) {
         //Clear mortal time so that we don't slow down after the player dies
+        wreck.cargo.Clear();
         playerShip.mortalTime = 0;
         playerShip.ship.blindTicks = 0;
         HideAll();
@@ -359,8 +355,6 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
             networkMap.Update(delta);
             return;
         }
-
-
         //If the player is in mortality, then slow down time
         bool passTime = true;
         if (playerShip.active && playerShip.mortalTime > 0) {
@@ -750,7 +744,6 @@ public class BackdropConsole : ScreenSurface {
     public int Width => Surface.Width;
     public int Height => Surface.Height;
     public Camera camera;
-
     private readonly XY screenCenter;
     private Backdrop backdrop;
     public BackdropConsole(Viewport view) : base(view.Width, view.Height) {
@@ -787,19 +780,13 @@ public class BackdropConsole : ScreenSurface {
 public class Megamap : ScreenSurface {
     int Width => Surface.Width;
     int Height => Surface.Height;
-
     Camera camera;
     PlayerShip player;
     GeneratedLayer background;
-
-    public double targetViewScale = 1;
-    public double viewScale = 1;
+    public double targetViewScale = 1, viewScale = 1;
     double time;
-
     Dictionary<(int, int), List<(Entity entity, double distance)?>> scaledEntities;
-
     XY screenSize, screenCenter;
-
     public byte alpha;
     public Megamap(Camera camera, PlayerShip player, GeneratedLayer back, int width, int height) : base(width, height) {
         this.camera = camera;
@@ -962,19 +949,15 @@ public class Megamap : ScreenSurface {
 public class Vignette : ScreenSurface, Lis<PlayerShip.Damaged> {
     public int Width => Surface.Width;
     public int Height => Surface.Height;
-
-
     PlayerShip player;
     public float powerAlpha;
     public HashSet<EffectParticle> particles;
-
     public XY screenCenter;
     public int ticks;
     public Random r;
     public int[,] grid;
     public bool chargingUp;
     int recoveryTime;
-
     public int lightningHit;
     public int flash;
     PlayerShip.Damaged Lis<PlayerShip.Damaged>.Value => (pl, pr) => {
@@ -988,9 +971,7 @@ public class Vignette : ScreenSurface, Lis<PlayerShip.Damaged> {
     public Vignette(PlayerShip player, int width, int height) : base(width, height) {
         this.player = player;
         player.onDamaged += this;
-
         FocusOnMouseClick = false;
-
         powerAlpha = 0;
         particles = new();
         screenCenter = new(width / 2, height / 2);
@@ -1041,7 +1022,6 @@ public class Vignette : ScreenSurface, Lis<PlayerShip.Damaged> {
                 }
             }
         }
-
         Parallel.ForEach(particles, p => {
             p.position += p.Velocity / Program.TICKS_PER_SECOND;
             p.lifetime--;
@@ -1058,21 +1038,15 @@ public class Vignette : ScreenSurface, Lis<PlayerShip.Damaged> {
     }
     public override void Render(TimeSpan delta) {
         Surface.Clear();
-
         //XY screenSize = new XY(Width, Height);
-
         //Set the color of the vignette
-
         Color borderColor = Color.Black;
         int borderSize = 2;
-
         if (powerAlpha > 0) {
             var v = new Color(204, 153, 255, (int)(255 * (float)Math.Min(1, powerAlpha * 1.5)));
             borderColor = borderColor.Blend(v).Premultiply();
-
             borderSize += (int)(12 * powerAlpha);
         }
-
         Mortal();
         void Mortal() {
             if (player.mortalTime > 0) {
@@ -1182,14 +1156,14 @@ public class Readout : ScreenSurface {
         FocusOnMouseClick = false;
     }
     public override void Update(TimeSpan delta) {
-        if (player.GetTarget(out ActiveObject playerTarget)) {
+        if (player.GetTarget(out var playerTarget)) {
             DrawTargetArrow(playerTarget, Color.Yellow);
         }
         foreach (var t in player.tracking.Keys) {
             DrawTargetArrow(t, Color.SpringGreen);
         }
         //var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
-        foreach (var autoTarget in player.devices.Weapon.Select(w => w.target).Where(t => t != null && t != playerTarget)) {
+        foreach (var autoTarget in player.devices.Weapon.Select(w => w.target).Except(new ActiveObject[] { null, playerTarget })) {
             DrawTargetArrow(autoTarget, Color.Yellow);
         }
         void DrawTargetArrow(ActiveObject target, Color c) {
@@ -1211,9 +1185,7 @@ public class Readout : ScreenSurface {
             } else {
                 Heading.Crosshair(target.world, target.position, c);
             }
-            
         }
-
         base.Update(delta);
     }
     public override void Render(TimeSpan drawTime) {
@@ -1221,8 +1193,6 @@ public class Readout : ScreenSurface {
         var messageY = Height * 3 / 5;
         int targetX = 48, targetY = 1;
         int tick = player.world.tick;
-
-
         for (int i = 0; i < player.messages.Count; i++) {
             var message = player.messages[i];
             var line = message.Draw();
@@ -1263,15 +1233,12 @@ public class Readout : ScreenSurface {
                     screenX++;
                     messagePos.x++;
                 }
-
                 /*
                 var offset = sourcePos - messagePos;
                 int screenLineY = Math.Max(-(Height - screenY - 2), Math.Min(screenY - 2, offset.yi < 0 ? offset.yi - 1 : offset.yi));
                 int screenLineX = Math.Max(-(screenX - 2), Math.Min(Width - screenX - 2, offset.xi));
                 */
-
                 var offset = sourcePos - player.position;
-
                 var offsetLeft = new XY(0, 0);
                 bool truncateX = Math.Abs(offset.x) > Width / 2 - 3;
                 bool truncateY = Math.Abs(offset.y) > Height / 2 - 3;
@@ -1283,10 +1250,8 @@ public class Readout : ScreenSurface {
                     offsetLeft = sourcePos - sourcePosEdge;
                 }
                 offset += player.position - messagePos;
-
                 int screenLineY = offset.yi + (offset.yi < 0 ? 0 : 1);
                 int screenLineX = offset.xi;
-
                 if (screenLineY != 0) {
                     Surface.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
                         n = offset.y > 0 ? Line.Double : Line.None,
@@ -1306,7 +1271,6 @@ public class Readout : ScreenSurface {
                         screenLineY -= Math.Sign(screenLineY);
                     }
                 }
-
                 if (screenLineX != 0) {
                     Surface.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
                         n = offset.y < 0 ? Line.Double : Line.None,
@@ -1332,67 +1296,56 @@ public class Readout : ScreenSurface {
                 screenY -= Math.Sign(offsetLeft.y);
                 this.SetCellAppearance(screenX, screenY, new ColoredGlyph('*', f, b));
                 */
-
             }
             messageY++;
         }
-
         const int BAR = 8;
-        if (player.GetTarget(out ActiveObject playerTarget)) {
+        if (player.GetTarget(out var playerTarget)) {
             Surface.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
             Surface.Print(targetX, targetY++, playerTarget.name, player.tracking.ContainsKey(playerTarget) ? Color.SpringGreen : Color.White, Color.Black);
-            if(playerTarget is AIShip ai)
-                Surface.Print(targetX, targetY++, $"Order: {ai.behavior.GetOrder().ToString()}", Color.White, Color.Black);
+            if (playerTarget is AIShip ai) {
+                //Surface.Print(targetX, targetY++, $"Order: {ai.behavior.GetOrder().ToString()}", Color.White, Color.Black);
+            }
             PrintTarget(targetX, targetY, playerTarget);
             targetX += 32;
             targetY = 1;
         }
-
-
         //var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
-        foreach (var autoTarget in player.devices.Weapon.Select(w => w.target)) {
-            if (autoTarget != null && autoTarget != playerTarget) {
-                Surface.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
-                Surface.Print(targetX, targetY++, autoTarget.name, player.tracking.ContainsKey(autoTarget) ? Color.SpringGreen : Color.White, Color.Black);
-                PrintTarget(targetX, targetY, autoTarget);
-            }
+        foreach (var autoTarget in player.devices.Weapon.Select(w => w.target).Except(new ActiveObject[] {null, playerTarget})) {
+            Surface.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
+            Surface.Print(targetX, targetY++, autoTarget.name, player.tracking.ContainsKey(autoTarget) ? Color.SpringGreen : Color.White, Color.Black);
+            PrintTarget(targetX, targetY, autoTarget);
         }
         void PrintTarget(int x, int y, ActiveObject target) {
             var b = Color.Black;
-            if (target is AIShip ai) {
-                Print(ai.devices);
-                PrintHull(ai.damageSystem);
-            } else if (target is Station s) {
-                PrintHull(s.damageSystem);
+            switch (target) {
+                case AIShip ai:
+                    Print(ai.devices);
+                    PrintHull(ai.damageSystem);
+                    break;
+                case Station s:
+                    PrintHull(s.damageSystem);
+                    break;
             }
-
             void Print(DeviceSystem devices) {
-
-
                 var solars = devices.Solar;
                 var reactors = devices.Reactor;
                 var weapons = devices.Weapon;
                 var shields = devices.Shield;
                 var misc = devices.Installed.OfType<Service>();
-
-
                 foreach (var reactor in reactors) {
                     ColoredString bar;
                     if (reactor.energy > 0) {
-                        Color f = Color.White;
-                        char arrow = '=';
-                        if (reactor.energyDelta < 0) {
-                            f = Color.Yellow;
-                            arrow = '<';
-                        } else if (reactor.energyDelta > 0) {
-                            arrow = '>';
-                            f = Color.Cyan;
-                        }
+                        (var arrow, var f) = reactor.energyDelta switch {
+                            < 0 => ('<', Color.Yellow),
+                            > 0 => ('>', Color.Cyan),
+                            _   => ('=', Color.White)
+                        };
                         int length = (int)Math.Ceiling(BAR * reactor.energy / reactor.desc.capacity);
                         bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
                             + new ColoredString(new string('=', BAR - length), Color.Gray, b);
                     } else {
-                        bar = new ColoredString(new string('=', BAR), Color.Gray, b);
+                        bar = new(new string('=', BAR), Color.Gray, b);
                     }
 
                     int l = (int)Math.Ceiling(-BAR * (double)reactor.energyDelta / reactor.maxOutput);
@@ -1411,10 +1364,9 @@ public class Readout : ScreenSurface {
                 }
                 if (solars.Any()) {
                     foreach (var s in solars) {
-                        ColoredString bar;
                         int length = (int)Math.Ceiling(BAR * (double)s.maxOutput / s.desc.maxOutput);
                         int sublength = s.maxOutput > 0 ? (int)Math.Ceiling(length * (-s.energyDelta) / s.maxOutput) : 0;
-                        bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
+                        var bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
                             + new ColoredString(new string('=', length - sublength), Color.Cyan, b)
                             + new ColoredString(new string('=', BAR - length), Color.Gray, b);
                         /*
@@ -1438,7 +1390,6 @@ public class Readout : ScreenSurface {
                 if (weapons.Any()) {
                     int i = 0;
                     foreach (var w in weapons) {
-
                         string enhancement;
                         if (w.source.mod?.empty == false) {
                             enhancement = "[+]";
@@ -1446,14 +1397,12 @@ public class Readout : ScreenSurface {
                             enhancement = "";
                         }
                         string tag = $"] {w.source.type.name} {enhancement}";
-                        Color foreground;
-                        if (false) {
-                            foreground = Color.Gray;
-                        } else if (w.firing || w.delay > 0) {
-                            foreground = Color.Yellow;
-                        } else {
-                            foreground = Color.White;
-                        }
+                        Color foreground =
+                            false ?
+                                Color.Gray :
+                            w.firing || w.delay > 0 ?
+                                Color.Yellow :
+                            Color.White;
                         Surface.Print(x, y,
                             new ColoredString("[", Color.White, b)
                             + w.GetBar(BAR)
@@ -1475,9 +1424,13 @@ public class Readout : ScreenSurface {
                 if (shields.Any()) {
                     foreach (var s in shields.Reverse<Shield>()) {
                         string name = s.source.type.name;
-                        var f = false ? Color.Gray :
-                            s.hp == 0 || s.delay > 0 ? Color.Yellow :
-                            s.hp < s.desc.maxHP ? Color.Cyan :
+                        var f =
+                            false ?
+                                Color.Gray :
+                            s.hp == 0 || s.delay > 0 ?
+                                Color.Yellow :
+                            s.hp < s.desc.maxHP ?
+                                Color.Cyan :
                             Color.White;
                         int l = BAR * s.hp / s.desc.maxHP;
                         Surface.Print(x, y, "[", f, b);
@@ -1516,8 +1469,6 @@ public class Readout : ScreenSurface {
         }
         PrintPlayer();
         void PrintPlayer() {
-
-
             int x = 3;
             int y = 3;
             var b = Color.Black;
@@ -1536,15 +1487,12 @@ public class Readout : ScreenSurface {
                 ColoredString bar;
 
                 if (totalFuel > 0) {
-                    Color f = Color.White;
-                    char arrow = '=';
-                    if (netDelta < 0) {
-                        f = Color.Yellow;
-                        arrow = '<';
-                    } else if (netDelta > 0) {
-                        arrow = '>';
-                        f = Color.Cyan;
-                    }
+                    (var arrow, var f) = netDelta switch {
+                        < 0 => ('<', Color.Yellow),
+                        > 0 => ('>', Color.Cyan),
+                        _   => ('=', Color.White),
+                    };
+
                     int length = (int)Math.Ceiling(BAR * totalFuel / maxFuel);
                     bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
                         + new ColoredString(new string('=', BAR - length), Color.Gray, b);
@@ -1579,15 +1527,12 @@ public class Readout : ScreenSurface {
                 foreach (var reactor in reactors) {
                     ColoredString bar;
                     if (reactor.energy > 0) {
-                        Color f = Color.White;
-                        char arrow = '=';
-                        if (reactor.energyDelta < 0) {
-                            f = Color.Yellow;
-                            arrow = '<';
-                        } else if (reactor.energyDelta > 0) {
-                            arrow = '>';
-                            f = Color.Cyan;
-                        }
+                        (var arrow, var f) = reactor.energyDelta switch {
+                            < 0 => ('<', Color.Yellow),
+                            > 0 => ('>', Color.Cyan),
+                            _ => ('=', Color.White)
+                        };
+
                         int length = (int)Math.Ceiling(BAR * reactor.energy / reactor.desc.capacity);
                         bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
                             + new ColoredString(new string('=', BAR - length), Color.Gray, b);
@@ -1611,15 +1556,13 @@ public class Readout : ScreenSurface {
                 }
                 y++;
             }
-
             if (solars.Any()) {
                 foreach (var s in solars) {
-                    ColoredString bar;
                     int length = (int)Math.Ceiling(BAR * (double)s.maxOutput / s.desc.maxOutput);
                     int sublength = s.maxOutput > 0 ? (int)Math.Ceiling(length * (-s.energyDelta) / s.maxOutput) : 0;
-                    bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
-                        + new ColoredString(new string('=', length - sublength), Color.Cyan, b)
-                        + new ColoredString(new string('=', BAR - length), Color.Gray, b);
+                    var bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
+                            + new ColoredString(new string('=', length - sublength), Color.Cyan, b)
+                            + new ColoredString(new string('=', BAR - length), Color.Gray, b);
                     /*
                     int l = (int)Math.Ceiling(-16f * s.maxOutput / s.desc.maxOutput);
                     for (int i = 0; i < l; i++) {
@@ -1641,7 +1584,6 @@ public class Readout : ScreenSurface {
             if (weapons.Any()) {
                 int i = 0;
                 foreach (var w in weapons) {
-
                     string enhancement;
                     if (w.source.mod?.empty == false) {
                         enhancement = "[+]";
@@ -1649,14 +1591,12 @@ public class Readout : ScreenSurface {
                         enhancement = "";
                     }
                     string tag = $"{(i == player.primary.index ? "->" : i == player.secondary.index ? "=>" : "  ")}{w.GetReadoutName()} {enhancement}";
-                    Color foreground;
-                    if (player.energy.off.Contains(w)) {
-                        foreground = Color.Gray;
-                    } else if (w.firing || w.delay > 0) {
-                        foreground = Color.Yellow;
-                    } else {
-                        foreground = Color.White;
-                    }
+                    var foreground =
+                        player.energy.off.Contains(w) ?
+                            Color.Gray :
+                        w.firing || w.delay > 0 ?
+                            Color.Yellow :
+                        Color.White;
                     Surface.Print(x, y,
                         new ColoredString("[", Color.White, b)
                         + w.GetBar(BAR)
@@ -1713,7 +1653,6 @@ public class Readout : ScreenSurface {
                     }
             }
         }
-
         /*
         if(true){
             int x = 3;
@@ -2007,7 +1946,7 @@ public class CommunicationsWidget : ScreenSurface {
                             var attack = new AttackOrder(target);
                             var escort = GetEscortOrder(0);
                             subject.behavior = attack;
-                            new OrderOnDestroy(subject, attack, escort).Register(target);
+                            OrderOnDestroy.Register(subject, attack, escort, target);
                             player.AddMessage(new Message($"Ordered {subject.name} to Attack Target"));
                         } else {
                             player.AddMessage(new Message($"No target selected"));

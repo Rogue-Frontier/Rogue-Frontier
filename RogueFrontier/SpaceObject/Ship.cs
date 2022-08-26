@@ -330,14 +330,22 @@ public class AIShip : IShip {
     [JsonIgnore] public HashSet<Entity> avoidHit => new HashSet<Entity> { dock?.Target, (behavior as GuardOrder)?.home };
     
     public Sovereign sovereign { get; set; }
-    //IShipBehavior and IShipOrder have the same interface but different purpose
-    //The behavior sets the current order and does not affect ship controls
-    public IShipBehavior behavior;
+    private IShipBehavior _behavior;
+    public IShipBehavior behavior {
+        get => _behavior;
+        set {
+            _behavior = value;
+            _behavior.Init(this);
+        }
+    }
     public BaseShip ship;
     public Docking dock { get; set; }
 
-    public delegate void WeaponFired(AIShip aiShip, Weapon w, List<Projectile> p);
+    public delegate void WeaponFired(AIShip ship, Weapon w, List<Projectile> p);
     public Ev<WeaponFired> onWeaponFire = new();
+
+    public delegate void Damaged(AIShip ship, Projectile hit);
+    public Ev<Damaged> onDamaged = new();
 
     public delegate void Destroyed(AIShip ship, ActiveObject destroyer, Wreck wreck);
     public Ev<Destroyed> onDestroyed = new();
@@ -352,11 +360,13 @@ public class AIShip : IShip {
             _ => order
         };
     }
+    public bool IsAble() => damageSystem.GetHP() > damageSystem.GetMaxHP() / 2;
     public override string ToString() => $"{id}, {position.roundDown}, {velocity.roundDown}, {shipClass.codename}, {behavior}";
     public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
     public void SetDecelerating(bool decelerating = true) => ship.SetDecelerating(decelerating);
     public void Damage(Projectile p) {
+        onDamaged.ForEach(f => f(this, p));
         ship.ReduceDamage(p);
         ship.damageSystem.Damage(world.tick, p, () => Destroy(p.source));
     }

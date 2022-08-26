@@ -140,7 +140,7 @@ public class DaughtersOutpost : StationBehavior {
     public void Update(Station owner) {
     }
 }
-public class OrionWarlordsStation : StationBehavior, Lis<Station.Destroyed>, Lis<GuardOrder.OnDocked> {
+public class OrionWarlordsStation : StationBehavior, Lis<Station.Destroyed>, Lis<GuardOrder.OnDockedHome> {
 
     private HashSet<ActiveObject> turretsDeployed = new();
 
@@ -169,7 +169,8 @@ public class OrionWarlordsStation : StationBehavior, Lis<Station.Destroyed>, Lis
         */
     };
 
-    GuardOrder.OnDocked Lis<GuardOrder.OnDocked>.Value => (ship, home) => {
+    GuardOrder.OnDockedHome Lis<GuardOrder.OnDockedHome>.Value => (ship, order) => {
+        var home = order.home;
         if (turretsDeployed.Contains(home)) {
             return;
         }
@@ -202,7 +203,7 @@ public class OrionWarlordsStation : StationBehavior, Lis<Station.Destroyed>, Lis
                     if (enemies.All(a => (a.position - p).magnitude > 70) && enemies.Any(a => (a.position - p).magnitude < 200)) {
                         var ambushPoint = new ActiveMarker(owner.world, owner.sovereign, p);
                         var o = new GuardOrder(ambushPoint);
-                        o.onDocked += this;
+                        o.onDockedHome += this;
                         g.ForEach(g => g.behavior = new CompoundOrder(o, new GuardOrder(owner)));
                         break;
                     }

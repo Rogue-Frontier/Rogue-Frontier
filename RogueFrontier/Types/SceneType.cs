@@ -181,7 +181,7 @@ public class Dialog : Console {
     int escapeIndex;
     int descX => Width / 2 - 12;
     int descY => 8;
-    public static int maxCharge = 36;
+    public static int maxCharge = 24;
     public Dialog(ScreenSurface prev, string desc, List<SceneOption> navigation) : base(prev.Surface.Width, prev.Surface.Height) {
         this.desc = new(desc.Replace("\r", null));
 
@@ -209,7 +209,6 @@ public class Dialog : Console {
     int deltaIndex = 2;
     public override void Update(TimeSpan delta) {
         bool f = IsFocused;
-
         ticks++;
         if (ticks % 2*deltaIndex == 0) {
             if (descIndex < desc.Length - 1) {
@@ -223,14 +222,11 @@ public class Dialog : Console {
                 }
             } else if (descIndex < desc.Length) {
                 descIndex++;
-
-                int x = descX;
-                int y = descY + desc.Count(c => c.GlyphCharacter == '\n') + 3;
-
-                int i = 0;
+                int x = descX,
+                    y = descY + desc.Count(c => c.GlyphCharacter == '\n') + 3,
+                    i = 0;
                 foreach (var option in navigation) {
                     int index = i;
-
                     keyMap[char.ToUpper(option.key)] = index;
                     Children.Add(new LabelButton(option.name) {
                         Position = new(x, y++),
@@ -245,13 +241,10 @@ public class Dialog : Console {
                 }
             }
         }
-
         if (charging && navIndex != -1 && navigation[navIndex].enabled) {
             ref int c = ref charge[navIndex];
             if (c < maxCharge + 36) {
                 c++;
-                c++;
-                charging = false;
             }
         }
         if (prevEnter && !enter) {
@@ -261,16 +254,14 @@ public class Dialog : Console {
                 prevEnter = false;
                 Transition(navigation[navIndex].next?.Invoke(this));
                 c = maxCharge - 1;
-                /*
-                for(int i = 0; i < charge.Length; i++) {
-                    charge[i] = 0;
-                }
-                */
             }
         } else {
             prevEnter = enter;
         }
         for (int i = 0; i < charge.Length; i++) {
+            if(i == navIndex && charging) {
+                continue;
+            }
             ref int c = ref charge[i];
             if (c > 0) {
                 c--;
@@ -317,20 +308,25 @@ public class Dialog : Console {
             this.SetCellAppearance(x, y, new(Color.LightBlue, Color.Black, '>'));
         } else {
             var barLength = maxCharge / 6;
+            var arrow = $"{new string('-', barLength - 1)}>";
+
+
             x = descX - barLength;
             y = descY + desc.Count(c => c.GlyphCharacter == '\n') + 3;
             foreach(var (c, i) in charge.Select((c, i) => (c, i))) {
-                this.Print(x, y + i, new ColoredString("----->".Substring(0, Math.Min(c / 6, barLength)), Color.Gray, Color.Black));
+                this.Print(x, y + i, new ColoredString(arrow.Substring(0, Math.Min(c / 6, barLength)), Color.Gray, Color.Black));
             }
             if (navIndex > -1) {
-                this.Print(x, y + navIndex, new ColoredString("----->", Color.Gray, Color.Black));
+                this.Print(x, y + navIndex, new ColoredString(arrow, Color.Gray, Color.Black));
                 var ch = charge[navIndex];
-                this.Print(x, y + navIndex, new ColoredString("----->".Substring(0, Math.Min(ch / 6, barLength)), ch < maxCharge ? Color.Yellow : Color.Orange, Color.Black));
+                this.Print(x, y + navIndex, new ColoredString(arrow.Substring(0, Math.Min(ch / 6, barLength)), ch < maxCharge ? Color.Yellow : Color.Orange, Color.Black));
             }
         }
         base.Render(delta);
     }
     public override bool ProcessKeyboard(Keyboard keyboard) {
+
+        charging = false;
         if (keyboard.IsKeyPressed(Keys.Escape) || (prevEscape && keyboard.IsKeyDown(Keys.Escape))) {
             navIndex = escapeIndex;
             charging = true;

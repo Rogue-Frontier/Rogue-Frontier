@@ -98,14 +98,12 @@ public record InvokePower : ItemUse {
     }
 }
 public record Refuel : ItemUse {
-    public int energy;
+    [Req] public int energy;
     public Refuel() { }
     public Refuel(TypeCollection tc, XElement e) {
-        energy = e.ExpectAttInt("energy");
+        e.Initialize(this);
     }
-    public string GetDesc(PlayerShip player, Item item) {
-        return "Refuel reactor";
-    }
+    public string GetDesc(PlayerShip player, Item item) => "Refuel reactor";
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         var p = prev.Parent;
         p.Children.Remove(prev);

@@ -272,7 +272,6 @@
 		>
 		</PlayerSettings>
 	</ShipClass>
-	
 	<StationType	codename="station_dark_star_fortress"
 					name=		"Dark Star fortress"
 					sovereign=	"sovereign_dark_star"

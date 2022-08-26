@@ -10,6 +10,7 @@ using SadRogue.Primitives;
 
 namespace RogueFrontier;
 public interface IShipBehavior {
+    public void Init(AIShip owner) { }
     void Update(AIShip owner);
 }
 public class Sulphin : IShipBehavior, Lis<Station.Destroyed> {
@@ -177,33 +178,34 @@ public interface IShipOrder : IShipBehavior{
     bool Active { get; }
     //void Update(AIShip owner);
     public bool CanTarget(ActiveObject other) => false;
-
     public delegate IShipOrder Create(ActiveObject target);
 }
 public interface IDestructionEvents : Lis<Station.Destroyed>, Lis<AIShip.Destroyed>, Lis<PlayerShip.Destroyed> {
     Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => Value(s, d);
     AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => Value(s, d);
     PlayerShip.Destroyed Lis<PlayerShip.Destroyed>.Value => (s, d, w) => Value(s, d);
+
     public delegate void Destroyed(ActiveObject destroyed, ActiveObject destroyer);
-    public Destroyed Value => null;
+    public Destroyed Value { get; }
+
+    public void Register(ActiveObject target) {
+        switch (target) {
+            case Station st: st.onDestroyed += this; break;
+            case AIShip ai: ai.onDestroyed += this; break;
+            case PlayerShip ps: ps.onDestroyed += this; break;
+        }
+    }
 }
-public record OrderOnDestroy(AIShip ship, IShipOrder current, IShipOrder next) : Lis<Station.Destroyed>, Lis<AIShip.Destroyed>, Lis<PlayerShip.Destroyed> {
-    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => Do();
-    AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => Do();
-    PlayerShip.Destroyed Lis<PlayerShip.Destroyed>.Value => (s, d, w) => Do();
+public record OrderOnDestroy(AIShip ship, IShipOrder current, IShipOrder next) : IDestructionEvents {
+    public static void Register(AIShip ship, IShipOrder current, IShipOrder next, ActiveObject target) {
+        ((IDestructionEvents)new OrderOnDestroy(ship, current, next)).Register(target);
+    }
     public bool active => ship.behavior == current;
-    public void Do() {
+    IDestructionEvents.Destroyed IDestructionEvents.Value => (a, o) => {
         if (active) {
             ship.behavior = next;
         }
-    }
-    public void Register(ActiveObject o) {
-        switch (o) {
-            case Station s: s.onDestroyed += this; break;
-            case AIShip s: s.onDestroyed += this; break;
-            case PlayerShip s: s.onDestroyed += this; break;
-        }
-    }
+    };
 }
 public class CompoundOrder : IShipOrder {
     public List<IShipOrder> orders=new();
@@ -389,7 +391,7 @@ public class LootOrder : IShipOrder, Lis<Docking.OnDocked>/*, Lis<Wreck.OnDestro
     Docking.OnDocked Lis<Docking.OnDocked>.Value => (owner, docking) => onDocked.ForEach(f => f(owner, target));
     //Wreck.OnDestroyed Lis<Wreck.OnDestroyed>.Value => w => Active = false;
 }
-public class GuardOrder : IShipOrder, Lis<Docking.OnDocked> {
+public class GuardOrder : IShipOrder, Lis<Docking.OnDocked>, Lis<AIShip.Damaged>, Lis<Station.Damaged> {
     [JsonProperty]
     public ActiveObject home { get; private set; }
     [JsonProperty]
@@ -399,8 +401,9 @@ public class GuardOrder : IShipOrder, Lis<Docking.OnDocked> {
     public int errandTime;
     public int ticks;
 
-    public delegate void OnDocked(IShip owner, ActiveObject home);
-    public Ev<OnDocked> onDocked = new();
+
+    public delegate void OnDockedHome(IShip owner, GuardOrder order);
+    public Ev<OnDockedHome> onDockedHome = new();
     public GuardOrder(ActiveObject home) {
         this.home = home;
         approach = new(home);
@@ -412,6 +415,9 @@ public class GuardOrder : IShipOrder, Lis<Docking.OnDocked> {
         approach = new(home);
         errand = new AttackOrder(attackTarget);
         errandTime = -1;
+    }
+    public void Init(AIShip owner) {
+        owner.onDamaged += this;
     }
     public override string ToString() => $"guard {home.name}{errand switch {
         AttackOrder a => $": attack {a.target.name}",
@@ -436,15 +442,21 @@ public class GuardOrder : IShipOrder, Lis<Docking.OnDocked> {
         errand = null;
         errandTime = -1;
     }
+    public bool allowFlee = true;
     public void Update(AIShip owner) {
         ticks++;
-        //If we have a target, then attack!
+        //If we have an errand, then do it!
         if (errand?.Active == true) {
             errand.Update(owner);
-            //If we have finite attackTime set, then our attack order expires on time out
-            errandTime--;
-            if (errandTime == 0) {
+            //If we have finite errand time, then give up on expire
+            if (errandTime-- == 0) {
                 errand = null;
+            }
+
+
+            if (ticks%30 == 0 && allowFlee && !owner.IsAble()) {
+                ClearErrand();
+                return;
             }
             return;
         }
@@ -459,7 +471,7 @@ public class GuardOrder : IShipOrder, Lis<Docking.OnDocked> {
             return;
         }
         //Look for a nearby attack target periodically
-        if (ticks % 30 == 0) {
+        if (ticks % 30 == 0 && (!allowFlee || owner.IsAble())) {
             if(owner.world.karma.NextDouble() < 1/20f && FindWreck() is Wreck wreck) {
                 SetLoot(wreck);
                 errand.Update(owner);
@@ -500,7 +512,24 @@ public class GuardOrder : IShipOrder, Lis<Docking.OnDocked> {
                 .GetRandomOrDefault(owner.destiny);
     }
     public bool Active => home.active;
-    public Docking.OnDocked Value => (owner, docking) => onDocked.ForEach(f => f(owner, home));
+    Docking.OnDocked Lis<Docking.OnDocked>.Value => (owner, docking) => onDockedHome.ForEach(f => f(owner, this));
+    AIShip.Damaged Lis<AIShip.Damaged>.Value => (owner, p) => {
+        if(!allowFlee) {
+            return;
+        }
+        if (owner.IsAble()) {
+            return;
+        }
+        if(errand is AttackOrder) {
+            ClearErrand();
+        }
+    };
+    Station.Damaged Lis<Station.Damaged>.Value => (owner, p) => {
+        if(owner.damageSystem.GetHP() > owner.damageSystem.GetMaxHP()) {
+            return;
+        }
+        allowFlee = false;
+    };
 }
 
 public class AttackAllOrder : IShipOrder {

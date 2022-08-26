@@ -3,12 +3,17 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
-using static RogueFrontier.Alignment;
+using static RogueFrontier.BasicAlignment;
 using static RogueFrontier.Disposition;
 namespace RogueFrontier;
 
-public enum Alignment {
+public enum BasicAlignment {
     ConstructiveOrder, ConstructiveChaos, Neutral, DestructiveOrder, DestructiveChaos
+}
+
+public record ComplexDisposition {
+    bool canAttack;
+    bool waitUntilAttacked;
 }
 public class Sovereign : IDesignType {
     public class AutoEnemySelf : Lis<AutoSovereign> {
@@ -49,42 +54,42 @@ public class Sovereign : IDesignType {
 
 
     public string codename;
-    public Alignment alignment;
+    public BasicAlignment alignment;
     //private Sovereign parent;
 
     public Dict<string, Disposition> sovDispositions;
     public Dict<ulong, Disposition> entityDispositions;
     public Lis<AutoSovereign> AutoSovereignDisposition;
 
-    public static readonly Dictionary<Alignment, Dictionary<Alignment, Disposition>> dispositionTable = new Dictionary<Alignment, Dictionary<Alignment, Disposition>> {
-            { ConstructiveOrder, new Dictionary<Alignment, Disposition>{
+    public static readonly Dictionary<BasicAlignment, Dictionary<BasicAlignment, Disposition>> dispositionTable = new Dictionary<BasicAlignment, Dictionary<BasicAlignment, Disposition>> {
+            { ConstructiveOrder, new Dictionary<BasicAlignment, Disposition>{
                 {ConstructiveOrder, Friend },
                 {ConstructiveChaos, Disposition.Neutral },
-                {Alignment.Neutral, Disposition.Neutral },
+                {BasicAlignment.Neutral, Disposition.Neutral },
                 {DestructiveOrder, Enemy },
                 {DestructiveChaos, Enemy },
-            }}, {ConstructiveChaos, new Dictionary<Alignment, Disposition>{
+            }}, {ConstructiveChaos, new Dictionary<BasicAlignment, Disposition>{
                 {ConstructiveOrder, Disposition.Neutral },
                 {ConstructiveChaos, Disposition.Friend },
-                {Alignment.Neutral, Disposition.Neutral },
+                {BasicAlignment.Neutral, Disposition.Neutral },
                 {DestructiveOrder, Enemy },
                 {DestructiveChaos, Enemy }
-            }}, {Alignment.Neutral, new Dictionary<Alignment, Disposition> {
+            }}, {BasicAlignment.Neutral, new Dictionary<BasicAlignment, Disposition> {
                 {ConstructiveOrder, Disposition.Neutral },
                 {ConstructiveChaos, Disposition.Neutral },
-                {Alignment.Neutral, Disposition.Neutral },
+                {BasicAlignment.Neutral, Disposition.Neutral },
                 {DestructiveOrder, Disposition.Neutral },
                 {DestructiveChaos, Disposition.Enemy }
-            }}, {DestructiveOrder, new Dictionary<Alignment, Disposition>{
+            }}, {DestructiveOrder, new Dictionary<BasicAlignment, Disposition>{
                 {ConstructiveOrder, Enemy },
                 {ConstructiveChaos, Enemy },
-                {Alignment.Neutral, Disposition.Neutral },
+                {BasicAlignment.Neutral, Disposition.Neutral },
                 {DestructiveOrder, Disposition.Neutral },
                 {DestructiveChaos, Enemy },
-            }}, {DestructiveChaos, new Dictionary<Alignment, Disposition>{
+            }}, {DestructiveChaos, new Dictionary<BasicAlignment, Disposition>{
                 {ConstructiveOrder, Enemy },
                 {ConstructiveChaos, Enemy },
-                {Alignment.Neutral, Enemy },
+                {BasicAlignment.Neutral, Enemy },
                 {DestructiveOrder, Enemy },
                 {DestructiveChaos, Enemy },
             }},
@@ -99,7 +104,7 @@ public class Sovereign : IDesignType {
     }
     public void Initialize(TypeCollection tc, XElement e) {
         codename = e.ExpectAtt("codename");
-        if (Enum.TryParse<Alignment>(e.ExpectAtt("alignment"), out Alignment alignment)) {
+        if (Enum.TryParse<BasicAlignment>(e.ExpectAtt("alignment"), out BasicAlignment alignment)) {
             this.alignment = alignment;
         } else {
             throw new Exception($"Invalid alignment value {e.ExpectAtt("alignment")}");

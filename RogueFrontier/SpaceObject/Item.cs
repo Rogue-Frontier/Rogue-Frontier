@@ -1039,13 +1039,8 @@ public class Targeting : Aiming, IDestructionEvents {
             return;
         }
         target = Aiming.AcquireTarget(owner, weapon, filter);
-        switch(target) {
-            case Station st:    st.onDestroyed += this; break;
-            case AIShip ai:     ai.onDestroyed += this; break;
-            case PlayerShip ps: ps.onDestroyed += this; break;
-        }
+        ((IDestructionEvents)this).Register(target);
     }
-
     public void Update(Station owner, Weapon weapon) =>
         Update(owner, weapon, other => owner.IsVisible(other) && SStation.IsEnemy(owner, other));
     public void Update(IShip owner, Weapon weapon) =>
@@ -1083,11 +1078,7 @@ public class MultiTargeting : Aiming, IDestructionEvents {
         targets.AddRange(Aiming.AcquireTargets(owner, weapon, filter));
         index.Reset();
         foreach (var t in targets) {
-            switch (t) {
-                case Station st: st.onDestroyed += this; break;
-                case AIShip ai: ai.onDestroyed += this; break;
-                case PlayerShip ps: ps.onDestroyed += this; break;
-            }
+            ((IDestructionEvents)this).Register(t);
         }
     }
     public void OnFire() {
