@@ -12,7 +12,6 @@ using System;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
-using Microsoft.Xna.Framework.Media;
 
 namespace RogueFrontier;
 partial class Program {

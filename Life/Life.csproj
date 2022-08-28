@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="CoreCLR-NCalc" Version="2.2.110" />
-    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.2.2" />
+    <PackageReference Include="SadConsole.Host.SFML" Version="9.2.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Xna.Framework.Graphics;
 using SadConsole;
 using SadConsole.Renderers;
 using SadRogue.Primitives;
@@ -39,7 +38,7 @@ class RenderShip : Console {
             var s = new RenderShip(Width, Height, sc.playerSettings.map, c[codename]);
             s.Render(new TimeSpan());
             var t = ((ScreenSurfaceRenderer)s.Renderer)._backingTexture;
-            t.Save($"RogueFrontierRenders/{codename}.png");
+            //t.Save($"RogueFrontierRenders/{codename}.png");
         }
         Environment.Exit(0);
     }

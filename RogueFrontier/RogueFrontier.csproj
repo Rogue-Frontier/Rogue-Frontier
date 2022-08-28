@@ -24,7 +24,7 @@
     <PackageReference Include="NetCoreServer" Version="6.5.0" />
     <PackageReference Include="NLua" Version="1.6.0" />
     <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
-    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.2.2" />
+    <PackageReference Include="SadConsole.Host.SFML" Version="9.2.1" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ArchConsole">
