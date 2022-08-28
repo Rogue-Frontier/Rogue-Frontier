@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using SadRogue.Primitives;
+using SFML.System;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,10 @@ public class XY {
     public double x;
     [JsonProperty]
     public double y;
+    [JsonIgnore]
+    public float xf => (float)x;
+    [JsonIgnore]
+    public float yf => (float)y;
     [JsonIgnore]
     public int xi { get => (int)x; set => x = value; }
     [JsonIgnore]
@@ -31,6 +36,8 @@ public class XY {
         this.x = p.X;
         this.y = p.Y;
     }
+    public Vector3f ToVector3f(float z = 0) => new(xf, yf, z);
+    public XY To(XY dest) => dest - this;
     public static XY TryParse(XElement e, XY fallback) {
         var p = (string s) => double.Parse(s);
         if (e.TryAtt("posAngle", out var posAngle) && e.TryAtt("posRadius", out var posRadius)) {
@@ -122,6 +129,7 @@ public class XY {
     [JsonIgnore]
     public bool isZero => magnitude < 0.1;
     public XY Scale(XY origin, double scale) => (this - origin) * scale + origin;
+    public XY Scale(double scale) => this * scale;
     public XY IncMagnitude(double inc) => WithMagnitude(magnitude + inc);
     public XY WithMagnitude(double magnitude) {
         var a = angleRad;

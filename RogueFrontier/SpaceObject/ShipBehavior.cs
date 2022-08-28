@@ -196,6 +196,22 @@ public interface IDestructionEvents : Lis<Station.Destroyed>, Lis<AIShip.Destroy
         }
     }
 }
+public interface IWeaponEvents : Lis<PlayerShip.WeaponFired>, Lis<AIShip.WeaponFired>, Lis<Station.WeaponFired> {
+    Station.WeaponFired Lis<Station.WeaponFired>.Value => (s, w, p) => Value(s, w, p);
+    AIShip.WeaponFired Lis<AIShip.WeaponFired>.Value => (s, w, p) => Value(s, w, p);
+    PlayerShip.WeaponFired Lis<PlayerShip.WeaponFired>.Value => (s, w, p) => Value(s, w, p);
+
+    public delegate void WeaponFired(ActiveObject source, Weapon w, List<Projectile> proj);
+    public WeaponFired Value { get; }
+
+    public void Register(ActiveObject target) {
+        switch (target) {
+            case Station st: st.onWeaponFire += this; break;
+            case AIShip ai: ai.onWeaponFire += this; break;
+            case PlayerShip ps: ps.onWeaponFire += this; break;
+        }
+    }
+}
 public record OrderOnDestroy(AIShip ship, IShipOrder current, IShipOrder next) : IDestructionEvents {
     public static void Register(AIShip ship, IShipOrder current, IShipOrder next, ActiveObject target) {
         ((IDestructionEvents)new OrderOnDestroy(ship, current, next)).Register(target);

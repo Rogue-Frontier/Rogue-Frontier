@@ -131,6 +131,11 @@ public class Station : ActiveObject, ITrader, IDockable {
 
     public delegate void Damaged(Station station, Projectile p);
     public Ev<Damaged> onDamaged = new();
+
+
+    public delegate void WeaponFired(Station station, Weapon w, List<Projectile> p);
+    public Ev<WeaponFired> onWeaponFire = new();
+
     public Station() { }
     public Station(System World, StationType type, XY Position) {
         this.id = World.nextId++;

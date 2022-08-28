@@ -69,7 +69,6 @@ public class System {
     }
     public void AddEntity(Entity e) {
         entitiesAdded.Add(e);
-        onEntityAdded.ForEach(f => f(e));
         return;
         if (updating) entitiesAdded.Add(e);
         else entities.all.Add(e);
@@ -107,6 +106,9 @@ public class System {
         events.UnionWith(eventsAdded);
         entities.all.UnionWith(entitiesAdded);
         effects.all.UnionWith(effectsAdded);
+
+        entitiesAdded.ForEach(e => onEntityAdded.ForEach(f => f(e)));
+
         eventsAdded.Clear();
         entitiesAdded.Clear();
         effectsAdded.Clear();

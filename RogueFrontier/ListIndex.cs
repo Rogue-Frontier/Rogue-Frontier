@@ -35,6 +35,11 @@ public class ListIndex<T> {
         index += count;
         return l;
     }
+    public T GetNext() {
+        var f = list[index];
+        index++;
+        return f;
+    }
     public static ListIndex<T> operator+(ListIndex<T> i, int n) {
         i.index += n;
         return i;

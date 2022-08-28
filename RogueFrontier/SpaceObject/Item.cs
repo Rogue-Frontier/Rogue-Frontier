@@ -895,6 +895,7 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
             case Station st:
                 exclude.UnionWith(st.guards);
                 AllowWeaponTargets(st.weapons);
+                st.onWeaponFire.ForEach(f => f(st, this, projectiles));
                 break;
             case null:
                 return projectiles;

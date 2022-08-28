@@ -16,6 +16,8 @@ using static RogueFrontier.Station;
 using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
+using SFML.Audio;
+
 namespace RogueFrontier;
 public class NotifyStationDestroyed : Lis<Station.Destroyed> {
     public PlayerShip playerShip;
@@ -59,6 +61,8 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
     public PlayerStory story;
     public PlayerShip playerShip;
     public PlayerControls playerControls;
+
+    Noisemaker audio;
     XY mouseWorldPos;
     Keyboard prevKeyboard=new();
     MouseScreenObjectState prevMouse=new(null, new());
@@ -94,6 +98,8 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
         this.playerShip = playerShip;
         this.playerControls = new(playerShip, this);
 
+        audio = new(playerShip);
+        audio.Register(playerShip.world.universe);
 
         back = new(Width, Height, world.backdrop, camera);
         viewport = new(this, camera, world);
@@ -710,6 +716,53 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
     }
 }
 
+public class Noisemaker : Lis<EntityAdded>, IDestructionEvents, IWeaponEvents {
+
+    PlayerShip player;
+
+    SoundBuffer generic_fire = Load(nameof(generic_fire)),
+        generic_explosion = Load(nameof(generic_explosion));
+    ListIndex<Sound> gunfire;
+
+    public static SoundBuffer Load(string file) => new($"RogueFrontierContent/Sounds/{file}.wav");
+    public Noisemaker(PlayerShip player) {
+        this.player = player;
+        gunfire = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
+    }
+    public void Register(Universe u) {
+        foreach(var a in u.GetAllEntities().OfType<ActiveObject>()) {
+            Register(a);
+        }
+        u.onEntityAdded += this;
+    }
+    EntityAdded Lis<EntityAdded>.Value => e => {
+        if (e is ActiveObject a) {
+            Register(a);
+        }
+    };
+    private void Register(ActiveObject a) {
+        ((IDestructionEvents)this).Register(a);
+        ((IWeaponEvents)this).Register(a);
+    }
+    IDestructionEvents.Destroyed IDestructionEvents.Value => (e, d) => {
+        if(e.world != player.world) {
+            return;
+        }
+        var s = gunfire.GetNext();
+        s.Position = player.position.To(e.position).Scale(1 / 128f).ToVector3f();
+        s.SoundBuffer = generic_explosion;
+        s.Play();
+    };
+    IWeaponEvents.WeaponFired IWeaponEvents.Value => (e, w, p) => {
+        if (e.world != player.world) {
+            return;
+        }
+        var s = gunfire.GetNext();
+        s.Position = player.position.To(e.position).Scale(1/128f).ToVector3f();
+        s.SoundBuffer = generic_fire;
+        s.Play();
+    };
+}
 public class BackdropConsole : ScreenSurface {
     public int Width => Surface.Width;
     public int Height => Surface.Height;
@@ -807,11 +860,14 @@ public class Megamap : ScreenSurface {
     }
     public override void Update(TimeSpan delta) {
         var d = targetViewScale - viewScale;
+        /*
         if(Math.Abs(d) < 0.1) {
             viewScale += d;
         } else {
             viewScale += d / 10;
         }
+        */
+        viewScale += Math.MaxMagnitude(Math.MinMagnitude(d, Math.Sign(d)*0.1), d / 10);
         alpha = (byte)(255 * Math.Min(1, viewScale - 1));
         time += delta.TotalSeconds;
 #nullable enable
