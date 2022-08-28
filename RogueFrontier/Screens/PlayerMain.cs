@@ -302,7 +302,7 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
         if (updatesSinceRender > 2) return;
         updatesSinceRender++;
         void UpdateUniverse() {
-            world.UpdateActive();
+            world.UpdateActive(delta.TotalSeconds * (playerShip.autopilot ? 3 : 1));
             world.UpdatePresent();
             story.Update(playerShip);
         }
@@ -310,19 +310,6 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
             back.Update(delta);
             lock (world) {
                 UpdateUniverse();
-                if (playerShip.autopilot) {
-                    autopilotUpdate = true;
-
-                    ProcessKeyboard(prevKeyboard);
-                    ProcessMouse(prevMouse);
-                    UpdateUniverse();
-
-                    ProcessKeyboard(prevKeyboard);
-                    ProcessMouse(prevMouse);
-                    UpdateUniverse();
-
-                    autopilotUpdate = false;
-                }
                 PlaceTiles(delta);
                 transition?.Update(delta);
             }
@@ -369,13 +356,14 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
             }
             playerShip.mortalTime -= timePassed;
         }
+        var gameDelta = delta.TotalSeconds * (playerShip.autopilot ? 3 : 1);
         void UpdateUniverse() {
 
-            world.UpdateActive();
+            world.UpdateActive(gameDelta);
             world.UpdatePresent();
             systems.GetNext(1).ForEach(s => {
                 if (s != world) {
-                    s.UpdateActive();
+                    s.UpdateActive(gameDelta);
                     s.UpdatePresent();
                 }
             });
@@ -384,27 +372,9 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
             back.Update(delta);
             lock (world) {
 
+                AddCrosshair();
+                UpdateUniverse();
                 
-                if (playerShip.autopilot) {
-                    UpdateUniverse();
-
-                    autopilotUpdate = true;
-
-                    ProcessKeyboard(prevKeyboard);
-                    ProcessMouse(prevMouse);
-                    UpdateUniverse();
-
-                    AddCrosshair();
-
-                    ProcessKeyboard(prevKeyboard);
-                    ProcessMouse(prevMouse);
-                    UpdateUniverse();
-
-                    autopilotUpdate = false;
-                } else {
-                    AddCrosshair();
-                    UpdateUniverse();
-                }
                 PlaceTiles(delta);
                 transition?.Update(delta);
 
@@ -986,9 +956,9 @@ public class Vignette : ScreenSurface, Lis<PlayerShip.Damaged> {
     public override void Update(TimeSpan delta) {
         var charging = player.powers.Where(p => p.charging);
         if (charging.Any()) {
-            var charge = Math.Min(1, charging.Max(p => (float)p.invokeCharge / p.invokeDelay));
+            var charge = Math.Min(1, charging.Max(p => p.invokeCharge / p.invokeDelay));
             if (powerAlpha < charge) {
-                powerAlpha += (charge - powerAlpha) / 10f;
+                powerAlpha += (int)((charge - powerAlpha) / 10f);
             }
             if (recoveryTime < 360) {
                 recoveryTime++;
@@ -2137,7 +2107,7 @@ public class PowerWidget : ScreenSurface {
         foreach (var p in playerShip.powers) {
             char key = indexToKey(index);
             if (p.cooldownLeft > 0) {
-                int chargeBar = 16 * p.cooldownLeft / p.cooldownPeriod;
+                int chargeBar = (int)(16 * p.cooldownLeft / p.cooldownPeriod);
                 Surface.Print(x, y++,
                     new ColoredString($"[{key}] {p.type.name,-8} ", gr, bl) +
                     new ColoredString("[", wh, bl) +
@@ -2146,7 +2116,7 @@ public class PowerWidget : ScreenSurface {
                     new ColoredString("]", wh, bl)
                     );
             } else if (p.invokeCharge > 0) {
-                var chargeMeter = Math.Min(16, 16 * p.invokeCharge / p.invokeDelay);
+                var chargeMeter = (int)Math.Min(16, 16 * p.invokeCharge / p.invokeDelay);
 
                 var c = Color.Yellow;
                 if (p.invokeCharge >= p.invokeDelay && ticks % 30 < 15) {

@@ -20,7 +20,7 @@ public class Cable : Entity {
         id = parent.attached.world.nextId++;
         this.position = position;
     }
-    public void Update() {
+    public void Update(double delta) {
         active &= parent.active;
     }
 }
@@ -47,7 +47,7 @@ public class Hook : Entity {
     public XY offset => attached.position - source.position;
     public bool active { get; set; } = true;
     public ColoredGlyph tile => new(Color.LightGray, Color.Transparent, '?');
-    public void Update() {
+    public void Update(double delta) {
         active &= attached.active && source.active;
         var offset = attached.position - source.position;
         segments.ForEach(attached.world.AddEntity);
@@ -59,8 +59,8 @@ public class Hook : Entity {
         if (nextLength >= length) {
             var inc = nextLength - length;
             var direction = offset.normal;
-            source.velocity += direction * (inc + 1) / 30;
-            attached.velocity -= direction * (inc + 1) / 30;
+            source.velocity += direction * (inc + 1) * delta;
+            attached.velocity -= direction * (inc + 1) * delta;
             if(inc > 8) {
                 active = false;
             }
@@ -124,7 +124,9 @@ public class LightningRod : Entity, Lis<Weapon.OnFire>, Lis<Projectile.OnHitActi
     public XY position => target.position;
     public bool active => target.active && lifetime>0;
     public ColoredGlyph tile => null;
-    public void Update() {
+
+    double timePassed;
+    public void Update(double delta) {
         if(target.world.tick%10 == 0) {
             var r = () => target.world.karma.NextDouble();
             target.world.AddEffect(new EffectParticle(
@@ -149,6 +151,6 @@ public class StickyBomb : Entity {
     public XY offset => attached.position - source.position;
     public bool active { get; set; } = true;
     public ColoredGlyph tile => new(Color.SpringGreen, Color.Black, 'b');
-    public void Update() {
+    public void Update(double delta) {
     }
 }

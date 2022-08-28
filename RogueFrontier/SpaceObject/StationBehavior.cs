@@ -12,12 +12,12 @@ using Kodi.Linq.Extensions;
 
 namespace RogueFrontier;
 public interface StationBehavior {
-    void Update(Station owner);
+    void Update(double delta, Station owner);
     public void RegisterGuard(AIShip guard) { }
 }
 public class IronPirateStation : StationBehavior {
     public IronPirateStation() { }
-    public void Update(Station owner) {
+    public void Update(double delta, Station owner) {
         if (owner.world.tick % 300 == 0) {
             //Clear any pirate attacks where the target has too many defenders
             foreach (var g in owner.guards) {
@@ -80,7 +80,7 @@ public class ConstellationAstra : StationBehavior {
             null,
             new GuardOrder(owner))));
     }
-    public void Update(Station owner) {
+    public void Update(double delta, Station owner) {
         if (owner.world.tick % 150 == 0) {
             owner.UpdateGuardList();
             if (owner.guards.Count < 5) {
@@ -122,7 +122,7 @@ public class ConstellationShipyard : StationBehavior {
             f("ship_beowulf")
         };
     }
-    public void Update(Station owner) {
+    public void Update(double delta, Station owner) {
         if (owner.world.tick % 900 == 0) {
             owner.UpdateGuardList();
             if(owner.guards.Count < 15) {
@@ -137,7 +137,7 @@ public class ConstellationShipyard : StationBehavior {
 public class DaughtersOutpost : StationBehavior {
     public bool sanctumReady = true;
     public int funds = 1000;
-    public void Update(Station owner) {
+    public void Update(double delta, Station owner) {
     }
 }
 public class OrionWarlordsStation : StationBehavior, Lis<Station.Destroyed>, Lis<GuardOrder.OnDockedHome> {
@@ -186,7 +186,7 @@ public class OrionWarlordsStation : StationBehavior, Lis<Station.Destroyed>, Lis
         owner.onDestroyed += this;
         turretType = owner.world.types.Lookup<StationType>("station_orion_turret");
     }
-    public void Update(Station owner) {
+    public void Update(double delta, Station owner) {
         if(owner.world.tick%1200 == 0) {
             if(owner.guards.Count > 4) {
                 var g = owner.guards.Take(1).ToList();
@@ -270,7 +270,7 @@ public class AmethystStore : StationBehavior, Lis<Station.Destroyed>, Lis<Statio
         shine = new(owner.world.types.Lookup<PowerType>("power_shine"));
         shine.onInvoked += this;
     }
-    public void Update(Station owner) {
-        shine.Update(owner);
+    public void Update(double delta, Station owner) {
+        shine.Update(delta, owner);
     }
 }

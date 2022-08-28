@@ -109,5 +109,5 @@ public class Stargate : ActiveObject {
 
     public void Destroy(ActiveObject source) {}
 
-    public void Update() {}
+    public void Update(double delta) {}
 }

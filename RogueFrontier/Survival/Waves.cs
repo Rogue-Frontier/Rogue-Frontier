@@ -106,7 +106,7 @@ class Waves : Event {
         var f = ships.First();
         playerShip.AddMessage(new Transmission(f, $"{f.name} detected!"));
     }
-    public void Update() {
+    public void Update(double delta) {
         ticks++;
         if (ticks % 150 == 0) {
             if (ships.Any(s => s.active)) {

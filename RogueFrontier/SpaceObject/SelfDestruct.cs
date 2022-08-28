@@ -18,7 +18,7 @@ public class SelfDestruct : Event {
         message = new("");
         target.AddMessage(message);
     }
-    public void Update() {
+    public void Update(double delta) {
         if (ticks-- > 0) {
             message.message.String = $"Self destructing in {ticks / 60}s.";
             target.AddMessage(message);

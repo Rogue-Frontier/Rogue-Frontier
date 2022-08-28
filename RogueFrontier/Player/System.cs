@@ -43,6 +43,7 @@ public class System {
     public Rand karma => universe.karma;
     public Backdrop backdrop=new();
 
+    public double time;
     public int tick;
     public ulong nextId;
 
@@ -131,22 +132,22 @@ public class System {
         entities.UpdateSpace();
         effects.UpdateSpace();
     }
-    public void UpdateActive() {
+    public void UpdateActive(double delta) {
         UpdateSpace();
 
         //updating = true;
         //Update everything
         foreach (var e in entities.all) {
-            e.Update();
+            e.Update(delta);
         }
         foreach (var e in effects.all) {
-            e.Update();
+            e.Update(delta);
         }
         foreach (var e in events) {
-            e.Update();
+            e.Update(delta);
         }
         //updating = false;
-
+        time += delta;
         tick++;
     }
 

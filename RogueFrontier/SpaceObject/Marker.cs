@@ -19,7 +19,7 @@ class Marker : Entity {
         this.Velocity = new XY();
         this.active = true;
     }
-    public void Update() { }
+    public void Update(double delta) { }
 }
 
 class ActiveMarker : ActiveObject {
@@ -44,7 +44,7 @@ class ActiveMarker : ActiveObject {
         this.velocity = new XY();
         this.active = true;
     }
-    public void Update() {
+    public void Update(double delta) {
         //Nearby = Owner.world.entities.all.OfType<SpaceObject>().Except(new SpaceObject[] { Owner }).OrderBy(e => (e.position - position).magnitude).ToList();
     }
     public void Damage(Projectile p) { }
@@ -76,7 +76,7 @@ class TargetingMarker : ActiveObject {
         this.velocity = new XY();
         this.active = true;
     }
-    public void Update() {
+    public void Update(double delta) {
         //Nearby = Owner.world.entities.all.OfType<SpaceObject>().Except(new SpaceObject[] { Owner }).OrderBy(e => (e.position - position).magnitude).ToList();
     }
     public void Damage(Projectile p) { }

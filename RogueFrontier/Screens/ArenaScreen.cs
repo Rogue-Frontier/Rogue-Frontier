@@ -340,7 +340,7 @@ public class ArenaScreen : Console, Lis<PlayerShip.Destroyed> {
 
             World.UpdateAdded();
 
-            World.UpdateActive();
+            World.UpdateActive(timeSpan.TotalSeconds);
             World.UpdateRemoved();
 
             tiles.Clear();

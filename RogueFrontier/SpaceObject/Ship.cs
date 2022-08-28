@@ -179,7 +179,7 @@ public class BaseShip {
 
         active = false;
     }
-    public void Update() {
+    public void Update(double delta) {
         if(world.tick%15 == 0) {
             stealth = shipClass.stealth;
             devices.Shield.ForEach(s => stealth += s.stealth);
@@ -192,11 +192,11 @@ public class BaseShip {
 
             stealth = Math.Max(stealth, 0);
         }
-        UpdateControl();
-        UpdateMotion();
+        UpdateControl(delta);
+        UpdateMotion(delta);
         //Devices.Update(this);
     }
-    public void UpdateControl() {
+    public void UpdateControl(double delta) {
         if(blindTicks > 0) {
             blindTicks--;
             devices.Weapon.ForEach(w => w.blind = true);
@@ -230,7 +230,7 @@ public class BaseShip {
                     4);
                 world.AddEffect(exhaust);
 
-                velocity += XY.Polar(rotationRads, shipClass.thrust);
+                velocity += XY.Polar(rotationRads, shipClass.thrust * delta * Program.TICKS_PER_SECOND);
                 if (velocity.magnitude > shipClass.maxSpeed) {
                     velocity = velocity.normal * shipClass.maxSpeed;
                 }
@@ -249,7 +249,7 @@ public class BaseShip {
                     if (rotatingVel < 0) {
                         Decel();
                     }
-                    rotatingVel += shipClass.rotationAccel / Program.TICKS_PER_SECOND;
+                    rotatingVel += shipClass.rotationAccel * delta;
                 } else if (rotating == Rotating.CW) {
                     /*
                     if(rotatingSpeed > 0) {
@@ -260,20 +260,20 @@ public class BaseShip {
                     if (rotatingVel > 0) {
                         Decel();
                     }
-                    rotatingVel -= shipClass.rotationAccel / Program.TICKS_PER_SECOND;
+                    rotatingVel -= shipClass.rotationAccel * delta;
                 }
                 rotatingVel = Math.Min(Math.Abs(rotatingVel), shipClass.rotationMaxSpeed) * Math.Sign(rotatingVel);
                 rotating = Rotating.None;
             } else {
                 Decel();
             }
-            void Decel() => rotatingVel -= Math.Min(Math.Abs(rotatingVel), shipClass.rotationDecel / Program.TICKS_PER_SECOND) * Math.Sign(rotatingVel); ;
+            void Decel() => rotatingVel -= Math.Min(Math.Abs(rotatingVel), shipClass.rotationDecel * delta) * Math.Sign(rotatingVel); ;
         }
-        void UpdateRotation() => rotationDeg += rotatingVel;
+        void UpdateRotation() => rotationDeg += rotatingVel * delta * Program.TICKS_PER_SECOND;
         void UpdateBrake() {
             if (decelerating) {
                 if (velocity.magnitude > 0.05) {
-                    velocity -= velocity.normal * Math.Min(velocity.magnitude, shipClass.thrust / 2);
+                    velocity -= velocity.normal * Math.Min(velocity.magnitude, shipClass.thrust * (delta * Program.TICKS_PER_SECOND) / 2);
                 } else {
                     velocity = new XY();
                 }
@@ -281,8 +281,8 @@ public class BaseShip {
             }
         }
     }
-    public void UpdateMotion() {
-        position += velocity / Program.TICKS_PER_SECOND;
+    public void UpdateMotion(double delta) {
+        position += velocity * delta;
     }
 }
 public static class SShipBehavior {
@@ -382,21 +382,21 @@ public class AIShip : IShip {
         onDestroyed.RemoveNull();
         onDestroyed.ForEach(f => f(this, source, ship.wreck));
     }
-    public void Update() {
-        behavior?.Update(this);
+    public void Update(double delta) {
+        behavior?.Update(delta, this);
 
-        dock?.Update(this);
+        dock?.Update(delta, this);
 
-        ship.Update();
+        ship.Update(delta);
         if(world.tick%30 == 0 && dock?.Target is Station st) {
             ship.stealth = Math.Max(ship.stealth, st.stealth);
         }
         //We update the ship's devices as ourselves because they need to know who the exact owner is
         //In case someone other than us needs to know who we are through our devices
-        ship.devices.Update(this);
+        ship.devices.Update(delta, this);
 
         if(ship.damageSystem is LayeredArmor la) {
-            la.Update(this);
+            la.Update(delta, this);
             /*
             if(world.tick%90 == 0) {
                 var repairers = new HashSet<(Item, RepairArmor)>(cargo.Select(i => (item: i, repair:i.type.invoke)).OfType<(Item, RepairArmor)>());
@@ -777,18 +777,18 @@ public class PlayerShip : IShip {
     }
     public bool CanSee(Entity e) => GetVisibleDistanceLeft(e) > 0;
     public double GetVisibleDistanceLeft(Entity e) => visibleDistanceLeft.TryGetValue(e.id, out var d) ? d : double.PositiveInfinity;
-    public void Update() {
+    public void Update(double delta) {
 
-        messages.ForEach(m => m.Update());
+        messages.ForEach(m => m.Update(delta));
         messages.RemoveAll(m => !m.Active);
 
         var target = GetTarget();
 
         powers.ForEach(p => {
             if (p.cooldownLeft > 0) {
-                p.cooldownLeft--;
+                p.cooldownLeft -= delta * 60;
 
-                if (p.cooldownLeft == 0) {
+                if (p.cooldownLeft <= 0) {
                     AddMessage(new Message($"[Power] {p.type.name} is ready"));
                 }
             }
@@ -836,17 +836,17 @@ public class PlayerShip : IShip {
             }
         }
 
-        dock?.Update(this);
+        dock?.Update(delta, this);
 
-        ship.Update();
+        ship.Update(delta);
 
         //We update the ship's devices as ourselves because they need to know who the exact owner is
         //In case someone other than us needs to know who we are through our devices
         foreach (var enabled in ship.devices.Installed.Except(energy.off)) {
-            enabled.Update(this);
+            enabled.Update(delta, this);
         }
         energy.Update(this);
-        (ship.damageSystem as LayeredArmor)?.layers.ForEach(l => l.Update(this));
+        (ship.damageSystem as LayeredArmor)?.layers.ForEach(l => l.Update(delta, this));
     }
     public void AddMessage(IPlayerMessage message) {
         var existing = messages.FirstOrDefault(m => m.Equals(message));

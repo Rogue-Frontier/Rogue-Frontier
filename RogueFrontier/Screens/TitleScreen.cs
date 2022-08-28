@@ -316,7 +316,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         Environment.Exit(0);
     }
     public override void Update(TimeSpan timeSpan) {
-        World.UpdateActive();
+        World.UpdateActive(timeSpan.TotalSeconds);
         World.UpdatePresent();
         tiles.Clear();
         World.PlaceTiles(tiles);
@@ -379,7 +379,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
 
             bool indent = false;
             foreach (var line in povDesc) {
-                line.Update();
+                line.Update(drawTime.TotalSeconds);
 
                 var lineX = descX + (indent ? 8 : 0);
 

@@ -499,7 +499,7 @@ public record FragmentDesc {
             new(fragmentsList.Select(f => new FragmentDesc(f))) : null;
         disruptor = e.HasElement("Disruptor", out var xmlDisruptor) ?
             new(xmlDisruptor) : null;
-        trail = e.HasElement("Trail", out var xmlTrail) ?
+        trail = e.HasElement("Trail", out var xmlTrail) ? 
             new(xmlTrail) : null;
         effect = new(e);
     }

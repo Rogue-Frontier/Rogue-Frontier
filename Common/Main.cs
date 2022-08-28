@@ -775,10 +775,11 @@ public static class Main {
         }
         return result;
     }
-    public static ColoredString WithOpacity(this ColoredString s, byte alpha) {
+    public static ColoredString WithOpacity(this ColoredString s, byte front, byte back = 255) {
         s = s.Clone();
         foreach (var c in s) {
-            c.Foreground = new (c.Foreground.R, c.Foreground.G, c.Foreground.B, alpha);
+            c.Foreground = c.Foreground.SetAlpha(front);
+            c.Background = c.Background.SetAlpha(back);
         }
         return s;
     }

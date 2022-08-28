@@ -8,7 +8,7 @@ namespace RogueFrontier;
 public static class SDamageSystem {
     public static void React(this ActiveObject owner, ActiveObject source) {
         if (source is PlayerShip ps && !owner.sovereign.IsEnemy(ps) && !owner.CanTarget(ps)) {
-            ps.AddMessage(new Transmission(owner, $@"""Watch your targets!"" - {owner.name}", 1));
+            ps.AddMessage(new Transmission(owner, $@"""Watch your targets!"" - {owner.name}"/*, 1*/));
         }
     }
     public static void DestroyCheck(this PlayerShip ps, Projectile pr) =>
@@ -52,8 +52,8 @@ public class LayeredArmor : HullSystem {
         layers.Reverse();
         this.layers = layers;
     }
-    public void Update(IShip owner) {
-        layers.ForEach(l => l.Update(owner));
+    public void Update(double delta, IShip owner) {
+        layers.ForEach(l => l.Update(delta, owner));
     }
     public void Damage(int tick, Projectile p, Action Destroy) {
         if (p.damageHP == 0)

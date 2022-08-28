@@ -66,7 +66,7 @@ public class DeviceSystem {
 
         List<T> All<T>() where T : Device => new(Installed.OfType<T>());
     }
-    public void Update(IShip owner) {
-        Installed.ForEach(d => d.Update(owner));
+    public void Update(double delta, IShip owner) {
+        Installed.ForEach(d => d.Update(delta, owner));
     }
 }

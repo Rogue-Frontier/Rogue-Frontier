@@ -59,8 +59,8 @@ public class Wreck : MovingObject, IDockable {
         onDestroyed.ForEach(p => p(this));
     }
 
-    public void Update() {
-        position += velocity / Program.TICKS_PER_SECOND;
+    public void Update(double delta) {
+        position += velocity * delta * Program.TICKS_PER_SECOND;
 #if false
         if (world.tick % 30 == 0) {
             gravity = new XY(0, 0);
@@ -79,7 +79,7 @@ public class Wreck : MovingObject, IDockable {
         velocity += gravity;
 #else
         if(velocity.magnitude2 > 1) {
-            velocity -= velocity.normal;
+            velocity -= velocity.normal * delta * Program.TICKS_PER_SECOND;
         } else {
             velocity = new(0,0);
         }
@@ -276,7 +276,7 @@ public class Station : ActiveObject, ITrader, IDockable {
         onDestroyed.RemoveNull();
         onDestroyed.ForEach(f => f(this, source, wreck));
     }
-    public void Update() {
+    public void Update(double delta) {
         velocity = XY.Zero;
         if(world.tick%15 == 0) {
             stealth = type.stealth;
@@ -297,8 +297,8 @@ public class Station : ActiveObject, ITrader, IDockable {
                 }
             }
         }
-        weapons?.ForEach(w => w.Update(this));
-        behavior?.Update(this);
+        weapons?.ForEach(w => w.Update(delta, this));
+        behavior?.Update(delta, this);
     }
     public ScreenSurface GetDockScene(ScreenSurface prev, PlayerShip playerShip) => null;
     [JsonIgnore]
@@ -330,7 +330,7 @@ public class Segment : ISegment {
     }
     [JsonIgnore]
     public bool active => parent.active;
-    public void Update() {}
+    public void Update(double delta) {}
     [JsonIgnore]
     public ColoredGlyph tile => desc.tile.Original;
 }
@@ -364,7 +364,7 @@ public class AngledSegment : ISegment {
     public bool active => parent.active;
     public void Damage(Projectile p) => parent.Damage(p);
     public void Destroy(ActiveObject source) => parent.Destroy(source);
-    public void Update() { }
+    public void Update(double delta) { }
     [JsonIgnore]
     public ColoredGlyph tile => desc.tile.Original;
 }

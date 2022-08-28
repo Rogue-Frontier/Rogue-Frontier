@@ -12,6 +12,6 @@ class FixedTile : Effect {
         this.position = Position;
         this.active = true;
     }
-    public void Update() {
+    public void Update(double delta) {
     }
 }

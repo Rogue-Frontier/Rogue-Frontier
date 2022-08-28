@@ -34,7 +34,7 @@ public class EffectParticle : Effect {
     [JsonIgnore]
     public bool active => lifetime > 0;
     public ColoredGlyph tile { get; private set; }
-    public void Update() {
+    public void Update(double delta) {
         position += Velocity / Program.TICKS_PER_SECOND;
         lifetime--;
     }
@@ -67,7 +67,7 @@ public class FadingTile : Effect {
         _Tile.Background.SetAlpha((byte)(_Tile.Background.A * Math.Min(1, 1f * Lifetime / 10))).Premultiply(),
         _Tile.GlyphCharacter);
 
-    public void Update() {
+    public void Update(double delta) {
         position += Velocity / Program.TICKS_PER_SECOND;
         Lifetime--;
     }

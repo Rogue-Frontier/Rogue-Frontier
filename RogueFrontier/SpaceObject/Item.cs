@@ -66,7 +66,7 @@ public class Item {
 }
 public interface Device {
     Item source { get; }
-    void Update(IShip owner);
+    void Update(double delta, IShip owner);
     int? powerUse => null;
     public bool IsEnabled(IShip owner) =>
         (owner as PlayerShip)?.energy.off.Contains(this) != false;
@@ -104,7 +104,7 @@ public class Armor : Device {
 
     public int killHP;
 
-    public int damageDelay;
+    public double damageDelay;
 
     public double stealth => desc.stealth == 0 ? 0 : desc.stealth * hp / desc.maxHP;
 
@@ -113,11 +113,11 @@ public class Armor : Device {
 
     List<Decay> decay=new();
     public record Decay {
-        [Req] public int lifetime;
+        [Req] public double lifetime;
         [Req] public double rate;
         public Decay() { }
         public Decay(XElement e) => e.Initialize(this);
-        public Decay(int lifetime, double rate) => (this.lifetime, this.rate) = (lifetime, rate);
+        public Decay(double lifetime, double rate) => (this.lifetime, this.rate) = (lifetime, rate);
     }
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
@@ -129,30 +129,30 @@ public class Armor : Device {
     public void Repair(RepairArmor ra) {
         hp = Math.Min(desc.maxHP, hp + ra.repairHP);
     }
-    public void Update(IShip owner) {
+    public void Update(double delta, IShip owner) {
         if (decay.Any()) {
             foreach (var d in decay) {
-                decayHP += d.rate;
-                d.lifetime--;
+                decayHP += d.rate * delta;
+                d.lifetime -= delta * Program.TICKS_PER_SECOND;
             }
             decay.RemoveAll(r => r.lifetime == 0);
             if (decayHP >= 1) {
-                var delta = Math.Min(hp, (int)decayHP);
-                hp -= delta;
+                var deltaHP = Math.Min(hp, (int)decayHP);
+                hp -= deltaHP;
                 decayHP = 0;
                 lastDamageTick = owner.world.tick;
 
-                lifetimeDamageAbsorbed += delta;
-                hpToRecover += (delta * desc.recoveryFactor);
+                lifetimeDamageAbsorbed += deltaHP;
+                hpToRecover += (deltaHP * desc.recoveryFactor);
                 damageDelay = 30;
             }
         }
         if (damageDelay > 0) {
-            damageDelay--;
+            damageDelay -= delta * Program.TICKS_PER_SECOND;
             return;
         }
         if (hpToRecover >= 1) {
-            recoveryHP += desc.recoveryRate;
+            recoveryHP += desc.recoveryRate * delta * Program.TICKS_PER_SECOND;
             while (recoveryHP >= 1) {
                 if (hp < desc.maxHP) {
                     hp++;
@@ -164,7 +164,7 @@ public class Armor : Device {
                 }
             }
         }
-        regenHP += desc.regenRate;
+        regenHP += desc.regenRate * delta * Program.TICKS_PER_SECOND;
         while (regenHP >= 1) {
             if(hp < desc.maxHP) {
                 hp++;
@@ -274,7 +274,7 @@ public class Engine : Device {
         this.desc = desc;
     }
     public Engine Copy(Item source) => desc.GetEngine(source);
-    public void Update(IShip owner) {
+    public void Update(double delta, IShip owner) {
         var rotationDeg = owner.rotationDeg;
         var ship = (owner is PlayerShip ps ? ps.ship : owner is AIShip a ? a.ship : null);
         var sc = ship.shipClass;
@@ -292,7 +292,7 @@ public class Engine : Device {
                     4);
                 ship.world.AddEffect(exhaust);
 
-                ship.velocity += XY.Polar(rotationRads, sc.thrust);
+                ship.velocity += XY.Polar(rotationRads, sc.thrust * delta * Program.TICKS_PER_SECOND);
                 if (ship.velocity.magnitude > ship.shipClass.maxSpeed) {
                     ship.velocity = ship.velocity.normal * sc.maxSpeed;
                 }
@@ -313,7 +313,7 @@ public class Engine : Device {
                     if (rv < 0) {
                         Decel();
                     }
-                    rv += sc.rotationAccel / Program.TICKS_PER_SECOND;
+                    rv += sc.rotationAccel * delta;
                 } else if (ship.rotating == Rotating.CW) {
                     /*
                     if(rotatingSpeed > 0) {
@@ -324,20 +324,20 @@ public class Engine : Device {
                     if (rv > 0) {
                         Decel();
                     }
-                    rv -= sc.rotationAccel / Program.TICKS_PER_SECOND;
+                    rv -= sc.rotationAccel * delta;
                 }
                 rv = Math.Min(Math.Abs(rv), sc.rotationMaxSpeed) * Math.Sign(rv);
                 ship.rotating = Rotating.None;
             } else {
                 Decel();
             }
-            void Decel() => ship.rotatingVel -= Math.Min(Math.Abs(ship.rotatingVel), sc.rotationDecel / Program.TICKS_PER_SECOND) * Math.Sign(ship.rotatingVel); ;
+            void Decel() => ship.rotatingVel -= Math.Min(Math.Abs(ship.rotatingVel), sc.rotationDecel * delta) * Math.Sign(ship.rotatingVel); ;
         }
         void UpdateRotation() => ship.rotationDeg += ship.rotatingVel;
         void UpdateBrake() {
             if (ship.decelerating) {
                 if (ship.velocity.magnitude > 0.05) {
-                    ship.velocity -= ship.velocity.normal * Math.Min(ship.velocity.magnitude, sc.thrust / 2);
+                    ship.velocity -= ship.velocity.normal * Math.Min(ship.velocity.magnitude, sc.thrust * delta * Program.TICKS_PER_SECOND / 2);
                 } else {
                     ship.velocity = new XY();
                 }
@@ -357,7 +357,7 @@ public class Enhancer : Device {
         this.desc = desc;
     }
     public Enhancer Copy(Item source) => desc.GetEnhancer(source);
-    public void Update(IShip owner) {
+    public void Update(double delta, IShip owner) {
     }
 }
 
@@ -378,7 +378,7 @@ public class Launcher : Device {
     [JsonIgnore]
     public IAmmo ammo => weapon.ammo;
     [JsonIgnore]
-    public int delay => weapon.delay;
+    public double delay => weapon.delay;
     [JsonIgnore]
     public bool firing => weapon.firing;
     [JsonIgnore]
@@ -397,8 +397,8 @@ public class Launcher : Device {
     }
     public string GetReadoutName() => weapon.GetReadoutName();
     public ColoredString GetBar(int BAR) => weapon.GetBar(BAR);
-    public void Update(Station owner) => weapon.Update(owner);
-    public void Update(IShip owner) => weapon.Update(owner);
+    public void Update(double delta, Station owner) => weapon.Update(delta, owner);
+    public void Update(double delta, IShip owner) => weapon.Update(delta, owner);
     public void OnDisable() => weapon.OnDisable();
     public bool RangeCheck(ActiveObject user, ActiveObject target) => weapon.RangeCheck(user, target);
     public bool AllowFire => weapon.AllowFire;
@@ -427,11 +427,9 @@ public class Reactor : Device, PowerSource {
         energyDelta = 0;
     }
     public Reactor Copy(Item source) => desc.GetReactor(source);
-    public void Update(IShip owner) {
+    public void Update(double delta, IShip owner) {
         var e = energy;
-        energy = Math.Max(0, Math.Min(
-            energy + (energyDelta < 0 ? energyDelta / desc.efficiency : energyDelta) / 30,
-            desc.capacity));
+        energy = Math.Clamp(energy + (energyDelta < 0 ? energyDelta / desc.efficiency : energyDelta) * delta, 0, desc.capacity);
         if(e > energy) {
             lifetimeEnergyUsed += e - energy;
         }
@@ -452,7 +450,7 @@ public class Service : Device {
         powerUse = 0;
     }
     public Service Copy(Item source) => desc.GetService(source);
-    public void Update(IShip owner) {
+    public void Update(double delta, IShip owner) {
         ticks++;
         if (ticks % desc.interval == 0) {
             var powerUse = 0;
@@ -504,7 +502,7 @@ public class Shield : Device {
     public ShieldDesc desc;
     public int hp;
     public double regenHP;
-    public int delay;
+    public double delay;
     public double absorbFactor => desc.absorbFactor;
     public int maxAbsorb => hp;
     public int lifetimeDamageAbsorbed;
@@ -532,11 +530,11 @@ public class Shield : Device {
         regenHP = 0;
         delay = desc.depletionDelay;
     }
-    public void Update(IShip owner) {
+    public void Update(double delta, IShip owner) {
         if (delay > 0) {
-            delay--;
+            delay -= delta * Program.TICKS_PER_SECOND;
         } else {
-            regenHP += desc.regen;
+            regenHP += desc.regen * delta * Program.TICKS_PER_SECOND;
             while (regenHP >= 1) {
                 if (hp < desc.maxHP) {
                     hp++;
@@ -586,7 +584,7 @@ public class Solar : Device, PowerSource {
         durability = desc.durability;
     }
     public Solar Copy(Item source) => desc.GetSolar(source);
-    public void Update(IShip owner) {
+    public void Update(double delta, IShip owner) {
         void Update() {
             var t = owner.world.backdrop.starlight.GetBackgroundFixed(owner.position);
             var b = t.A;
@@ -606,7 +604,7 @@ public class Solar : Device, PowerSource {
                 }
                 break;
             case > 1:
-                durability = (int)Math.Max(1, durability + energyDelta);
+                durability = (int)Math.Max(1, durability + energyDelta * delta);
                 Update();
                 break;
             default: throw new Exception($"Invalid durability value {durability}");
@@ -625,7 +623,7 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
     public Modifier mod;
     public FragmentDesc projectileDesc;
     public bool structural;
-    public int delay;
+    public double delay;
     public bool firing;
     public int repeatsLeft;
     public double angle;
@@ -706,13 +704,13 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
     public void UpdateProjectileDesc() {
         projectileDesc = Modifier.Sum(capacitor?.mod, source.mod, mod) * desc.projectile;
     }
-    public void Update(Station owner) {
+    public void Update(double delta, Station owner) {
         if (!blind) {
             aiming?.Update(owner, this);
         }
         capacitor?.Update();
         if (delay > 0) {
-            delay--;
+            delay -= delta * Program.TICKS_PER_SECOND;
             PeriodicUpdateProjectileDesc(owner, 30);
 
             goto Done;
@@ -793,13 +791,13 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
         firing = false;
         blind = false;
     }
-    public void Update(IShip owner) {
+    public void Update(double delta, IShip owner) {
         if (!blind) {
             aiming?.Update(owner, this);
         }
         capacitor?.Update();
         if (delay > 0) {
-            delay--;
+            delay -= delta * Program.TICKS_PER_SECOND;
             PeriodicUpdateProjectileDesc(owner, 30);
             goto Done;
         }

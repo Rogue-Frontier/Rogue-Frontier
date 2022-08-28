@@ -12,7 +12,7 @@ class ReflectBarrier : ProjectileBarrier {
     public ulong id { get; private set; }
     public ActiveObject owner;
     public XY offset;
-    public int lifetime;
+    public double lifetime;
     public HashSet<Projectile> reflected;
     public XY position { get; set; }
     public ReflectBarrier(ActiveObject owner, XY offset, int lifetime, HashSet<Projectile> reflected) {
@@ -23,9 +23,9 @@ class ReflectBarrier : ProjectileBarrier {
         this.reflected = reflected;
         UpdatePosition();
     }
-    public void Update() {
+    public void Update(double delta) {
         if (owner.active) {
-            lifetime--;
+            lifetime -= delta * 60;
             UpdatePosition();
         } else {
             lifetime = 0;

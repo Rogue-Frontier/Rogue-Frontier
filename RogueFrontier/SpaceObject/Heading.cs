@@ -18,7 +18,7 @@ class Heading : Effect {
     public ColoredGlyph tile => null;
     int ticks;
     public EffectParticle[] particles;
-    public void Update() {
+    public void Update(double delta) {
         if (parent.dock?.docked == true) {
             ticks = 0;
             return;

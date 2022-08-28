@@ -14,7 +14,7 @@ class CloneBarrier : ProjectileBarrier {
     public ulong id { get; private set; }
     public ActiveObject owner;
     public XY offset;
-    public int lifetime;
+    public double lifetime;
     public HashSet<Projectile> cloned;
     public XY position { get; set; }
     public CloneBarrier() { }
@@ -26,9 +26,9 @@ class CloneBarrier : ProjectileBarrier {
         this.cloned = cloned;
         UpdatePosition();
     }
-    public void Update() {
+    public void Update(double delta) {
         if (owner.active) {
-            lifetime--;
+            lifetime -= delta * 60;
             UpdatePosition();
         } else {
             lifetime = 0;

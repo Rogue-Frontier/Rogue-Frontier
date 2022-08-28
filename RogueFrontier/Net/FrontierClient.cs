@@ -209,7 +209,7 @@ public class ScreenClient : Console {
             playerControls.UpdatePlayerControls();
 
             lock (World) {
-                World.UpdateActive();
+                World.UpdateActive(timeSpan.TotalSeconds);
                 World.UpdatePresent();
             }
             entityLookup.UpdateEntityLookup(World);

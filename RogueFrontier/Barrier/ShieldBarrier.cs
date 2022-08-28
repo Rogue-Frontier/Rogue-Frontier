@@ -11,7 +11,7 @@ class ShieldBarrier : ProjectileBarrier {
     public ulong id { get; private set; }
     public ActiveObject owner;
     public XY offset;
-    public int lifetime;
+    public double lifetime;
     public HashSet<Projectile> blocked;
     public XY position { get; set; }
 
@@ -25,9 +25,9 @@ class ShieldBarrier : ProjectileBarrier {
         UpdatePosition();
         this.color = color ?? Color.DarkCyan;
     }
-    public void Update() {
+    public void Update(double delta) {
         if (owner.active) {
-            lifetime--;
+            lifetime -= delta * 60;
             UpdatePosition();
         } else {
             lifetime = 0;
@@ -55,7 +55,7 @@ class BubbleBarrier : ProjectileBarrier {
     public ulong id { get; private set; }
     public ActiveObject owner;
     public XY offset;
-    public int lifetime;
+    public double lifetime;
     public HashSet<Projectile> blocked;
     public XY position { get; set; }
     public BubbleBarrier(ActiveObject owner, XY offset, int lifetime, HashSet<Projectile> blocked) {
@@ -66,9 +66,9 @@ class BubbleBarrier : ProjectileBarrier {
         this.blocked = blocked;
         UpdatePosition();
     }
-    public void Update() {
+    public void Update(double delta) {
         if (owner.active) {
-            lifetime--;
+            lifetime -= delta * 60;
             UpdatePosition();
         } else {
             lifetime = 0;

@@ -27,8 +27,8 @@ public record FlashDesc(){
         public XY position { get; set; }
         public int maxBrightness;
         public int maxLifetime;
-        public int lifetime;
-        public int brightness => maxBrightness * lifetime / maxLifetime;
+        public double lifetime;
+        public int brightness => (int) (maxBrightness * lifetime / maxLifetime);
         public bool active => brightness>128;
         public ColoredGlyph tile => new(Color.Transparent, new(255, 255, 255, brightness), ' ');
         public Center(XY position, int brightness, int lifetime) {
@@ -37,8 +37,8 @@ public record FlashDesc(){
             this.maxLifetime = lifetime;
             this.lifetime = lifetime;
         }
-        public void Update() {
-            lifetime--;
+        public void Update(double delta) {
+            lifetime -= delta * Program.TICKS_PER_SECOND;
         }
     }
     public class Particle : Effect {
@@ -53,6 +53,6 @@ public record FlashDesc(){
             this.position = position;
             distance2 = (parent.position - position).magnitude;
         }
-        public void Update() {}
+        public void Update(double delta) {}
     }
 }

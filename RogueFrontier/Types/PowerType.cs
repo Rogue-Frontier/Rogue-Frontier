@@ -10,8 +10,8 @@ namespace RogueFrontier;
 public record PowerType() : IDesignType {
     [Req] public string codename;
     [Req] public string name;
-    [Req] public int cooldownTime;
-    [Req] public int invokeDelay;
+    [Req] public double cooldownTime;
+    [Req] public double invokeDelay;
     [Opt] public bool onDestroyCheck = false;
     [Opt] public string message = null;
     //public HashSet<string> attributes;
@@ -77,7 +77,7 @@ public record PowerStorm() : PowerEffect {
         public ColoredGlyph tile => null;
         public StormOverlay(PlayerShip owner) =>
             this.owner = owner;
-        public void Update() {
+        public void Update(double delta) {
             var w = owner.GetPrimary();
             if(w != null) {
                 var f = w.projectileDesc;
@@ -149,7 +149,7 @@ public record Clonewall() : PowerEffect {
             });
             busy = false;
         };
-        public void Update() {
+        public void Update(double delta) {
             ticks++;
             if(owner.GetPrimary() is Weapon w) {
                 if (w.delay == 0) {
@@ -303,10 +303,10 @@ public record PowerBarrier() : PowerEffect {
     }
 }
 public interface IPower {
-    public int cooldownPeriod { get; }
-    public int invokeDelay { get; }
-    public bool ready => cooldownLeft == 0;
-    public int cooldownLeft { get; set; }
+    public double cooldownPeriod { get; }
+    public double invokeDelay { get; }
+    public bool ready => cooldownLeft <= 0;
+    public double cooldownLeft { get; set; }
     public int invokeCharge { get; set; }
     public bool charging { get; set; }
     public List<PowerEffect> Effect { get; }
@@ -315,12 +315,12 @@ public class Power : IPower {
     [JsonProperty]
     public PowerType type;
     [JsonIgnore]
-    public int cooldownPeriod => type.cooldownTime;
+    public double cooldownPeriod => type.cooldownTime;
     [JsonIgnore]
-    public int invokeDelay => type.invokeDelay;
+    public double invokeDelay => type.invokeDelay;
     [JsonIgnore]
     public bool fullyCharged => invokeCharge >= invokeDelay;
-    public int cooldownLeft { get; set; }
+    public double cooldownLeft { get; set; }
     [JsonIgnore]
     public bool ready => cooldownLeft == 0;
     public int invokeCharge { get; set; }
@@ -344,9 +344,9 @@ public class Power : IPower {
             }
         }
     }
-    public void Update(ActiveObject owner) {
+    public void Update(double delta, ActiveObject owner) {
         if(cooldownLeft > 0) {
-            cooldownLeft--;
+            cooldownLeft -= delta * 60;
         }
         if (charging) {
             invokeCharge++;

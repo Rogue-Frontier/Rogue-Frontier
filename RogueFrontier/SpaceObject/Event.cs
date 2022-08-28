@@ -2,5 +2,5 @@
 
 public interface Event {
     bool active { get; }
-    void Update();
+    void Update(double delta);
 }

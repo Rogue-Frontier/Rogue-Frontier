@@ -22,10 +22,10 @@ public class Wingmate : IShipBehavior, Lis<PlayerShip.Destroyed> {
     public Wingmate(PlayerShip player) {
         this.player = player;
     }
-    public void Update(AIShip owner) {
+    public void Update(double delta, AIShip owner) {
         if(order?.Active != true) {
             order = new EscortOrder(player, new());
         }
-        order?.Update(owner);
+        order?.Update(delta, owner);
     }
 }

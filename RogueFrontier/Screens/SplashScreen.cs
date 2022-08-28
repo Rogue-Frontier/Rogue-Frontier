@@ -78,7 +78,7 @@ public class SplashScreen : Console {
     }
     public override void Update(TimeSpan timeSpan) {
         World.UpdateAdded();
-        World.UpdateActive();
+        World.UpdateActive(timeSpan.TotalSeconds);
         World.UpdateRemoved();
 
         tiles.Clear();

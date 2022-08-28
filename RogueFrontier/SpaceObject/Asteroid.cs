@@ -20,7 +20,7 @@ public class Asteroid : Entity {
         this.position = pos;
         this.active = true;
     }
-    public void Update() {
+    public void Update(double delta) {
 
     }
 }

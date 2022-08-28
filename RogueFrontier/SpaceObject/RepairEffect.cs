@@ -26,7 +26,7 @@ public class RepairEffect : Event {
         this.costPerHp = costPerHp;
         this.done = done;
     }
-    public void Update() {
+    public void Update(double delta) {
         ticks++;
         if(ticks%interval != 0) {
             return;
@@ -68,7 +68,7 @@ public class RefuelEffect : Event {
         this.costPerEnergy = costPerEnergy;
         this.done = done;
     }
-    public void Update() {
+    public void Update(double delta) {
         ticks++;
         if (ticks % interval != 0) {
             return;
@@ -82,9 +82,9 @@ public class RefuelEffect : Event {
                 reactor.energy++;
                 
                 balance += costPerEnergy;
-                var delta = (int)balance;
-                balance -= delta;
-                player.person.money -= delta;
+                var deltaBalance = (int)balance;
+                balance -= deltaBalance;
+                player.person.money -= deltaBalance;
             }
         } else {
             Kill();

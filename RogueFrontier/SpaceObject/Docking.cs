@@ -22,9 +22,9 @@ public class Docking {
         this.Target = Target;
         this.Offset = Offset;
     }
-    public void Update(IShip owner) {
+    public void Update(double delta, IShip owner) {
         if (!docked) {
-            if (docked = UpdateDocking(owner)) {
+            if (docked = UpdateDocking(delta, owner)) {
                 justDocked = true;
 
                 onDocked.ForEach(a => a(owner, this));
@@ -34,8 +34,8 @@ public class Docking {
             owner.velocity = Target.velocity;
         }
     }
-    public bool UpdateDocking(IShip ship) {
-        double decel = ship.shipClass.thrust / 2 * Program.TICKS_PER_SECOND;
+    public bool UpdateDocking(double delta, IShip ship) {
+        double decel = ship.shipClass.thrust * Program.TICKS_PER_SECOND / 2;
         double stoppingTime = (ship.velocity - Target.velocity).magnitude / decel;
         double stoppingDistance = ship.velocity.magnitude * stoppingTime - (decel * stoppingTime * stoppingTime) / 2;
         var stoppingPoint = ship.position;
@@ -47,7 +47,7 @@ public class Docking {
         var offset = dest + (Target.velocity * stoppingTime) - stoppingPoint;
 
         if (offset.magnitude > 0.25) {
-            ship.velocity += XY.Polar(offset.angleRad, ship.shipClass.thrust);
+            ship.velocity += XY.Polar(offset.angleRad, ship.shipClass.thrust * delta * Program.TICKS_PER_SECOND);
         } else if ((ship.position - dest).magnitude2 < 1) {
             ship.velocity = Target.velocity;
             return true;

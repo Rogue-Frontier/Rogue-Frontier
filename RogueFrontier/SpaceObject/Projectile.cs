@@ -21,7 +21,7 @@ public class Projectile : MovingObject {
     [JsonProperty] public XY position { get; set; }
     [JsonProperty] public XY velocity { get; set; }
     [JsonProperty] public double direction;
-    [JsonProperty] public int lifetime { get; set; }
+    [JsonProperty] public double lifetime { get; set; }
     [JsonProperty] public ColoredGlyph tile { get; private set; }
     [JsonProperty] public ITrail trail;
     [JsonProperty] public FragmentDesc fragment;
@@ -39,7 +39,8 @@ public class Projectile : MovingObject {
     public delegate void OnHitActive(Projectile p, ActiveObject other);
     public Ev<OnHitActive> onHitActive=new();
 
-    [JsonIgnore]   public bool active => lifetime > 0;
+    [JsonIgnore]   public bool active => _active;
+    public bool _active = true;
     
     public Projectile() { }
     public Projectile(ActiveObject source, FragmentDesc fragment, XY position, XY velocity, double? direction = null, Maneuver maneuver = null, HashSet<Entity> exclude = null) {
@@ -72,26 +73,26 @@ public class Projectile : MovingObject {
         }
         //exclude.UnionWith(source.world.entities.all.OfType<ActiveObject>().Where(a => a.sovereign == source.sovereign));
     }
-    public void Update() {
-        if (lifetime > 1) {
-            lifetime--;
+    public void Update(double delta) {
+        if (lifetime > 0) {
+            lifetime -= delta * 60;
             UpdateMove();
             foreach (var f in fragment.fragments) {
                 if (f.fragmentInterval > 0 && lifetime % f.fragmentInterval == 0) {
                     Fragment(f);
                 }
             }
-        } else if (lifetime == 1) {
-            lifetime--;
+        } else if(active) {
             UpdateMove();
             Fragment();
+            _active = false;
         }
         void UpdateMove() {
-            maneuver?.Update(this);
+            maneuver?.Update(delta, this);
 
-            var dest = position + velocity / Program.TICKS_PER_SECOND;
+            var dest = position + velocity * delta;
             var inc = velocity.normal * 0.5;
-            var steps = velocity.magnitude * 2 / Program.TICKS_PER_SECOND;
+            var steps = velocity.magnitude * 2 * delta;
 
             if(fragment.detonateRadius > 0) {
                 var r = fragment.detonateRadius * fragment.detonateRadius;
@@ -219,14 +220,14 @@ public class Maneuver {
         this.maneuver = maneuver;
         this.maneuverDistance = maneuverDistance;
     }
-    public void Update(Projectile p) {
+    public void Update(double delta, Projectile p) {
         if (target == null || maneuver == 0) {
             return;
         }
         var vel = p.velocity;
         var offset = target.position - p.position;
-        var velLeft = vel.Rotate(maneuver);
-        var velRight = vel.Rotate(-maneuver);
+        var velLeft = vel.Rotate(maneuver * delta * Program.TICKS_PER_SECOND);
+        var velRight = vel.Rotate(-maneuver * delta * Program.TICKS_PER_SECOND);
         var distLeft = (offset - velLeft).magnitude;
         var distRight = (offset - velRight).magnitude;
 
