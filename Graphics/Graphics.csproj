@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreCLR-NCalc" Version="2.2.92" />
+    <PackageReference Include="CoreCLR-NCalc" Version="2.2.110" />
     <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
-    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.2.1" />
+    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.2.2" />
   </ItemGroup>
 
   <ItemGroup>
