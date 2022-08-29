@@ -40,6 +40,7 @@ public static class SStealth {
     public static double GetVisibleDistanceLeft(this Entity p, Entity e) =>
         GetVisibleRange(GetStealth(p)) - (e.position - p.position).magnitude;
     public static double GetStealth(this Entity e) => e switch {
+        PlayerShip pl => pl.ship.stealth,
         AIShip ai => ai.ship.stealth,
         Station st => st.stealth,
         ISegment s => GetStealth(s.parent),
@@ -65,6 +66,7 @@ public interface IShip : ActiveObject {
     HashSet<Item> cargo { get; }
     DeviceSystem devices { get; }
     ShipClass shipClass { get; }
+    bool thrusting { get; }
     double rotationDeg { get; }
     double rotationRad => rotationDeg * Math.PI / 180;
     public double stoppingRotation { get; }
@@ -179,7 +181,7 @@ public class BaseShip {
 
         active = false;
     }
-    public void Update(double delta) {
+    public void UpdatePhysics(double delta) {
         if(world.tick%15 == 0) {
             stealth = shipClass.stealth;
             devices.Shield.ForEach(s => stealth += s.stealth);
@@ -195,6 +197,11 @@ public class BaseShip {
         UpdateControl(delta);
         UpdateMotion(delta);
         //Devices.Update(this);
+    }
+    public void ResetControl() {
+        thrusting = false;
+        rotating = Rotating.None;
+        decelerating = false;
     }
     public void UpdateControl(double delta) {
         if(blindTicks > 0) {
@@ -234,7 +241,6 @@ public class BaseShip {
                 if (velocity.magnitude > shipClass.maxSpeed) {
                     velocity = velocity.normal * shipClass.maxSpeed;
                 }
-                thrusting = false;
             }
         }
         void UpdateTurn() {
@@ -263,7 +269,6 @@ public class BaseShip {
                     rotatingVel -= shipClass.rotationAccel * delta;
                 }
                 rotatingVel = Math.Min(Math.Abs(rotatingVel), shipClass.rotationMaxSpeed) * Math.Sign(rotatingVel);
-                rotating = Rotating.None;
             } else {
                 Decel();
             }
@@ -277,7 +282,6 @@ public class BaseShip {
                 } else {
                     velocity = new XY();
                 }
-                decelerating = false;
             }
         }
     }
@@ -318,9 +322,10 @@ public class AIShip : IShip {
     [JsonIgnore] public ulong id => ship.id;
     [JsonIgnore] public string name => ship.name;
     [JsonIgnore] public System world => ship.world;
-    [JsonIgnore] public ShipClass shipClass => ship.shipClass;
     [JsonIgnore] public XY position { get => ship.position; set => ship.position = value; }
     [JsonIgnore] public XY velocity { get => ship.velocity; set => ship.velocity = value; }
+    [JsonIgnore] public ShipClass shipClass => ship.shipClass;
+    [JsonIgnore] public bool thrusting => ship.thrusting;
     [JsonIgnore] public double rotationDeg => ship.rotationDeg;
     [JsonIgnore] public HashSet<Item> cargo => ship.cargo;
     [JsonIgnore] public DeviceSystem devices => ship.devices;
@@ -383,11 +388,12 @@ public class AIShip : IShip {
         onDestroyed.ForEach(f => f(this, source, ship.wreck));
     }
     public void Update(double delta) {
+        ship.ResetControl();
         behavior?.Update(delta, this);
+        ship.UpdatePhysics(delta);
 
         dock?.Update(delta, this);
 
-        ship.Update(delta);
         if(world.tick%30 == 0 && dock?.Target is Station st) {
             ship.stealth = Math.Max(ship.stealth, st.stealth);
         }
@@ -437,11 +443,13 @@ public class PlayerShip : IShip {
     [JsonIgnore]
     public System world => ship.world;
     [JsonIgnore]
-    public ShipClass shipClass => ship.shipClass;
-    [JsonIgnore]
     public XY position { get => ship.position; set => ship.position = value; }
     [JsonIgnore]
     public XY velocity { get => ship.velocity; set => ship.velocity = value; }
+    [JsonIgnore]
+    public ShipClass shipClass => ship.shipClass;
+    [JsonIgnore]
+    public bool thrusting => ship.thrusting;
     [JsonIgnore]
     public double rotationDeg => ship.rotationDeg;
     [JsonIgnore]
@@ -838,7 +846,8 @@ public class PlayerShip : IShip {
 
         dock?.Update(delta, this);
 
-        ship.Update(delta);
+        ship.UpdatePhysics(delta);
+        ship.ResetControl();
 
         //We update the ship's devices as ourselves because they need to know who the exact owner is
         //In case someone other than us needs to know who we are through our devices

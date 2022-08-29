@@ -180,7 +180,7 @@ public interface IShipOrder : IShipBehavior{
     public bool CanTarget(ActiveObject other) => false;
     public delegate IShipOrder Create(ActiveObject target);
 }
-public interface IDestructionEvents : Lis<Station.Destroyed>, Lis<AIShip.Destroyed>, Lis<PlayerShip.Destroyed> {
+public interface IDestroyedListener : Lis<Station.Destroyed>, Lis<AIShip.Destroyed>, Lis<PlayerShip.Destroyed> {
     Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => Value(s, d);
     AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => Value(s, d);
     PlayerShip.Destroyed Lis<PlayerShip.Destroyed>.Value => (s, d, w) => Value(s, d);
@@ -196,7 +196,23 @@ public interface IDestructionEvents : Lis<Station.Destroyed>, Lis<AIShip.Destroy
         }
     }
 }
-public interface IWeaponEvents : Lis<PlayerShip.WeaponFired>, Lis<AIShip.WeaponFired>, Lis<Station.WeaponFired> {
+public interface IDamagedListener : Lis<Station.Damaged>, Lis<AIShip.Damaged>, Lis<PlayerShip.Damaged> {
+    Station.Damaged Lis<Station.Damaged>.Value => (a, p) => Value(a, p);
+    AIShip.Damaged Lis<AIShip.Damaged>.Value => (a, p) => Value(a, p);
+    PlayerShip.Damaged Lis<PlayerShip.Damaged>.Value => (a, p) => Value(a, p);
+
+    public delegate void Damaged(ActiveObject a, Projectile p);
+    public Damaged Value { get; }
+
+    public void Register(ActiveObject target) {
+        switch (target) {
+            case Station st: st.onDamaged += this; break;
+            case AIShip ai: ai.onDamaged += this; break;
+            case PlayerShip ps: ps.onDamaged += this; break;
+        }
+    }
+}
+public interface IWeaponListener : Lis<PlayerShip.WeaponFired>, Lis<AIShip.WeaponFired>, Lis<Station.WeaponFired> {
     Station.WeaponFired Lis<Station.WeaponFired>.Value => (s, w, p) => Value(s, w, p);
     AIShip.WeaponFired Lis<AIShip.WeaponFired>.Value => (s, w, p) => Value(s, w, p);
     PlayerShip.WeaponFired Lis<PlayerShip.WeaponFired>.Value => (s, w, p) => Value(s, w, p);
@@ -212,12 +228,12 @@ public interface IWeaponEvents : Lis<PlayerShip.WeaponFired>, Lis<AIShip.WeaponF
         }
     }
 }
-public record OrderOnDestroy(AIShip ship, IShipOrder current, IShipOrder next) : IDestructionEvents {
+public record OrderOnDestroy(AIShip ship, IShipOrder current, IShipOrder next) : IDestroyedListener {
     public static void Register(AIShip ship, IShipOrder current, IShipOrder next, ActiveObject target) {
-        ((IDestructionEvents)new OrderOnDestroy(ship, current, next)).Register(target);
+        ((IDestroyedListener)new OrderOnDestroy(ship, current, next)).Register(target);
     }
     public bool active => ship.behavior == current;
-    IDestructionEvents.Destroyed IDestructionEvents.Value => (a, o) => {
+    IDestroyedListener.Destroyed IDestroyedListener.Value => (a, o) => {
         if (active) {
             ship.behavior = next;
         }

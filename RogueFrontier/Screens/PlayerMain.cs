@@ -378,6 +378,8 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
             back.Update(delta);
             lock (world) {
 
+                audio.Update(delta.TotalSeconds);
+
                 AddCrosshair();
                 UpdateUniverse();
                 
@@ -716,18 +718,46 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
     }
 }
 
-public class Noisemaker : Lis<EntityAdded>, IDestructionEvents, IWeaponEvents {
-
+public class Noisemaker : Lis<EntityAdded>, IDestroyedListener, IDamagedListener, IWeaponListener {
     PlayerShip player;
-
     SoundBuffer generic_fire = Load(nameof(generic_fire)),
-        generic_explosion = Load(nameof(generic_explosion));
-    ListIndex<Sound> gunfire;
-
+        generic_explosion = Load(nameof(generic_explosion)),
+        generic_exhaust = Load(nameof(generic_exhaust)),
+        generic_damage = Load(nameof(generic_damage));
+    ListIndex<Sound> exhaust = new(new(Enumerable.Range(0, 10).Select(i => new Sound() { Volume = 10 })));
+    ListIndex<Sound> gunfire = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
+    ListIndex<Sound> damage = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 75 })));
+    ListIndex<Sound> explosion = new(new(Enumerable.Range(0, 3).Select(i => new Sound() { Volume = 75 })));
+    List<IShip> exhaustList;
     public static SoundBuffer Load(string file) => new($"RogueFrontierContent/Sounds/{file}.wav");
     public Noisemaker(PlayerShip player) {
         this.player = player;
-        gunfire = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
+        exhaustList = new(Enumerable.Repeat(null as IShip, exhaust.list.Count));
+    }
+    double time;
+    public void Update(double delta) {
+        time += delta;
+        if(time > 0.4) {
+            time = 0;
+
+            var s = player.world.entities.all.OfType<IShip>()
+                .Where(s => s.thrusting)
+                .OrderBy(sh => player.position.Dist(sh.position))
+                .Zip(exhaust.list);
+            var i = 0;
+            foreach ((var ship, var sound) in s) {
+                PlaySoundFrom(sound, ship, generic_exhaust);
+                exhaustList[i++] = ship;
+            }
+        } else {
+            var i = 0;
+            foreach(var s in exhaustList) {
+                if (s != null) {
+                    exhaust.list[i].Position = player.position.To(s.position).Scale(1 / 32f).ToVector3f();
+                }
+                i++;
+            }
+        }
     }
     public void Register(Universe u) {
         foreach(var a in u.GetAllEntities().OfType<ActiveObject>()) {
@@ -741,27 +771,35 @@ public class Noisemaker : Lis<EntityAdded>, IDestructionEvents, IWeaponEvents {
         }
     };
     private void Register(ActiveObject a) {
-        ((IDestructionEvents)this).Register(a);
-        ((IWeaponEvents)this).Register(a);
+        ((IDestroyedListener)this).Register(a);
+        ((IDamagedListener)this).Register(a);
+        ((IWeaponListener)this).Register(a);
     }
-    IDestructionEvents.Destroyed IDestructionEvents.Value => (e, d) => {
+    IDestroyedListener.Destroyed IDestroyedListener.Value => (e, d) => {
         if(e.world != player.world) {
             return;
         }
-        var s = gunfire.GetNext();
-        s.Position = player.position.To(e.position).Scale(1 / 128f).ToVector3f();
-        s.SoundBuffer = generic_explosion;
-        s.Play();
+        PlaySoundFrom(explosion.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e, generic_explosion);
     };
-    IWeaponEvents.WeaponFired IWeaponEvents.Value => (e, w, p) => {
+    IDamagedListener.Damaged IDamagedListener.Value => (e, p) => {
         if (e.world != player.world) {
             return;
         }
-        var s = gunfire.GetNext();
-        s.Position = player.position.To(e.position).Scale(1/128f).ToVector3f();
-        s.SoundBuffer = generic_fire;
-        s.Play();
+
+        PlaySoundFrom(damage.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e, generic_damage);
     };
+    IWeaponListener.WeaponFired IWeaponListener.Value => (e, w, p) => {
+        if (e.world != player.world) {
+            return;
+        }
+        PlaySoundFrom(gunfire.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e, generic_fire);
+    };
+    private void PlaySoundFrom(Sound s, Entity e, SoundBuffer sb) {
+
+        s.Position = player.position.To(e.position).Scale(1 / 32f).ToVector3f();
+        s.SoundBuffer = sb;
+        s.Play();
+    }
 }
 public class BackdropConsole : ScreenSurface {
     public int Width => Surface.Width;

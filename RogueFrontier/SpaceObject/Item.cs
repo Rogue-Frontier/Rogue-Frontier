@@ -1018,9 +1018,9 @@ public interface Aiming {
             //.OrderBy(p => (owner.Position - p.Position).Magnitude2)
             .FirstOrDefault();    
 }
-public class Targeting : Aiming, IDestructionEvents {
+public class Targeting : Aiming, IDestroyedListener {
     private int ticks = 0;
-    IDestructionEvents.Destroyed IDestructionEvents.Value => (s, d) => {
+    IDestroyedListener.Destroyed IDestroyedListener.Value => (s, d) => {
         if (s == target) {
             target = null;
             ticks = 0;
@@ -1038,7 +1038,7 @@ public class Targeting : Aiming, IDestructionEvents {
             return;
         }
         target = Aiming.AcquireTarget(owner, weapon, filter);
-        ((IDestructionEvents)this).Register(target);
+        ((IDestroyedListener)this).Register(target);
     }
     public void Update(Station owner, Weapon weapon) =>
         Update(owner, weapon, other => owner.IsVisible(other) && SStation.IsEnemy(owner, other));
@@ -1050,9 +1050,9 @@ public class Targeting : Aiming, IDestructionEvents {
     public void UpdateTarget(ActiveObject target) =>
         this.target = target ?? this.target;
 }
-public class MultiTargeting : Aiming, IDestructionEvents {
+public class MultiTargeting : Aiming, IDestroyedListener {
     private int ticks;
-    IDestructionEvents.Destroyed IDestructionEvents.Value => (s, d) => {
+    IDestroyedListener.Destroyed IDestroyedListener.Value => (s, d) => {
         targets.Remove(s);
         ticks = 0;
     };
@@ -1077,7 +1077,7 @@ public class MultiTargeting : Aiming, IDestructionEvents {
         targets.AddRange(Aiming.AcquireTargets(owner, weapon, filter));
         index.Reset();
         foreach (var t in targets) {
-            ((IDestructionEvents)this).Register(t);
+            ((IDestroyedListener)this).Register(t);
         }
     }
     public void OnFire() {

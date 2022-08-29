@@ -125,6 +125,7 @@ public class XY {
     public static explicit operator XY((int x, int y) p) => new XY(p.x, p.y);
     public static explicit operator XY((double x, double y) p) => new XY(p.x, p.y);
 
+    public double Dist(XY other) => To(other).magnitude;
     public double Dot(XY other) => x * other.x + y * other.y;
     [JsonIgnore]
     public bool isZero => magnitude < 0.1;
@@ -142,7 +143,7 @@ public class XY {
     [JsonIgnore]
     public double manhattan => Math.Abs(x) + Math.Abs(y);
     [JsonIgnore]
-    public double length => Math.Sqrt(magnitude2);
+    public double length => magnitude;
     [JsonIgnore]
     public double magnitude => Math.Sqrt(magnitude2);
     [JsonIgnore]

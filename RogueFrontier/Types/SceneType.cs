@@ -171,7 +171,7 @@ public class Dialog : Console {
     public int ticks;
     List<SceneOption> navigation;
     public int navIndex = 0;
-    int[] charge;
+    double[] charge;
     public Dictionary<(int, int), ColoredGlyph> background = new();
     Dictionary<char, int> keyMap = new();
     bool prevEscape;
@@ -181,7 +181,7 @@ public class Dialog : Console {
     int escapeIndex;
     int descX => Width / 2 - 12;
     int descY => 8;
-    public static int maxCharge = 24;
+    public static double maxCharge = 0.5;
     public Dialog(ScreenSurface prev, string desc, List<SceneOption> navigation) : base(prev.Surface.Width, prev.Surface.Height) {
         this.desc = new(desc.Replace("\r", null));
 
@@ -196,7 +196,7 @@ public class Dialog : Console {
         }
         navigation.RemoveAll(s => s == null);
         this.navigation = navigation;
-        charge = new int[navigation.Count];
+        charge = new double[navigation.Count];
         descIndex = 0;
         ticks = 0;
 
@@ -242,18 +242,18 @@ public class Dialog : Console {
             }
         }
         if (charging && navIndex != -1 && navigation[navIndex].enabled) {
-            ref int c = ref charge[navIndex];
-            if (c < maxCharge + 36) {
-                c++;
+            ref double c = ref charge[navIndex];
+            if (c < maxCharge) {
+                c += delta.TotalSeconds;
             }
         }
         if (prevEnter && !enter) {
-            ref int c = ref charge[navIndex];
+            ref double c = ref charge[navIndex];
             if (c >= maxCharge) {
                 //Make sure we aren't sent back to the screen again
                 prevEnter = false;
                 Transition(navigation[navIndex].next?.Invoke(this));
-                c = maxCharge - 1;
+                c = maxCharge - 0.01;
             }
         } else {
             prevEnter = enter;
@@ -262,9 +262,9 @@ public class Dialog : Console {
             if(i == navIndex && charging) {
                 continue;
             }
-            ref int c = ref charge[i];
+            ref double c = ref charge[i];
             if (c > 0) {
-                c--;
+                c -= delta.TotalSeconds;
             }
         }
         base.Update(delta);
@@ -307,19 +307,19 @@ public class Dialog : Console {
         if (descIndex < desc.Length) {
             this.SetCellAppearance(x, y, new(Color.LightBlue, Color.Black, '>'));
         } else {
-            var barLength = maxCharge / 6;
+            var barLength = 4;
             var arrow = $"{new string('-', barLength - 1)}>";
 
 
             x = descX - barLength;
             y = descY + desc.Count(c => c.GlyphCharacter == '\n') + 3;
             foreach(var (c, i) in charge.Select((c, i) => (c, i))) {
-                this.Print(x, y + i, new ColoredString(arrow.Substring(0, Math.Min(c / 6, barLength)), Color.Gray, Color.Black));
+                this.Print(x, y + i, new ColoredString(arrow.Substring(0, (int)(barLength * Math.Min(c / maxCharge, 1))), Color.Gray, Color.Black));
             }
             if (navIndex > -1) {
                 this.Print(x, y + navIndex, new ColoredString(arrow, Color.Gray, Color.Black));
                 var ch = charge[navIndex];
-                this.Print(x, y + navIndex, new ColoredString(arrow.Substring(0, Math.Min(ch / 6, barLength)), ch < maxCharge ? Color.Yellow : Color.Orange, Color.Black));
+                this.Print(x, y + navIndex, new ColoredString(arrow.Substring(0, (int)(barLength * Math.Min(ch / maxCharge, 1))), ch < maxCharge ? Color.Yellow : Color.Orange, Color.Black));
             }
         }
         base.Render(delta);

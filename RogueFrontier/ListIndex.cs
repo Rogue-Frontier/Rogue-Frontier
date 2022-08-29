@@ -40,6 +40,7 @@ public class ListIndex<T> {
         index++;
         return f;
     }
+    public T GetFirstOrNext(Func<T, bool> f) => list.FirstOrDefault(f) ?? GetNext();
     public static ListIndex<T> operator+(ListIndex<T> i, int n) {
         i.index += n;
         return i;
@@ -47,5 +48,17 @@ public class ListIndex<T> {
     public static ListIndex<T> operator++(ListIndex<T> i) {
         i.index++;
         return i;
+    }
+    public IEnumerable<T> GetEnumerable() {
+        if(list.Count == 0) {
+            yield break;
+        }
+        var start = Math.Min(index, list.Count);
+        for(int i = start; i < list.Count; i++) {
+            yield return list[i];
+        }
+        for(int i = 0; i < start; i++) {
+            yield return list[i];
+        }
     }
 }
