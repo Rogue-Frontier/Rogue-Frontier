@@ -10,7 +10,7 @@ class Burn : Effect {
     public double duration = 150;
     public XYZ Position { get; set; }
     public bool Active => duration > 0;
-    public ColoredGlyph SymbolCenter => new ColoredGlyph((((int)ticks % 13) % 5) > 2 ? Color.Red : Color.Orange, Color.Black, 'v');
+    public ColoredGlyph SymbolCenter => new((((int)ticks % 13) % 5) > 2 ? Color.Red : Color.Orange, Color.Black, 'v');
     private int ticks;
     public Burn(ICharacter burning, int duration) {
         this.Position = burning.Position;

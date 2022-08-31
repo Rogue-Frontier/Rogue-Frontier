@@ -83,6 +83,7 @@ public class Ev<T> {
     }
     public bool Add(IContainer<T> t) => set.Add(t);
     public bool Remove(IContainer<T> t) => set.Remove(t);
+    public bool any => set.Count > 0;
     public IEnumerator<T> GetEnumerator() => values.GetEnumerator();
     public List<T> ToList() => set.Select(i => i.Value).ToList();
     public static implicit operator HashSet<T>(Ev<T> f) => f.values.ToHashSet();

@@ -374,6 +374,7 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
                 }
             });
         }
+
         if (passTime) {
             back.Update(delta);
             lock (world) {
@@ -480,6 +481,8 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
             vignette.Render(drawTime);
             sceneContainer.Render(drawTime);
         } else if(playerShip.active) {
+            //viewport.UsePixelPositioning = true;
+            //viewport.Position = (playerShip.position - playerShip.position.roundDown) * 8 * new XY(1, -1) * -1;
             if (uiMain.IsVisible) {
                 //If the megamap is completely visible, then skip main render so we can fast travel
                 if (uiMegamap.alpha < 255) {
@@ -719,7 +722,6 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
                 playerControls.input.UsingMouse = true;
             }
         }
-        Done:
         prevMouse = state;
         return base.ProcessMouse(state);
     }
@@ -727,21 +729,30 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
 
 public class Noisemaker : Lis<EntityAdded>, IDestroyedListener, IDamagedListener, IWeaponListener {
     PlayerShip player;
-    SoundBuffer generic_fire = Load(nameof(generic_fire)),
+    public static readonly SoundBuffer
+        generic_fire = Load(nameof(generic_fire)),
         generic_explosion = Load(nameof(generic_explosion)),
         generic_exhaust = Load(nameof(generic_exhaust)),
-        generic_damage = Load(nameof(generic_damage));
+        generic_damage = Load(nameof(generic_damage)),
+        generic_shield_damage = Load(nameof(generic_shield_damage)),
+        generic_alert = Load(nameof(generic_alert)),
+        generic_clear_target = Load(nameof(generic_clear_target)),
+        generic_missile = Load(nameof(generic_missile));
     ListIndex<Sound> exhaust = new(new(Enumerable.Range(0, 10).Select(i => new Sound() { Volume = 10 })));
     ListIndex<Sound> gunfire = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
     ListIndex<Sound> damage = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
     ListIndex<Sound> explosion = new(new(Enumerable.Range(0, 3).Select(i => new Sound() { Volume = 75 })));
+    public Sound alert = new() { Volume = 50 };
     List<IShip> exhaustList;
-
-
     const float distScale = 1 / 16f;
     public static SoundBuffer Load(string file) => new($"RogueFrontierContent/Sounds/{file}.wav");
     public Noisemaker(PlayerShip player) {
         this.player = player;
+
+        player.onTargetChanged += new Container<PlayerShip.TargetChanged>(pl => {
+            alert.SoundBuffer = pl.targetIndex == -1 ? generic_clear_target : generic_alert;
+            alert.Play();
+        });
         exhaustList = new(Enumerable.Repeat(null as IShip, exhaust.list.Count));
     }
     double time;
@@ -796,14 +807,18 @@ public class Noisemaker : Lis<EntityAdded>, IDestroyedListener, IDamagedListener
             return;
         }
 
-        PlaySoundFrom(damage.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e, generic_damage);
+        PlaySoundFrom(damage.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e,
+            p.hitHull ? generic_damage : generic_shield_damage);
     };
     IWeaponListener.WeaponFired IWeaponListener.Value => (e, w, p) => {
         if (e.world != player.world) {
             return;
         }
-        PlaySoundFrom(gunfire.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e, generic_fire);
+        PlaySoundFrom(gunfire.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e,
+            w.desc.sound ?? generic_fire);
     };
+
+
     private void PlaySoundFrom(Sound s, Entity e, SoundBuffer sb) {
 
         s.Position = player.position.To(e.position).Scale(distScale).ToVector3f();
@@ -1723,9 +1738,13 @@ public class Readout : ScreenSurface {
                         Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
                         Surface.Print(x + 1, y, new('=', BAR * hp.hp / hp.maxHP), f, b);
                         Surface.Print(x + 1 + BAR, y, $"] HP: {hp.hp}", f, b);
+                        y++;
                         break;
                     }
             }
+            y++;
+            Surface.Print(x, y++, $"Stealth: {ship.stealth:0.00}");
+            Surface.Print(x, y++, $"Visibility: {SStealth.GetVisibleRangeOf(player):0.00}");
         }
         /*
         if(true){
@@ -1779,7 +1798,9 @@ public class Edgemap : ScreenSurface {
         player.world.entities.FilterKeySelect<(Entity entity, double dist)?>(
             ((int, int) p) => (player.position - p).maxCoord < range,
             entity => entity.tile != null && entity is not ISegment && player.GetVisibleDistanceLeft(entity) is double d && d > 0 ? (entity, d) : null,
-            v => v != null).ToList().ForEach(pair => {
+            v => v != null)
+            .ToList()
+            .ForEach(pair => {
                 (var entity, var dist) = pair.Value;
                 var offset = (entity.position - player.position).Rotate(-camera.rotation);
                 var (x, y) = (offset / viewScale).abs;
@@ -1888,13 +1909,13 @@ public class Minimap : ScreenSurface {
 public class CommunicationsWidget : ScreenSurface {
     PlayerShip playerShip;
     int ticks;
-    CommandMenu menu;
+    CommandMenu? menu;
     public CommunicationsWidget(int width, int height, PlayerShip playerShip) : base(width, height) {
         this.playerShip = playerShip;
-        menu = new(this, null, null) { IsVisible = false };
+        menu = null;
     }
     public override void Update(TimeSpan delta) {
-        if (menu.IsVisible) {
+        if (menu?.IsVisible == true) {
             menu.Update(delta);
             return;
         }
@@ -1905,7 +1926,7 @@ public class CommunicationsWidget : ScreenSurface {
         ticks++;
     }
     public override bool ProcessKeyboard(Keyboard info) {
-        if (menu.IsVisible == true) {
+        if (menu?.IsVisible == true) {
             return menu.ProcessKeyboard(info);
         }
         foreach (var k in info.KeysPressed) {
@@ -1924,7 +1945,7 @@ public class CommunicationsWidget : ScreenSurface {
         return base.ProcessKeyboard(info);
     }
     public override void Render(TimeSpan delta) {
-        if (menu.IsVisible) {
+        if (menu?.IsVisible == true) {
             menu.Render(delta);
             return;
         }
@@ -1979,7 +2000,7 @@ public class CommunicationsWidget : ScreenSurface {
                         -(Math.PI * index / range), root * 2));
             }
             commands = new();
-            switch(subject?.behavior) {
+            switch(subject.behavior) {
                 case Wingmate w:
                     commands["Form Up"] = () => {
                         player.AddMessage(new Transmission(subject, $"Ordered {subject.name} to Form Up"));

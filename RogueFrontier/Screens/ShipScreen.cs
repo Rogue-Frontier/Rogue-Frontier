@@ -202,14 +202,16 @@ public class SListScreen {
 
         string GetName(IPlayerMessage i) => i switch {
             Message m => m.text,
-            Transmission t => $"{t.text}"
+            Transmission t => $"{t.text}",
+            _ => throw new NotImplementedException()
         };
         List<ColoredString> GetDesc(IPlayerMessage i) {
             return i switch {
                 Message m => new(),
                 Transmission t => new() {
                     new ColoredString("Source: ") + (t.source as ActiveObject)?.name ?? new("N/A"),
-                }
+                },
+                _ => throw new NotImplementedException()
             };
         }
         void Invoke(IPlayerMessage item) {

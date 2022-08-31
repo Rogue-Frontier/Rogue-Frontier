@@ -55,6 +55,7 @@
 		<Weapon	powerUse=		"10"
 				fireCooldown=	"90"
 				ammoType=		"item_shrapnel_bomb"
+				sound=			"RogueFrontierContent/sounds/generic_missile.wav"
 			>
 
 			<Projectile

@@ -286,7 +286,7 @@ public class Station : ActiveObject, ITrader, IDockable {
         if(world.tick%15 == 0) {
             stealth = type.stealth;
             if (weapons.Any()) {
-                stealth *= 1 - weapons.Max(w => ((double)w.delay / w.desc.fireCooldown));
+                stealth *= 1 - weapons.Max(w => (w.delay / w.desc.fireCooldown));
             }
             if(construction != null) {
                 construction.time -= 15;

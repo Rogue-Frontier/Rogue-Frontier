@@ -630,6 +630,7 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
     public bool blind;
     public double criticalFactor = 0.0;
     public XY offset=new(0,0);
+    public double timeSinceLastFire;
     public int totalTimesFired;
 
     public delegate void OnFire(Weapon w, List<Projectile> p);
@@ -639,6 +640,8 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
         this.source = source;
         SetWeaponDesc(desc);
     }
+
+    public bool IsInRange(XY offset) => offset.magnitude2 < projectileDesc.range2;
     public void SetWeaponDesc(WeaponDesc desc) {
         this.desc = desc;
         if (desc.capacitor != null) {
@@ -709,6 +712,7 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
             aiming?.Update(owner, this);
         }
         capacitor?.Update();
+        timeSinceLastFire += delta;
         if (delay > 0) {
             delay -= delta * Program.TICKS_PER_SECOND;
             PeriodicUpdateProjectileDesc(owner, 30);
@@ -796,6 +800,7 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
             aiming?.Update(owner, this);
         }
         capacitor?.Update();
+        timeSinceLastFire += delta;
         if (delay > 0) {
             delay -= delta * Program.TICKS_PER_SECOND;
             PeriodicUpdateProjectileDesc(owner, 30);
@@ -914,6 +919,7 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
         ammo?.OnFire();
         capacitor?.OnFire();
         onFire.ForEach(f => f(this, projectiles));
+        timeSinceLastFire = 0;
         totalTimesFired++;
     }
     public delegate void OnHitActive(Weapon w, Projectile p, ActiveObject hit);
@@ -1005,10 +1011,15 @@ public interface Aiming {
     void UpdateTarget(ActiveObject target) { }
     void OnFire() { }
     public static ActiveObject AcquireTarget(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) =>
-        owner.world.entities.FilterKey(p => (owner.position - p).magnitude2 < weapon.projectileDesc.range2).OfType<ActiveObject>().FirstOrDefault(filter);
-
+        owner.world.entities.FilterKey(p =>
+            weapon.IsInRange(owner.position - p))
+            .OfType<ActiveObject>()
+            .FirstOrDefault(filter);
     public static IEnumerable<ActiveObject> AcquireTargets(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) =>
-        owner.world.entities.FilterKey(p => (owner.position - p).magnitude2 < weapon.projectileDesc.range2).OfType<ActiveObject>().Where(filter);
+        owner.world.entities.FilterKey(p =>
+            weapon.IsInRange(owner.position - p))
+            .OfType<ActiveObject>()
+            .Where(filter);
     public static Projectile AcquireMissile(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) =>
         owner.world.entities.all
             .OfType<Projectile>()
@@ -1033,7 +1044,7 @@ public class Targeting : Aiming, IDestroyedListener {
             return;
         }
         if (target?.active == true
-            && owner.IsVisible(target)
+            && owner.CanSee(target)
             && (owner.position - target.position).magnitude2 < weapon.projectileDesc.range2) {
             return;
         }
@@ -1041,9 +1052,9 @@ public class Targeting : Aiming, IDestroyedListener {
         ((IDestroyedListener)this).Register(target);
     }
     public void Update(Station owner, Weapon weapon) =>
-        Update(owner, weapon, other => owner.IsVisible(other) && SStation.IsEnemy(owner, other));
+        Update(owner, weapon, other => owner.CanSee(other) && SStation.IsEnemy(owner, other));
     public void Update(IShip owner, Weapon weapon) =>
-        Update(owner, weapon, other => owner.IsVisible(other) && SShip.IsEnemy(owner, other));
+        Update(owner, weapon, other => owner.CanSee(other) && SShip.IsEnemy(owner, other));
     
     public void ClearTarget() => target = null;
     public void SetTarget(ActiveObject target) => this.target = target;
@@ -1068,8 +1079,8 @@ public class MultiTargeting : Aiming, IDestroyedListener {
             return;
         }
         targets.RemoveAll(t => !(t?.active == true
-            && owner.IsVisible(t)
-            && (owner.position - t.position).magnitude2 < weapon.projectileDesc.range2
+            && owner.CanSee(t)
+            && weapon.IsInRange(owner.position - t.position)
             ));
         if (targets.Any()) {
             return;
@@ -1084,9 +1095,9 @@ public class MultiTargeting : Aiming, IDestroyedListener {
         index++;
     }
     public void Update(Station owner, Weapon weapon) =>
-        Update(owner, weapon, other => owner.IsVisible(other) && SStation.IsEnemy(owner, other));
+        Update(owner, weapon, other => owner.CanSee(other) && SStation.IsEnemy(owner, other));
     public void Update(IShip owner, Weapon weapon) =>
-        Update(owner, weapon, other => owner.IsVisible(other) && SShip.IsEnemy(owner, other));
+        Update(owner, weapon, other => owner.CanSee(other) && SShip.IsEnemy(owner, other));
     public void ClearTarget() => targets.Clear();
     public void SetTarget(ActiveObject target) {
         ClearTarget();
@@ -1123,8 +1134,13 @@ public class Omnidirectional : Aiming {
         }
     }
     public void Update(Station owner, Weapon weapon) {
+        if (weapon.target is PlayerShip pl) {
+            int i = 0;
+        }
         targeting.Update(owner, weapon);
+        
         UpdateDirection(owner, weapon);
+        
     }
     public void Update(IShip owner, Weapon weapon) {
         targeting.Update(owner, weapon);

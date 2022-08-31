@@ -7,6 +7,7 @@ using static RogueFrontier.SShipBehavior;
 using Newtonsoft.Json;
 using SadConsole;
 using SadRogue.Primitives;
+using static RogueFrontier.AttackOrder;
 
 namespace RogueFrontier;
 public interface IShipBehavior {
@@ -422,7 +423,7 @@ public class LootOrder : IShipOrder, Lis<Docking.OnDocked>/*, Lis<Wreck.OnDestro
     Docking.OnDocked Lis<Docking.OnDocked>.Value => (owner, docking) => onDocked.ForEach(f => f(owner, target));
     //Wreck.OnDestroyed Lis<Wreck.OnDestroyed>.Value => w => Active = false;
 }
-public class GuardOrder : IShipOrder, Lis<Docking.OnDocked>, Lis<AIShip.Damaged>, Lis<Station.Damaged> {
+public class GuardOrder : IShipOrder, Lis<Docking.OnDocked>, Lis<AIShip.Damaged>, Lis<Station.Damaged>, Lis<AttackOrder.TargetInvisible> {
     [JsonProperty]
     public ActiveObject home { get; private set; }
     [JsonProperty]
@@ -462,9 +463,17 @@ public class GuardOrder : IShipOrder, Lis<Docking.OnDocked>, Lis<AIShip.Damaged>
     }
     public bool CanTarget(ActiveObject other) => errand is AttackOrder a && a.target == other;
     public void SetAttack(ActiveObject target, int attackTime = -1) {
-        errand = new AttackOrder(target);
+        var a = new AttackOrder(target);
+        a.onTargetInvisible += this;
+        errand = a;
         errandTime = attackTime;
     }
+    AttackOrder.TargetInvisible Lis<AttackOrder.TargetInvisible>.Value => a => {
+        if(a == errand) {
+            ClearErrand();
+        }
+    };
+
     public void SetLoot(Wreck target) {
         errand = new LootOrder(target);
         errandTime = -1;
@@ -532,7 +541,9 @@ public class GuardOrder : IShipOrder, Lis<Docking.OnDocked>, Lis<AIShip.Damaged>
             owner.world.entities
                 .FilterKey(e => (home.position - e).magnitude2 < 50 * 50)
                 .OfType<ActiveObject>()
-                .Where(e => !e.IsEqual(owner) && home.CanTarget(e))
+                .Where(e => !e.IsEqual(owner)
+                            && home.CanTarget(e)
+                            && SStealth.CanSee(owner, e))
                 .GetRandomOrDefault(owner.destiny);
 
         Wreck FindWreck() =>
@@ -711,6 +722,11 @@ public class AttackOrder : IShipOrder {
     public int aimWaitingTicks = 0;
 
     public bool avoid;
+
+
+    public delegate void TargetInvisible(AttackOrder a);
+    public Ev<TargetInvisible> onTargetInvisible = new();
+
     public AttackOrder(ActiveObject target) {
         SetTarget(target);
     }
@@ -723,6 +739,8 @@ public class AttackOrder : IShipOrder {
     }
     public bool CanTarget(ActiveObject other) => other == target;
     private void Set(Weapon w) => w.SetFiring(true, target);
+
+    double stealthCheckTime;
     public void Update(double delta, AIShip owner) {
         if (target == null) {
             return;
@@ -741,6 +759,17 @@ public class AttackOrder : IShipOrder {
             gate.Update(delta, owner);
             return;
         }
+
+        if (onTargetInvisible.any) {
+            stealthCheckTime += delta;
+            if (stealthCheckTime > 0.5) {
+                stealthCheckTime = 0;
+                if(SStealth.CanSee(owner, target)) {
+                    onTargetInvisible.ForEach(f => f(this));
+                }
+            }
+        }
+
         var weapons = owner.devices.Weapon;
         if (primary?.AllowFire != true) {
             var available = weapons.Where(w => w.AllowFire);

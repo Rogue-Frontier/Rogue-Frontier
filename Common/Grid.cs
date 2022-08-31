@@ -21,20 +21,18 @@ public class XY {
     [JsonIgnore]
     public int xi { get => (int)x; set => x = value; }
     [JsonIgnore]
-    public int yi { get => (int)y; set => y = value; }
+    public int yi { get => (int)y; set => x = value; }
     [JsonIgnore]
-    public static readonly XY Zero = new XY(0, 0);
+    public static readonly XY Zero = new(0, 0);
     public XY() {
         x = 0;
         y = 0;
     }
     public XY(XY xy) {
-        this.x = xy.x;
-        this.y = xy.y;
+        (x, y) = xy;
     }
     public XY(Point p) {
-        this.x = p.X;
-        this.y = p.Y;
+        (x, y) = p;
     }
     public Vector3f ToVector3f(float z = 0) => new(xf, yf, z);
     public XY To(XY dest) => dest - this;
@@ -52,27 +50,27 @@ public class XY {
         this.x = x;
         this.y = y;
     }
-    public static XY operator +(XY p, XY other) => new XY(p.x + other.x, p.y + other.y);
-    public static XY operator +(XY p, Point other) => new XY(p.x + other.X, p.y + other.Y);
-    public static XY operator +(XY p, (int x, int y) other) => new XY(p.x + other.x, p.y + other.y);
-    public static XY operator -(XY p) => new XY(-p.x, -p.y);
-    public static XY operator -(XY p, XY other) => new XY(p.x - other.x, p.y - other.y);
-    public static XY operator -(XY p, (int x, int y) other) => new XY(p.x - other.x, p.y - other.y);
-    public static XY operator -(XY p, (long x, long y) other) => new XY(p.x - other.x, p.y - other.y);
-    public static XY operator -((int x, int y) p, XY other) => new XY(p.x - other.x, p.y - other.y);
-    public static XY operator *(XY p, XY other) => new XY(p.x * other.x, p.y * other.y);
-    public static XY operator *(XY p, double scalar) => new XY(p.x * scalar, p.y * scalar);
-    public static XY operator *(XY p, int scalar) => new XY(p.x * scalar, p.y * scalar);
-    public static XY operator /(XY p, double scalar) => new XY(p.x / scalar, p.y / scalar);
-    public static XY operator /(XY p, int scalar) => new XY(p.x / scalar, p.y / scalar);
-    public static XY operator /(XY p, Point pt) => new XY(p.x / pt.X, p.y / pt.Y);
+    public static XY operator +(XY p, XY other) => new(p.x + other.x, p.y + other.y);
+    public static XY operator +(XY p, Point other) => new(p.x + other.X, p.y + other.Y);
+    public static XY operator +(XY p, (int x, int y) other) => new(p.x + other.x, p.y + other.y);
+    public static XY operator -(XY p) => new(-p.x, -p.y);
+    public static XY operator -(XY p, XY other) => new(p.x - other.x, p.y - other.y);
+    public static XY operator -(XY p, (int x, int y) other) => new(p.x - other.x, p.y - other.y);
+    public static XY operator -(XY p, (long x, long y) other) => new(p.x - other.x, p.y - other.y);
+    public static XY operator -((int x, int y) p, XY other) => new(p.x - other.x, p.y - other.y);
+    public static XY operator *(XY p, XY other) => new(p.x * other.x, p.y * other.y);
+    public static XY operator *(XY p, double scalar) => new(p.x * scalar, p.y * scalar);
+    public static XY operator *(XY p, int scalar) => new(p.x * scalar, p.y * scalar);
+    public static XY operator /(XY p, double scalar) => new(p.x / scalar, p.y / scalar);
+    public static XY operator /(XY p, int scalar) => new(p.x / scalar, p.y / scalar);
+    public static XY operator /(XY p, Point pt) => new(p.x / pt.X, p.y / pt.Y);
     public static XY operator %(XY p, XY limit) {
-        XY result = new XY(p);
-        while (result.x < 0) result.x += limit.x;
-        while (result.y < 0) result.y += limit.y;
-        while (result.x >= limit.x) result.x -= limit.x;
-        while (result.y >= limit.y) result.y -= limit.y;
-        return result;
+        (double x, double y) = p;
+        while (x < 0) x += limit.x;
+        while (y < 0) y += limit.y;
+        while (x >= limit.x) x -= limit.x;
+        while (y >= limit.y) y -= limit.y;
+        return new(x, y);
     }
     public void Deconstruct(out int x, out int y) {
         x = (int)this.x;
@@ -80,24 +78,24 @@ public class XY {
     }
     [JsonIgnore]
     public XY clone {
-        get => new XY(x, y);
+        get => new(x, y);
     }
-    public XY PlusX(double x) => new XY(this.x + x, y);
-    public XY PlusY(double y) => new XY(x, this.y + y);
+    public XY PlusX(double x) => new(this.x + x, y);
+    public XY PlusY(double y) => new(x, this.y + y);
     [JsonIgnore]
-    public XY abs => new XY(Math.Abs(xi), Math.Abs(yi));
+    public XY abs => new(Math.Abs(xi), Math.Abs(yi));
     [JsonIgnore]
     public XY truncate => new XY(xi, yi);
     [JsonIgnore]
-    public XY flipX => new XY(-x, y);
+    public XY flipX => new(-x, y);
     [JsonIgnore]
-    public XY flipY => new XY(x, -y);
+    public XY flipY => new(x, -y);
     [JsonIgnore]
-    public XY round => new XY(Math.Round(x), Math.Round(y));
+    public XY round => new(Math.Round(x), Math.Round(y));
     [JsonIgnore]
-    public XY roundDown => new XY(Math.Round(x, MidpointRounding.ToNegativeInfinity), Math.Round(y, MidpointRounding.ToNegativeInfinity));
+    public XY roundDown => new(Math.Round(x, MidpointRounding.ToNegativeInfinity), Math.Round(y, MidpointRounding.ToNegativeInfinity));
     [JsonIgnore]
-    public XY roundAway => new XY(Math.Round(x, MidpointRounding.AwayFromZero), Math.Round(y, MidpointRounding.AwayFromZero));
+    public XY roundAway => new(Math.Round(x, MidpointRounding.AwayFromZero), Math.Round(y, MidpointRounding.AwayFromZero));
     public XY Step(XY other, int length = 1) {
         XY offset = other - this;
         if(offset.magnitude <= length) {
@@ -113,17 +111,18 @@ public class XY {
         }
         yield return p;
     }
-    public static XY Polar(double angleRad, double magnitude = 1) {
-        return new XY(Math.Cos(angleRad) * magnitude, Math.Sin(angleRad) * magnitude);
-    }
+    public static XY Polar(double angleRad, double magnitude = 1) =>
+        new(Math.Cos(angleRad) * magnitude, Math.Sin(angleRad) * magnitude);
     public XY Snap(int gridSize) => (this / gridSize).roundDown * gridSize;
 
     public XY Snap(double gridSize) => (this / gridSize).roundDown * gridSize;
 
     public static implicit operator (int, int)(XY p) => (p.xi, p.yi);
+    public static implicit operator (float, float)(XY p) => (p.xf, p.yf);
     public static implicit operator (double, double)(XY p) => (p.x, p.y);
-    public static explicit operator XY((int x, int y) p) => new XY(p.x, p.y);
-    public static explicit operator XY((double x, double y) p) => new XY(p.x, p.y);
+    public static explicit operator XY((int x, int y) p) => new(p.x, p.y);
+    public static explicit operator XY((float x, float y) p) => new(p.x, p.y);
+    public static explicit operator XY((double x, double y) p) => new(p.x, p.y);
 
     public double Dist(XY other) => To(other).magnitude;
     public double Dot(XY other) => x * other.x + y * other.y;
@@ -134,7 +133,7 @@ public class XY {
     public XY IncMagnitude(double inc) => WithMagnitude(magnitude + inc);
     public XY WithMagnitude(double magnitude) {
         var a = angleRad;
-        return new XY(Math.Cos(a) * magnitude, Math.Sin(a) * magnitude);
+        return new(Math.Cos(a) * magnitude, Math.Sin(a) * magnitude);
     }
     public override string ToString() => $"({x}, {y})";
 
@@ -153,9 +152,9 @@ public class XY {
         get {
             double magnitude = this.magnitude;
             if (magnitude > 0) {
-                return new XY(x / magnitude, y / magnitude);
+                return new(x / magnitude, y / magnitude);
             } else {
-                return new XY(0, 0);
+                return new(0, 0);
             }
         }
     }
@@ -165,14 +164,14 @@ public class XY {
 
     public XY Rotate(double angle) {
         if (angle == 0) {
-            return new XY(x, y);
+            return new(x, y);
         }
         var sin = Math.Sin(angle);
         var cos = Math.Cos(angle);
-        return new XY(x * cos - y * sin, x * sin + y * cos);
+        return new(x * cos - y * sin, x * sin + y * cos);
     }
-    public static implicit operator Point(XY xy) => new Point(xy.xi, xy.yi);
-    public static implicit operator XY(Point p) => new XY(p.X, p.Y);
+    public static implicit operator Point(XY xy) => new(xy.xi, xy.yi);
+    public static implicit operator XY(Point p) => new(p.X, p.Y);
 }
 public class XYZGridComparer : IEqualityComparer<XYZ> {
     public bool Equals(XYZ p1, XYZ p2) => (p1.xi == p2.xi && p1.yi == p2.yi && p1.zi == p2.zi);
@@ -203,28 +202,28 @@ public class XYZ {
         this.y = y;
         this.z = z;
     }
-    public XYZ copy => new XYZ(x, y, z);
+    public XYZ copy => new(x, y, z);
     public double xyAngle => xy.angleRad;
     public double zAngle => Math.Atan2(z, xy.magnitude);
-    public XY xy => new XY(x, y);
-    public XYZ i => new XYZ(xi, yi, zi);
-    public static XYZ operator +(XYZ p1, XYZ p2) => new XYZ(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
-    public static XYZ operator +(XYZ p1, XY p2) => new XYZ(p1.x + p2.x, p1.y + p2.y, p1.z);
+    public XY xy => new(x, y);
+    public XYZ i => new(xi, yi, zi);
+    public static XYZ operator +(XYZ p1, XYZ p2) => new(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
+    public static XYZ operator +(XYZ p1, XY p2) => new(p1.x + p2.x, p1.y + p2.y, p1.z);
     public static XYZ operator -(XYZ p1, XYZ p2) => p1 + (-p2);
-    public static XYZ operator -(XYZ p1) => new XYZ(-p1.x, -p1.y, -p1.z);
+    public static XYZ operator -(XYZ p1) => new(-p1.x, -p1.y, -p1.z);
     public static double operator *(XYZ p1, XYZ p2) => (p1.x * p2.x) + (p1.y * p2.y) + (p1.z * p2.z);
 
     public static implicit operator (int, int, int)(XYZ p) => (p.xi, p.yi, p.zi);
-    public static implicit operator XYZ((int, int, int) p) => new XYZ(p.Item1, p.Item2, p.Item3);
+    public static implicit operator XYZ((int, int, int) p) => new(p.Item1, p.Item2, p.Item3);
 
     public static implicit operator double(XYZ p) => p.Magnitude;
 
-    public static explicit operator Point(XYZ p) => new Point(p.xi, p.yi);
-    public XYZ PlusX(double x) => new XYZ(this.x + x, y, z);
-    public XYZ PlusY(double y) => new XYZ(x, this.y + y, z);
-    public XYZ PlusZ(double z) => new XYZ(x, y, this.z + z);
-    public static XYZ operator *(XYZ p, double s) => new XYZ(p.x * s, p.y * s, p.z * s);
-    public static XYZ operator /(XYZ p, double s) => new XYZ(p.x / s, p.y / s, p.z / s);
+    public static explicit operator Point(XYZ p) => new(p.xi, p.yi);
+    public XYZ PlusX(double x) => new(this.x + x, y, z);
+    public XYZ PlusY(double y) => new(x, this.y + y, z);
+    public XYZ PlusZ(double z) => new(x, y, this.z + z);
+    public static XYZ operator *(XYZ p, double s) => new(p.x * s, p.y * s, p.z * s);
+    public static XYZ operator /(XYZ p, double s) => new(p.x / s, p.y / s, p.z / s);
     public double Magnitude => Math.Sqrt(x * x + y * y + z * z);
     public double Magnitude2 => x * x + y * y + z * z;
     public XYZ Normal {
@@ -344,7 +343,7 @@ public class ArraySpace<T> {
 
     public void Clear() => Array.Clear(space, 0, space.Length);
     public Grid<T> GetGrid(int z) {
-        Grid<T> grid = new Grid<T>(Width, Height, null);
+        Grid<T> grid = new(Width, Height, null);
         for (int x = 0; x < Width; x++) {
             for (int y = 0; y < Height; y++) {
 
@@ -390,7 +389,7 @@ public class Space<T> {
         Array.Clear(space, 0, space.Length);
     }
     public Grid<T> GetGrid(int z) {
-        Grid<T> grid = new Grid<T>(Width, Height, null);
+        Grid<T> grid = new(Width, Height, null);
         all.ToList().ForEach(t => {
             XYZ p = locator.Invoke(t);
             if (p.zi == z) {
@@ -508,7 +507,7 @@ public class LocatorDict<TValue, TKey> {
     }
     public Dictionary<TKey, HashSet<TResult>> TransformSelect<TResult>(Func<TValue, TKey> locate, Func<TKey, bool> posFilter, Func<TValue, TResult> select) =>
         TransformSelect(all, locate, posFilter, select);
-    public static Dictionary<TKey, HashSet<TItem>> TransformSelect<TItem>(IEnumerable<TValue> all, Func<TValue, TKey> locate, Func<TKey, bool> posFilter, Func<TValue, TItem?> select) {
+    public static Dictionary<TKey, HashSet<TItem>> TransformSelect<TItem>(IEnumerable<TValue> all, Func<TValue, TKey> locate, Func<TKey, bool> posFilter, Func<TValue, TItem> select) {
         var space = new Dictionary<TKey, HashSet<TItem>>();
         HashSet<TItem> Initialize(TKey u) =>
             space.TryGetValue(u, out var result) ? result : space[u] = new();

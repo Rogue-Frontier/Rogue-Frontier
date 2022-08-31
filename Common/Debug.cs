@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Common;
 
 public static class Debug {
-    public static List<string> log = new List<string>();
+    public static List<string> log = new();
     public static string state = "";
     public static bool printing = true;
     public static void Print(string state) {

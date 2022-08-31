@@ -375,7 +375,7 @@ public class Rand {
     }
 
     public List<T> Choose<T>(List<T> items, int quantity) {
-        List<T> buffer = new List<T>(quantity);
+        List<T> buffer = new(quantity);
         for (int i = 0; i < quantity; i++) {
             buffer.Add(Choose(items));
         }

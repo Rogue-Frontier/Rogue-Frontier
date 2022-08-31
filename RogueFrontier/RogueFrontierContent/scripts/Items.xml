@@ -226,7 +226,8 @@
 		>
 		<Weapon	powerUse=		"10"
 				fireCooldown=	"90"
-				ammoType="item_klaw_missile"
+				ammoType=		"item_klaw_missile"
+				sound=			"RogueFrontierContent/sounds/generic_missile.wav"
 			>
 			<Projectile	count=			"2"
 						spreadAngle=	"30"
@@ -266,6 +267,7 @@
 				fireCooldown=	"300"
 				ammoType=		"item_nova_missile"
 				structural=		"true"
+				sound=			"RogueFrontierContent/sounds/generic_missile.wav"
 			>
 			<Projectile	count=			"1"
 						maneuver=		"4"
@@ -468,7 +470,8 @@
 		<Weapon	
 			powerUse=		"10"
 			fireCooldown=	"30"
-			ammoType="item_dynamite_charge"
+			ammoType=		"item_dynamite_charge"
+			sound=			"RogueFrontierContent/sounds/generic_missile.wav"
 			>
 			<Projectile
 				missileSpeed=	"20"

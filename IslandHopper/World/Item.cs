@@ -56,7 +56,7 @@ public class Grenade : ItemComponent {
             foreach (var hit in item.World.entities[pos]) {
                 if (hit is ICharacter d && hit != item) {
                     var multiplier = (radius2 - displacement.Magnitude2) / radius2;
-                    ExplosionDamage damage = new ExplosionDamage() {
+                    ExplosionDamage damage = new() {
                         damage = (int)(type.explosionDamage * multiplier),
                         knockback = displacement.Normal * type.explosionForce * multiplier
                     };
@@ -260,7 +260,7 @@ public class ParticleSystem : ItemComponent {
         public int r => symbol.Foreground.R;
         public int g => symbol.Foreground.G;
         public int b => symbol.Foreground.B;
-        public ColoredGlyph SymbolCenter => new ColoredGlyph(new Color(r, g, b, (int)(255 * (lifetime > 5 ? 1 : (lifetime + 5) / 10f))), Color.Black, c);
+        public ColoredGlyph SymbolCenter => new(new Color(r, g, b, (int)(255 * (lifetime > 5 ? 1 : (lifetime + 5) / 10f))), Color.Black, c);
         public XYZ Position { get; set; }
         public XYZ Velocity { get; set; }
         public double lifetime;
@@ -317,7 +317,7 @@ public class Item : IItem {
             return result;
         }
     }
-    public ColoredString BaseName => new ColoredString(Type.name, Color.White, Color.Black);
+    public ColoredString BaseName => new(Type.name, Color.White, Color.Black);
     public ColoredString Name => ModifierName;
 
 
@@ -431,5 +431,5 @@ public class Parachute : Entity, Damageable {
     }
     public readonly ColoredGlyph symbol = new ColoredString("*", Color.White, Color.Transparent)[0];
     public ColoredGlyph SymbolCenter => symbol;
-    public ColoredString Name => new ColoredString("Parachute", Color.White, Color.Black);
+    public ColoredString Name => new("Parachute", Color.White, Color.Black);
 }

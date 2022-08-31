@@ -122,8 +122,9 @@ public class Projectile : MovingObject {
                             break;
                         case ActiveObject hit when !destroyed && hit.active:
                             hit.Damage(this);
-                            var angle = (hit.position - position).angleRad;
-                            world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle, -1), hit.velocity, new ColoredGlyph(Color.Yellow, Color.Transparent, 'x'), 10));
+                            var angle = (position - hit.position).angleRad;
+                            var cg = new ColoredGlyph(hitHull ? Color.Yellow : Color.LimeGreen, Color.Transparent, 'x');
+                            world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle), hit.velocity, cg, 10));
                             if(ricochet > 0) {
                                 ricochet--;
                                 velocity = -velocity;

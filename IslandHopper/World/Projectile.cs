@@ -68,8 +68,8 @@ public class LaunchedGrenade : Entity {
     public int Countdown;
     public XYZ Position { get; set; }
     public XYZ Velocity { get; set; }
-    public ColoredString Name => new ColoredString("Grenade", Color.White, Color.Black);
-    public ColoredGlyph SymbolCenter => new ColoredGlyph(Color.Green, Color.Black, 'g');
+    public ColoredString Name => new("Grenade", Color.White, Color.Black);
+    public ColoredGlyph SymbolCenter => new(Color.Green, Color.Black, 'g');
     public bool Active { get; set; } = true;
     public LaunchedGrenade(Island World, Entity Source, GrenadeType grenadeType) {
         this.World = World;
@@ -91,7 +91,7 @@ public class LaunchedGrenade : Entity {
             foreach (var hit in World.entities[pos]) {
                 if (hit is ICharacter d && hit != this) {
                     var multiplier = (radius2 - displacement.Magnitude2) / radius2;
-                    ExplosionDamage damage = new ExplosionDamage() {
+                    ExplosionDamage damage = new() {
                         damage = (int)(grenadeType.explosionDamage * multiplier),
                         knockback = displacement.Normal * grenadeType.explosionForce * multiplier
                     };
@@ -124,8 +124,8 @@ public class Beam : Entity {
     public XYZ Velocity { get; set; }
     public bool Active { get; private set; }
     public void OnRemoved() { }
-    public ColoredGlyph SymbolCenter => new ColoredGlyph(tick % 20 < 10 ? Color.White : Color.Gray, Color.Black, '~');
-    public ColoredString Name => new ColoredString("Beam", tick % 20 < 10 ? new Color(255, 0, 0, 255) : new Color(204, 0, 0, 255), Color.Black);
+    public ColoredGlyph SymbolCenter => new(tick % 20 < 10 ? Color.White : Color.Gray, Color.Black, '~');
+    public ColoredString Name => new("Beam", tick % 20 < 10 ? new Color(255, 0, 0, 255) : new Color(204, 0, 0, 255), Color.Black);
 
     private Entity Source;
     private Entity Target;
@@ -167,7 +167,7 @@ public class Flame : Entity, Damager {
                 glyph);
         }
     }
-    public ColoredString Name => new ColoredString("Flame", SymbolCenter.Foreground, Color.Black);
+    public ColoredString Name => new("Flame", SymbolCenter.Foreground, Color.Black);
 
     private Entity Source;
     private IItem Item;
@@ -242,12 +242,12 @@ public class Fire : Entity, Damager {
     public Island World { get; set; }
     public XYZ Position { get; set; }
     public XYZ Velocity { get; set; }
-    public ColoredGlyph SymbolCenter => new ColoredGlyph(
+    public ColoredGlyph SymbolCenter => new(
         World.realTicks % 10 < 5 ? Color.Gold : Color.Orange,
         Color.Transparent, 'v');
     public int ticks;
     public bool Active { get; set; } = true;
-    public ColoredString Name => new ColoredString("Fire", Color.Red, Color.Black);
+    public ColoredString Name => new("Fire", Color.Red, Color.Black);
     public Fire(Island World) {
         this.World = World;
     }
@@ -305,8 +305,8 @@ public class Bullet : Entity, Damager {
             };
         return chars[(int)angle];
     }
-    public ColoredGlyph SymbolCenter => new ColoredGlyph(tick % 20 < 10 ? Color.White : Color.Gray, Color.Transparent, GetSymbol());
-    public ColoredString Name => new ColoredString("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Transparent);
+    public ColoredGlyph SymbolCenter => new(tick % 20 < 10 ? Color.White : Color.Gray, Color.Transparent, GetSymbol());
+    public ColoredString Name => new("Bullet", tick % 20 < 10 ? Color.White : Color.Gray, Color.Transparent);
 
     public Entity Source;
     private IItem Item;
@@ -396,8 +396,8 @@ public class Missile : Entity {
     public XYZ Velocity { get; set; }
     public bool Active { get; private set; }
     public void OnRemoved() { }
-    public ColoredGlyph SymbolCenter => new ColoredGlyph(tick % 8 < 4 ? Color.White : Color.Gray, Color.Black, 'M');
-    public ColoredString Name => new ColoredString("Missile", tick % 8 < 4 ? Color.White : Color.Gray, Color.Black);
+    public ColoredGlyph SymbolCenter => new(tick % 8 < 4 ? Color.White : Color.Gray, Color.Black, 'M');
+    public ColoredString Name => new("Missile", tick % 8 < 4 ? Color.White : Color.Gray, Color.Black);
 
     private Entity Source;
     private Entity Target;
@@ -438,8 +438,8 @@ class ExplosionBlock : Entity {
     public XYZ Velocity { get; set; }
     public bool Active { get; private set; }
     public void OnRemoved() { }
-    public ColoredGlyph SymbolCenter => new ColoredGlyph(tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black, '*');
-    public ColoredString Name => new ColoredString("Explosion", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
+    public ColoredGlyph SymbolCenter => new(tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black, '*');
+    public ColoredString Name => new("Explosion", tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 
     private int tick;
     public int lifetime;
@@ -467,8 +467,8 @@ class ExplosionSource : Entity {
     public XYZ Velocity { get; set; }
     public bool Active { get; private set; }
     public void OnRemoved() { }
-    public ColoredGlyph SymbolCenter => new ColoredGlyph((int)tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black, '*');
-    public ColoredString Name => new ColoredString("Explosion", (int)tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
+    public ColoredGlyph SymbolCenter => new((int)tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black, '*');
+    public ColoredString Name => new("Explosion", (int)tick % 4 < 2 ? new Color(255, 255, 0) : new Color(255, 153, 0), Color.Black);
 
     private double tick;   //Used for sprite flashing
 

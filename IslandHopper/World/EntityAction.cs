@@ -69,7 +69,7 @@ public class WalkAction : EntityAction {
     }
     public bool Done() => ticks == 0;
 
-    public ColoredString Name => new ColoredString("Walk", Color.Cyan, Color.Black);
+    public ColoredString Name => new("Walk", Color.Cyan, Color.Black);
 }
 //Impulse that lasts for a while so that the player cannot jump multiple times at once
 public class Jump : EntityAction {
@@ -111,7 +111,7 @@ public class Impulse : EntityAction {
         done = true;
     }
     public bool Done() => done;
-    public ColoredString Name => new ColoredString("Jump", Color.Cyan, Color.Black);
+    public ColoredString Name => new("Jump", Color.Cyan, Color.Black);
 }
 public class WaitAction : EntityAction {
     private int ticks;
@@ -120,7 +120,7 @@ public class WaitAction : EntityAction {
     }
     public void Update() => ticks--;
     public bool Done() => ticks == 0;
-    public ColoredString Name => new ColoredString("Wait", Color.Cyan, Color.Black);
+    public ColoredString Name => new("Wait", Color.Cyan, Color.Black);
 }
 public interface ICompoundAction : EntityAction { }
 public class CompoundAction : ICompoundAction {
@@ -139,7 +139,7 @@ public class CompoundAction : ICompoundAction {
         }
     }
     public bool Done() => index == actions.Length;
-    public ColoredString Name => new ColoredString("Compound Action", Color.Cyan, Color.Black);
+    public ColoredString Name => new("Compound Action", Color.Cyan, Color.Black);
 }
 public class TakeItem : EntityAction {
     public ICharacter actor;
@@ -197,7 +197,7 @@ public class FollowPath : ICompoundAction {
         }
     }
     public bool Done() => points.Count == 0 && (action == null || action.Done());
-    public ColoredString Name => new ColoredString("Follow Path", Color.Cyan, Color.Black);
+    public ColoredString Name => new("Follow Path", Color.Cyan, Color.Black);
 }
 public class AttackAction : EntityAction, Damager {
     Entity attacker, target;
@@ -224,7 +224,7 @@ public class AttackAction : EntityAction, Damager {
     }
     public bool Done() => ticks == 0;
 
-    public ColoredString Name => new ColoredString("Walk", Color.Cyan, Color.Black);
+    public ColoredString Name => new("Walk", Color.Cyan, Color.Black);
 }
 
 public class ReloadAction : EntityAction, Damager {

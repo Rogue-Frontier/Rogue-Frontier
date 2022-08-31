@@ -33,12 +33,12 @@ public static class SShip {
     }
 }
 public static class SStealth {
-    public static bool IsVisible(this Entity e, Entity other) => e switch {
-        PlayerShip p => p.CanSee(other),
-        _ => e.GetVisibleDistanceLeft(other) > 0
+    public static bool CanSee(this Entity watcher, Entity watched) => watcher switch {
+        PlayerShip p => p.CanSee(watched),
+        _ => watched.GetVisibleDistanceLeft(watcher) > 0
     };
-    public static double GetVisibleDistanceLeft(this Entity p, Entity e) =>
-        GetVisibleRange(GetStealth(p)) - (e.position - p.position).magnitude;
+    public static double GetVisibleDistanceLeft(this Entity watched, Entity watcher) =>
+        GetVisibleRange(GetStealth(watched)) - watcher.position.Dist(watched.position);
     public static double GetStealth(this Entity e) => e switch {
         PlayerShip pl => pl.ship.stealth,
         AIShip ai => ai.ship.stealth,
@@ -46,6 +46,7 @@ public static class SStealth {
         ISegment s => GetStealth(s.parent),
         _ => 0
     };
+    public static double GetVisibleRangeOf(Entity e) => GetVisibleRange(GetStealth(e));
     public static double GetVisibleRange(double stealth) => stealth switch {
 #if true
         > 0 => 250 / stealth,
@@ -182,14 +183,13 @@ public class BaseShip {
         active = false;
     }
     public void UpdatePhysics(double delta) {
-        if(world.tick%15 == 0) {
-            stealth = shipClass.stealth;
-            devices.Shield.ForEach(s => stealth += s.stealth);
-            stealth += (damageSystem as LayeredArmor)?.layers.LastOrDefault(a => a.hp > 0)?.stealth ?? 0;
-
+        if(world.tick%10 == 0) {
+            stealth = shipClass.stealth
+                    + devices.Shield.Sum(sh => sh.stealth)
+                    + (damageSystem as LayeredArmor)?.layers.LastOrDefault(a => a.hp > 0)?.stealth ?? 0;
             var weapons = devices.Weapon;
             if (weapons.Any()) {
-                stealth *= 1 - weapons.Max(w => ((double)w.delay / w.desc.fireCooldown));
+                stealth *= Math.Min(1, weapons.Min(w => w.timeSinceLastFire));
             }
 
             stealth = Math.Max(stealth, 0);
@@ -480,6 +480,9 @@ public class PlayerShip : IShip {
     public List<ActiveObject> targetList = new();
 
     public int targetIndex = -1;
+    public delegate void TargetChanged(PlayerShip pl);
+    public Ev<TargetChanged> onTargetChanged = new();
+    private void FireOnTargetChanged() => onTargetChanged.ForEach(f => f(this));
 
     public bool firingPrimary = false;
     public bool firingSecondary = false;
@@ -634,7 +637,7 @@ public class PlayerShip : IShip {
                 targetIndex = -1;
             }
         }
-
+        FireOnTargetChanged();
         void Refresh() {
             targetList =
                 world.entities.all
@@ -672,6 +675,7 @@ public class PlayerShip : IShip {
                 targetIndex = -1;
             }
         }
+        FireOnTargetChanged();
 
         void Refresh() {
             targetList = world.entities.all
@@ -708,6 +712,7 @@ public class PlayerShip : IShip {
         ResetWeaponTargets();
         targetList = targetList.GetRange(targetIndex, targetList.Count - targetIndex);
         targetIndex = -1;
+        FireOnTargetChanged();
     }
     //Stop targeting and clear our target list
     public void ClearTarget() {
@@ -717,6 +722,7 @@ public class PlayerShip : IShip {
         ResetWeaponTargets();
         targetList.Clear();
         targetIndex = -1;
+        FireOnTargetChanged();
     }
 
     public void SetTargetList(List<ActiveObject> targetList) {
@@ -731,6 +737,7 @@ public class PlayerShip : IShip {
             targetIndex = -1;
 
         }
+        FireOnTargetChanged();
     }
     public bool GetTarget(out ActiveObject target) => (target = GetTarget()) != null;
     public ActiveObject GetTarget() {

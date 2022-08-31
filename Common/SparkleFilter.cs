@@ -7,7 +7,7 @@ public class SparkleFilter {
     int cycle = 720;
     public SparkleFilter(int Width, int Height) {
         time = new float[Width, Height];
-        Random r = new Random();
+        Random r = new();
         for (int x = 0; x < Width; x++) {
             for (int y = 0; y < Height; y++) {
                 time[x, y] = r.Next(cycle);

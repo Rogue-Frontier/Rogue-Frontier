@@ -42,12 +42,12 @@ public class BodyPart : IBodyPart {
     public int CurrentHP { get; set; } = 100;
     public int Bleeding { get; set; } = 0;
     public HashSet<Item> Equipped { get; set; } = null;
-    private static BodyPart CreateStandardPart(EBodyPartType type, string Name) => new BodyPart() { Name = Name, MaxHP = 100, CurrentHP = 100, Equipped = new HashSet<Item>() };
+    private static BodyPart CreateStandardPart(EBodyPartType type, string Name) => new() { Name = Name, MaxHP = 100, CurrentHP = 100, Equipped = new HashSet<Item>() };
     private static BodyPart CreateHead() => CreateStandardPart(EBodyPartType.Head, "Head");
     private static BodyPart CreateLeftArm() => CreateStandardPart(EBodyPartType.Arm, "Left Arm");
     private static BodyPart CreateRightArm() => CreateStandardPart(EBodyPartType.Arm, "Right Arm");
     private static BodyPart CreateTorso() => CreateStandardPart(EBodyPartType.Torso, "Torso");
     private static BodyPart CreateLeftLeg() => CreateStandardPart(EBodyPartType.Leg, "Left Leg");
     private static BodyPart CreateRightLeg() => CreateStandardPart(EBodyPartType.Leg, "Right Leg");
-    public static HashSet<BodyPart> CreateStandardBody() => new HashSet<BodyPart>(new[] { CreateHead(), CreateLeftArm(), CreateRightArm(), CreateTorso(), CreateLeftLeg(), CreateRightLeg() });
+    public static HashSet<BodyPart> CreateStandardBody() => new(new[] { CreateHead(), CreateLeftArm(), CreateRightArm(), CreateTorso(), CreateLeftLeg(), CreateRightLeg() });
 }

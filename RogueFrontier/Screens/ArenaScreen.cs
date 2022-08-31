@@ -168,7 +168,8 @@ public class ArenaScreen : Console, Lis<PlayerShip.Destroyed> {
                                         Weapon w => source.weapon,
                                         Shield s => source.shield,
                                         Reactor r => source.reactor,
-                                        Service m => source.service
+                                        Service m => source.service,
+                                        _ => throw new NotImplementedException()
                                     });
                                 }));
                             }

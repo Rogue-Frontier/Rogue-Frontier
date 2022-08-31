@@ -36,7 +36,7 @@ public interface Voxel {
 public class Air : Voxel {
     public VoxelType Collision => VoxelType.Empty;
 
-    public ColoredGlyph CharAbove => new ColoredGlyph(Color.White, Color.Transparent, 176);
+    public ColoredGlyph CharAbove => new(Color.White, Color.Transparent, 176);
     public ColoredGlyph CharCenter => CharAbove;
 }
 public class Grass : Voxel {
@@ -55,8 +55,8 @@ public class Grass : Voxel {
         background = new Color(r, next(26) + 13, 26 - r);
         glyph = symbols[next(symbols.Length)];
     }
-    public ColoredGlyph CharAbove => new ColoredGlyph(foreground, background, glyph);
-    public ColoredGlyph CharCenter => new ColoredGlyph(Color.Transparent, foreground, ' ');
+    public ColoredGlyph CharAbove => new(foreground, background, glyph);
+    public ColoredGlyph CharCenter => new(Color.Transparent, foreground, ' ');
 }
 public class Dirt : Voxel {
     public VoxelType Collision => VoxelType.Solid;
@@ -65,8 +65,8 @@ public class Dirt : Voxel {
     public char glyph = '=';
     public Dirt() {
     }
-    public ColoredGlyph CharAbove => new ColoredGlyph(foreground, background, glyph);
-    public ColoredGlyph CharCenter => new ColoredGlyph(Color.Transparent, foreground, ' ');
+    public ColoredGlyph CharAbove => new(foreground, background, glyph);
+    public ColoredGlyph CharCenter => new(Color.Transparent, foreground, ' ');
 }
 public class Floor : Voxel {
     public VoxelType Collision => VoxelType.Floor;
@@ -74,6 +74,6 @@ public class Floor : Voxel {
     public Floor(Color c) {
         this.color = c;
     }
-    public ColoredGlyph CharAbove => new ColoredGlyph(color, Color.Transparent, '.');
-    public ColoredGlyph CharCenter => new ColoredGlyph(Color.Transparent, color, '+');
+    public ColoredGlyph CharAbove => new(color, Color.Transparent, '.');
+    public ColoredGlyph CharCenter => new(Color.Transparent, color, '+');
 }

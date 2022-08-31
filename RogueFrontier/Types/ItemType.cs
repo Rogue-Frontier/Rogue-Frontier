@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using SadRogue.Primitives;
 using Con = SadConsole.ScreenSurface;
 using Newtonsoft.Json;
+using SFML.Audio;
 
 namespace RogueFrontier;
 public interface ItemUse {
@@ -380,18 +381,21 @@ public record WeaponDesc {
     [Opt] public int repeat = 0;
     [Opt] public int repeatDelay = 3;
     [Opt] public double failureRate = 0;
-    public FragmentDesc projectile;
     [Opt] public int initialCharges = -1;
-    public CapacitorDesc capacitor;
-    public ItemType ammoType;
+
+    [Opt] public bool pointDefense;
     public bool targetProjectile;
     [Opt] public bool autoFire;
-    public bool spray;
-
-
+    [Opt] public bool spray;
     [Opt] public bool structural;
     [Opt] public bool omnidirectional = false;
     [Opt] public double angle = 0, angleRange, leftRange, rightRange = 0;
+
+    public ItemType ammoType;
+    public FragmentDesc projectile;
+    public CapacitorDesc capacitor;
+    public SoundBuffer sound;
+
     public int missileSpeed => projectile.missileSpeed;
     public int damageType => projectile.damageType;
     public IDice damageHP => projectile.damageHP;
@@ -407,20 +411,20 @@ public record WeaponDesc {
         leftRange *= Math.PI / 180;
         rightRange *= Math.PI / 180;
 
-
-        projectile = new(e.Element("Projectile"));
-        capacitor = e.HasElement("Capacitor", out var xmlCapacitor) ?
-            new(xmlCapacitor) : null;
         ammoType = e.TryAtt(nameof(ammoType), out string at) ?
             types.Lookup<ItemType>(at) : null;
-        if (e.TryAttBool("pointDefense")) {
+        projectile = new(e.ExpectElement("Projectile"));
+        capacitor = e.HasElement("Capacitor", out var xmlCapacitor) ?
+            new(xmlCapacitor) : null;
+        sound = e.TryAtt("sound", out string s) ? new SoundBuffer(s) : null;
+
+        if (pointDefense) {
             projectile.hitProjectile = true;
             targetProjectile = true;
             autoFire = true;
         }
-        if (e.TryAttBool("spray")) {
+        if (spray) {
             autoFire = true;
-            spray = true;
         }
     }
 }

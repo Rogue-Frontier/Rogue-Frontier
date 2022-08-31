@@ -45,7 +45,7 @@ public class Mirage : Effect {
         this.lifetime = lifetime;
         var ShiftedPosition = Position + new XYZ(World.karma.NextInteger(-2, 3), World.karma.NextInteger(-2, 3));
         if (World.voxels.InBounds(ShiftedPosition)) {
-            HashSet<ColoredGlyph> glyphs = new HashSet<ColoredGlyph>();
+            HashSet<ColoredGlyph> glyphs = new();
             glyphs.UnionWith(World.effects[ShiftedPosition].Where(e => !(e is Mirage)).Select(e => e.SymbolCenter));
             glyphs.UnionWith(World.entities[ShiftedPosition].Select(e => e.SymbolCenter));
             glyphs.Add(World.voxels[ShiftedPosition.PlusZ(-1)].CharAbove);
@@ -63,7 +63,7 @@ public class Mirage : Effect {
 public class FlameTrail : Effect {
     public XYZ Position { get; set; }
 
-    public ColoredGlyph SymbolCenter => new ColoredGlyph(new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (byte)255), symbol.Background, symbol.Glyph);
+    public ColoredGlyph SymbolCenter => new(new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (byte)255), symbol.Background, symbol.Glyph);
     public int lifetime;
     ColoredGlyph symbol;
     public bool Active => lifetime > 0;
@@ -80,7 +80,7 @@ public class FlameTrail : Effect {
 public class Trail : Effect {
     public XYZ Position { get; set; }
 
-    public ColoredGlyph SymbolCenter => new ColoredGlyph(new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (int)(255 * (lifetime > 5 ? 1 : (lifetime + 5) / 10f))), Color.Black, symbol.Glyph);
+    public ColoredGlyph SymbolCenter => new(new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (int)(255 * (lifetime > 5 ? 1 : (lifetime + 5) / 10f))), Color.Black, symbol.Glyph);
     public int lifetime;
     ColoredGlyph symbol;
     public bool Active => lifetime > 0;
@@ -102,7 +102,7 @@ public class Trail : Effect {
 public class RealtimeTrail : Effect {
     public XYZ Position { get; set; }
 
-    public ColoredGlyph SymbolCenter => new ColoredGlyph(new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (int)(255 * Math.Min(Math.Max(lifetime * 2, 0.5), 1))), Color.Black, symbol.Glyph);
+    public ColoredGlyph SymbolCenter => new(new Color(symbol.Foreground.R, symbol.Foreground.G, symbol.Foreground.B, (int)(255 * Math.Min(Math.Max(lifetime * 2, 0.5), 1))), Color.Black, symbol.Glyph);
     public double lifetime;
     ColoredGlyph symbol;
     public bool Active => lifetime > 0;

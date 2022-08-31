@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using SadConsole;
 using SadRogue.Primitives;
+using SFML.Audio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -229,4 +230,10 @@ public class System {
     }
 
     public Stargate FindGateTo(System to) => universe.FindGateTo(this, to);
+
+    public delegate void SoundPlayed(XY position, SoundBuffer sb);
+    public Ev<SoundPlayed> onSoundPlayed = new();
+    public void PlaySound(XY position, SoundBuffer sb) {
+        onSoundPlayed.ForEach(f => f(position, sb));
+    }
 }

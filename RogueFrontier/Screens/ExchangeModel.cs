@@ -178,13 +178,14 @@ public class ExchangeModel {
 
 
         Func<int, string> NameAt = player.groupMode ?
-            (i => { var g = player.groups.ElementAt(i);
+            (i => {
+                var g = player.groups.ElementAt(i);
                 return $"{g.count}x {g.item.type.name}";
             }) :
             (i => player.items.ElementAt(i).type.name);
 
 
-        Color c = playerSide ? Color.Yellow : Color.White;
+        var c = playerSide ? Color.Yellow : Color.White;
         con.DrawBox(new Rectangle(x - 2, y - 3, lineWidth + 8, 3), new ColoredGlyph(c, Color.Black, '-'));
         con.Print(x, y - 2, traders[0].name, c, Color.Black);
         int start = 0;

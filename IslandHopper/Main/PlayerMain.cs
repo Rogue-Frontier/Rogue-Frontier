@@ -15,7 +15,7 @@ class PlayerMain : ControlsConsole {
     DateTime lastUpdate;
     int ticks;
 
-    Dictionary<(int, int), int> visibleVoxelHeight = new Dictionary<(int, int), int>(); //World XY -> World Z
+    Dictionary<(int, int), int> visibleVoxelHeight = new(); //World XY -> World Z
 
     public PlayerMain(int Width, int Height, Island World) : base(Width, Height) {
         this.World = World;
@@ -262,7 +262,7 @@ class PlayerMain : ControlsConsole {
         }
 
         if (info.IsKeyDown(Keys.Up) || info.IsKeyDown(Keys.Down) || info.IsKeyDown(Keys.Right) || info.IsKeyDown(Keys.Left)) {
-            XYZ direction = new XYZ();
+            XYZ direction = new();
             if (info.IsKeyDown(Keys.Up)) {
                 direction += new XYZ(0, 1);
             }
