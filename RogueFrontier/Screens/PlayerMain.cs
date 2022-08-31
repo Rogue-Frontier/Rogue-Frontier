@@ -378,6 +378,11 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
             back.Update(delta);
             lock (world) {
 
+                if(!sceneContainer.Children.Any()) {
+                    playerControls.ProcessAll();
+                    playerControls.input = new();
+                }
+
                 audio.Update(delta.TotalSeconds);
 
                 AddCrosshair();
@@ -469,7 +474,7 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
             pauseScreen.Render(drawTime);
         } else if (networkMap.IsVisible) {
             networkMap.Render(drawTime);
-        } else if (sceneContainer.Children.Count > 0) {
+        } else if (sceneContainer.Children.Any()) {
             back.Render(drawTime);
             viewport.Render(drawTime);
             vignette.Render(drawTime);
@@ -517,7 +522,6 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
                         viewport.Render(drawTime);
                     }
                     uiMegamap.Render(drawTime);
-
                     vignette.Render(drawTime);
                 } else {
                     uiMegamap.Render(drawTime);
@@ -563,13 +567,13 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
         } else if (networkMap.IsVisible) {
             networkMap.ProcessKeyboard(info);
         } else if (powerWidget.IsVisible) {
-            playerControls.ProcessWithMenu(info);
+            playerControls.UpdateInput(info);
             powerWidget.ProcessKeyboard(info);
         } else if (communicationsWidget.IsVisible) {
-            playerControls.ProcessWithMenu(info);
+            playerControls.UpdateInput(info);
             communicationsWidget.ProcessKeyboard(info);
         } else {
-            playerControls.ProcessKeyboard(info);
+            playerControls.UpdateInput(info);
             var p = (Keys k) => info.IsKeyPressed(k);
             var d = (Keys k) => info.IsKeyDown(k);
             if (d(LeftShift) || d(RightShift)) {
@@ -645,12 +649,16 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
                 } else {
                     playerShip.NextPrimary();
                 }
+
+                playerControls.input.UsingMouse = true;
             } else if (state.Mouse.ScrollWheelValueChange < -100) {
                 if (playerControls.input.Shift) {
                     playerShip.PrevSecondary();
                 } else {
                     playerShip.PrevPrimary();
                 }
+
+                playerControls.input.UsingMouse = true;
             }
 
             var centerOffset = new XY(mouseScreenPos.x, Surface.Height - mouseScreenPos.y) - new XY(Surface.Width / 2, Surface.Height / 2);
@@ -660,10 +668,9 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
             if (state.Mouse.MiddleClicked && !playerControls.input.Shift) {
                 TargetMouse();
             } else if(state.Mouse.MiddleButtonDown) {
-                playerShip.SetFiringPrimary(true);
                 playerControls.input.FirePrimary = true;
-                playerShip.SetFiringSecondary(true);
                 playerControls.input.FireSecondary = true;
+                playerControls.input.UsingMouse = true;
             }
             bool enableMouseTurn = !sleepMouse;
             //Update the crosshair if we're aiming with it
@@ -696,20 +703,20 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
                     playerShip.SetRotatingToFace(mouseRads);
                     playerControls.input.TurnRight = playerShip.ship.rotating == Rotating.CW;
                     playerControls.input.TurnLeft = playerShip.ship.rotating == Rotating.CCW;
+                    playerControls.input.UsingMouse = true;
                 }
             }
             if (state.Mouse.LeftButtonDown) {
                 if (playerControls.input.Shift) {
-                    playerShip.SetFiringSecondary();
                     playerControls.input.FireSecondary = true;
                 } else {
-                    playerShip.SetFiringPrimary();
                     playerControls.input.FirePrimary = true;
                 }
+                playerControls.input.UsingMouse = true;
             }
             if (state.Mouse.RightButtonDown) {
-                playerShip.SetThrusting();
                 playerControls.input.Thrust = true;
+                playerControls.input.UsingMouse = true;
             }
         }
         Done:
@@ -726,9 +733,12 @@ public class Noisemaker : Lis<EntityAdded>, IDestroyedListener, IDamagedListener
         generic_damage = Load(nameof(generic_damage));
     ListIndex<Sound> exhaust = new(new(Enumerable.Range(0, 10).Select(i => new Sound() { Volume = 10 })));
     ListIndex<Sound> gunfire = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
-    ListIndex<Sound> damage = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 75 })));
+    ListIndex<Sound> damage = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
     ListIndex<Sound> explosion = new(new(Enumerable.Range(0, 3).Select(i => new Sound() { Volume = 75 })));
     List<IShip> exhaustList;
+
+
+    const float distScale = 1 / 16f;
     public static SoundBuffer Load(string file) => new($"RogueFrontierContent/Sounds/{file}.wav");
     public Noisemaker(PlayerShip player) {
         this.player = player;
@@ -753,7 +763,7 @@ public class Noisemaker : Lis<EntityAdded>, IDestroyedListener, IDamagedListener
             var i = 0;
             foreach(var s in exhaustList) {
                 if (s != null) {
-                    exhaust.list[i].Position = player.position.To(s.position).Scale(1 / 32f).ToVector3f();
+                    exhaust.list[i].Position = player.position.To(s.position).Scale(distScale).ToVector3f();
                 }
                 i++;
             }
@@ -796,7 +806,7 @@ public class Noisemaker : Lis<EntityAdded>, IDestroyedListener, IDamagedListener
     };
     private void PlaySoundFrom(Sound s, Entity e, SoundBuffer sb) {
 
-        s.Position = player.position.To(e.position).Scale(1 / 32f).ToVector3f();
+        s.Position = player.position.To(e.position).Scale(distScale).ToVector3f();
         s.SoundBuffer = sb;
         s.Play();
     }

@@ -40,11 +40,15 @@ public class PlayerControls {
         }
         if (input.TurnLeft) {
             playerShip.SetRotating(Rotating.CCW);
-            playerMain?.SleepMouse();
+            if (!input.UsingMouse) {
+                playerMain?.SleepMouse();
+            }
         }
         if (input.TurnRight) {
             playerShip.SetRotating(Rotating.CW);
-            playerMain?.SleepMouse();
+            if (!input.UsingMouse) {
+                playerMain?.SleepMouse();
+            }
         }
         if (input.Brake) {
             playerShip.SetDecelerating();
@@ -103,7 +107,7 @@ public class PlayerControls {
                 }
                 playerShip.dock = null;
             } else {
-                if (playerShip.GetTarget(out var t) && (playerShip.position - t.position).magnitude < 24) {
+                if (playerShip.GetTarget(out var t) && playerShip.position.Dist(t.position) < 24) {
                     if (t is not IDockable d) {
                         playerShip.AddMessage(new Transmission(t, "Target is not dockable"));
                     } else {
@@ -114,7 +118,7 @@ public class PlayerControls {
                         .FilterKey(p => (playerShip.position - p).magnitude < 8)
                         .OfType<IDockable>()
                         .Where(s => s.GetDockPoint() != null)
-                        .OrderBy(p => (p.position - playerShip.position).magnitude)
+                        .OrderBy(p => playerShip.position.Dist(p.position))
                         .FirstOrDefault();
                     if (dest != null) {
                         Dock(dest);
@@ -133,66 +137,41 @@ public class PlayerControls {
             playerMain.sceneContainer?.Children.Add(new ShipScreen(playerMain, playerShip, playerMain.story) { IsFocused = true });
         }
     }
+    public void ProcessWithMenu() {
+        ProcessArrows();
+        ProcessTargeting();
+        ProcessCommon();
+    }
     public void ProcessAll() {
-        ProcessArrows();
-        ProcessTargeting();
-        ProcessCommon();
-    }
-    public void UpdateInput(Keyboard info) =>
-        input = new(playerShip.person.Settings.controls, info);
-    public void ProcessWithMenu(Keyboard info) {
-        UpdateInput(info);
-
-        ProcessArrows();
-        ProcessTargeting();
-        ProcessCommon();
-    }
-    public void ProcessKeyboard(Keyboard info) {
-        UpdateInput(info);
-
         ProcessArrows();
         ProcessTargeting();
         ProcessCommon();
         if (input.Escape) {
             playerMain.pauseScreen.IsVisible = true;
         }
-        if (input.InvokePowers) {
-            if (playerMain.powerWidget is var m) {
-                m.IsVisible = !m.IsVisible;
-            }
+        if (input.InvokePowers && playerMain.powerWidget is var pw) {
+            pw.IsVisible = !pw.IsVisible;
         }
-        if (info.IsKeyPressed(U)) {
+        if (keys != null && keys.IsKeyPressed(U)) {
             playerMain.sceneContainer?.Children.Add(SListScreen.UsableScreen(playerMain.sceneContainer, playerShip));
         }
-        if (input.Communications) {
-            if (playerMain.communicationsWidget is var m) {
-                m.IsVisible = !m.IsVisible;
-            }
+        if (input.Communications && playerMain.communicationsWidget is var cw) {
+            cw.IsVisible = !cw.IsVisible;
         }
         if (input.NetworkMap) {
-            if (playerMain.networkMap is var m) {
-                m.IsVisible = !m.IsVisible;
+            if (playerMain.networkMap is var nm) {
+                nm.IsVisible = !nm.IsVisible;
             }
         }
-        if (info.IsKeyPressed(F1)) {
+        if (keys != null && keys.IsKeyPressed(F1)) {
             SadConsole.Game.Instance.Screen = new IdentityScreen(playerMain) { IsFocused = true };
             //playerMain.OnIntermission();
         }
-#if DEBUG
-        /*
-        if (info.IsKeyPressed(C)) {
-            if(info.IsKeyDown(LeftShift)) {
-                playerShip.Destroy(playerShip);
-            } else {
-                playerShip.Damage(playerShip, playerShip.ship.damageSystem.GetHP() - 5);
-            }
-        }
-
-        if (info.IsKeyPressed(V)) {
-            playerShip.ship.controlHijack = new Disrupt() { ticksLeft = 90, thrustMode = DisruptMode.FORCE_ON };
-        }
-        */
-#endif
+    }
+    Keyboard keys = null;
+    public void UpdateInput(Keyboard info) {
+        keys = info;
+        input.Read(playerShip.person.Settings.controls, info);
     }
     public static Dictionary<Control, Keys> standard => new() {
         { Thrust, Up },
@@ -220,8 +199,10 @@ public class PlayerInput {
     public bool QuickZoom;
     public bool ToggleUI, Gate, Autopilot, Dock, ShipMenu;
     public bool Escape, InvokePowers, Communications, NetworkMap;
+
+    public bool UsingMouse;
     public PlayerInput() { }
-    public PlayerInput(Dictionary<Control, Keys> controls, Keyboard info) {
+    public void Read(Dictionary<Control, Keys> controls, Keyboard info) {
         var p = (Control c) => info.IsKeyPressed(controls[c]);
         var d = (Control c) => info.IsKeyDown(controls[c]);
         Shift = info.IsKeyDown(LeftShift) || info.IsKeyDown(RightShift);
