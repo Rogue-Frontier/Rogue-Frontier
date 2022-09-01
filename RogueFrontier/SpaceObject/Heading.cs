@@ -19,7 +19,7 @@ class Heading : Effect {
     int ticks;
     public EffectParticle[] particles;
     public void Update(double delta) {
-        if (parent.dock?.docked == true) {
+        if (parent.dock.docked == true) {
             ticks = 0;
             return;
         }
@@ -44,7 +44,7 @@ class Heading : Effect {
         } else {
             for (int i = 0; i < particles.Length; i++) {
                 var p = particles[i];
-                p.position = start + inc * i;
+                p.position = start + inc * (i + 1);
                 p.lifetime = interval + 1 + (interval * (i - particles.Length)) / particles.Length;
             }
         }

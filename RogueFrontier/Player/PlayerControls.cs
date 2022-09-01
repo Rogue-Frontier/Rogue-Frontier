@@ -96,16 +96,18 @@ public class PlayerControls {
         }
         if (input.Autopilot && !playerMain.autopilotUpdate) {
             playerShip.autopilot = !playerShip.autopilot;
+            playerMain.audio.PlayAutopilot(playerShip.autopilot);
             playerShip.AddMessage(new Message($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
         }
         if (input.Dock) {
-            if (playerShip.dock != null) {
+            if (playerShip.dock.Target != null) {
                 if (playerShip.dock.docked) {
                     playerShip.AddMessage(new Message("Undocked"));
                 } else {
                     playerShip.AddMessage(new Message("Docking canceled"));
                 }
-                playerShip.dock = null;
+                playerShip.dock.Clear();
+                playerMain.audio.PlayDocking(false);
             } else {
                 if (playerShip.GetTarget(out var t) && playerShip.position.Dist(t.position) < 24) {
                     if (t is not IDockable d) {
@@ -124,11 +126,13 @@ public class PlayerControls {
                         Dock(dest);
                     } else {
                         playerShip.AddMessage(new Message("No dock target in range"));
+                        playerMain.audio.PlayError();
                     }
                 }
                 void Dock(IDockable dest) {
                     playerShip.AddMessage(new Transmission(dest, "Docking initiated"));
-                    playerShip.dock = new(dest, dest.GetDockPoint());
+                    playerShip.dock.SetTarget(dest, dest.GetDockPoint());
+                    playerMain.audio.PlayDocking(true);
                 }
             }
         }

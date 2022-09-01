@@ -62,10 +62,19 @@
     <None Update="RogueFrontierContent\scripts\Universe.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\sounds\generic_alert.wav">
+    <None Update="RogueFrontierContent\sounds\autopilot_on.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="RogueFrontierContent\sounds\generic_clear_target.wav">
+    <None Update="RogueFrontierContent\sounds\dock_end.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="RogueFrontierContent\sounds\dock_start.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="RogueFrontierContent\sounds\target_set.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="RogueFrontierContent\sounds\target_clear.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\sounds\generic_damage.wav">
@@ -87,6 +96,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\sounds\generic_thrust.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="RogueFrontierContent\sounds\autopilot_off.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\sprites\AmethystStore.asc">

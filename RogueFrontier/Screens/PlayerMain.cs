@@ -65,7 +65,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
     public PlayerShip playerShip;
     public PlayerControls playerControls;
 
-    Noisemaker audio;
+    public Noisemaker audio;
     XY mouseWorldPos;
     Keyboard prevKeyboard=new();
     MouseScreenObjectState prevMouse=new(null, new());
@@ -322,12 +322,12 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
                 PlaceTiles(delta);
                 transition?.Update(delta);
             }
-            var dock = playerShip.dock;
-            if (dock?.justDocked == true && dock.Target is IDockable d) {
+            if (playerShip.dock is Docking { justDocked: true, Target: IDockable d } dock) {
+                audio.PlayDocking(false);
                 var scene = story.GetScene(this, playerShip, d) ?? d.GetDockScene(this, playerShip);
                 if (scene != null) {
                     playerShip.DisengageAutopilot();
-                    playerShip.dock = null;
+                    dock.Clear();
                     sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
                 } else {
                     playerShip.AddMessage(new Message($"Stationed on {dock.Target.name}"));
@@ -402,12 +402,12 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
                 }
             }
 
-            var dock = playerShip.dock;
-            if (dock?.justDocked == true && dock.Target is IDockable d) {
+            if (playerShip.dock is Docking {  justDocked:true, Target: IDockable d } dock) {
+                audio.PlayDocking(false);
                 var scene = story.GetScene(this, playerShip, d) ?? d.GetDockScene(this, playerShip);
                 if (scene != null) {
                     playerShip.DisengageAutopilot();
-                    playerShip.dock = null;
+                    dock.Clear();
                     sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
                 } else {
                     playerShip.AddMessage(new Message($"Stationed on {dock.Target.name}"));
@@ -649,7 +649,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
 
 
             //Placeholder for mouse wheel-based weapon selection
-            if (state.Mouse.ScrollWheelValueChange > 100) {
+            if (state.Mouse.ScrollWheelValueChange > 0) {
                 if (playerControls.input.Shift) {
                     playerShip.NextSecondary();
                 } else {
@@ -657,7 +657,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
                 }
 
                 playerControls.input.UsingMouse = true;
-            } else if (state.Mouse.ScrollWheelValueChange < -100) {
+            } else if (state.Mouse.ScrollWheelValueChange < 0) {
                 if (playerControls.input.Shift) {
                     playerShip.PrevSecondary();
                 } else {
@@ -673,7 +673,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
             ActiveObject t;
             if (state.Mouse.MiddleClicked && !playerControls.input.Shift) {
                 TargetMouse();
-            } else if(state.Mouse.MiddleButtonDown) {
+            } else if(state.Mouse.MiddleButtonDown && playerControls.input.Shift) {
                 playerControls.input.FirePrimary = true;
                 playerControls.input.FireSecondary = true;
                 playerControls.input.UsingMouse = true;
@@ -729,7 +729,6 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
         return base.ProcessMouse(state);
     }
 }
-
 public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener, IWeaponListener {
     PlayerShip player;
     public static readonly SoundBuffer
@@ -738,14 +737,22 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         generic_exhaust = Load(nameof(generic_exhaust)),
         generic_damage = Load(nameof(generic_damage)),
         generic_shield_damage = Load(nameof(generic_shield_damage)),
-        generic_alert = Load(nameof(generic_alert)),
-        generic_clear_target = Load(nameof(generic_clear_target)),
-        generic_missile = Load(nameof(generic_missile));
+        target_set = Load(nameof(target_set)),
+        target_clear = Load(nameof(target_clear)),
+        generic_missile = Load(nameof(generic_missile)),
+        autopilot_on = Load(nameof(autopilot_on)),
+        autopilot_off=Load(nameof(autopilot_off)),
+        dock_start = Load(nameof(dock_start)),
+        dock_end = Load(nameof(dock_end));
     ListIndex<Sound> exhaust = new(new(Enumerable.Range(0, 10).Select(i => new Sound() { Volume = 10 })));
     ListIndex<Sound> gunfire = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
     ListIndex<Sound> damage = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
     ListIndex<Sound> explosion = new(new(Enumerable.Range(0, 3).Select(i => new Sound() { Volume = 75 })));
-    public Sound alert = new() { Volume = 50 };
+    Sound targeting = new() { Volume = 50 },
+        autopilot = new() { Volume = 50 },
+        dock = new() { Volume = 50 };
+        
+    
     List<IShip> exhaustList = new();
     const float distScale = 1 / 16f;
     public static SoundBuffer Load(string file) => new($"RogueFrontierContent/Sounds/{file}.wav");
@@ -753,9 +760,22 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         this.player = player;
 
         player.onTargetChanged += new Container<PlayerShip.TargetChanged>(pl => {
-            alert.SoundBuffer = pl.targetIndex == -1 ? generic_clear_target : generic_alert;
-            alert.Play();
+            targeting.SoundBuffer = pl.targetIndex == -1 ? target_clear : target_set;
+            targeting.Play();
         });
+    }
+    public void PlayAutopilot(bool active) {
+        autopilot.SoundBuffer = active ? autopilot_on : autopilot_off;
+        autopilot.Play();
+    }
+    public void PlayError() {
+        targeting.SoundBuffer = target_clear;
+        targeting.Play();
+    }
+    public void PlayDocking(bool start) {
+
+        dock.SoundBuffer = start ? dock_start : dock_end;
+        dock.Play();
     }
     double time;
     public void Update(double delta) {

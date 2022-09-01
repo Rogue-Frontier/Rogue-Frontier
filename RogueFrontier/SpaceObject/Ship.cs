@@ -71,7 +71,9 @@ public interface IShip : ActiveObject {
     double rotationDeg { get; }
     double rotationRad => rotationDeg * Math.PI / 180;
     public double stoppingRotation { get; }
+#nullable enable
     Docking dock { get; set; }
+#nullable disable
 }
 public class BaseShip {
     [JsonIgnore]
@@ -332,7 +334,7 @@ public class AIShip : IShip {
     [JsonIgnore] public HullSystem damageSystem => ship.damageSystem;
     [JsonIgnore] public Rand destiny => ship.destiny;
     [JsonIgnore] public double stoppingRotation => ship.stoppingRotation;
-    [JsonIgnore] public HashSet<Entity> avoidHit => new HashSet<Entity> { dock?.Target, (behavior as GuardOrder)?.home };
+    [JsonIgnore] public HashSet<Entity> avoidHit => new HashSet<Entity> { dock.Target, (behavior as GuardOrder)?.home };
     
     public Sovereign sovereign { get; set; }
     private IShipBehavior _behavior;
@@ -344,7 +346,7 @@ public class AIShip : IShip {
         }
     }
     public BaseShip ship;
-    public Docking dock { get; set; }
+    public Docking dock { get; set; } = new();
 
     public record WeaponFired(AIShip ship, Weapon w, List<Projectile> p);
     public Vi<WeaponFired> onWeaponFire = new();
@@ -391,9 +393,10 @@ public class AIShip : IShip {
         behavior?.Update(delta, this);
         ship.UpdatePhysics(delta);
 
-        dock?.Update(delta, this);
 
-        if(world.tick%30 == 0 && dock?.Target is Station st) {
+        dock.Update(delta, this);
+
+        if(world.tick%30 == 0 && dock.Target is Station st) {
             ship.stealth = Math.Max(ship.stealth, st.stealth);
         }
         //We update the ship's devices as ourselves because they need to know who the exact owner is
@@ -471,9 +474,9 @@ public class PlayerShip : IShip {
 
     [JsonIgnore]
     public HashSet<Entity> avoidHit => new() {
-        dock?.Target
+        dock.Target
     };
-    public Docking dock { get; set; }
+    public Docking dock { get; set; } = new();
 
     public bool targetFriends = false;
     public List<ActiveObject> targetList = new();
@@ -849,7 +852,7 @@ public class PlayerShip : IShip {
             }
         }
 
-        dock?.Update(delta, this);
+        dock.Update(delta, this);
 
         ship.UpdatePhysics(delta);
         ship.ResetControl();

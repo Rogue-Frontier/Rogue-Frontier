@@ -152,18 +152,18 @@ public class Merchant : IShipBehavior, Ob<Station.Destroyed> {
             return;
         }
 
-        if (owner.dock?.Target != target) {
+        if (owner.dock.Target != target) {
             if((owner.position - target.position).magnitude2 > 8*8) {
                 new ApproachOrbitOrder(target).Update(delta, owner);
             } else {
-                owner.dock = new(target);
+                owner.dock.SetTarget(target);
                 timer = 60*30 + 60 * owner.world.karma.NextInteger(90);
             }
         } else if(timer > 0) {
             timer--;
         } else {
             target.onDestroyed -= this;
-            owner.dock = null;
+            owner.dock.Clear();
 
             target = owner.world.entities.all.OfType<Station>()
                 .Where(s => s != target && !s.CanTarget(owner)).GetRandomOrDefault(owner.world.karma)
@@ -333,7 +333,7 @@ public class ApproachOrder : IShipOrder {
     }
     public void Update(double delta, AIShip owner) {
         //Remove dock
-        owner.dock = null;
+        owner.dock.Clear();
         var velDiff = owner.velocity - target.velocity;
         double decel = owner.shipClass.thrust * Program.TICKS_PER_SECOND / 2;
         double stoppingTime = velDiff.magnitude / decel;
@@ -395,13 +395,13 @@ public class LootOrder : IShipOrder, Ob<Docking.OnDocked>/*, Lis<Wreck.OnDestroy
     public void Update(double delta, AIShip owner) {
         ticks++;
         if (!target.active) {
-            owner.dock = null;
+            owner.dock.Clear();
             Active = false;
             return;
         }
         if(owner.dock is Docking d && d.Target == target) {
             if (d.docked == true && ++dockTime == 150) {
-                owner.dock = null;
+                owner.dock.Clear();
                 Active = false;
                 owner.cargo.UnionWith(target.cargo);
                 target.cargo.Clear();
@@ -411,7 +411,7 @@ public class LootOrder : IShipOrder, Ob<Docking.OnDocked>/*, Lis<Wreck.OnDestroy
         }
         
         if (ticks % 10 == 0 && approach.currentOffset.magnitude2 < 6 * 6) {
-            owner.dock = new(target, XY.Zero);
+            owner.dock.SetTarget(target, XY.Zero);
             owner.dock.onDocked += this;
         } else {
             approach.Update(delta, owner);
@@ -506,7 +506,7 @@ public class GuardOrder : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, 
         }
         //Otherwise, we're idle
         //If we're docked, then don't check for enemies every tick
-        if (ticks % 150 != 0 && owner.dock?.docked == true) {
+        if (ticks % 150 != 0 && owner.dock.docked) {
             return;
         }
         //Look for a nearby attack target periodically
@@ -523,7 +523,7 @@ public class GuardOrder : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, 
             }
         }
         //If we're currently docking, then continue
-        if(owner.dock?.Target == home) {
+        if(owner.dock.Target == home) {
             return;
         }
         if (ticks % 10 == 0 && approach.currentOffset.magnitude2 < 6 * 6) {
@@ -531,7 +531,7 @@ public class GuardOrder : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, 
                 Station s => s.GetDockPoint(),
                 _ => XY.Zero
             };
-            owner.dock = new(home, offset);
+            owner.dock.SetTarget(home, offset);
             owner.dock.onDocked += this;
         } else {
             approach.Update(delta, owner);
@@ -788,7 +788,7 @@ public class AttackOrder : IShipOrder {
         }
 
         //Remove dock
-        owner.dock = null;
+        owner.dock.Clear();
 
         var offset = (target.position - owner.position);
         var dist = offset.magnitude;
@@ -1046,7 +1046,7 @@ public class ApproachOrbitOrder : IShipOrder {
     }
     public void Update(double delta, AIShip owner) {
         //Remove dock
-        owner.dock = null;
+        owner.dock.Clear();
         //Find the direction we need to go
         currentOffset = (target.position - owner.position);
         var randomOffset = new XY((2 * owner.destiny.NextDouble() - 1) * currentOffset.x, (2 * owner.destiny.NextDouble() - 1) * currentOffset.y) / 5;

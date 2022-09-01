@@ -196,10 +196,10 @@ public class Station : ActiveObject, ITrader, IDockable {
     }
     public IEnumerable<AIShip> GetDocked() =>
         world.entities.FilterKey(p => (position - p).magnitude < 5)
-            .OfType<AIShip>().Where(s => s.dock?.Target == this);
+            .OfType<AIShip>().Where(s => s.dock.Target == this);
     
     public XY GetDockPoint() =>
-        type.dockPoints.Except(GetDocked().Select(s => s.dock?.Offset)).FirstOrDefault() ?? XY.Zero;
+        type.dockPoints.Except(GetDocked().Select(s => s.dock.Offset)).FirstOrDefault() ?? XY.Zero;
     public List<AIShip> UpdateGuardList() {
         return guards = new(world.universe.GetAllEntities().OfType<AIShip>()
             .Where(s => s.behavior switch {

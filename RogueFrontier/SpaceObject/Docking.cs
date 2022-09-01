@@ -8,21 +8,26 @@ public class Docking {
     public XY Offset;
     public bool docked;
     public bool justDocked;
-
     public record OnDocked(IShip owner, Docking d);
     public Vi<OnDocked> onDocked = new();
-
-
     public Docking() { }
-    public Docking(StructureObject Target) {
+    public void SetTarget(StructureObject Target, XY Offset = null) {
         this.Target = Target;
-        this.Offset = new XY(0, 0);
+        this.Offset = Offset ?? new(0, 0);
     }
-    public Docking(StructureObject Target, XY Offset) {
-        this.Target = Target;
-        this.Offset = Offset;
+    public void Clear() {
+        if(Target == null) {
+            return;
+        }
+        Target = null;
+        onDocked.set.Clear();
+        docked = false;
+        justDocked = false;
     }
     public void Update(double delta, IShip owner) {
+        if(Target == null) {
+            return;
+        }
         if (!docked) {
             if (docked = UpdateDocking(delta, owner)) {
                 justDocked = true;
