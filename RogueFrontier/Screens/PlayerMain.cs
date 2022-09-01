@@ -746,7 +746,7 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
     ListIndex<Sound> damage = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
     ListIndex<Sound> explosion = new(new(Enumerable.Range(0, 3).Select(i => new Sound() { Volume = 75 })));
     public Sound alert = new() { Volume = 50 };
-    List<IShip> exhaustList;
+    List<IShip> exhaustList = new();
     const float distScale = 1 / 16f;
     public static SoundBuffer Load(string file) => new($"RogueFrontierContent/Sounds/{file}.wav");
     public Noisemaker(PlayerShip player) {
@@ -756,7 +756,6 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
             alert.SoundBuffer = pl.targetIndex == -1 ? generic_clear_target : generic_alert;
             alert.Play();
         });
-        exhaustList = new(Enumerable.Repeat(null as IShip, exhaust.list.Count));
     }
     double time;
     public void Update(double delta) {
@@ -768,26 +767,23 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
                 .Where(s => s.thrusting)
                 .OrderBy(sh => player.position.Dist(sh.position))
                 .Zip(exhaust.list);
-            var i = 0;
+
+            foreach((var ship, var sound) in exhaustList.Zip(exhaust.list)) {
+                sound.Stop();
+            }
+            exhaustList.Clear();
             foreach ((var ship, var sound) in s) {
                 PlaySoundFrom(sound, ship, generic_exhaust);
-                exhaustList[i++] = ship;
+                exhaustList.Add(ship);
             }
         } else {
-            var i = 0;
-            foreach(var s in exhaustList) {
-                if (s != null) {
-                    exhaust.list[i].Position = player.position.To(s.position).Scale(distScale).ToVector3f();
-                }
-                i++;
+            foreach((var ship, var sound) in exhaustList.Zip(exhaust.list)) {
+                sound.Position = player.position.To(ship.position).Scale(distScale).ToVector3f();
             }
         }
     }
     public void Register(Universe u) {
         var obj = u.GetAllEntities().OfType<ActiveObject>();
-
-        var pl = obj.OfType<PlayerShip>().FirstOrDefault();
-
         foreach (var a in obj) {
             Register(a);
         }
