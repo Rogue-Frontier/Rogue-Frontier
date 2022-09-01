@@ -512,8 +512,9 @@ public record FragmentDesc {
     public List<Projectile> GetProjectiles(ActiveObject owner, ActiveObject target, double direction, XY offset = null, HashSet<Entity> exclude = null) {
         var position = owner.position + (offset??new(0,0));
 
+        var adj = count % 2 == 0 ? -angleInterval / 2 : 0;
         var projectiles = new List<Projectile>();
-        projectiles.AddRange(GetAngles(direction).Select(angle =>
+        projectiles.AddRange(GetAngles(direction + adj).Select(angle =>
             new Projectile(owner, this,
                 position + XY.Polar(angle),
                 owner.velocity + XY.Polar(angle, missileSpeed),
