@@ -125,16 +125,17 @@ public class Station : ActiveObject, ITrader, IDockable {
 
     public double stealth;
 
-    public delegate void Destroyed(Station station, ActiveObject destroyer, Wreck wreck);
-    public Ev<Destroyed> onDestroyed = new();
+    public record Destroyed(Station station, ActiveObject destroyer, Wreck wreck);
+    public Destroyed destroyed;
+    public Vi<Destroyed> onDestroyed = new();
 
 
-    public delegate void Damaged(Station station, Projectile p);
-    public Ev<Damaged> onDamaged = new();
+    public record Damaged(Station station, Projectile p);
+    public Vi<Damaged> onDamaged = new();
 
 
-    public delegate void WeaponFired(Station station, Weapon w, List<Projectile> p);
-    public Ev<WeaponFired> onWeaponFire = new();
+    public record WeaponFired(Station station, Weapon w, List<Projectile> p);
+    public Vi<WeaponFired> onWeaponFire = new();
 
     public Station() { }
     public Station(System World, StationType type, XY Position) {
@@ -218,8 +219,7 @@ public class Station : ActiveObject, ITrader, IDockable {
     }
     */
     public void Damage(Projectile p) {
-        onDamaged.RemoveNull();
-        onDamaged.ForEach(f => f(this, p));
+        onDamaged.Observe(new(this, p));
         damageSystem.Damage(world.tick, p, () => Destroy(p.source));
         if (!active) {
             return;
@@ -278,8 +278,7 @@ public class Station : ActiveObject, ITrader, IDockable {
                 }
             }
         }
-        onDestroyed.RemoveNull();
-        onDestroyed.ForEach(f => f(this, source, wreck));
+        onDestroyed.Observe(destroyed = new(this, source, wreck));
     }
     public void Update(double delta) {
         velocity = XY.Zero;

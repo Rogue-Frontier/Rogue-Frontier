@@ -9,8 +9,8 @@ public class Docking {
     public bool docked;
     public bool justDocked;
 
-    public delegate void OnDocked(IShip owner, Docking d);
-    public Ev<OnDocked> onDocked = new();
+    public record OnDocked(IShip owner, Docking d);
+    public Vi<OnDocked> onDocked = new();
 
 
     public Docking() { }
@@ -27,7 +27,7 @@ public class Docking {
             if (docked = UpdateDocking(delta, owner)) {
                 justDocked = true;
 
-                onDocked.ForEach(a => a(owner, this));
+                onDocked.Observe(new(owner, this));
             }
         } else {
             owner.position = Target.position;

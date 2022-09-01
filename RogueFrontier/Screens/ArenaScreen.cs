@@ -16,9 +16,8 @@ namespace RogueFrontier;
 public interface IConsoleHook {
 
 }
-public class ArenaScreen : Console, Lis<PlayerShip.Destroyed> {
-    PlayerShip.Destroyed Lis<PlayerShip.Destroyed>.Value => (s, d, w) => Reset();
-
+public class ArenaScreen : Console, Ob<PlayerShip.Destroyed> {
+    public void Observe(PlayerShip.Destroyed ev) => Reset();
 
     TitleScreen prev;
     Settings settings;

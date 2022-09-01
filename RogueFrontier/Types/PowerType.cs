@@ -98,7 +98,7 @@ public record Clonewall() : PowerEffect {
         player.world.AddEffect(o);
         player.onWeaponFire += o;
     }
-    public class Overlay : Effect, Lis<PlayerShip.WeaponFired> {
+    public class Overlay : Effect, Ob<PlayerShip.WeaponFired> {
         int ticks;
         PlayerShip owner;
         public XY position => owner.position;
@@ -124,7 +124,8 @@ public record Clonewall() : PowerEffect {
                         XY.Polar(owner.rotationRad + Math.PI / 2, 4),
                         XY.Polar(owner.rotationRad + Math.PI / 2, 6),
                     };
-        PlayerShip.WeaponFired Lis<PlayerShip.WeaponFired>.Value => (p, w, pr) => {
+         public void Observe(PlayerShip.WeaponFired ev){
+            var (p, w, pr) = ev;
             if (!active) {
                 p.onWeaponFire -= this;
                 return;
@@ -144,11 +145,11 @@ public record Clonewall() : PowerEffect {
                 l.ForEach(p => p.position += o);
                 l.ForEach(owner.world.AddEntity);
                 w.ammo?.OnFire();
-                w.onFire.ForEach(f => f(w, l));
+                w.onFire.Observe(new(w, l));
                 w.totalTimesFired++;
             });
             busy = false;
-        };
+        }
         public void Update(double delta) {
             ticks++;
             if(owner.GetPrimary() is Weapon w) {
@@ -328,8 +329,8 @@ public class Power : IPower {
     [JsonIgnore]
     public List<PowerEffect> Effect => type.Effect;
 
-    public delegate void OnInvoked(Power power);
-    public Ev<OnInvoked> onInvoked = new();
+    public record OnInvoked(Power power);
+    public Vi<OnInvoked> onInvoked = new();
     public Power(PowerType type) {
         this.type = type;
     }
@@ -370,7 +371,7 @@ public class Power : IPower {
                 }
             });
         }
-        onInvoked.ForEach(a => a(this));
+        onInvoked.Observe(new(this));
         invokeCharge = 0;
         cooldownLeft = cooldownPeriod;
     }

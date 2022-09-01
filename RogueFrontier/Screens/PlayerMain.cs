@@ -19,14 +19,15 @@ using System.Threading;
 using SFML.Audio;
 
 namespace RogueFrontier;
-public class NotifyStationDestroyed : Lis<Station.Destroyed> {
+public class NotifyStationDestroyed : Ob<Station.Destroyed> {
     public PlayerShip playerShip;
     public Station source;
-    [JsonIgnore]
-    public Station.Destroyed Value =>
-        (s, d, w) => playerShip?.AddMessage(new Transmission(source,
+    public void Observe(Station.Destroyed ev) {
+        var (s, d, w) = ev;
+        playerShip?.AddMessage(new Transmission(source,
             $"{source.name} destroyed by {d?.name ?? "unknown forces"}!"
             ));
+    }
     public NotifyStationDestroyed(PlayerShip playerShip, Station source) {
         this.playerShip = playerShip;
         this.source = source;
@@ -50,9 +51,11 @@ public class Camera {
         right = right.Rotate(angle);
     }
 }
-public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
-    PlayerShip.Destroyed Lis<PlayerShip.Destroyed>.Value =>
-        (p, d, w) => OnPlayerDestroyed($"Destroyed by {d?.name ?? "unknown forces"}", w);
+public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
+    public void Observe(PlayerShip.Destroyed ev) {
+        var (p, d, w) = ev;
+        OnPlayerDestroyed($"Destroyed by {d?.name ?? "unknown forces"}", w);
+    }
     public int Width => Surface.Width;
     public int Height => Surface.Height;
     public System world => playerShip.world;
@@ -727,7 +730,7 @@ public class PlayerMain : ScreenSurface, Lis<PlayerShip.Destroyed> {
     }
 }
 
-public class Noisemaker : Lis<EntityAdded>, IDestroyedListener, IDamagedListener, IWeaponListener {
+public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener, IWeaponListener {
     PlayerShip player;
     public static readonly SoundBuffer
         generic_fire = Load(nameof(generic_fire)),
@@ -781,44 +784,50 @@ public class Noisemaker : Lis<EntityAdded>, IDestroyedListener, IDamagedListener
         }
     }
     public void Register(Universe u) {
-        foreach(var a in u.GetAllEntities().OfType<ActiveObject>()) {
+        var obj = u.GetAllEntities().OfType<ActiveObject>();
+
+        var pl = obj.OfType<PlayerShip>().FirstOrDefault();
+
+        foreach (var a in obj) {
             Register(a);
         }
         u.onEntityAdded += this;
     }
-    EntityAdded Lis<EntityAdded>.Value => e => {
-        if (e is ActiveObject a) {
-            Register(a);
-        }
-    };
     private void Register(ActiveObject a) {
         ((IDestroyedListener)this).Register(a);
         ((IDamagedListener)this).Register(a);
         ((IWeaponListener)this).Register(a);
     }
-    IDestroyedListener.Destroyed IDestroyedListener.Value => (e, d) => {
+    public void Observe(EntityAdded ev) {
+        var e = ev.e;
+        if (e is ActiveObject a) {
+            Register(a);
+        }
+    }
+    public void Observe(IDestroyedListener.Destroyed ev) {
+        var e = ev.destroyed;
         if(e.world != player.world) {
             return;
         }
         PlaySoundFrom(explosion.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e, generic_explosion);
-    };
-    IDamagedListener.Damaged IDamagedListener.Value => (e, p) => {
+    }
+    public void Observe(IDamagedListener.Damaged ev) {
+        var (e, p) = ev;
         if (e.world != player.world) {
             return;
         }
 
         PlaySoundFrom(damage.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e,
             p.hitHull ? generic_damage : generic_shield_damage);
-    };
-    IWeaponListener.WeaponFired IWeaponListener.Value => (e, w, p) => {
+    }
+    public void Observe(IWeaponListener.WeaponFired ev) {
+        var (e, w, p) = ev;
         if (e.world != player.world) {
             return;
         }
         PlaySoundFrom(gunfire.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e,
             w.desc?.sound ?? generic_fire);
-    };
-
-
+    }
     private void PlaySoundFrom(Sound s, Entity e, SoundBuffer sb) {
 
         s.Position = player.position.To(e.position).Scale(distScale).ToVector3f();
@@ -1035,7 +1044,7 @@ public class Megamap : ScreenSurface {
         base.Render(delta);
     }
 }
-public class Vignette : ScreenSurface, Lis<PlayerShip.Damaged> {
+public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged> {
     public int Width => Surface.Width;
     public int Height => Surface.Height;
     PlayerShip player;
@@ -1049,14 +1058,15 @@ public class Vignette : ScreenSurface, Lis<PlayerShip.Damaged> {
     int recoveryTime;
     public int lightningHit;
     public int flash;
-    PlayerShip.Damaged Lis<PlayerShip.Damaged>.Value => (pl, pr) => {
+    public void Observe(PlayerShip.Damaged ev) {
+        var (pl, pr) = ev;
         if (pr.fragment.lightning) {
             lightningHit = 5;
         }
         if (pr.fragment.blind?.Roll() is int db) {
             flash = Math.Max(db, flash);
         }
-    };
+    }
     public Vignette(PlayerShip player, int width, int height) : base(width, height) {
         this.player = player;
         player.onDamaged += this;

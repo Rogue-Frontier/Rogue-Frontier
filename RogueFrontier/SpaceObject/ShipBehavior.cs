@@ -14,11 +14,12 @@ public interface IShipBehavior {
     public void Init(AIShip owner) { }
     void Update(double delta, AIShip owner);
 }
-public class Sulphin : IShipBehavior, Lis<Station.Destroyed> {
-    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => {
+public class Sulphin : IShipBehavior, Ob<Station.Destroyed> {
+    public void Observe(Station.Destroyed ev) {
+        var (s, d, w) = ev;
         s.onDestroyed -= this;
         stationsLost++;
-    };
+    }
     private int stationsLost;
     public int ticks = 0;
     public HashSet<PlayerShip> playersMet = new();
@@ -74,12 +75,9 @@ public class Sulphin : IShipBehavior, Lis<Station.Destroyed> {
         ticks++;
     }
 }
-
-
-
-public class Swift : IShipBehavior, Lis<AIShip.Destroyed> {
-
-    AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => {
+public class Swift : IShipBehavior, Ob<AIShip.Destroyed> {
+    public void Observe(AIShip.Destroyed ev) {
+        var (s, d, w) = ev;
         s.onDestroyed -= this;
         if (d is PlayerShip pl) {
             frigatesLost++;
@@ -87,7 +85,7 @@ public class Swift : IShipBehavior, Lis<AIShip.Destroyed> {
                 order = new AttackOrder(pl);
             }
         }
-    };
+    }
 
     private int frigatesLost;
 
@@ -114,16 +112,17 @@ public class Swift : IShipBehavior, Lis<AIShip.Destroyed> {
     }
 }
 
-public class Merchant : IShipBehavior, Lis<Station.Destroyed> {
+public class Merchant : IShipBehavior, Ob<Station.Destroyed> {
     public GateOrder gateOrder;
     public Station target;
     public int timer;
-    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => {
+    public void Observe(Station.Destroyed ev) {
+        var (s, d, w) = ev;
         s.onDestroyed -= this;
         if (s == target) {
             target = null;
         }
-    };
+    }
     public Merchant() {}
     public void Update(double delta, AIShip owner) {
         if (gateOrder != null) {
@@ -181,13 +180,13 @@ public interface IShipOrder : IShipBehavior{
     public bool CanTarget(ActiveObject other) => false;
     public delegate IShipOrder Create(ActiveObject target);
 }
-public interface IDestroyedListener : Lis<Station.Destroyed>, Lis<AIShip.Destroyed>, Lis<PlayerShip.Destroyed> {
-    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => Value(s, d);
-    AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => Value(s, d);
-    PlayerShip.Destroyed Lis<PlayerShip.Destroyed>.Value => (s, d, w) => Value(s, d);
+public interface IDestroyedListener : Ob<Station.Destroyed>, Ob<AIShip.Destroyed>, Ob<PlayerShip.Destroyed> {
 
-    public delegate void Destroyed(ActiveObject destroyed, ActiveObject destroyer);
-    public Destroyed Value { get; }
+    void Ob<Station.Destroyed>.Observe(Station.Destroyed ev) => Observe(new Destroyed(ev.station, ev.destroyer));
+    void Ob<AIShip.Destroyed>.Observe(AIShip.Destroyed ev) => Observe(new Destroyed(ev.ship, ev.destroyer));
+    void Ob<PlayerShip.Destroyed>.Observe(PlayerShip.Destroyed ev) => Observe(new Destroyed(ev.playerShip, ev.destroyer));
+    public record Destroyed(ActiveObject destroyed, ActiveObject destroyer);
+    void Observe(Destroyed ev);
 
     public void Register(ActiveObject target) {
         switch (target) {
@@ -197,13 +196,12 @@ public interface IDestroyedListener : Lis<Station.Destroyed>, Lis<AIShip.Destroy
         }
     }
 }
-public interface IDamagedListener : Lis<Station.Damaged>, Lis<AIShip.Damaged>, Lis<PlayerShip.Damaged> {
-    Station.Damaged Lis<Station.Damaged>.Value => (a, p) => Value(a, p);
-    AIShip.Damaged Lis<AIShip.Damaged>.Value => (a, p) => Value(a, p);
-    PlayerShip.Damaged Lis<PlayerShip.Damaged>.Value => (a, p) => Value(a, p);
-
-    public delegate void Damaged(ActiveObject a, Projectile p);
-    public Damaged Value { get; }
+public interface IDamagedListener : Ob<Station.Damaged>, Ob<AIShip.Damaged>, Ob<PlayerShip.Damaged> {
+    void Ob<Station.Damaged>.Observe(Station.Damaged ev) => Observe(new(ev.station, ev.p));
+    void Ob<AIShip.Damaged>.Observe(AIShip.Damaged ev) => Observe(new(ev.ship, ev.hit));
+    void Ob<PlayerShip.Damaged>.Observe(PlayerShip.Damaged ev) => Observe(new(ev.playerShip, ev.p));
+    public record Damaged(ActiveObject a, Projectile p);
+    public void Observe(Damaged ev);
 
     public void Register(ActiveObject target) {
         switch (target) {
@@ -213,13 +211,14 @@ public interface IDamagedListener : Lis<Station.Damaged>, Lis<AIShip.Damaged>, L
         }
     }
 }
-public interface IWeaponListener : Lis<PlayerShip.WeaponFired>, Lis<AIShip.WeaponFired>, Lis<Station.WeaponFired> {
-    Station.WeaponFired Lis<Station.WeaponFired>.Value => (s, w, p) => Value(s, w, p);
-    AIShip.WeaponFired Lis<AIShip.WeaponFired>.Value => (s, w, p) => Value(s, w, p);
-    PlayerShip.WeaponFired Lis<PlayerShip.WeaponFired>.Value => (s, w, p) => Value(s, w, p);
+public interface IWeaponListener : Ob<PlayerShip.WeaponFired>, Ob<AIShip.WeaponFired>, Ob<Station.WeaponFired> {
 
-    public delegate void WeaponFired(ActiveObject source, Weapon w, List<Projectile> proj);
-    public WeaponFired Value { get; }
+    void Ob<Station.WeaponFired>.Observe(Station.WeaponFired ev) => Observe(new(ev.station, ev.w, ev.p));
+    void Ob<AIShip.WeaponFired>.Observe(AIShip.WeaponFired ev) => Observe(new (ev.ship, ev.w, ev.p));
+    void Ob<PlayerShip.WeaponFired>.Observe(PlayerShip.WeaponFired ev) => Observe(new (ev.playerShip, ev.w, ev.p));
+
+    public record WeaponFired(ActiveObject source, Weapon w, List<Projectile> proj);
+    public void Observe(WeaponFired ev);
 
     public void Register(ActiveObject target) {
         switch (target) {
@@ -234,11 +233,11 @@ public record OrderOnDestroy(AIShip ship, IShipOrder current, IShipOrder next) :
         ((IDestroyedListener)new OrderOnDestroy(ship, current, next)).Register(target);
     }
     public bool active => ship.behavior == current;
-    IDestroyedListener.Destroyed IDestroyedListener.Value => (a, o) => {
+    public void Observe(IDestroyedListener.Destroyed ev) {
         if (active) {
             ship.behavior = next;
         }
-    };
+    }
 }
 public class CompoundOrder : IShipOrder {
     public List<IShipOrder> orders=new();
@@ -377,7 +376,7 @@ public class ApproachOrder : IShipOrder {
 }
 
 
-public class LootOrder : IShipOrder, Lis<Docking.OnDocked>/*, Lis<Wreck.OnDestroyed>*/ {
+public class LootOrder : IShipOrder, Ob<Docking.OnDocked>/*, Lis<Wreck.OnDestroyed>*/ {
     [JsonProperty]
     public Wreck target { get; private set; }
     [JsonProperty]
@@ -385,8 +384,7 @@ public class LootOrder : IShipOrder, Lis<Docking.OnDocked>/*, Lis<Wreck.OnDestro
     public int dockTime;
     public int ticks;
 
-    public delegate void OnDocked(IShip owner, Wreck target);
-    public Ev<OnDocked> onDocked = new();
+    public Vi<Docking.OnDocked> onDocked = new();
     public LootOrder(Wreck target) {
         this.target = target;
         approach = new(target);
@@ -420,10 +418,10 @@ public class LootOrder : IShipOrder, Lis<Docking.OnDocked>/*, Lis<Wreck.OnDestro
         }
     }
     public bool Active { get; private set; }
-    Docking.OnDocked Lis<Docking.OnDocked>.Value => (owner, docking) => onDocked.ForEach(f => f(owner, target));
+    public void Observe(Docking.OnDocked ev) => onDocked.Observe(ev);
     //Wreck.OnDestroyed Lis<Wreck.OnDestroyed>.Value => w => Active = false;
 }
-public class GuardOrder : IShipOrder, Lis<Docking.OnDocked>, Lis<AIShip.Damaged>, Lis<Station.Damaged>, Lis<AttackOrder.TargetInvisible> {
+public class GuardOrder : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, Ob<Station.Damaged>, Ob<AttackOrder.TargetInvisible> {
     [JsonProperty]
     public ActiveObject home { get; private set; }
     [JsonProperty]
@@ -434,8 +432,8 @@ public class GuardOrder : IShipOrder, Lis<Docking.OnDocked>, Lis<AIShip.Damaged>
     public int ticks;
 
 
-    public delegate void OnDockedHome(IShip owner, GuardOrder order);
-    public Ev<OnDockedHome> onDockedHome = new();
+    public record OnDockedHome(IShip owner, GuardOrder order);
+    public Vi<OnDockedHome> onDockedHome = new();
     public GuardOrder(ActiveObject home) {
         this.home = home;
         approach = new(home);
@@ -468,11 +466,12 @@ public class GuardOrder : IShipOrder, Lis<Docking.OnDocked>, Lis<AIShip.Damaged>
         errand = a;
         errandTime = attackTime;
     }
-    AttackOrder.TargetInvisible Lis<AttackOrder.TargetInvisible>.Value => a => {
-        if(a == errand) {
+    public void Observe(AttackOrder.TargetInvisible ev) {
+        var a = ev.a;
+        if (a == errand) {
             ClearErrand();
         }
-    };
+    }
 
     public void SetLoot(Wreck target) {
         errand = new LootOrder(target);
@@ -554,24 +553,26 @@ public class GuardOrder : IShipOrder, Lis<Docking.OnDocked>, Lis<AIShip.Damaged>
                 .GetRandomOrDefault(owner.destiny);
     }
     public bool Active => home.active;
-    Docking.OnDocked Lis<Docking.OnDocked>.Value => (owner, docking) => onDockedHome.ForEach(f => f(owner, this));
-    AIShip.Damaged Lis<AIShip.Damaged>.Value => (owner, p) => {
-        if(!allowFlee) {
+    public void Observe(Docking.OnDocked ev) => onDockedHome.Observe(new(ev.owner, this));
+    public void Observe(AIShip.Damaged ev) {
+        var (owner, p) = ev;
+        if (!allowFlee) {
             return;
         }
         if (owner.IsAble()) {
             return;
         }
-        if(errand is AttackOrder) {
+        if (errand is AttackOrder) {
             ClearErrand();
         }
-    };
-    Station.Damaged Lis<Station.Damaged>.Value => (owner, p) => {
+    }
+    public void Observe(Station.Damaged ev) {
+        var (owner, projectile) = ev;
         if(owner.damageSystem.GetHP() > owner.damageSystem.GetMaxHP()) {
             return;
         }
         allowFlee = false;
-    };
+    }
 }
 
 public class AttackAllOrder : IShipOrder {
@@ -610,15 +611,16 @@ public class AttackAllOrder : IShipOrder {
     }
     public bool Active => true;
 }
-public class FireTrackerOrder : IShipOrder, Lis<Weapon.OnHitActive> {
+public class FireTrackerOrder : IShipOrder, Ob<Weapon.OnHitActive> {
     public int sleepTicks;
     public AttackOrder attack;
     public bool CanTarget(ActiveObject other) => other == attack.target;
-    Weapon.OnHitActive Lis<Weapon.OnHitActive>.Value => (w, p, h) => {
+    public void Observe(Weapon.OnHitActive ev) {
+        var (w, p, h) = ev;
         if (p.hitHull) {
             _active = false;
         }
-    };
+    }
     public FireTrackerOrder(Weapon w, ActiveObject target) {
         attack = new(target);
         w.onHitActive += this;
@@ -638,15 +640,16 @@ public class FireTrackerOrder : IShipOrder, Lis<Weapon.OnHitActive> {
     private bool _active = true;
     public bool Active => _active;
 }
-public class FireTrackerNearbyOrder : IShipOrder, Lis<Weapon.OnHitActive> {
+public class FireTrackerNearbyOrder : IShipOrder, Ob<Weapon.OnHitActive> {
     public int sleepTicks;
     public AttackOrder attack;
     public bool CanTarget(ActiveObject other) => other == attack.target;
-    Weapon.OnHitActive Lis<Weapon.OnHitActive>.Value => (w, p, h) => {
+    public void Observe(Weapon.OnHitActive ev) {
+        var (w, p, h) = ev;
         if (p.hitHull && h == attack.target) {
             attack.ClearTarget();
         }
-    };
+    }
     public FireTrackerNearbyOrder(Weapon w) {
         attack = new(null);
         w.onHitActive += this;
@@ -724,8 +727,8 @@ public class AttackOrder : IShipOrder {
     public bool avoid;
 
 
-    public delegate void TargetInvisible(AttackOrder a);
-    public Ev<TargetInvisible> onTargetInvisible = new();
+    public record TargetInvisible(AttackOrder a);
+    public Vi<TargetInvisible> onTargetInvisible = new();
 
     public AttackOrder(ActiveObject target) {
         SetTarget(target);
@@ -765,7 +768,7 @@ public class AttackOrder : IShipOrder {
             if (stealthCheckTime > 0.5) {
                 stealthCheckTime = 0;
                 if(SStealth.CanSee(owner, target)) {
-                    onTargetInvisible.ForEach(f => f(this));
+                    onTargetInvisible.Observe(new(this));
                 }
             }
         }

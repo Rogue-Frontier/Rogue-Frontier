@@ -16,7 +16,7 @@ class EntityLocator : ILocator<Entity, (int, int)> {
     public (int, int) Locate(Entity e) => (e.position.xi, e.position.yi);
 }
 
-public delegate void EntityAdded(Entity e);
+public record EntityAdded(Entity e);
 public class System {
     [JsonIgnore]
     public static readonly System empty = new(new());
@@ -30,7 +30,7 @@ public class System {
     public LocatorDict<Entity, (int, int)> entities = new(new EntityLocator());
     public List<Entity> entitiesAdded = new();
     public List<Entity> entitiesRemoved = new();
-    public Ev<EntityAdded> onEntityAdded = new();
+    public Vi<EntityAdded> onEntityAdded = new();
     public LocatorDict<Effect, (int, int)> effects = new(new EffectLocator());
     public List<Effect> effectsAdded = new();
     public List<Effect> effectsRemoved = new();
@@ -108,7 +108,7 @@ public class System {
         entities.all.UnionWith(entitiesAdded);
         effects.all.UnionWith(effectsAdded);
 
-        entitiesAdded.ForEach(e => onEntityAdded.ForEach(f => f(e)));
+        entitiesAdded.ForEach(e => onEntityAdded.Observe(new(e)));
 
         eventsAdded.Clear();
         entitiesAdded.Clear();
@@ -231,9 +231,9 @@ public class System {
 
     public Stargate FindGateTo(System to) => universe.FindGateTo(this, to);
 
-    public delegate void SoundPlayed(XY position, SoundBuffer sb);
-    public Ev<SoundPlayed> onSoundPlayed = new();
+    public record SoundPlayed(XY position, SoundBuffer sb);
+    public Vi<SoundPlayed> onSoundPlayed = new();
     public void PlaySound(XY position, SoundBuffer sb) {
-        onSoundPlayed.ForEach(f => f(position, sb));
+        onSoundPlayed.Observe(new(position, sb));
     }
 }

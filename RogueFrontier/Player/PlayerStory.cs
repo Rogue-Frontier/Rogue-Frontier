@@ -470,7 +470,7 @@ have at least a fighting chance when you leave this place.""
 public static class SPlayerStory {
     public static bool IsAmethyst(this Item i) => i.HasAtt("Amethyst");
 }
-public class PlayerStory : Lis<EntityAdded>, Lis<Station.Destroyed>, Lis<AIShip.Destroyed> {
+public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Destroyed> {
     public HashSet<IPlayerInteraction> mainInteractions;
     public HashSet<IPlayerInteraction> secondaryInteractions;
     public HashSet<IPlayerInteraction> completedInteractions;
@@ -580,19 +580,16 @@ public class PlayerStory : Lis<EntityAdded>, Lis<Station.Destroyed>, Lis<AIShip.
             Register(e);
         univ.onEntityAdded += this;
     }
-    EntityAdded Lis<EntityAdded>.Value => Register;
+    public void Observe(EntityAdded ev) => Register(ev.e);
+    
     public void Register(Entity e) {
         switch(e) {
             case Station s: s.onDestroyed += this; break;
             case AIShip a: a.onDestroyed += this; break;
         }
     }
-    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => {
-
-    };
-    AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => {
-        return;
-    };
+    public void Observe(Station.Destroyed ev) { }
+    public void Observe(AIShip.Destroyed ev) { }
     public void Update(PlayerShip playerShip) {
 
     }
@@ -1194,16 +1191,10 @@ originating from this station.",
         }
         Dialog BreakIn(Con prev) {
             if (source.damageSystem.GetHP() < 50) {
-
-                Wreck wreck = null;
-                Container<Station.Destroyed> hook = new((s, d, w) => wreck = w);
-                source.onDestroyed.set.Add(hook);
-
-                if(source.behavior is Lis<Station.Destroyed> d)
+                if(source.behavior is Ob<Station.Destroyed> d)
                     source.onDestroyed -= d;
                 source.Destroy(playerShip);
-                source.onDestroyed.set.Remove(hook);
-
+                var wreck = source.destroyed.wreck;
                 return new(prev,
 @"You break down the entry gate with your primary weapon.
 You make your way to the bridge and destroy the
@@ -1225,7 +1216,7 @@ You leave the station in ruins.",
         return Intro(home);
     }
 }
-class DestroyTarget : IPlayerInteraction, Lis<AIShip.Destroyed>, Lis<Station.Destroyed> {
+class DestroyTarget : IPlayerInteraction, Ob<AIShip.Destroyed>, Ob<Station.Destroyed> {
     public PlayerShip attacker;
     public Station source;
     public HashSet<ActiveObject> targets;
@@ -1247,21 +1238,20 @@ class DestroyTarget : IPlayerInteraction, Lis<AIShip.Destroyed>, Lis<Station.Des
             }
         }
     }
-
-    AIShip.Destroyed Lis<AIShip.Destroyed>.Value => (s, d, w) => {
+    public void Observe(AIShip.Destroyed ev) {
+        var (s, d, w) = ev;
         if (targets.Remove(s) && targets.Count == 0) {
             attacker.AddMessage(new Message("Mission complete!"));
             s.onDestroyed -= this;
         }
-    };
-
-    Station.Destroyed Lis<Station.Destroyed>.Value => (s, d, w) => {
+    }
+    public void Observe(Station.Destroyed ev) {
+        var (s, d, w) = ev;
         if (targets.Remove(s) && targets.Count == 0) {
             attacker.AddMessage(new Message("Mission complete!"));
             s.onDestroyed -= this;
         }
-    };
-
+    }
     public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
         if (d != source) {
             return null;
@@ -1269,7 +1259,6 @@ class DestroyTarget : IPlayerInteraction, Lis<AIShip.Destroyed>, Lis<Station.Des
         if (complete) {
             return debrief(prev);
         }
-
         return inProgress(prev);
     }
 }

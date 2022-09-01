@@ -222,6 +222,7 @@ public class Armor : Device {
             if (p.damageHP < killHP) {
                 var amount = p.damageHP;
                 p.damageHP = 0;
+                p.hitBlocked = true;
                 //Remember this but take no damage
                 OnAbsorb(amount);
                 return amount;
@@ -611,7 +612,7 @@ public class Solar : Device, PowerSource {
         }
     }
 }
-public class Weapon : Device, Lis<Projectile.OnHitActive> {
+public class Weapon : Device, Ob<Projectile.OnHitActive> {
     [JsonProperty]
     public Item source { get; private set; }
     public WeaponDesc desc;
@@ -633,8 +634,8 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
     public double timeSinceLastFire;
     public int totalTimesFired;
 
-    public delegate void OnFire(Weapon w, List<Projectile> p);
-    public Ev<OnFire> onFire=new();
+    public record OnFire(Weapon w, List<Projectile> p);
+    public Vi<OnFire> onFire=new();
     public Weapon() { }
     public Weapon(Item source, WeaponDesc desc) {
         this.source = source;
@@ -890,17 +891,17 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
             case PlayerShip p:
                 exclude.UnionWith(p.avoidHit);
                 AllowWeaponTargets(p.devices.Weapon);
-                p.onWeaponFire.ForEach(f => f(p, this, projectiles));
+                p.onWeaponFire.Observe(new(p, this, projectiles));
                 break;
             case AIShip ai:
                 exclude.UnionWith(ai.avoidHit);
                 AllowWeaponTargets(ai.devices.Weapon);
-                ai.onWeaponFire.ForEach(f => f(ai, this, projectiles));
+                ai.onWeaponFire.Observe(new(ai, this, projectiles));
                 break;
             case Station st:
                 exclude.UnionWith(st.guards);
                 AllowWeaponTargets(st.weapons);
-                st.onWeaponFire.ForEach(f => f(st, this, projectiles));
+                st.onWeaponFire.Observe(new(st, this, projectiles));
                 break;
             case null:
                 return projectiles;
@@ -918,15 +919,16 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
         aiming?.OnFire();
         ammo?.OnFire();
         capacitor?.OnFire();
-        onFire.ForEach(f => f(this, projectiles));
+        onFire.Observe(new(this, projectiles));
         timeSinceLastFire = 0;
         totalTimesFired++;
     }
-    public delegate void OnHitActive(Weapon w, Projectile p, ActiveObject hit);
-    public Ev<OnHitActive> onHitActive = new();
-    Projectile.OnHitActive Lis<Projectile.OnHitActive>.Value => (projectile, hit) => {
+    public record OnHitActive(Weapon w, Projectile p, ActiveObject hit);
+    public Vi<OnHitActive> onHitActive = new();
+    public void Observe(Projectile.OnHitActive ev) {
+        (var projectile, var hit) = ev;
         projectile.onHitActive -= this;
-        onHitActive.ForEach(a => a(this, projectile, hit));
+        onHitActive.Observe(new(this, projectile, hit));
         if (projectile.hitHull) {
             if (projectileDesc.lightning) {
                 //delay = 5;
@@ -953,7 +955,7 @@ public class Weapon : Device, Lis<Projectile.OnHitActive> {
                 }
             }
         }
-    };
+    }
     public ActiveObject target => aiming?.target;
     public void SetTarget(ActiveObject target) =>
         aiming?.SetTarget(target);
@@ -1031,12 +1033,13 @@ public interface Aiming {
 }
 public class Targeting : Aiming, IDestroyedListener {
     private int ticks = 0;
-    IDestroyedListener.Destroyed IDestroyedListener.Value => (s, d) => {
+    public void Observe(IDestroyedListener.Destroyed ev) {
+        var (s, d) = ev;
         if (s == target) {
             target = null;
             ticks = 0;
         }
-    };
+    }
     public ActiveObject target { get; set; }
     public Targeting() { }
     public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
@@ -1063,10 +1066,11 @@ public class Targeting : Aiming, IDestroyedListener {
 }
 public class MultiTargeting : Aiming, IDestroyedListener {
     private int ticks;
-    IDestroyedListener.Destroyed IDestroyedListener.Value => (s, d) => {
+    public void Observe(IDestroyedListener.Destroyed ev) {
+        var (s, d) = ev;
         targets.Remove(s);
         ticks = 0;
-    };
+    }
     public IEnumerable<ActiveObject> GetMultiTarget() => targets;
     public List<ActiveObject> targets { get; set; } = new();
     private ListIndex<ActiveObject> index;

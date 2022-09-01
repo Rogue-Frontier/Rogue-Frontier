@@ -9,15 +9,13 @@ public enum WingOrder {
     BreakAndAttack,
     Scout,
 }
-public class Wingmate : IShipBehavior, Lis<PlayerShip.Destroyed> {
+public class Wingmate : IShipBehavior, Ob<PlayerShip.Destroyed> {
     public PlayerShip player;
     public IShipOrder order;
-
-    [JsonIgnore]
-    public PlayerShip.Destroyed Value => (s, d, w) => {
+    public void Observe(PlayerShip.Destroyed ev) {
+        var (s, d, w) = ev;
         order = new AttackOrder(d);
-    };
-
+    }
     //This class handles orders and communications
     public Wingmate(PlayerShip player) {
         this.player = player;

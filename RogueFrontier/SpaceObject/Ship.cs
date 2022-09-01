@@ -346,14 +346,14 @@ public class AIShip : IShip {
     public BaseShip ship;
     public Docking dock { get; set; }
 
-    public delegate void WeaponFired(AIShip ship, Weapon w, List<Projectile> p);
-    public Ev<WeaponFired> onWeaponFire = new();
+    public record WeaponFired(AIShip ship, Weapon w, List<Projectile> p);
+    public Vi<WeaponFired> onWeaponFire = new();
 
-    public delegate void Damaged(AIShip ship, Projectile hit);
-    public Ev<Damaged> onDamaged = new();
+    public record Damaged(AIShip ship, Projectile hit);
+    public Vi<Damaged> onDamaged = new();
 
-    public delegate void Destroyed(AIShip ship, ActiveObject destroyer, Wreck wreck);
-    public Ev<Destroyed> onDestroyed = new();
+    public record Destroyed(AIShip ship, ActiveObject destroyer, Wreck wreck);
+    public Vi<Destroyed> onDestroyed = new();
     public AIShip() { }
     public AIShip(BaseShip ship, Sovereign sovereign, IShipBehavior behavior = null, IShipOrder order = null) {
         this.ship = ship;
@@ -371,7 +371,7 @@ public class AIShip : IShip {
     public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
     public void SetDecelerating(bool decelerating = true) => ship.SetDecelerating(decelerating);
     public void Damage(Projectile p) {
-        onDamaged.ForEach(f => f(this, p));
+        onDamaged.Observe(new(this, p));
         ship.ReduceDamage(p);
         ship.damageSystem.Damage(world.tick, p, () => Destroy(p.source));
     }
@@ -384,8 +384,7 @@ public class AIShip : IShip {
         }
         ship.Destroy(this);
 
-        onDestroyed.RemoveNull();
-        onDestroyed.ForEach(f => f(this, source, ship.wreck));
+        onDestroyed.Observe(new(this, source, ship.wreck));
     }
     public void Update(double delta) {
         ship.ResetControl();
@@ -505,13 +504,13 @@ public class PlayerShip : IShip {
     public HashSet<Station> stationsDestroyed = new();
     public List<ICrime> crimeRecord=new();
 
-    public delegate void Destroyed(PlayerShip playerShip, ActiveObject destroyer, Wreck wreck);
-    public Ev<Destroyed> onDestroyed = new();
-    public delegate void Damaged(PlayerShip playerShip, Projectile p);
-    public Ev<Damaged> onDamaged = new();
+    public record Destroyed(PlayerShip playerShip, ActiveObject destroyer, Wreck wreck);
+    public Vi<Destroyed> onDestroyed = new();
+    public record Damaged(PlayerShip playerShip, Projectile p);
+    public Vi<Damaged> onDamaged = new();
 
-    public delegate void WeaponFired(PlayerShip playerShip, Weapon w, List<Projectile> p);
-    public Ev<WeaponFired> onWeaponFire = new();
+    public record WeaponFired(PlayerShip playerShip, Weapon w, List<Projectile> p);
+    public Vi<WeaponFired> onWeaponFire = new();
 
 
     public List<AIShip> wingmates = new();
@@ -782,13 +781,12 @@ public class PlayerShip : IShip {
                 }
             }
         }
-        Done:
-        foreach (var f in onDamaged.set) f.Value.Invoke(this, p);
+    Done:
+        onDamaged.Observe(new(this, p));
     }
     public void Destroy(ActiveObject destroyer) {
         ship.Destroy(this);
-        onDestroyed.RemoveNull();
-        onDestroyed.ForEach(f => f(this, destroyer, ship.wreck));
+        onDestroyed.Observe(new(this, destroyer, ship.wreck));
     }
     public bool CanSee(Entity e) => GetVisibleDistanceLeft(e) > 0;
     public double GetVisibleDistanceLeft(Entity e) => visibleDistanceLeft.TryGetValue(e.id, out var d) ? d : double.PositiveInfinity;

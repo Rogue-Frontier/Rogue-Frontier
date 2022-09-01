@@ -29,6 +29,9 @@ public class Projectile : MovingObject {
     [JsonProperty] public int damageHP;
     [JsonProperty] public int armorSkip;
     [JsonProperty] public int ricochet = 0;
+
+    //Hit results
+    [JsonProperty] public bool hitBlocked;
     [JsonProperty] public bool hitHull;
 
     public HashSet<Entity> exclude = new();
@@ -36,8 +39,8 @@ public class Projectile : MovingObject {
     //List of projectiles that were created from the same fragment
     public List<Projectile> salvo = new();
 
-    public delegate void OnHitActive(Projectile p, ActiveObject other);
-    public Ev<OnHitActive> onHitActive=new();
+    public record OnHitActive(Projectile p, ActiveObject other);
+    public Vi<OnHitActive> onHitActive=new();
 
     [JsonIgnore]   public bool active => _active;
     public bool _active = true;
@@ -131,7 +134,7 @@ public class Projectile : MovingObject {
                                 //velocity += (hit.velocity - velocity) / 2;
                                 //stop = true;
                             } else {
-                                onHitActive.ForEach(f => f(this, hit));
+                                onHitActive.Observe(new(this, hit));
                                 Fragment();
                                 
                                 lifetime = 0;

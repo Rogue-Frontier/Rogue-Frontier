@@ -140,11 +140,11 @@ public class DaughtersOutpost : StationBehavior {
     public void Update(double delta, Station owner) {
     }
 }
-public class OrionWarlordsStation : StationBehavior, Lis<Station.Destroyed>, Lis<GuardOrder.OnDockedHome> {
+public class OrionWarlordsStation : StationBehavior, Ob<Station.Destroyed>, Ob<GuardOrder.OnDockedHome> {
 
     private HashSet<ActiveObject> turretsDeployed = new();
-
-    public Station.Destroyed Value => (station, destroyer, wreck) => {
+    public void Observe(Station.Destroyed ev) {
+        (var station, var destroyer, var wreck) = ev;
         if (destroyer?.active != true) {
             return;
         }
@@ -155,21 +155,9 @@ public class OrionWarlordsStation : StationBehavior, Lis<Station.Destroyed>, Lis
             .FirstOrDefault() is Station s) {
             s.guards.ForEach(g => g.behavior = new GuardOrder(s, destroyer));
         }
-        /*
-        if(station.world.entities.all.OfType<Stargate>().FirstOrDefault(g => g.destGate != null) is Stargate g) {
-            var nextGate = g.destGate;
-            var nextSystem = nextGate.world;
-            var pos = nextGate.position + XY.Polar(station.world.karma.NextDouble() * 2 * Math.PI, 20);
-            foreach(var st in nextSystem.entities.all.OfType<Station>().Where(s => s.type.codename == station.type.codename)) {
-                if(st.guards.FirstOrDefault() is AIShip ai) {
-                    ai.behavior = new GuardOrder(new ActiveMarker(nextSystem, station.sovereign, nextGate.position));
-                }
-            }
-        }
-        */
-    };
-
-    GuardOrder.OnDockedHome Lis<GuardOrder.OnDockedHome>.Value => (ship, order) => {
+    }
+    public void Observe(GuardOrder.OnDockedHome ev) {
+        (var ship, var order) = ev;
         var home = order.home;
         if (turretsDeployed.Contains(home)) {
             return;
@@ -180,7 +168,7 @@ public class OrionWarlordsStation : StationBehavior, Lis<Station.Destroyed>, Lis
         var turret = new Station(w, turretType, home.position);
         w.AddEntity(turret);
         turret.CreateSegments();
-    };
+    }
     StationType turretType;
     public OrionWarlordsStation(Station owner) {
         owner.onDestroyed += this;
@@ -213,20 +201,23 @@ public class OrionWarlordsStation : StationBehavior, Lis<Station.Destroyed>, Lis
         }
     }
 }
-public class AmethystStore : StationBehavior, Lis<Station.Destroyed>, Lis<Station.Damaged>, Lis<Weapon.OnFire>, Lis<Power.OnInvoked> {
+public class AmethystStore : StationBehavior, Ob<Station.Destroyed>, Ob<Station.Damaged>, Ob<Weapon.OnFire>, Ob<Power.OnInvoked> {
 
     Dictionary<PlayerShip, int> damaged=new();
     HashSet<PlayerShip> banned = new();
     int damageTaken;
-    Weapon.OnFire Lis<Weapon.OnFire>.Value => (weapon, projectiles) => {
+    public void Observe(Weapon.OnFire ff) {
+        (var weapon, var projectiles) = ff;
         weapon.delay /= 2;
-    };
-    Station.Destroyed Lis<Station.Destroyed>.Value => (station, destroyer, wreck) => {
+    }
+    public void Observe(Station.Destroyed ev) {
+        (var station, var destroyer, var wreck) = ev;
         if (destroyer?.active != true) {
             return;
         }
-    };
-    Station.Damaged Lis<Station.Damaged>.Value => (station, projectile) => {
+    }
+    public void Observe(Station.Damaged ev) {
+        (var station, var projectile) = ev;
         var source = projectile.source;
         if (source?.active != true) {
             return;
@@ -259,10 +250,10 @@ public class AmethystStore : StationBehavior, Lis<Station.Destroyed>, Lis<Statio
                 shine.Invoke(station);
             }
         }
-    };
-    Power.OnInvoked Lis<Power.OnInvoked>.Value => (power) => {
+    }
+    public void Observe(Power.OnInvoked ev) {
         damageTaken = 0;
-    };
+    }
     Power shine;
     public AmethystStore(Station owner) {
         owner.onDamaged += this;

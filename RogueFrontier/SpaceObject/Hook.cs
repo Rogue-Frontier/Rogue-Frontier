@@ -74,7 +74,7 @@ public class Hook : Entity {
         }
     }
 }
-public class LightningRod : Entity, Lis<Weapon.OnFire>, Lis<Projectile.OnHitActive> {
+public class LightningRod : Entity, Ob<Weapon.OnFire>, Ob<Projectile.OnHitActive> {
     public ActiveObject target;
     public Weapon source;
     public int lifetime;
@@ -86,12 +86,13 @@ public class LightningRod : Entity, Lis<Weapon.OnFire>, Lis<Projectile.OnHitActi
         this.lifetime = 60;
         source.onFire += this;
     }
-    Weapon.OnFire Lis<Weapon.OnFire>.Value => (weapon, projectiles) => {
+    public void Observe(Weapon.OnFire o) {
+        (var weapon, var projectiles) = o;
         if (!active) {
             weapon.onFire -= this;
             return;
         }
-        if(weapon.aiming?.target is ActiveObject a && a != target) {
+        if (weapon.aiming?.target is ActiveObject a && a != target) {
             return;
         }
         if (weapon.blind) {
@@ -108,8 +109,9 @@ public class LightningRod : Entity, Lis<Weapon.OnFire>, Lis<Projectile.OnHitActi
             //target.Damage(p);
             //p.lifetime = 0;
         });
-    };
-    Projectile.OnHitActive Lis<Projectile.OnHitActive>.Value => (p, hit) => {
+    }
+    public void Observe(Projectile.OnHitActive ev) {
+        (var p, var hit) = ev;
         if(hit != target) {
             return;
         }
@@ -119,7 +121,7 @@ public class LightningRod : Entity, Lis<Weapon.OnFire>, Lis<Projectile.OnHitActi
         if (p.hitHull) {
             lifetime = 90;
         }
-    };
+    }
     public ulong id { get; set; }
     public XY position => target.position;
     public bool active => target.active && lifetime>0;

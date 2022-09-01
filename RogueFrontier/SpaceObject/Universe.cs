@@ -61,9 +61,9 @@ public class UniverseDesc {
         }
     }
 }
-public class Universe : Lis<EntityAdded> {
-    EntityAdded Lis<EntityAdded>.Value => e => onEntityAdded.ForEach(f => f(e));
-
+public class Universe : Ob<EntityAdded> {
+    public void Observe(EntityAdded ev) =>
+        onEntityAdded.Observe(ev);
     public Rand karma;
     public TypeCollection types;
 
@@ -72,7 +72,7 @@ public class Universe : Lis<EntityAdded> {
     public Dictionary<string, Stargate> stargates=new();
     public Dictionary<string, HashSet<Stargate>> systemGates=new();
     public Dictionary<string, (int, int)> grid = new();
-    public Ev<EntityAdded> onEntityAdded = new();
+    public Vi<EntityAdded> onEntityAdded = new();
     public Universe(TypeCollection types = null, Rand karma = null) {
         this.types = types ?? new TypeCollection();
         this.karma = karma ?? new Rand();
