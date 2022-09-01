@@ -815,7 +815,7 @@ public class Noisemaker : Lis<EntityAdded>, IDestroyedListener, IDamagedListener
             return;
         }
         PlaySoundFrom(gunfire.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e,
-            w.desc.sound ?? generic_fire);
+            w.desc?.sound ?? generic_fire);
     };
 
 
@@ -1362,11 +1362,11 @@ public class Readout : ScreenSurface {
                 }
                 if (screenLineX != 0) {
                     Surface.SetCellAppearance(screenX, screenY, new ColoredGlyph(f, b, BoxInfo.IBMCGA.glyphFromInfo[new BoxGlyph {
-                        n = offset.y < 0 ? Line.Double : Line.None,
-                        s = offset.y > 0 ? Line.Double : Line.None,
+                        n = offset.y < 0 ? Line.Double : offset.y > 0 ? Line.None : Line.Single,
+                        s = offset.y > 0 ? Line.Double : offset.y < 0 ? Line.None : Line.Single,
 
-                        e = offset.x > 0 ? Line.Double : Line.None,
-                        w = offset.x < 0 ? Line.Double : Line.None
+                        e = offset.x > 0 ? Line.Double : offset.x < 0 ? Line.None : Line.Single,
+                        w = offset.x < 0 ? Line.Double : offset.x > 0 ? Line.None : Line.Single
                     }]));
                     screenX += Math.Sign(screenLineX);
                     screenLineX -= Math.Sign(screenLineX);
