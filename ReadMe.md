@@ -9,8 +9,7 @@ This game is in early alpha demo, with most UI elements and essential gameplay m
 
 ## Build
 - Visual Studio 2019
-- MonoGame
-- SadConsole
+- SadConsole (with SFML host)
 - [ArchConsole](https://github.com/INeedAUniqueUsername/ArchConsole)
 - [ASECII](https://github.com/INeedAUniqueUsername/ASECII)
 
