@@ -1,0 +1,101 @@
+﻿<Module>
+	<Sovereign	codename=	"sovereign_murmurs"
+				alignment=	"DestructiveOrder"
+	/>
+	<StationType	codename="station_murmur_outpost"
+				name=		"Murmur outpost"
+				sovereign=	"sovereign_murmurs"
+
+				hp=			"250"
+
+				glyph=		"O"
+				foreground= "White"
+				background=	"Blue"
+		>
+		<Segments>
+		</Segments>
+		<Guards>
+		</Guards>
+		<Weapons>
+			<Weapon	codename="item_dark_lightning_cannon"/>
+			<Weapon	codename="item_dark_lightning_cannon"/>
+			<Weapon	codename="item_dark_lightning_cannon"/>
+		</Weapons>
+	</StationType>
+
+	<ItemType	codename=	"item_dark_magic_blaster"
+		name=		"Dark magic blaster"
+		level=		"6"
+		mass=		"1000"
+		value=		"4800"
+				
+		attributes= ""
+
+		desc=		""
+		>
+		<Weapon
+			initialCharges=	"240"
+			powerUse=		"10"
+			fireCooldown=	"20"
+			
+			shieldDrill=		"0.1"
+			>
+			<Projectile
+				count=			"15"
+				spreadAngle=	"30"
+				missileSpeed=	"40"
+				damageType=		"1"
+				damageHP=		"2d8"
+				
+				multiTarget=	"true"
+				
+				lifetime=		"90"
+				glyph=			"*"
+				foreground=		"AA55FFFF"
+				>
+				<Decay lifetime="300" rate="3/60"/>
+				<Trail
+					lifetime=	"10"
+					glyph=		"*"
+					foreground=	"551155FF"
+					background=	"AA77FFFF"/>
+			</Projectile>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_dark_lightning_cannon"
+	name=		"Dark lightning cannon"
+	level=		"3"
+	mass=		"4000"
+	desc=		""
+		>
+		<Weapon
+			powerUse=		"60"
+			fireCooldown=	"60"
+			
+			shieldDrill=		"0.1"
+			>
+			<Projectile
+				missileSpeed=	"50"
+				damageType=		"1"
+				damageHP=		"6"
+				lifetime=		"90"
+				glyph=			"*"
+				foreground=		"8000FFFF"
+				
+				lightning=		"true"
+				
+				shock=			"3"
+				>
+			</Projectile>
+			<Capacitor
+				minChargeToFire=		"0"
+				dischargeOnFire=		"100"
+				rechargePerTick=		"100/60"
+				maxCharge=				"100"
+				
+				bonusDamagePerCharge=	"12/100"
+				/>
+		</Weapon>
+	</ItemType>
+</Module>

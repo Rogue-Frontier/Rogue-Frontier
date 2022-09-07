@@ -29,6 +29,15 @@ public class ListIndex<T> {
     public ListIndex(List<T> list) {
         this.list = list;
     }
+
+    public void Adjust(T item) {
+        var i = list.IndexOf(item);
+        if (i > -1) {
+            _index = i;
+        } else {
+            _index = list.Count > 0 ? Math.Clamp(_index, 0, list.Count - 1) : 0;
+        }
+    }
     public List<T> GetNext(int count = 1) {
         if (list.Count == 0) return list;
         var l = Enumerable.Range(index, count).Select(i => list[i%list.Count]).ToList();

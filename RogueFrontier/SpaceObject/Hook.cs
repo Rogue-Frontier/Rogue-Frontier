@@ -78,12 +78,14 @@ public class LightningRod : Entity, Ob<Weapon.OnFire>, Ob<Projectile.OnHitActive
     public ActiveObject target;
     public Weapon source;
     public int lifetime;
-    public LightningRod(ActiveObject target, Weapon source) {
+    public int salvoIndex;
+    public LightningRod(ActiveObject target, Weapon source, Projectile proj) {
         this.id = target.world.nextId++;
 
         this.target = target;
         this.source = source;
         this.lifetime = 60;
+        this.salvoIndex = proj.salvo.IndexOf(proj);
         source.onFire += this;
     }
     public void Observe(Weapon.OnFire o) {
@@ -92,23 +94,23 @@ public class LightningRod : Entity, Ob<Weapon.OnFire>, Ob<Projectile.OnHitActive
             weapon.onFire -= this;
             return;
         }
-        if (weapon.aiming?.target is ActiveObject a && a != target) {
+        if (weapon.aiming?.GetMultiTarget()?.Contains(target) != true) {
             return;
         }
         if (weapon.blind) {
             return;
         }
         weapon.delay = 5;
-        projectiles.ForEach(p => {
-            if (!p.active) { return; }
-            var source = p.source;
-            var direction = Main.CalcFireAngle(target.position - p.position, target.velocity - source.velocity, 300, out var _);
-            p.velocity = source.velocity + XY.Polar(direction, 300);
-            p.onHitActive -= weapon;
-            p.onHitActive += this;
-            //target.Damage(p);
-            //p.lifetime = 0;
-        });
+        var p = projectiles[salvoIndex];
+
+        if (!p.active) { return; }
+        var source = p.source;
+        var direction = Main.CalcFireAngle(target.position - p.position, target.velocity - source.velocity, 300, out var _);
+        p.velocity = source.velocity + XY.Polar(direction, 300);
+        p.onHitActive -= weapon;
+        p.onHitActive += this;
+        //target.Damage(p);
+        //p.lifetime = 0;
     }
     public void Observe(Projectile.OnHitActive ev) {
         (var p, var hit) = ev;

@@ -20,5 +20,6 @@
 	<Module file="Reactors.xml"/>
 	<Module file="Ships.xml"/>
 	<Module file="Systems.xml"/>
+	<Module file="Murmurs.xml"/>
 	<Module file="Intro.xml"/>
 </Module>

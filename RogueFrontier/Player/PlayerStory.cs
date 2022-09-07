@@ -565,7 +565,9 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
             item_book_founders=                 1999,
             item_shine_charm=                   5000,
             item_gem_of_monologue=              500,
-            item_repeater_turret=               9000
+            item_repeater_turret=               9000,
+            item_dark_magic_blaster=            25000,
+            item_dark_lightning_cannon=         25000
         };
         stdPrice = stdPriceTable.ToDict<ItemType, int>(s => i[s]);
         var missing = i.Keys.Except(stdPriceTable.GetKeys());
@@ -588,8 +590,12 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
             case AIShip a: a.onDestroyed += this; break;
         }
     }
-    public void Observe(Station.Destroyed ev) { }
-    public void Observe(AIShip.Destroyed ev) { }
+    public void Observe(Station.Destroyed ev) {
+    
+    }
+    public void Observe(AIShip.Destroyed ev) {
+    
+    }
     public void Update(PlayerShip playerShip) {
 
     }
@@ -736,8 +742,7 @@ as you dock.",
         Con Arrest(Con prev) {
             return new Dialog(prev,
 @$"The soldiers storm your ship and restrain
-you with a titanium grip, locking your
-jaw faster than you could invoke SILENCE.
+you on the ground before you can invoke SILENCE.
 
 ""You are under immediate arrest for
 {c.name}.""",
@@ -785,7 +790,6 @@ jaw faster than you could invoke SILENCE.
         }) { background = source.type.heroImage };
         TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
     }
-
     public HashSet<IShip> militiaRecordedKills = new();
     public bool constellationMilitiaMember; 
     public Con ConstellationAstra(Con prev, PlayerShip playerShip, Station source) {

@@ -149,7 +149,7 @@ public class Station : ActiveObject, ITrader, IDockable {
         damageSystem = type.hull.Create(world.types);
         cargo.UnionWith(type.cargo?.Generate(World.types)??new());
         weapons.AddRange(this.type.weapons?.Generate(World.types) ?? new());
-        weapons.ForEach(w => w.aiming ??= new Omnidirectional());
+        weapons.ForEach(w => w.aiming = w.aiming is Omnidirectional ? w.aiming : new Omnidirectional(w.aiming));
         InitBehavior(type.behavior);
     }
     public enum Behaviors {

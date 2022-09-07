@@ -405,19 +405,16 @@ public record WeaponDesc {
     public WeaponDesc() { }
     public WeaponDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
-
         angle *= Math.PI / 180;
         angleRange *= Math.PI / 180;
         leftRange *= Math.PI / 180;
         rightRange *= Math.PI / 180;
-
         ammoType = e.TryAtt(nameof(ammoType), out string at) ?
             types.Lookup<ItemType>(at) : null;
         projectile = new(e.ExpectElement("Projectile"));
         capacitor = e.HasElement("Capacitor", out var xmlCapacitor) ?
             new(xmlCapacitor) : null;
         sound = e.TryAtt("sound", out string s) ? new SoundBuffer(s) : null;
-
         if (pointDefense) {
             projectile.hitProjectile = true;
             targetProjectile = true;
@@ -455,10 +452,9 @@ public record FragmentDesc {
     [Opt] public bool multiTarget;
     [Opt] public double maneuver;
     [Opt] public double maneuverRadius;
-    
     [Opt] public int detonateRadius;
     [Opt] public int fragmentInterval;
-    [Opt] public bool hitSource = false;
+    [Opt] public bool hitSource;
     [Opt] public bool hitProjectile;
     [Opt] public bool hitBarrier = true;
     [Opt] public bool magic;
@@ -477,7 +473,6 @@ public record FragmentDesc {
     public HashSet<FragmentDesc> fragments;
     public StaticTile effect;
     public TrailDesc trail;
-
     public Modifier mod;
     public FragmentDesc() { }
     public FragmentDesc(XElement e) {
@@ -509,17 +504,28 @@ public record FragmentDesc {
     }
     public IEnumerable<double> GetAngles(double direction) =>
         Enumerable.Range(0, count).Select(i => direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1));
-    public List<Projectile> GetProjectiles(ActiveObject owner, ActiveObject target, double direction, XY offset = null, HashSet<Entity> exclude = null) {
-        var position = owner.position + (offset??new(0,0));
-
+    public List<Projectile> CreateProjectiles(ActiveObject owner, List<ActiveObject> targets, double direction, XY offset = null, HashSet<Entity> exclude = null /*, int projectilesPerTarget = 0*/) {
+        var position = owner.position + (offset ?? new(0, 0));
+        var i = 0;
         var adj = count % 2 == 0 ? -angleInterval / 2 : 0;
         var projectiles = new List<Projectile>();
-        projectiles.AddRange(GetAngles(direction + adj).Select(angle =>
+        Func<Maneuver> getManeuver = targets switch {
+            { Count: 1 } => () => GetManeuver(targets.First()),
+            { Count: > 1 } => () => GetManeuver(targets[i++ % targets.Count]),
+            _ => () => null
+        };
+        var angles = GetAngles(direction + adj);
+        /*
+        if(projectilesPerTarget > 0 && targets?.Any() == true) {
+            angles = angles.Take(projectilesPerTarget * targets.Count);
+        }
+        */
+        projectiles.AddRange(angles.Select(angle =>
             new Projectile(owner, this,
                 position + XY.Polar(angle),
                 owner.velocity + XY.Polar(angle, missileSpeed),
                 angle,
-                GetManeuver(target),
+                getManeuver(),
                 exclude
                 ) { salvo = projectiles }
         ));

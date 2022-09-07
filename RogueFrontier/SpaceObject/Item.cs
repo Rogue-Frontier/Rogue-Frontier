@@ -132,7 +132,7 @@ public class Armor : Device {
     public void Update(double delta, IShip owner) {
         if (decay.Any()) {
             foreach (var d in decay) {
-                decayHP += d.rate * delta;
+                decayHP += d.rate * delta * 60;
                 d.lifetime -= delta * Program.TICKS_PER_SECOND;
             }
             decay.RemoveAll(r => r.lifetime == 0);
@@ -762,7 +762,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             p += d;
             foreach (var other in owner.world.entities[p].Select(s => s is ISegment seg ? seg.parent : s).Distinct()) {
                 switch (other) {
-                    case ActiveObject a when aiming?.target == a || owner.CanTarget(a):
+                    case ActiveObject a when (aiming?.HasTarget(a) == true) || owner.CanTarget(a):
                         goto LineCheckDone;
                     case Station s when s == owner:
                     case AIShip ai when owner.guards.Contains(ai):
@@ -872,12 +872,18 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         (user.position - target.position).magnitude < projectileDesc.range;
     public bool AllowFire => ammo?.AllowFire ?? true;
     public bool ReadyToFire => delay == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
-    public List<Projectile> CreateProjectiles(ActiveObject owner, ActiveObject target, double direction) {
+    public List<Projectile> CreateProjectiles(ActiveObject owner, List<ActiveObject> targets, double direction) {
         HashSet<Entity> exclude = new() { null };
         if (!projectileDesc.hitSource) {
             exclude.Add(owner);
         }
-        var projectiles = projectileDesc.GetProjectiles(owner, target, direction, offset, exclude);
+        if(targets?.Count is int i && i > 1) {
+            int a = 0;
+        }
+        if(aiming is MultiTargeting) {
+            int a = 0;
+        }
+        var projectiles = projectileDesc.CreateProjectiles(owner, targets, direction, offset, exclude);
         var criticalChance = 1.0 / (1 + criticalFactor);
         foreach (var p in projectiles) {
             if (owner.world.karma.NextDouble() > criticalChance) {
@@ -906,13 +912,15 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             case null:
                 return projectiles;
         }
-        exclude.Remove(target);
+        if (targets != null) {
+            exclude.ExceptWith(targets);
+        }
         return projectiles;
         void AllowWeaponTargets(IEnumerable<Weapon> weapons) =>
             exclude.ExceptWith(weapons.Select(w => w.aiming).Where(a => a != null).SelectMany(w => w.GetMultiTarget()));
     }
     public void Fire(ActiveObject owner, double direction, List<Projectile> result = null) {
-        var projectiles = CreateProjectiles(owner, target, direction);
+        var projectiles = CreateProjectiles(owner, aiming?.GetMultiTarget().ToList(), direction);
         projectiles.ForEach(owner.world.AddEntity);
         result?.AddRange(projectiles);
 
@@ -932,7 +940,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         if (projectile.hitHull) {
             if (projectileDesc.lightning) {
                 //delay = 5;
-                hit.world.AddEntity(new LightningRod(hit, this));
+                hit.world.AddEntity(new LightningRod(hit, this, projectile));
             }
             if (projectileDesc.hook) {
                 hit.world.AddEntity(new Hook(hit, projectile.source));
@@ -1005,6 +1013,7 @@ public interface Aiming {
     public IEnumerable<ActiveObject> GetMultiTarget() {
         yield return target;
     }
+    public bool HasTarget(ActiveObject obj) => GetMultiTarget().Contains(obj);
     void Update(Station owner, Weapon weapon);
     void Update(IShip owner, Weapon weapon);
     double? GetFireAngle() => null;
@@ -1069,6 +1078,7 @@ public class MultiTargeting : Aiming, IDestroyedListener {
     public void Observe(IDestroyedListener.Destroyed ev) {
         var (s, d) = ev;
         targets.Remove(s);
+        index.Adjust(s);
         ticks = 0;
     }
     public IEnumerable<ActiveObject> GetMultiTarget() => targets;
@@ -1114,7 +1124,7 @@ public class MultiTargeting : Aiming, IDestroyedListener {
 
 
 public class Omnidirectional : Aiming {
-    public Aiming targeting= new Targeting();
+    public Aiming targeting;
     public ActiveObject target {
         get => targeting.target;
         set => targeting.SetTarget(value);
@@ -1122,7 +1132,7 @@ public class Omnidirectional : Aiming {
     public IEnumerable<ActiveObject> GetMultiTarget() => targeting.GetMultiTarget();
     double? direction;
     public Omnidirectional(Aiming targeting = null) {
-        this.targeting = targeting ?? this.targeting;
+        this.targeting = targeting ?? new Targeting();
     }
     public static double GetFireAngle(MovingObject owner, MovingObject target, Weapon w) =>
         Helper.CalcFireAngle(target.position - (owner.position + w.offset),
