@@ -151,7 +151,7 @@ public class Station : ActiveObject, ITrader, IDockable {
         weapons.AddRange(this.type.weapons?.Generate(World.types) ?? new());
         weapons.ForEach(w => {
             w.aiming = w.aiming ?? new Omnidirectional();
-            w.targeting = w.targeting ?? new MultiTarget();
+            w.targeting = w.targeting ?? new Targeting(true);
         });
         InitBehavior(type.behavior);
     }
@@ -247,7 +247,7 @@ public class Station : ActiveObject, ITrader, IDockable {
             }
         }
         if(type.explosionType != null)
-            new Weapon() { projectileDesc = type.explosionType, targeting = new SingleTarget() { target = source } }.Fire(this, rotation);
+            new Weapon() { projectileDesc = type.explosionType, targeting = new Targeting(false) { target = source } }.Fire(this, rotation);
         var drop = weapons.Where(w => !w.structural).Select(w => w.source)
             .Concat(cargo)
             .Concat((damageSystem as LayeredArmor)?.layers.Select(l => l.source) ?? new List<Item>());

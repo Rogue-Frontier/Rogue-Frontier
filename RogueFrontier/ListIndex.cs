@@ -24,6 +24,22 @@ public class ListIndex<T> {
     public T item => index < list.Count ? list[index] : default;
     public bool any => list.Any();
     public void Reset() => _index = 0;
+    public void Skip(IEnumerable<T> obj) {
+        if(list.Count == 0) {
+            return;
+        }
+        CycleWhile(obj.Contains);
+    }
+    public bool CycleWhile(Func<T, bool> filter) {
+        for (int i = 0; i < list.Count; i++) {
+            if (filter(item)) {
+                index++;
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public bool Has(out T t) { t = item; return list.Any(); }
     public ListIndex(List<T> list) {

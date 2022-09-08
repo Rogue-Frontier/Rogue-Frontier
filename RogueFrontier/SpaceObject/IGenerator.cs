@@ -427,7 +427,7 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
             leftRange + rightRange > 0 ?
                 w.aiming = new Swivel(leftRange, rightRange) :
                 null;
-        w.targeting = w.targeting ?? (w.aiming != null ? new SingleTarget() : null);
+        w.targeting = w.targeting ?? (w.aiming != null ? new Targeting(false) : null);
     w.structural = structural ?? w.structural;
         w.angle = angle;
         w.offset = offset;
