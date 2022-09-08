@@ -418,18 +418,17 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
     List<Device> IGenerator<Device>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
     Weapon Generate(TypeCollection tc) {
+        
+        
         var w = SDevice.Generate<Weapon>(tc, codename, mod);
-        Aiming GetTargeting() => w.aiming switch {
-                Swivel s => s.targeting,
-                Omnidirectional o => o.targeting,
-                _ => w.aiming
-            };
-        w.structural = structural ?? w.structural;
-        if (omnidirectional) {
-            w.aiming = new Omnidirectional(GetTargeting());
-        } else if(leftRange + rightRange > 0) {
-            w.aiming = new Swivel(leftRange, rightRange, GetTargeting());
-        }
+        w.aiming =
+            omnidirectional ?
+                w.aiming = new Omnidirectional() :
+            leftRange + rightRange > 0 ?
+                w.aiming = new Swivel(leftRange, rightRange) :
+                null;
+        w.targeting = w.targeting ?? (w.aiming != null ? new SingleTarget() : null);
+    w.structural = structural ?? w.structural;
         w.angle = angle;
         w.offset = offset;
         return w;

@@ -375,7 +375,7 @@ public class Launcher : Device {
     [JsonIgnore]
     public Capacitor capacitor => weapon.capacitor;
     [JsonIgnore]
-    public Aiming aiming => weapon.aiming;
+    public IAiming aiming => weapon.aiming;
     [JsonIgnore]
     public IAmmo ammo => weapon.ammo;
     [JsonIgnore]
@@ -619,7 +619,9 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     [JsonIgnore]
     int? Device.powerUse => (firing || delay > 0 || capacitor?.full == false) ? desc.powerUse : 0;
     public Capacitor capacitor;
-    public Aiming aiming;
+    public IAiming aiming;
+    public ITargeting targeting;
+
     public IAmmo ammo;
     public Modifier mod;
     public FragmentDesc projectileDesc;
@@ -637,8 +639,9 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     public record OnFire(Weapon w, List<Projectile> p);
     public Vi<OnFire> onFire=new();
     public Weapon() { }
-    public Weapon(Item source, WeaponDesc desc) {
+    public Weapon(Item source, WeaponDesc desc, IAiming aiming = null) {
         this.source = source;
+        this.aiming = aiming;
         SetWeaponDesc(desc);
     }
 
@@ -654,15 +657,21 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         } else if (desc.ammoType != null) {
             ammo = new ItemAmmo(desc.ammoType);
         }
-        aiming = desc.projectile.multiTarget ? new MultiTargeting() :
-            desc.projectile.acquireTarget ? new Targeting() : null;
-        if (desc.projectile.omnidirectional || desc.omnidirectional) {
-            aiming = new Omnidirectional(aiming);
-        } else if (desc.angleRange > 0) {
-            aiming = new Swivel(desc.angleRange, aiming);
-        } else if(desc.leftRange + desc.rightRange > 0) {
-            aiming = new Swivel(desc.leftRange, desc.rightRange, aiming);
-        }
+        targeting = desc.projectile.multiTarget ? new MultiTarget() :
+            desc.projectile.acquireTarget ? new SingleTarget() : null;
+
+        if(aiming == null) {
+            if (desc.projectile.omnidirectional || desc.omnidirectional) {
+                aiming = new Omnidirectional();
+            } else if (desc.angleRange > 0) {
+                aiming = new Swivel(desc.angleRange);
+            } else if (desc.leftRange + desc.rightRange > 0) {
+                aiming = new Swivel(desc.leftRange, desc.rightRange);
+            }
+            if (aiming != null) {
+                targeting = targeting ?? new SingleTarget();
+            }
+        } 
         UpdateProjectileDesc();
 
         structural = desc.structural;
@@ -710,6 +719,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     }
     public void Update(double delta, Station owner) {
         if (!blind) {
+            targeting?.Update(owner, this);
             aiming?.Update(owner, this);
         }
         capacitor?.Update();
@@ -733,7 +743,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             beginRepeat = false;
         } else if (desc.autoFire) {
             bool CheckProjectile() {
-                if (desc.targetProjectile && !blind && Aiming.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s)) is Projectile target) {
+                if (desc.targetProjectile && !blind && ITargeting.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s)) is Projectile target) {
                     direction = Omnidirectional.GetFireAngle(owner, target, this);
                     return true;
                 }
@@ -762,7 +772,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             p += d;
             foreach (var other in owner.world.entities[p].Select(s => s is ISegment seg ? seg.parent : s).Distinct()) {
                 switch (other) {
-                    case ActiveObject a when (aiming?.HasTarget(a) == true) || owner.CanTarget(a):
+                    case ActiveObject a when (targeting?.HasTarget(a) == true) || owner.CanTarget(a):
                         goto LineCheckDone;
                     case Station s when s == owner:
                     case AIShip ai when owner.guards.Contains(ai):
@@ -798,6 +808,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     }
     public void Update(double delta, IShip owner) {
         if (!blind) {
+            targeting?.Update(owner, this);
             aiming?.Update(owner, this);
         }
         capacitor?.Update();
@@ -820,7 +831,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             beginRepeat = false;
         } else if (desc.autoFire) {
             bool CheckProjectile() {
-                if (desc.targetProjectile && !blind && Aiming.AcquireMissile(owner, this, s => s != null && SShip.IsEnemy(owner, s)) is Projectile target) {
+                if (desc.targetProjectile && !blind && ITargeting.AcquireMissile(owner, this, s => s != null && SShip.IsEnemy(owner, s)) is Projectile target) {
                     direction = Omnidirectional.GetFireAngle(owner, target, this);
                     return true;
                 }
@@ -866,7 +877,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     public void OnDisable() {
         delay = desc.fireCooldown;
         capacitor?.Clear();
-        aiming?.ClearTarget();
+        targeting?.ClearTarget();
     }
     public bool RangeCheck(ActiveObject user, ActiveObject target) =>
         (user.position - target.position).magnitude < projectileDesc.range;
@@ -880,7 +891,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         if(targets?.Count is int i && i > 1) {
             int a = 0;
         }
-        if(aiming is MultiTargeting) {
+        if(aiming is MultiTarget) {
             int a = 0;
         }
         var projectiles = projectileDesc.CreateProjectiles(owner, targets, direction, offset, exclude);
@@ -917,14 +928,14 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         }
         return projectiles;
         void AllowWeaponTargets(IEnumerable<Weapon> weapons) =>
-            exclude.ExceptWith(weapons.Select(w => w.aiming).Where(a => a != null).SelectMany(w => w.GetMultiTarget()));
+            exclude.ExceptWith(weapons.Select(w => w.targeting).Where(a => a != null).SelectMany(w => w.GetMultiTarget()));
     }
     public void Fire(ActiveObject owner, double direction, List<Projectile> result = null) {
-        var projectiles = CreateProjectiles(owner, aiming?.GetMultiTarget().ToList(), direction);
+        var projectiles = CreateProjectiles(owner, targeting?.GetMultiTarget().ToList(), direction);
         projectiles.ForEach(owner.world.AddEntity);
         result?.AddRange(projectiles);
 
-        aiming?.OnFire();
+        targeting?.OnFire();
         ammo?.OnFire();
         capacitor?.OnFire();
         onFire.Observe(new(this, projectiles));
@@ -964,14 +975,14 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             }
         }
     }
-    public ActiveObject target => aiming?.target;
+    public ActiveObject target => targeting?.target;
     public void SetTarget(ActiveObject target) =>
-        aiming?.SetTarget(target);
+        targeting?.SetTarget(target);
     public void SetFiring(bool firing = true) => this.firing = firing;
     //Use this if you want to override auto-aim
     public void SetFiring(bool firing = true, ActiveObject target = null) {
         this.firing = firing;
-        aiming?.UpdateTarget(target);
+        targeting?.UpdateTarget(target);
     }
 }
 public class Capacitor {
@@ -1008,7 +1019,12 @@ public class Capacitor {
         charge = Math.Max(0, charge - desc.dischargeOnFire);
     public void Clear() => charge = 0;
 }
-public interface Aiming {
+public interface IAiming {
+    void Update(Station owner, Weapon weapon);
+    void Update(IShip owner, Weapon weapon);
+    double? GetFireAngle() => null;
+}
+public interface ITargeting {
     public ActiveObject target { get; }
     public IEnumerable<ActiveObject> GetMultiTarget() {
         yield return target;
@@ -1016,16 +1032,19 @@ public interface Aiming {
     public bool HasTarget(ActiveObject obj) => GetMultiTarget().Contains(obj);
     void Update(Station owner, Weapon weapon);
     void Update(IShip owner, Weapon weapon);
-    double? GetFireAngle() => null;
+
     void ClearTarget() { }
     void SetTarget(ActiveObject target) { }
     void UpdateTarget(ActiveObject target) { }
     void OnFire() { }
-    public static ActiveObject AcquireTarget(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) =>
-        owner.world.entities.FilterKey(p =>
+
+    public static ActiveObject AcquireTarget(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
+
+        return owner.world.entities.FilterKey(p =>
             weapon.IsInRange(owner.position - p))
             .OfType<ActiveObject>()
             .FirstOrDefault(filter);
+    }
     public static IEnumerable<ActiveObject> AcquireTargets(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) =>
         owner.world.entities.FilterKey(p =>
             weapon.IsInRange(owner.position - p))
@@ -1038,9 +1057,9 @@ public interface Aiming {
             .Where(p => filter(p.source))
             .OrderBy(p => (owner.position - p.position).Dot(p.velocity))
             //.OrderBy(p => (owner.Position - p.Position).Magnitude2)
-            .FirstOrDefault();    
+            .FirstOrDefault();
 }
-public class Targeting : Aiming, IDestroyedListener {
+public class SingleTarget : ITargeting, IDestroyedListener {
     private int ticks = 0;
     public void Observe(IDestroyedListener.Destroyed ev) {
         var (s, d) = ev;
@@ -1050,7 +1069,7 @@ public class Targeting : Aiming, IDestroyedListener {
         }
     }
     public ActiveObject target { get; set; }
-    public Targeting() { }
+    public SingleTarget() { }
     public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
         if(ticks++ % 30 != 0) {
             return;
@@ -1060,7 +1079,7 @@ public class Targeting : Aiming, IDestroyedListener {
             && (owner.position - target.position).magnitude2 < weapon.projectileDesc.range2) {
             return;
         }
-        target = Aiming.AcquireTarget(owner, weapon, filter);
+        target = ITargeting.AcquireTarget(owner, weapon, filter);
         ((IDestroyedListener)this).Register(target);
     }
     public void Update(Station owner, Weapon weapon) =>
@@ -1073,7 +1092,7 @@ public class Targeting : Aiming, IDestroyedListener {
     public void UpdateTarget(ActiveObject target) =>
         this.target = target ?? this.target;
 }
-public class MultiTargeting : Aiming, IDestroyedListener {
+public class MultiTarget : ITargeting, IDestroyedListener {
     private int ticks;
     public void Observe(IDestroyedListener.Destroyed ev) {
         var (s, d) = ev;
@@ -1085,7 +1104,7 @@ public class MultiTargeting : Aiming, IDestroyedListener {
     public List<ActiveObject> targets { get; set; } = new();
     private ListIndex<ActiveObject> index;
     public ActiveObject target => index.item;
-    public MultiTargeting() {
+    public MultiTarget() {
         index = new(targets);
     }
     public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
@@ -1099,7 +1118,7 @@ public class MultiTargeting : Aiming, IDestroyedListener {
         if (targets.Any()) {
             return;
         }
-        targets.AddRange(Aiming.AcquireTargets(owner, weapon, filter));
+        targets.AddRange(ITargeting.AcquireTargets(owner, weapon, filter));
         index.Reset();
         foreach (var t in targets) {
             ((IDestroyedListener)this).Register(t);
@@ -1123,24 +1142,18 @@ public class MultiTargeting : Aiming, IDestroyedListener {
 }
 
 
-public class Omnidirectional : Aiming {
-    public Aiming targeting;
-    public ActiveObject target {
-        get => targeting.target;
-        set => targeting.SetTarget(value);
-    }
-    public IEnumerable<ActiveObject> GetMultiTarget() => targeting.GetMultiTarget();
+public class Omnidirectional : IAiming {
     double? direction;
-    public Omnidirectional(Aiming targeting = null) {
-        this.targeting = targeting ?? new Targeting();
+    public Omnidirectional() {
     }
     public static double GetFireAngle(MovingObject owner, MovingObject target, Weapon w) =>
         Helper.CalcFireAngle(target.position - (owner.position + w.offset),
             target.velocity - owner.velocity,
             w.projectileDesc.missileSpeed, out var _);
     public void UpdateDirection(ActiveObject owner, Weapon weapon) {
-        if (targeting.target != null) {
-            direction = GetFireAngle(owner, target, weapon);
+        var t = weapon.targeting.target;
+        if (t != null) {
+            direction = GetFireAngle(owner, t, weapon);
             Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
             //Heading.Crosshair(owner.world, target.position);
         } else {
@@ -1148,47 +1161,30 @@ public class Omnidirectional : Aiming {
         }
     }
     public void Update(Station owner, Weapon weapon) {
-        if (weapon.target is PlayerShip pl) {
-            int i = 0;
-        }
-        targeting.Update(owner, weapon);
-        
         UpdateDirection(owner, weapon);
         
     }
     public void Update(IShip owner, Weapon weapon) {
-        targeting.Update(owner, weapon);
         UpdateDirection(owner, weapon);
     }
-    public void OnFire() => targeting.OnFire();
     public double? GetFireAngle() => direction;
-    public void ClearTarget() => target = null;
-    public void SetTarget(ActiveObject target) => this.target = target;
-    public void UpdateTarget(ActiveObject target) =>
-        this.target = target ?? this.target;
 }
-public class Swivel : Aiming {
+public class Swivel : IAiming {
     private double facing;
     public readonly double leftRange, rightRange;
-    public Aiming targeting = new Targeting();
-    public ActiveObject target {
-        get => targeting.target;
-        set => targeting.SetTarget(value);
-    }
-    public IEnumerable<ActiveObject> GetMultiTarget() => targeting.GetMultiTarget();
     double? direction;
-    public Swivel(double range, Aiming targeting = null) {
+    public Swivel(double range) {
         leftRange = rightRange = range / 2;
-        this.targeting = targeting ?? this.targeting;
     }
-    public Swivel(double left, double right, Aiming targeting = null) {
-        leftRange = left * Math.PI / 180;
+    public Swivel(double left, double right) {
+        leftRange = left;
         rightRange = right;
-        this.targeting = targeting ?? this.targeting;
     }
     public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
+
+        var targeting = weapon.targeting;
         if (targeting.target != null) {
-            direction = Omnidirectional.GetFireAngle(owner, target, weapon);
+            direction = Omnidirectional.GetFireAngle(owner, targeting.target, weapon);
 
             var deltaRad = Main.AngleDiffRad(facing, direction.Value);
             if(deltaRad > 0 ? deltaRad > leftRange : -deltaRad > rightRange) {
@@ -1204,20 +1200,13 @@ public class Swivel : Aiming {
     }
     public void Update(Station owner, Weapon weapon) {
         facing = owner.rotation + weapon.angle;
-        targeting.Update(owner, weapon);
         Update(owner, weapon, s => SStation.IsEnemy(owner, s));
     }
     public void Update(IShip owner, Weapon weapon) {
         facing = owner.rotationRad + weapon.angle;
-        targeting.Update(owner, weapon);
         Update(owner, weapon, s => SShip.IsEnemy(owner, s));
     }
-    public void OnFire() => targeting.OnFire();
     public double? GetFireAngle() => direction;
-    public void ClearTarget() => target = null;
-    public void SetTarget(ActiveObject target) => this.target = target;
-    public void UpdateTarget(ActiveObject target) =>
-        this.target = target ?? this.target;
 }
 
 public interface IAmmo {

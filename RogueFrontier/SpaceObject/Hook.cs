@@ -94,7 +94,7 @@ public class LightningRod : Entity, Ob<Weapon.OnFire>, Ob<Projectile.OnHitActive
             weapon.onFire -= this;
             return;
         }
-        if (weapon.aiming?.GetMultiTarget()?.Contains(target) != true) {
+        if (weapon.targeting?.HasTarget(target) != true) {
             return;
         }
         if (weapon.blind) {

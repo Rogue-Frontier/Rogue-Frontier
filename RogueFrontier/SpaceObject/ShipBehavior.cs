@@ -793,7 +793,7 @@ public class AttackOrder : IShipOrder {
         var offset = (target.position - owner.position);
         var dist = offset.magnitude;
         foreach(var w in secondary) {
-            if (w.aiming.target != null) {
+            if (w.targeting?.target != null) {
                 w.SetFiring(true);
             }
         }

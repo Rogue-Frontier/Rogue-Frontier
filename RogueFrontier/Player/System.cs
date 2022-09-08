@@ -52,6 +52,8 @@ public class System {
 
     public System() {
         this.universe = new();
+        universe.systems["origin"] = this;
+        onEntityAdded += universe;
     }
     public System(Universe universe) {
         this.universe = universe;

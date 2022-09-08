@@ -6,20 +6,21 @@
 				name=		"Murmur outpost"
 				sovereign=	"sovereign_murmurs"
 
-				hp=			"250"
+				hp=			"400"
 
 				glyph=		"O"
-				foreground= "White"
-				background=	"Blue"
+				foreground= "5511AAFF"
+				background=	"Black"
 		>
 		<Segments>
 		</Segments>
 		<Guards>
 		</Guards>
 		<Weapons>
-			<Weapon	codename="item_dark_lightning_cannon"/>
-			<Weapon	codename="item_dark_lightning_cannon"/>
-			<Weapon	codename="item_dark_lightning_cannon"/>
+			<Weapon	codename="item_dark_lightning_cannon" angle="0" leftRange="45" rightRange="45"/>
+			<Weapon	codename="item_dark_lightning_cannon" angle="90" leftRange="45" rightAngle="45"/>
+			<Weapon	codename="item_dark_lightning_cannon" angle="180" leftRange="45" rightAngle="45"/>
+			<Weapon	codename="item_dark_lightning_cannon" angle="270" leftRange="45" rightAngle="45"/>
 		</Weapons>
 	</StationType>
 

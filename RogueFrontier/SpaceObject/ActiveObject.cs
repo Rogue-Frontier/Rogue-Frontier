@@ -1,5 +1,8 @@
 ﻿using Common;
 using SadConsole;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RogueFrontier;
 public interface IDockable : StructureObject {
@@ -25,8 +28,17 @@ public static class SSpaceObject {
     public static bool IsEqual(this Entity o1, Entity o2) {
         { if (o1 is ISegment s) o1 = s.parent; }
         { if (o2 is ISegment s) o2 = s.parent; }
-
+        
         return o1 == o2;
+    }
+    public static IEnumerable<ActiveObject> GetTargets(ActiveObject o) {
+        IEnumerable<Weapon> weapons = o switch {
+            Station st => st.weapons,
+            AIShip ai => ai.devices.Weapon,
+            PlayerShip pl => pl.devices.Weapon,
+            _ => Enumerable.Empty<Weapon>()
+        };
+        return weapons.SelectMany(w => w.targeting?.GetMultiTarget() ?? Enumerable.Empty<ActiveObject>());
     }
 
     public static bool CanTarget(this ActiveObject owner, ActiveObject target) {

@@ -149,7 +149,10 @@ public class Station : ActiveObject, ITrader, IDockable {
         damageSystem = type.hull.Create(world.types);
         cargo.UnionWith(type.cargo?.Generate(World.types)??new());
         weapons.AddRange(this.type.weapons?.Generate(World.types) ?? new());
-        weapons.ForEach(w => w.aiming = w.aiming is Omnidirectional ? w.aiming : new Omnidirectional(w.aiming));
+        weapons.ForEach(w => {
+            w.aiming = w.aiming ?? new Omnidirectional();
+            w.targeting = w.targeting ?? new MultiTarget();
+        });
         InitBehavior(type.behavior);
     }
     public enum Behaviors {
@@ -244,7 +247,7 @@ public class Station : ActiveObject, ITrader, IDockable {
             }
         }
         if(type.explosionType != null)
-            new Weapon() { projectileDesc = type.explosionType, aiming = new Targeting() { target = source } }.Fire(this, rotation);
+            new Weapon() { projectileDesc = type.explosionType, targeting = new SingleTarget() { target = source } }.Fire(this, rotation);
         var drop = weapons.Where(w => !w.structural).Select(w => w.source)
             .Concat(cargo)
             .Concat((damageSystem as LayeredArmor)?.layers.Select(l => l.source) ?? new List<Item>());
