@@ -507,7 +507,6 @@ public class Shield : Device {
     public double absorbFactor => desc.absorbFactor;
     public int maxAbsorb => hp;
     public int lifetimeDamageAbsorbed;
-
     public int stealth => desc.stealth == 0 ? 0 :
         delay > 0 ? 0 :
         desc.stealth * hp / desc.maxHP;
@@ -559,7 +558,6 @@ public class Shield : Device {
     }
     public void Absorb(Projectile p) {
         var multiplier = p.fragment.shieldFactor;
-
         var absorbed = (int)Math.Clamp(p.damageHP * (1 - p.fragment.shieldDrill) * absorbFactor * multiplier, 0, maxAbsorb);
         if (absorbed > 0) {
             hp -= absorbed;
@@ -618,10 +616,9 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     public WeaponDesc desc;
     [JsonIgnore]
     int? Device.powerUse => (firing || delay > 0 || capacitor?.full == false) ? desc.powerUse : 0;
-    public Capacitor capacitor;
     public IAiming aiming;
     public Targeting targeting;
-
+    public Capacitor capacitor;
     public IAmmo ammo;
     public Modifier mod;
     public FragmentDesc projectileDesc;
@@ -635,7 +632,6 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     public XY offset=new(0,0);
     public double timeSinceLastFire;
     public int totalTimesFired;
-
     public record OnFire(Weapon w, List<Projectile> p);
     public Vi<OnFire> onFire=new();
     public Weapon() { }
@@ -644,7 +640,6 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         this.aiming = aiming;
         SetWeaponDesc(desc);
     }
-
     public bool IsInRange(XY offset) => offset.magnitude2 < projectileDesc.range2;
     public void SetWeaponDesc(WeaponDesc desc) {
         this.desc = desc;

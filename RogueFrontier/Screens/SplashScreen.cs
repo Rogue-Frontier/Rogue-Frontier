@@ -12,14 +12,14 @@ public class SplashScreen : Console {
     System World;
     public Dictionary<(int, int), ColoredGlyph> tiles;
     XY screenCenter;
-    double time = 6;
+    double time = 8;
     public SplashScreen(Action next) : base(Program.Width / 2, Program.Height / 2) {
         this.next = next;
         FontSize = FontSize * 2;
-        Random r = new Random(3);
-        this.World = new System();
-        tiles = new Dictionary<(int, int), ColoredGlyph>();
-        screenCenter = new XY(Width / 2, Height / 2);
+        var r = new Random(3);
+        this.World = new();
+        tiles = new();
+        screenCenter = new(Width / 2, Height / 2);
         var lines = new string[] {
                 @"             /^\             ",
                 @"        ___ / | \ ___        ",
@@ -38,7 +38,7 @@ public class SplashScreen : Console {
         for (int y = 0; y < lines.Length; y++) {
             var s = lines[y];
             var pos = new XY(-s.Length, -lines.Length + y * 2);
-            var margin = new AIShip(new BaseShip(World, ShipClass.empty, pos) { rotationDeg = 90 }, new Sovereign(), null);
+            var margin = new AIShip(new(World, ShipClass.empty, pos) { rotationDeg = 90 }, new(), null);
             for (int x = 0; x < s.Length; x++) {
                 var c = s[x];
                 if (c == ' ')
@@ -50,7 +50,7 @@ public class SplashScreen : Console {
                     rotationDecel = 12,
                     rotationMaxSpeed = 10,
                     tile = new ColoredGlyph(Color.LightCyan, Color.Transparent, c),
-                    devices = new Group<Device>(),
+                    devices = new(),
                     damageDesc = ShipClass.empty.damageDesc
                 };
                 XY p = null;
@@ -58,19 +58,19 @@ public class SplashScreen : Console {
 
                 switch (r.Next(0, 4)) {
                     case 0:
-                        p = new XY(-Width, r.Next(-Height, Height));
+                        p = new(-Width, r.Next(-Height, Height));
                         break;
                     case 1:
-                        p = new XY(Width, r.Next(-Height, Height));
+                        p = new(Width, r.Next(-Height, Height));
                         break;
                     case 2:
-                        p = new XY(r.Next(-Width, Width), Height);
+                        p = new (r.Next(-Width, Width), Height);
                         break;
                     case 3:
-                        p = new XY(r.Next(-Width, Width), -Height);
+                        p = new (r.Next(-Width, Width), -Height);
                         break;
                 }
-                var ship = new AIShip(new BaseShip(World, shipClass, p), new Sovereign(), new ApproachOrder(margin, new XY(0, -2 - (x * 2))));
+                var ship = new AIShip(new(World, shipClass, p), new(), new ApproachOrder(margin, new(0, -2 - (x * 2))));
                 World.AddEntity(ship);
                 //World.AddEffect(new Heading(ship));
             }
@@ -84,12 +84,12 @@ public class SplashScreen : Console {
         tiles.Clear();
         World.PlaceTiles(tiles);
 
-        base.Update(timeSpan);
-
         time -= timeSpan.TotalSeconds;
         if (time < 0) {
             next();
         }
+        base.Update(timeSpan);
+
     }
     public override void Render(TimeSpan drawTime) {
         this.Clear();

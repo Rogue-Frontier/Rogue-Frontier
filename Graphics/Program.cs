@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿
 using SadConsole;
 using SadConsole.Renderers;
 using System;

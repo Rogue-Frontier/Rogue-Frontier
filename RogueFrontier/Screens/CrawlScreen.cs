@@ -19,34 +19,31 @@ class CrawlScreen : Console {
             new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/sprites/PillarsOfCreation.cg")))
         };
     private readonly string[] text = new string[] {
-@"In a dreaming I could see
-the words of a deity spoken
+@"In a vision I could see
+the words of someone speaking
 The Dictator who decreed
-a peace would soon be broken",
+an ultimate power for the seeking.",
 
-@"As humans took to stars,
-and prospered in the dark,
-warlords readied their cannons:
-""The universe will now be ours!""",
+@"As mankind fired their engines,
+and prospered with the stars,
+the warlords readied their cannons:
+""The universe shall be ours!""",
 
 @"In a future, I could see
-of troubles forever more
-Now The Orator speaks
+the threat of forever wars
+But then The Orator mentioned
 a request for a journey of yours",
 
 @"""There shall be an answer,
-if you heed my calls -
-Find the Celestial Center,
-before the constellations fall.""",
+if you heed the call -
+Travel to the temple,
+where the galaxies revolve.""",
 
-@"And to me, it seems the vision
+@"And it seems to me, this vision
 Was more than a dream after all." }.Select(line => line.Replace("\r", "")).ToArray();
-
     //to do: portraits
     //to do: crawl images
-
     public Func<Console> next;
-
     private int lines;
     int sectionNumber;
     int sectionIndex;

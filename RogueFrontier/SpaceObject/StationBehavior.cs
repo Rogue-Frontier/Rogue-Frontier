@@ -240,7 +240,7 @@ public class AmethystStore : StationBehavior, Ob<Station.Destroyed>, Ob<Station.
                 }
                 if (pl.shipClass.attributes.Contains("Amethyst")) {
                     pl.AddMessage(new Message("Self-Destruct remotely initiated by vendor."));
-                    pl.world.AddEvent(new SelfDestruct(pl, 1800));
+                    pl.world.AddEvent(new SelfDestruct(pl, 15));
                 }
             }
         }

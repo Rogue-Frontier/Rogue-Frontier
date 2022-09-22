@@ -342,7 +342,7 @@ public class AIShip : IShip {
         get => _behavior;
         set {
             _behavior = value;
-            _behavior.Init(this);
+            _behavior?.Init(this);
         }
     }
     public BaseShip ship;
