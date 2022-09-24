@@ -474,9 +474,15 @@ public record FragmentDesc {
     public StaticTile effect;
     public TrailDesc trail;
     public Modifier mod;
+
+    public SoundBuffer detonateSound;
     public FragmentDesc() { }
     public FragmentDesc(XElement e) {
         Initialize(e);
+        detonateSound =
+            e.TryAtt(nameof(detonateSound), out var s) ?
+                new(s) :
+            null;
     }
     public void Initialize(XElement e) {
         e.Initialize(this);

@@ -105,7 +105,8 @@ public class TitleScreen : Console {
                 Settings = settings,
                 file = file,
                 name = context.playerName,
-                Genome = context.playerGenome
+                Genome = context.playerGenome,
+                money = 2000
             };
 
             var (playable, index) = (context.playable, context.shipIndex);

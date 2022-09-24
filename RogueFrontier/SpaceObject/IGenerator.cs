@@ -287,10 +287,9 @@ public record Table<T>() : IGenerator<T> {
         }
     }
 }
-
 public record ItemEntry() : IGenerator<Item> {
     [Req] public string codename;
-    [Opt] public int count = 1;
+    [Opt] public IDice count = new Constant(1);
     public ItemType type;
     public ModRoll mod;
     public ItemEntry(TypeCollection tc, XElement e) : this() {
@@ -299,7 +298,7 @@ public record ItemEntry() : IGenerator<Item> {
         mod = new(e);
     }
     public List<Item> Generate(TypeCollection tc) =>
-        new(Enumerable.Range(0, count).Select(_ => new Item(type, mod.Generate())));
+        new(Enumerable.Range(0, count.Roll()).Select(_ => new Item(type, mod.Generate())));
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) =>
         tc.Lookup<ItemType>(codename);
@@ -423,10 +422,10 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
         var w = SDevice.Generate<Weapon>(tc, codename, mod);
         w.aiming =
             omnidirectional ?
-                w.aiming = new Omnidirectional() :
+                new Omnidirectional() :
             leftRange + rightRange > 0 ?
-                w.aiming = new Swivel(leftRange, rightRange) :
-                null;
+                new Swivel(leftRange, rightRange) :
+            w.aiming;
         w.targeting = w.targeting ?? (w.aiming != null ? new Targeting(false) : null);
     w.structural = structural ?? w.structural;
         w.angle = angle;

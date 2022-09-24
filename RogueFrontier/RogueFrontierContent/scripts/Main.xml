@@ -10,7 +10,7 @@
 	<Module file="DarkStar.xml"/>
 	<Module file="Errorist.xml"/>
 	<Module file="IronPirates.xml"/>
-	<Module file="NRobot.xml"/>
+	<Module file="Perfectron.xml"/>
 	<Module file="OrionWarlords.xml"/>
 	<Module file="Player.xml"/>
 	<Module file="RoyalShade.xml"/>

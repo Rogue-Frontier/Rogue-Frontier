@@ -60,7 +60,7 @@ public class Wreck : MovingObject, IDockable {
     }
 
     public void Update(double delta) {
-        position += velocity * delta * Program.TICKS_PER_SECOND;
+        position += velocity * delta;
 #if false
         if (world.tick % 30 == 0) {
             gravity = new XY(0, 0);
@@ -79,7 +79,7 @@ public class Wreck : MovingObject, IDockable {
         velocity += gravity;
 #else
         if(velocity.magnitude2 > 1) {
-            velocity -= velocity.normal * delta * Program.TICKS_PER_SECOND;
+            velocity -= velocity.normal * delta;
         } else {
             velocity = new(0,0);
         }

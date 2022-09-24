@@ -729,7 +729,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
         return base.ProcessMouse(state);
     }
 }
-public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener, IWeaponListener {
+public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener, IWeaponListener, Ob<Projectile.Detonated> {
     PlayerShip player;
     public static readonly SoundBuffer
         generic_fire = Load(nameof(generic_fire)),
@@ -782,12 +782,10 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         time += delta;
         if(time > 0.4) {
             time = 0;
-
             var s = player.world.entities.all.OfType<IShip>()
                 .Where(s => s.thrusting)
                 .OrderBy(sh => player.position.Dist(sh.position))
                 .Zip(exhaust.list);
-
             foreach((var ship, var sound) in exhaustList.Zip(exhaust.list)) {
                 sound.Stop();
             }
@@ -803,47 +801,61 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         }
     }
     public void Register(Universe u) {
-        var obj = u.GetAllEntities().OfType<ActiveObject>();
+        var obj = u.GetAllEntities().OfType<Entity>();
         foreach (var a in obj) {
             Register(a);
         }
         u.onEntityAdded += this;
     }
-    private void Register(ActiveObject a) {
-        ((IDestroyedListener)this).Register(a);
-        ((IDamagedListener)this).Register(a);
-        ((IWeaponListener)this).Register(a);
-    }
-    public void Observe(EntityAdded ev) {
-        var e = ev.e;
+    private void Register(Entity e) {
         if (e is ActiveObject a) {
-            Register(a);
+            ((IDestroyedListener)this).Register(a);
+            ((IDamagedListener)this).Register(a);
+            ((IWeaponListener)this).Register(a);
         }
+    }
+    public Sound GetNextChannel(ListIndex<Sound> i) => i.GetFirstOrNext(s => s.Status == SoundStatus.Stopped);
+    public void Observe(EntityAdded ev) {
+        Register(ev.e);
     }
     public void Observe(IDestroyedListener.Destroyed ev) {
         var e = ev.destroyed;
         if(e.world != player.world) {
             return;
         }
-        PlaySoundFrom(explosion.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e, generic_explosion);
+        PlaySoundFrom(explosion, e, generic_explosion);
     }
     public void Observe(IDamagedListener.Damaged ev) {
         var (e, p) = ev;
         if (e.world != player.world) {
             return;
         }
-
-        PlaySoundFrom(damage.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e,
+        PlaySoundFrom(damage, e,
             p.hitHull ? generic_damage : generic_shield_damage);
     }
     public void Observe(IWeaponListener.WeaponFired ev) {
-        var (e, w, p) = ev;
+        var (e, w, pr) = ev;
         if (e.world != player.world) {
             return;
         }
-        PlaySoundFrom(gunfire.GetFirstOrNext(s => s.Status == SoundStatus.Stopped), e,
+        foreach (var p in pr) {
+            p.onDetonated += this;
+        }
+
+        PlaySoundFrom(gunfire, e,
             w.desc?.sound ?? generic_fire);
     }
+    public void Observe(Projectile.Detonated d) {
+        var sb = d.source.desc.detonateSound;
+        if (sb == null) {
+            return;
+        }
+        PlaySoundFrom(gunfire,
+            d.source,
+            sb);
+    }
+    private void PlaySoundFrom(ListIndex<Sound> s, Entity e, SoundBuffer sb) =>
+        PlaySoundFrom(GetNextChannel(s), e, sb);
     private void PlaySoundFrom(Sound s, Entity e, SoundBuffer sb) {
 
         s.Position = player.position.To(e.position).Scale(distScale).ToVector3f();
@@ -1076,10 +1088,10 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged> {
     public int flash;
     public void Observe(PlayerShip.Damaged ev) {
         var (pl, pr) = ev;
-        if (pr.fragment.lightning) {
+        if (pr.desc.lightning) {
             lightningHit = 5;
         }
-        if (pr.fragment.blind?.Roll() is int db) {
+        if (pr.desc.blind?.Roll() is int db) {
             flash = Math.Max(db, flash);
         }
     }
@@ -1103,7 +1115,7 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged> {
         if (charging.Any()) {
             var charge = Math.Min(1, charging.Max(p => p.invokeCharge / p.invokeDelay));
             if (powerAlpha < charge) {
-                powerAlpha += (int)((charge - powerAlpha) / 10f);
+                powerAlpha += (float)((charge - powerAlpha) / 10f);
             }
             if (recoveryTime < 360) {
                 recoveryTime++;
@@ -1117,9 +1129,9 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged> {
                 }
             } else {
                 chargingUp = false;
-                powerAlpha -= powerAlpha / 120;
+                powerAlpha -= (float)(powerAlpha * delta.TotalSeconds);
                 if (powerAlpha < 0.01 && recoveryTime > 0) {
-                    recoveryTime--;
+                    recoveryTime -= (int)(60 * delta.TotalSeconds);
                 }
             }
         }
@@ -2166,14 +2178,14 @@ public class PowerWidget : ScreenSurface {
             if (p.charging) {
                 //We don't need to check ready because we already do that before we set charging
                 //Charging up
-                p.invokeCharge++;
+                p.invokeCharge += (int)(60 * delta.TotalSeconds);
 
                 if (ticks % 3 == 0) {
                     p.charging = false;
                 }
             } else if (p.invokeCharge > 0) {
                 if (p.invokeCharge < p.invokeDelay) {
-                    p.invokeCharge--;
+                    p.invokeCharge -= (int)(60 * delta.TotalSeconds);
                 } else {
                     //Invoke now!
                     p.cooldownLeft = p.cooldownPeriod;

@@ -123,12 +123,9 @@ public class BaseShip {
         this.world = world;
         this.id = world.nextId++;
         this.shipClass = shipClass;
-
         this.position = Position;
         this.velocity = new();
-
         this.active = true;
-
         this.cargo = new();
         this.cargo.UnionWith(shipClass.cargo?.Generate(world.types) ?? new List<Item>());
         this.devices = new();
@@ -160,13 +157,13 @@ public class BaseShip {
             s.Absorb(p);
         }
         if (dmgLeft == 0) return;
-        if (p.fragment.blind is IDice blind) {
+        if (p.desc.blind is IDice blind) {
             blindTicks += blind.Roll();
             blindTicks = Math.Min(blindTicks, 300);
         }
-        int knockback = p.fragment.knockback * dmgLeft / dmgFull;
+        int knockback = p.desc.knockback * dmgLeft / dmgFull;
         velocity += (p.velocity - velocity).WithMagnitude(knockback);
-        disruption = p.fragment.disruptor?.GetHijack() ?? disruption;
+        disruption = p.desc.disruptor?.GetHijack() ?? disruption;
     }
     public void Destroy(ActiveObject owner) {
         var items = cargo
@@ -385,17 +382,13 @@ public class AIShip : IShip {
             }
         }
         ship.Destroy(this);
-
         onDestroyed.Observe(new(this, source, ship.wreck));
     }
     public void Update(double delta) {
         ship.ResetControl();
         behavior?.Update(delta, this);
         ship.UpdatePhysics(delta);
-
-
         dock.Update(delta, this);
-
         if(world.tick%30 == 0 && dock.Target is Station st) {
             ship.stealth = Math.Max(ship.stealth, st.stealth);
         }
@@ -479,24 +472,20 @@ public class PlayerShip : IShip {
     public Docking dock { get; set; } = new();
 
     public bool targetFriends = false;
+    
     public List<ActiveObject> targetList = new();
-
     public int targetIndex = -1;
+
     public delegate void TargetChanged(PlayerShip pl);
     public Ev<TargetChanged> onTargetChanged = new();
     private void FireOnTargetChanged() => onTargetChanged.ForEach(f => f(this));
-
     public bool firingPrimary = false;
     public bool firingSecondary = false;
-
     public ListIndex<Weapon> primary;
     public ListIndex<Weapon> secondary;
-
     public int mortalChances = 3;
     public double mortalTime = 0;
-
     public bool autopilot = false;
-
     public List<IPlayerMessage> logs = new();
     public List<IPlayerMessage> messages = new();
     public HashSet<Entity> visible = new();
@@ -506,21 +495,15 @@ public class PlayerShip : IShip {
     public HashSet<IShip> shipsDestroyed = new();
     public HashSet<Station> stationsDestroyed = new();
     public List<ICrime> crimeRecord=new();
-
     public record Destroyed(PlayerShip playerShip, ActiveObject destroyer, Wreck wreck);
     public Vi<Destroyed> onDestroyed = new();
     public record Damaged(PlayerShip playerShip, Projectile p);
     public Vi<Damaged> onDamaged = new();
-
     public record WeaponFired(PlayerShip playerShip, Weapon w, List<Projectile> p);
     public Vi<WeaponFired> onWeaponFire = new();
-
-
     public List<AIShip> wingmates = new();
-
     public Dictionary<ulong, double> visibleDistanceLeft=new();
     public Dictionary<ActiveObject, int> tracking = new();
-
     public PlayerShip() { }
     public PlayerShip(Player person, BaseShip ship, Sovereign sovereign) {
         this.person = person;
@@ -794,31 +777,29 @@ public class PlayerShip : IShip {
     public bool CanSee(Entity e) => GetVisibleDistanceLeft(e) > 0;
     public double GetVisibleDistanceLeft(Entity e) => visibleDistanceLeft.TryGetValue(e.id, out var d) ? d : double.PositiveInfinity;
     public void Update(double delta) {
-
         messages.ForEach(m => m.Update(delta));
         messages.RemoveAll(m => !m.Active);
-
         var target = GetTarget();
-
         powers.ForEach(p => {
             if (p.cooldownLeft > 0) {
                 p.cooldownLeft -= delta * 60;
-
                 if (p.cooldownLeft <= 0) {
                     AddMessage(new Message($"[Power] {p.type.name} is ready"));
                 }
             }
         });
-
         if (firingPrimary) {
-            if (primary.Has(out var w) && !energy.off.Contains(w))
+            if (primary.Has(out var w) && !energy.off.Contains(w)) {
                 w.SetFiring(true, target);
+                w.aiming?.Update(this, w);
+            }
             firingPrimary = false;
         }
-
         if (firingSecondary) {
-            if (secondary.Has(out var w) && !energy.off.Contains(w))
+            if (secondary.Has(out var w) && !energy.off.Contains(w)) {
                 w.SetFiring(true, target);
+                w.aiming?.Update(this, w);
+            }
             firingSecondary = false;
         }
 

@@ -32,7 +32,7 @@ public class SplashScreen : Console {
                 @"  // ^   |   | |   |   ^ \\  ",
                 @" //  |   |   | |   |   |  \\ ",
                 @"||-------------------------||",
-                @"|| Alex ""Archcannon"" Chen  ||",
+                @"||   INeedAUniqueUsername    ||",
                 @"||-------------------------||"
             };
         for (int y = 0; y < lines.Length; y++) {

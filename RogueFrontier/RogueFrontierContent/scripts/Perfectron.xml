@@ -1,5 +1,5 @@
 ﻿<Module>
-	<Sovereign	codename=	"sovereign_nrobot"
+	<Sovereign	codename=	"sovereign_perfectron"
 				alignment=	"DestructiveOrder"
 	/>
 	<ItemType codename=		"item_grinder"
@@ -95,7 +95,7 @@
 		name=		"Lightning vent"
 		level=		"3"
 		mass=		"4000"
-		desc=		"The NRobot power plant discharges excess generated power in the form of lightning storms."
+		desc=		"The Perfectron generator discharges excess generated power in the form of lightning storms."
 		>
 		<Weapon
 			powerUse=		"60"
@@ -158,9 +158,9 @@
 			<Armor  codename="item_shining_armor"/>
 		</LayeredArmorSystem>
 	</ShipClass>
-	<StationType	codename="station_nrobot_fortress"
-					name=		"NRobot fortress"
-					sovereign=	"sovereign_nrobot"
+	<StationType	codename="station_perfectron_fortress"
+					name=		"Perfectron fortress"
+					sovereign=	"sovereign_perfectron"
 					hp=			"600"
 					structure="RogueFrontierContent/sprites/NRobotFortress.asc.cg"
 		>
@@ -172,9 +172,9 @@
 			<Ship codename="ship_flawless" count="4" order="guard"/>
 		</Ships>
 	</StationType>
-	<StationType	codename="station_nrobot_power_station"
-					name=		"NRobot power station"
-					sovereign=	"sovereign_nrobot"
+	<StationType	codename="station_perfectron_power_station"
+					name=		"Perfectron generator"
+					sovereign=	"sovereign_perfectron"
 					hp=			"400"
 					structure="RogueFrontierContent/sprites/NRobotPowerStation.asc.cg"
 		>

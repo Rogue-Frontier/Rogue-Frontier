@@ -175,6 +175,14 @@
 			>
 		</Armor>
 	</ItemType>
+	<ItemType	codename=	"item_bronze_rice"
+		name=		"Barrel of bronze rice"
+		mass=		"1000"
+		level=		"2"
+		value=		"600"
+		desc=		"Bronze rice is a genetically modified rice variant containing boosted amounts of vitamins."
+		>
+	</ItemType>
 	<ShipClass	codename=			"ship_orion_raider"
 				name=				"Orion raider"
 				thrust=				"0.1"
@@ -192,6 +200,9 @@
 		<Devices>
 			<Weapon	codename="item_orion_bolter" modifierChance="40/100" damageHPInc="4"/>
 		</Devices>
+		<Cargo>
+			<Item codename="item_bronze_rice" count="0-2"/>
+		</Cargo>
 		<LayeredArmorSystem>
 			<Armor	codename="item_hunterscale_plate"/>
 			<Armor	codename="item_hunterscale_plate"/>
@@ -217,6 +228,9 @@
 		<Devices>
 			<Weapon	codename="item_orion_longbow" modifierChance="40/100" damageHPInc="8"/>
 		</Devices>
+		<Cargo>
+			<Item codename="item_bronze_rice" count="1-4"/>
+		</Cargo>
 		<LayeredArmorSystem>
 			<Armor	codename="item_skullhelm_plate"/>
 			<Armor	codename="item_hunterscale_plate"/>
@@ -244,6 +258,9 @@
 		<Devices>
 			<Weapon	codename="item_orion_skewer"/>
 		</Devices>
+		<Cargo>
+			<Item codename="item_bronze_rice" count="4-8"/>
+		</Cargo>
 		<LayeredArmorSystem>
 			<Armor	codename="item_skullhelm_plate"/>
 			<Armor	codename="item_skullhelm_plate"/>
@@ -267,6 +284,9 @@
 		<Weapons>
 			<Weapon	codename="item_orion_bolter"/>
 		</Weapons>
+		<Cargo>
+			<Item codename="item_bronze_rice" count="2-8"/>
+		</Cargo>
 	</StationType>
 	<StationType	codename="station_orion_turret"
 					name=		"Orion turret"
@@ -309,6 +329,9 @@
 			<Weapon	codename="item_orion_bolter" posX="-3" posY="3"	angle="90" leftRange="135" rightRange="90"/>
 			<Weapon	codename="item_orion_bolter" posX="-3" posY="-3"	angle="-90" leftRange="90" rightRange="135"/>
 		</Weapons>
+		<Cargo>
+			<Item codename="item_bronze_rice" count="4-16"/>
+		</Cargo>
 	</StationType>
 	<StationType	codename="station_arnold_habitat"
 				name=		"William Sulphin's container habitat"
@@ -336,6 +359,9 @@
 		</Ships>
 		<Weapons>
 		</Weapons>
+		<Cargo>
+			<Item codename="item_bronze_rice" count="8"/>
+		</Cargo>
 		<!--
 		<HeroImage path="RogueFrontierContent/ConstellationAstra.asc"/>
 		-->

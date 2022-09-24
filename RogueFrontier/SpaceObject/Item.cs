@@ -209,7 +209,7 @@ public class Armor : Device {
         if (hp == 0 || p.damageHP < 1)
             return 0;
         //If we're below the drill threshold, then skip this armor
-        if(((float)hp / desc.maxHP) < p.fragment.armorDrill) {
+        if(((float)hp / desc.maxHP) < p.desc.armorDrill) {
             return 0;
         }
         //If we're active and the projectile has armor skip, then skip us now.
@@ -249,7 +249,7 @@ public class Armor : Device {
         }
          * */
 
-        var multiplier = p.fragment.armorFactor + lifetimeDamageAbsorbed * desc.lifetimeDegrade;
+        var multiplier = p.desc.armorFactor + lifetimeDamageAbsorbed * desc.lifetimeDegrade;
         var absorbed = (int)Math.Clamp(p.damageHP * multiplier, 0, hp);
         hp -= absorbed;
         OnAbsorb(absorbed);
@@ -258,7 +258,7 @@ public class Armor : Device {
         }
         lastDamageTick = p.world.tick;
         p.damageHP -= (int)Math.Ceiling(absorbed / multiplier);
-        if (p.fragment.decay is Decay d) {
+        if (p.desc.decay is Decay d) {
             decay.Add(new(d.lifetime, d.rate));
         }
         return absorbed;
@@ -557,8 +557,8 @@ public class Shield : Device {
         }
     }
     public void Absorb(Projectile p) {
-        var multiplier = p.fragment.shieldFactor;
-        var absorbed = (int)Math.Clamp(p.damageHP * (1 - p.fragment.shieldDrill) * absorbFactor * multiplier, 0, maxAbsorb);
+        var multiplier = p.desc.shieldFactor;
+        var absorbed = (int)Math.Clamp(p.damageHP * (1 - p.desc.shieldDrill) * absorbFactor * multiplier, 0, maxAbsorb);
         if (absorbed > 0) {
             hp -= absorbed;
             lifetimeDamageAbsorbed += absorbed;
@@ -643,32 +643,34 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     public bool IsInRange(XY offset) => offset.magnitude2 < projectileDesc.range2;
     public void SetWeaponDesc(WeaponDesc desc) {
         this.desc = desc;
-        if (desc.capacitor != null) {
-            capacitor = new(desc.capacitor);
-        }
 
-        if (desc.initialCharges > -1) {
-            ammo = new ChargeAmmo(desc.initialCharges);
-        } else if (desc.ammoType != null) {
-            ammo = new ItemAmmo(desc.ammoType);
-        }
-        targeting = desc.projectile.multiTarget ? new Targeting(true) :
-            desc.projectile.acquireTarget ? new Targeting(false) : null;
-
-        if(aiming == null) {
-            if (desc.projectile.omnidirectional || desc.omnidirectional) {
-                aiming = new Omnidirectional();
-            } else if (desc.angleRange > 0) {
-                aiming = new Swivel(desc.angleRange);
-            } else if (desc.leftRange + desc.rightRange > 0) {
-                aiming = new Swivel(desc.leftRange, desc.rightRange);
-            }
-            if (aiming != null) {
-                targeting = targeting ?? new Targeting(false);
-            }
-        } 
+        capacitor =
+            desc.capacitor != null ?
+                new(desc.capacitor) :
+            null;
+        ammo =
+            desc.initialCharges > -1 ?
+                new ChargeAmmo(desc.initialCharges) :
+            desc.ammoType != null ?
+                new ItemAmmo(desc.ammoType) :
+            null;
+        aiming ??=
+            desc.projectile.omnidirectional || desc.omnidirectional ?
+                new Omnidirectional() :
+            desc.angleRange > 0 ?
+                new Swivel(desc.angleRange) :
+            desc.leftRange + desc.rightRange > 0 ?
+                new Swivel(desc.leftRange, desc.rightRange) :
+            null;
+        targeting =
+            desc.projectile.multiTarget ?
+                new(true) :
+            desc.projectile.acquireTarget ?
+                new(false) :
+            aiming != null ?
+                new(false) :
+            null;
         UpdateProjectileDesc();
-
         structural = desc.structural;
     }
     public Weapon Copy(Item source) => desc.GetWeapon(source);
@@ -971,10 +973,10 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         targeting?.SetTarget(target);
     public void SetFiring(bool firing = true) => this.firing = firing;
     //Use this if you want to override auto-aim
-    public void SetFiring(bool firing = true, ActiveObject target = null) {
+    public void SetFiring(bool firing = true, ActiveObject forceTarget = null) {
         this.firing = firing;
-        if (target != null) {
-            targeting?.UpdateTarget(target);
+        if (forceTarget != null) {
+            targeting?.UpdateTarget(forceTarget);
         }
     }
 }

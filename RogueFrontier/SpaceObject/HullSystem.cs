@@ -68,7 +68,7 @@ public class LayeredArmor : HullSystem {
                 goto CheckDamage;
             layer.lastDamageTick = tick;
 
-            int factor = p.fragment.shock;
+            int factor = p.desc.shock;
             if (factor > 1) {
 
                 //Factor:5
@@ -81,7 +81,7 @@ public class LayeredArmor : HullSystem {
                 factor--;
                 foreach (var j in Enumerable.Range(i - factor, factor).Reverse().TakeWhile(j => j > -1)) {
                     var below = layers[j];
-                    below.Absorb((absorbed * factor) / p.fragment.shock);
+                    below.Absorb((absorbed * factor) / p.desc.shock);
                     below.lastDamageTick = tick;
                     factor--;
                 }

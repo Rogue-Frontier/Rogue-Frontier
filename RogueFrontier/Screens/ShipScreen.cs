@@ -9,6 +9,8 @@ using Console = SadConsole.Console;
 using static UI;
 using Common;
 using ArchConsole;
+using SFML.Audio;
+
 namespace RogueFrontier;
 
 class ShipScreen : ScreenSurface {
@@ -508,6 +510,9 @@ public class SListScreen {
     }
     public static ListScreen<Armor> RepairArmorScreen(ScreenSurface prev, PlayerShip player, Item source, RepairArmor repair, Action callback) {
         ListScreen<Armor> screen = null;
+        Sound s = new();
+
+
         var devices = (player.hull as LayeredArmor).layers;
 
         return screen = new(prev,
@@ -544,10 +549,8 @@ public class SListScreen {
             if(segment.desc.restrictRepair?.Matches(source) == false) {
                 return;
             }
-
             var before = segment.hp;
             var repairHP = Math.Min(repair.repairHP, segment.desc.maxHP - segment.hp);
-
             if (repairHP > 0) {
                 segment.hp += repairHP;
                 player.cargo.Remove(source);
@@ -790,6 +793,13 @@ public class SListScreen {
         ListScreen<Armor> screen = null;
         var layers = (player.hull as LayeredArmor)?.layers ?? new();
         RepairEffect job = null;
+
+        Sound s = new();
+        SoundBuffer
+            start = new("RogueFrontierContent/sounds/repair_start.wav"),
+            stop = new("RogueFrontierContent/sounds/repair_stop.wav");
+
+
         return screen = new(prev,
             player,
             layers,
@@ -820,29 +830,41 @@ public class SListScreen {
                 return result;
             }
             int delta = a.desc.maxHP - a.hp;
-            result.Add(new($"Cost per HP: {unitPrice}"));
-            result.Add(new($"Total cost:  {unitPrice * delta}"));
-            result.Add(new($"Your money:  {player.person.money}"));
+            result.Add(new($"Price per HP: {unitPrice}"));
+            result.Add(new($"Full price:   {unitPrice * delta}"));
+            result.Add(new($"HP to repair: {delta}"));
+            result.Add(new($"Your money:   {player.person.money}"));
             result.Add(new(""));
             if (delta <= 0) {
                 result.Add(new("This armor is at full HP", Color.Yellow, Color.Black));
-            } else if (job?.active == true) {
+                goto Done;
+            }
+            if (job?.active == true) {
                 if (job.armor == a) {
                     result.Add(new("This armor is currently under repairs", Color.Yellow, Color.Black));
                 } else {
                     result.Add(new("Please wait for current repair job to finish", Color.Yellow, Color.Black));
                 }
-            } else {
-                if (unitPrice > player.person.money) {
-                    result.Add(new($"You cannot afford repairs", Color.Yellow, Color.Black));
-                } else {
-                    result.Add(new($"Order repairs", Color.Yellow, Color.Black));
-                }
+                goto Done;
             }
+            if (unitPrice > player.person.money) {
+                result.Add(new($"You cannot afford repairs", Color.Yellow, Color.Black));
+                goto Done;
+            }
+            result.Add(new($"Order repairs", Color.Yellow, Color.Black));
+
+        Done:
             return result;
         }
         void Invoke(Armor a) {
             if (job?.active == true) {
+                if(job.armor == a) {
+                    job.active = false;
+                    player.AddMessage(new Message($"Repair job terminated."));
+
+                    s.SoundBuffer = stop;
+                    s.Play();
+                }
                 return;
             }
             int delta = a.desc.maxHP - a.hp;
@@ -850,18 +872,30 @@ public class SListScreen {
                 return;
             }
             int unitPrice = GetPrice(a);
-            int price = delta * unitPrice;
-            if(price > player.person.money) {
+            if(unitPrice < 0) {
+                return;
+            }
+
+
+            if(unitPrice > player.person.money) {
                 return;
             }
             job = new RepairEffect(player, a, 6, unitPrice, Done);
             player.world.AddEvent(job);
             player.AddMessage(new Message($"Repair job initiated..."));
+
+
+            s.SoundBuffer = start;
+            s.Play();
+
             callback?.Invoke();
         }
         void Done(RepairEffect r) {
             player.world.RemoveEvent(r);
             player.AddMessage(new Message($"Repair job {(r.terminated ? "terminated" : "completed")}"));
+
+            s.SoundBuffer = stop;
+            s.Play();
         }
         void Escape() {
             if(job?.active == true) {
@@ -869,6 +903,10 @@ public class SListScreen {
                 player.world.RemoveEvent(job);
                 job = null;
                 player.AddMessage(new Message($"Repair job canceled"));
+
+
+                s.SoundBuffer = stop;
+                s.Play();
                 return;
             }
             var p = screen.Parent;

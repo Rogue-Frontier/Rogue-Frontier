@@ -300,9 +300,9 @@
 			initialCharges=	"500"
 			powerUse=		"20"
 			fireCooldown=	"25"
+			omnidirectional="true"
 			>
 			<Projectile
-				omnidirectional="true"
 				missileSpeed=	"40"
 				damageType=		"2"
 				damageHP=		"12"
@@ -480,6 +480,8 @@
 				lifetime=		"90"
 				glyph=			"i"
 				foreground=		"Red"
+				
+				detonateSound=	"RogueFrontierContent/sounds/dynamite.wav"
 				>
 				<Fragment
 					count=			"36"
@@ -501,7 +503,6 @@
 					glyph=			"z"
 					foreground=		"FF0000FF"
 					/>
-
 			</Projectile>
 		</Weapon>
 	</ItemType>
@@ -512,6 +513,14 @@
 		invoke=		"depleteTargetShields"
 		value=		"3000"
 		desc=		"This one-time program attempts to kill the shields on your selected target."
+		>
+	</ItemType>
+	<ItemType	codename=	"item_biocart_transcendence"
+		name=		"ROM of Transcendence: Sapphire Ver."
+		mass=		"1"
+		level=		"2"
+		value=		"400"
+		desc=		"This ROM biocartridge contains a copy of the starship sim RPG titled *Transcendence: Sapphire Version*"
 		>
 	</ItemType>
 	<ItemType	codename=	"item_book_founders"
