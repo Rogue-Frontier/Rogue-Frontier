@@ -437,6 +437,7 @@ public record FragmentDesc {
     [Opt] public int shock = 1;
     [Req] public int lifetime;
     [Opt] public bool passthrough;
+    [Opt] public bool precise = true;
     [Opt] public int armorSkip = 0;
     [Opt] public double shieldDrill;
     /// <summary>

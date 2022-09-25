@@ -590,7 +590,8 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_gem_of_monologue = 500,
         
         item_repeater_turret = 9000,
-        
+        item_magic_shotgun_i = 1500,
+
         item_dark_magic_blaster = 25000,
         item_dark_lightning_cannon = 25000,
 
@@ -726,6 +727,20 @@ of civilian gunship pilots.",
         Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetPrice, null);
     }
     public Con CamperOutpost(Con prev, PlayerShip playerShip, Station source) {
+        var lookup = (string s) => playerShip.world.types.Lookup<ItemType>(s);
+        var recipes = new Dictionary<string, Dictionary<string, int>> {
+            ["item_orion_longbow"] = new() {
+                ["item_orion_bolter"] = 4
+            },
+            ["item_magic_shotgun_i"] = new() {
+                ["item_magic_blaster_i"] = 1,
+                ["item_dynamite_charge"] = 15,
+            }
+        }.ToDictionary(
+            pair => lookup(pair.Key),
+            pair => pair.Value.ToDictionary(
+                pair => lookup(pair.Key),
+                pair => pair.Value));
         return Intro();
         Dialog Intro() {
             return new(prev,
@@ -734,6 +749,7 @@ an independent enclave of tinkers,
 craftspersons, and adventurers.",
             new() {
                 new("Trade", Trade),
+                new("Workshop", Workshop),
                 new("Service: Repair Armor", ArmorServices),
                 new("Undock")
             });
@@ -742,6 +758,7 @@ craftspersons, and adventurers.",
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             GetStdPrice,
             GetStdPrice);
+        Con Workshop(Con from) => SListScreen.Workshop(from, playerShip, recipes, null);
         Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetRepairPrice, null);
     }
     public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>

@@ -227,7 +227,7 @@
 		<Weapon	powerUse=		"10"
 				fireCooldown=	"90"
 				ammoType=		"item_klaw_missile"
-				sound=			"RogueFrontierContent/sounds/generic_missile.wav"
+				sound=			"RogueFrontierContent/sounds/klaw_launcher.wav"
 			>
 			<Projectile	count=			"2"
 						spreadAngle=	"30"

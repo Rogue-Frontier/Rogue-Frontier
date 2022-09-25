@@ -586,8 +586,8 @@ public class Solar : Device, PowerSource {
     public void Update(double delta, IShip owner) {
         void Update() {
             var t = owner.world.backdrop.starlight.GetBackgroundFixed(owner.position);
-            var b = t.A;
-            maxOutput = (b * desc.maxOutput / 255);
+            var b = t.GetBrightness();
+            maxOutput = (int)(b * desc.maxOutput);
         }
         switch (durability) {
             case -1:

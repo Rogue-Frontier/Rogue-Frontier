@@ -10,6 +10,7 @@ using static UI;
 using Common;
 using ArchConsole;
 using SFML.Audio;
+using CloudJumper;
 
 namespace RogueFrontier;
 
@@ -707,6 +708,109 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
+
+
+
+
+
+
+
+
+
+
+    public static ListScreen<ItemType> Workshop(ScreenSurface prev, PlayerShip player, Dictionary<ItemType, Dictionary<ItemType, int>> recipes, Action callback) {
+        ListScreen<ItemType> screen = null;
+        var listing = new Dictionary<ItemType, Dictionary<ItemType, HashSet<Item>>>();
+        var available = new Dictionary<ItemType, bool>();
+        Calculate();
+
+
+        void Calculate() {
+            foreach ((var result, var rec) in recipes) {
+                var components = new Dictionary<ItemType, HashSet<Item>>();
+                foreach (var compType in rec.Keys) {
+                    components[compType] = new();
+                }
+                foreach (var item in player.cargo) {
+                    var type = item.type;
+                    if (components.TryGetValue(type, out var set)) {
+                        set.Add(item);
+                    }
+                }
+
+                available[result] = rec.All(pair => components[pair.Key].Count >= pair.Value);
+                listing[result] = components;
+            }
+        }
+        return screen = new(prev,
+            player,
+            recipes.Keys,
+            GetName,
+            GetDesc,
+            Invoke,
+            Escape
+            ) { IsFocused = true };
+        string GetName(ItemType type) => $"{type.name}";
+        List<ColoredString> GetDesc(ItemType type) {
+            var result = new List<ColoredString>();
+            var desc = type.desc.SplitLine(64);
+            if (desc.Any()) {
+                result.AddRange(desc.Select(Main.ToColoredString));
+                result.Add(new(""));
+            }
+
+
+
+            var rec = recipes[type];
+            foreach((var compType, var minCount) in rec) {
+                var count = listing[type][compType].Count;
+                result.Add(new($"{compType.name}: {count} / {minCount}", count >= minCount ? Color.Yellow : Color.Gray, Color.Black));
+            }
+            result.Add(new(""));
+
+            if (available[type]) {
+                result.Add(new("[Enter] Fabricate this item", Color.Yellow, Color.Black));
+            } else {
+                result.Add(new("Additional materials required", Color.Yellow, Color.Black));
+            }
+
+        Done:
+            return result;
+        }
+        void Invoke(ItemType type) {
+            if (available[type]) {
+                foreach((var compType, var minCount) in recipes[type]) {
+                    player.cargo.ExceptWith(listing[type][compType].Take(minCount));
+                }
+                player.cargo.Add(new(type));
+
+                Calculate();
+                callback?.Invoke();
+            }
+        }
+        void Escape() {
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.Children.Add(prev);
+            p.IsFocused = true;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public static ListScreen<Reactor> RefuelService(ScreenSurface prev, PlayerShip player, Func<Reactor, int> GetPrice, Action callback) {
         ListScreen<Reactor> screen = null;

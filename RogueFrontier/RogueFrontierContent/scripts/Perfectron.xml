@@ -11,17 +11,16 @@
 		<Service interval="30" type="grind" powerUse="5"/>
 	</ItemType>
 	<ItemType	codename=	"item_deflect_device"
-		name=		"DEFLECTOR device"
+		name=		"Deflect device"
 		level=		"3"
 		mass=		"4000"
-		desc=		"."
+		desc=		"This ."
 		>
 		<Service interval="10" type="missileJack" powerUse="5"/>
 	</ItemType>
-
 	<ItemType	codename=	"item_lightning_cannon"
 		name=		"Lightning cannon"
-		level=		"3"
+		level=		"5"
 		mass=		"4000"
 		desc=		"This weapon can unleash a deadly rapid-fire barrage of energy beams onto a target after priming its hull with an initial connecting hit."
 		>
@@ -53,16 +52,14 @@
 
 	<ItemType	codename=	"item_flashbang_cannon"
 				name=		"Flashbang cannon"
-				level=		"2"
+				level=		"6"
 				mass=		"2000"
-				
-				desc=		"A high-power flashbang unleashes a huge blinding explosion, effectively disrupting targeting systems. The flashbang is powerful enough to blind its user though so be careful."
+				desc=		"A high-energy flashbang unleashes a huge blinding explosion, effectively disrupting targeting systems. The flashbang is powerful enough to blind its user though so be careful."
 		>
 		<Weapon	initialCharges="500"
 				powerUse=		"30"
 				fireCooldown=	"90"
 			>
-
 			<Projectile
 				missileSpeed=	"50"
 				damageType=		"1"
@@ -95,7 +92,7 @@
 		name=		"Lightning vent"
 		level=		"3"
 		mass=		"4000"
-		desc=		"The Perfectron generator discharges excess generated power in the form of lightning storms."
+		desc=		"The Perfectron generator discharges excess generated power in the form of lightning bolts."
 		>
 		<Weapon
 			powerUse=		"60"

@@ -192,7 +192,6 @@ public class Projectile : MovingObject {
         }
         double angleInterval = fragment.spreadAngle / fragment.count;
         double fragmentAngle;
-
         if (fragment.omnidirectional
             && maneuver?.target is ActiveObject target
             && target.active == true
@@ -205,6 +204,9 @@ public class Projectile : MovingObject {
         HashSet<Entity> exclude = desc.hitSource ?
             new() { null, this } :
             new() { null, source, this };
+        if(fragment.precise) {
+            exclude.UnionWith(this.exclude);
+        }
         List<Projectile> salvo = new();
         for (int i = 0; i < fragment.count; i++) {
             double angle = fragmentAngle + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1);

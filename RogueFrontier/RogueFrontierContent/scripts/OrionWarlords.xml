@@ -7,7 +7,7 @@
 				mass=		"3000"
 				level=		"2"
 				value=		"400"
-				desc=		"This primitive kinetic cannon is designed to accomodate both close-range fighters and long-range snipers. While idle, it charges up power for the next shot. The shells from this weapon can fly scary fast when fully charged."
+				desc=		"This specialized kinetic cannon is designed to accomodate both close-range fighters and long-range snipers. While idle, it charges up power for the next shot. The shells from this weapon can fly scary fast when fully charged."
 				invoke=		"installWeapon"
 		>
 		<Weapon
@@ -38,7 +38,7 @@
 				mass=		"5000"
 				level=		"3"
 				value=		"800"
-				desc=		"A fully charged shot from this mass driver can be lethal to small gunships. As most of its destructive power comes from charged up shots, it has a relatively complicated design compared to other kinetic weapons."				
+				desc=		"A fully charged shot from this kinetic cannon can be lethal to small gunships. As most of its destructive power comes from charged up shots, it has a relatively complicated design compared to other weapons."				
 				invoke=		"installWeapon"
 		>
 		<Weapon	

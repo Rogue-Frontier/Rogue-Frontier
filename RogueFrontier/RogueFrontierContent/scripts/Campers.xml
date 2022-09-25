@@ -66,4 +66,42 @@
 				/>
 		</Weapon>
 	</ItemType>
+
+	<ItemType	codename=	"item_magic_shotgun_i"
+			name=		"sawed-off Magic Blaster I"
+			level=		"1"
+			mass=		"1000"
+			value=		"1500"
+				
+			attributes= ""
+
+			desc=		"An unlicensed modification turns a first-generation Magic Blaster into a much more explosive and much less accurate weapon."
+		>
+		<Weapon
+			initialCharges=	"180"
+			powerUse=		"20"
+			fireCooldown=	"40"
+			recoil=			"8"
+			>
+			<Projectile
+				count=			"12"
+				spreadAngle=	"30"
+				missileSpeed=	"60"
+				damageType=		"1"
+				damageHP=		"1d8"
+				
+				lifetime=		"40"
+				glyph=			"*"
+				foreground=		"FF55FFFF"
+				>
+				<Decay lifetime="300" rate="1/60"/>
+				<Trail
+					lifetime=	"10"
+					glyph=		"*"
+					foreground=	"FF55FFFF"
+					background=	"BB77DDFF"/>
+			</Projectile>
+		</Weapon>
+	</ItemType>
+
 </Module>
