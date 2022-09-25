@@ -12,8 +12,16 @@ using System;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
+using SFML.Audio;
 
 namespace RogueFrontier;
+
+public static class Tones {
+    public static Sound pressed = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) {
+        Volume = 33
+    };
+}
+
 partial class Program {
     public static int TICKS_PER_SECOND = 60;
     static Program() {
@@ -25,8 +33,6 @@ partial class Program {
     public static string main = ExpectFile("RogueFrontierContent/scripts/Main.xml");
     public static string cover = ExpectFile("RogueFrontierContent/sprites/RogueFrontierPosterV2.asc.cg");
     public static string splash = ExpectFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
-
-    public static string theme = ExpectFile("RogueFrontierContent/Quietus.mp3");
 
 
 
@@ -92,6 +98,9 @@ partial class Program {
         //var files = Directory.GetFiles($"{AppDomain.CurrentDomain.BaseDirectory}save", "*.trl");
         //SaveGame.Deserialize(File.ReadAllText(files.First()));
 
+        var splashMusic = new Sound(new SoundBuffer("RogueFrontierContent/music/Splash.wav")) {
+            Volume = 33
+        };
         var poster = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText(cover)));
 
         var title = new TitleScreen(Width, Height, GenerateIntroSystem());
@@ -133,6 +142,7 @@ partial class Program {
 
         GameHost.Instance.Screen = container;
 
+
 #if DEBUG
         ShowTitle();
         //title.QuickStart();
@@ -142,6 +152,8 @@ partial class Program {
 #endif
 
         void ShowSplash() {
+
+
             //var p = Path.GetFullPath(theme);
             //MediaPlayer.Play(Song.FromUri(p, new(p)));
 
@@ -174,6 +186,7 @@ partial class Program {
         }
 
         void ShowOpening(Console prev) {
+            splashMusic.Play();
             index = 2;
             prev.Parent.Children.Remove(splashBackground);
 
@@ -244,6 +257,9 @@ more than just a dream...
         }
 
         void ShowTitle() {
+
+            splashMusic.Stop();
+            title.titleMusic.Play();
             index = 4;
             titleSlide.IsFocused = true;
             GameHost.Instance.Screen = titleSlide;

@@ -150,6 +150,7 @@ public class TitleSlideIn : Console {
     }
     public override bool ProcessKeyboard(Keyboard keyboard) {
         if (keyboard.IsKeyPressed(Keys.Enter)) {
+            Tones.pressed.Play();
             Next();
         }
         return base.ProcessKeyboard(keyboard);
@@ -274,6 +275,7 @@ public class Pause : ScreenSurface {
     }
     public override bool ProcessKeyboard(Keyboard keyboard) {
         if (keyboard.IsKeyPressed(Keys.Enter)) {
+            Tones.pressed.Play();
             time = 0;
         }
         return base.ProcessKeyboard(keyboard);

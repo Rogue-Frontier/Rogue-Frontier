@@ -77,6 +77,9 @@ class PlayerCreator : ControlsConsole {
         double lastClick = 0;
         int fastClickCount = 0;
         identityButton = new LabelButton(playerGenome.name, () => {
+
+            Tones.pressed.Play();
+
             if (time - lastClick > 0.5) {
                 genomeIndex = (genomeIndex + 1) % genomes.Count;
                 playerGenome = genomes[genomeIndex];
@@ -246,19 +249,23 @@ class PlayerCreator : ControlsConsole {
     }
 
     public void SelectLeft() {
+        Tones.pressed.Play();
         index = (playable.Count + index - 1) % playable.Count;
         UpdateArrows();
     }
     public void SelectRight() {
+        Tones.pressed.Play();
         index = (index + 1) % playable.Count;
         UpdateArrows();
     }
 
     public void Back() {
+        Tones.pressed.Play();
         IsFocused = false;
         Game.Instance.Screen = new TitleSlideOut(this, prev) { IsFocused = true };
     }
     public void Start() {
+        Tones.pressed.Play();
         next(context);
     }
 }

@@ -31,16 +31,23 @@ public class TitleScreen : Console {
     public AIShip pov;
     public int povTimer;
     public List<Message> povDesc;
-
     //XY screenCenter;
-
     public XY camera;
     public Dictionary<(int, int), ColoredGlyph> tiles;
 
-    private Sound pressed = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) {
+    public Sound titleMusic = new(new SoundBuffer("RogueFrontierContent/music/Title.wav")) {
         Volume = 33
     };
     public TitleScreen(int width, int height, System World) : base(width, height) {
+        Focused += (o, a) => {
+            if (titleMusic.Status == SoundStatus.Playing) {
+                return;
+            }
+            titleMusic.Play();
+        };
+        FocusLost += (o, a) => titleMusic.Stop();
+
+
         this.World = World;
 
         profile = Profile.Load(out var p) ? p : new Profile();
@@ -57,7 +64,7 @@ public class TitleScreen : Console {
         int y = 9;
         var fs = FontSize * 1;
 
-        Button("[Enter]     Play Story Mode", StartGame);
+        Button("[Enter]   Play Story Mode", StartGame);
         Button("[Shift-A] Arena Mode", StartArena);
         Button("[Shift-C] Controls", StartConfig);
         Button("[Shift-L] Load Game", StartLoad);
@@ -65,7 +72,7 @@ public class TitleScreen : Console {
         Button("[Shift-N] Multiplayer Server", Server);
         Button("[Shift-M] Multiplayer Client", Client);
         Button("[Shift-Z] Credits", StartCredits);
-        Button("[Escape]    Exit", Exit);
+        Button("[Escape]  Exit", Exit);
         void Button(string s, Action a) =>
             Children.Add(new LabelButton(s, a) { Position = new(x, y++), FontSize = fs });
         var f = "Settings.json";
@@ -82,7 +89,7 @@ public class TitleScreen : Console {
         credits.Children.Add(new Label("[Credits]") { Position = new(0, y++) });
         y++;
         credits.Children.Add(new Label("     Developer: Alex Chen") { Position = new(0, y++) });
-        credits.Children.Add(new Label(" Moral Support: Abdirahman Abdi") { Position = new(0, y++) });
+        credits.Children.Add(new Label("Special Thanks: Abdirahman Abdi") { Position = new(0, y++) });
         credits.Children.Add(new Label("Special Thanks: Andy De George") { Position = new(0, y++) });
         credits.Children.Add(new Label("Special Thanks: George Moromisato") { Position = new(0, y++) });
 
@@ -91,7 +98,7 @@ public class TitleScreen : Console {
         credits.Children.Add(new Label("Transcendence is a trademark of Kronosaur Productions") { Position = new(0, y++) });
     }
     private void StartGame() {
-        pressed.Play();
+        Tones.pressed.Play();
         SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, World, settings, StartCrawl)) { IsFocused = true };
 
         void StartCrawl(ShipSelectorModel context) {
@@ -241,7 +248,7 @@ public class TitleScreen : Console {
         }
     }
     public void StartSurvival() {
-        pressed.Play();
+        Tones.pressed.Play();
         Game.Instance.Screen = new PlayerCreator(this, World, settings, CreateGame) { IsFocused = true };
 
         void CreateGame(ShipSelectorModel context) {
