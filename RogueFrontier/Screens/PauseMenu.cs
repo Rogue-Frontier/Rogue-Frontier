@@ -86,11 +86,8 @@ public class PauseScreen : Console {
         var ps = playerMain.playerShip;
         var endgame = ps.onDestroyed.set.Where(c => c is IScreenObject).ToList();
         ps.onDestroyed.set.ExceptWith(endgame);
-
         Save();
-
         ps.onDestroyed.set.UnionWith(endgame);
-
         Continue();
     }
     public void SaveQuit() {

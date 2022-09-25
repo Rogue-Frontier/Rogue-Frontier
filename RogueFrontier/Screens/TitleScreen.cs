@@ -566,7 +566,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         var seed = player.name.GetHashCode();
         Universe u = new Universe(universeDesc, World.types, new Rand(seed));
 
-        var quickStartClass = "ship_beowulf";
+        var quickStartClass = "ship_flawless";
         var ent = u.GetAllEntities().OfType<Marker>().ToList();
         var marker = ent.First(e => e.Name == "Start");
         var w = marker.world;

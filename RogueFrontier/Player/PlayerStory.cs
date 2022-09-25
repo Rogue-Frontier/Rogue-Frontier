@@ -467,6 +467,13 @@ have at least a fighting chance when you leave this place.""
 public static class SPlayerStory {
     public static bool IsAmethyst(this Item i) => i.HasAtt("Amethyst");
 }
+
+
+/*  
+"If you ever encounter a Perfectron, just *run* away.
+They are mad with weaponry and will destroy whatever they please.
+There's a reason why we never agree to negotiate with them.
+*/
 public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Destroyed> {
     public HashSet<IPlayerInteraction> mainInteractions;
     public HashSet<IPlayerInteraction> secondaryInteractions;
