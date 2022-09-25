@@ -71,6 +71,9 @@
     <None Update="RogueFrontierContent\sounds\autopilot_on.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="RogueFrontierContent\sounds\button_press.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="RogueFrontierContent\sounds\dock_end.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

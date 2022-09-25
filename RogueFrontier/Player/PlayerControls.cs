@@ -88,6 +88,7 @@ public class PlayerControls {
 
     public void ProcessCommon() {
         if (input.ToggleUI) {
+            playerMain.audio.button_press.Play();
             playerMain.uiMain.IsVisible = !playerMain.uiMain.IsVisible;
         }
         if (input.Gate) {
@@ -137,6 +138,7 @@ public class PlayerControls {
             }
         }
         if (input.ShipMenu) {
+            playerMain.audio.button_press.Play();
             playerShip.DisengageAutopilot();
             playerMain.sceneContainer?.Children.Add(new ShipScreen(playerMain, playerShip, playerMain.story) { IsFocused = true });
         }
@@ -150,24 +152,36 @@ public class PlayerControls {
         ProcessArrows();
         ProcessTargeting();
         ProcessCommon();
+        var pw = playerMain.powerWidget;
+        var cw = playerMain.communicationsWidget;
         if (input.Escape) {
-            playerMain.pauseScreen.IsVisible = true;
-        }
-        if (input.InvokePowers && playerMain.powerWidget is var pw) {
-            pw.IsVisible = !pw.IsVisible;
-        }
-        if (keys != null && keys.IsKeyPressed(U)) {
-            playerMain.sceneContainer?.Children.Add(SListScreen.UsableScreen(playerMain.sceneContainer, playerShip));
-        }
-        if (input.Communications && playerMain.communicationsWidget is var cw) {
-            cw.IsVisible = !cw.IsVisible;
-        }
-        if (input.NetworkMap) {
-            if (playerMain.networkMap is var nm) {
-                nm.IsVisible = !nm.IsVisible;
+            playerMain.audio.button_press.Play();
+            if (pw?.IsVisible == true) {
+                pw.IsVisible = false;
+            } else if (cw.IsVisible == true) {
+                cw.IsVisible = false;
+            } else {
+                playerMain.pauseScreen.IsVisible = true;
             }
         }
+        if (input.InvokePowers && pw != null) {
+            playerMain.audio.button_press.Play();
+            pw.IsVisible = !pw.IsVisible;
+        }
+        if (input.Communications && cw != null) {
+            playerMain.audio.button_press.Play();
+            cw.IsVisible = !cw.IsVisible;
+        }
+        if (keys != null && keys.IsKeyPressed(U)) {
+            playerMain.audio.button_press.Play();
+            playerMain.sceneContainer?.Children.Add(SListScreen.UsableScreen(playerMain.sceneContainer, playerShip));
+        }
+        if (input.NetworkMap && playerMain.networkMap is var nm) {
+            playerMain.audio.button_press.Play();
+            nm.IsVisible = !nm.IsVisible;
+        }
         if (keys != null && keys.IsKeyPressed(F1)) {
+            playerMain.audio.button_press.Play();
             SadConsole.Game.Instance.Screen = new IdentityScreen(playerMain) { IsFocused = true };
             //playerMain.OnIntermission();
         }

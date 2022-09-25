@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
 using SFML.Audio;
+using Microsoft.Win32.SafeHandles;
 
 namespace RogueFrontier;
 public class NotifyStationDestroyed : Ob<Station.Destroyed> {
@@ -615,8 +616,10 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
         //Using the crosshair, we can effectively force any omnidirectional weapons to point at the crosshair
         if (targetList.First() == playerShip) {
             if (playerShip.GetTarget(out var t) && t == crosshair) {
+                crosshair.active = false;
                 playerShip.ClearTarget();
             } else {
+                crosshair.active = true;
                 playerShip.SetTargetList(new() { crosshair });
             }
         } else {
@@ -751,7 +754,8 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
     Sound targeting = new() { Volume = 50 },
         autopilot = new() { Volume = 50 },
         dock = new() { Volume = 50 };
-        
+    public Sound button_press = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) {
+        Volume = 33 };
     
     List<IShip> exhaustList = new();
     const float distScale = 1 / 16f;
@@ -1974,12 +1978,6 @@ public class CommunicationsWidget : ScreenSurface {
                 menu = new(this, playerShip, w) { Position = Position };
             }
         }
-        if (info.IsKeyPressed(Keys.Escape)) {
-            IsVisible = false;
-        }
-        if (info.IsKeyPressed(Keys.C)) {
-            IsVisible = false;
-        }
         return base.ProcessKeyboard(info);
     }
     public override void Render(TimeSpan delta) {
@@ -2230,7 +2228,7 @@ public class PowerWidget : ScreenSurface {
                 p.charging = false;
             }
             //Hide menu
-            IsVisible = false;
+            //IsVisible = false;
         }
         if (keyboard.IsKeyPressed(I)) {
             //Set charge for all powers back to 0
@@ -2241,7 +2239,7 @@ public class PowerWidget : ScreenSurface {
                 }
             }
             //Hide menu
-            IsVisible = false;
+            //IsVisible = false;
         }
 
         return base.ProcessKeyboard(keyboard);

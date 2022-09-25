@@ -18,6 +18,9 @@ class ShipScreen : ScreenSurface {
     public ScreenSurface prev;
     public PlayerShip playerShip;
     public PlayerStory story;
+
+    private Sound button_pressed = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) { Volume = 33 };
+
     //Idea: Show an ASCII-art map of the ship where the player can walk around
     public ShipScreen(ScreenSurface prev, PlayerShip playerShip, PlayerStory story) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
@@ -156,6 +159,7 @@ class ShipScreen : ScreenSurface {
 
         Predicate<Keys> pr = info.IsKeyPressed;
         if (pr(Keys.S) || pr(Keys.Escape)) {
+            button_pressed.Play();
             prev.IsFocused = true;
             Parent.Children.Remove(this);
         } else if (pr(Keys.A)) {
@@ -184,6 +188,7 @@ class ShipScreen : ScreenSurface {
     public void ShowMissions() => Transition(SListScreen.MissionScreen(this, playerShip, story));
     public void ShowRefuel() => Transition(SListScreen.RefuelScreen1(this, playerShip));
     public void Transition(ScreenSurface s) {
+        button_pressed.Play();
         Parent.Children.Add(s);
         Parent.Children.Remove(this);
         s.IsFocused = true;
@@ -1422,6 +1427,11 @@ public class ListScreen<T> : ScreenSurface {
     public delegate List<ColoredString> GetDesc(T t);
     public delegate void Invoke(T t);
     public delegate void Escape();
+    
+    private Sound button_press = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) {
+        Volume = 33
+    };
+
     public ListScreen(ScreenSurface prev, PlayerShip player, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
         this.player = player;
         this.items = items;
@@ -1449,6 +1459,7 @@ public class ListScreen<T> : ScreenSurface {
         foreach (var key in keyboard.KeysPressed) {
             switch (key.Key) {
                 case Keys.Up:
+                    button_press.Play();
                     index = count > 0 ?
                         (index == null ? (count - 1) :
                             index == 0 ? null :
@@ -1457,6 +1468,7 @@ public class ListScreen<T> : ScreenSurface {
                     tick = 0;
                     break;
                 case Keys.PageUp:
+                    button_press.Play();
                     index = count > 0 ?
                         (index == null ? (count - 1) :
                             index == 0 ? null :
@@ -1465,6 +1477,7 @@ public class ListScreen<T> : ScreenSurface {
                     tick = 0;
                     break;
                 case Keys.Down:
+                    button_press.Play();
                     index = count > 0 ?
                         (index == null ? 0 :
                             index == count - 1 ? null :
@@ -1473,6 +1486,7 @@ public class ListScreen<T> : ScreenSurface {
                     tick = 0;
                     break;
                 case Keys.PageDown:
+                    button_press.Play();
                     index = count > 0 ?
                         (index == null ? 0 :
                             index == count - 1 ? null :
@@ -1481,6 +1495,7 @@ public class ListScreen<T> : ScreenSurface {
                     tick = 0;
                     break;
                 case Keys.Enter:
+                    button_press.Play();
                     var i = currentItem;
                     if (i != null) {
                         invoke(i);
@@ -1488,6 +1503,7 @@ public class ListScreen<T> : ScreenSurface {
                     }
                     break;
                 case Keys.Escape:
+                    button_press.Play();
                     /*
                     var parent = Parent;
                     parent.Children.Remove(this);
@@ -1498,6 +1514,7 @@ public class ListScreen<T> : ScreenSurface {
                 default:
                     var ch = char.ToLower(key.Character);
                     if (ch >= 'a' && ch <= 'z') {
+                        button_press.Play();
                         int start = Math.Max((index ?? 0) - 13, 0);
                         var letterIndex = start + letterToIndex(ch);
                         if (letterIndex == index) {

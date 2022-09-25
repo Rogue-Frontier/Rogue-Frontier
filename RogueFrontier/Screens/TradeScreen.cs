@@ -7,6 +7,7 @@ using Console = SadConsole.Console;
 using static UI;
 using SadRogue.Primitives;
 using Common;
+using SFML.Audio;
 
 namespace RogueFrontier;
 
@@ -22,6 +23,7 @@ public class TradeMenu : Console {
     Player player;
     ExchangeModel model;
     GetPrice GetBuyPrice, GetSellPrice;
+
     public TradeMenu(ScreenSurface prev, PlayerShip playerShip, ITrader docked, GetPrice GetBuyPrice, GetPrice GetSellPrice) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         this.player = playerShip.person;

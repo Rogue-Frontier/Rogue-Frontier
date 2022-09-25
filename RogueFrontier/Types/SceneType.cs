@@ -9,6 +9,7 @@ using Console = SadConsole.Console;
 using ArchConsole;
 using ASECII;
 using System.IO;
+using SFML.Audio;
 
 namespace RogueFrontier;
 
@@ -182,6 +183,10 @@ public class Dialog : Console {
     int descX => Width / 2 - 12;
     int descY => 8;
     public static double maxCharge = 0.5;
+    
+    private Sound button_press = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) {
+        Volume = 33
+    };
     public Dialog(ScreenSurface prev, string desc, List<SceneOption> navigation) : base(prev.Surface.Width, prev.Surface.Height) {
         this.desc = new(desc.Replace("\r", null));
 
@@ -270,6 +275,7 @@ public class Dialog : Console {
         base.Update(delta);
     }
     public void Transition(ScreenSurface next) {
+        button_press.Play();
         var p = Parent;
         var c = Parent.Children;
         c.Remove(this);
@@ -328,14 +334,26 @@ public class Dialog : Console {
 
         charging = false;
         if (keyboard.IsKeyPressed(Keys.Escape) || (prevEscape && keyboard.IsKeyDown(Keys.Escape))) {
+            if (!prevEscape) {
+                button_press.Play();
+            }
             navIndex = escapeIndex;
             charging = true;
             enter = true;
             prevEscape = true;
         } else {
             prevEscape = false;
+
+
             enter = keyboard.IsKeyDown(Keys.Enter);
+
+
             if (enter) {
+
+                if (!prevEnter) {
+                    button_press.Play();
+                }
+
                 if (descIndex < desc.Length - 1) {
                     descIndex = desc.Length - 1;
                     allowEnter = false;
@@ -352,15 +370,21 @@ public class Dialog : Console {
             }
             foreach (var c in keyboard.KeysDown.Select(k => k.Character).Where(c => char.IsLetterOrDigit(c)).Select(c => char.ToUpper(c))) {
                 if (keyMap.TryGetValue(c, out int index)) {
+                    if (!prevEnter) {
+                        button_press.Play();
+                    }
+
                     navIndex = index;
                     charging = true;
                     enter = true;
                 }
             }
             if (keyboard.IsKeyPressed(Keys.Up)) {
+                button_press.Play();
                 navIndex = (navIndex - 1 + navigation.Count) % navigation.Count;
             }
             if (keyboard.IsKeyPressed(Keys.Down)) {
+                button_press.Play();
                 navIndex = (navIndex + 1) % navigation.Count;
             }
         }

@@ -1,6 +1,7 @@
 ﻿using SadConsole;
 using SadConsole.Input;
 using SadRogue.Primitives;
+using SFML.Audio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,6 +94,9 @@ public class ExchangeModel {
     Action exit;
     int tick;
 
+    private Sound pressed = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) {
+        Volume = 33
+    };
     public ExchangeModel(Trader player, Trader station, Action enter, Action exit) {
         traders = new() { player, station };
         this.enter = enter;
@@ -106,44 +110,54 @@ public class ExchangeModel {
         foreach (var key in keyboard.KeysPressed) {
             switch (key.Key) {
                 case Keys.Tab:
+                    pressed.Play();
                     currentTrader.ToggleGroup();
                     break;
                 case Keys.PageUp:
+                    pressed.Play();
                     from.IncIndex(-26);
                     tick = 0;
                     break;
                 case Keys.Up:
+                    pressed.Play();
                     from.IncIndex(-1);
                     tick = 0;
                     break;
                 case Keys.Down:
+                    pressed.Play();
                     from.IncIndex(1);
                     tick = 0;
                     break;
                 case Keys.PageDown:
+                    pressed.Play();
                     from.IncIndex(26);
                     tick = 0;
                     break;
                 case Keys.Left:
+                    pressed.Play();
                     traderIndex = 0;
                     UpdateIndex();
                     break;
                 case Keys.Right:
+                    pressed.Play();
                     traderIndex = 1;
                     UpdateIndex();
                     break;
                 case Keys.Enter:
                     if (index == null)
                         break;
+                    pressed.Play();
                     enter();
                     UpdateIndex();
                     break;
                 case Keys.Escape:
+                    pressed.Play();
                     exit();
                     break;
                 default:
                     var ch = char.ToLower(key.Character);
                     if (ch >= 'a' && ch <= 'z') {
+                        pressed.Play();
                         int start = Math.Max((index ?? 0) - 13, 0);
                         var letterIndex = start + UI.letterToIndex(ch);
                         if(letterIndex == index) {
@@ -153,10 +167,13 @@ public class ExchangeModel {
                             index = letterIndex;
                             tick = 0;
                         }
+
                     }
                     break;
             }
         }
+
+
     }
     public void UpdateIndex() {
         traders.ForEach(d => d.UpdateIndex());

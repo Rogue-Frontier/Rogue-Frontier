@@ -12,6 +12,7 @@ using RogueFrontier.Screens;
 using ArchConsole;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using SFML.Audio;
 
 namespace RogueFrontier;
 
@@ -36,6 +37,9 @@ public class TitleScreen : Console {
     public XY camera;
     public Dictionary<(int, int), ColoredGlyph> tiles;
 
+    private Sound pressed = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) {
+        Volume = 33
+    };
     public TitleScreen(int width, int height, System World) : base(width, height) {
         this.World = World;
 
@@ -54,20 +58,16 @@ public class TitleScreen : Console {
         var fs = FontSize * 1;
 
         Button("[Enter]     Play Story Mode", StartGame);
-        Button("[Shift + A] Arena Mode", StartArena);
-        Button("[Shift + C] Controls", StartConfig);
-        Button("[Shift + L] Load Game", StartLoad);
-        Button("[Shift + S] Survival Mode", StartSurvival);
-        Button("[Shift + N] Multiplayer Server", Server);
-        Button("[Shift + M] Multiplayer Client", Client);
-
-        Button("[Shift + Z] Credits", StartCredits);
+        Button("[Shift-A] Arena Mode", StartArena);
+        Button("[Shift-C] Controls", StartConfig);
+        Button("[Shift-L] Load Game", StartLoad);
+        Button("[Shift-S] Survival Mode", StartSurvival);
+        Button("[Shift-N] Multiplayer Server", Server);
+        Button("[Shift-M] Multiplayer Client", Client);
+        Button("[Shift-Z] Credits", StartCredits);
         Button("[Escape]    Exit", Exit);
-
         void Button(string s, Action a) =>
             Children.Add(new LabelButton(s, a) { Position = new(x, y++), FontSize = fs });
-
-
         var f = "Settings.json";
         if (File.Exists(f)) {
             settings = SaveGame.Deserialize<Settings>(File.ReadAllText(f));
@@ -91,6 +91,7 @@ public class TitleScreen : Console {
         credits.Children.Add(new Label("Transcendence is a trademark of Kronosaur Productions") { Position = new(0, y++) });
     }
     private void StartGame() {
+        pressed.Play();
         SadConsole.Game.Instance.Screen = new TitleSlideIn(this, new PlayerCreator(this, World, settings, StartCrawl)) { IsFocused = true };
 
         void StartCrawl(ShipSelectorModel context) {
@@ -240,6 +241,7 @@ public class TitleScreen : Console {
         }
     }
     public void StartSurvival() {
+        pressed.Play();
         Game.Instance.Screen = new PlayerCreator(this, World, settings, CreateGame) { IsFocused = true };
 
         void CreateGame(ShipSelectorModel context) {

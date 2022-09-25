@@ -96,8 +96,9 @@ public class Projectile : MovingObject {
                 var r = desc.detonateRadius * desc.detonateRadius;
                 if(world.entities.FilterKey(p => (position - p).magnitude2 < r).Select(e => e is ISegment s ? s.parent : e)
                     .Distinct().Except(exclude).Any(e => e switch {
-                        ActiveObject a when a.active => true,
-                        Projectile p when !exclude.Contains(p.source) && desc.hitProjectile => true,
+                        ActiveObject a => a.active,
+                        Projectile p => !exclude.Contains(p.source) && desc.hitProjectile,
+                        //TargetingMarker marker => marker.Owner == source,
                         _ => false
                     })) {
                     lifetime = 0;
@@ -201,11 +202,14 @@ public class Projectile : MovingObject {
         } else {
             fragmentAngle = direction;
         }
-        HashSet<Entity> exclude = desc.hitSource ?
-            new() { null, this } :
-            new() { null, source, this };
-        if(fragment.precise) {
+        HashSet<Entity> exclude = new() { null, this };
+        if (fragment.precise) {
             exclude.UnionWith(this.exclude);
+        }
+        if(fragment.hitSource) {
+            exclude.Remove(source);
+        } else {
+            exclude.Add(source);
         }
         List<Projectile> salvo = new();
         for (int i = 0; i < fragment.count; i++) {

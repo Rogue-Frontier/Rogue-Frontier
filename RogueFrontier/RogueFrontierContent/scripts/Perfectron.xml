@@ -76,13 +76,15 @@
 				>
 				<Flash intensity="60"/>
 				<Fragment
-					blind=			"15d4"
+					precise=		"false"
 					hitSource=		"true"
-					count=			"36*5"
+					
+					blind=			"15d4"
+					count=			"24*5"
 					spreadAngle=	"360"
 					missileSpeed=	"200"
 					damageType=		"1"
-					damageHP=		"4"
+					damageHP=		"0-2"
 					lifetime=		"8"
 					glyph=			" "
 					foreground=		"Transparent"
