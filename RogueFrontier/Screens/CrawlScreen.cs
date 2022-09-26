@@ -32,14 +32,21 @@ the warlords readied their cannons:
 @"In a future, I could see
 the threat of forever wars
 But then The Orator mentioned
-a request for a journey of yours",
+a chance for a journey of yours",
 
-@"""There shall be an answer,
-if you heed the call -
-Travel to the temple,
+@"""Dream upon my echoes.
+Listen for my vow.
+I know that you are out there.
+Do you hear me now?""
+
+""There shall be an answer,
+if you heed my call -
+Travel to the fortress,
 where the galaxies revolve.""",
 
-@"And it seems to me, this vision
+@"At last, there is my mission
+to walk about the divine halls.
+And it seems to me, this vision
 Was more than a dream after all." }.Select(line => line.Replace("\r", "")).ToArray();
     //to do: portraits
     //to do: crawl images

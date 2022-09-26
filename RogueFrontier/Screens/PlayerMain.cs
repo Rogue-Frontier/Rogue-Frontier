@@ -92,6 +92,8 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
     //public bool frameRendered = true;
     public int updatesSinceRender = 0;
     private ListIndex<System> systems;
+
+    public Sound music;
     //EventWaitHandle smooth = new(true, EventResetMode.AutoReset);
     public PlayerMain(int Width, int Height, Profile profile, PlayerShip playerShip) : base(Width, Height) {
         UseMouse = true;

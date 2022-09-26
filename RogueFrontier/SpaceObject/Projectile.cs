@@ -15,24 +15,33 @@ public record SimpleTrail(StaticTile Tile) : ITrail {
     public Effect GetParticle(XY Position) => new EffectParticle(Position, Tile, 3);
 }
 public class Projectile : MovingObject {
-    [JsonProperty] public ulong id { get; set; }
-    [JsonProperty] public System world { get; set; }
-    [JsonProperty] public ActiveObject source;
-    [JsonProperty] public XY position { get; set; }
-    [JsonProperty] public XY velocity { get; set; }
-    [JsonProperty] public double direction;
-    [JsonProperty] public double lifetime { get; set; }
-    [JsonProperty] public ColoredGlyph tile { get; private set; }
-    [JsonProperty] public ITrail trail;
-    [JsonProperty] public FragmentDesc desc;
-    [JsonProperty] public Maneuver maneuver;
-    [JsonProperty] public int damageHP;
-    [JsonProperty] public int armorSkip;
-    [JsonProperty] public int ricochet = 0;
+    public ulong id { get; set; }
+    public System world { get; set; }
+    public ActiveObject source;
+    public XY position { get; set; }
+    public XY velocity { get; set; }
+    public double direction;
+    public double lifetime { get; set; }
+    public ColoredGlyph tile { get; private set; }
+    public ITrail trail;
+    public FragmentDesc desc;
+    public Maneuver maneuver;
+    public int damageHP;
+    public int armorSkip;
+    public int ricochet = 0;
+
+
 
     //Hit results
-    [JsonProperty] public bool hitBlocked;
-    [JsonProperty] public bool hitHull;
+    public bool hitReflected;
+    public bool hitBlocked;
+    public bool hitHull;
+    public bool hitKill;
+
+    public bool hitHandled => damageHP == 0 || hitReflected || hitBlocked;
+
+
+
     public HashSet<Entity> exclude = new();
     //List of projectiles that were created from the same fragment
     public List<Projectile> salvo = new();
@@ -40,6 +49,8 @@ public class Projectile : MovingObject {
     public Vi<OnHitActive> onHitActive=new();
     [JsonIgnore]   public bool active => _active;
     public bool _active = true;
+
+
     public Projectile() { }
     public Projectile(ActiveObject source, FragmentDesc desc, XY position, XY velocity, double? direction = null, Maneuver maneuver = null, HashSet<Entity> exclude = null) {
         this.id = source.world.nextId++;
@@ -124,18 +135,21 @@ public class Projectile : MovingObject {
                             var angle = (position - hit.position).angleRad;
                             var cg = new ColoredGlyph(hitHull ? Color.Yellow : Color.LimeGreen, Color.Transparent, 'x');
                             world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle), hit.velocity, cg, 10));
-                            if(ricochet > 0) {
+
+                            onHitActive.Observe(new(this, hit));
+                            if (hitReflected) {
+                                hitReflected = false;
+                                velocity = -velocity;
+                            } else if(ricochet > 0) {
                                 ricochet--;
                                 velocity = -velocity;
                                 //velocity += (hit.velocity - velocity) / 2;
                                 //stop = true;
                             } else {
-                                onHitActive.Observe(new(this, hit));
                                 Detonate();
                                 
                                 lifetime = 0;
                                 destroyed = true;
-                                //new FlashDesc() { intensity = 5000 }.Create(world, position);
                             }
                             break;
                         case Projectile p when !exclude.Contains(p.source) && desc.hitProjectile && !destroyed:

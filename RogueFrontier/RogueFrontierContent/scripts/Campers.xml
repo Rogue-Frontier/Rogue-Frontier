@@ -90,6 +90,8 @@
 				damageType=		"1"
 				damageHP=		"1d8"
 				
+				reflectFactor=	"0.5"
+				
 				lifetime=		"40"
 				glyph=			"*"
 				foreground=		"FF55FFFF"

@@ -29,16 +29,19 @@ public class HP : HullSystem {
         this.hp = maxHP;
     }
     public void Damage(int tick, Projectile p, Action Destroy) {
-        if (p.damageHP == 0)
+        if (p.hitHandled) {
             return;
+        }
         p.hitHull = true;
         var absorbed = Math.Min(hp, p.damageHP);
         hp -= absorbed;
         p.damageHP -= absorbed;
         lastDamageTick = tick;
-        if (hp < 1) {
-            Destroy();
+        if (hp > 0) {
+            return;
         }
+        p.hitKill = true;
+        Destroy();
     }
     public int GetHP() => hp;
     public int GetMaxHP() => maxHP;
@@ -56,8 +59,9 @@ public class LayeredArmor : HullSystem {
         layers.ForEach(l => l.Update(delta, owner));
     }
     public void Damage(int tick, Projectile p, Action Destroy) {
-        if (p.damageHP == 0)
+        if (p.hitHandled) {
             return;
+        }
         p.hitHull = true;
         foreach (var i in Enumerable.Range(0, layers.Count).Reverse()) {
             var layer = layers[i];
@@ -87,10 +91,13 @@ public class LayeredArmor : HullSystem {
                 }
             }
 
-            CheckDamage:
-            if (p.damageHP == 0)
+        CheckDamage:
+            if (p.hitHandled) {
                 return;
+            }
         }
+
+        p.hitKill = true;
         Destroy();
     }
     public List<ColoredString> GetDesc() =>

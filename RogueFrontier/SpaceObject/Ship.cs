@@ -151,17 +151,16 @@ public class BaseShip {
     public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
     public void ReduceDamage(Projectile p) {
         int dmgFull = p.damageHP;
-        ref int dmgLeft = ref p.damageHP;
         foreach (var s in devices.Shield) {
-            if (dmgLeft == 0) return;
+            if (p.hitHandled) return;
             s.Absorb(p);
         }
-        if (dmgLeft == 0) return;
+        if (p.hitHandled) return;
         if (p.desc.blind is IDice blind) {
             blindTicks += blind.Roll();
             blindTicks = Math.Min(blindTicks, 300);
         }
-        int knockback = p.desc.knockback * dmgLeft / dmgFull;
+        int knockback = p.desc.knockback * p.damageHP / dmgFull;
         velocity += (p.velocity - velocity).WithMagnitude(knockback);
         disruption = p.desc.disruptor?.GetHijack() ?? disruption;
     }

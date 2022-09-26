@@ -627,6 +627,8 @@ public record ShieldDesc {
     [Req] public double regen;
     [Opt] public double absorbFactor = 1;
     [Opt] public int stealth;
+
+    [Opt] public double reflectFactor = 0;
     public Shield GetShield(Item i) => new(i, this);
     public ShieldDesc() { }
     public ShieldDesc(XElement e) {

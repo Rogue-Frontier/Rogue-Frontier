@@ -221,7 +221,6 @@ public class Armor : Device {
         if (hp <= killHP) {
             if (p.damageHP < killHP) {
                 var amount = p.damageHP;
-                p.damageHP = 0;
                 p.hitBlocked = true;
                 //Remember this but take no damage
                 OnAbsorb(amount);
@@ -564,6 +563,11 @@ public class Shield : Device {
             lifetimeDamageAbsorbed += absorbed;
             delay = (hp == 0 ? desc.depletionDelay : desc.damageDelay);
             p.damageHP -= (int)Math.Ceiling(absorbed / multiplier);
+            double reflectChance = desc.reflectFactor * hp / desc.maxHP;
+            if(p.world.karma.NextDouble() < reflectChance) {
+                p.hitReflected = true;
+                return;
+            }
         }
     }
 }

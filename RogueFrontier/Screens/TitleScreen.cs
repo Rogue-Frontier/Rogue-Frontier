@@ -124,6 +124,10 @@ public class TitleScreen : Console {
             crawl = new(Width, Height, () => null) { IsFocused = true };
             SadConsole.Game.Instance.Screen = crawl;
 
+            var crawlMusic = new Sound(new SoundBuffer("RogueFrontierContent/music/Crawl.wav")) {
+                Volume = 33
+            };
+            crawlMusic.Play();
             Task.Run(CreateWorld);
 
 
@@ -159,6 +163,7 @@ public class TitleScreen : Console {
                 */
 
                 var playerMain = new PlayerMain(Width, Height, profile, playerShip);
+                playerMain.music = crawlMusic;
                 playerMain.HideUI();
                 playerShip.onDestroyed += playerMain;
 
@@ -166,22 +171,27 @@ public class TitleScreen : Console {
                 playerMain.PlaceTiles(new());
 
 
+                SimpleCrawl crawl2 = null;
                 crawl.next = () => (new FlashTransition(Width, Height, crawl, Transition));
 
                 void Transition() {
                     GameHost.Instance.Screen = new Pause((ScreenSurface)GameHost.Instance.Screen, Transition2, 1);
                 }
 
+
                 void Transition2() {
-                    GameHost.Instance.Screen = new SimpleCrawl("Today has been a long time in the making.\n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch {
+                    GameHost.Instance.Screen = crawl2 = new SimpleCrawl("Today has been a long time in the making.    \n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch {
                         1 => "Maybe history will remember.",
                         2 => "Tomorrow will be forever.",
-                        3 => "Life runs short; hurry along now.",
+                        3 => "The future will not be so far.",
                         _ => "Maybe all of it will have been for something.",
-                    }), Transition3) { Position = new Point(Width / 4, 8), IsFocused = true };
+                    }), Transition3a) { Position = new Point(Width / 4, 8), IsFocused = true };
                 }
-
+                void Transition3a() {
+                    GameHost.Instance.Screen = new Pause(crawl2, Transition3, 2);
+                }
                 void Transition3() {
+
                     playerMain.RenderWorld(new());
                     GameHost.Instance.Screen = new FadeIn(new Pause(playerMain, Transition4, 1)) { IsFocused = true };
 
