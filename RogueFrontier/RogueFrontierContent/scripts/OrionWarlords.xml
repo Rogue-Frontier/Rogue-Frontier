@@ -3,7 +3,7 @@
 				alignment=	"DestructiveOrder"
 	/>
 	<ItemType	codename=	"item_orion_bolter"
-				name=		"Orion's bolter"
+				name=		"Bronze bolter"
 				mass=		"3000"
 				level=		"2"
 				value=		"400"
@@ -34,7 +34,7 @@
 		</Weapon>
 	</ItemType>
 	<ItemType	codename=	"item_orion_longbow"
-				name=		"Orion's Longbow"
+				name=		"Bronze Longbow"
 				mass=		"5000"
 				level=		"3"
 				value=		"800"
@@ -115,7 +115,7 @@
 	</ItemType>
 
 	<ItemType	codename=	"item_orion_skewer"
-		name=		"Orion's skewer"
+		name=		"Bronze trident"
 		mass=		"8000"
 		level=		"4"
 		value=		"2000"
@@ -152,7 +152,7 @@
 		mass=		"1000"
 		level=		"1"
 
-		value=		"250"
+		value=		"200"
 				
 		desc=		"This low-tech armor provides modest stealth."
 		>
@@ -166,7 +166,7 @@
 		mass=		"5000"
 		level=		"2"
 
-		value=		"600"
+		value=		"400"
 				
 		desc=		"This hardened low-tech armor provides modest stealth."
 		>
@@ -179,8 +179,8 @@
 		name=		"Barrel of bronze rice"
 		mass=		"1000"
 		level=		"2"
-		value=		"600"
-		desc=		"Bronze rice is a genetically modified rice variant containing boosted amounts of vitamins."
+		value=		"400"
+		desc=		"Bronze rice is a genetically modified rice variant containing boosted mineral content."
 		>
 	</ItemType>
 	<ShipClass	codename=			"ship_orion_raider"
@@ -267,7 +267,7 @@
 		</LayeredArmorSystem>
 	</ShipClass>
 	<StationType	codename="station_orion_warlords_camp"
-					name=		"Orion Warlords camp"
+					name=		"Orion Warlord camp"
 					sovereign=	"sovereign_orion_warlords"
 
 					stealth=	"4"
@@ -289,7 +289,7 @@
 		</Cargo>
 	</StationType>
 	<StationType	codename="station_orion_turret"
-					name=		"Orion turret"
+					name=		"Bronze turret"
 					sovereign=	"sovereign_orion_warlords"
 					stealth=	"4"
 					hp=			"100"
@@ -308,7 +308,7 @@
 		</Weapons>
 	</StationType>
 	<StationType	codename="station_orion_warlords_stronghold"
-					name=		"Orion Warlords stronghold"
+					name=		"Orion Warlord stronghold"
 					sovereign=	"sovereign_orion_warlords"
 
 					stealth=	"4"

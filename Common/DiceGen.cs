@@ -19,13 +19,16 @@ public interface IDice {
         Match m;
         IDice result = null;
         if ((m = Regex.Match(s, "^(?<value>\\-?[0-9]+$)")).Success) {
-            result = new Constant(int.Parse(m.Groups["value"].Value));
+            return new Constant(int.Parse(m.Groups["value"].Value));
         }
         if ((m = Regex.Match(s, "^(?<min>\\-?[0-9]+)-(?<max>\\-?[0-9]+)$")).Success) {
-            result = new IntRange(int.Parse(m.Groups["min"].Value), int.Parse(m.Groups["max"].Value));
+            return new IntRange(int.Parse(m.Groups["min"].Value), int.Parse(m.Groups["max"].Value));
         }
         if ((m = Regex.Match(s, "^(?<n>[0-9]+)d(?<m>\\-?[0-9]+)((\\+(?<bonus>[0-9]+))|(?<bonus>\\-[0-9]+))?$")).Success) {
-            result = new DiceRange(int.Parse(m.Groups["n"].Value), int.Parse(m.Groups["m"].Value), m.Groups["bonus"].Value is string { Length:>0} b ? int.Parse(b) : 0);
+            return new DiceRange(int.Parse(m.Groups["n"].Value), int.Parse(m.Groups["m"].Value), m.Groups["bonus"].Value is string { Length:>0} b ? int.Parse(b) : 0);
+        }
+        if((m = Regex.Match(s, "(,?([0-9]+))+")).Success) {
+            return new Distribution(Regex.Matches(s, "[0-9]+").Select(m => int.Parse(m.Value)).ToArray());
         }
         return result;
     }
@@ -60,4 +63,10 @@ public record DiceRange(int n, int m, int bonus) : IDice {
     public int Value => Enumerable.Range(0, n).Select(i => (int)Math.Ceiling(r.NextDouble()*m)).Sum() + bonus;
     public int Roll() => Value;
     public string str => $"{n}d{m}{IDice.strBonus(bonus)}";
+}
+public record Distribution(int[] choices) : IDice {
+
+    public Rand r = new();
+    public int Roll() => choices.GetRandom(r);
+    public string str => $"[{string.Join(",", choices)}]";
 }

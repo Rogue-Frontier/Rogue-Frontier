@@ -18,14 +18,14 @@ class CrawlScreen : Console {
             new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/sprites/NewEra.cg"))),
             new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/sprites/PillarsOfCreation.cg")))
         };
-    private readonly string[] text = new string[] {
+    private readonly string[] text = new[] {
 @"In a vision I could see
 the words of someone speaking
 The Dictator who decreed
 an ultimate power for the seeking.",
 
 @"As mankind fired their engines,
-and prospered with the stars,
+and prospered throughout the stars,
 the warlords readied their cannons:
 ""The universe shall be ours!""",
 
@@ -34,7 +34,7 @@ the threat of forever wars
 But then The Orator mentioned
 a chance for a journey of yours",
 
-@"""Dream upon my echoes.
+@"""Dream upon my echo.
 Listen for my vow.
 I know that you are out there.
 Do you hear me now?""

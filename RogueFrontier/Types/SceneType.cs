@@ -191,13 +191,30 @@ public class Dialog : Console {
         this.desc = new(desc.Replace("\r", null));
 
         var quoted = false;
+        var highlight = false;
         foreach(var c in this.desc) {
-            if(c.GlyphCharacter == '"') {
-                quoted = !quoted;
-                c.Foreground = Color.LightBlue;
-            } else if(c.Foreground == Color.White) {
-                c.Foreground = quoted ? Color.LightBlue : Color.Yellow;
-            }
+
+
+            ((Action)(c.GlyphCharacter switch {
+                '"' => () => {
+                    quoted = !quoted;
+                    c.Foreground = Color.LightBlue;
+                },
+                '[' or ']' => () => {
+                    highlight = !highlight;
+                    c.Foreground = Color.Yellow;
+                },
+                _ => () => {
+                    if(c.Foreground == Color.White) {
+                        c.Foreground =
+                            highlight ?
+                                Color.Yellow :
+                            quoted ?
+                                Color.LightBlue :
+                            Color.LightYellow;
+                    }
+                }
+            }))?.Invoke();
         }
         navigation.RemoveAll(s => s == null);
         this.navigation = navigation;

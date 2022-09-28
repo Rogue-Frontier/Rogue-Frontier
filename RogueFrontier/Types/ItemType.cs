@@ -298,7 +298,9 @@ public record ArmorDesc() {
     [Opt] public double regenRate;
     [Opt] public int killHP;
     [Opt] public double stealth;
-    [Opt] public double lifetimeDegrade = 0;
+    [Opt] public double lifetimeDegrade;
+    [Opt] public double titanFactor;
+    [Opt] public double reflectFactor;
     public ItemFilter restrictRepair;
     public Armor GetArmor(Item i) => new(i, this);
     public ArmorDesc(XElement e) : this() {
@@ -433,6 +435,9 @@ public record FragmentDesc {
     [Req] public int missileSpeed;
     [Req] public int damageType;
     [Req] public IDice damageHP;
+    [Opt] public double antiReflect;
+
+
     [Opt] public int knockback;
     [Opt] public int shock = 1;
     [Req] public int lifetime;

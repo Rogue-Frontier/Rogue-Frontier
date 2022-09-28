@@ -34,8 +34,11 @@
 			<Ship	count="4"	codename="ship_clark"/>
 			<Ship	count="2"	codename="ship_lewis"/>
 		</Ships>
+		<Cargo>
+			<Item count="8"		codename="item_dynamite_cannon"/>
+			<Item count="96"	codename="item_dynamite_charge"/>
+		</Cargo>
 	</StationType>
-
 	<ItemType	codename=	"item_repeater_turret"
 				name=		"Repeating turret"
 				level=		"2"
@@ -45,10 +48,10 @@
 
 				invoke=		"installWeapon"
 
-				desc=		"This kinetic gun is mounted on an omnidirectional turret for automatic aiming. It has limited ammo and easy installation."
+				desc=		"This kinetic repeater is mounted on an omnidirectional turret for automatic aiming."
 		>
 		<Weapon
-			initialCharges=	"1200"
+			initialCharges=	"800"
 			powerUse=		"40"
 			fireCooldown=	"30"
 			
@@ -106,4 +109,71 @@
 		</Weapon>
 	</ItemType>
 
+	<ItemType	codename=	"item_tipped_orion_longbow"
+			name=		"Tipped Bronze Longbow"
+			mass=		"5000"
+			level=		"3"
+			value=		"800"
+			desc=		"Using "
+			invoke=		"installWeapon"
+		>
+		<Weapon
+			powerUse=		"20"
+			fireCooldown=	"30"
+			initialCharges=	"200"
+			>
+			<Projectile
+				missileSpeed=	"20"
+				damageType=		"2"
+				damageHP=		"5d5"
+				lifetime=		"90"
+				glyph=			"+"
+				foreground=		"Orange"
+				>
+				<Decay lifetime="150" rate="4/60" lethal="true"/>
+				<Trail
+					lifetime=	"10"
+					glyph=		"*"
+					foreground=	"FF55FFFF"
+					background=	"BB77DDFF"/>
+			</Projectile>
+			<Capacitor
+				dischargeOnFire=		"100"
+				rechargePerTick=			"1/3"
+				maxCharge=				"100"
+
+				bonusSpeedPerCharge=	"70/100"
+				bonusDamagePerCharge=	"30/100"
+				bonusLifetimePerCharge=	"90/100"
+				/>
+		</Weapon>
+	</ItemType>
+
+	<ItemType	codename=	"item_specrom_magic_blaster_i"
+			name=		"SpecROM: Magic Blaster I"
+			level=		"2"
+			mass=		"2000"
+
+			value=		"3500"
+
+			invoke=		"installWeapon"
+
+			desc=		"This specification ROM contains information about the first-generation Magic Blaster."
+		>
+		<Weapon
+			initialCharges=	"500"
+			powerUse=		"20"
+			fireCooldown=	"25"
+			omnidirectional="true"
+			>
+			<Projectile
+				missileSpeed=	"40"
+				damageType=		"2"
+				damageHP=		"12"
+				lifetime=		"120"
+				glyph=			"."
+				foreground=		"White"
+				/>
+		</Weapon>
+	</ItemType>
 </Module>

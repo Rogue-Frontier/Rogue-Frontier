@@ -749,10 +749,10 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         autopilot_off=Load(nameof(autopilot_off)),
         dock_start = Load(nameof(dock_start)),
         dock_end = Load(nameof(dock_end));
-    ListIndex<Sound> exhaust = new(new(Enumerable.Range(0, 10).Select(i => new Sound() { Volume = 10 })));
-    ListIndex<Sound> gunfire = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
-    ListIndex<Sound> damage = new(new(Enumerable.Range(0, 5).Select(i => new Sound() { Volume = 50 })));
-    ListIndex<Sound> explosion = new(new(Enumerable.Range(0, 3).Select(i => new Sound() { Volume = 75 })));
+    ListIndex<Sound> exhaust = new(new(Enumerable.Range(0, 16).Select(i => new Sound() { Volume = 10 })));
+    ListIndex<Sound> gunfire = new(new(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 })));
+    ListIndex<Sound> damage = new(new(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 })));
+    ListIndex<Sound> explosion = new(new(Enumerable.Range(0, 4).Select(i => new Sound() { Volume = 75 })));
     Sound targeting = new() { Volume = 50 },
         autopilot = new() { Volume = 50 },
         dock = new() { Volume = 50 };

@@ -22,4 +22,65 @@
 	<Module file="Systems.xml"/>
 	<Module file="Murmurs.xml"/>
 	<Module file="Intro.xml"/>
+	<ShipClass    codename="ship_player_test"
+				  name=			"Player"
+				  attributes=	""
+				  thrust=		"1"
+				  maxSpeed=		"30"
+
+				  rotationAccel="8"
+				  rotationDecel="15"
+				  rotationMaxSpeed="10"
+
+				  glyph="b"
+				  foreground="White"
+				  background="Black"
+        >
+		<Items>
+			<Item codename="item_klaw_missile" count="40"/>
+			<Item codename="item_simple_fuel_rod" count="24"/>
+			<Item codename="item_armor_repair_patch"	count="6"/>
+		</Items>
+		<Devices>
+			<Weapon codename="item_flakbang_cannon"/>
+			<Weapon codename="item_tipped_orion_longbow"/>
+			<Weapon codename="item_klaw_missile_launcher"/>
+			<Shield codename="item_buckler_shield"/>
+			<Reactor codename="item_20mw_generator"/>
+			<Reactor codename="item_10mw_battery"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="item_knightsteel_plate"/>
+			<Armor  codename="item_knightsteel_plate"/>
+			<Armor  codename="item_knightsteel_plate"/>
+		</LayeredArmorSystem>
+		<PlayerSettings
+			startingClass="true"
+			description="A starship preferred by space-age bikers, self-protection enthusiasts, and folk heroes alike, a Beowulf-class gunship highlights the tougher and harder parts of one's personality."
+        >
+			<Map>
+				//                              \\
+				||              __              ||
+				//              /()\              \\
+				|||             /O..O\             |||
+				|||             |....|             |||
+				///         //---|....|---\\         \\\
+				|||     //--.....|....|......-\\     |||
+				|||  //-.........\..../.........-\\  |||
+				||| /-........//--|..|--\\........-\ |||
+				/// /......../-====|..|====-\........\ \\\
+				|||/......../======\../======\........\|||
+				|||........|========||========|........|||
+				|||==\\\....\\_=====||=====_//....///==|||
+				||||OOOO\\....|\____||____/|....//OOOO||||
+				|TTTT|\\...| | | || | | |...//|TTTT|
+				|TTTT|  |__|_|_|_||_|_|_|__|  |TTTT|
+				|TTTT|  |_|_|_|TTTTTT|_|_|_|  |TTTT|
+				|TTTT|        |TTTTTT|        |TTTT|
+				|TTTT|        |TTTTTT|        |TTTT|
+				|/--\|        |/----\|        |/--\|
+			</Map>
+		</PlayerSettings>
+	</ShipClass>
+
 </Module>

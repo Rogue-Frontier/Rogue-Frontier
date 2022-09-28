@@ -464,11 +464,69 @@ have at least a fighting chance when you leave this place.""
         }
     }
 }
+record InvestigateBeowulfClub(Station dest) {
+    public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
+        if(d == dest) {
+            return new Dialog(prev,
+@"You are docked at an independent chapter
+of the Beowulf Club, a galaxy-wide alliance
+of civilian gunship pilots.
+
+A heavily armored guard calls out to you.
+""Hey! Who do you think you are with that
+brittle piece of junk? Get outta here!""", new() {
+                new("Respond", A2)
+            });
+
+
+            Con A2(Con prev) {
+                return new Dialog(prev,
+@"You say:
+
+""The Constellation Militia has received
+reports of weapons trafficking happening
+on this station. I am here to investigate.""
+",                          new() {
+                    new("Continue", A3)
+                });
+            }
+            Con A3(Con prev) {
+                playerShip.GiveItem("item_specrom_magic_blaster_i");
+                return new Dialog(prev,
+@"The guard slowly approaches you:
+
+""Oh, I'm sorry. The Beowulf Club is a most
+*distinguished* organization. We can assure
+you that this station of ours does not and
+never will harbor any weapons trafficking.
+We are merely civilians trying to protect
+ourselves from warlords and magical-wielding
+megalomaniacs on our own terms.""
+
+The guard grabs your shoulder and whispers:
+""Let me make you aware of some useful information.
+
+It's dangerous for a little ship like yours
+to go alone out there. So here, have this...""
+
+You receive [SpecROM: Magic Blaster I]
+
+""...And please, let the Militia know that
+there is nothing to worry about here.""", new() {
+                new("Undock", null)
+});
+            }
+        }
+        return null;
+    }
+}
 public static class SPlayerStory {
     public static bool IsAmethyst(this Item i) => i.HasAtt("Amethyst");
+
+    public static void GiveItem(this PlayerShip pl, string type) =>
+        pl.cargo.Add(new(pl.world.types.Lookup<ItemType>(type)));
 }
-
-
+//TO DO: update crawl backgrounds
 /*  
 "If you ever encounter a Perfectron, just *run* away.
 They are mad with weaponry and will destroy whatever they please.
@@ -530,6 +588,7 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_dictator_charm_silence = 3000,
         item_emp_cannon = 2400,
         item_tracking_laser = 600,
+        item_scanning_laser = 600,
         item_beowulf_dual_laser_cannon = 3000,
         item_beowulf_dual_laser_repeater = 3000,
         item_beowulf_dual_laser_upgrade = 3000,
@@ -604,6 +663,11 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
 
         item_bronze_rice = 600,
         item_biocart_transcendence = 900,
+
+        item_flakbang_cannon = 4800,
+        item_tipped_orion_longbow = 4800,
+
+        item_specrom_magic_blaster_i = 8400,
     }.ToDict<int>();
     public PlayerStory(PlayerShip playerShip) {
         var i = playerShip.world.types.GetDict<ItemType>();
@@ -702,8 +766,8 @@ purchases and repair services.
         if (!playerShip.shipClass.attributes.Contains("BeowulfClub")) {
             return new Dialog(prev,
 @"You are docked at an independent chapter
-of the Beowulf Club, a galaxy-wide organization
-serving civilian gunship pilots.
+of the Beowulf Club, a galaxy-wide alliance
+of civilian gunship pilots.
 
 A heavily armored guard calls out to you.
 ""Hey! Who do you think you are? Get your
@@ -713,7 +777,7 @@ piece of junk off of this station!""", new() { new("Undock immediately") });
         Dialog Intro() {
             return new(prev,
 @"You are docked at an independent branch
-of the Beowulf Club, a galactic society
+of the Beowulf Club, a galaxy-wide alliance
 of civilian gunship pilots.",
             new() {
                 new("Trade", Trade),
@@ -741,7 +805,7 @@ of civilian gunship pilots.",
             },
             ["item_magic_shotgun_i"] = new() {
                 ["item_magic_blaster_i"] = 1,
-                ["item_dynamite_charge"] = 15,
+                ["item_dynamite_charge"] = 30,
             }
         }.ToDictionary(
             pair => lookup(pair.Key),

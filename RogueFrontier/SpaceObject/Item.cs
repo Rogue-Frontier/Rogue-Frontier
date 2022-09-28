@@ -97,6 +97,10 @@ public class Armor : Device {
     public Item source { get; private set; }
     public ArmorDesc desc;
     public int hp;
+
+    //Temporarily increase max HP upon absorbing damage. Titan HP decays over time.
+    public double titanHP;
+    
     public double hpToRecover;
     public double recoveryHP;
     public double regenHP;
@@ -115,6 +119,7 @@ public class Armor : Device {
     public record Decay {
         [Req] public double lifetime;
         [Req] public double rate;
+        [Opt] public bool lethal;
         public Decay() { }
         public Decay(XElement e) => e.Initialize(this);
         public Decay(double lifetime, double rate) => (this.lifetime, this.rate) = (lifetime, rate);
@@ -135,7 +140,6 @@ public class Armor : Device {
                 decayHP += d.rate * delta * 60;
                 d.lifetime -= delta * Program.TICKS_PER_SECOND;
             }
-            decay.RemoveAll(r => r.lifetime == 0);
             if (decayHP >= 1) {
                 var deltaHP = Math.Min(hp, (int)decayHP);
                 hp -= deltaHP;
@@ -146,6 +150,7 @@ public class Armor : Device {
                 hpToRecover += (deltaHP * desc.recoveryFactor);
                 damageDelay = 30;
             }
+            decay.RemoveAll(r => r.lifetime == 0);
         }
         if (damageDelay > 0) {
             damageDelay -= delta * Program.TICKS_PER_SECOND;
@@ -179,6 +184,8 @@ public class Armor : Device {
     }
     private void OnAbsorb(int absorbed) {
         lifetimeDamageAbsorbed += absorbed;
+
+        titanHP += absorbed * desc.titanFactor;
         hpToRecover += (absorbed * desc.recoveryFactor);
         damageDelay = 30;
     }
@@ -235,19 +242,6 @@ public class Armor : Device {
             }
         }
 
-        /*
-
-        var multiplier = p.fragment.shieldFactor;
-
-        var absorbed = (int)Math.Clamp(p.damageHP * (1 - p.fragment.shieldDrill) * absorbFactor * multiplier, 0, maxAbsorb);
-        if (absorbed > 0) {
-            hp -= absorbed;
-            lifetimeDamageAbsorbed += absorbed;
-            delay = (hp == 0 ? desc.depletionDelay : desc.damageDelay);
-            p.damageHP -= (int)Math.Ceiling(absorbed / multiplier);
-        }
-         * */
-
         var multiplier = p.desc.armorFactor + lifetimeDamageAbsorbed * desc.lifetimeDegrade;
         var absorbed = (int)Math.Clamp(p.damageHP * multiplier, 0, hp);
         hp -= absorbed;
@@ -256,10 +250,19 @@ public class Armor : Device {
             killHP = 0;
         }
         lastDamageTick = p.world.tick;
-        p.damageHP -= (int)Math.Ceiling(absorbed / multiplier);
+
         if (p.desc.decay is Decay d) {
             decay.Add(new(d.lifetime, d.rate));
         }
+
+        double reflectChance = desc.reflectFactor * hp / desc.maxHP - p.desc.antiReflect;
+        if (p.world.karma.NextDouble() < reflectChance) {
+            p.hitReflected = true;
+            return absorbed;
+        }
+
+        p.damageHP -= (int)Math.Ceiling(absorbed / multiplier);
+        
         return absorbed;
     }
 }
@@ -562,12 +565,13 @@ public class Shield : Device {
             hp -= absorbed;
             lifetimeDamageAbsorbed += absorbed;
             delay = (hp == 0 ? desc.depletionDelay : desc.damageDelay);
-            p.damageHP -= (int)Math.Ceiling(absorbed / multiplier);
-            double reflectChance = desc.reflectFactor * hp / desc.maxHP;
-            if(p.world.karma.NextDouble() < reflectChance) {
+
+            double reflectChance = desc.reflectFactor * hp / desc.maxHP - p.desc.antiReflect;
+            if (p.world.karma.NextDouble() < reflectChance) {
                 p.hitReflected = true;
                 return;
             }
+            p.damageHP -= (int)Math.Ceiling(absorbed / multiplier);
         }
     }
 }

@@ -318,25 +318,6 @@
             <Armor  codename="item_knightsteel_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
-	<ShipClass codename=            "ship_scanner_drone"
-			   name=                "scanner drone"
-			   thrust=              "0.4"
-			   maxSpeed=            "25"
-
-			   rotationAccel=       "4"
-			   rotationDecel=       "8"
-			   rotationMaxSpeed=    "4"
-
-			   glyph=                "d"
-			   foreground=          "White"
-        >
-		<Devices>
-			<Weapon codename="item_tracking_laser"/>
-		</Devices>
-		<LayeredArmorSystem>
-			<Armor  codename="item_bumpersteel_plate"/>
-		</LayeredArmorSystem>
-	</ShipClass>
     <ShipClass codename=            "ship_prospector"
 			   name=                "Prospector-class miner"
 			   thrust=              "0.25"

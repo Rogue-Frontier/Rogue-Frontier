@@ -90,11 +90,11 @@
 	</ItemType>
 
 	<ItemType	codename=	"item_tracking_laser"
-				name=		"Tracking laser"
+				name=		"Tracking laser cannon"
 				level=		"1"
 				mass=		"1000"
 
-				desc=		"This anti-stealth laser cannon marks targets for easy tracking."
+				desc=		"This anti-stealth laser cannon marks targets for tracking."
 		>
 		<Weapon
 			initialCharges=	"900"
@@ -106,12 +106,38 @@
 						damageHP=		"3"
 						lifetime=		"60"
 						glyph=			"+"
-						foreground=		"White"
+						foreground=		"00FF70FF"
 						tracker=		"900"
 				/>
 		</Weapon>
-		
 	</ItemType>
+
+	<ItemType	codename=	"item_scanning_laser"
+			name=		"Scanning laser array"
+			level=		"1"
+			mass=		"1000"
+
+			desc=		"This anti-stealth laser array fires a wide spread of lasers to reveal hidden targets."
+		>
+		<Weapon
+			initialCharges=	"900"
+			powerUse=		"5"
+			fireCooldown=	"30"
+			>
+			<Projectile
+				count=			"15"
+				spreadAngle=	"30"
+				missileSpeed=	"100"
+				damageType=		"1"
+				damageHP=		"3"
+				lifetime=		"30"
+				glyph=			"+"
+				foreground=		"00FF70FF"
+				tracker=		"180"
+				/>
+		</Weapon>
+	</ItemType>
+
 
 	<ItemType	codename=	"item_beowulf_dual_laser_cannon"
 				name=		"Beowulf dual laser cannon"
@@ -121,7 +147,7 @@
 
 				desc=		"The Beowulf dual laser cannon allows you to strike with speed."
 		>
-		<Weapon	initialCharges=	"2400"
+		<Weapon	initialCharges=	"2000"
 				powerUse=		"20"
 				fireCooldown=	"15"
 			>
@@ -129,7 +155,7 @@
 					count="2"
 					missileSpeed=	"100"
 					damageType=		"1"
-					damageHP=		"3"
+					damageHP=		"1d6"
 					lifetime=		"45"
 
 					glyph=			"."
@@ -140,7 +166,7 @@
 	</ItemType>
 	<ItemType	codename=	"item_beowulf_dual_laser_repeater"
 			name=		"Beowulf dual laser repeater"
-			level=		"1"
+			level=		"2"
 			mass=		"2000"
 			value=		"3000"
 
@@ -154,7 +180,7 @@
 					count="2"
 					missileSpeed=	"100"
 					damageType=		"1"
-					damageHP=		"3"
+					damageHP=		"1d6"
 					lifetime=		"45"
 
 					glyph=			"."
@@ -172,28 +198,18 @@
 					/>
 		</Weapon>
 	</ItemType>
-	<ItemType	codename=	"item_beowulf_dual_laser_upgrade"
-		name=		"Beowulf dual laser upgrade"
-		level=		"1"
-		mass=		"2000"
-		value=		"3000"
-				
-		invoke=		"replaceDevice"
-		from=		"item_beowulf_dual_laser_cannon"
-		to=			"item_beowulf_dual_laser_repeater"
-
-		desc=		"This module upgrades a Beowulf dual laser cannon into a Beowulf dual laser repeater."
-		>
-	</ItemType>
 	<ItemType	codename=	"item_buckler_shield"
 			name=		"Buckler shield"
 			level=		"2"
 			mass=		"200"
 			value=		"400"
 				
-			desc=		"Basic shield generator"
+			desc=		"This combat shield is capable of reflecting weak projectiles."
 		>
 		<Shield
+			reflectFactor=	"1"
+			
+			
 			powerUse=		"10"
 			idlePowerUse=	"1"
 			maxHP=			"30"
@@ -225,7 +241,7 @@
 				desc=		"The Klaw missile launcher fires two quick tracking missiles at a time."
 		>
 		<Weapon	powerUse=		"10"
-				fireCooldown=	"90"
+				fireCooldown=	"60"
 				ammoType=		"item_klaw_missile"
 				sound=			"RogueFrontierContent/sounds/klaw_launcher.wav"
 			>
@@ -365,18 +381,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-	<ItemType	codename=	"item_scanner_drone"
-				name=		"scanner drone"
-				level=		"2"
-				mass=		"12000"
-				value=		"1500"
-
-				invoke=		"deployShip"
-				shipClass=	"ship_scanner_drone"
-				
-				desc=		"The scanner drone marks enemies with a tracking laser, allowing you to break through stealth with ease."
-		>
-	</ItemType>
 	<ItemType	codename=	"item_flintlock"
 				name=		"Flintlock mass driver"
 				level=		"2"
@@ -428,18 +432,24 @@
 		value=		"5000"
 		desc=		"This strong armor is made for the Knight series of gunships."
 		>
-		<Armor	maxHP=		"75"
+		<Armor
+			
+			reflectFactor=	"1.0"
+			maxHP=		"75"
 			>
 		</Armor>
 	</ItemType>
 	<ItemType	codename=	"item_bumpersteel_plate"
 		name=		"Bumpersteel plate"
-		mass=		"8000"
+		mass=		"9000"
 		level=		"2"
 		value=		"4500"
 		desc=		"This heavy armor is the main choice of plating for the Clark-class transport."
 		>
-		<Armor	maxHP=		"90"/>
+		<Armor
+			reflectFactor=	"0.75"
+			maxHP=			"90"
+			/>
 	</ItemType>
 	<ItemType	codename=	"item_bandit_plate"
 		name=		"Bandit plate"

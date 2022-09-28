@@ -9,7 +9,6 @@ using Console = SadConsole.Console;
 using Newtonsoft.Json;
 using static RogueFrontier.Weapon;
 using Kodi.Linq.Extensions;
-
 namespace RogueFrontier;
 public interface StationBehavior {
     void Update(double delta, Station owner);
@@ -27,7 +26,6 @@ public class IronPirateStation : StationBehavior {
                     o.ClearErrand();
                 }
             }
-
             var targets = owner.world.entities.all
                         .OfType<IShip>()
                         .Where(s => owner.IsEnemy(s))
@@ -59,7 +57,7 @@ public class IronPirateStation : StationBehavior {
                 return target.world.entities.all
                         .OfType<AIShip>()
                         .Where(s => s.sovereign == owner.sovereign)
-                        .Where(s => s.behavior.GetOrder().CanTarget(target))
+                        .Where(s => s.CanTarget(target))
                         .Count();
             }
         }
@@ -67,7 +65,6 @@ public class IronPirateStation : StationBehavior {
 }
 public class ConstellationAstra : StationBehavior {
     public HashSet<StationType> stationTypes;
-
     public HashSet<AIShip> reserves;
     public ConstellationAstra(Station owner) {
         stationTypes = new() {

@@ -52,6 +52,8 @@
 		</Ships>
 		<Cargo>
 			<Item count="240"	codename="item_klaw_missile"/>
+			<Item count="16"	codename="item_scanner_drone"/>
+			<Item count="8"		codename="item_beowulf_dual_laser_upgrade"/>
 		</Cargo>
 		<Weapons>
 			<Weapon codename="item_klaw_missile_launcher" posX="2" posY="2"		angle="45"/>
@@ -75,5 +77,159 @@
 			background=	"Black"
 		>
 	</StationType>
+	<ItemType	codename=	"item_beowulf_dual_laser_upgrade"
+		name=		"Beowulf dual laser upgrade"
+		level=		"1"
+		mass=		"2000"
+		value=		"3000"
+				
+		invoke=		"replaceDevice"
+		from=		"item_beowulf_dual_laser_cannon"
+		to=			"item_beowulf_dual_laser_repeater"
+
+		desc=		"This device upgrades a Beowulf dual laser cannon into a Beowulf dual laser repeater."
+		>
+	</ItemType>
+	<ItemType	codename=	"item_scanner_drone"
+				name=		"scanner drone"
+				level=		"2"
+				mass=		"12000"
+				value=		"5000"
+
+				invoke=		"deployShip"
+				shipClass=	"ship_scanner_drone"
+				
+				desc=		"The scanner drone marks enemies with a tracking laser, allowing you to break through stealth with ease."
+		>
+	</ItemType>
+	<ShipClass codename=    "ship_scanner_drone"
+		   name=                "scanner drone"
+		   thrust=              "0.4"
+		   maxSpeed=            "25"
+
+		   rotationAccel=       "4"
+		   rotationDecel=       "8"
+		   rotationMaxSpeed=    "4"
+
+		   glyph=                "d"
+		   foreground=          "White"
+        >
+		<Devices>
+			<Weapon codename="item_tracking_laser"/>
+			<Weapon codename="item_scanning_laser"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="item_bumpersteel_plate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
+
+
+
+
+
+
+
+
+
+	<ItemType	codename=	"item_flakbang_cannon"
+			name=		"Flakbang cannon"
+			level=		"6"
+			mass=		"2000"
+			desc=		"."
+		>
+		<Weapon	initialCharges="400"
+				powerUse=		"30"
+				fireCooldown=	"90"
+				sound=			"RogueFrontierContent/sounds/flashbang_cannon.wav"
+			>
+			<Projectile
+				missileSpeed=	"40"
+				recoil=			"5"
+				damageType=		"1"
+				damageHP=		"5"
+				lifetime=		"60"
+				glyph=			"*"
+				foreground=		"White"
+				background=		"Black"
+				
+				detonateRadius=	"5"
+				detonateSound=	"RogueFrontierContent/sounds/flashbang_explosion.wav"
+				>
+				<Flash intensity="20"/>
+				<Fragment
+					precise=		"false"
+					hitSource=		"true"
+					
+					blind=			"5d4"
+					count=			"45"
+					spreadAngle=	"360"
+					missileSpeed=	"200"
+					damageType=		"1"
+					damageHP=		"0, 0, 1"
+					lifetime=		"6"
+					glyph=			" "
+					foreground=		"Transparent"
+					background=		"Transparent"
+					/>
+
+				<Fragment
+					precise=		"false"
+					hitSource=		"true"
+					
+					count=			"60"
+					spreadAngle=	"360"
+					missileSpeed=	"45"
+					damageType=		"1"
+					damageHP=		"0, 0, 0, 1, 1, 2, 3, 4"
+					lifetime=		"16"
+					glyph=			"z"
+					foreground=		"White"
+					background=		"Transparent"
+					/>
+			</Projectile>
+		</Weapon>
+	</ItemType>
+	
+	
+	
+	
+	<!--
+	<ItemType	codename=	"item_flamethrower"
+			name=		"flamethrower"
+			level=		"1"
+			mass=		"1000"
+			value=		"4800"
+				
+			attributes= ""
+
+			desc=		"The directed-energy technology of the Magic Blaster is sufficiently proprietary as to be indistinguishable from magic."
+		>
+		<Weapon
+			initialCharges=	"240"
+			powerUse=		"10"
+			fireCooldown=	"10"
+			sound=			"RogueFrontierContent/sounds/magic_blaster.wav"
+			>
+			<Projectile
+				count=			"5"
+				spreadAngle=	"15"
+				missileSpeed=	"40"
+				damageType=		"1"
+				damageHP=		"1d8"
+				
+				lifetime=		"40"
+				glyph=			"*"
+				foreground=		"FFB655FF"
+				>
+				<Decay lifetime="120" rate="1/60"/>
+				<Trail
+					lifetime=	"10"
+					glyph=		"v"
+					foreground=	"FFB655FF"
+					background=	"DD7777FF"/>
+			</Projectile>
+		</Weapon>
+	</ItemType>
+	-->
 	
 </Module>
