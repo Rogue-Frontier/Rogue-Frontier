@@ -79,7 +79,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
     public Console sceneContainer;
     public Readout uiMain;  //If this is visible, then all other ui Consoles are visible
     public Edgemap uiEdge;
-    public Minimap uiMinimap;
+    //public Minimap uiMinimap;
     public CommunicationsWidget communicationsWidget;
     public PowerWidget powerWidget;
     public ListWidget<Item> invokeWidget;
@@ -115,7 +115,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
         sceneContainer.Focused += (e, o) => this.IsFocused = true;
         uiMain = new(camera, playerShip, Width, Height);
         uiEdge = new(camera, playerShip, Width, Height);
-        uiMinimap = new(this, playerShip, 16, camera);
+        //uiMinimap = new(this, playerShip, 16, camera);
         communicationsWidget = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
         powerWidget = new(31, 16, this) { IsVisible = false, Position = new(3, 32) };
 
@@ -444,8 +444,8 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
                 uiEdge.viewScale = uiMegamap.viewScale;
                 uiEdge.Update(delta);
 
-                uiMinimap.alpha = (byte)(255 - uiMegamap.alpha);
-                uiMinimap.Update(delta);
+                //uiMinimap.alpha = (byte)(255 - uiMegamap.alpha);
+                //uiMinimap.Update(delta);
             } else {
                 uiMegamap.Update(delta);
                 vignette.Update(delta);
@@ -504,7 +504,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
 
                     uiMain.Render(drawTime);
                     uiEdge.Render(drawTime);
-                    uiMinimap.Render(drawTime);
+                    //uiMinimap.Render(drawTime);
                 } else {
                     uiMegamap.Render(drawTime);
                     vignette.Render(drawTime);
@@ -956,10 +956,10 @@ public class Megamap : ScreenSurface {
             }
         }
         if (p(M)) {
-            if(targetViewScale >= 4) {
+            if(targetViewScale >= 16) {
                 targetViewScale = 1.0;
             } else {
-                targetViewScale = Math.Floor(targetViewScale) + 1;
+                targetViewScale = Math.Floor(targetViewScale)*4;
             }
         }
         return base.ProcessKeyboard(info);
@@ -1433,22 +1433,20 @@ public class Readout : ScreenSurface {
             messageY++;
         }
         const int BAR = 8;
-        if (player.GetTarget(out var playerTarget)) {
+
+
+        ActiveObject target;
+        if (player.GetTarget(out target)) {
             Surface.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
-            Surface.Print(targetX, targetY++, playerTarget.name, player.tracking.ContainsKey(playerTarget) ? Color.SpringGreen : Color.White, Color.Black);
-            if (playerTarget is AIShip ai) {
-                //Surface.Print(targetX, targetY++, $"Order: {ai.behavior.GetOrder().ToString()}", Color.White, Color.Black);
-            }
-            PrintTarget(targetX, targetY, playerTarget);
-            targetX += 32;
-            targetY = 1;
-        }
-        //var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
-        foreach (var autoTarget in player.devices.Weapon.Select(w => w.target).Except(new ActiveObject[] {null, playerTarget})) {
+        } else if((target = player.devices.Weapon.Select(w => w.target).Except(new ActiveObject[] { null }).FirstOrDefault()) != null) {
             Surface.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
-            Surface.Print(targetX, targetY++, autoTarget.name, player.tracking.ContainsKey(autoTarget) ? Color.SpringGreen : Color.White, Color.Black);
-            PrintTarget(targetX, targetY, autoTarget);
+        } else {
+            goto SkipTarget;
         }
+        Surface.Print(targetX, targetY++, target.name, player.tracking.ContainsKey(target) ? Color.SpringGreen : Color.White, Color.Black);
+        PrintTarget(targetX, targetY, target);
+    SkipTarget:
+        
         void PrintTarget(int x, int y, ActiveObject target) {
             var b = Color.Black;
             switch (target) {
@@ -1580,7 +1578,7 @@ public class Readout : ScreenSurface {
                     case LayeredArmor las: {
                             foreach (var armor in las.layers.Reverse<Armor>()) {
                                 var f = (tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
-                                int l = BAR * armor.hp / armor.desc.maxHP;
+                                int l = BAR * armor.hp / armor.maxHP;
                                 Surface.Print(x, y, "[", f, b);
                                 Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
                                 Surface.Print(x + 1, y, new('=', l), f, b);
@@ -1600,8 +1598,8 @@ public class Readout : ScreenSurface {
                 }
             }
         }
-        PrintPlayer();
-        void PrintPlayer() {
+        //Print Player
+        {
             int x = 3;
             int y = 3;
             var b = Color.Black;
@@ -1612,7 +1610,8 @@ public class Readout : ScreenSurface {
             var weapons = devices.Weapon;
             var shields = devices.Shield;
             var misc = devices.Installed.OfType<Service>();
-            void PrintTotalPower() {
+
+            {
                 double totalFuel = reactors.Sum(r => r.energy),
                        maxFuel = reactors.Sum(r => r.desc.capacity),
                        netDelta = reactors.Sum(r => r.energyDelta),
@@ -1654,7 +1653,6 @@ public class Readout : ScreenSurface {
                     + new ColoredString($"[{totalUsed,3}/{totalMax,3}] Total Power", Color.White, b)
                     );
             }
-            PrintTotalPower();
 
             if (reactors.Any()) {
                 foreach (var reactor in reactors) {
@@ -1767,11 +1765,11 @@ public class Readout : ScreenSurface {
                 case LayeredArmor las: {
                         foreach (var armor in las.layers.Reverse<Armor>()) {
                             var f = (player.world.tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
-                            int l = BAR * armor.hp / armor.desc.maxHP;
+                            int l = BAR * armor.hp / armor.maxHP;
                             Surface.Print(x, y, "[", f, b);
                             Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
                             Surface.Print(x + 1, y, new('=', l), f, b);
-                            Surface.Print(x + 1 + BAR, y, $"] [{armor.hp,3}/{armor.desc.maxHP,3}] {armor.source.type.name}", f, b);
+                            Surface.Print(x + 1 + BAR, y, $"] [{armor.hp,3}/{armor.maxHP,3}] {armor.source.type.name}", f, b);
                             y++;
                         }
                         break;
@@ -1790,30 +1788,6 @@ public class Readout : ScreenSurface {
             Surface.Print(x, y++, $"Stealth: {ship.stealth:0.00}");
             Surface.Print(x, y++, $"Visibility: {SStealth.GetVisibleRangeOf(player):0.00}");
         }
-        /*
-        if(true){
-            int x = 3;
-            int y = 35;
-            foreach (var p in player.powers) {
-                if (p.fullyCharged) {
-                    var c = Color.Yellow;
-                    if (ticks % 30 < 15) {
-                        c = Color.Orange;
-                    }
-
-                    this.Print(x + 2, y++,
-                        new ColoredString(
-                            $"{p.type.name,-8}",
-                            Color.Orange, Color.Black
-                            ) + new ColoredString(
-                                new string('>', 16),
-                                c, Color.Black
-                            )
-                        );
-                }
-            }
-        }
-        */
         base.Render(drawTime);
     }
 }

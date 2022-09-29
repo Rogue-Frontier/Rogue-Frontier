@@ -298,7 +298,7 @@ public record ArmorDesc() {
     [Opt] public double regenRate;
     [Opt] public int killHP;
     [Opt] public double stealth;
-    [Opt] public double lifetimeDegrade;
+    [Opt] public double lifetimeDegrade = 1/50.0;
     [Opt] public double titanFactor;
     [Opt] public double reflectFactor;
     public ItemFilter restrictRepair;
@@ -437,6 +437,7 @@ public record FragmentDesc {
     [Req] public IDice damageHP;
     [Opt] public double antiReflect;
 
+    [Opt] public double detonateFailChance;
 
     [Opt] public int knockback;
     [Opt] public int shock = 1;

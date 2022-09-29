@@ -250,7 +250,7 @@
 						maneuver=		"4"
 						missileSpeed=	"60"
 						damageType=		"1"
-						damageHP=		"6"
+						damageHP=		"5d3"
 						shock=			"3"
 			
 						lifetime=		"120"
@@ -490,6 +490,8 @@
 				lifetime=		"90"
 				glyph=			"i"
 				foreground=		"Red"
+				
+				detonateFailChance="0.25"
 				
 				detonateSound=	"RogueFrontierContent/sounds/dynamite.wav"
 				>

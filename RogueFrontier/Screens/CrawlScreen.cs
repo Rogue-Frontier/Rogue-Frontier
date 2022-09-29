@@ -69,16 +69,12 @@ Was more than a dream after all." }.Select(line => line.Replace("\r", "")).ToArr
     Random random = new Random();
     public CrawlScreen(int width, int height, Func<Console> next) : base(width, height) {
         this.next = next;
-
         backgroundSlideX = Width;
-
         lines = text.Sum(line => line.Count(c => c == '\n')) + text.Length * 2;
         sectionIndex = 0;
         tick = 0;
-
         int effectWidth = Width * 3 / 5;
         int effectHeight = Height * 3 / 5;
-
         effect = new ColoredString[effectHeight];
         for (int y = 0; y < effectHeight; y++) {
             effect[y] = new ColoredString(effectWidth);
@@ -88,7 +84,6 @@ Was more than a dream after all." }.Select(line => line.Replace("\r", "")).ToArr
         }
         //spinner = new LoadingSymbol(16);
         clouds = new List<CloudParticle>();
-
         Color Front(int value) {
             return new Color(255 - value / 2, 255 - value, 255, 255 - value / 4);
             //return new Color(128 + value / 2, 128 + value/4, 255);

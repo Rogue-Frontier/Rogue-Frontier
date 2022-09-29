@@ -107,7 +107,7 @@ class ShipScreen : ScreenSurface {
         } else if (ds is LayeredArmor las) {
             Print(x, y++, "[Armor]");
             foreach (var a in las.layers) {
-                Print(x, y++, $"{a.source.type.name}: {a.hp} / {a.desc.maxHP}");
+                Print(x, y++, $"{a.source.type.name}: {a.hp} / {a.maxHP}");
             }
             y++;
         }
@@ -527,7 +527,7 @@ public class SListScreen {
             Escape
             ) { IsFocused = true };
 
-        string GetName(Armor d) => $"{$"[{d.hp} / {d.desc.maxHP}]",-12}{d.source.type.name}";
+        string GetName(Armor d) => $"{$"[{d.hp} / {d.maxHP}]",-12}{d.source.type.name}";
         List<ColoredString> GetDesc(Armor d) {
             var item = d.source;
             var invoke = item.type.invoke;
@@ -541,7 +541,7 @@ public class SListScreen {
             }
             if (d.desc.restrictRepair?.Matches(source) == false) {
                 result.Add(new("This armor is not compatible", Color.Yellow, Color.Black));
-            } else if (d.hp < d.desc.maxHP) {
+            } else if (d.hp < d.maxHP) {
                 result.Add(new("[Enter] Repair this armor", Color.Yellow, Color.Black));
             } else {
                 result.Add(new("This armor is at full HP", Color.Yellow, Color.Black));
@@ -553,7 +553,7 @@ public class SListScreen {
                 return;
             }
             var before = segment.hp;
-            var repairHP = Math.Min(repair.repairHP, segment.desc.maxHP - segment.hp);
+            var repairHP = Math.Min(repair.repairHP, segment.maxHP - segment.hp);
             if (repairHP > 0) {
                 segment.hp += repairHP;
                 player.cargo.Remove(source);
@@ -917,7 +917,7 @@ public class SListScreen {
 
 
 
-        string GetName(Armor a) => $"[{a.hp}/{a.desc.maxHP}] {a.source.type.name}";
+        string GetName(Armor a) => $"[{a.hp}/{a.maxHP}] {a.source.type.name}";
         List<ColoredString> GetDesc(Armor a) {
             var item = a.source;
 
@@ -935,11 +935,11 @@ public class SListScreen {
                 result.Add(new("Repair services not available for this armor", Color.Yellow, Color.Black));
                 return result;
             }
-            int delta = a.desc.maxHP - a.hp;
+            int delta = a.maxHP - a.hp;
             result.Add(new($"Price per HP: {unitPrice}"));
-            result.Add(new($"Full price:   {unitPrice * delta}"));
             result.Add(new($"HP to repair: {delta}"));
             result.Add(new($"Your money:   {player.person.money}"));
+            result.Add(new($"Full price:   {unitPrice * delta}"));
             result.Add(new(""));
             if (delta <= 0) {
                 result.Add(new("This armor is at full HP", Color.Yellow, Color.Black));
@@ -973,7 +973,7 @@ public class SListScreen {
                 }
                 return;
             }
-            int delta = a.desc.maxHP - a.hp;
+            int delta = a.maxHP - a.hp;
             if (delta == 0) {
                 return;
             }
@@ -1260,6 +1260,8 @@ public class SListScreen {
                     player.cargo.Remove(installed.source);
 
                     callback?.Invoke();
+
+                    Escape();
                 }
                 void Escape() {
                     var p = screen.Parent;

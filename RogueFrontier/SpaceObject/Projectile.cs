@@ -30,27 +30,19 @@ public class Projectile : MovingObject {
     public int armorSkip;
     public int ricochet = 0;
 
-
-
     //Hit results
     public bool hitReflected;
     public bool hitBlocked;
     public bool hitHull;
     public bool hitKill;
-
     public bool hitHandled => damageHP == 0 || hitReflected || hitBlocked;
-
-
-
+    public double detonateRadius;
     public HashSet<Entity> exclude = new();
     //List of projectiles that were created from the same fragment
     public List<Projectile> salvo = new();
     public record OnHitActive(Projectile p, ActiveObject other);
     public Vi<OnHitActive> onHitActive=new();
-    [JsonIgnore]   public bool active => _active;
-    public bool _active = true;
-
-
+    public bool active { get; set; } = true;
     public Projectile() { }
     public Projectile(ActiveObject source, FragmentDesc desc, XY position, XY velocity, double? direction = null, Maneuver maneuver = null, HashSet<Entity> exclude = null) {
         this.id = source.world.nextId++;
@@ -67,6 +59,8 @@ public class Projectile : MovingObject {
         this.damageHP = desc.damageHP.Roll();
         this.armorSkip = desc.armorSkip;
         this.ricochet = desc.ricochet;
+
+        this.detonateRadius = desc.detonateRadius;
 
         this.exclude = exclude;
         if(this.exclude == null) {
@@ -93,8 +87,14 @@ public class Projectile : MovingObject {
             }
         } else if(active) {
             UpdateMove();
+
+            if (world.karma.NextDouble() < desc.detonateFailChance) {
+                goto NoDetonate;
+            }
             Detonate();
-            _active = false;
+
+            NoDetonate:
+            active = false;
         }
         void UpdateMove() {
             maneuver?.Update(delta, this);
@@ -103,20 +103,26 @@ public class Projectile : MovingObject {
             var inc = velocity.normal * 0.5;
             var steps = velocity.magnitude * 2 * delta;
 
-            if(desc.detonateRadius > 0) {
-                var r = desc.detonateRadius * desc.detonateRadius;
-                if(world.entities.FilterKey(p => (position - p).magnitude2 < r).Select(e => e is ISegment s ? s.parent : e)
+            bool InDetonateRange() {
+                var r = detonateRadius * detonateRadius;
+                return r > 0 && world.entities.FilterKey(p => (position - p).magnitude2 < r).Select(e => e is ISegment s ? s.parent : e)
                     .Distinct().Except(exclude).Any(e => e switch {
                         ActiveObject a => a.active,
                         Projectile p => !exclude.Contains(p.source) && desc.hitProjectile,
                         //TargetingMarker marker => marker.Owner == source,
                         _ => false
-                    })) {
-                    lifetime = 0;
-                    Detonate();
-                    return;
-                }
+                    });
             }
+            if (InDetonateRange()) {
+                if (world.karma.NextDouble() < desc.detonateFailChance) {
+                    detonateRadius = 0;
+                    goto NoDetonate;
+                }
+                lifetime = 0;
+                Detonate();
+                return;
+            }
+            NoDetonate:
             for (int i = 0; i < steps; i++) {
                 position += inc;
 
@@ -136,15 +142,21 @@ public class Projectile : MovingObject {
                             var cg = new ColoredGlyph(hitHull ? Color.Yellow : Color.LimeGreen, Color.Transparent, 'x');
                             world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle), hit.velocity, cg, 10));
 
+                            hitReflected |= world.karma.NextDouble() < desc.detonateFailChance;
+
                             onHitActive.Observe(new(this, hit));
                             if (hitReflected) {
                                 hitReflected = false;
                                 velocity = -velocity;
+
+                                exclude = new();
                             } else if(ricochet > 0) {
                                 ricochet--;
                                 velocity = -velocity;
                                 //velocity += (hit.velocity - velocity) / 2;
                                 //stop = true;
+
+                                exclude = new();
                             } else {
                                 Detonate();
                                 

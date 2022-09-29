@@ -116,6 +116,9 @@ public class Armor : Device {
     public int lastDamageTick;
 
     List<Decay> decay=new();
+
+    public int maxHP => Math.Max(desc.maxHP/4, desc.maxHP - (int)(desc.lifetimeDegrade * lifetimeDamageAbsorbed));
+
     public record Decay {
         [Req] public double lifetime;
         [Req] public double rate;
@@ -132,7 +135,7 @@ public class Armor : Device {
     }
     public Armor Copy(Item source) => desc.GetArmor(source);
     public void Repair(RepairArmor ra) {
-        hp = Math.Min(desc.maxHP, hp + ra.repairHP);
+        hp = Math.Min(maxHP, hp + ra.repairHP);
     }
     public void Update(double delta, IShip owner) {
         if (decay.Any()) {
@@ -159,7 +162,7 @@ public class Armor : Device {
         if (hpToRecover >= 1) {
             recoveryHP += desc.recoveryRate * delta * Program.TICKS_PER_SECOND;
             while (recoveryHP >= 1) {
-                if (hp < desc.maxHP) {
+                if (hp < maxHP) {
                     hp++;
                     recoveryHP--;
                     hpToRecover--;
@@ -171,7 +174,7 @@ public class Armor : Device {
         }
         regenHP += desc.regenRate * delta * Program.TICKS_PER_SECOND;
         while (regenHP >= 1) {
-            if(hp < desc.maxHP) {
+            if(hp < maxHP) {
                 hp++;
                 regenHP--;
             } else {
