@@ -3,17 +3,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 namespace RogueFrontier;
-public record ItemFilter(HashSet<string> hasAttributes, HashSet<string> lacksAttributes) {
+public record ItemFilter(HashSet<string> requireAttributes, HashSet<string> rejectAttributes) {
     public ItemFilter(XElement e) : this(
-        e.TryAtt("hasAttributes").Split(";").ToHashSet(),
-        e.TryAtt("lacksAttributes").Split(";").ToHashSet()
+        e.TryAtt("requireAttributes").Split(";").ToHashSet(),
+        e.TryAtt("rejectAttributes").Split(";").ToHashSet()
         ) { }
+    public static ItemFilter Parse(string s) {
+        var require = new HashSet<string>();
+        var reject = new HashSet<string>();
+        foreach(Match m in Regex.Matches(s, "(?<pre>\\+|-)(?<att>[a-zA-Z0-9]+)")) {
+            (m.Groups["pre"].Value switch {
+                "+" => require,
+                "-" => reject,
+                _ => throw new Exception("This should not happen")
+            }).Add(m.Groups["att"].Value);
+        }
+        return new(require, reject);
+    }
     public bool Matches(Item i) {
         var f = (string att) => i.type.attributes.Contains(att);
-        return hasAttributes.All(f) && !lacksAttributes.Any(f);
+        return requireAttributes.All(f) && !rejectAttributes.Any(f);
     }
 }
 public record TradeEntry(ItemFilter filter, double priceFactor, int priceInc) {

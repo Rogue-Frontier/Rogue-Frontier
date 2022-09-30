@@ -99,7 +99,7 @@
 				glyph=			"*"
 				foreground=		"FF55FFFF"
 				>
-				<Decay lifetime="300" rate="1/60"/>
+				<Decay lifetime="10" rate="1/60"/>
 				<Trail
 					lifetime=	"10"
 					glyph=		"*"
@@ -130,7 +130,7 @@
 				glyph=			"+"
 				foreground=		"Orange"
 				>
-				<Decay lifetime="150" rate="4/60" lethal="true"/>
+				<Decay lifetime="5" rate="4/60" lethal="true" degradeFactor="10"/>
 				<Trail
 					lifetime=	"10"
 					glyph=		"*"

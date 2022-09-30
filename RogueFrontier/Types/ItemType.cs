@@ -301,6 +301,7 @@ public record ArmorDesc() {
     [Opt] public double lifetimeDegrade = 1/50.0;
     [Opt] public double titanFactor;
     [Opt] public double reflectFactor;
+    [Opt] public IDice minAbsorb = new Constant(0);
     public ItemFilter restrictRepair;
     public Armor GetArmor(Item i) => new(i, this);
     public ArmorDesc(XElement e) : this() {
@@ -391,7 +392,7 @@ public record WeaponDesc {
     [Opt] public bool spray;
     [Opt] public bool structural;
     [Opt] public bool omnidirectional = false;
-    [Opt] public double angle = 0, angleRange, leftRange, rightRange = 0;
+    [Opt] public double angle = 0, sweep, leftRange, rightRange = 0;
 
     public ItemType ammoType;
     public FragmentDesc projectile;
@@ -408,7 +409,7 @@ public record WeaponDesc {
     public WeaponDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
         angle *= Math.PI / 180;
-        angleRange *= Math.PI / 180;
+        sweep *= Math.PI / 180;
         leftRange *= Math.PI / 180;
         rightRange *= Math.PI / 180;
         ammoType = e.TryAtt(nameof(ammoType), out string at) ?
@@ -472,7 +473,7 @@ public record FragmentDesc {
     [Opt] public bool hook;
     [Opt] public bool lightning;    //On hit, the projectile attaches an overlay that automatically makes future shots hit instantly
     public FlashDesc flash;
-    public Armor.Decay decay;
+    public Decay decay;
     public DisruptorDesc disruptor;
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
     public double angleInterval => spreadAngle / count;

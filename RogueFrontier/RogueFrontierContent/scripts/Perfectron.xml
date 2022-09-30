@@ -4,6 +4,7 @@
 	/>
 	<ItemType codename=		"item_grinder"
 			  name=			"Grinder device"
+			  attributes=	"Perfectrons"
 			  level=		"3"
 			  mass=			"2000"
 			  desc=			""
@@ -12,14 +13,16 @@
 	</ItemType>
 	<ItemType	codename=	"item_deflect_device"
 		name=		"Deflect device"
+		attributes=	"Perfectrons"
 		level=		"3"
 		mass=		"4000"
-		desc=		"This ."
+		desc=		"This rare device is capable of hijacking missiles and redirecting them back at enemies."
 		>
 		<Service interval="10" type="missileJack" powerUse="5"/>
 	</ItemType>
 	<ItemType	codename=	"item_lightning_cannon"
 		name=		"Lightning cannon"
+		attributes=	"Perfectrons"
 		level=		"5"
 		mass=		"4000"
 		desc=		"This weapon can unleash a deadly rapid-fire barrage of energy beams onto a target after priming its hull with an initial connecting hit."
@@ -53,6 +56,7 @@
 
 	<ItemType	codename=	"item_flashbang_cannon"
 				name=		"Flashbang cannon"
+				attributes=	"Perfectrons"
 				level=		"6"
 				mass=		"2000"
 				desc=		"A high-energy flashbang unleashes a huge blinding explosion, effectively disrupting targeting systems. The flashbang is powerful enough to blind its user though so be careful."
@@ -95,6 +99,7 @@
 	</ItemType>
 	<ItemType	codename=	"item_lightning_vent"
 		name=		"Lightning vent"
+		attributes=	"Perfectrons"
 		level=		"3"
 		mass=		"4000"
 		desc=		"The Perfectron generator discharges excess generated power in the form of lightning bolts."
@@ -127,6 +132,7 @@
 	</ItemType>
 	<ItemType	codename=	"item_shining_armor"
 		name=		"Shining armor"
+		attribute=	"Perfectrons"
 		mass=		"8000"
 		level=		"6"
 		value=		"32000"

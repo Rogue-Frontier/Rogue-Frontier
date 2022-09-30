@@ -61,7 +61,7 @@ public class Item {
     }
     public bool Get<T>(out T result) where T : class, Device => (result = Get<T>()) != null;
     public bool Has<T>() where T : class, Device => Get<T>() != null;
-    public bool HasDevice() => (armor ?? engine ?? reactor??service??shield??(Device)solar??weapon) != null;
+    public bool HasDevice() => (armor ?? engine ?? reactor??service??shield?? (Device)solar ?? weapon) != null;
     public IEnumerable<Device> GetDevices() => new List<Device> { armor, engine, reactor, shield, solar, weapon }.Where(d => d != null);
 }
 public interface Device {
@@ -92,41 +92,40 @@ public interface PowerSource {
     double energyDelta { get; set; }
     int maxOutput { get; }
 }
+public class Decay {
+    [Req] public double lifetime;
+    [Req] public double rate;
+    [Opt] public bool lethal;
+    [Opt] public double degradeFactor;
+    public Decay() { }
+    public Decay(XElement e) => e.Initialize(this);
+    public Decay(Decay source) {
+        this.lifetime = source.lifetime;
+        this.rate = source.rate;
+        this.lethal = source.lethal;
+        this.degradeFactor = source.degradeFactor;
+    }
+}
 public class Armor : Device {
     [JsonProperty]
     public Item source { get; private set; }
     public ArmorDesc desc;
     public int hp;
-
     //Temporarily increase max HP upon absorbing damage. Titan HP decays over time.
     public double titanHP;
-    
     public double hpToRecover;
     public double recoveryHP;
     public double regenHP;
     public double decayHP;
-
+    public double degradeHP;
     public int killHP;
-
     public double damageDelay;
-
     public double stealth => desc.stealth == 0 ? 0 : desc.stealth * hp / desc.maxHP;
-
     public int lifetimeDamageAbsorbed;
     public int lastDamageTick;
-
-    List<Decay> decay=new();
-
+    HashSet<Decay> decay=new();
     public int maxHP => Math.Max(desc.maxHP/4, desc.maxHP - (int)(desc.lifetimeDegrade * lifetimeDamageAbsorbed));
-
-    public record Decay {
-        [Req] public double lifetime;
-        [Req] public double rate;
-        [Opt] public bool lethal;
-        public Decay() { }
-        public Decay(XElement e) => e.Initialize(this);
-        public Decay(double lifetime, double rate) => (this.lifetime, this.rate) = (lifetime, rate);
-    }
+    
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
         this.source = source;
@@ -139,21 +138,33 @@ public class Armor : Device {
     }
     public void Update(double delta, IShip owner) {
         if (decay.Any()) {
+            var expired = new HashSet<Decay>();
+
             foreach (var d in decay) {
                 decayHP += d.rate * delta * 60;
-                d.lifetime -= delta * Program.TICKS_PER_SECOND;
+                degradeHP += d.rate * d.degradeFactor * delta * 60;
+
+                d.lifetime -= delta;
+                if(d.lifetime <= 0) {
+                    expired.Add(d);
+                }
             }
+            decay.ExceptWith(expired);
             if (decayHP >= 1) {
                 var deltaHP = Math.Min(hp, (int)decayHP);
                 hp -= deltaHP;
-                decayHP = 0;
                 lastDamageTick = owner.world.tick;
 
-                lifetimeDamageAbsorbed += deltaHP;
+                //lifetimeDamageAbsorbed += (int)decayHP;
+                //lifetimeDamageAbsorbed += deltaHP;
+                lifetimeDamageAbsorbed += (int)degradeHP;
+                
                 hpToRecover += (deltaHP * desc.recoveryFactor);
                 damageDelay = 30;
+
+                decayHP = 0;
+                degradeHP = 0;
             }
-            decay.RemoveAll(r => r.lifetime == 0);
         }
         if (damageDelay > 0) {
             damageDelay -= delta * Program.TICKS_PER_SECOND;
@@ -216,10 +227,18 @@ public class Armor : Device {
         }
     }
     public int Absorb(Projectile p) {
-        if (hp == 0 || p.damageHP < 1)
+        if (p.damageHP < 1)
             return 0;
+
+        bool down = hp == 0;
+        //If we have a minAbsorb, then we're considered active even at 0 hp
+
+        var damageWall = desc.minAbsorb.Roll();
+        if(down && damageWall == 0) {
+            return 0;
+        }
         //If we're below the drill threshold, then skip this armor
-        if(((float)hp / desc.maxHP) < p.desc.armorDrill) {
+        if((float)hp / desc.maxHP < p.desc.armorDrill) {
             return 0;
         }
         //If we're active and the projectile has armor skip, then skip us now.
@@ -227,9 +246,16 @@ public class Armor : Device {
             p.armorSkip--;
             return 0;
         }
+        if(down && damageWall > 0) {
+            p.damageHP = Math.Max(0, p.damageHP - damageWall);
+            return 0;
+        }
+
+
         //Check if we have a kill threshold
         if (hp <= killHP) {
             if (p.damageHP < killHP) {
+                p.damageHP = 0;
                 var amount = p.damageHP;
                 p.hitBlocked = true;
                 //Remember this but take no damage
@@ -245,7 +271,7 @@ public class Armor : Device {
             }
         }
 
-        var multiplier = p.desc.armorFactor + lifetimeDamageAbsorbed * desc.lifetimeDegrade;
+        var multiplier = p.desc.armorFactor;// + lifetimeDamageAbsorbed * desc.lifetimeDegrade;
         var absorbed = (int)Math.Clamp(p.damageHP * multiplier, 0, hp);
         hp -= absorbed;
         OnAbsorb(absorbed);
@@ -255,7 +281,7 @@ public class Armor : Device {
         lastDamageTick = p.world.tick;
 
         if (p.desc.decay is Decay d) {
-            decay.Add(new(d.lifetime, d.rate));
+            decay.Add(new(d));
         }
 
         double reflectChance = desc.reflectFactor * hp / desc.maxHP - p.desc.antiReflect;
@@ -264,7 +290,7 @@ public class Armor : Device {
             return absorbed;
         }
 
-        p.damageHP -= (int)Math.Ceiling(absorbed / multiplier);
+        p.damageHP = Math.Max(0, p.damageHP - (int)Math.Ceiling(Math.Max(absorbed, damageWall) / multiplier));
         
         return absorbed;
     }
@@ -668,8 +694,8 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         aiming ??=
             desc.projectile.omnidirectional || desc.omnidirectional ?
                 new Omnidirectional() :
-            desc.angleRange > 0 ?
-                new Swivel(desc.angleRange) :
+            desc.sweep > 0 ?
+                new Swivel(desc.sweep) :
             desc.leftRange + desc.rightRange > 0 ?
                 new Swivel(desc.leftRange, desc.rightRange) :
             null;
@@ -1025,11 +1051,6 @@ public class Capacitor {
         charge = Math.Max(0, charge - desc.dischargeOnFire);
     public void Clear() => charge = 0;
 }
-public interface IAiming {
-    void Update(Station owner, Weapon weapon);
-    void Update(IShip owner, Weapon weapon);
-    double? GetFireAngle() => null;
-}
 public class Targeting : IDestroyedListener {
     public bool cycleTargets;
     private int ticks;
@@ -1123,8 +1144,11 @@ public class Targeting : IDestroyedListener {
             //.OrderBy(p => (owner.Position - p.Position).Magnitude2)
             .FirstOrDefault();
 }
-
-
+public interface IAiming {
+    void Update(Station owner, Weapon weapon);
+    void Update(IShip owner, Weapon weapon);
+    double? GetFireAngle() => null;
+}
 public class Omnidirectional : IAiming {
     double? direction;
     public Omnidirectional() {
@@ -1163,44 +1187,41 @@ public class Swivel : IAiming {
         leftRange = left;
         rightRange = right;
     }
-    public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
-
+    public void Update(ActiveObject owner, Weapon weapon) {
         if (weapon.targeting.cycleTargets) {
-            if(weapon.targeting.index.CycleWhile(t => {
+            weapon.targeting.index.CycleWhile(t => {
                 direction = Omnidirectional.GetFireAngle(owner, t, weapon);
-
                 var deltaRad = Main.AngleDiffRad(facing, direction.Value);
                 if (deltaRad > 0 ? deltaRad > leftRange : -deltaRad > rightRange) {
                     direction = null;
+                    return true;
                 }
-                return direction == null;
-            })) {
                 Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
-            };
-        } else {
-            var targeting = weapon.targeting;
-            if (targeting.target != null) {
-                direction = Omnidirectional.GetFireAngle(owner, targeting.target, weapon);
-
-                var deltaRad = Main.AngleDiffRad(facing, direction.Value);
-                if (deltaRad > 0 ? deltaRad > leftRange : -deltaRad > rightRange) {
-                    direction = null;
-                    targeting.ClearTarget();
-                    return;
-                }
-                //Heading.Crosshair(owner.world, target.position);
-            } else {
-                direction = null;
-            }
+                return false;
+            });
+            return;
         }
+        var targeting = weapon.targeting;
+        if (targeting.target == null) {
+            direction = null;
+            return;
+        }
+        direction = Omnidirectional.GetFireAngle(owner, targeting.target, weapon);
+        var deltaRad = Main.AngleDiffRad(facing, direction.Value);
+        if (deltaRad > 0 ? deltaRad > leftRange : -deltaRad > rightRange) {
+            direction = null;
+            targeting.ClearTarget();
+            return;
+        }
+        Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
     }
     public void Update(Station owner, Weapon weapon) {
         facing = owner.rotation + weapon.angle;
-        Update(owner, weapon, s => SStation.IsEnemy(owner, s));
+        Update((ActiveObject)owner, weapon);
     }
     public void Update(IShip owner, Weapon weapon) {
         facing = owner.rotationRad + weapon.angle;
-        Update(owner, weapon, s => SShip.IsEnemy(owner, s));
+        Update((ActiveObject)owner, weapon);
     }
     public double? GetFireAngle() => direction;
 }

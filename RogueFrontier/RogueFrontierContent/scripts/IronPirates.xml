@@ -5,6 +5,7 @@
 
 	<ItemType	codename=	"item_iron_cannon"
 				name=		"Iron Cannon"
+				attributes=	"IronPirates"
 				mass=		"8000"
 				level=		"4"
 				invoke=		"installWeapon"
@@ -28,6 +29,7 @@
 
 	<ItemType	codename=	"item_iron_driver"
 			name=		"Iron Driver"
+			attributes=	"IronPirates"
 			mass=		"3000"
 			level=		"2"
 			invoke=		"installWeapon"
@@ -57,6 +59,7 @@
 
 	<ItemType	codename=	"item_hull_puncher"
 		name=		"Hull Puncher"
+		attributes=	"IronPirates"
 		mass=		"3000"
 		level=		"2"
 		desc=		"This powerful mass driver can punch holes in armor, cutting down to the hull with ease."
@@ -84,6 +87,7 @@
 	
 	<ItemType	codename=	"item_iron_hook_cannon"
 			name=		"Hook Cannon"
+			attributes=	"IronPirates"
 			mass=		"3000"
 			level=		"2"
 			invoke=		"installWeapon"
@@ -106,6 +110,7 @@
 	
 	<ItemType	codename=	"item_iron_hook"
 			name=		"Iron Hook"
+			attributes=	"IronPirates"
 			mass=		"10"
 			level=		"2"
 			desc=		"This giant hook is fired by the Hook cannon. It is one of many things that the Iron Pirates like to make in their secret foundries."

@@ -313,7 +313,7 @@ public class SListScreen {
             Escape
             );
 
-        string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "Equip> " : "Cargo> ")}{i.type.name}";
+        string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "Circuit: " : "Cargo  : ")}{i.type.name}";
         List<ColoredString> GetDesc(Item item) {
             var invoke = item.type.invoke;
             List<ColoredString> result = new();
@@ -867,6 +867,10 @@ public class SListScreen {
                 return;
             }
             int unitPrice = GetPrice(r);
+
+            if (unitPrice < 0) {
+                return;
+            }
             int price = delta * unitPrice;
             if (unitPrice > player.person.money) {
                 return;
@@ -895,7 +899,7 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Armor> ArmorRepairService(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
+    public static ListScreen<Armor> DockArmorRepair(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
         ListScreen<Armor> screen = null;
         var layers = (player.hull as LayeredArmor)?.layers ?? new();
         RepairEffect job = null;
@@ -986,7 +990,7 @@ public class SListScreen {
             if(unitPrice > player.person.money) {
                 return;
             }
-            job = new RepairEffect(player, a, 6, unitPrice, Done);
+            job = new RepairEffect(player, a, 2, unitPrice, Done);
             player.world.AddEvent(job);
             player.AddMessage(new Message($"Repair job initiated..."));
 
@@ -1024,7 +1028,7 @@ public class SListScreen {
 
 
 
-    public static ListScreen<Device> DeviceRemovalService(ScreenSurface prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
+    public static ListScreen<Device> DockDeviceRemoval(ScreenSurface prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
         ListScreen<Device> screen = null;
         var installed = player.devices.Installed;
         return screen = new(prev,
@@ -1036,7 +1040,7 @@ public class SListScreen {
             Escape
             ) { IsFocused = true };
 
-        string GetName(Device a) => $"{a.source.type.name}";
+        string GetName(Device a) => $"{a.GetType().Name.PadRight(7)}: {a.source.type.name}";
         List<ColoredString> GetDesc(Device a) {
             var item = a.source;
 
@@ -1051,7 +1055,7 @@ public class SListScreen {
 
             int unitPrice = GetPrice(a);
             if (unitPrice < 0) {
-                result.Add(new("Removal services are unavailable for this device", Color.Yellow, Color.Black));
+                result.Add(new("Removal service is not available for this device", Color.Yellow, Color.Black));
             } else {
 
                 result.Add(new($"Removal fee: {unitPrice}"));
@@ -1067,6 +1071,9 @@ public class SListScreen {
         }
         void Invoke(Device a) {
             var price = GetPrice(a);
+            if(price < 0) {
+                return;
+            }
             ref var money = ref player.person.money;
             if (price > money) {
                 return;
@@ -1085,9 +1092,11 @@ public class SListScreen {
         }
     }
 
-    public static ListScreen<Item> DeviceInstallService(ScreenSurface prev, PlayerShip player, Func<Item, int> GetPrice, Action callback) {
-        ListScreen<Item> screen = null;
-        var cargo = player.cargo.Where(i => i.HasDevice());
+    public static ListScreen<Device> DockDeviceInstall(ScreenSurface prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
+        ListScreen<Device> screen = null;
+        var cargo = player.cargo.Select(i =>
+            i.engine??i.reactor??i.service??i.shield??(Device)i.solar??i.weapon)
+            .Except(new Device[] {null});
         return screen = new(prev,
             player,
             cargo,
@@ -1097,9 +1106,9 @@ public class SListScreen {
             Escape
             ) { IsFocused = true };
 
-        string GetName(Item a) => $"{a.type.name}";
-        List<ColoredString> GetDesc(Item a) {
-            var item = a;
+        string GetName(Device d) => $"{d.GetType().Name.PadRight(7)}: {d.source.type.name}";
+        List<ColoredString> GetDesc(Device d) {
+            var item = d.source;
 
             var result = new List<ColoredString>();
 
@@ -1109,34 +1118,45 @@ public class SListScreen {
                 result.Add(new(""));
             }
 
-
-            int price = GetPrice(a);
-            if (price < 0) {
-                result.Add(new("Install services are unavailable for this device", Color.Yellow, Color.Black));
-            } else {
-                result.Add(new($"Install fee: {price}"));
-                result.Add(new($"Your money:  {player.person.money}"));
-                result.Add(new(""));
-                if (price > player.person.money) {
-                    result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
-                } else {
-                    result.Add(new($"Install device", Color.Yellow, Color.Black));
-                }
+            if (d is Weapon && player.shipClass.restrictWeapon?.Matches(d.source) == false) {
+                result.Add(new("This weapon is not compatible", Color.Yellow, Color.Black));
+                return result;
             }
+
+            int price = GetPrice(d);
+            if (price < 0) {
+                result.Add(new(""));
+                result.Add(new("Install service is not available for this device", Color.Yellow, Color.Black));
+                return result;
+            }
+            
+
+            result.Add(new($"Install fee: {price}"));
+            result.Add(new($"Your money:  {player.person.money}"));
+            result.Add(new(""));
+            if (price > player.person.money) {
+                result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
+            } else {
+                result.Add(new($"Install device", Color.Yellow, Color.Black));
+            }
+
             return result;
         }
-        void Invoke(Item a) {
-            var price = GetPrice(a);
+        void Invoke(Device d) {
+            var price = GetPrice(d);
+            if(price < 0) {
+                return;
+            }
             ref var money = ref player.person.money;
             if (price > money) {
                 return;
             }
             money -= price;
 
-            player.cargo.Remove(a);
-            player.devices.Install(a.GetDevices());
+            player.cargo.Remove(d.source);
+            player.devices.Install(d);
 
-            player.AddMessage(new Message($"Installed {GetName(a)}"));
+            player.AddMessage(new Message($"Installed {GetName(d)}"));
             callback?.Invoke();
         }
         void Escape() {
@@ -1147,7 +1167,7 @@ public class SListScreen {
         }
     }
 
-    public static ListScreen<Armor> ReplaceArmorService(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
+    public static ListScreen<Armor> DockArmorReplacement(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
         ListScreen<Armor> screen = null;
         var armor = (player.hull as LayeredArmor)?.layers??new List<Armor>();
         return screen = new(prev,
@@ -1173,7 +1193,7 @@ public class SListScreen {
 
             int price = GetPrice(a);
             if (price < 0) {
-                result.Add(new("Removal services are unavailable for this armor", Color.Yellow, Color.Black));
+                result.Add(new("Removal service is not available for this armor", Color.Yellow, Color.Black));
             } else {
                 result.Add(new($"Your money:  {player.person.money}"));
                 result.Add(new($"Removal fee: {price}"));
@@ -1188,6 +1208,9 @@ public class SListScreen {
         }
         void Invoke(Armor removed) {
             var removalPrice = GetPrice(removed);
+            if(removalPrice < 0) {
+                return;
+            }
             ref var money = ref player.person.money;
             if (removalPrice > money) {
                 return;
@@ -1196,8 +1219,8 @@ public class SListScreen {
 
             var p = screen.Parent;
             p.Children.Remove(screen);
-            p.Children.Add(GetReplacement());
-            ListScreen<Armor> GetReplacement() {
+            p.Children.Add(GetReplacement(prev));
+            ListScreen<Armor> GetReplacement(ScreenSurface prev) {
                 ListScreen<Armor> screen = null;
                 var armor = player.cargo.Select(i => i.armor).Where(i => i != null);
                 return screen = new(prev,
@@ -1217,26 +1240,21 @@ public class SListScreen {
                         result.AddRange(desc.Select(Main.ToColoredString));
                         result.Add(new(""));
                     }
-
-
                     if (player.shipClass.restrictArmor?.Matches(a.source) == false) {
                         result.Add(new("This armor is not compatible", Color.Yellow, Color.Black));
                         return result;
                     }
-
                     int installPrice = GetPrice(a);
                     if (installPrice < 0) {
-                        result.Add(new("Install services are unavailable for this armor", Color.Yellow, Color.Black));
+                        result.Add(new("Install service is not available for this armor", Color.Yellow, Color.Black));
                         return result;
                     }
-
                     var totalCost = removalPrice + installPrice;
                     result.Add(new($"Your money:  {player.person.money}"));
                     result.Add(new($"Removal fee: {removalPrice}"));
                     result.Add(new($"Install fee: {installPrice}"));
                     result.Add(new($"Total cost:  {totalCost}"));
                     result.Add(new(""));
-
                     if(totalCost > player.person.money) {
                         result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
                         return result;
@@ -1248,7 +1266,11 @@ public class SListScreen {
                     if (player.shipClass.restrictArmor?.Matches(installed.source) == false) {
                         return;
                     }
-                    var price = removalPrice + GetPrice(installed);
+                    var pr = GetPrice(installed);
+                    if(pr < 0) {
+                        return;
+                    }
+                    var price = removalPrice + pr;
                     ref var money = ref player.person.money;
                     if (price > money) {
                         return;
@@ -1301,7 +1323,7 @@ public class SListScreen {
             Escape
             );
 
-        string GetName(Item i) => $"{(installed.Contains(i) ? "Equip> " : "Cargo> ")}{i.type.name}";
+        string GetName(Item i) => $"{(installed.Contains(i) ? "Circuit: " : "Cargo  : ")}{i.type.name}";
         List<ColoredString> GetDesc(Item item) {
             List<ColoredString> result = new();
             var desc = item.type.desc.SplitLine(64);
@@ -1648,7 +1670,7 @@ public static class SListWidget {
             Escape
             );
 
-        string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "Equip> " : "Cargo> ")}{i.type.name}";
+        string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "Circuit: " : "Cargo  : ")}{i.type.name}";
         List<ColoredString> GetDesc(Item item) {
             var invoke = item.type.invoke;
             List<ColoredString> result = new();

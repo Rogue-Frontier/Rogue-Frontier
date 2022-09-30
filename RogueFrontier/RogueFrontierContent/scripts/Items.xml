@@ -150,6 +150,7 @@
 		<Weapon	initialCharges=	"2000"
 				powerUse=		"20"
 				fireCooldown=	"15"
+				sweep=			"30"
 			>
 			<Projectile
 					count="2"
@@ -175,6 +176,7 @@
 		<Weapon	initialCharges=	"3000"
 				powerUse=		"30"
 				fireCooldown=	"5"
+				sweep=			"30"
 			>
 			<Projectile
 					count="2"
@@ -241,7 +243,7 @@
 				desc=		"The Klaw missile launcher fires two quick tracking missiles at a time."
 		>
 		<Weapon	powerUse=		"10"
-				fireCooldown=	"60"
+				fireCooldown=	"45"
 				ammoType=		"item_klaw_missile"
 				sound=			"RogueFrontierContent/sounds/klaw_launcher.wav"
 			>
@@ -425,6 +427,9 @@
 				/>
 		</Weapon>
 	</ItemType>
+	
+	
+	<!--To do: Attack-drones, universal point-defense, anti-fragmentation armor-->
 	<ItemType	codename=	"item_knightsteel_plate"
 		name=		"Knightscale plate"
 		mass=		"6000"
@@ -433,9 +438,9 @@
 		desc=		"This strong armor is made for the Knight series of gunships."
 		>
 		<Armor
-			
+			minAbsorb=		"1"
 			reflectFactor=	"1.0"
-			maxHP=		"75"
+			maxHP=			"75"
 			>
 		</Armor>
 	</ItemType>

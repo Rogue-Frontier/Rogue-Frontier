@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 namespace RogueFrontier;
-public class DeviceSystem {
+public class Circuit {
     public List<Device> Installed=new();
     public List<Device> Powered=new();
 
@@ -13,7 +13,7 @@ public class DeviceSystem {
     public List<Shield> Shield = new();
     public List<Solar> Solar = new();
     public List<Weapon> Weapon = new();
-    public DeviceSystem() {}
+    public Circuit() {}
     public void Install(IEnumerable<Device> Devices) {
         Installed.AddRange(Devices);
         Powered.AddRange(Devices.Where(d => d.powerUse.HasValue));

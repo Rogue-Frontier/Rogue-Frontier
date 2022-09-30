@@ -104,8 +104,8 @@ public class LayeredArmor : HullSystem {
         new List<ColoredString>(layers.GroupBy(l => l.source.type).Select(l => new ColoredString(l.First().source.type.name + $" (x{l.Count()})")));
 
     public int GetHP() => layers.Sum(l => l.hp);
-    public int GetMaxHP() => layers.Sum(l => l.source.armor.desc.maxHP);
+    public int GetMaxHP() => layers.Sum(l => l.source.armor.maxHP);
     public void Restore() {
-        layers.ForEach(l => l.hp = l.source.armor.desc.maxHP);
+        layers.ForEach(l => l.hp = l.source.armor.maxHP);
     }
 }

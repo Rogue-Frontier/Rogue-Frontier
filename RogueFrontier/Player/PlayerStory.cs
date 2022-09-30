@@ -750,13 +750,13 @@ purchases and repair services.
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             i => (int)(GetStdPrice(i) * buyAdj),
             i => i.IsAmethyst() ? GetStdPrice(i) / 10 : -1);
-        Con ArmorRepair(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetRepairPrice, null);
-        Con DeviceInstall(Con from) => SListScreen.DeviceInstallService(from, playerShip, GetInstallPrice, null);
-        Con DeviceRemoval(Con from) => SListScreen.DeviceRemovalService(from, playerShip, GetRemovePrice, null);
-        Con ArmorReplace(Con from) => SListScreen.ReplaceArmorService(from, playerShip, GetReplacePrice, null);
+        Con ArmorRepair(Con from) => SListScreen.DockArmorRepair(from, playerShip, GetRepairPrice, null);
+        Con DeviceInstall(Con from) => SListScreen.DockDeviceInstall(from, playerShip, GetInstallPrice, null);
+        Con DeviceRemoval(Con from) => SListScreen.DockDeviceRemoval(from, playerShip, GetRemovePrice, null);
+        Con ArmorReplace(Con from) => SListScreen.DockArmorReplacement(from, playerShip, GetReplacePrice, null);
 
-        int GetInstallPrice(Item i) =>
-            !i.IsAmethyst() ? -1 : discount ? 80 : 100;
+        int GetInstallPrice(Device d) =>
+            !d.source.IsAmethyst() ? -1 : discount ? 80 : 100;
         int GetRemovePrice(Device i) =>
             !i.source.IsAmethyst() ? -1 : discount ? 80 : 100;
         int GetReplacePrice(Device i) =>
@@ -795,7 +795,7 @@ of civilian gunship pilots.",
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             GetStdPrice,
             GetStdPrice);
-        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetPrice, null);
+        Con ArmorServices(Con from) => SListScreen.DockArmorRepair(from, playerShip, GetPrice, null);
     }
     public Con CamperOutpost(Con prev, PlayerShip playerShip, Station source) {
         var lookup = (string s) => playerShip.world.types.Lookup<ItemType>(s);
@@ -830,7 +830,7 @@ craftspersons, and adventurers.",
             GetStdPrice,
             GetStdPrice);
         Con Workshop(Con from) => SListScreen.Workshop(from, playerShip, recipes, null);
-        Con ArmorServices(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetRepairPrice, null);
+        Con ArmorServices(Con from) => SListScreen.DockArmorRepair(from, playerShip, GetRepairPrice, null);
     }
     public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>
         new (prev, playerShip, source, GetStdPrice, i => GetStdPrice(i) / 2);
@@ -901,8 +901,12 @@ you on the ground before you can invoke SILENCE.
     public HashSet<IShip> militiaRecordedKills = new();
     public bool constellationMilitiaMember; 
     public Con ConstellationAstra(Con prev, PlayerShip playerShip, Station source) {
+        var friendlyOnly = ItemFilter.Parse("-OrionWarlords -IronPirates -Errorists -Perfectrons -DarkStar");
+
         return CheckConstellationArrest(prev, playerShip, source) ??
             Intro(prev);
+
+        
         Dialog Intro(Con prev) {
             return new(prev,
 @"You are docked at a Constellation Astra,
@@ -928,17 +932,19 @@ There is a modest degree of artificial gravity here.",
                 new("Undock")
             }) { background = source.type.heroImage };
         }
-        Con Trade(Con from) => TradeStation(from, playerShip, source);
+        Con Trade(Con from) =>
+            new TradeMenu(from, playerShip, source, GetStdPrice,
+                i => (!i.HasDevice() || friendlyOnly.Matches(i)) ? GetStdPrice(i) / 2 : -1
+                );
+        Con ArmorRepair(Con from) => SListScreen.DockArmorRepair(from, playerShip, GetRepairPrice, null);
+        Con DeviceInstall(Con from) => SListScreen.DockDeviceInstall(from, playerShip, GetInstallPrice, null);
+        Con DeviceRemoval(Con from) => SListScreen.DockDeviceRemoval(from, playerShip, GetRemovePrice, null);
+        Con ArmorReplace(Con from) => SListScreen.DockArmorReplacement(from, playerShip, GetReplacePrice, null);
 
-        Con ArmorRepair(Con from) => SListScreen.ArmorRepairService(from, playerShip, GetRepairPrice, null);
-        Con DeviceInstall(Con from) => SListScreen.DeviceInstallService(from, playerShip, GetInstallPrice, null);
-        Con DeviceRemoval(Con from) => SListScreen.DeviceRemovalService(from, playerShip, GetRemovePrice, null);
-        Con ArmorReplace(Con from) => SListScreen.ReplaceArmorService(from, playerShip, GetReplacePrice, null);
-
-        int GetRepairPrice(Armor a) => a.source.IsAmethyst() ? 9 : 3;
-        int GetInstallPrice(Item i) => i.IsAmethyst() ? 300 : 100;
-        int GetRemovePrice(Device i) => i.source.IsAmethyst() ? 300 : 100;
-        int GetReplacePrice(Device i) => i.source.IsAmethyst() ? 300 : 100;
+        int GetRepairPrice(Armor a) => !friendlyOnly.Matches(a.source) ? -1 : a.source.IsAmethyst() ? 9 : 3;
+        int GetInstallPrice(Device d) => !friendlyOnly.Matches(d.source) ? -1 : d.source.IsAmethyst() ? 300 : 100;
+        int GetRemovePrice(Device d) => !friendlyOnly.Matches(d.source) ? -1 : d.source.IsAmethyst() ? 300 : 100;
+        int GetReplacePrice(Device d) => !friendlyOnly.Matches(d.source) ? -1 : d.source.IsAmethyst() ? 300 : 100;
         Con MilitiaHeadquarters(Con from) {
             if (!constellationMilitiaMember) {
                 return new Dialog(from,
@@ -1111,7 +1117,7 @@ about being attacked so much as we just want them to
 shut up. Even the health inspector is less asinine
 than these idiots.""
 
-""I'll pay you 400 cons to shut them up indefinitely.
+""I'll pay you 400 to shut them up indefinitely.
 What do you say?""",
             new() {
                 new("Accept", Accept),
@@ -1140,7 +1146,7 @@ then I'll see you back here.""",
                 Dialog Debrief(Con prev) {
                     return new(prev,
 @"""Thank you very much for destroying those warlords for us!
-As promised, here's your money - 400 cons""",
+As promised, here's your 400""",
                         new() {
                             new("Undock", Debriefed)
                         });

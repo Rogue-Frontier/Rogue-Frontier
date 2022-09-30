@@ -1458,7 +1458,7 @@ public class Readout : ScreenSurface {
                     PrintHull(s.damageSystem);
                     break;
             }
-            void Print(DeviceSystem devices) {
+            void Print(Circuit devices) {
                 var solars = devices.Solar;
                 var reactors = devices.Reactor;
                 var weapons = devices.Weapon;

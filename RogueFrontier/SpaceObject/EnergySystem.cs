@@ -5,13 +5,13 @@ using System.Linq;
 namespace RogueFrontier;
 
 public class EnergySystem {
-    public DeviceSystem devices;
+    public Circuit devices;
     public HashSet<Device> on => devices.Installed.Except(off).ToHashSet();
     public HashSet<Device> off = new();
     public int totalOutputMax;
     public int totalOutputUsed;
     public int totalOutputLeft => totalOutputMax - totalOutputUsed;
-    public EnergySystem(DeviceSystem devices) {
+    public EnergySystem(Circuit devices) {
         this.devices = devices;
     }
     public void Update(PlayerShip player) {

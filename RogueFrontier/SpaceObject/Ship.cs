@@ -65,7 +65,7 @@ public interface IShip : ActiveObject {
     XY position { get; set; }
     XY velocity { get; set; }
     HashSet<Item> cargo { get; }
-    DeviceSystem devices { get; }
+    Circuit devices { get; }
     ShipClass shipClass { get; }
     bool thrusting { get; }
     double rotationDeg { get; }
@@ -105,7 +105,7 @@ public class BaseShip {
     public XY velocity;
     public bool active;
     public HashSet<Item> cargo;
-    public DeviceSystem devices;
+    public Circuit devices;
     public HullSystem damageSystem;
     public double stealth;
     public int blindTicks;
@@ -326,7 +326,7 @@ public class AIShip : IShip {
     [JsonIgnore] public bool thrusting => ship.thrusting;
     [JsonIgnore] public double rotationDeg => ship.rotationDeg;
     [JsonIgnore] public HashSet<Item> cargo => ship.cargo;
-    [JsonIgnore] public DeviceSystem devices => ship.devices;
+    [JsonIgnore] public Circuit devices => ship.devices;
     [JsonIgnore] public HullSystem damageSystem => ship.damageSystem;
     [JsonIgnore] public Rand destiny => ship.destiny;
     [JsonIgnore] public double stoppingRotation => ship.stoppingRotation;
@@ -453,7 +453,7 @@ public class PlayerShip : IShip {
     [JsonIgnore]
     public HashSet<Item> cargo => ship.cargo;
     [JsonIgnore]
-    public DeviceSystem devices => ship.devices;
+    public Circuit devices => ship.devices;
     [JsonIgnore]
     public HullSystem hull => ship.damageSystem;
 

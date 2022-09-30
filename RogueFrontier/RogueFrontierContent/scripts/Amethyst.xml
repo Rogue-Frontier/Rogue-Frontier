@@ -91,7 +91,7 @@
 			powerUse=		"10"
 			fireCooldown=	"20"
 			
-			angleRange=		"60"
+			sweep=			"60"
 			sound=			"RogueFrontierContent/sounds/amethyst_laser.wav"
 			>
 			<Projectile
@@ -132,7 +132,7 @@
 				glyph=			"*"
 				foreground=		"FF55FFFF"
 				>
-				<Decay lifetime="300" rate="1/60"/>
+				<Decay lifetime="10" rate="1/60" degradeFactor="2.5"/>
 				<Trail
 					lifetime=	"10"
 					glyph=		"*"
@@ -156,7 +156,7 @@
 			powerUse=		"10"
 			fireCooldown=	"15"
 			
-			angleRange=		"60"
+			sweep=			"60"
 			sound=			"RogueFrontierContent/sounds/amethyst_laser.wav"
 			>
 			<Projectile
@@ -197,7 +197,7 @@
 				glyph=			"*"
 				foreground=		"FF55FFFF"
 				>
-				<Decay lifetime="600" rate="2/60"/>
+				<Decay lifetime="20" rate="2/60" degradeFactor="2.5"/>
 				<Trail
 					lifetime=	"10"
 					glyph=		"*"
@@ -221,7 +221,7 @@
 			powerUse=		"10"
 			fireCooldown=	"15"
 			
-			angleRange=		"60"
+			sweep=			"60"
 			sound=			"RogueFrontierContent/sounds/amethyst_laser.wav"
 			>
 			<Projectile
@@ -252,7 +252,7 @@
 			initialCharges= "720"
 			
 			repeat="5"
-			repeatDelay=	"10"
+			repeatDelay=	"6"
 			>
 			<Projectile
 				maneuver=		"4"

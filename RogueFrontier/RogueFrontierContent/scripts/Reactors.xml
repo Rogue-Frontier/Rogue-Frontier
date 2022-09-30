@@ -6,8 +6,8 @@
 		>
 		<Reactor
 			maxOutput=		"20"
-			capacity=		"3000"
-			efficiency=		"1.0"
+			capacity=		"5000"
+			efficiency=		"0.5"
 			battery=		"false"
 			/>
 	</ItemType>
@@ -20,7 +20,7 @@
 		<Reactor
 			maxOutput=		"50"
 			capacity=		"15000"
-			efficiency=		"1.0"
+			efficiency=		"0.5"
 			battery=		"false"
 			/>
 	</ItemType>
@@ -49,7 +49,7 @@
 			/>
 	</ItemType>
 	<ItemType	codename=	"item_30mw_battery"
-			name=		"30MW storage battery"
+			name=		"30MW battery"
 			level=		"1"
 			mass=		"1000"
 		>

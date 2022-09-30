@@ -5,6 +5,7 @@
 	/>
 	<ItemType	codename=	"item_dagger_cannon"
 				name=		"Dagger cannon"
+				attributes=	"DarkStar"
 				level=		"1"
 				mass=		"2000"
 				value=		"3000"
@@ -35,6 +36,7 @@
 
 	<ItemType	codename=	"item_shrapnel_bomb"
 				name=		"Shrapnel bomb"
+				attributes=	"DarkStar"
 				level=		"2"
 				mass=		"200"
 				value=		"8"
@@ -44,6 +46,7 @@
 	</ItemType>
 	<ItemType	codename=	"item_bomb_launcher"
 				name=		"Bomb launcher"
+				attributes=	"DarkStar"
 				level=		"2"
 				mass=		"2000"
 				value=		"400"
@@ -106,6 +109,7 @@
 
 	<ItemType	codename=	"item_metal_grinder"
 				name=		"Metal Grinder"
+				attributes=	"DarkStar"
 				level=		"1"
 				mass=		"2000"
 				value=		"3000"
@@ -136,6 +140,7 @@
 	
 	<ItemType	codename=	"item_cloaking_shield"
 		name=		"Cloaking shield"
+		attributes=	"DarkStar"
 		level=		"2"
 		mass=		"200"
 		
@@ -154,6 +159,7 @@
 	</ItemType>
 	<ItemType	codename=	"item_darkened_knightsteel_plate"
 		name=		"Dark Knightsteel plate"
+		attributes=	"DarkStar"
 		mass=		"6000"
 		level=		"1"
 		value=		"5000"
