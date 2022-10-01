@@ -5,15 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Console = SadConsole.Console;
-
 using static UI;
 using Common;
 using ArchConsole;
 using SFML.Audio;
 using CloudJumper;
-
 namespace RogueFrontier;
-
 class ShipScreen : ScreenSurface {
     public ScreenSurface prev;
     public PlayerShip playerShip;
@@ -21,10 +18,8 @@ class ShipScreen : ScreenSurface {
     //Idea: Show an ASCII-art map of the ship where the player can walk around
     public ShipScreen(ScreenSurface prev, PlayerShip playerShip, PlayerStory story) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
-
         this.playerShip = playerShip;
         this.story = story;
-
         int x = 1, y = Surface.Height - 9;
         Children.Add(new LabelButton("[A] Active Devices", ShowPower) { Position = (x, y++) });
         Children.Add(new LabelButton("[C] Cargo", ShowCargo) { Position = (x, y++) });
@@ -34,29 +29,19 @@ class ShipScreen : ScreenSurface {
         Children.Add(new LabelButton("[R] Refuel", ShowRefuel) { Position = (x, y++) });
     }
     public override void Render(TimeSpan delta) {
-
-        //back.Render(delta);
-
-
-
         Surface.Clear();
         this.RenderBackground();
         var name = playerShip.shipClass.name;
         var x = Surface.Width / 4 - name.Length / 2;
         var y = 4;
-
         void Print(int x, int y, string s) =>
             Surface.Print(x, y, s, Color.White, Color.Black);
         void Print2(int x, int y, string s) =>
             Surface.Print(x, y, s, Color.White, Color.Black.SetAlpha(102));
-
         Print(x, y, name);
-
-
         var map = playerShip.shipClass.playerSettings?.map ?? new string[] { "" };
         x = Math.Max(0, Surface.Width / 4 - map.Select(line => line.Length).Max() / 2);
         y = 2;
-
         int width = map.Max(l => l.Length);
         foreach (var line in map) {
             var l = line.PadRight(width);
@@ -64,17 +49,14 @@ class ShipScreen : ScreenSurface {
             Print2(x, y++, l);
         }
         y++;
-
         x = 1;
         Print(x, y, $"{$"Thrust:    {playerShip.shipClass.thrust}",-16}{$"Rotate acceleration: {playerShip.shipClass.rotationAccel,3} deg/s^2"}");
         y++;
         Print(x, y, $"{$"Max Speed: {playerShip.shipClass.maxSpeed}",-16}{$"Rotate deceleration: {playerShip.shipClass.rotationDecel,3} deg/s^2"}");
         y++;
         Print(x, y, $"{"",-16}{$"Rotate max speed:    {playerShip.shipClass.rotationMaxSpeed * 30,3} deg/s^2"}");
-
         x = Surface.Width / 2;
         y = 2;
-
         var pl = playerShip.person;
         Print(x, y++, "[Player]");
         Print(x, y++, $"Name:       {pl.name}");
@@ -87,18 +69,13 @@ class ShipScreen : ScreenSurface {
             Print(x, y++, "[Reactors]");
             foreach (var r in reactors) {
                 Print(x, y++, $"{r.source.type.name}");
-
                 Print(x, y++, $"Output:     {-r.energyDelta}");
                 Print(x, y++, $"Max output: {r.desc.maxOutput}");
                 Print(x, y++, $"Fuel:       {r.energy:0}");
                 Print(x, y++, $"Max fuel:   {r.desc.capacity}");
-
-
                 y++;
             }
         }
-
-
         var ds = playerShip.ship.damageSystem;
         if (ds is HP hp) {
             Print(x, y++, "[Health]");
@@ -111,7 +88,6 @@ class ShipScreen : ScreenSurface {
             }
             y++;
         }
-
         var weapons = playerShip.ship.devices.Weapon;
         if (weapons.Any()) {
             Print(x, y++, "[Weapons]");
@@ -119,15 +95,13 @@ class ShipScreen : ScreenSurface {
                 Print(x, y++, $"{w.source.type.name,-32}{w.GetBar(8)}");
                 Print(x, y++, $"Projectile damage: {w.desc.damageHP.str}");
                 Print(x, y++, $"Projectile speed:  {w.desc.missileSpeed}");
-                Print(x, y++, $"Shots per second:  {60f / w.desc.fireCooldown}");
-
+                Print(x, y++, $"Shots per second:  {60f / w.desc.fireCooldown:0.00}");
                 if (w.ammo is ChargeAmmo c) {
                     Print(x, y++, $"Ammo Remaining:    {c.charges}");
                 }
                 y++;
             }
         }
-
         var misc = playerShip.ship.devices.Installed.OfType<Service>();
         if (misc.Any()) {
             Print(x, y++, "[Misc]");
@@ -136,7 +110,6 @@ class ShipScreen : ScreenSurface {
                 y++;
             }
         }
-
         if (playerShip.messages.Any()) {
             Print(x, y++, "[Messages]");
             foreach (var m in playerShip.messages) {
@@ -144,16 +117,9 @@ class ShipScreen : ScreenSurface {
             }
             y++;
         }
-        /*
-        foreach(var item in PlayerShip.ship.Items) {
-
-        }
-        */
-
         base.Render(delta);
     }
     public override bool ProcessKeyboard(Keyboard info) {
-
         Predicate<Keys> pr = info.IsKeyPressed;
         if (pr(Keys.S) || pr(Keys.Escape)) {
             Tones.pressed.Play();
@@ -180,7 +146,6 @@ class ShipScreen : ScreenSurface {
     public void ShowPower() => Transition(SListScreen.PowerScreen(this, playerShip));
     public void ShowCargo() => Transition(SListScreen.CargoScreen(this, playerShip));
     public void ShowLoadout() => Transition(SListScreen.LoadoutScreen(this, playerShip));
-
     public void ShowLogs() => Transition(SListScreen.LogScreen(this, playerShip));
     public void ShowMissions() => Transition(SListScreen.MissionScreen(this, playerShip, story));
     public void ShowRefuel() => Transition(SListScreen.RefuelScreen1(this, playerShip));
@@ -239,7 +204,6 @@ public class SListScreen {
             missions.AddRange(story.completedInteractions);
         }
         UpdateList();
-
         return screen = new(prev,
             player,
             missions,
@@ -248,7 +212,6 @@ public class SListScreen {
             Invoke,
             Escape
             );
-
         string GetName(IPlayerInteraction i) => i switch {
             DestroyTarget dt => "Destroy Target",
             _ => "Mission"
@@ -291,6 +254,70 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
+    public static List<ColoredString> GenerateDesc(ItemType t) {
+        var result = new List<ColoredString>();
+        var desc = t.desc.SplitLine(64);
+        if (desc.Any()) {
+            result.AddRange(desc.Select(Main.ToColoredString));
+            result.Add(new(""));
+        }
+        return result;
+    }
+    public static List<ColoredString> GenerateDesc(Item i) => GenerateDesc(i.type);
+    public static List<ColoredString> GenerateDesc(Device d) {
+        var r = GenerateDesc(d.source.type);
+        ((Action)(d switch {
+            Weapon w => () => {
+
+                r.Add(new(    $"Fire rate:    {60.0 / w.desc.fireCooldown:0.00}"));
+                r.Add(new(    $"Power rating: {w.desc.powerUse}"));
+                r.Add(new(    $"Recoil force: {w.desc.recoil}"));
+                if(w.ammo is ItemAmmo ia) {
+                    r.Add(new($"Ammo type:    {ia.itemType.name}"));
+                } else if(w.ammo is ChargeAmmo ca) {
+                    r.Add(new($"Charges left: {ca.charges}"));
+                }
+                if(w.aiming is Omnidirectional o) {
+                    r.Add(new($"Aiming:       Omnidirectional"));
+                } else if(w.aiming is Swivel s) {
+                    r.Add(new($"Aiming:       {(int)((s.leftRange + s.rightRange) * 180 / Math.PI)}-degree swivel"));
+                }
+            },
+            Shield s => () => {
+
+                r.AddRange(new ColoredString[] {
+                    new($"Capacity: {s.desc.maxHP} HP"),
+                    new($"Regen:    {s.desc.maxHP} HP/s"),
+                    new($"Stealth:  {s.desc.stealth}"),
+                    new($"Idle power rating:   {s.desc.maxHP} EL"),
+                    new($"Active power rating: {s.desc.maxHP} EL"),
+                    
+                });
+            },
+            Solar solar => () => {
+                r.AddRange(new ColoredString[] {
+                    new($"Peak output:    {solar.maxOutput} EL"),
+                    new($"Current output: {solar.energyDelta} EL")
+                });
+            },
+            Reactor reactor => () => {
+                r.AddRange(new ColoredString[] {
+                    new($"Peak output:     {reactor.maxOutput, -4} EL"),
+                    new($"Current output:  {-reactor.energyDelta, -4} EL"),
+
+
+                    new($"Energy capacity: {reactor.desc.capacity, -4} EN"),
+                    new($"Energy content:  {(int)reactor.energy, -4} EN"),
+                    new($"Efficiency:      {reactor.desc.efficiency, -4} EL/EN"),
+                    
+                }) ;
+            },
+
+            _ => () => { }
+        })).Invoke();
+        r.Add(new(""));
+        return r;
+    }
     public static ListScreen<Item> UsableScreen(ScreenSurface prev, PlayerShip player) {
         ListScreen<Item> screen = null;
         IEnumerable<Item> cargoInvokable;
@@ -303,8 +330,7 @@ public class SListScreen {
             usable.AddRange(installedInvokable.Concat(cargoInvokable));
         }
         UpdateList();
-
-        return screen = new ListScreen<Item>(prev,
+        return screen = new(prev,
             player,
             usable,
             GetName,
@@ -313,17 +339,12 @@ public class SListScreen {
             Escape
             );
 
-        string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "Circuit: " : "Cargo  : ")}{i.type.name}";
-        List<ColoredString> GetDesc(Item item) {
-            var invoke = item.type.invoke;
-            List<ColoredString> result = new();
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
+        string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "[*] " : "[c] ")}{i.type.name}";
+        List<ColoredString> GetDesc(Item i) {
+            var invoke = i.type.invoke;
+            var result = GenerateDesc(i);
             if (invoke != null) {
-                string action = $"[Enter] {invoke.GetDesc(player, item)}";
+                string action = $"[Enter] {invoke.GetDesc(player, i)}";
                 result.Add(new(action, Color.Yellow, Color.Black));
             }
             return result;
@@ -360,20 +381,15 @@ public class SListScreen {
         List<ColoredString> GetDesc(Device d) {
             var item = d.source;
             var invoke = item.type.invoke;
-            List<ColoredString> result = new();
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
+            var result = GenerateDesc(d);
 
             if (invoke != null) {
                 result.Add(new($"[Enter] {invoke.GetDesc(player, item)}", Color.Yellow, Color.Black));
             }
             return result;
         }
-        void InvokeDevice(Device device) {
-            var item = device.source;
+        void InvokeDevice(Device d) {
+            var item = d.source;
             var invoke = item.type.invoke;
             invoke?.Invoke(screen, player, item);
             screen.UpdateIndex();
@@ -398,16 +414,11 @@ public class SListScreen {
             );
 
         string GetName(Item i) => i.type.name;
-        List<ColoredString> GetDesc(Item item) {
-            var invoke = item.type.invoke;
-            var result = new List<ColoredString>();
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
+        List<ColoredString> GetDesc(Item i) {
+            var invoke = i.type.invoke;
+            var result = GenerateDesc(i);
             if (invoke != null) {
-                result.Add(new($"[Enter] {invoke.GetDesc(player, item)}", Color.Yellow, Color.Black));
+                result.Add(new($"[Enter] {invoke.GetDesc(player, i)}", Color.Yellow, Color.Black));
             }
             return result;
         }
@@ -435,16 +446,12 @@ public class SListScreen {
             InvokeItem,
             Escape
             );
-
-        string GetName(Device i) => $"{(disabled.Contains(i) ? " " : "*")} {i.source.type.name}";
-        List<ColoredString> GetDesc(Device p) {
-            var result = new List<ColoredString>();
-            var desc = p.source.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
-            var off = disabled.Contains(p);
+        string GetName(Device d) => $"{(disabled.Contains(d) ? "[ ]" : "[*]")} {d.source.type.name}";
+        List<ColoredString> GetDesc(Device d) {
+            var result = GenerateDesc(d);
+            result.Add(new($"Status: {(disabled.Contains(d) ? "OFF" : "ON")}"));
+            result.Add(new(""));
+            var off = disabled.Contains(d);
             var word = (off ? "Enable" : "Disable");
             result.Add(new($"[Enter] {word} this device", Color.Yellow, Color.Black));
             return result;
@@ -483,15 +490,7 @@ public class SListScreen {
         List<ColoredString> GetDesc(Device d) {
             var item = d.source;
             var invoke = item.type.invoke;
-
-            var result = new List<ColoredString>();
-
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
-
+            var result = GenerateDesc(d);
             if (invoke != null) {
                 result.Add(new($"[Enter] Uninstall this device", Color.Yellow, Color.Black));
             }
@@ -527,37 +526,30 @@ public class SListScreen {
             Escape
             ) { IsFocused = true };
 
-        string GetName(Armor d) => $"{$"[{d.hp} / {d.maxHP}]",-12}{d.source.type.name}";
-        List<ColoredString> GetDesc(Armor d) {
-            var item = d.source;
+        string GetName(Armor a) => $"{$"[{a.hp} / {a.maxHP}]",-12}{a.source.type.name}";
+        List<ColoredString> GetDesc(Armor a) {
+            var item = a.source;
             var invoke = item.type.invoke;
-
-            var result = new List<ColoredString>();
-
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
-            if (d.desc.restrictRepair?.Matches(source) == false) {
+            var result = GenerateDesc(a);
+            if (a.desc.restrictRepair?.Matches(source) == false) {
                 result.Add(new("This armor is not compatible", Color.Yellow, Color.Black));
-            } else if (d.hp < d.maxHP) {
+            } else if (a.hp < a.maxHP) {
                 result.Add(new("[Enter] Repair this armor", Color.Yellow, Color.Black));
             } else {
                 result.Add(new("This armor is at full HP", Color.Yellow, Color.Black));
             }
             return result;
         }
-        void Repair(Armor segment) {
-            if(segment.desc.restrictRepair?.Matches(source) == false) {
+        void Repair(Armor a) {
+            if(a.desc.restrictRepair?.Matches(source) == false) {
                 return;
             }
-            var before = segment.hp;
-            var repairHP = Math.Min(repair.repairHP, segment.maxHP - segment.hp);
+            var before = a.hp;
+            var repairHP = Math.Min(repair.repairHP, a.maxHP - a.hp);
             if (repairHP > 0) {
-                segment.hp += repairHP;
+                a.hp += repairHP;
                 player.cargo.Remove(source);
-                player.AddMessage(new Message($"Used {source.type.name} to restore {repairHP} hp on {segment.source.type.name}"));
+                player.AddMessage(new Message($"Used {source.type.name} to restore {repairHP} hp on {a.source.type.name}"));
 
                 callback?.Invoke();
                 Escape();
@@ -586,12 +578,7 @@ public class SListScreen {
         List<ColoredString> GetDesc(Reactor r) {
             var item = r.source;
             var invoke = item.type.invoke;
-            var result = new List<ColoredString>();
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
+            var result = GenerateDesc(r);
             result.Add(new($"Refuel amount: {refuel.energy}"));
             result.Add(new($"Fuel needed:   {r.desc.capacity - (int)r.energy}"));
             result.Add(new(""));
@@ -637,15 +624,7 @@ public class SListScreen {
         string GetName(Device d) => $"{d.source.type.name}";
         List<ColoredString> GetDesc(Device r) {
             var item = r.source;
-
-            var result = new List<ColoredString>();
-
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
-
+            var result = GenerateDesc(r);
             result.Add(new("Replace this device", Color.Yellow, Color.Black));
             return result;
         }
@@ -667,8 +646,6 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-
-
     public static ListScreen<Weapon> RechargeWeapon(ScreenSurface prev, PlayerShip player, Item source, RechargeWeapon recharge, Action callback) {
         ListScreen<Weapon> screen = null;
         var devices = player.devices.Weapon.Where(i => i.desc == recharge.weaponType);
@@ -681,18 +658,10 @@ public class SListScreen {
             Escape
             ) { IsFocused = true };
 
-        string GetName(Weapon d) => $"{d.source.type.name}";
-        List<ColoredString> GetDesc(Weapon r) {
-            var item = r.source;
-
-            var result = new List<ColoredString>();
-
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
-
+        string GetName(Weapon w) => $"{w.source.type.name}";
+        List<ColoredString> GetDesc(Weapon w) {
+            var item = w.source;
+            var result = GenerateDesc(w);
             result.Add(new("Recharge this weapon", Color.Yellow, Color.Black));
             return result;
         }
@@ -710,23 +679,11 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-
-
-
-
-
-
-
-
-
-
     public static ListScreen<ItemType> Workshop(ScreenSurface prev, PlayerShip player, Dictionary<ItemType, Dictionary<ItemType, int>> recipes, Action callback) {
         ListScreen<ItemType> screen = null;
         var listing = new Dictionary<ItemType, Dictionary<ItemType, HashSet<Item>>>();
         var available = new Dictionary<ItemType, bool>();
         Calculate();
-
-
         void Calculate() {
             foreach ((var result, var rec) in recipes) {
                 var components = new Dictionary<ItemType, HashSet<Item>>();
@@ -739,7 +696,6 @@ public class SListScreen {
                         set.Add(item);
                     }
                 }
-
                 available[result] = rec.All(pair => components[pair.Key].Count >= pair.Value);
                 listing[result] = components;
             }
@@ -754,15 +710,7 @@ public class SListScreen {
             ) { IsFocused = true };
         string GetName(ItemType type) => $"{type.name}";
         List<ColoredString> GetDesc(ItemType type) {
-            var result = new List<ColoredString>();
-            var desc = type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
-
-
-
+            var result = GenerateDesc(type);
             var rec = recipes[type];
             foreach((var compType, var minCount) in rec) {
                 var count = listing[type][compType].Count;
@@ -797,23 +745,6 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public static ListScreen<Reactor> RefuelService(ScreenSurface prev, PlayerShip player, Func<Reactor, int> GetPrice, Action callback) {
         ListScreen<Reactor> screen = null;
         var reactors = player.devices.Reactor;
@@ -827,12 +758,7 @@ public class SListScreen {
         List<ColoredString> GetDesc(Reactor r) {
             var item = r.source;
             var invoke = item.type.invoke;
-            var result = new List<ColoredString>();
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
+            var result = GenerateDesc(r);
             int unitPrice = GetPrice(r);
             if (unitPrice < 0) {
                 result.Add(new("Refuel services not available for this reactor", Color.Yellow, Color.Black));
@@ -867,7 +793,6 @@ public class SListScreen {
                 return;
             }
             int unitPrice = GetPrice(r);
-
             if (unitPrice < 0) {
                 return;
             }
@@ -880,7 +805,6 @@ public class SListScreen {
             player.AddMessage(new Message($"Refuel job initiated..."));
             callback?.Invoke();
         }
-
         void Done(RefuelEffect r) {
             player.world.RemoveEvent(r);
             player.AddMessage(new Message($"Refuel job {(r.terminated ? "terminated" : "completed")}"));
@@ -924,16 +848,7 @@ public class SListScreen {
         string GetName(Armor a) => $"[{a.hp}/{a.maxHP}] {a.source.type.name}";
         List<ColoredString> GetDesc(Armor a) {
             var item = a.source;
-
-            var result = new List<ColoredString>();
-
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
-
-
+            var result = GenerateDesc(a);
             int unitPrice = GetPrice(a);
             if (unitPrice < 0) {
                 result.Add(new("Repair services not available for this armor", Color.Yellow, Color.Black));
@@ -1025,9 +940,6 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-
-
-
     public static ListScreen<Device> DockDeviceRemoval(ScreenSurface prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
         ListScreen<Device> screen = null;
         var installed = player.devices.Installed;
@@ -1040,20 +952,11 @@ public class SListScreen {
             Escape
             ) { IsFocused = true };
 
-        string GetName(Device a) => $"{a.GetType().Name.PadRight(7)}: {a.source.type.name}";
-        List<ColoredString> GetDesc(Device a) {
-            var item = a.source;
-
-            var result = new List<ColoredString>();
-
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
-
-
-            int unitPrice = GetPrice(a);
+        string GetName(Device d) => $"{d.GetType().Name.PadRight(7)}: {d.source.type.name}";
+        List<ColoredString> GetDesc(Device d) {
+            var item = d.source;
+            var result = GenerateDesc(d);
+            int unitPrice = GetPrice(d);
             if (unitPrice < 0) {
                 result.Add(new("Removal service is not available for this device", Color.Yellow, Color.Black));
             } else {
@@ -1091,7 +994,6 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-
     public static ListScreen<Device> DockDeviceInstall(ScreenSurface prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
         ListScreen<Device> screen = null;
         var cargo = player.cargo.Select(i =>
@@ -1109,15 +1011,7 @@ public class SListScreen {
         string GetName(Device d) => $"{d.GetType().Name.PadRight(7)}: {d.source.type.name}";
         List<ColoredString> GetDesc(Device d) {
             var item = d.source;
-
-            var result = new List<ColoredString>();
-
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
-
+            var result = GenerateDesc(d);
             if (d is Weapon && player.shipClass.restrictWeapon?.Matches(d.source) == false) {
                 result.Add(new("This weapon is not compatible", Color.Yellow, Color.Black));
                 return result;
@@ -1182,15 +1076,7 @@ public class SListScreen {
         string GetName(Armor a) => $"{a.source.type.name}";
         List<ColoredString> GetDesc(Armor a) {
             var item = a.source;
-
-            var result = new List<ColoredString>();
-
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
-
+            var result = GenerateDesc(a);
             int price = GetPrice(a);
             if (price < 0) {
                 result.Add(new("Removal service is not available for this armor", Color.Yellow, Color.Black));
@@ -1234,12 +1120,7 @@ public class SListScreen {
                 string GetName(Armor a) => $"{a.source.type.name}";
                 List<ColoredString> GetDesc(Armor a) {
                     var item = a.source;
-                    var result = new List<ColoredString>();
-                    var desc = item.type.desc.SplitLine(64);
-                    if (desc.Any()) {
-                        result.AddRange(desc.Select(Main.ToColoredString));
-                        result.Add(new(""));
-                    }
+                    var result = GenerateDesc(a);
                     if (player.shipClass.restrictArmor?.Matches(a.source) == false) {
                         result.Add(new("This armor is not compatible", Color.Yellow, Color.Black));
                         return result;
@@ -1323,21 +1204,16 @@ public class SListScreen {
             Escape
             );
 
-        string GetName(Item i) => $"{(installed.Contains(i) ? "Circuit: " : "Cargo  : ")}{i.type.name}";
-        List<ColoredString> GetDesc(Item item) {
-            List<ColoredString> result = new();
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
+        string GetName(Item i) => $"{(installed.Contains(i) ? "[*] " : "[c] ")}{i.type.name}";
+        List<ColoredString> GetDesc(Item i) {
+            var result = GenerateDesc(i);
             result.Add(new("[Enter] Apply modifier", Color.Yellow, Color.Black));
             return result;
         }
-        void InvokeItem(Item item) {
-            item.mod = mod;
+        void InvokeItem(Item i) {
+            i.mod = mod;
             player.cargo.Remove(source);
-            player.AddMessage(new Message($"Applied {source.name} to {item.name}"));
+            player.AddMessage(new Message($"Applied {source.name} to {i.name}"));
             callback?.Invoke();
             Escape();
         }
@@ -1364,12 +1240,7 @@ public class SListScreen {
         List<ColoredString> GetDesc(Reactor r) {
             var item = r.source;
             var invoke = item.type.invoke;
-            var result = new List<ColoredString>();
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
+            var result = GenerateDesc(r);
             var a = (string s) => result.Add(new(s));
             if (r.energy < r.desc.capacity) {
                 result.Add(new("[Enter] Refuel this reactor", Color.Yellow, Color.Black));
@@ -1391,14 +1262,9 @@ public class SListScreen {
                     GetName, GetDesc, Invoke, Escape
                     ) { IsFocused = true };
                 string GetName(Item i) => i.type.name;
-                List<ColoredString> GetDesc(Item item) {
-                    var result = new List<ColoredString>();
-                    var desc = item.type.desc.SplitLine(64);
-                    if (desc.Any()) {
-                        result.AddRange(desc.Select(Main.ToColoredString));
-                        result.Add(new(""));
-                    }
-                    result.Add(new($"Fuel amount: {(item.type.invoke as Refuel).energy}"));
+                List<ColoredString> GetDesc(Item i) {
+                    var result = GenerateDesc(i);
+                    result.Add(new($"Fuel amount: {(i.type.invoke as Refuel).energy}"));
                     result.Add(new(""));
                     result.Add(new(r.energy < r.desc.capacity ?
                         "[Enter] Use this item" : "Reactor is at full capacity",
@@ -1473,78 +1339,61 @@ public class ListScreen<T> : ScreenSurface {
     }
 
     public override bool ProcessKeyboard(Keyboard keyboard) {
+
+        void Up(int inc) {
+
+            Tones.pressed.Play();
+            index = count > 0 ?
+                (index == null ? (count - 1) :
+                    index == 0 ? null :
+                    Math.Max(index.Value - inc, 0))
+                : null;
+            tick = 0;
+        }
+        void Down(int inc) {
+            Tones.pressed.Play();
+            index = count > 0 ?
+                (index == null ? 0 :
+                    index == count - 1 ? null :
+                    Math.Min(index.Value + inc, count - 1))
+                : null;
+            tick = 0;
+        }
+
         foreach (var key in keyboard.KeysPressed) {
-            switch (key.Key) {
-                case Keys.Up:
-                    Tones.pressed.Play();
-                    index = count > 0 ?
-                        (index == null ? (count - 1) :
-                            index == 0 ? null :
-                            Math.Max(index.Value - 1, 0))
-                        : null;
-                    tick = 0;
-                    break;
-                case Keys.PageUp:
-                    Tones.pressed.Play();
-                    index = count > 0 ?
-                        (index == null ? (count - 1) :
-                            index == 0 ? null :
-                            Math.Max(index.Value - 26, 0))
-                        : null;
-                    tick = 0;
-                    break;
-                case Keys.Down:
-                    Tones.pressed.Play();
-                    index = count > 0 ?
-                        (index == null ? 0 :
-                            index == count - 1 ? null :
-                            Math.Min(index.Value + 1, count - 1))
-                        : null;
-                    tick = 0;
-                    break;
-                case Keys.PageDown:
-                    Tones.pressed.Play();
-                    index = count > 0 ?
-                        (index == null ? 0 :
-                            index == count - 1 ? null :
-                            Math.Min(index.Value + 26, count - 1))
-                        : null;
-                    tick = 0;
-                    break;
-                case Keys.Enter:
+            ((Action)(key.Key switch {
+                Keys.Up =>      () => Up(1),
+                Keys.PageUp =>  () => Up(26),
+                Keys.Down =>    () => Down(1),
+                Keys.PageDown =>() => Down(26),
+                Keys.Enter =>   () => {
                     Tones.pressed.Play();
                     var i = currentItem;
                     if (i != null) {
                         invoke(i);
                         UpdateIndex();
                     }
-                    break;
-                case Keys.Escape:
+                },
+                Keys.Tab =>     () => groupMode = !groupMode,
+                Keys.Escape =>  () => {
                     Tones.pressed.Play();
-                    /*
-                    var parent = Parent;
-                    parent.Children.Remove(this);
-                    prev.IsFocused = true;
-                    */
                     escape();
-                    break;
-                default:
-                    var ch = char.ToLower(key.Character);
-                    if (ch >= 'a' && ch <= 'z') {
-                        Tones.pressed.Play();
-                        int start = Math.Max((index ?? 0) - 13, 0);
-                        var letterIndex = start + letterToIndex(ch);
-                        if (letterIndex == index) {
-                            invoke(currentItem);
-                            UpdateIndex();
-                        } else if (letterIndex < count) {
-                            //var item = items.ElementAt(letterIndex);
-                            index = letterIndex;
-                            tick = 0;
-                        }
+                },
+                _ when char.ToLower(key.Character) is var ch && ch >= 'a' && ch <= 'z' => () => {
+                    Tones.pressed.Play();
+                    int start = Math.Max((index ?? 0) - 13, 0);
+                    var letterIndex = start + letterToIndex(ch);
+                    if (letterIndex == index) {
+                        invoke(currentItem);
+                        UpdateIndex();
+                    } else if (letterIndex < count) {
+                        //var item = items.ElementAt(letterIndex);
+                        index = letterIndex;
+                        tick = 0;
                     }
-                    break;
-            }
+                },
+                _ => () => { }
+            })).Invoke();
         }
         return base.ProcessKeyboard(keyboard);
     }
@@ -1670,23 +1519,18 @@ public static class SListWidget {
             Escape
             );
 
-        string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "Circuit: " : "Cargo  : ")}{i.type.name}";
-        List<ColoredString> GetDesc(Item item) {
-            var invoke = item.type.invoke;
-            List<ColoredString> result = new();
-            var desc = item.type.desc.SplitLine(64);
-            if (desc.Any()) {
-                result.AddRange(desc.Select(Main.ToColoredString));
-                result.Add(new(""));
-            }
+        string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "[*] " : "[c] ")}{i.type.name}";
+        List<ColoredString> GetDesc(Item i) {
+            var invoke = i.type.invoke;
+            var result = SListScreen.GenerateDesc(i);
             if (invoke != null) {
-                string action = $"[Enter] {invoke.GetDesc(player, item)}";
+                var action = $"[Enter] {invoke.GetDesc(player, i)}";
                 result.Add(new(action, Color.Yellow, Color.Black));
             }
             return result;
         }
-        void InvokeItem(Item item) {
-            item.type.invoke?.Invoke(screen, player, item, Update);
+        void InvokeItem(Item i) {
+            i.type.invoke?.Invoke(screen, player, i, Update);
             screen.UpdateIndex();
         }
         void Update() {

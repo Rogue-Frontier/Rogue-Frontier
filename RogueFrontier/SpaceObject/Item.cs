@@ -462,9 +462,7 @@ public class Reactor : Device, PowerSource {
     public void Update(double delta, IShip owner) {
         var e = energy;
         energy = Math.Clamp(energy + (energyDelta < 0 ? energyDelta / desc.efficiency : energyDelta) * delta, 0, desc.capacity);
-        if(e > energy) {
-            lifetimeEnergyUsed += e - energy;
-        }
+        lifetimeEnergyUsed += Math.Max(0, e - energy);
     }
 }
 public class Service : Device {
