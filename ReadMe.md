@@ -5,7 +5,12 @@
 
 _Rogue Frontier_ is an ambitious ASCII-style rogue-lite space adventure set in an alternate universe of *Transcendence*, a space-opera roguelike by George Moromisato.
 
-This game is in early alpha demo, with most UI elements and essential gameplay mechanics implemented. Story is currently in planning.
+This game is in early alpha, with numerous gameplay elements implemented. Story is in early drafting.
+
+Rogue Frontier is (C) 2020-2022 by Alex "INeedAUniqueUsername" Chen
+
+## Play
+Download and extract the ZIP archive. Run RogueFrontier.exe to play.
 
 ## Build
 - Visual Studio 2019
@@ -13,5 +18,3 @@ This game is in early alpha demo, with most UI elements and essential gameplay m
 - [ArchConsole](https://github.com/INeedAUniqueUsername/ArchConsole)
 - [ASECII](https://github.com/INeedAUniqueUsername/ASECII)
 
-## Play
-Download and extract the ZIP archive. Run RogueFrontier.exe to play.
