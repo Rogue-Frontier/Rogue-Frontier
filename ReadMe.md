@@ -7,7 +7,7 @@ _Rogue Frontier_ is an ambitious ASCII-style rogue-lite space adventure set in a
 
 This game is in early alpha, with numerous gameplay elements implemented. Story is in early drafting.
 
-Rogue Frontier is (C) 2020-2022 by Alex "INeedAUniqueUsername" Chen
+(C) 2020-2022 by Alex "INeedAUniqueUsername" Chen. _Transcendence_ is property of Kronosaur Productions.
 
 ## Play
 Download and extract the ZIP archive. Run RogueFrontier.exe to play.
