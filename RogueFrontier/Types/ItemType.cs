@@ -39,6 +39,25 @@ public record DeployShip : ItemUse {
         callback?.Invoke();
     }
 }
+public record DeployStation : ItemUse {
+    [Req] public string stationType;
+    public StationType stationTypeDesc;
+    public DeployStation() { }
+    public DeployStation(TypeCollection tc, XElement e) {
+        e.Initialize(this);
+        stationTypeDesc = tc.Lookup<StationType>(stationType);
+    }
+    public string GetDesc(PlayerShip player, Item item) => $"Deploy {stationTypeDesc.name}";
+    public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
+        var a = new Station(player.world, stationTypeDesc, player.position) { sovereign = player.sovereign };
+        player.world.AddEntity(a);
+        player.AddMessage(new Transmission(a, $"Deployed {stationTypeDesc.name}"));
+        player.cargo.Remove(item);
+        callback?.Invoke();
+    }
+}
+
+
 public record InstallWeapon : ItemUse {
     public string GetDesc(PlayerShip player, Item item) =>
         player.cargo.Contains(item) ? "Install this weapon" : "Remove this weapon";
@@ -248,6 +267,7 @@ public record ItemType : IDesignType {
         none,
         fireWeapon,
         deployShip,
+        deployStation,
         installWeapon,
         repairArmor,
         invokePower,
@@ -264,6 +284,7 @@ public record ItemType : IDesignType {
             e.TryAttEnum(nameof(invoke), EItemUse.none) switch {
                 EItemUse.none => null,
                 EItemUse.deployShip => new DeployShip(tc, e),
+                EItemUse.deployStation => new DeployStation(tc, e),
                 EItemUse.installWeapon => new InstallWeapon(),
                 EItemUse.repairArmor => new RepairArmor(e),
                 EItemUse.invokePower => new InvokePower(tc, e),

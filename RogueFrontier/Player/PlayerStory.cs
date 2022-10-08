@@ -290,7 +290,7 @@ class IntroTraining : IPlayerInteraction {
         var k = station.world.karma;
         for (int i = 0; i < 3; i++) {
             var d = new AIShip(new(w, shipClass, station.position + XY.Polar(k.NextDouble() * 2 * Math.PI, k.NextDouble() * 25 + 25)),
-                sovereign, new SnipeOrder(player));
+                sovereign, new SnipeAt(player));
             drones[i] = d;
         }
     }
@@ -573,6 +573,7 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_lightning_cannon = 3500,
         item_orion_bolter = 400,
         item_orion_longbow = 800,
+        item_orion_turret = 900,
         item_traitor_longbow = 1200,
         item_orion_skewer = 2700,
         item_hunterscale_plate = 250,
@@ -863,10 +864,10 @@ you on the ground before you can invoke SILENCE.
                     foreach(var g in c.reserves.Take(playerShip.world.karma.NextInteger(4, 8)).ToList()) {
                         playerShip.world.AddEntity(g);
                         c.reserves.Remove(g);
-                        (g.behavior.GetOrder() as GuardOrder)?.SetAttack(playerShip, -1);
+                        (g.behavior.GetOrder() as GuardAt)?.SetAttack(playerShip, -1);
                     }
                 }
-                source.guards.ForEach(s => (s.behavior.GetOrder() as GuardOrder)?.SetAttack(playerShip, -1));
+                source.guards.ForEach(s => (s.behavior.GetOrder() as GuardAt)?.SetAttack(playerShip, -1));
             }
             return null;
         }

@@ -268,7 +268,6 @@ public class SListScreen {
         var r = GenerateDesc(d.source.type);
         ((Action)(d switch {
             Weapon w => () => {
-
                 r.Add(new(    $"Fire rate:    {60.0 / w.desc.fireCooldown:0.00}"));
                 r.Add(new(    $"Power rating: {w.desc.powerUse}"));
                 r.Add(new(    $"Recoil force: {w.desc.recoil}"));

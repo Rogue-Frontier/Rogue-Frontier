@@ -285,16 +285,32 @@
 					structure=	"RogueFrontierContent/sprites/OrionWarlordsCamp.asc.cg"
 		>
 		<Ships>
-			<Ship	count="7"	codename="ship_orion_raider"/>
+			<Ship	count="7-10"	codename="ship_orion_raider"/>
 		</Ships>
 		<Weapons>
 			<Weapon	codename="item_orion_bolter"/>
 		</Weapons>
 		<Cargo>
 			<Item codename="item_bronze_rice" count="2-8"/>
+			<Item codename="item_orion_turret" count="4-6"/>
 		</Cargo>
 	</StationType>
 	<!--TO DO: Add item version-->
+
+
+	<ItemType	codename=	"item_orion_turret"
+		name=		"Bronze turret kit"
+		attributes=	"OrionWarlords"
+		
+		invoke=		"deployStation"
+		stationType="station_orion_turret"
+		
+		mass=		"8000"
+		level=		"2"
+		value=		"800"
+		desc=		"The Orion Warlords deploy these turrets near enemy stations."
+		>
+	</ItemType>
 	<StationType	codename="station_orion_turret"
 					name=		"Bronze turret"
 					sovereign=	"sovereign_orion_warlords"
@@ -327,8 +343,8 @@
 					structure=	"RogueFrontierContent/sprites/OrionWarlordsStronghold.asc.cg"
 		>
 		<Ships>
-			<Ship	count="13"	codename="ship_orion_raider"/>
-			<Ship	count="2"	codename="ship_orion_huntsman"/>
+			<Ship	count="13-20"	codename="ship_orion_raider"/>
+			<Ship	count="2-4"	codename="ship_orion_huntsman"/>
 		</Ships>
 		<Weapons>
 			<Weapon	codename="item_orion_bolter" posX="3" posY="3"	angle="90" leftRange="90" rightRange="135"/>
@@ -338,6 +354,7 @@
 		</Weapons>
 		<Cargo>
 			<Item codename="item_bronze_rice" count="4-16"/>
+			<Item codename="item_orion_turret" count="8-12"/>
 		</Cargo>
 	</StationType>
 	<StationType	codename="station_arnold_habitat"

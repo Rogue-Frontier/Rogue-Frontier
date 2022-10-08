@@ -7,7 +7,7 @@ using static RogueFrontier.SShipBehavior;
 using Newtonsoft.Json;
 using SadConsole;
 using SadRogue.Primitives;
-using static RogueFrontier.AttackOrder;
+using static RogueFrontier.AttackTarget;
 
 namespace RogueFrontier;
 public interface IShipBehavior {
@@ -45,9 +45,9 @@ public class Sulphin : IShipBehavior, Ob<Station.Destroyed> {
                 .Where(p => (p.position - owner.position).magnitude < 80);
             if (players.Any()) {
                 if (stationsLost > 5
-                    && !(order is GuardOrder g && g.home.world != owner.world)
+                    && !(order is GuardAt g && g.home.world != owner.world)
                     && GetNextStation() is Station next) {
-                    var gg = new GuardOrder(next);
+                    var gg = new GuardAt(next);
                     gg.SetAttack(players.GetRandom(owner.world.karma), 600);
                     
                     order = gg;
@@ -82,7 +82,7 @@ public class Swift : IShipBehavior, Ob<AIShip.Destroyed> {
         if (d is PlayerShip pl) {
             frigatesLost++;
             if (frigatesLost >= 4) {
-                order = new AttackOrder(pl);
+                order = new AttackTarget(pl);
             }
         }
     }
@@ -113,7 +113,7 @@ public class Swift : IShipBehavior, Ob<AIShip.Destroyed> {
 }
 
 public class Merchant : IShipBehavior, Ob<Station.Destroyed> {
-    public GateOrder gateOrder;
+    public GateThrough gateOrder;
     public Station target;
     public int timer;
     public void Observe(Station.Destroyed ev) {
@@ -134,27 +134,22 @@ public class Merchant : IShipBehavior, Ob<Station.Destroyed> {
                 gateOrder = null;
             }
         }
-
         if(target == null) {
-
             target = owner.world.entities.all.OfType<Station>()
                 .Where(s => !s.CanTarget(owner)).GetRandomOrDefault(owner.world.karma);
-
             if (target == null) {
                 return;
             }
             target.onDestroyed += this;
         }
-
         if (owner.world != target.world) {
             gateOrder = new(owner.world.FindGateTo(target.world));
             gateOrder.Update(delta, owner);
             return;
         }
-
         if (owner.dock.Target != target) {
             if((owner.position - target.position).magnitude2 > 8*8) {
-                new ApproachOrbitOrder(target).Update(delta, owner);
+                new Approach(target).Update(delta, owner);
             } else {
                 owner.dock.SetTarget(target);
                 timer = 60*30 + 60 * owner.world.karma.NextInteger(90);
@@ -266,14 +261,14 @@ public class CompoundOrder : IShipOrder {
     }
     public bool Active => orders.Any();
 }
-public class EscortOrder : IShipOrder {
+public class EscortShip : IShipOrder {
     [JsonProperty]
-    private AttackOrder attack;
+    private AttackTarget attack;
     [JsonProperty]
-    private FollowOrder follow;
+    private FollowShipAtAngle follow;
     int ticks = 0;
-    public EscortOrder() { }
-    public EscortOrder(IShip target, XY offset) {
+    public EscortShip() { }
+    public EscortShip(IShip target, XY offset) {
         this.attack = new(null);
         this.follow = new(target, offset);
     }
@@ -303,12 +298,12 @@ public class EscortOrder : IShipOrder {
     }
     public bool Active => follow.Active;
 }
-public class FollowOrder : IShipOrder {
+public class FollowShipAtAngle : IShipOrder {
     public XY baseOffset;
     public IShip target => approach.target;
     [JsonProperty]
-    private ApproachOrder approach;
-    public FollowOrder(IShip target, XY offset) {
+    private FollowShip approach;
+    public FollowShipAtAngle(IShip target, XY offset) {
         this.baseOffset = offset;
         this.approach = new(target, offset);
     }
@@ -321,12 +316,12 @@ public class FollowOrder : IShipOrder {
     }
     public bool Active => approach.Active;
 }
-public class ApproachOrder : IShipOrder {
+public class FollowShip : IShipOrder {
     public IShip target;
     public XY offset;
     [JsonProperty]
-    private FaceOrder face;
-    public ApproachOrder(IShip target, XY offset) {
+    private TurnToAngle face;
+    public FollowShip(IShip target, XY offset) {
         this.target = target;
         this.offset = offset;
         this.face = new(0);
@@ -374,18 +369,16 @@ public class ApproachOrder : IShipOrder {
     }
     public bool Active => true;
 }
-
-
-public class LootOrder : IShipOrder, Ob<Docking.OnDocked>/*, Lis<Wreck.OnDestroyed>*/ {
+public class LootWreck : IShipOrder, Ob<Docking.OnDocked>/*, Lis<Wreck.OnDestroyed>*/ {
     [JsonProperty]
     public Wreck target { get; private set; }
     [JsonProperty]
-    private ApproachOrbitOrder approach;
+    private Approach approach;
     public int dockTime;
     public int ticks;
 
     public Vi<Docking.OnDocked> onDocked = new();
-    public LootOrder(Wreck target) {
+    public LootWreck(Wreck target) {
         this.target = target;
         approach = new(target);
         //target.onDestroyed += this;
@@ -421,52 +414,52 @@ public class LootOrder : IShipOrder, Ob<Docking.OnDocked>/*, Lis<Wreck.OnDestroy
     public void Observe(Docking.OnDocked ev) => onDocked.Observe(ev);
     //Wreck.OnDestroyed Lis<Wreck.OnDestroyed>.Value => w => Active = false;
 }
-public class GuardOrder : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, Ob<Station.Damaged>, Ob<AttackOrder.TargetInvisible> {
+public class GuardAt : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, Ob<Station.Damaged>, Ob<AttackTarget.TargetInvisible> {
     [JsonProperty]
     public ActiveObject home { get; private set; }
     [JsonProperty]
     public IShipOrder errand { get; private set; } = null;
     [JsonProperty]
-    private ApproachOrbitOrder approach;
+    private Approach approach;
     public int errandTime;
     public int ticks;
 
 
-    public record OnDockedHome(IShip owner, GuardOrder order);
+    public record OnDockedHome(IShip owner, GuardAt order);
     public Vi<OnDockedHome> onDockedHome = new();
-    public GuardOrder(ActiveObject home) {
+    public GuardAt(ActiveObject home) {
         this.home = home;
         approach = new(home);
         errand = null;
         errandTime = -1;
     }
-    public GuardOrder(ActiveObject home, ActiveObject attackTarget) {
+    public GuardAt(ActiveObject home, ActiveObject attackTarget) {
         this.home = home;
         approach = new(home);
-        errand = new AttackOrder(attackTarget);
+        errand = new AttackTarget(attackTarget);
         errandTime = -1;
     }
     public void Init(AIShip owner) {
         owner.onDamaged += this;
     }
     public override string ToString() => $"guard {home.name}{errand switch {
-        AttackOrder a => $": attack {a.target.name}",
-        LootOrder l => $": loot {l.target.name}",
-        GateOrder g => $": gate {g.gate.destWorld.name}",
+        AttackTarget a => $": attack {a.target.name}",
+        LootWreck l => $": loot {l.target.name}",
+        GateThrough g => $": gate {g.gate.destWorld.name}",
         _ => ""
     }}";
     public void SetHome(ActiveObject home) {
         this.home = home;
         approach.target = home;
     }
-    public bool CanTarget(ActiveObject other) => errand is AttackOrder a && a.target == other;
+    public bool CanTarget(ActiveObject other) => errand is AttackTarget a && a.target == other;
     public void SetAttack(ActiveObject target, int attackTime = -1) {
-        var a = new AttackOrder(target);
+        var a = new AttackTarget(target);
         a.onTargetInvisible += this;
         errand = a;
         errandTime = attackTime;
     }
-    public void Observe(AttackOrder.TargetInvisible ev) {
+    public void Observe(AttackTarget.TargetInvisible ev) {
         var a = ev.a;
         if (a == errand) {
             ClearErrand();
@@ -474,7 +467,7 @@ public class GuardOrder : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, 
     }
 
     public void SetLoot(Wreck target) {
-        errand = new LootOrder(target);
+        errand = new LootWreck(target);
         errandTime = -1;
     }
     public void ClearErrand() {
@@ -500,7 +493,7 @@ public class GuardOrder : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, 
             return;
         }
         if (ticks % 60 == 0 && owner.world != home.world) {
-            errand = new GateOrder(owner.world.FindGateTo(home.world));
+            errand = new GateThrough(owner.world.FindGateTo(home.world));
             errand.Update(delta, owner);
             return;
         }
@@ -562,7 +555,7 @@ public class GuardOrder : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, 
         if (owner.IsAble()) {
             return;
         }
-        if (errand is AttackOrder) {
+        if (errand is AttackTarget) {
             ClearErrand();
         }
     }
@@ -575,11 +568,11 @@ public class GuardOrder : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, 
     }
 }
 
-public class AttackAllOrder : IShipOrder {
+public class AttackNearby : IShipOrder {
     public int sleepTicks;
-    public AttackOrder attack;
+    public AttackTarget attack;
     public bool CanTarget(ActiveObject other) => other == attack.target;
-    public AttackAllOrder() {
+    public AttackNearby() {
         attack = new(null);
     }
     public void Update(double delta, AIShip owner) {
@@ -611,9 +604,9 @@ public class AttackAllOrder : IShipOrder {
     }
     public bool Active => true;
 }
-public class FireTrackerOrder : IShipOrder, Ob<Weapon.OnHitActive> {
+public class FireTrackerAt : IShipOrder, Ob<Weapon.OnHitActive> {
     public int sleepTicks;
-    public AttackOrder attack;
+    public AttackTarget attack;
     public bool CanTarget(ActiveObject other) => other == attack.target;
     public void Observe(Weapon.OnHitActive ev) {
         var (w, p, h) = ev;
@@ -621,7 +614,7 @@ public class FireTrackerOrder : IShipOrder, Ob<Weapon.OnHitActive> {
             _active = false;
         }
     }
-    public FireTrackerOrder(Weapon w, ActiveObject target) {
+    public FireTrackerAt(Weapon w, ActiveObject target) {
         attack = new(target);
         w.onHitActive += this;
     }
@@ -640,9 +633,9 @@ public class FireTrackerOrder : IShipOrder, Ob<Weapon.OnHitActive> {
     private bool _active = true;
     public bool Active => _active;
 }
-public class FireTrackerNearbyOrder : IShipOrder, Ob<Weapon.OnHitActive> {
+public class FireTrackerNearby : IShipOrder, Ob<Weapon.OnHitActive> {
     public int sleepTicks;
-    public AttackOrder attack;
+    public AttackTarget attack;
     public bool CanTarget(ActiveObject other) => other == attack.target;
     public void Observe(Weapon.OnHitActive ev) {
         var (w, p, h) = ev;
@@ -650,7 +643,7 @@ public class FireTrackerNearbyOrder : IShipOrder, Ob<Weapon.OnHitActive> {
             attack.ClearTarget();
         }
     }
-    public FireTrackerNearbyOrder(Weapon w) {
+    public FireTrackerNearby(Weapon w) {
         attack = new(null);
         w.onHitActive += this;
     }
@@ -680,11 +673,11 @@ public class FireTrackerNearbyOrder : IShipOrder, Ob<Weapon.OnHitActive> {
     public bool Active => _active;
 }
 
-public class AttackGroupOrder : IShipOrder {
+public class AttackMany : IShipOrder {
     public HashSet<ActiveObject> targets=new();
-    public AttackOrder attackOrder=new(null);
+    public AttackTarget attackOrder=new(null);
     public bool CanTarget(ActiveObject other) => targets.Contains(other);
-    public AttackGroupOrder(HashSet<ActiveObject> targets) {
+    public AttackMany(HashSet<ActiveObject> targets) {
         this.targets = targets;
     }
     public void Update(double delta, AIShip owner) {
@@ -709,28 +702,28 @@ public class AttackGroupOrder : IShipOrder {
     }
     public bool Active => targets.Any();
 }
-public class AttackOrder : IShipOrder {
+public class AttackTarget : IShipOrder {
     public ActiveObject target { get; private set; }
     public Weapon primary;
     public List<Weapon> secondary=new();
     [JsonProperty]
-    private AimOrder aim = new(null, 0);
+    private AimAt aim = new(null, 0);
     [JsonProperty]
-    private ApproachOrbitOrder approach = new(null);
+    private Approach approach = new(null);
     [JsonProperty]
-    private GateOrder gate = null;
+    private GateThrough gate = null;
     [JsonProperty]
-    private FaceOrder face = new(0);
+    private TurnToAngle face = new(0);
 
     public int aimWaitingTicks = 0;
 
     public bool avoid;
 
 
-    public record TargetInvisible(AttackOrder a);
+    public record TargetInvisible(AttackTarget a);
     public Vi<TargetInvisible> onTargetInvisible = new();
 
-    public AttackOrder(ActiveObject target) {
+    public AttackTarget(ActiveObject target) {
         SetTarget(target);
     }
     public override string ToString() => $"attack {target.name}";
@@ -850,17 +843,17 @@ public class AttackOrder : IShipOrder {
     }
     public bool Active => target?.active == true;
 }
-public class GateOrder : IShipOrder {
+public class GateThrough : IShipOrder {
     public Stargate gate;
     public System destWorld => gate.destWorld;
-    public GateOrder(Stargate gate) {
+    public GateThrough(Stargate gate) {
         this.gate = gate;
         Active = true;
     }
     public bool CanTarget(ActiveObject other) => false;
     public void Update(double delta, AIShip owner) {
         if ((owner.position - gate.position).magnitude2 > 5 * 5) {
-            new ApproachOrbitOrder(gate).Update(delta, owner);
+            new Approach(gate).Update(delta, owner);
         } else {
             gate.Gate(owner);
             Active = false;
@@ -869,13 +862,13 @@ public class GateOrder : IShipOrder {
     public bool Active { get; private set; }
 }
 
-public class PatrolOrbitOrder : IShipOrder {
+public class PatrolAt : IShipOrder {
     public ActiveObject patrolTarget;
     public double patrolRadius;
     public double attackLimit;
-    public AttackOrder attackOrder;
+    public AttackTarget attackOrder;
     public int tick;
-    public PatrolOrbitOrder(ActiveObject patrolTarget, double patrolRadius) {
+    public PatrolAt(ActiveObject patrolTarget, double patrolRadius) {
         this.patrolTarget = patrolTarget;
         this.patrolRadius = patrolRadius;
         this.attackLimit = 2 * patrolRadius;
@@ -916,22 +909,22 @@ public class PatrolOrbitOrder : IShipOrder {
             .Rotate(2 * Math.PI / 16)
             .WithMagnitude(nextDist);
         var deltaOffset = nextOffset - offsetFromTarget;
-        var Face = new FaceOrder(deltaOffset.angleRad);
+        var Face = new TurnToAngle(deltaOffset.angleRad);
         Face.Update(delta, owner);
         owner.SetThrusting(true);
     }
     public bool Active => patrolTarget.active;
 }
-public class PatrolCircuitOrder : IShipOrder {
+public class PatrolAround : IShipOrder {
     public ActiveObject patrolTarget;
     public List<ActiveObject> nearbyFriends;
     public ActiveObject nearestFriend;
     public double patrolRadius;
     public double attackLimit;
-    public AttackOrder attackOrder;
-    public FaceOrder face;
+    public AttackTarget attackOrder;
+    public TurnToAngle face;
     public int tick;
-    public PatrolCircuitOrder(ActiveObject patrolTarget, double patrolRadius) {
+    public PatrolAround(ActiveObject patrolTarget, double patrolRadius) {
         this.patrolTarget = patrolTarget;
         this.patrolRadius = patrolRadius;
         this.attackLimit = 2 * patrolRadius;
@@ -1003,12 +996,12 @@ public class PatrolCircuitOrder : IShipOrder {
     }
     public bool Active => patrolTarget.active;
 }
-public class SnipeOrder : IShipOrder {
+public class SnipeAt : IShipOrder {
     public ActiveObject target;
     public Weapon weapon;
     [JsonProperty]
-    private AimOrder aim;
-    public SnipeOrder(ActiveObject target) {
+    private AimAt aim;
+    public SnipeAt(ActiveObject target) {
         this.target = target;
         this.aim = new(target, 0);
     }
@@ -1034,12 +1027,12 @@ public class SnipeOrder : IShipOrder {
     }
     public bool Active => target?.active == true && weapon?.AllowFire == true;
 }
-public class ApproachOrbitOrder : IShipOrder {
+public class Approach : IShipOrder {
     public MovingObject target;
     [JsonProperty]
-    private FaceOrder face;
+    private TurnToAngle face;
     public XY currentOffset;
-    public ApproachOrbitOrder(MovingObject target) {
+    public Approach(MovingObject target) {
         this.target = target;
         this.face = new(0);
         currentOffset = XY.Zero;
@@ -1071,10 +1064,11 @@ public class ApproachOrbitOrder : IShipOrder {
     }
     public bool Active => true;
 }
-public class AimOnceOrder : IShipOrder {
-    public AimOrder order;
-    public AimOnceOrder(StructureObject target, double missileSpeed) {
-        this.order = new AimOrder(target, missileSpeed);
+// to do: replace this with bool flag
+public class TurnToFace : IShipOrder {
+    public AimAt order;
+    public TurnToFace(MovingObject target, double missileSpeed) {
+        this.order = new AimAt(target, missileSpeed);
         Active = true;
     }
     public void Update(double delta, AIShip owner) {
@@ -1084,12 +1078,12 @@ public class AimOnceOrder : IShipOrder {
 
     public bool Active { get; private set; }
 }
-public class AimOrder : IShipOrder {
-    public StructureObject target;
+public class AimAt : IShipOrder {
+    public MovingObject target;
     public double missileSpeed;
     public double GetTargetRads(AIShip owner) => Helper.CalcFireAngle(target.position - owner.position, target.velocity - owner.velocity, missileSpeed, out var _);
     public double GetAngleDiff(AIShip owner) => Helper.AngleDiffDeg(owner.rotationDeg, GetTargetRads(owner) * 180 / Math.PI);
-    public AimOrder(StructureObject target, double missileSpeed) {
+    public AimAt(MovingObject target, double missileSpeed) {
         this.target = target;
         this.missileSpeed = missileSpeed;
     }
@@ -1107,9 +1101,9 @@ public class AimOrder : IShipOrder {
         }
     }
 }
-public class FaceOrder : IShipOrder {
+public class TurnToAngle : IShipOrder {
     public double targetRads;
-    public FaceOrder(double targetRads) {
+    public TurnToAngle(double targetRads) {
         this.targetRads = targetRads;
     }
     public void Update(double delta, AIShip owner) {

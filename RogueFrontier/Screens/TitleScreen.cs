@@ -13,28 +13,21 @@ using ArchConsole;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using SFML.Audio;
-
 namespace RogueFrontier;
-
 public class TitleScreen : Console {
-
     ConfigMenu config;
     LoadMenu load;
     Console credits;
-
     public Profile profile;
     public System World;
-
     public static string[] title = File.ReadAllText("RogueFrontierContent/sprites/Title.txt").Replace("\r\n", "\n").Split('\n');
     public Settings settings;
-
     public AIShip pov;
     public int povTimer;
     public List<Message> povDesc;
     //XY screenCenter;
     public XY camera;
     public Dictionary<(int, int), ColoredGlyph> tiles;
-
     public Sound titleMusic = new(new SoundBuffer("RogueFrontierContent/music/Title.wav")) {
         Volume = 33
     };
@@ -348,7 +341,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             var distance = World.karma.NextInteger(10, 20);
             var center = World.entities.all.FirstOrDefault()?.position ?? new XY(0, 0);
             var ship = new BaseShip(World, shipClass, center + XY.Polar(angle, distance));
-            var enemy = new AIShip(ship, Sovereign.Gladiator, new AttackAllOrder());
+            var enemy = new AIShip(ship, Sovereign.Gladiator, new AttackNearby());
             World.AddEntity(enemy);
             World.AddEffect(new Heading(enemy));
             //Update now in case we need a POV

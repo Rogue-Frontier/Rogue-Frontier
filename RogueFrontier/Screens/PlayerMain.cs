@@ -2002,13 +2002,13 @@ public class CommunicationsWidget : ScreenSurface {
         public CommandMenu(ScreenSurface prev, PlayerShip player, AIShip subject) : base(prev.Surface.Width, prev.Surface.Height) {
             //this.player = player;
             this.subject = subject;
-            EscortOrder GetEscortOrder(int i) {
+            EscortShip GetEscortOrder(int i) {
                 int root = (int)Math.Sqrt(i);
                 int lower = root * root;
                 int upper = (root + 1) * (root + 1);
                 int range = upper - lower;
                 int index = i - lower;
-                return new EscortOrder(player, XY.Polar(
+                return new EscortShip(player, XY.Polar(
                         -(Math.PI * index / range), root * 2));
             }
             commands = new();
@@ -2023,23 +2023,23 @@ public class CommunicationsWidget : ScreenSurface {
                         commands["Fire Tracker"] = () => {
                             if (!player.GetTarget(out ActiveObject target)) {
                                 player.AddMessage(new Transmission(subject, $"{subject.name}: Firing tracker at nearby enemies"));
-                                w.order = new FireTrackerNearbyOrder(weapon);
+                                w.order = new FireTrackerNearby(weapon);
                                 return;
                             }
                             player.AddMessage(new Transmission(subject, $"{subject.name}: Firing tracker at target"));
-                            w.order = new FireTrackerOrder(weapon, target);
+                            w.order = new FireTrackerAt(weapon, target);
                         };
                     }
                     commands["Attack Target"] = () => {
                         if (player.GetTarget(out ActiveObject target)) {
-                            w.order = new AttackOrder(target);
+                            w.order = new AttackTarget(target);
                             player.AddMessage(new Transmission(subject, $"{subject.name}: Attacking target"));
                         } else {
                             player.AddMessage(new Transmission(subject, $"No target selected"));
                         }
                     };
                     commands["Wait"] = () => {
-                        w.order = new GuardOrder(new TargetingMarker(player, "Wait", subject.position));
+                        w.order = new GuardAt(new TargetingMarker(player, "Wait", subject.position));
                         player.AddMessage(new Transmission(subject, $"Ordered {subject.name} to Wait"));
                     };
                     break;
@@ -2050,7 +2050,7 @@ public class CommunicationsWidget : ScreenSurface {
                     };
                     commands["Attack Target"] = () => {
                         if (player.GetTarget(out ActiveObject target)) {
-                            var attack = new AttackOrder(target);
+                            var attack = new AttackTarget(target);
                             var escort = GetEscortOrder(0);
                             subject.behavior = attack;
                             OrderOnDestroy.Register(subject, attack, escort, target);

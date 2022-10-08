@@ -14,7 +14,7 @@ public class Wingmate : IShipBehavior, Ob<PlayerShip.Destroyed> {
     public IShipOrder order;
     public void Observe(PlayerShip.Destroyed ev) {
         var (s, d, w) = ev;
-        order = new AttackOrder(d);
+        order = new AttackTarget(d);
     }
     //This class handles orders and communications
     public Wingmate(PlayerShip player) {
@@ -22,7 +22,7 @@ public class Wingmate : IShipBehavior, Ob<PlayerShip.Destroyed> {
     }
     public void Update(double delta, AIShip owner) {
         if(order?.Active != true) {
-            order = new EscortOrder(player, new());
+            order = new EscortShip(player, new());
         }
         order?.Update(delta, owner);
     }

@@ -14,14 +14,82 @@ public interface StationBehavior {
     void Update(double delta, Station owner);
     public void RegisterGuard(AIShip guard) { }
 }
-public class IronPirateStation : StationBehavior {
-    public IronPirateStation() { }
+public class OrionWarlordOutpost : StationBehavior, Ob<Station.Destroyed>, Ob<GuardAt.OnDockedHome> {
+
+    private HashSet<ActiveObject> turretsDeployed = new();
+    public void Observe(Station.Destroyed ev) {
+        (var station, var destroyer, var wreck) = ev;
+        if (destroyer?.active != true) {
+            return;
+        }
+        if (station.world.entities.all
+            .OfType<Station>()
+            .Where(s => s.active && s.sovereign == station.sovereign && s.UpdateGuardList().Any())
+            .OrderBy(s => (s.position - destroyer.position).magnitude2)
+            .FirstOrDefault() is Station s) {
+            s.guards.ForEach(g => g.behavior = new GuardAt(s, destroyer));
+        }
+    }
+    public void Observe(GuardAt.OnDockedHome ev) {
+        (var ship, var order) = ev;
+        var home = order.home;
+        if (!turretAssignment.TryGetValue(home, out var item)) {
+            return;
+        }
+        turretsDeployed.Remove(home);
+        ship.cargo.Remove(item);
+        var w = ship.world;
+        var turret = new Station(w, turretStationType, home.position);
+        w.AddEntity(turret);
+        turret.CreateSegments();
+    }
+    Dictionary<ActiveObject, Item> turretAssignment = new();
+    ItemType turretItemType;
+    StationType turretStationType;
+    public OrionWarlordOutpost(Station owner) {
+        owner.onDestroyed += this;
+        turretItemType = owner.world.types.Lookup<ItemType>("item_orion_turret");
+        turretStationType = owner.world.types.Lookup<StationType>("station_orion_turret");
+    }
+    public void Update(double delta, Station owner) {
+        if (owner.world.tick % 1200 == 0) {
+            if (owner.cargo.FirstOrDefault(i => i.type == turretItemType) is Item turretItem
+                && owner.guards.FirstOrDefault() is AIShip turretGuard) {
+                var k = owner.world.karma;
+
+                var enemies = owner.world.entities.all
+                    .OfType<Station>()
+                    .Where(a => owner.CanTarget(a))
+                    .Shuffle();
+                foreach (var enemy in enemies) {
+                    XY p = enemy.position + XY.Polar(k.NextDouble() * Math.PI * 2, k.NextInteger(80, 200));
+                    if (enemies.All(a => (a.position - p).magnitude > 70) && enemies.Any(a => (a.position - p).magnitude < 200)) {
+
+                        owner.cargo.Remove(turretItem);
+                        turretGuard.cargo.Add(turretItem);
+
+                        var turretMarker = new ActiveMarker(owner.world, owner.sovereign, p);
+                        turretAssignment[turretMarker] = turretItem;
+
+                        var o = new GuardAt(turretMarker);
+                        o.onDockedHome += this;
+                        turretGuard.behavior = new CompoundOrder(o, new GuardAt(owner));
+                        break;
+                    }
+                }
+            }
+
+        }
+    }
+}
+public class IronPirateOutpost : StationBehavior {
+    public IronPirateOutpost() { }
     public void Update(double delta, Station owner) {
         if (owner.world.tick % 300 == 0) {
             //Clear any pirate attacks where the target has too many defenders
             foreach (var g in owner.guards) {
-                if (g.behavior.GetOrder() is GuardOrder o
-                    && o.errand is AttackOrder { Active:true } a
+                if (g.behavior.GetOrder() is GuardAt o
+                    && o.errand is AttackTarget { Active:true } a
                     && CountDefenders(a.target, g) > 2) {
                     o.ClearErrand();
                 }
@@ -33,7 +101,7 @@ public class IronPirateStation : StationBehavior {
                         .ToList();
             //Handle all available guards
             foreach (var g in owner.guards) {
-                if (g.behavior.GetOrder() is GuardOrder { errandTime: < 1 } o) {
+                if (g.behavior.GetOrder() is GuardAt { errandTime: < 1 } o) {
                     var target = targets.FirstOrDefault(
                         s => {
                             int attackers = CountAttackers(s), defenders = CountDefenders(s, g);
@@ -75,7 +143,7 @@ public class ConstellationAstra : StationBehavior {
             new(owner.world, owner.world.types.Lookup<ShipClass>("ship_beowulf"), owner.position),
             owner.sovereign,
             null,
-            new GuardOrder(owner))));
+            new GuardAt(owner))));
     }
     public void Update(double delta, Station owner) {
         if (owner.world.tick % 150 == 0) {
@@ -85,7 +153,7 @@ public class ConstellationAstra : StationBehavior {
                 if (owner.world.universe.GetAllEntities().OfType<Station>().FirstOrDefault(s => stationTypes.Contains(s.type) && s.guards.Count > 5) is Station other) {
                     while (owner.guards.Count < 5 && other.guards.Count > 5) {
                         var g = other.guards.GetRandom(owner.world.karma);
-                        g.behavior = new GuardOrder(owner);
+                        g.behavior = new GuardAt(owner);
                         other.guards.Remove(g);
                         owner.guards.Add(g);
                     }
@@ -100,7 +168,7 @@ public class ConstellationAstra : StationBehavior {
                     if (nearby.guards.Count < 3) {
                         if (owner.guards.Count > 3) {
                             var g = owner.guards.Last();
-                            ((GuardOrder)g.behavior.GetOrder()).SetHome(nearby);
+                            ((GuardAt)g.behavior.GetOrder()).SetHome(nearby);
                             owner.guards.RemoveAt(owner.guards.Count - 1);
                             nearby.guards.Add(g);
                         }
@@ -124,7 +192,7 @@ public class ConstellationShipyard : StationBehavior {
             owner.UpdateGuardList();
             if(owner.guards.Count < 15) {
                 var s = new AIShip(new(owner.world, guardTypes.GetRandom(owner.world.karma), owner.position),
-                    owner.sovereign, new GuardOrder(owner));
+                    owner.sovereign, new GuardAt(owner));
                 owner.guards.Add(s);
                 owner.world.AddEntity(s);
             }
@@ -135,67 +203,6 @@ public class DaughtersOutpost : StationBehavior {
     public bool sanctumReady = true;
     public int funds = 1000;
     public void Update(double delta, Station owner) {
-    }
-}
-public class OrionWarlordsStation : StationBehavior, Ob<Station.Destroyed>, Ob<GuardOrder.OnDockedHome> {
-
-    private HashSet<ActiveObject> turretsDeployed = new();
-    public void Observe(Station.Destroyed ev) {
-        (var station, var destroyer, var wreck) = ev;
-        if (destroyer?.active != true) {
-            return;
-        }
-        if (station.world.entities.all
-            .OfType<Station>()
-            .Where(s => s.active && s.sovereign == station.sovereign && s.UpdateGuardList().Any())
-            .OrderBy(s => (s.position - destroyer.position).magnitude2)
-            .FirstOrDefault() is Station s) {
-            s.guards.ForEach(g => g.behavior = new GuardOrder(s, destroyer));
-        }
-    }
-    public void Observe(GuardOrder.OnDockedHome ev) {
-        (var ship, var order) = ev;
-        var home = order.home;
-        if (turretsDeployed.Contains(home)) {
-            return;
-        }
-        turretsDeployed.Add(home);
-
-        var w = ship.world;
-        var turret = new Station(w, turretType, home.position);
-        w.AddEntity(turret);
-        turret.CreateSegments();
-    }
-    StationType turretType;
-    public OrionWarlordsStation(Station owner) {
-        owner.onDestroyed += this;
-        turretType = owner.world.types.Lookup<StationType>("station_orion_turret");
-    }
-    public void Update(double delta, Station owner) {
-        if(owner.world.tick%1200 == 0) {
-            if(owner.guards.Count > 4) {
-                var g = owner.guards.Take(1).ToList();
-                
-                var k = owner.world.karma;
-
-                var enemies = owner.world.entities.all
-                    .OfType<Station>()
-                    .Where(a => owner.CanTarget(a))
-                    .Shuffle();
-
-                foreach(var enemy in enemies) {
-                    XY p = enemy.position + XY.Polar(k.NextDouble() * Math.PI * 2, k.NextInteger(80, 200));
-                    if (enemies.All(a => (a.position - p).magnitude > 70) && enemies.Any(a => (a.position - p).magnitude < 200)) {
-                        var ambushPoint = new ActiveMarker(owner.world, owner.sovereign, p);
-                        var o = new GuardOrder(ambushPoint);
-                        o.onDockedHome += this;
-                        g.ForEach(g => g.behavior = new CompoundOrder(o, new GuardOrder(owner)));
-                        break;
-                    }
-                }
-            }
-            
-        }
     }
 }
 public class AmethystStore : StationBehavior, Ob<Station.Destroyed>, Ob<Station.Damaged>, Ob<Weapon.OnFire>, Ob<Power.OnInvoked> {

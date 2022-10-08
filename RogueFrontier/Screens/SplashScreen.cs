@@ -70,7 +70,7 @@ public class SplashScreen : Console {
                         p = new (r.Next(-Width, Width), -Height);
                         break;
                 }
-                var ship = new AIShip(new(World, shipClass, p), new(), new ApproachOrder(margin, new(0, -2 - (x * 2))));
+                var ship = new AIShip(new(World, shipClass, p), new(), new FollowShip(margin, new(0, -2 - (x * 2))));
                 World.AddEntity(ship);
                 //World.AddEffect(new Heading(ship));
             }

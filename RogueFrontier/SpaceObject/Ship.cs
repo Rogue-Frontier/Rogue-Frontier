@@ -330,7 +330,7 @@ public class AIShip : IShip {
     [JsonIgnore] public HullSystem damageSystem => ship.damageSystem;
     [JsonIgnore] public Rand destiny => ship.destiny;
     [JsonIgnore] public double stoppingRotation => ship.stoppingRotation;
-    [JsonIgnore] public HashSet<Entity> avoidHit => new HashSet<Entity> { dock.Target, (behavior as GuardOrder)?.home };
+    [JsonIgnore] public HashSet<Entity> avoidHit => new HashSet<Entity> { dock.Target, (behavior as GuardAt)?.home };
     
     public Sovereign sovereign { get; set; }
     private IShipBehavior _behavior;

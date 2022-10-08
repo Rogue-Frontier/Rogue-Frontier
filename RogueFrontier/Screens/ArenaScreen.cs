@@ -153,7 +153,7 @@ public class ArenaScreen : Console, Ob<PlayerShip.Destroyed> {
                     int i = 0;
                     foreach (var type in shipClassDict.Keys.OrderBy(k => k).Where(k => k.Contains(text))) {
                         buttons.Add(type, () => {
-                            var ship = new AIShip(new(World, shipClassDict[type], camera), sovereign ?? Sovereign.Gladiator, new AttackAllOrder());
+                            var ship = new AIShip(new(World, shipClassDict[type], camera), sovereign ?? Sovereign.Gladiator, new AttackNearby());
 
                             if (cargo.Any()) {
                                 ship.cargo.Clear();
@@ -425,7 +425,7 @@ public class ArenaScreen : Console, Ob<PlayerShip.Destroyed> {
                 }
 
                 World.RemoveEntity(playerMain.playerShip);
-                var aiShip = new AIShip(playerMain.playerShip.ship, playerMain.playerShip.sovereign, new AttackAllOrder());
+                var aiShip = new AIShip(playerMain.playerShip.ship, playerMain.playerShip.sovereign, new AttackNearby());
                 World.AddEntity(aiShip);
                 World.AddEffect(new Heading(aiShip));
 

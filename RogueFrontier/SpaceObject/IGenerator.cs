@@ -98,7 +98,7 @@ public class ShipEntry : ShipGenerator {
         public AttackDesc(XElement e) : this() {
             e.Initialize(this);
         }
-        [JsonIgnore] public IShipOrder.Create Value => target => new AttackOrder(
+        [JsonIgnore] public IShipOrder.Create Value => target => new AttackTarget(
             targetId.Any() ? (ActiveObject)target.world.universe.identifiedObjects[targetId] : target
             );
     }
@@ -106,14 +106,14 @@ public class ShipEntry : ShipGenerator {
         public GuardDesc(XElement e) {
             e.Initialize(this);
         }
-        [JsonIgnore] public IShipOrder.Create Value => target => new GuardOrder(target);
+        [JsonIgnore] public IShipOrder.Create Value => target => new GuardAt(target);
     }
     public record PatrolOrbitDesc() : IShipOrderDesc {
         [Req] public int patrolRadius;
         public PatrolOrbitDesc(XElement e) : this() {
             e.Initialize(this);
         }
-        [JsonIgnore] public IShipOrder.Create Value => target => new PatrolOrbitOrder(target, patrolRadius);
+        [JsonIgnore] public IShipOrder.Create Value => target => new PatrolAt(target, patrolRadius);
     }
     //Patrol an entire cluster of stations (moving out to 50 ls + radius of nearest station)
     public record PatrolCircuitDesc() : IShipOrderDesc {
@@ -121,13 +121,13 @@ public class ShipEntry : ShipGenerator {
         public PatrolCircuitDesc(XElement e) : this() {
             e.Initialize(this);
         }
-        [JsonIgnore] public IShipOrder.Create Value => target => new PatrolCircuitOrder(target, patrolRadius);
+        [JsonIgnore] public IShipOrder.Create Value => target => new PatrolAround(target, patrolRadius);
     }
     public record EscortDesc() : IShipOrderDesc {
         public EscortDesc(XElement e) : this() {
             e.Initialize(this);
         }
-        [JsonIgnore] public IShipOrder.Create Value => target => new EscortOrder((IShip)target, XY.Polar(0, 2));
+        [JsonIgnore] public IShipOrder.Create Value => target => new EscortShip((IShip)target, XY.Polar(0, 2));
     }
 }
 public record ModRoll() {

@@ -168,10 +168,10 @@ public class Station : ActiveObject, ITrader, IDockable {
     public void InitBehavior(Behaviors? behavior = null) {
         this.behavior = (behavior ?? type.behavior) switch {
             Behaviors.raisu => null,
-            Behaviors.pirate => new IronPirateStation(),
+            Behaviors.pirate => new IronPirateOutpost(),
             Behaviors.reinforceNearby => new ConstellationAstra(this),
             Behaviors.constellationShipyard => new ConstellationShipyard(this),
-            Behaviors.orionWarlords => new OrionWarlordsStation(this),
+            Behaviors.orionWarlords => new OrionWarlordOutpost(this),
             Behaviors.amethystStore=>new AmethystStore(this),
             Behaviors.daughtersOutpost => new DaughtersOutpost(),
             Behaviors.none => null,
@@ -206,9 +206,9 @@ public class Station : ActiveObject, ITrader, IDockable {
     public List<AIShip> UpdateGuardList() {
         return guards = new(world.universe.GetAllEntities().OfType<AIShip>()
             .Where(s => s.behavior switch {
-                GuardOrder g => g.home == this,
-                PatrolOrbitOrder p => p.patrolTarget == this,
-                PatrolCircuitOrder p => p.patrolTarget == this,
+                GuardAt g => g.home == this,
+                PatrolAt p => p.patrolTarget == this,
+                PatrolAround p => p.patrolTarget == this,
                 _ => false
             }));
     }
@@ -231,7 +231,7 @@ public class Station : ActiveObject, ITrader, IDockable {
         if (source != null && source.sovereign != sovereign) {
             var guards = world.entities.all.OfType<AIShip>()
                 .Select(s => s.behavior.GetOrder())
-                .OfType<GuardOrder>()
+                .OfType<GuardAt>()
                 .Where(g => g.home == this);
             foreach (var order in guards) {
                 order.SetAttack(source, 300);
@@ -261,9 +261,9 @@ public class Station : ActiveObject, ITrader, IDockable {
             }
         }
         var guards = world.entities.all.OfType<AIShip>().Where(
-            s => s.behavior is GuardOrder o && o.home == this);
+            s => s.behavior is GuardAt o && o.home == this);
         var gate = world.entities.all.OfType<Stargate>().FirstOrDefault();
-        IShipOrder lastOrder = gate == null ? new AttackOrder(source) : new CompoundOrder(new AttackOrder(source), new GateOrder(gate));
+        IShipOrder lastOrder = gate == null ? new AttackTarget(source) : new CompoundOrder(new AttackTarget(source), new GateThrough(gate));
         if (source != null && source.sovereign != sovereign) {
             foreach (var g in guards) {
                 g.behavior = lastOrder;
@@ -272,12 +272,12 @@ public class Station : ActiveObject, ITrader, IDockable {
             var next = world.entities.all.OfType<Station>().Where(s => s.type == type && s != this).OrderBy(p => (p.position - position).magnitude2).FirstOrDefault();
             if (next != null) {
                 foreach (var g in guards) {
-                    var o = (GuardOrder)g.behavior;
+                    var o = (GuardAt)g.behavior;
                     o.SetHome(next);
                 }
             } else {
                 foreach (var g in guards) {
-                    g.behavior = new PatrolOrbitOrder(this, 20);
+                    g.behavior = new PatrolAt(this, 20);
                 }
             }
         }

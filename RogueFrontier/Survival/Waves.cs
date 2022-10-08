@@ -63,7 +63,7 @@ class Waves : Event {
         shipList.OrderByDescending(s => map[s]).Select(world.types.Lookup<ShipClass>).ToList().ForEach(createShip);
         void createShip(ShipClass shipClass) {
 
-            CompoundOrder behavior = new(new AttackOrder(playerShip));
+            CompoundOrder behavior = new(new AttackTarget(playerShip));
 
             AIShip create() =>
                 new AIShip(new BaseShip(world,
@@ -79,7 +79,7 @@ class Waves : Event {
                 ship = create();
                 leader = ship;
             } else {
-                behavior.orders.Add(new EscortOrder(leader, XY.Polar(world.karma.NextDouble(0, 2 * Math.PI), 10)));
+                behavior.orders.Add(new EscortShip(leader, XY.Polar(world.karma.NextDouble(0, 2 * Math.PI), 10)));
                 ship = create();
             }
             i++;

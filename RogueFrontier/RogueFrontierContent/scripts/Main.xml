@@ -22,8 +22,12 @@
 	<Module file="Systems.xml"/>
 	<Module file="Murmurs.xml"/>
 	<Module file="Intro.xml"/>
+	
+	<!--
+
+
 	<ShipClass    codename="ship_player_test"
-				  name=			"Player"
+				  name=			"TEST"
 				  attributes=	""
 				  thrust=		"1"
 				  maxSpeed=		"30"
@@ -59,28 +63,8 @@
 			description="A starship preferred by space-age bikers, self-protection enthusiasts, and folk heroes alike, a Beowulf-class gunship highlights the tougher and harder parts of one's personality."
         >
 			<Map>
-				//                              \\
-				||              __              ||
-				//              /()\              \\
-				|||             /O..O\             |||
-				|||             |....|             |||
-				///         //---|....|---\\         \\\
-				|||     //--.....|....|......-\\     |||
-				|||  //-.........\..../.........-\\  |||
-				||| /-........//--|..|--\\........-\ |||
-				/// /......../-====|..|====-\........\ \\\
-				|||/......../======\../======\........\|||
-				|||........|========||========|........|||
-				|||==\\\....\\_=====||=====_//....///==|||
-				||||OOOO\\....|\____||____/|....//OOOO||||
-				|TTTT|\\...| | | || | | |...//|TTTT|
-				|TTTT|  |__|_|_|_||_|_|_|__|  |TTTT|
-				|TTTT|  |_|_|_|TTTTTT|_|_|_|  |TTTT|
-				|TTTT|        |TTTTTT|        |TTTT|
-				|TTTT|        |TTTTTT|        |TTTT|
-				|/--\|        |/----\|        |/--\|
 			</Map>
 		</PlayerSettings>
 	</ShipClass>
-
+	-->
 </Module>
