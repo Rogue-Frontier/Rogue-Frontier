@@ -1,4 +1,5 @@
-﻿using SadConsole;
+﻿using Common;
+using SadConsole;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,9 @@ public class HP : HullSystem {
     public int maxHP;
     public int hp;
     public int lastDamageTick;
+
+    public record Destroyed(HP hull, Projectile p);
+    public Vi<Destroyed> onDestroyed = new();
     public HP(int maxHP) {
         this.maxHP = maxHP;
         this.hp = maxHP;
@@ -42,6 +46,7 @@ public class HP : HullSystem {
         }
         p.hitKill = true;
         Destroy();
+        onDestroyed.Observe(new(this, p));
     }
     public int GetHP() => hp;
     public int GetMaxHP() => maxHP;
@@ -51,6 +56,10 @@ public class HP : HullSystem {
 public class LayeredArmor : HullSystem {
     public List<Armor> layers;
     public int tick;
+
+
+    public record Destroyed(LayeredArmor hull, Projectile p);
+    public Vi<Destroyed> onDestroyed = new();
     public LayeredArmor(List<Armor> layers) {
         layers.Reverse();
         this.layers = layers;
@@ -99,6 +108,7 @@ public class LayeredArmor : HullSystem {
 
         p.hitKill = true;
         Destroy();
+        onDestroyed.Observe(new(this, p));
     }
     public List<ColoredString> GetDesc() =>
         new List<ColoredString>(layers.GroupBy(l => l.source.type).Select(l => new ColoredString(l.First().source.type.name + $" (x{l.Count()})")));

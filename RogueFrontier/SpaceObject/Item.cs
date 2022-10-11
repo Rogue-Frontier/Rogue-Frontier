@@ -144,18 +144,23 @@ public class Armor : Device {
         hp = Math.Min(maxHP, hp + ra.repairHP);
     }
     public void Update(double delta, IShip owner) {
+        UpdateCommon(delta, owner, owner.hull);
+    }
+    public void Update(double delta, Station st) =>
+        UpdateCommon(delta, st, st.damageSystem);
+
+    private void UpdateCommon(double delta, ActiveObject owner, HullSystem hull) {
         if (decay.Any()) {
             var expired = new HashSet<Decay>();
 
             //If the armor is down, then degrade it faster
-            if(hp == 0) {
-                if(owner.hull.GetHP() == 0 && decay.FirstOrDefault(d => d.lethal) is var kill and not null) {
+            if (hp == 0) {
+                if (hull.GetHP() == 0 && decay.FirstOrDefault(d => d.lethal) is var kill and not null) {
                     owner.Destroy(kill.source);
                 } else {
-                    if(decay.Where(d => d.descend).ToList() is { Count: >0} descending) {
-                        var hull = ((LayeredArmor)owner.hull);
-                        var index = hull.layers.IndexOf(this);
-                        if(hull.layers.Reverse<Armor>().Skip(hull.layers.Count - index).FirstOrDefault(l => l.hp > 0) is var next and not null) {
+                    if (decay.Where(d => d.descend).ToList() is { Count: > 0 } descending && hull is LayeredArmor la) {
+                        var index = la.layers.IndexOf(this);
+                        if (la.layers.Reverse<Armor>().Skip(la.layers.Count - index).FirstOrDefault(l => l.hp > 0) is var next and not null) {
                             decay.ExceptWith(descending);
                             next.decay.UnionWith(descending);
                         }
@@ -190,8 +195,8 @@ public class Armor : Device {
             }
             decay.ExceptWith(expired);
         }
-        if(titanHP > 0) {
-            if(titanDuration > 0) {
+        if (titanHP > 0) {
+            if (titanDuration > 0) {
                 titanDuration = Math.Max(0, titanDuration - delta);
             } else {
                 titanHP = Math.Max(0, titanHP - delta * desc.titan.decay);
@@ -227,7 +232,7 @@ public class Armor : Device {
                 }
             }
         }
-        if(desc.regenRate > 0) {
+        if (desc.regenRate > 0) {
             lastRegenTick = owner.world.tick;
             powerUse = desc.powerUse;
             regenHP += desc.regenRate * delta * Program.TICKS_PER_SECOND;
@@ -243,7 +248,7 @@ public class Armor : Device {
         if (hp > 0 && killHP < desc.killHP) {
             killHP = desc.killHP;
         }
-        if(killHP > 0) {
+        if (killHP > 0) {
             powerUse = desc.powerUse;
         }
     }

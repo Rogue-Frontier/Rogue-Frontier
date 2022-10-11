@@ -259,30 +259,98 @@ public class Maneuver {
     public ActiveObject target;
     public double maneuver;
     public double maneuverDistance;
+
+    public bool smart = true;
+
+    private double prevDistance;
+    private bool startApproach;
+
+    private bool turnBias;
     public Maneuver(ActiveObject target, double maneuver, double maneuverDistance) {
         this.target = target;
         this.maneuver = maneuver;
         this.maneuverDistance = maneuverDistance;
+        turnBias = target.world.karma.NextBool();
     }
     public void Update(double delta, Projectile p) {
         if (target == null || maneuver == 0) {
             return;
         }
+
+        var uncertainty = XY.Polar(p.world.karma.NextDouble() * 2 * Math.PI, 0);
         var vel = p.velocity;
         var offset = target.position - p.position;
-        var velLeft = vel.Rotate(maneuver * delta * Program.TICKS_PER_SECOND);
-        var velRight = vel.Rotate(-maneuver * delta * Program.TICKS_PER_SECOND);
+
+        var turn = maneuver * delta * Program.TICKS_PER_SECOND;
+        var velLeft = vel.Rotate(turn);
+        var velRight = vel.Rotate(-turn);
         var distLeft = (offset - velLeft).magnitude;
         var distRight = (offset - velRight).magnitude;
 
+        smart = true;
+        (var closer, var farther) = distLeft < distRight ? (velLeft, velRight) : (velRight, velLeft);
         if (maneuverDistance == 0) {
-            if (distLeft < distRight) {
-                p.velocity = velLeft;
-            } else if (distRight < distLeft) {
-                p.velocity = velRight;
+            
+            if(smart) {
+                var dist = offset.magnitude;
+                if (dist < prevDistance) {
+                    p.velocity = closer;
+                    startApproach = false;
+                } else if (startApproach) {
+                    p.velocity = closer;
+                } else {
+                    p.velocity = farther;
+
+                    var deltaVel = target.velocity - p.velocity;
+                    var deltaAngle = Math.Abs((offset - deltaVel).angleRad);
+                    var deltaAngleDeg = deltaAngle * 180 / Math.PI;
+
+
+                    var timeToHit = offset.magnitude / deltaVel.magnitude;
+                    var timeToTurn = Math.Min(Math.PI/2, deltaAngle) / (maneuver * Program.TICKS_PER_SECOND);
+
+                    if (deltaAngle > Math.PI * 1.5 || timeToTurn < timeToHit) {
+                        startApproach = true;
+
+                        if(p.source is PlayerShip) {
+                            int i = 0;
+                        }
+                    }
+                }
+                prevDistance = dist;
+            } else {
+                p.velocity = closer;
             }
+            /*
+            var deltaVel = target.velocity - p.velocity;
+            //var deltaAngle = Math.Atan2(deltaVel.y, deltaVel.x);
+
+            var deltaAngle = Math.Abs((offset - deltaVel).angleRad);
+            
+            var circ = Math.Abs(deltaVel.magnitude) * (2 * Math.PI) / (maneuver * Program.TICKS_PER_SECOND);
+            //var circ = (deltaVel.magnitude) * Math.Abs(deltaAngle) / (maneuver * delta * Program.TICKS_PER_SECOND);
+            var diameter = circ / Math.PI;
+            var threshold = Math.Abs(diameter * Math.Cos(deltaAngle));
+
+            var timeToHit = offset.magnitude / deltaVel.magnitude;
+            var timeToTurn = deltaAngle / (maneuver * Program.TICKS_PER_SECOND);
+            //if (offset.magnitude > diameter) {
+            if (timeToTurn < timeToHit * 3 || deltaAngle < Math.PI/4) {
+                if (distLeft < distRight) {
+                    p.velocity = velLeft;
+                } else if (distRight < distLeft) {
+                    p.velocity = velRight;
+                }
+            } else {
+                //Turn away so we can turn towards later
+                if (distLeft < distRight) {
+                    p.velocity = velRight;
+                } else if (distRight < distLeft) {
+                    p.velocity = velLeft;
+                }
+            }
+            */
         } else {
-            (var closer, var farther) = distLeft < distRight ? (velLeft, velRight) : (velRight, velLeft);
             if (offset.magnitude > maneuverDistance) {
                 p.velocity = closer;
             } else {

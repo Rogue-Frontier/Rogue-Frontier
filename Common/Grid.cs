@@ -162,12 +162,12 @@ public class XY {
     public double angleRad => Math.Atan2(y, x);
     public double angleDeg => angleRad * 180 / Math.PI;
 
-    public XY Rotate(double angle) {
-        if (angle == 0) {
+    public XY Rotate(double radians) {
+        if (radians == 0) {
             return new(x, y);
         }
-        var sin = Math.Sin(angle);
-        var cos = Math.Cos(angle);
+        var sin = Math.Sin(radians);
+        var cos = Math.Cos(radians);
         return new(x * cos - y * sin, x * sin + y * cos);
     }
     public static implicit operator Point(XY xy) => new(xy.xi, xy.yi);
