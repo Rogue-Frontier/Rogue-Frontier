@@ -19,6 +19,16 @@ namespace Common;
 
 public static class Main {
 
+
+    public static ColoredString ConcatColored(ColoredString[] parts) {
+        var r = new List<ColoredGlyph>();
+        foreach(var cs in parts) {
+            r.AddRange(cs);
+        }
+        return new(r.ToArray());
+    }
+    public static ColoredString Concat(params (string str, Color foreground, Color background)[] parts) =>
+        new(parts.SelectMany(part => new ColoredString(part.str, part.foreground, part.background)).ToArray());
     public static void Replace(this ScreenSurface c, ScreenSurface next) {
         var p = c.Parent;
         p.Children.Remove(c);

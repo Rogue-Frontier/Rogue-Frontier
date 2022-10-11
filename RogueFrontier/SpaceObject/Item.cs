@@ -118,7 +118,6 @@ public class Armor : Device {
     //Temporarily increase max HP upon absorbing damage. Titan HP decays over time.
     public double titanHP;
     public double titanDuration;
-
     public double hpToRecover;
     public double recoveryHP;
     public double regenHP;
@@ -127,9 +126,9 @@ public class Armor : Device {
     public double damageDelay;
     public double stealth => desc.stealth == 0 ? 0 : desc.stealth * hp / desc.maxHP;
     public double lifetimeDamageAbsorbed;
-    public int lastDamageTick;
-    HashSet<Decay> decay=new();
-
+    public int lastDamageTick = -1000;
+    public int lastRegenTick = -1000;
+    public HashSet<Decay> decay=new();
     public int powerUse { get; private set; }
     public bool allowSpecial;
     public int maxHP => Math.Max(0, desc.maxHP - (int)(desc.lifetimeDegrade * lifetimeDamageAbsorbed) + (int)titanHP);
@@ -214,6 +213,7 @@ public class Armor : Device {
             return;
         }
         if (hpToRecover >= 1) {
+            lastRegenTick = owner.world.tick;
             powerUse = desc.powerUse;
             recoveryHP += desc.recoveryRate * delta * Program.TICKS_PER_SECOND;
             while (recoveryHP >= 1) {
@@ -228,6 +228,7 @@ public class Armor : Device {
             }
         }
         if(desc.regenRate > 0) {
+            lastRegenTick = owner.world.tick;
             powerUse = desc.powerUse;
             regenHP += desc.regenRate * delta * Program.TICKS_PER_SECOND;
             while (regenHP >= 1) {
@@ -283,7 +284,7 @@ public class Armor : Device {
             return 0;
 
         //If we have a minAbsorb, then we absorb damage even at 0 hp
-        int damageWall = desc.minAbsorb.Roll();
+        int damageWall = Math.Min(maxHP, desc.minAbsorb.Roll());
         if(hp is 0) {
             //If we're down and have nothing to absorb, then give up
             if (damageWall == 0) {
@@ -301,8 +302,14 @@ public class Armor : Device {
             }
             //If we still have something to absorb, do it now
             if (damageWall > 0) {
-                p.damageHP = Math.Max(0, p.damageHP - damageWall);
+                var deltaHP = Math.Min(p.damageHP, damageWall);
+                p.damageHP -= deltaHP;
+                lifetimeDamageAbsorbed += deltaHP * 5;
+
+                ApplyDecay();
                 return 0;
+            } else {
+                throw new Exception("Impossible scenario encountered");
             }
         } else {
             //If we're below the drill threshold, then skip this armor
@@ -334,19 +341,20 @@ public class Armor : Device {
                 return killHP;
             }
         }
-
         var multiplier = p.desc.armorFactor;// + lifetimeDamageAbsorbed * desc.lifetimeDegrade;
         var absorbed = (int)Math.Clamp(p.damageHP * multiplier, 0, hp);
+        if(desc.damageGate != -1 && absorbed - desc.damageGate is >0 and var cut) {
+            absorbed = desc.damageGate;
+            lifetimeDamageAbsorbed += cut * 5;
+        }
         hp -= absorbed;
         OnAbsorb(absorbed);
-        if (killHP > 0 && absorbed > killHP) {
+        if (killHP > 0 && absorbed >= killHP) {
             killHP = 0;
         }
         lastDamageTick = p.world.tick;
 
-        if (p.desc.decay is Decay d) {
-            decay.Add(new(d, p.source));
-        }
+        ApplyDecay();
 
         double reflectChance = desc.reflectFactor * hp / desc.maxHP - p.desc.antiReflect;
         if (p.world.karma.NextDouble() < reflectChance) {
@@ -357,6 +365,14 @@ public class Armor : Device {
         p.damageHP = Math.Max(0, p.damageHP - (int)Math.Ceiling(Math.Max(absorbed, damageWall) / multiplier));
         
         return absorbed;
+
+
+        void ApplyDecay() {
+
+            if (p.desc.decay is Decay d) {
+                decay.Add(new(d, p.source));
+            }
+        }
     }
 }
 public class Engine : Device {
@@ -728,6 +744,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     public bool blind;
     public double criticalFactor = 0.0;
     public XY offset=new(0,0);
+    public int lastFireTick;
     public double timeSinceLastFire;
     public int totalTimesFired;
     public record OnFire(Weapon w, List<Projectile> p);
@@ -832,10 +849,12 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         firing = direction.HasValue;
 
         bool beginRepeat = true;
+        bool endRepeat = false;
         if (repeatsLeft > 0) {
             repeatsLeft--;
             firing = true;
             beginRepeat = false;
+            endRepeat = repeatsLeft == 0;
         } else if (desc.autoFire) {
             bool CheckProjectile() {
                 if (desc.targetProjectile && !blind && Targeting.AcquireMissile(owner, this, s => SStation.IsEnemy(owner, s)) is Projectile target) {
@@ -886,7 +905,12 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             goto Cancel;
         }
         UpdateProjectileDesc();
-        delay = repeatsLeft == 0 ? desc.fireCooldown : desc.repeatDelay;
+        delay = 
+            beginRepeat ?
+                desc.fireCooldown :
+            endRepeat ? 
+                desc.repeatDelayEnd :
+                desc.repeatDelay;
         if (beginRepeat) {
             repeatsLeft = desc.repeat;
         }
@@ -920,10 +944,12 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             direction = aimAngle;
         }
         bool beginRepeat = true;
+        bool endRepeat = false;
         if (repeatsLeft > 0) {
             repeatsLeft--;
             firing = true;
             beginRepeat = false;
+            endRepeat = repeatsLeft == 0;
         } else if (desc.autoFire) {
             bool CheckProjectile() {
                 if (desc.targetProjectile && !blind && Targeting.AcquireMissile(owner, this, s => s != null && SShip.IsEnemy(owner, s)) is Projectile target) {
@@ -945,7 +971,12 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             goto Cancel;
         }
         UpdateProjectileDesc();
-        delay = repeatsLeft == 0 ? desc.fireCooldown : desc.repeatDelay;
+        delay = 
+            beginRepeat ?
+                desc.fireCooldown :
+            endRepeat ?
+                desc.repeatDelayEnd :
+                desc.repeatDelay;
         if (beginRepeat) {
             repeatsLeft = desc.repeat;
         }
@@ -1031,6 +1062,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         capacitor?.OnFire();
         onFire.Observe(new(this, projectiles));
         timeSinceLastFire = 0;
+        lastFireTick = owner.world.tick;
         totalTimesFired++;
     }
     public record OnHitActive(Weapon w, Projectile p, ActiveObject hit);

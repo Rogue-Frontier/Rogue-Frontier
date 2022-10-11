@@ -132,6 +132,9 @@ public class BaseShip {
         this.devices = new();
         this.devices.Install(shipClass.devices?.Generate(world.types) ?? new List<Device>());
         this.damageSystem = shipClass.damageDesc.Create(world.types);
+        if(damageSystem is LayeredArmor la) {
+            this.devices.Install(la.layers);
+        }
         this.destiny = new Rand(world.karma.NextInteger());
     }
     public BaseShip(BaseShip source) {

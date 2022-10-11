@@ -263,7 +263,7 @@ public class Station : ActiveObject, ITrader, IDockable {
         if(world.tick%15 == 0) {
             stealth = type.stealth;
             if (weapons.Any()) {
-                stealth *= 1 - weapons.Max(w => (w.delay / w.desc.fireCooldown));
+                stealth *= Math.Min(1, weapons.Min(w => w.timeSinceLastFire));
             }
             if(construction != null) {
                 construction.time -= 15;
@@ -279,6 +279,7 @@ public class Station : ActiveObject, ITrader, IDockable {
                 }
             }
         }
+        (damageSystem as LayeredArmor)?.layers.ForEach(l => l.Update(delta, this));
         weapons?.ForEach(w => w.Update(delta, this));
         behavior?.Update(delta, this);
     }

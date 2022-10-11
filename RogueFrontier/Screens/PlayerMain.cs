@@ -1564,16 +1564,31 @@ public class Readout : ScreenSurface {
                     y++;
                 }
             }
+
             void PrintHull(HullSystem hull) {
                 switch (hull) {
                     case LayeredArmor las: {
                             foreach (var armor in las.layers.Reverse<Armor>()) {
-                                var f = (tick - armor.lastDamageTick) < 15 ? (armor.hp == 0 ? Color.Red : Color.Yellow) : (armor.hp > 0 || armor.desc.minAbsorb != null ? Color.White : Color.Gray);
+                                var f =
+                                    (tick - armor.lastDamageTick) < 15 ?
+                                        Color.Yellow :
+                                        (armor.hp > 0 ?
+                                            Color.White :
+                                            (armor.desc.minAbsorb == null ?
+                                                Color.Orange :
+                                                Color.Gray)
+                                            );
+                                var bb =
+                                    armor.decay.Any() ?
+                                        Color.Red :
+                                    tick - armor.lastRegenTick < 15 ?
+                                        Color.Cyan :
+                                        b;
                                 int l = BAR * armor.hp / armor.maxHP;
                                 Surface.Print(x, y, "[", f, b);
                                 Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
                                 Surface.Print(x + 1, y, new('=', l), f, b);
-                                Surface.Print(x + 1 + BAR, y, $"] {armor.source.type.name}", f, b);
+                                Surface.Print(x + 1 + BAR, y, $"] {armor.source.type.name}", f, bb);
                                 y++;
                             }
                             break;
@@ -1745,32 +1760,57 @@ public class Readout : ScreenSurface {
                         s.hp < s.desc.maxHP ? Color.Cyan :
                         Color.White;
                     var l = BAR * s.hp / s.desc.maxHP;
-                    Surface.Print(x, y, "[", f, b);
-                    Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
-                    Surface.Print(x + 1, y, new('=', l), f, b);
-                    Surface.Print(x + 1 + BAR, y, $"] [{s.hp,3}/{s.desc.maxHP,3}] {name}", f, b);
+                    Surface.Print(x, y, Main.Concat(
+                        ("[", f, b),
+                        (new('=', l), f, b),
+                        (new('=', BAR - l), Color.Gray, b),
+                        ($"] [{s.hp,3}/{s.desc.maxHP,3}] {name}", f, b)
+                    ));
                     y++;
                 }
             }
             switch (player.hull) {
                 case LayeredArmor las: {
                         foreach (var armor in las.layers.Reverse<Armor>()) {
-                            var f = (player.world.tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
-                            int l = BAR * armor.hp / armor.maxHP;
-                            Surface.Print(x, y, "[", f, b);
-                            Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
-                            Surface.Print(x + 1, y, new('=', l), f, b);
-                            Surface.Print(x + 1 + BAR, y, $"] [{armor.hp,3}/{armor.maxHP,3}] {armor.source.type.name}", f, b);
+                            var f =
+                                    (tick - armor.lastDamageTick) < 15 ?
+                                        Color.Yellow :
+                                        (armor.hp > 0 ?
+                                            Color.White :
+                                            (armor.desc.minAbsorb != null ?
+                                                Color.Orange :
+                                                Color.Gray)
+                                            );
+                            var bb =
+                                armor.decay.Any() ?
+                                    Color.Black.Blend(Color.Red.SetAlpha(128)) :
+                                tick - armor.lastRegenTick < 15 ?
+                                    Color.Black.Blend(Color.Cyan.SetAlpha(128)) :
+                                !armor.allowSpecial ?
+                                    Color.Black.Blend(Color.Yellow.SetAlpha(128)) :
+                                    
+                                    b;
+                            int l = BAR * armor.hp / Math.Max(1, armor.maxHP);
+                            Surface.Print(x, y, Main.Concat(
+                                ("[", f, b),
+                                (new('=', l), f, b),
+                                (new('=', BAR - l), Color.Gray, b),
+                                ($"] [{armor.hp,3}/{armor.maxHP,3}] ", f, b),
+                                ($"{armor.source.type.name}", f, bb)
+                            ));
                             y++;
                         }
                         break;
                     }
                 case HP hp: {
                         var f = Color.White;
-                        Surface.Print(x, y, "[", f, b);
-                        Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
-                        Surface.Print(x + 1, y, new('=', BAR * hp.hp / hp.maxHP), f, b);
-                        Surface.Print(x + 1 + BAR, y, $"] HP: {hp.hp}", f, b);
+                        var l = BAR * hp.hp / hp.maxHP;
+                        Surface.Print(x, y, Main.Concat(
+                            ("[", f, b),
+                            (new('=', l), f, b),
+                            (new('=', BAR - l), Color.Gray, b),
+                            ($"] HP: {hp.hp}", f, b)
+                        ));
                         y++;
                         break;
                     }

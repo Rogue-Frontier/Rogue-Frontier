@@ -14,9 +14,10 @@
 		>
 		<Weapon	initialCharges=	"1200"
 				powerUse=		"20"
-				fireCooldown=	"30"
-				repeat="2"
-				repeatDelay="10"
+				fireCooldown=	"18"
+				repeat=			"2"
+				repeatDelay=	"6"
+				repeatDelayEnd=	"30"
 			>
 
 			<Projectile
@@ -45,7 +46,7 @@
 		>
 	</ItemType>
 	<ItemType	codename=	"item_bomb_launcher"
-				name=		"Bomb launcher"
+				name=		"Shapnel bomb launcher"
 				attributes=	"DarkStar"
 				level=		"2"
 				mass=		"2000"
@@ -71,6 +72,8 @@
 				background=		"Black"
 				
 				detonateRadius="5"
+				
+				detonateSound=	"RogueFrontierContent/sounds/dynamite.wav"
 				>
 				<Fragment
 					count=			"18"

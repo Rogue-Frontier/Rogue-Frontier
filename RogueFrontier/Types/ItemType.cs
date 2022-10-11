@@ -324,6 +324,7 @@ public record ArmorDesc() {
     [Opt] public double reflectFactor;
     [Opt] public IDice minAbsorb = new Constant(0);
     [Opt] public int powerUse = -1;
+    [Opt] public int damageGate = -1;
     public TitanDesc titan;
     public ItemFilter restrictRepair;
     public Armor GetArmor(Item i) => new(i, this);
@@ -415,6 +416,7 @@ public record WeaponDesc {
     [Opt] public int recoil = 0;
     [Opt] public int repeat = 0;
     [Opt] public int repeatDelay = 3;
+    [Opt] public int repeatDelayEnd = 3;
     [Opt] public double failureRate = 0;
     [Opt] public int initialCharges = -1;
 
