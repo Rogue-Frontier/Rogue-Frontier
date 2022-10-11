@@ -34,7 +34,6 @@ public class Wreck : MovingObject, IDockable {
     public int ticks { get; private set; }
     [JsonProperty]
     public XY gravity { get; private set; }
-
     public delegate void OnDestroyed(Wreck w);
     public Ev<OnDestroyed> onDestroyed = new();
     public Wreck() { }
@@ -51,14 +50,11 @@ public class Wreck : MovingObject, IDockable {
     }
     public XY GetDockPoint() => XY.Zero;
     public ScreenSurface GetDockScene(ScreenSurface prev, PlayerShip playerShip) => new WreckScene(prev, playerShip, this);
-    public void Damage(Projectile p) {
-    }
-    
+    public void Damage(Projectile p) {}
     public void Destroy(ActiveObject source) {
         active = false;
         onDestroyed.ForEach(p => p(this));
     }
-
     public void Update(double delta) {
         position += velocity * delta;
 #if false
@@ -103,11 +99,8 @@ public class Station : ActiveObject, ITrader, IDockable {
     public XY velocity { get; set; }
     [JsonProperty]
     public bool active { get; set; }
-
-
     [JsonProperty]
     public double rotation;
-
     [JsonProperty]
     public StationBehavior behavior;
     [JsonProperty]
@@ -120,23 +113,15 @@ public class Station : ActiveObject, ITrader, IDockable {
     public List<Weapon> weapons = new();
     [JsonProperty]
     public List<AIShip> guards = new();
-
     public ConstructionJob construction;
-
     public double stealth;
-
     public record Destroyed(Station station, ActiveObject destroyer, Wreck wreck);
     public Destroyed destroyed;
     public Vi<Destroyed> onDestroyed = new();
-
-
     public record Damaged(Station station, Projectile p);
     public Vi<Damaged> onDamaged = new();
-
-
     public record WeaponFired(Station station, Weapon w, List<Projectile> p);
     public Vi<WeaponFired> onWeaponFire = new();
-
     public Station() { }
     public Station(System World, StationType type, XY Position) {
         this.id = World.nextId++;
@@ -200,7 +185,6 @@ public class Station : ActiveObject, ITrader, IDockable {
     public IEnumerable<AIShip> GetDocked() =>
         world.entities.FilterKey(p => (position - p).magnitude < 5)
             .OfType<AIShip>().Where(s => s.dock.Target == this);
-    
     public XY GetDockPoint() =>
         type.dockPoints.Except(GetDocked().Select(s => s.dock.Offset)).FirstOrDefault() ?? XY.Zero;
     public List<AIShip> UpdateGuardList() {
@@ -212,15 +196,6 @@ public class Station : ActiveObject, ITrader, IDockable {
                 _ => false
             }));
     }
-    /*
-    public HashSet<SpaceObject> GetParts() {
-        var set = new HashSet<SpaceObject>();
-        set.Add(this);
-        set.UnionWith(segments);
-        set.UnionWith(guards);
-        return set;
-    }
-    */
     public void Damage(Projectile p) {
         onDamaged.Observe(new(this, p));
         damageSystem.Damage(world.tick, p, () => Destroy(p.source));

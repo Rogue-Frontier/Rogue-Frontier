@@ -85,7 +85,7 @@ public class LayeredArmor : HullSystem {
                 factor--;
                 foreach (var j in Enumerable.Range(i - factor, factor).Reverse().TakeWhile(j => j > -1)) {
                     var below = layers[j];
-                    below.Absorb((absorbed * factor) / p.desc.shock);
+                    below.Damage((absorbed * factor) / p.desc.shock);
                     below.lastDamageTick = tick;
                     factor--;
                 }

@@ -59,6 +59,9 @@
     <None Update="RogueFrontierContent\scripts\DarkStar.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="RogueFrontierContent\scripts\Debug.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="RogueFrontierContent\scripts\Intro.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -168,6 +171,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\sprites\IBMCGA+.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="RogueFrontierContent\sprites\MurmurOutpost.asc.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\sprites\NRobotFortress.asc.cg">

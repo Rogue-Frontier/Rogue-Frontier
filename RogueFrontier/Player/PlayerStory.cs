@@ -574,7 +574,6 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_orion_bolter = 400,
         item_orion_longbow = 800,
         item_orion_turret = 900,
-        item_traitor_longbow = 1200,
         item_orion_skewer = 2700,
         item_hunterscale_plate = 250,
         item_skullhelm_plate = 600,
@@ -596,6 +595,11 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_buckler_shield = 400,
         item_klaw_missile = 8,
         item_klaw_missile_launcher = 400,
+
+
+        item_fang_missile = 20,
+        item_fang_missile_launcher = 1000,
+
         item_musket_turret = 3500,
         item_sidearm_turret = 3500,
         item_missile_defender = 4000,

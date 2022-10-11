@@ -325,7 +325,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
                 PlaceTiles(delta);
                 transition?.Update(delta);
             }
-            if (playerShip.dock is Docking { justDocked: true, Target: IDockable d } dock) {
+            if (playerShip.dock is { justDocked: true, Target: IDockable d } dock) {
                 audio.PlayDocking(false);
                 var scene = story.GetScene(this, playerShip, d) ?? d.GetDockScene(this, playerShip);
                 if (scene != null) {
@@ -354,21 +354,11 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
             networkMap.Update(delta);
             return;
         }
-        //If the player is in mortality, then slow down time
-        bool passTime = true;
-        if (playerShip.active && playerShip.mortalTime > 0) {
-            //Note that while the world updates are slowed down, the game window actually updates faster since there's less work per frame
-            var timePassed = delta.TotalSeconds;
-            updateWait += timePassed;
-            var interval = Math.Max(2, playerShip.mortalTime);
-            if (updateWait < interval / 60) {
-                passTime = false;
-            } else {
-                updateWait = 0;
-            }
-            playerShip.mortalTime -= timePassed;
-        }
         var gameDelta = delta.TotalSeconds * (playerShip.autopilot ? 3 : 1);
+        if(playerShip is { active:true, mortalTime: > 0 }) {
+            playerShip.mortalTime -= gameDelta;
+            gameDelta /= (1 + playerShip.mortalTime/2);
+        }
         void UpdateUniverse() {
 
             world.UpdateActive(gameDelta);
@@ -381,7 +371,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
             });
         }
 
-        if (passTime) {
+        if (gameDelta > 0) {
             back.Update(delta);
             lock (world) {
 
@@ -405,7 +395,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
                 }
             }
 
-            if (playerShip.dock is Docking {  justDocked:true, Target: IDockable d } dock) {
+            if (playerShip.dock is {  justDocked:true, Target: IDockable d } dock) {
                 audio.PlayDocking(false);
                 var scene = story.GetScene(this, playerShip, d) ?? d.GetDockScene(this, playerShip);
                 if (scene != null) {
@@ -979,8 +969,8 @@ public class Megamap : ScreenSurface {
 #nullable enable
         scaledEntities = player.world.entities.TransformSelectList<(Entity entity, double distance)?>(
                 e => (screenCenter + ((e.position - player.position) / viewScale).Rotate(-camera.rotation)).flipY + (0, Height),
-                ((int x, int y) p) => p.x > -1 && p.x < Width && p.y > -1 && p.y < Height,
-                ent => ent is not ISegment && ent.tile != null && player.GetVisibleDistanceLeft(ent) is double dist && dist > 0 ? (ent, dist) : null
+                ((int x, int y) p) => p is (> -1, > -1) && p.x < Width && p.y < Height,
+                ent => ent is { tile: not null } and not ISegment && player.GetVisibleDistanceLeft(ent) is var dist and > 0 ? (ent, dist) : null
             );
         base.Update(delta);
     }
@@ -1438,7 +1428,8 @@ public class Readout : ScreenSurface {
         ActiveObject target;
         if (player.GetTarget(out target)) {
             Surface.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
-        } else if((target = player.devices.Weapon.Select(w => w.target).Except(new ActiveObject[] { null }).FirstOrDefault()) != null) {
+        } else if(player.devices.Weapon.Select(w => w.target).Except(new ActiveObject[] { null }).FirstOrDefault() is ActiveObject found) {
+            target = found;
             Surface.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
         } else {
             goto SkipTarget;
@@ -1452,7 +1443,7 @@ public class Readout : ScreenSurface {
             switch (target) {
                 case AIShip ai:
                     Print(ai.devices);
-                    PrintHull(ai.damageSystem);
+                    PrintHull(ai.hull);
                     break;
                 case Station s:
                     PrintHull(s.damageSystem);
@@ -1577,7 +1568,7 @@ public class Readout : ScreenSurface {
                 switch (hull) {
                     case LayeredArmor las: {
                             foreach (var armor in las.layers.Reverse<Armor>()) {
-                                var f = (tick - armor.lastDamageTick) < 15 ? Color.Yellow : Color.White;
+                                var f = (tick - armor.lastDamageTick) < 15 ? (armor.hp == 0 ? Color.Red : Color.Yellow) : (armor.hp > 0 || armor.desc.minAbsorb != null ? Color.White : Color.Gray);
                                 int l = BAR * armor.hp / armor.maxHP;
                                 Surface.Print(x, y, "[", f, b);
                                 Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
@@ -1721,7 +1712,7 @@ public class Readout : ScreenSurface {
                     } else {
                         enhancement = "";
                     }
-                    string tag = $"{(i == player.primary.index ? "->" : i == player.secondary.index ? "=>" : "  ")}{w.GetReadoutName()} {enhancement}";
+                    var tag = $"{(i == player.primary.index ? "->" : i == player.secondary.index ? "=>" : "  ")}{w.GetReadoutName()} {enhancement}";
                     var foreground =
                         player.energy.off.Contains(w) ?
                             Color.Gray :
@@ -1739,7 +1730,7 @@ public class Readout : ScreenSurface {
             }
             if (misc.Any()) {
                 foreach (var m in misc) {
-                    string tag = m.source.type.name;
+                    var tag = m.source.type.name;
                     var f = Color.White;
                     Surface.Print(x, y, $"[{new string('-', BAR)}] {tag}", f, b);
                     y++;
@@ -1748,12 +1739,12 @@ public class Readout : ScreenSurface {
             }
             if (shields.Any()) {
                 foreach (var s in shields.Reverse<Shield>()) {
-                    string name = s.source.type.name;
+                    var name = s.source.type.name;
                     var f = player.energy.off.Contains(s) ? Color.Gray :
                         s.hp == 0 || s.delay > 0 ? Color.Yellow :
                         s.hp < s.desc.maxHP ? Color.Cyan :
                         Color.White;
-                    int l = BAR * s.hp / s.desc.maxHP;
+                    var l = BAR * s.hp / s.desc.maxHP;
                     Surface.Print(x, y, "[", f, b);
                     Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
                     Surface.Print(x + 1, y, new('=', l), f, b);
@@ -1815,7 +1806,7 @@ public class Edgemap : ScreenSurface {
         var range = 192;
         player.world.entities.FilterKeySelect<(Entity entity, double dist)?>(
             ((int, int) p) => (player.position - p).maxCoord < range,
-            entity => entity.tile != null && entity is not ISegment && player.GetVisibleDistanceLeft(entity) is double d && d > 0 ? (entity, d) : null,
+            entity => entity is { tile:not null } and not ISegment && player.GetVisibleDistanceLeft(entity) is var d and > 0 ? (entity, d) : null,
             v => v != null)
             .ToList()
             .ForEach(pair => {
@@ -1885,8 +1876,8 @@ public class Minimap : ScreenSurface {
 
         var scaledEntities = player.world.entities.TransformSelectList<(Entity entity, double distance)?>(
             e => (screenCenter + ((e.position - player.position) / mapScale).Rotate(-camera.rotation)).flipY + (0, Height),
-            ((int x, int y) p) => p.x > -1 && p.x < Width && p.y > -1 && p.y < Height,
-            ent => ent is not ISegment && ent.tile != null && player.GetVisibleDistanceLeft(ent) is double dist && dist > 0 ? (ent, dist) : null
+            ((int x, int y) p) => p is (> -1, > -1) && p.x < Width && p.y < Height,
+            ent => ent is { tile:not null } and not ISegment && player.GetVisibleDistanceLeft(ent) is var dist && dist > 0 ? (ent, dist) : null
         );
 
 

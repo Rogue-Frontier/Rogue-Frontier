@@ -18,6 +18,7 @@ public interface StructureObject : MovingObject {
     string name { get; }
     //World world { get; }
     XY velocity { get; set; }
+
     void Damage(Projectile p);
     void Destroy(ActiveObject source = null);
 }

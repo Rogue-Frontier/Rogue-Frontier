@@ -136,11 +136,13 @@
 		mass=		"8000"
 		level=		"6"
 		value=		"32000"
-		desc=		"This highly valuable armor is made of flawless steel, which naturally rebuilds itself in response to deformation."
+		desc=		"This highly valuable armor is made of a nano-boosted metal that automatically rebuilds itself after damage."
 		>
 		<Armor	maxHP=		"150"
 				recoveryFactor="0.8"
-				recoveryRate="10/30"/>
+				recoveryRate="10/30"
+				powerUse=	"20"
+				/>
 	</ItemType>
 	<ShipClass	codename=	"ship_flawless"
 		name=				"Flawless-class fighter"

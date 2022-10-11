@@ -5,16 +5,13 @@ using System.Linq;
 namespace RogueFrontier;
 
 public class EnergySystem {
-    public Circuit devices;
-    public HashSet<Device> on => devices.Installed.Except(off).ToHashSet();
+    public HashSet<Device> GetEnabled(Circuit c) => c.Installed.Except(off).ToHashSet();
     public HashSet<Device> off = new();
     public int totalOutputMax;
     public int totalOutputUsed;
     public int totalOutputLeft => totalOutputMax - totalOutputUsed;
-    public EnergySystem(Circuit devices) {
-        this.devices = devices;
-    }
     public void Update(PlayerShip player) {
+        var devices = player.devices;
         var reactors = devices.Reactor;
         if (!reactors.Any()) {
             return;
@@ -59,7 +56,7 @@ public class EnergySystem {
             if(powered is Service s && s.desc.type == ServiceType.grind) {
                 int i = 0;
             }
-            var powerUse = powered.powerUse.Value;
+            var powerUse = powered.powerUse;
             if (powerUse <= 0) { return; }
             if (powerUse > totalOutputLeft) {
                 overflow.Add(powered);

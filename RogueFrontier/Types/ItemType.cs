@@ -51,6 +51,7 @@ public record DeployStation : ItemUse {
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         var a = new Station(player.world, stationTypeDesc, player.position) { sovereign = player.sovereign };
         player.world.AddEntity(a);
+        a.CreateSegments();
         player.AddMessage(new Transmission(a, $"Deployed {stationTypeDesc.name}"));
         player.cargo.Remove(item);
         callback?.Invoke();
@@ -320,15 +321,25 @@ public record ArmorDesc() {
     [Opt] public int killHP;
     [Opt] public double stealth;
     [Opt] public double lifetimeDegrade = 1/50.0;
-    [Opt] public double titanFactor;
     [Opt] public double reflectFactor;
     [Opt] public IDice minAbsorb = new Constant(0);
+    [Opt] public int powerUse = -1;
+    public TitanDesc titan;
     public ItemFilter restrictRepair;
     public Armor GetArmor(Item i) => new(i, this);
     public ArmorDesc(XElement e) : this() {
         e.Initialize(this);
         restrictRepair = e.HasElement("RestrictRepair", out var xmlRestrictRepair) ?
             new(xmlRestrictRepair) : null;
+        titan = e.HasElement("Titan", out var xmlTitan) ? new(xmlTitan) : null;
+    }
+
+    public record TitanDesc() {
+        [Opt] public double gain = 1.0;
+        [Opt] public double factor = 1.0;
+        [Opt] public double decay = 1.0;
+        [Opt] public double duration = 1.0;
+        public TitanDesc(XElement e) : this() => e.Initialize(this);
     }
 }
 public record EngineDesc {

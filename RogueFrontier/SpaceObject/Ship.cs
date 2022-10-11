@@ -67,6 +67,7 @@ public interface IShip : ActiveObject {
     HashSet<Item> cargo { get; }
     Circuit devices { get; }
     ShipClass shipClass { get; }
+    HullSystem hull { get; }
     bool thrusting { get; }
     double rotationDeg { get; }
     double rotationRad => rotationDeg * Math.PI / 180;
@@ -327,7 +328,7 @@ public class AIShip : IShip {
     [JsonIgnore] public double rotationDeg => ship.rotationDeg;
     [JsonIgnore] public HashSet<Item> cargo => ship.cargo;
     [JsonIgnore] public Circuit devices => ship.devices;
-    [JsonIgnore] public HullSystem damageSystem => ship.damageSystem;
+    [JsonIgnore] public HullSystem hull => ship.damageSystem;
     [JsonIgnore] public Rand destiny => ship.destiny;
     [JsonIgnore] public double stoppingRotation => ship.stoppingRotation;
     [JsonIgnore] public HashSet<Entity> avoidHit => new HashSet<Entity> { dock.Target, (behavior as GuardAt)?.home };
@@ -363,7 +364,7 @@ public class AIShip : IShip {
             _ => order
         };
     }
-    public bool IsAble() => damageSystem.GetHP() > damageSystem.GetMaxHP() / 2;
+    public bool IsAble() => hull.GetHP() > hull.GetMaxHP() / 2;
     public override string ToString() => $"{id}, {position.roundDown}, {velocity.roundDown}, {shipClass.codename}, {behavior}";
     public void SetThrusting(bool thrusting = true) => ship.SetThrusting(thrusting);
     public void SetRotating(Rotating rotating = Rotating.None) => ship.SetRotating(rotating);
@@ -461,7 +462,7 @@ public class PlayerShip : IShip {
     public BaseShip ship;
     //public PlayerStory story;
     public Sovereign sovereign { get; set; }
-    public EnergySystem energy;
+    public EnergySystem energy { get; set; }
     public List<Power> powers = new();
 
     [JsonIgnore]
@@ -511,7 +512,7 @@ public class PlayerShip : IShip {
 
         //this.story = new(this);
 
-        energy = new(ship.devices);
+        energy = new();
         primary = new(ship.devices.Weapon);
         secondary = new(ship.devices.Weapon);
     }

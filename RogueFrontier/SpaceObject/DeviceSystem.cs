@@ -6,6 +6,7 @@ public class Circuit {
     public List<Device> Installed=new();
     public List<Device> Powered=new();
 
+    public List<Armor> Armor = new();
     public List<Engine> Engine = new();
     public List<Enhancer> Enhancer = new();
     public List<Launcher> Launcher = new();
@@ -16,8 +17,9 @@ public class Circuit {
     public Circuit() {}
     public void Install(IEnumerable<Device> Devices) {
         Installed.AddRange(Devices);
-        Powered.AddRange(Devices.Where(d => d.powerUse.HasValue));
+        Powered.AddRange(Devices.Where(d => d.powerUse>=0));
 
+        Armor.AddRange(All<Armor>());
         Engine.AddRange(All<Engine>());
         Enhancer.AddRange(All<Enhancer>());
         Launcher.AddRange(All<Launcher>());
@@ -32,7 +34,8 @@ public class Circuit {
         Install(Devices.AsEnumerable());
     public void Remove(params Device[] Devices) {
         Installed.RemoveAll(Devices.Contains);
-        Powered.RemoveAll(Devices.Where(d=>d.powerUse.HasValue).Contains);
+        Powered.RemoveAll(Devices.Where(d=>d.powerUse>=0).Contains);
+        Armor.RemoveAll(All);
         Engine.RemoveAll(All);
         Enhancer.RemoveAll(All);
         Launcher.RemoveAll(All);
@@ -46,6 +49,7 @@ public class Circuit {
         Installed.Clear();
         Powered.Clear();
 
+        Armor.Clear();
         Engine.Clear();
         Enhancer.Clear();
         Launcher.Clear();
@@ -55,7 +59,8 @@ public class Circuit {
         Weapon.Clear();
     }
     public void UpdateDevices() {
-        Powered = Installed.Where(d=>d.powerUse.HasValue).ToList();
+        Powered = Installed.Where(d=>d.powerUse>=0).ToList();
+        Armor = All<Armor>();
         Engine = All<Engine>();
         Enhancer = All<Enhancer>();
         Launcher = All<Launcher>();

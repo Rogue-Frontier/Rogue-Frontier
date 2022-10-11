@@ -6,21 +6,27 @@
 				name=		"Murmur outpost"
 				sovereign=	"sovereign_murmurs"
 
-				hp=			"400"
+				hp=			"800"
 
 				glyph=		"O"
 				foreground= "5511AAFF"
 				background=	"Black"
+				structure="RogueFrontierContent/sprites/MurmurOutpost.asc.cg"
 		>
 		<Segments>
 		</Segments>
 		<Guards>
 		</Guards>
 		<Weapons>
-			<Weapon	codename="item_dark_lightning_cannon" angle="0" leftRange="45" rightRange="45"/>
-			<Weapon	codename="item_dark_lightning_cannon" angle="90" leftRange="45" rightAngle="45"/>
-			<Weapon	codename="item_dark_lightning_cannon" angle="180" leftRange="45" rightAngle="45"/>
-			<Weapon	codename="item_dark_lightning_cannon" angle="270" leftRange="45" rightAngle="45"/>
+			<Weapon	codename="item_dark_lightning_cannon" posX="5" posY="0" angle="0" leftRange="60" rightRange="60"/>
+			<Weapon	codename="item_dark_lightning_cannon" posX="0" posY="5" angle="90" leftRange="60" rightAngle="60"/>
+			<Weapon	codename="item_dark_lightning_cannon" posX="-5" posY="0" angle="180" leftRange="60" rightAngle="60"/>
+			<Weapon	codename="item_dark_lightning_cannon" posX="0" posY="-5" angle="270" leftRange="60" rightAngle="60"/>
+
+			<Weapon	codename="item_dark_magic_blaster" posX="6" posY="6" angle="45" leftRange="15" rightRange="15"/>
+			<Weapon	codename="item_dark_magic_blaster" posX="-6" posY="6" angle="135" leftRange="15" rightRange="15"/>
+			<Weapon	codename="item_dark_magic_blaster" posX="-6" posY="-6" angle="225" leftRange="15" rightRange="15"/>
+			<Weapon	codename="item_dark_magic_blaster" posX="6" posY="-6" angle="315" leftRange="15" rightRange="15"/>
 		</Weapons>
 	</StationType>
 
@@ -50,11 +56,11 @@
 				
 				multiTarget=	"true"
 				
-				lifetime=		"90"
+				lifetime=		"75"
 				glyph=			"*"
 				foreground=		"AA55FFFF"
 				>
-				<Decay lifetime="300" rate="3/60"/>
+				<Decay lifetime="30" rate="2/60" degradeFactor="5"/>
 				<Trail
 					lifetime=	"10"
 					glyph=		"*"

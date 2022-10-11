@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>TranscendenceRL - INeedAUniqueUsername</title>
+    <title>Rogue Frontier Manual</title>
     <link href="unique.css" rel="stylesheet" />
     <style>
         h1 {
@@ -21,7 +21,7 @@
             color: rgba(225, 255, 225, 1);
             word-break: break-word;
 
-            margin-left:16px;
+            margin-left:32px;
             margin-top: 0px;
             margin-bottom: 0px;
         }
@@ -80,7 +80,16 @@
         }
 
         .content {
-            background-color: rgba(0, 51, 128, 0.25)
+            background-color: rgba(0, 51, 128, 0.75)
+        }
+
+        .shortBar {
+            width: 25%;
+            margin-left: 32px;
+        }
+        .longBar {
+            width: 50%;
+            margin-left: 32px;
         }
     </style>
 </head>
@@ -91,57 +100,80 @@
     </div>
     <hr />
     <h1 style="text-align:center">Readme</h1>
-    <hr />
-    <div class="content" style="margin-left:256px; margin-right:256px;">
+    <div class="content" style="margin-left:256px; margin-right:256px; margin-top:32px;">
+        <hr />
 
         <h2>Introduction</h2>
-        <p>Welcome to TranscendenceRL!</p>
+        <hr class="longBar" />
+        <p>Welcome to Rogue Frontier!</p>
+        <br />
 
         <h2>User Interface</h2>
+        <hr class="longBar" />
+        <br />
+
         <h3>The Display</h3>
+        <hr class="shortBar" />
         <p>
             The display shows your current conditions and nearby surroundings.
-            <br />
-            - A line of white blips shows where each ship is currently facing.
+            <br />- A line of white blips shows where each ship is currently facing.
             <br />- A line of yellow blips indicates where an omnidirectional weapon is aiming.
             <br />
             When you approach a station for the first time, a message pops up showing its name.
         </p>
-        <h3>The Minimap</h3>
+        <br />
+
+        <h3>The Readout</h3>
+        <hr class="shortBar" />
         <p>
-            The minimap displays stations, ships, and missiles within 192 units of your location in a 24 x 24 view.
+
         </p>
-        <h3>The Megamap</h3>
+        <br />
+
+        <h3>Megamap</h3>
+        <hr class="shortBar" />
         <p>
-            The megamap provides an adjustable scaled-down view of your surroundings - including stars, stations, and ships. Press PLUS to zoom in and MINUS to zoom out. A grey rectangle shows the scale of the map relative to your visible screen area.
+            The megamap provides an adjustable scaled-down view of your surroundings, including stars, stations, and ships.
+            <br />- Press PLUS to zoom in (hold LeftControl to halve view-scale)
+            <br />- Press MINUS to zoom out (hold LeftControl to double view-scale)
+            <br />- Press LeftControl + 0 to reset zoom.
+            <br />A grey rectangle shows your 1:1 view area relative to the larger map.
         </p>
-        <h3>The Border</h3>
+        <br />
+        <h3>Vignette</h3>
+        <hr class="shortBar" />
         <p>
-            The border adds a vignette to the edge of the display. It may glow depending on your current situation.
-            <br />
-            - The border glows white when you are near a star.
-            <br />
-            - The border glows red when you are in "mortal" state.
-            <br />
-            - The border glows violet when you are charging up a Power
-            <br />
-            - The border glows cyan when your ship is experiencing EMP
-            <br />
-            Objects that are visible on the edge of the screen show up as <code>#</code> on the border.
+            The Vignette colors the edge of the display. It may glow depending on your current situation.
+            <br />- White when you are near a star.
+            <br />- Red when you are in "mortal" state.
+            <br />- Violet when you are charging up a Power
+            <br />- Cyan when your ship is disrupted
+            <br />Objects that are visible on the edge of the screen show up as <code>#</code> on the border.
         </p>
-        <h3>The Power Menu</h3>
+        <br />
+        <h3>Power Menu</h3>
+        <hr class="shortBar" />
         <p>
             Press P to show the Power menu. If you have access to certain special Powers, then you may use them here. Hold down the key next to a Power to charge up. When the Power is fully charged, release the key to invoke.
         </p>
-        <h3>The Ship Screen</h3>
+        <br />
+        <h3>Commander Menu</h3>
+        <hr class="shortBar" />
+        <p>
+            Press C to show the Commander menu. If you have wingmates, you can command them here.
+        </p>
+        <br />
+        <h3>Ship Screen</h3>
+        <hr class="shortBar" />
         <p>
             Press S to show the Ship Screen. This displays your ship and its inventory.
         </p>
-
-
-
+        <br />
         <h2>Movement and Combat</h2>
+        <hr class="longBar" />
+        <br />
         <h3>Keyboard Controls</h3>
+        <hr class="shortBar" />
         <table id="controlsTable">
             <tr>
                 <th>Key</th>
@@ -215,7 +247,9 @@
             - If you are having trouble with aiming a unidirectional weapon, you can use Auto Aim to automatically point your ship towards your target.
 
         </p>
+        <br />
         <h3>Mouse Turn and Aim</h3>
+        <hr class="shortBar" />
         <p>
             While the mouse is visible on the screen, your ship automatically turns to point at the cursor.
             <br />- Left click to fire the primary weapon
@@ -224,15 +258,29 @@
             <br />- Middle click to set target lock on the object nearest to the cursor.
             <br />- Middle click on the player ship to use Aim Only mode
         </p>
+        <br />
         <h3>Mouse Aim Only</h3>
+        <hr class="shortBar" />
         <p>
             While the mouse is visible on the screen, your ship's omnidirectional weapons aim at the cursor. A yellow crosshair marks where you are aiming.
             <br />- Left click to fire the primary weapon
             <br />- Right click to thrust forward
             <br />- Middle click to use Turn and Aim mode
         </p>
+        <hr class="shortBar" />
+        <br />
 
         <h2>Dock Scenes</h2>
+        <hr class="longBar"/>
+
+        <br />
+        <h3>Dialogue</h3>
+        <hr class="shortBar" />
+        <p>
+            A dialogue scene presents you with text and several choices.
+            <br />- Press UP and DOWN to navigate the choices
+            <br />- Hold ENTER until the arrow 
+        </p>
     </div>
 </body>
 </html>

@@ -370,9 +370,9 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         povDesc = new List<Message> {
                     new Message(pov.name),
                 };
-        if (pov.damageSystem is LayeredArmor las) {
+        if (pov.hull is LayeredArmor las) {
             povDesc.AddRange(las.GetDesc().Select(m => new Message(m.String)));
-        } else if (pov.damageSystem is HP hp) {
+        } else if (pov.hull is HP hp) {
             povDesc.Add(new Message($"HP: {hp}"));
         }
         foreach (var device in pov.ship.devices.Installed) {

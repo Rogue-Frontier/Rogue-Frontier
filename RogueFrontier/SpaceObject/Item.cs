@@ -67,7 +67,7 @@ public class Item {
 public interface Device {
     Item source { get; }
     void Update(double delta, IShip owner);
-    int? powerUse => null;
+    int powerUse => -1;
     public bool IsEnabled(IShip owner) =>
         (owner as PlayerShip)?.energy.off.Contains(this) != false;
     public void OnOverload(PlayerShip owner) { }
@@ -97,13 +97,17 @@ public class Decay {
     [Req] public double rate;
     [Opt] public bool lethal;
     [Opt] public double degradeFactor;
+    [Opt] public bool descend;
+    public ActiveObject source;
     public Decay() { }
     public Decay(XElement e) => e.Initialize(this);
-    public Decay(Decay source) {
-        this.lifetime = source.lifetime;
-        this.rate = source.rate;
-        this.lethal = source.lethal;
-        this.degradeFactor = source.degradeFactor;
+    public Decay(Decay from, ActiveObject source) {
+        this.lifetime = from.lifetime;
+        this.rate = from.rate;
+        this.lethal = from.lethal;
+        this.degradeFactor = from.degradeFactor;
+        this.descend = from.descend;
+        this.source = source;
     }
 }
 public class Armor : Device {
@@ -113,24 +117,28 @@ public class Armor : Device {
     public int hp;
     //Temporarily increase max HP upon absorbing damage. Titan HP decays over time.
     public double titanHP;
+    public double titanDuration;
+
     public double hpToRecover;
     public double recoveryHP;
     public double regenHP;
     public double decayHP;
-    public double degradeHP;
     public int killHP;
     public double damageDelay;
     public double stealth => desc.stealth == 0 ? 0 : desc.stealth * hp / desc.maxHP;
-    public int lifetimeDamageAbsorbed;
+    public double lifetimeDamageAbsorbed;
     public int lastDamageTick;
     HashSet<Decay> decay=new();
-    public int maxHP => Math.Max(desc.maxHP/4, desc.maxHP - (int)(desc.lifetimeDegrade * lifetimeDamageAbsorbed));
-    
+
+    public int powerUse { get; private set; }
+    public bool allowSpecial;
+    public int maxHP => Math.Max(0, desc.maxHP - (int)(desc.lifetimeDegrade * lifetimeDamageAbsorbed) + (int)titanHP);
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
         this.source = source;
         this.desc = desc;
         this.hp = desc.initialHP != -1 ? desc.initialHP : desc.maxHP;
+        this.powerUse = desc.powerUse == -1 ? -1 : 0;
     }
     public Armor Copy(Item source) => desc.GetArmor(source);
     public void Repair(RepairArmor ra) {
@@ -140,37 +148,73 @@ public class Armor : Device {
         if (decay.Any()) {
             var expired = new HashSet<Decay>();
 
-            foreach (var d in decay) {
-                decayHP += d.rate * delta * 60;
-                degradeHP += d.rate * d.degradeFactor * delta * 60;
+            //If the armor is down, then degrade it faster
+            if(hp == 0) {
+                if(owner.hull.GetHP() == 0 && decay.FirstOrDefault(d => d.lethal) is var kill and not null) {
+                    owner.Destroy(kill.source);
+                } else {
+                    if(decay.Where(d => d.descend).ToList() is { Count: >0} descending) {
+                        var hull = ((LayeredArmor)owner.hull);
+                        var index = hull.layers.IndexOf(this);
+                        if(hull.layers.Reverse<Armor>().Skip(hull.layers.Count - index).FirstOrDefault(l => l.hp > 0) is var next and not null) {
+                            decay.ExceptWith(descending);
+                            next.decay.UnionWith(descending);
+                        }
+                    }
 
-                d.lifetime -= delta;
-                if(d.lifetime <= 0) {
-                    expired.Add(d);
+                    foreach (var d in decay) {
+                        lifetimeDamageAbsorbed += d.rate * delta * 60 * d.degradeFactor;
+                        d.lifetime -= delta;
+                        if (d.lifetime <= 0) {
+                            expired.Add(d);
+                        }
+                    }
+                }
+                lastDamageTick = owner.world.tick;
+            } else {
+                foreach (var d in decay) {
+                    decayHP += d.rate * delta * 60;
+                    d.lifetime -= delta;
+                    if (d.lifetime <= 0) {
+                        expired.Add(d);
+                    }
+                }
+                if (decayHP >= 1) {
+                    var deltaHP = Math.Min(hp, (int)decayHP);
+                    hp -= deltaHP;
+                    lastDamageTick = owner.world.tick;
+
+                    OnAbsorb(deltaHP);
+
+                    decayHP = 0;
                 }
             }
             decay.ExceptWith(expired);
-            if (decayHP >= 1) {
-                var deltaHP = Math.Min(hp, (int)decayHP);
-                hp -= deltaHP;
-                lastDamageTick = owner.world.tick;
-
-                //lifetimeDamageAbsorbed += (int)decayHP;
-                //lifetimeDamageAbsorbed += deltaHP;
-                lifetimeDamageAbsorbed += (int)degradeHP;
-                
-                hpToRecover += (deltaHP * desc.recoveryFactor);
-                damageDelay = 30;
-
-                decayHP = 0;
-                degradeHP = 0;
+        }
+        if(titanHP > 0) {
+            if(titanDuration > 0) {
+                titanDuration = Math.Max(0, titanDuration - delta);
+            } else {
+                titanHP = Math.Max(0, titanHP - delta * desc.titan.decay);
             }
         }
+
+
+        allowSpecial = desc.powerUse == -1 || owner switch {
+            PlayerShip ps => !ps.energy.off.Contains(this),
+            _ => true
+        };
         if (damageDelay > 0) {
             damageDelay -= delta * Program.TICKS_PER_SECOND;
             return;
         }
+
+        powerUse = desc.powerUse == -1 ? -1 : 0;
+        if (!allowSpecial) {
+            return;
+        }
         if (hpToRecover >= 1) {
+            powerUse = desc.powerUse;
             recoveryHP += desc.recoveryRate * delta * Program.TICKS_PER_SECOND;
             while (recoveryHP >= 1) {
                 if (hp < maxHP) {
@@ -183,27 +227,35 @@ public class Armor : Device {
                 }
             }
         }
-        regenHP += desc.regenRate * delta * Program.TICKS_PER_SECOND;
-        while (regenHP >= 1) {
-            if(hp < maxHP) {
-                hp++;
-                regenHP--;
-            } else {
-                regenHP = 0;
+        if(desc.regenRate > 0) {
+            powerUse = desc.powerUse;
+            regenHP += desc.regenRate * delta * Program.TICKS_PER_SECOND;
+            while (regenHP >= 1) {
+                if (hp < maxHP) {
+                    hp++;
+                    regenHP--;
+                } else {
+                    regenHP = 0;
+                }
             }
         }
         if (hp > 0 && killHP < desc.killHP) {
             killHP = desc.killHP;
         }
+        if(killHP > 0) {
+            powerUse = desc.powerUse;
+        }
     }
     private void OnAbsorb(int absorbed) {
         lifetimeDamageAbsorbed += absorbed;
-
-        titanHP += absorbed * desc.titanFactor;
+        if (desc.titan is var t and not null) {
+            titanHP = Math.Min(desc.maxHP * t.factor, titanHP + absorbed * t.gain);
+            titanDuration = t.duration;
+        }
         hpToRecover += (absorbed * desc.recoveryFactor);
         damageDelay = 30;
     }
-    public void Absorb(int amount) {
+    public void Damage(int amount) {
         if(hp == 0 || amount < 1) {
             return;
         }
@@ -230,27 +282,39 @@ public class Armor : Device {
         if (p.damageHP < 1)
             return 0;
 
-        bool down = hp == 0;
-        //If we have a minAbsorb, then we're considered active even at 0 hp
-
-        var damageWall = desc.minAbsorb.Roll();
-        if(down && damageWall == 0) {
-            return 0;
+        //If we have a minAbsorb, then we absorb damage even at 0 hp
+        int damageWall = desc.minAbsorb.Roll();
+        if(hp is 0) {
+            //If we're down and have nothing to absorb, then give up
+            if (damageWall == 0) {
+                return 0;
+            }
+            //Otherwise, the projectile goes through the standard procedure
+            //If we're below the drill threshold, then skip this armor
+            if ((float)hp / desc.maxHP < p.desc.armorDrill) {
+                return 0;
+            }
+            //If projectile has armor skip, then skip us now.
+            if (p.armorSkip > 0) {
+                p.armorSkip--;
+                return 0;
+            }
+            //If we still have something to absorb, do it now
+            if (damageWall > 0) {
+                p.damageHP = Math.Max(0, p.damageHP - damageWall);
+                return 0;
+            }
+        } else {
+            //If we're below the drill threshold, then skip this armor
+            if ((float)hp / desc.maxHP < p.desc.armorDrill) {
+                return 0;
+            }
+            //If projectile has armor skip, then skip us now.
+            if (p.armorSkip > 0) {
+                p.armorSkip--;
+                return 0;
+            }
         }
-        //If we're below the drill threshold, then skip this armor
-        if((float)hp / desc.maxHP < p.desc.armorDrill) {
-            return 0;
-        }
-        //If we're active and the projectile has armor skip, then skip us now.
-        if(p.armorSkip > 0) {
-            p.armorSkip--;
-            return 0;
-        }
-        if(down && damageWall > 0) {
-            p.damageHP = Math.Max(0, p.damageHP - damageWall);
-            return 0;
-        }
-
 
         //Check if we have a kill threshold
         if (hp <= killHP) {
@@ -281,7 +345,7 @@ public class Armor : Device {
         lastDamageTick = p.world.tick;
 
         if (p.desc.decay is Decay d) {
-            decay.Add(new(d));
+            decay.Add(new(d, p.source));
         }
 
         double reflectChance = desc.reflectFactor * hp / desc.maxHP - p.desc.antiReflect;
@@ -402,7 +466,7 @@ public class Launcher : Device {
     [JsonIgnore]
     public LaunchDesc fragmentDesc => desc.missiles[index];
     [JsonIgnore]
-    int? Device.powerUse => ((Device)weapon).powerUse;
+    int Device.powerUse => ((Device)weapon).powerUse;
     [JsonIgnore]
     public Capacitor capacitor => weapon.capacitor;
     [JsonIgnore]
@@ -472,7 +536,6 @@ public class Service : Device {
     public int ticks;
     [JsonProperty]
     public int powerUse { get; private set; }
-    int? Device.powerUse => powerUse;
     public Service() { }
     public Service(Item source, ServiceDesc desc) {
         this.source = source;
@@ -545,7 +608,7 @@ public class Shield : Device {
     public int absorbHP;
     public double absorbRegenHP;
     */
-    int? Device.powerUse => hp < desc.maxHP ? desc.powerUse : desc.idlePowerUse;
+    public int powerUse => hp < desc.maxHP ? desc.powerUse : desc.idlePowerUse;
     public Shield() { }
     public Shield(Item source, ShieldDesc desc) {
         this.source = source;
@@ -650,7 +713,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     public Item source { get; private set; }
     public WeaponDesc desc;
     [JsonIgnore]
-    int? Device.powerUse => (firing || delay > 0 || capacitor?.full == false) ? desc.powerUse : 0;
+    public int powerUse => (firing || delay > 0 || capacitor?.full == false) ? desc.powerUse : 0;
     public IAiming aiming;
     public Targeting targeting;
     public Capacitor capacitor;
@@ -1070,9 +1133,7 @@ public class Targeting : IDestroyedListener {
     public List<ActiveObject> targets => index.list;
     public ListIndex<ActiveObject> index;
     public ActiveObject target {
-        get {
-            return index.item;
-        }
+        get => index.item;
         set {
             index.list.Clear();
             index.list.Add(value);
@@ -1187,13 +1248,14 @@ public class Swivel : IAiming {
     }
     public void Update(ActiveObject owner, Weapon weapon) {
         if (weapon.targeting.cycleTargets) {
+            direction = null;
             weapon.targeting.index.CycleWhile(t => {
-                direction = Omnidirectional.GetFireAngle(owner, t, weapon);
-                var deltaRad = Main.AngleDiffRad(facing, direction.Value);
+                var dir = Omnidirectional.GetFireAngle(owner, t, weapon);
+                var deltaRad = Main.AngleDiffRad(facing, dir);
                 if (deltaRad > 0 ? deltaRad > leftRange : -deltaRad > rightRange) {
-                    direction = null;
                     return true;
                 }
+                direction = dir;
                 Heading.AimLine(owner.world, owner.position + weapon.offset, direction.Value);
                 return false;
             });

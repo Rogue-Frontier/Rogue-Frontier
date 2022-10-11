@@ -95,7 +95,11 @@ public class TypeCollection {
             "Source" => AddSource,
             "Content" => ProcessSection,
             "Unused" => e => { },
+#if DEBUG
             "Debug" => ProcessSection,
+#else
+            "Debug" => e => { }       
+#endif
             "GenomeType" => AddType<GenomeType>,
             "ImageType" => AddType<ImageType>,
             "ItemType" => AddType<ItemType>,

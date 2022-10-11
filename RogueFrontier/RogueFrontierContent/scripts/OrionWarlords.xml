@@ -67,55 +67,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-	<ItemType	codename=	"item_traitor_longbow"
-		name=		"Traitor's Longbow"
-		mass=		"5000"
-		level=		"3"
-
-		value=		"1200"
-
-		desc=		"This modified Orion Longbow launches fragmenting shells."
-				
-		invoke=		"installWeapon"
-		>
-		<Weapon
-			powerUse=		"20"
-			fireCooldown=	"60"
-						
-			initialCharges=	"40"
-			>
-			<Projectile
-				missileSpeed=	"20"
-				damageType=		"2"
-				damageHP=		"20"
-				lifetime=		"60"
-				glyph=			"+"
-				foreground=		"Orange"
-				>
-				<Fragment
-					count=	"8"
-					spreadAngle=	"360"
-					missileSpeed=	"30"
-					damageType=		"1"
-					damageHP=		"8"
-					lifetime=		"60"
-
-					glyph=			"+"
-					foreground=		"Orange"
-					/>
-			</Projectile>
-			<Capacitor	dischargeOnFire=		"200"
-						rechargePerTick=			"1/3"
-						maxCharge=				"100"
-
-						bonusSpeedPerCharge=	"70/100"
-						bonusDamagePerCharge=	"30/100"
-						bonusLifetimePerCharge=	"90/100"
-				/>
-			/>
-		</Weapon>
-	</ItemType>
-
 	<ItemType	codename=	"item_orion_skewer"
 		name=		"Bronze trident"
 		attributes=	"OrionWarlords"
@@ -155,9 +106,7 @@
 		attributes=	"OrionWarlords"
 		mass=		"1000"
 		level=		"1"
-
 		value=		"200"
-				
 		desc=		"This low-tech armor provides modest stealth."
 		>
 		<Armor	maxHP=		"25"
@@ -170,9 +119,7 @@
 		attributes=	"OrionWarlords"
 		mass=		"5000"
 		level=		"2"
-
 		value=		"400"
-				
 		desc=		"This hardened low-tech armor provides modest stealth."
 		>
 		<Armor	maxHP=		"50"
@@ -222,7 +169,6 @@
 				name=				"Orion huntsman"
 				thrust=				"0.3"
 				maxSpeed=			"15"
-				
 
 				rotationAccel=		"3"
 				rotationDecel=		"6"
@@ -246,19 +192,15 @@
 			description=    "The Orion huntsman adapts to both short-range skirmishes and long-range duels with the Orion Longbow, which hits at high velocity when fully charged."
             />
 	</ShipClass>
-
 	<ShipClass	codename=			"ship_william_sulphin"
 				name=				"William Sulphin"
 				thrust=				"0.4"
 				maxSpeed=			"25"
-
 				rotationAccel=		"3"
 				rotationDecel=		"6"
 				rotationMaxSpeed=	"4"
-
 				glyph=				"R"
 				foreground=			"Cyan"
-
 				behavior=			"sulphin"
 		>
 		<Devices>
@@ -275,13 +217,9 @@
 	<StationType	codename="station_orion_warlords_camp"
 					name=		"Orion Warlord camp"
 					sovereign=	"sovereign_orion_warlords"
-
 					stealth=	"4"
-					
 					behavior=	"orionWarlords"
-					
 					hp=			"250"
-
 					structure=	"RogueFrontierContent/sprites/OrionWarlordsCamp.asc.cg"
 		>
 		<Ships>
@@ -295,11 +233,8 @@
 			<Item codename="item_orion_turret" count="4-6"/>
 		</Cargo>
 	</StationType>
-	<!--TO DO: Add item version-->
-
-
 	<ItemType	codename=	"item_orion_turret"
-		name=		"Bronze turret kit"
+		name=		"Bronze turret"
 		attributes=	"OrionWarlords"
 		
 		invoke=		"deployStation"
@@ -308,7 +243,7 @@
 		mass=		"8000"
 		level=		"2"
 		value=		"800"
-		desc=		"The Orion Warlords deploy these turrets near enemy stations."
+		desc=		"The Orion Warlords deploy this turret near enemy stations to catch departing ships off-guard."
 		>
 	</ItemType>
 	<StationType	codename="station_orion_turret"
@@ -376,7 +311,6 @@
 				   glyph="#"
 				   foreground="White"/>
 		</Segments>
-
 		<Ships>
 			<Ship	count="6"	codename="ship_orion_raider" sovereign="sovereign_orion_warlords" order="patrol" patrolRadius="20"/>
 			<Ship	count="1"	codename="ship_william_sulphin" sovereign="sovereign_orion_warlords" order="patrol" patrolRadius="5"/>
