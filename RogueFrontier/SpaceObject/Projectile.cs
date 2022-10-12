@@ -277,20 +277,18 @@ public class Maneuver {
             return;
         }
 
-        var uncertainty = XY.Polar(p.world.karma.NextDouble() * 2 * Math.PI, 0);
+        //var uncertainty = XY.Polar(p.world.karma.NextDouble() * 2 * Math.PI, 0);
         var vel = p.velocity;
         var offset = target.position - p.position;
 
         var turn = maneuver * delta * Program.TICKS_PER_SECOND;
         var velLeft = vel.Rotate(turn);
         var velRight = vel.Rotate(-turn);
-        var distLeft = (offset - velLeft).magnitude;
-        var distRight = (offset - velRight).magnitude;
+        var distLeft = (offset - velLeft.normal).magnitude;
+        var distRight = (offset - velRight.normal).magnitude;
 
-        smart = true;
         (var closer, var farther) = distLeft < distRight ? (velLeft, velRight) : (velRight, velLeft);
         if (maneuverDistance == 0) {
-            
             if(smart) {
                 var dist = offset.magnitude;
                 if (dist < prevDistance) {
@@ -302,14 +300,14 @@ public class Maneuver {
                     p.velocity = farther;
 
                     var deltaVel = target.velocity - p.velocity;
-                    var deltaAngle = Math.Abs((offset - deltaVel).angleRad);
+                    var deltaAngle = Math.Abs((offset.normal - deltaVel.normal).angleRad);
                     var deltaAngleDeg = deltaAngle * 180 / Math.PI;
 
 
                     var timeToHit = offset.magnitude / deltaVel.magnitude;
                     var timeToTurn = Math.Min(Math.PI/2, deltaAngle) / (maneuver * Program.TICKS_PER_SECOND);
 
-                    if (deltaAngle > Math.PI * 1.5 || timeToTurn < timeToHit) {
+                    if (timeToTurn < timeToHit) {
                         startApproach = true;
 
                         if(p.source is PlayerShip) {

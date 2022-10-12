@@ -673,6 +673,9 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_tipped_orion_longbow = 4800,
 
         item_specrom_magic_blaster_i = 8400,
+
+        item_debug_missile = 0,
+        item_debug_missile_launcher = 0
     }.ToDict<int>();
     public PlayerStory(PlayerShip playerShip) {
         var i = playerShip.world.types.GetDict<ItemType>();
