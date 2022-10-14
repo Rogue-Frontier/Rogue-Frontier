@@ -132,6 +132,8 @@ public class Armor : Device {
     public int powerUse { get; private set; }
     public bool allowSpecial;
     public int maxHP => Math.Max(0, desc.maxHP - (int)(desc.lifetimeDegrade * lifetimeDamageAbsorbed) + (int)titanHP);
+    public bool canAbsorb => hp > 0 || (maxHP > 0 && desc.minAbsorb is { min: >0 });
+    
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
         this.source = source;

@@ -10,71 +10,17 @@ using ArchConsole;
 using ASECII;
 using System.IO;
 using SFML.Audio;
-
 namespace RogueFrontier;
-
-public class SceneType : IDesignType {
-    public void Initialize(TypeCollection collection, XElement e) {
-    }
-}
-public class SceneDesc : ISceneDesc {
-    public SceneDesc(XElement e) {
-
-    }
-
-    public Console Get(Console prev, PlayerShip player) {
-        //Read thru the desc, generate all the consoles, and return the main one here
-        throw new NotImplementedException();
-    }
-}
-public interface ISceneDesc {
-    Console Get(Console prev, PlayerShip player);
-}
-public class HeroImageScene : Console {
-    double time;
-    string[] heroImage;
-    Color tint;
-    public HeroImageScene(Console prev, string[] heroImage, Color tint) : base(prev.Width, prev.Height) {
-        this.heroImage = heroImage;
-        this.tint = tint;
-    }
-    public override void Update(TimeSpan delta) {
-        time += delta.TotalSeconds;
-    }
-    public override void Render(TimeSpan delta) {
-        int width = heroImage.Max(line => line.Length);
-        int height = heroImage.Length;
-        int x = 8;
-        int y = (Height - height * 2) / 2;
-        byte GetAlpha(int x, int y) {
-            return (byte)(Math.Sin(time * 1.5 + Math.Sin(x) * 5 + Math.Sin(y) * 5) * 25 + 230);
-        }
-        int lineY = 0;
-        foreach (var line in heroImage) {
-            void DrawLine() {
-                for (int lineX = 0; lineX < line.Length; lineX++) {
-                    var color = tint.SetAlpha(GetAlpha(lineX, lineY));
-                    this.SetCellAppearance(x + lineX, y + lineY, new ColoredGlyph(color, Color.Black, line[lineX]));
-                }
-                lineY++;
-            }
-            DrawLine();
-            DrawLine();
-        }
-        base.Render(delta);
-    }
-}
 public enum NavFlags : long {
     ESC = 0b1,
     ENTER = 0b10
 }
-public record SceneOption(char key, string name, Func<ScreenSurface, ScreenSurface> next, NavFlags flags = 0, bool enabled = true) {
-    
-    public SceneOption() : this('\0', "", null, 0) { }
-    public SceneOption(string name) : this(name, null, 0) { }
-    public SceneOption(string name, Func<ScreenSurface, ScreenSurface> next, NavFlags flags = 0, bool enabled = true) : this(name.FirstOrDefault(char.IsLetterOrDigit), name, next, flags, enabled) { }
+public record NavChoice(char key, string name, Func<ScreenSurface, ScreenSurface> next, NavFlags flags = 0, bool enabled = true) {
+    public NavChoice() : this('\0', "", null, 0) { }
+    public NavChoice(string name) : this(name, null, 0) { }
+    public NavChoice(string name, Func<ScreenSurface, ScreenSurface> next, NavFlags flags = 0, bool enabled = true) : this(name.FirstOrDefault(char.IsLetterOrDigit), name, next, flags, enabled) { }
 }
-public static class SScene {
+public static partial class SMenu {
     public static Dictionary<(int, int), U> Normalize<U>(this Dictionary<(int, int), U> d) {
         int left = int.MaxValue;
         int top = int.MaxValue;
@@ -93,7 +39,6 @@ public static class SScene {
         }
         return result;
     }
-
     public static Dictionary<(int, int), ColoredGlyph> ToImage(this string[] image, Color tint) {
         var result = new Dictionary<(int, int), ColoredGlyph>();
         for (int y = 0; y < image.Length; y++) {
@@ -165,12 +110,46 @@ public static class SScene {
         */
     }
 }
+public class HeroImageDisplay : Console {
+    double time;
+    string[] heroImage;
+    Color tint;
+    public HeroImageDisplay(Console prev, string[] heroImage, Color tint) : base(prev.Width, prev.Height) {
+        this.heroImage = heroImage;
+        this.tint = tint;
+    }
+    public override void Update(TimeSpan delta) {
+        time += delta.TotalSeconds;
+    }
+    public override void Render(TimeSpan delta) {
+        int width = heroImage.Max(line => line.Length);
+        int height = heroImage.Length;
+        int x = 8;
+        int y = (Height - height * 2) / 2;
+        byte GetAlpha(int x, int y) {
+            return (byte)(Math.Sin(time * 1.5 + Math.Sin(x) * 5 + Math.Sin(y) * 5) * 25 + 230);
+        }
+        int lineY = 0;
+        foreach (var line in heroImage) {
+            void DrawLine() {
+                for (int lineX = 0; lineX < line.Length; lineX++) {
+                    var color = tint.SetAlpha(GetAlpha(lineX, lineY));
+                    this.SetCellAppearance(x + lineX, y + lineY, new ColoredGlyph(color, Color.Black, line[lineX]));
+                }
+                lineY++;
+            }
+            DrawLine();
+            DrawLine();
+        }
+        base.Render(delta);
+    }
+}
 public class Dialog : Console {
     public ColoredString desc;
     public bool charging;
     public int descIndex;
     public int ticks;
-    List<SceneOption> navigation;
+    List<NavChoice> navigation;
     public int navIndex = 0;
     double[] charge;
     public Dictionary<(int, int), ColoredGlyph> background = new();
@@ -187,7 +166,7 @@ public class Dialog : Console {
     private Sound button_press = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) {
         Volume = 33
     };
-    public Dialog(ScreenSurface prev, string desc, List<SceneOption> navigation) : base(prev.Surface.Width, prev.Surface.Height) {
+    public Dialog(ScreenSurface prev, string desc, List<NavChoice> navigation) : base(prev.Surface.Width, prev.Surface.Height) {
         this.desc = new(desc.Replace("\r", null));
 
         var quoted = false;

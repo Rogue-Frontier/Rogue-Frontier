@@ -37,7 +37,7 @@ class Program {
 
         s.Render(new TimeSpan());
         var t = ((ScreenSurfaceRenderer)s.Renderer)._backingTexture;
-        t.Save("GraphicsContent/Archcannon.png");
+        //t.Save("GraphicsContent/Archcannon.png");
 
         Environment.Exit(0);
 

@@ -6,17 +6,18 @@ using System;
 using SadConsole;
 using static UI;
 using Console = SadConsole.Console;
-
+using Common;
 namespace RogueFrontier;
-
 public class WreckScene : Console {
+    Player player;
     ScreenSurface prev;
     ExchangeModel model;
-    public WreckScene(ScreenSurface prev, PlayerShip player, Wreck docked) : base(prev.Surface.Width, prev.Surface.Height) {
+    public WreckScene(ScreenSurface prev, PlayerShip playerShip, Wreck docked) : base(prev.Surface.Width, prev.Surface.Height) {
+        this.player = playerShip.person;
         this.prev = prev;
-        model = new(new(player.name, player.cargo), new(docked.name, docked.cargo), Enter, Exit);
+        model = new(new(playerShip.name, playerShip.cargo), new(docked.name, docked.cargo), Transfer, Exit);
     }
-    public void Enter() {
+    public void Transfer() {
         var i = model.currentItem;
         model.from.items.Remove(i);
         model.to.items.Add(i);
@@ -34,7 +35,24 @@ public class WreckScene : Console {
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
-        model.Render(this);
+        model.Render(this); int x = 6;
+        int y = 4;
+        var f = Color.White;
+        var b = Color.Black;
+        this.Print(x, y++, $"Money: {$"{player.money}".PadLeft(8)}", f, b);
+        var item = model.currentItem;
+
+        if (item == null) {
+            goto Done;
+        }
+        x = 27;
+        y = 4;
+        this.Print(x, y++, item.type.name, Color.Yellow, b);
+        y++;
+        foreach (var line in item.type.desc.SplitLine(92)) {
+            this.Print(x, y++, line, f, b);
+        }
+    Done:
         base.Render(delta);
     }
 }

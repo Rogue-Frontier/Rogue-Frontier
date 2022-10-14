@@ -29,7 +29,7 @@ public class Settings {
 {$"[{controls[InvokePowers]}]",indent}Power menu
 
 {$"[{controls[Autopilot]}]",indent}Autopilot
-{$"[{controls[ShipMenu]}]",indent}Ship Screen
+{$"[{controls[Control.ShipMenu]}]",indent}Ship Screen
 {$"[{controls[Dock]}]",indent}Dock
 
 {$"[Minus]",indent}Megamap zoom out
@@ -39,14 +39,14 @@ public class Settings {
 {$"[{controls[TargetEnemy]}]",indent}Target next enemy
 {$"[{controls[TargetFriendly]}]",indent}Target next friendly
 
-{$"[{controls[NextPrimary]}]",indent }Next primary weapon
-{$"[{controls[AutoAim]}]",indent    }Turn to aim target
+{$"[{controls[NextPrimary]}]",indent}Next primary weapon
+{$"[{controls[AutoAim]}]",indent}Turn to aim target
 {$"[{controls[FirePrimary]}]",indent}Fire primary weapon
 
-{$"[Left Click]",indent     }Next primary weapon
-{$"[Right Click]",indent    }Thrust
-{$"[Middle Click]",indent   }Target nearest
-{$"[Mouse Wheel]",indent    }Select primary weapon".Replace("\r", null);
+{$"[Left Click]",indent}Next primary weapon
+{$"[Right Click]",indent}Thrust
+{$"[Middle Click]",indent}Target nearest
+{$"[Mouse Wheel]",indent}Select primary weapon".Replace("\r", null);
     }
 
 }

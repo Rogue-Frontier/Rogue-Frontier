@@ -18,16 +18,16 @@ public interface ITrader {
     //public static implicit operator Dealer(ITrader r) => new(r.name, r.cargo);
 }
 public delegate int GetPrice(Item i);
-public class TradeMenu : Console {
+public class TradeScene : Console {
     ScreenSurface prev;
     Player player;
     ExchangeModel model;
     GetPrice GetBuyPrice, GetSellPrice;
 
-    public TradeMenu(ScreenSurface prev, PlayerShip playerShip, ITrader docked, GetPrice GetBuyPrice, GetPrice GetSellPrice) : base(prev.Surface.Width, prev.Surface.Height) {
+    public TradeScene(ScreenSurface prev, PlayerShip playerShip, ITrader docked, GetPrice GetBuyPrice, GetPrice GetSellPrice) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         this.player = playerShip.person;
-        model = new(new(playerShip.name, playerShip.cargo), new(docked.name, docked.cargo), Transact, Transition);
+        model = new(new(playerShip.name, playerShip.cargo), new(docked.name, docked.cargo), Transact, Exit);
         this.GetBuyPrice = GetBuyPrice;
         this.GetSellPrice = GetSellPrice;
     }
@@ -52,7 +52,7 @@ public class TradeMenu : Console {
         model.from.items.Remove(item);
         model.to.items.Add(item);
     }
-    public void Transition() {
+    public void Exit() {
         var p = Parent;
         p.Children.Remove(this);
         if (prev != null) {

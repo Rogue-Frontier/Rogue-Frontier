@@ -755,13 +755,13 @@ purchases and repair services.
             !a.source.IsAmethyst() ? -1 :
             discount ? 1 :
             3;
-        Con Trade(Con from) => new TradeMenu(from, playerShip, source,
+        Con Trade(Con from) => new TradeScene(from, playerShip, source,
             i => (int)(GetStdPrice(i) * buyAdj),
             i => i.IsAmethyst() ? GetStdPrice(i) / 10 : -1);
-        Con ArmorRepair(Con from) => SListScreen.DockArmorRepair(from, playerShip, GetRepairPrice, null);
-        Con DeviceInstall(Con from) => SListScreen.DockDeviceInstall(from, playerShip, GetInstallPrice, null);
-        Con DeviceRemoval(Con from) => SListScreen.DockDeviceRemoval(from, playerShip, GetRemovePrice, null);
-        Con ArmorReplace(Con from) => SListScreen.DockArmorReplacement(from, playerShip, GetReplacePrice, null);
+        Con ArmorRepair(Con from) => SMenu.DockArmorRepair(from, playerShip, GetRepairPrice, null);
+        Con DeviceInstall(Con from) => SMenu.DockDeviceInstall(from, playerShip, GetInstallPrice, null);
+        Con DeviceRemoval(Con from) => SMenu.DockDeviceRemoval(from, playerShip, GetRemovePrice, null);
+        Con ArmorReplace(Con from) => SMenu.DockArmorReplacement(from, playerShip, GetReplacePrice, null);
 
         int GetInstallPrice(Device d) =>
             !d.source.IsAmethyst() ? -1 : discount ? 80 : 100;
@@ -800,10 +800,10 @@ of civilian gunship pilots.",
 
             return 3;
         }
-        Con Trade(Con from) => new TradeMenu(from, playerShip, source,
+        Con Trade(Con from) => new TradeScene(from, playerShip, source,
             GetStdPrice,
             GetStdPrice);
-        Con ArmorServices(Con from) => SListScreen.DockArmorRepair(from, playerShip, GetPrice, null);
+        Con ArmorServices(Con from) => SMenu.DockArmorRepair(from, playerShip, GetPrice, null);
     }
     public Con CamperOutpost(Con prev, PlayerShip playerShip, Station source) {
         var lookup = (string s) => playerShip.world.types.Lookup<ItemType>(s);
@@ -834,13 +834,13 @@ craftspersons, and adventurers.",
             });
         }
         int GetRepairPrice(Armor a) => a.source.IsAmethyst() ? 4 : 2;
-        Con Trade(Con from) => new TradeMenu(from, playerShip, source,
+        Con Trade(Con from) => new TradeScene(from, playerShip, source,
             GetStdPrice,
             GetStdPrice);
-        Con Workshop(Con from) => SListScreen.Workshop(from, playerShip, recipes, null);
-        Con ArmorServices(Con from) => SListScreen.DockArmorRepair(from, playerShip, GetRepairPrice, null);
+        Con Workshop(Con from) => SMenu.Workshop(from, playerShip, recipes, null);
+        Con ArmorServices(Con from) => SMenu.DockArmorRepair(from, playerShip, GetRepairPrice, null);
     }
-    public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>
+    public TradeScene TradeStation(Con prev, PlayerShip playerShip, Station source) =>
         new (prev, playerShip, source, GetStdPrice, i => GetStdPrice(i) / 2);
 
     public Con CheckConstellationArrest(Con prev, PlayerShip playerShip, Station source) {
@@ -895,7 +895,7 @@ you on the ground before you can invoke SILENCE.
             new("Trade: Armor", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
-        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.8 * GetStdPrice(i) : -1));
+        TradeScene Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.8 * GetStdPrice(i) : -1));
     }
     public Con ArmsDealer(Con prev, PlayerShip playerShip, Station source) {
         return CheckConstellationArrest(prev, playerShip, source) ?? 
@@ -904,7 +904,7 @@ you on the ground before you can invoke SILENCE.
             new("Trade: Weapons", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
-        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
+        TradeScene Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
     }
     public HashSet<IShip> militiaRecordedKills = new();
     public bool constellationMilitiaMember; 
@@ -941,13 +941,13 @@ There is a modest degree of artificial gravity here.",
             }) { background = source.type.heroImage };
         }
         Con Trade(Con from) =>
-            new TradeMenu(from, playerShip, source, GetStdPrice,
+            new TradeScene(from, playerShip, source, GetStdPrice,
                 i => (!i.HasDevice() || friendlyOnly.Matches(i)) ? GetStdPrice(i) / 2 : -1
                 );
-        Con ArmorRepair(Con from) => SListScreen.DockArmorRepair(from, playerShip, GetRepairPrice, null);
-        Con DeviceInstall(Con from) => SListScreen.DockDeviceInstall(from, playerShip, GetInstallPrice, null);
-        Con DeviceRemoval(Con from) => SListScreen.DockDeviceRemoval(from, playerShip, GetRemovePrice, null);
-        Con ArmorReplace(Con from) => SListScreen.DockArmorReplacement(from, playerShip, GetReplacePrice, null);
+        Con ArmorRepair(Con from) => SMenu.DockArmorRepair(from, playerShip, GetRepairPrice, null);
+        Con DeviceInstall(Con from) => SMenu.DockDeviceInstall(from, playerShip, GetInstallPrice, null);
+        Con DeviceRemoval(Con from) => SMenu.DockDeviceRemoval(from, playerShip, GetRemovePrice, null);
+        Con ArmorReplace(Con from) => SMenu.DockArmorReplacement(from, playerShip, GetReplacePrice, null);
 
         int GetRepairPrice(Armor a) => !friendlyOnly.Matches(a.source) ? -1 : a.source.IsAmethyst() ? 9 : 3;
         int GetInstallPrice(Device d) => !friendlyOnly.Matches(d.source) ? -1 : d.source.IsAmethyst() ? 300 : 100;
@@ -1281,7 +1281,7 @@ hurry in and begin checking the walls.",
         }
         Con Donate(Con prev) {
             Action a(Action b) => b;
-            ListScreen<Item> screen = null;
+            ListMenu<Item> screen = null;
             var dict = new {
                 item_prescience_book = a(() => {
                     screen.Replace(new Dialog(prev,

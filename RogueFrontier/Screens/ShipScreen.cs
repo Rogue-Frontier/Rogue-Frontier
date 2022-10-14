@@ -11,12 +11,12 @@ using ArchConsole;
 using SFML.Audio;
 using CloudJumper;
 namespace RogueFrontier;
-class ShipScreen : ScreenSurface {
+class ShipMenu : ScreenSurface {
     public ScreenSurface prev;
     public PlayerShip playerShip;
     public PlayerStory story;
     //Idea: Show an ASCII-art map of the ship where the player can walk around
-    public ShipScreen(ScreenSurface prev, PlayerShip playerShip, PlayerStory story) : base(prev.Surface.Width, prev.Surface.Height) {
+    public ShipMenu(ScreenSurface prev, PlayerShip playerShip, PlayerStory story) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         this.playerShip = playerShip;
         this.story = story;
@@ -142,13 +142,13 @@ class ShipScreen : ScreenSurface {
         }
         return base.ProcessKeyboard(info);
     }
-    public void ShowInvokable() => Transition(SListScreen.UsableScreen(this, playerShip));
-    public void ShowPower() => Transition(SListScreen.PowerScreen(this, playerShip));
-    public void ShowCargo() => Transition(SListScreen.CargoScreen(this, playerShip));
-    public void ShowLoadout() => Transition(SListScreen.LoadoutScreen(this, playerShip));
-    public void ShowLogs() => Transition(SListScreen.LogScreen(this, playerShip));
-    public void ShowMissions() => Transition(SListScreen.MissionScreen(this, playerShip, story));
-    public void ShowRefuel() => Transition(SListScreen.RefuelScreen1(this, playerShip));
+    public void ShowInvokable() => Transition(SMenu.Invokables(this, playerShip));
+    public void ShowPower() => Transition(SMenu.DeviceManager(this, playerShip));
+    public void ShowCargo() => Transition(SMenu.Cargo(this, playerShip));
+    public void ShowLoadout() => Transition(SMenu.Loadout(this, playerShip));
+    public void ShowLogs() => Transition(SMenu.Logs(this, playerShip));
+    public void ShowMissions() => Transition(SMenu.Missions(this, playerShip, story));
+    public void ShowRefuel() => Transition(SMenu.RefuelReactor(this, playerShip));
     public void Transition(ScreenSurface s) {
         Tones.pressed.Play();
         Parent.Children.Add(s);
@@ -156,9 +156,9 @@ class ShipScreen : ScreenSurface {
         s.IsFocused = true;
     }
 }
-public class SListScreen {
-    public static ListScreen<IPlayerMessage> LogScreen(ScreenSurface prev, PlayerShip player) {
-        ListScreen<IPlayerMessage> screen = null;
+public static partial class SMenu {
+    public static ListMenu<IPlayerMessage> Logs(ScreenSurface prev, PlayerShip player) {
+        ListMenu<IPlayerMessage> screen = null;
         List<IPlayerMessage> logs = player.logs;
 
         return screen = new(prev,
@@ -194,8 +194,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<IPlayerInteraction> MissionScreen(ScreenSurface prev, PlayerShip player, PlayerStory story) {
-        ListScreen<IPlayerInteraction> screen = null;
+    public static ListMenu<IPlayerInteraction> Missions(ScreenSurface prev, PlayerShip player, PlayerStory story) {
+        ListMenu<IPlayerInteraction> screen = null;
         List<IPlayerInteraction> missions = new();
         void UpdateList() {
             missions.Clear();
@@ -317,8 +317,8 @@ public class SListScreen {
         r.Add(new(""));
         return r;
     }
-    public static ListScreen<Item> UsableScreen(ScreenSurface prev, PlayerShip player) {
-        ListScreen<Item> screen = null;
+    public static ListMenu<Item> Invokables(ScreenSurface prev, PlayerShip player) {
+        ListMenu<Item> screen = null;
         IEnumerable<Item> cargoInvokable;
         IEnumerable<Item> installedInvokable;
         List<Item> usable = new();
@@ -365,8 +365,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Device> LoadoutScreen(ScreenSurface prev, PlayerShip player) {
-        ListScreen<Device> screen = null;
+    public static ListMenu<Device> Loadout(ScreenSurface prev, PlayerShip player) {
+        ListMenu<Device> screen = null;
         var devices = player.devices.Installed;
         return screen = new(prev,
             player,
@@ -400,10 +400,10 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Item> CargoScreen(ScreenSurface prev, PlayerShip player) {
-        ListScreen<Item> screen = null;
+    public static ListMenu<Item> Cargo(ScreenSurface prev, PlayerShip player) {
+        ListMenu<Item> screen = null;
         var items = player.cargo;
-        return screen = new ListScreen<Item>(prev,
+        return screen = new ListMenu<Item>(prev,
             player,
             items,
             GetName,
@@ -433,8 +433,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Device> PowerScreen(ScreenSurface prev, PlayerShip player) {
-        ListScreen<Device> screen = null;
+    public static ListMenu<Device> DeviceManager(ScreenSurface prev, PlayerShip player) {
+        ListMenu<Device> screen = null;
         var disabled = player.energy.off;
         var powered = player.devices.Powered;
         return screen = new(prev,
@@ -473,8 +473,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Device> UninstallScreen(ScreenSurface prev, PlayerShip player) {
-        ListScreen<Device> screen = null;
+    public static ListMenu<Device> RemoveDevice(ScreenSurface prev, PlayerShip player) {
+        ListMenu<Device> screen = null;
         var devices = player.devices.Installed;
         return screen = new(prev,
             player,
@@ -491,7 +491,7 @@ public class SListScreen {
             var invoke = item.type.invoke;
             var result = GenerateDesc(d);
             if (invoke != null) {
-                result.Add(new($"[Enter] Uninstall this device", Color.Yellow, Color.Black));
+                result.Add(new($"[Enter] Remove this device", Color.Yellow, Color.Black));
             }
             return result;
         }
@@ -509,8 +509,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Armor> RepairArmorScreen(ScreenSurface prev, PlayerShip player, Item source, RepairArmor repair, Action callback) {
-        ListScreen<Armor> screen = null;
+    public static ListMenu<Armor> RepairArmorFromItem(ScreenSurface prev, PlayerShip player, Item source, RepairArmor repair, Action callback) {
+        ListMenu<Armor> screen = null;
         Sound s = new();
 
 
@@ -561,8 +561,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Reactor> RefuelReactor(ScreenSurface prev, PlayerShip player, Item source, Refuel refuel, Action callback) {
-        ListScreen<Reactor> screen = null;
+    public static ListMenu<Reactor> RefuelFromItem(ScreenSurface prev, PlayerShip player, Item source, Refuel refuel, Action callback) {
+        ListMenu<Reactor> screen = null;
         var devices = player.devices.Reactor;
         return screen = new(prev,
             player,
@@ -608,8 +608,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Device> ReplaceDevice(ScreenSurface prev, PlayerShip player, Item source, ReplaceDevice replace, Action callback) {
-        ListScreen<Device> screen = null;
+    public static ListMenu<Device> ReplaceDeviceFromItem(ScreenSurface prev, PlayerShip player, Item source, ReplaceDevice replace, Action callback) {
+        ListMenu<Device> screen = null;
         var devices = player.devices.Installed.Where(i => i.source.type == replace.from);
         return screen = new(prev,
             player,
@@ -645,8 +645,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Weapon> RechargeWeapon(ScreenSurface prev, PlayerShip player, Item source, RechargeWeapon recharge, Action callback) {
-        ListScreen<Weapon> screen = null;
+    public static ListMenu<Weapon> RechargeWeaponFromItem(ScreenSurface prev, PlayerShip player, Item source, RechargeWeapon recharge, Action callback) {
+        ListMenu<Weapon> screen = null;
         var devices = player.devices.Weapon.Where(i => i.desc == recharge.weaponType);
         return screen = new(prev,
             player,
@@ -678,8 +678,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<ItemType> Workshop(ScreenSurface prev, PlayerShip player, Dictionary<ItemType, Dictionary<ItemType, int>> recipes, Action callback) {
-        ListScreen<ItemType> screen = null;
+    public static ListMenu<ItemType> Workshop(ScreenSurface prev, PlayerShip player, Dictionary<ItemType, Dictionary<ItemType, int>> recipes, Action callback) {
+        ListMenu<ItemType> screen = null;
         var listing = new Dictionary<ItemType, Dictionary<ItemType, HashSet<Item>>>();
         var available = new Dictionary<ItemType, bool>();
         Calculate();
@@ -744,8 +744,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Reactor> RefuelService(ScreenSurface prev, PlayerShip player, Func<Reactor, int> GetPrice, Action callback) {
-        ListScreen<Reactor> screen = null;
+    public static ListMenu<Reactor> DockReactorRefuel(ScreenSurface prev, PlayerShip player, Func<Reactor, int> GetPrice, Action callback) {
+        ListMenu<Reactor> screen = null;
         var reactors = player.devices.Reactor;
         RefuelEffect job = null;
         return screen = new(prev,
@@ -822,8 +822,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Armor> DockArmorRepair(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
-        ListScreen<Armor> screen = null;
+    public static ListMenu<Armor> DockArmorRepair(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
+        ListMenu<Armor> screen = null;
         var layers = (player.hull as LayeredArmor)?.layers ?? new();
         RepairEffect job = null;
 
@@ -939,8 +939,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Device> DockDeviceRemoval(ScreenSurface prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
-        ListScreen<Device> screen = null;
+    public static ListMenu<Device> DockDeviceRemoval(ScreenSurface prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
+        ListMenu<Device> screen = null;
         var installed = player.devices.Installed;
         return screen = new(prev,
             player,
@@ -993,8 +993,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Device> DockDeviceInstall(ScreenSurface prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
-        ListScreen<Device> screen = null;
+    public static ListMenu<Device> DockDeviceInstall(ScreenSurface prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
+        ListMenu<Device> screen = null;
         var cargo = player.cargo.Select(i =>
             i.engine??i.reactor??i.service??i.shield??(Device)i.solar??i.weapon)
             .Except(new Device[] {null});
@@ -1060,8 +1060,8 @@ public class SListScreen {
         }
     }
 
-    public static ListScreen<Armor> DockArmorReplacement(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
-        ListScreen<Armor> screen = null;
+    public static ListMenu<Armor> DockArmorReplacement(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
+        ListMenu<Armor> screen = null;
         var armor = (player.hull as LayeredArmor)?.layers??new List<Armor>();
         return screen = new(prev,
             player,
@@ -1105,8 +1105,8 @@ public class SListScreen {
             var p = screen.Parent;
             p.Children.Remove(screen);
             p.Children.Add(GetReplacement(prev));
-            ListScreen<Armor> GetReplacement(ScreenSurface prev) {
-                ListScreen<Armor> screen = null;
+            ListMenu<Armor> GetReplacement(ScreenSurface prev) {
+                ListMenu<Armor> screen = null;
                 var armor = player.cargo.Select(i => i.armor).Where(i => i != null);
                 return screen = new(prev,
                     player,
@@ -1180,8 +1180,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Item> SetMod(ScreenSurface prev, PlayerShip player, Item source, Modifier mod, Action callback) {
-        ListScreen<Item> screen = null;
+    public static ListMenu<Item> SetMod(ScreenSurface prev, PlayerShip player, Item source, Modifier mod, Action callback) {
+        ListMenu<Item> screen = null;
         IEnumerable<Item> cargo;
         IEnumerable<Item> installed;
         List<Item> all = new();
@@ -1194,7 +1194,7 @@ public class SListScreen {
         }
         UpdateList();
 
-        return screen = new ListScreen<Item>(prev,
+        return screen = new ListMenu<Item>(prev,
             player,
             all,
             GetName,
@@ -1223,8 +1223,8 @@ public class SListScreen {
             p.IsFocused = true;
         }
     }
-    public static ListScreen<Reactor> RefuelScreen1(ScreenSurface prev, PlayerShip player) {
-        ListScreen<Reactor> screen = null;
+    public static ListMenu<Reactor> RefuelReactor(ScreenSurface prev, PlayerShip player) {
+        ListMenu<Reactor> screen = null;
         var devices = player.devices.Reactor;
         return screen = new(prev,
             player,
@@ -1252,10 +1252,10 @@ public class SListScreen {
             if (r.energy < r.desc.capacity) {
                 var p = screen.Parent;
                 p.Children.Remove(screen);
-                p.Children.Add(RefuelScreen2(prev, player));
+                p.Children.Add(ChooseFuel(prev, player));
             }
-            ListScreen<Item> RefuelScreen2(ScreenSurface prev, PlayerShip player) {
-                ListScreen<Item> screen = null;
+            ListMenu<Item> ChooseFuel(ScreenSurface prev, PlayerShip player) {
+                ListMenu<Item> screen = null;
                 var items = player.cargo.Where(i => i.type.invoke is Refuel r);
                 return screen = new(prev, player, items,
                     GetName, GetDesc, Invoke, Escape
@@ -1296,7 +1296,7 @@ public class SListScreen {
         }
     }
 }
-public class ListScreen<T> : ScreenSurface {
+public class ListMenu<T> : ScreenSurface {
     PlayerShip player;
     public bool groupMode = true;
     public IEnumerable<T> items;
@@ -1314,7 +1314,7 @@ public class ListScreen<T> : ScreenSurface {
     public delegate void Invoke(T t);
     public delegate void Escape();
 
-    public ListScreen(ScreenSurface prev, PlayerShip player, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
+    public ListMenu(ScreenSurface prev, PlayerShip player, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
         this.player = player;
         this.items = items;
         this.getName = getName;
@@ -1521,7 +1521,7 @@ public static class SListWidget {
         string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "[*] " : "[c] ")}{i.type.name}";
         List<ColoredString> GetDesc(Item i) {
             var invoke = i.type.invoke;
-            var result = SListScreen.GenerateDesc(i);
+            var result = SMenu.GenerateDesc(i);
             if (invoke != null) {
                 var action = $"[Enter] {invoke.GetDesc(player, i)}";
                 result.Add(new(action, Color.Yellow, Color.Black));

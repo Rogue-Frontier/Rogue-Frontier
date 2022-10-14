@@ -1564,7 +1564,6 @@ public class Readout : ScreenSurface {
                     y++;
                 }
             }
-
             void PrintHull(HullSystem hull) {
                 switch (hull) {
                     case LayeredArmor las: {
@@ -1574,21 +1573,26 @@ public class Readout : ScreenSurface {
                                         Color.Yellow :
                                         (armor.hp > 0 ?
                                             Color.White :
-                                            (armor.desc.minAbsorb == null ?
+                                            (armor.canAbsorb ?
                                                 Color.Orange :
                                                 Color.Gray)
                                             );
                                 var bb =
                                     armor.decay.Any() ?
-                                        Color.Red :
+                                        Color.Black.Blend(Color.Red.SetAlpha(128)) :
                                     tick - armor.lastRegenTick < 15 ?
-                                        Color.Cyan :
+                                        Color.Black.Blend(Color.Cyan.SetAlpha(128)) :
+                                    !armor.allowSpecial ?
+                                        Color.Black.Blend(Color.Yellow.SetAlpha(128)) :
                                         b;
-                                int l = BAR * armor.hp / armor.maxHP;
-                                Surface.Print(x, y, "[", f, b);
-                                Surface.Print(x + 1, y, new('=', BAR), Color.Gray, b);
-                                Surface.Print(x + 1, y, new('=', l), f, b);
-                                Surface.Print(x + 1 + BAR, y, $"] {armor.source.type.name}", f, bb);
+                                int l = BAR * armor.hp / Math.Max(1, armor.maxHP);
+                                Surface.Print(x, y, Main.Concat(
+                                    ("[", f, b),
+                                    (new('=', l), f, b),
+                                    (new('=', BAR - l), Color.Gray, b),
+                                    ($"] [{armor.hp,3}/{armor.maxHP,3}] ", f, b),
+                                    ($"{armor.source.type.name}", f, bb)
+                                ));
                                 y++;
                             }
                             break;
@@ -1777,7 +1781,7 @@ public class Readout : ScreenSurface {
                                         Color.Yellow :
                                         (armor.hp > 0 ?
                                             Color.White :
-                                            (armor.desc.minAbsorb != null ?
+                                            (armor.canAbsorb ?
                                                 Color.Orange :
                                                 Color.Gray)
                                             );

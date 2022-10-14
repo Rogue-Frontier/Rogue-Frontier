@@ -137,14 +137,16 @@ public class Projectile : MovingObject {
                             destroyed = true;
                             break;
                         case ActiveObject hit when !destroyed && hit.active:
-                            hit.Damage(this);
+
+                            hitReflected |= world.karma.NextDouble() < desc.detonateFailChance;
                             var angle = (position - hit.position).angleRad;
                             var cg = new ColoredGlyph(hitHull ? Color.Yellow : Color.LimeGreen, Color.Transparent, 'x');
                             world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle), hit.velocity, cg, 10));
 
-                            hitReflected |= world.karma.NextDouble() < desc.detonateFailChance;
 
+                            hit.Damage(this);                            
                             onHitActive.Observe(new(this, hit));
+
                             if (hitReflected) {
                                 hitReflected = false;
                                 velocity = -velocity;
@@ -251,32 +253,24 @@ public class Projectile : MovingObject {
             salvo.Add(p);
             world.AddEntity(p);
         }
-        
     }
 }
-
 public class Maneuver {
     public ActiveObject target;
     public double maneuver;
     public double maneuverDistance;
-
     public bool smart = true;
-
     private double prevDistance;
     private bool startApproach;
-
-    private bool turnBias;
     public Maneuver(ActiveObject target, double maneuver, double maneuverDistance) {
         this.target = target;
         this.maneuver = maneuver;
         this.maneuverDistance = maneuverDistance;
-        turnBias = target.world.karma.NextBool();
     }
     public void Update(double delta, Projectile p) {
         if (target == null || maneuver == 0) {
             return;
         }
-
         //var uncertainty = XY.Polar(p.world.karma.NextDouble() * 2 * Math.PI, 0);
         var vel = p.velocity;
         var offset = target.position - p.position;

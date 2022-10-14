@@ -140,7 +140,7 @@ public class PlayerControls {
         if (input.ShipMenu) {
             playerMain.audio.button_press.Play();
             playerShip.DisengageAutopilot();
-            playerMain.sceneContainer?.Children.Add(new ShipScreen(playerMain, playerShip, playerMain.story) { IsFocused = true });
+            playerMain.sceneContainer?.Children.Add(new ShipMenu(playerMain, playerShip, playerMain.story) { IsFocused = true });
         }
     }
     public void ProcessWithMenu() {
@@ -174,7 +174,7 @@ public class PlayerControls {
         }
         if (keys != null && keys.IsKeyPressed(U)) {
             playerMain.audio.button_press.Play();
-            playerMain.sceneContainer?.Children.Add(SListScreen.UsableScreen(playerMain.sceneContainer, playerShip));
+            playerMain.sceneContainer?.Children.Add(SMenu.Invokables(playerMain.sceneContainer, playerShip));
         }
         if (input.NetworkMap && playerMain.networkMap is var nm) {
             playerMain.audio.button_press.Play();
@@ -201,7 +201,7 @@ public class PlayerControls {
         { TargetFriendly, F },
         { ClearTarget, R },
         { Gate, G },
-        { ShipMenu, S },
+        { Control.ShipMenu, S },
         { TargetEnemy, T },
         { InvokePowers, I },
         { NextPrimary, W },

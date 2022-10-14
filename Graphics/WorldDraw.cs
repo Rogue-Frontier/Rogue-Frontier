@@ -21,7 +21,7 @@ class WorldDraw : Console {
 
 
         World.UpdateAdded();
-        World.UpdateActive();
+        World.UpdateActive(timeSpan.TotalSeconds);
         World.UpdateRemoved();
 
         tiles.Clear();

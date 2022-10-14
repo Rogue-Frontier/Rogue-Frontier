@@ -93,7 +93,7 @@ public record RepairArmor : ItemUse {
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback) {
         var p = prev.Parent;
         p.Children.Remove(prev);
-        p.Children.Add(SListScreen.RepairArmorScreen(prev, player, item, this, callback));
+        p.Children.Add(SMenu.RepairArmorFromItem(prev, player, item, this, callback));
     }
 }
 public record InvokePower : ItemUse {
@@ -128,7 +128,7 @@ public record Refuel : ItemUse {
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         var p = prev.Parent;
         p.Children.Remove(prev);
-        p.Children.Add(SListScreen.RefuelReactor(prev, player, item, this, callback));
+        p.Children.Add(SMenu.RefuelFromItem(prev, player, item, this, callback));
     }
 }
 public record DepleteTargetShields() : ItemUse {
@@ -172,7 +172,7 @@ public record ReplaceDevice() : ItemUse {
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         var p = prev.Parent;
         p.Children.Remove(prev);
-        p.Children.Add(SListScreen.ReplaceDevice(prev, player, item, this, callback));
+        p.Children.Add(SMenu.ReplaceDeviceFromItem(prev, player, item, this, callback));
 
         player.cargo.Remove(item);
         callback?.Invoke();
@@ -190,7 +190,7 @@ public record RechargeWeapon() : ItemUse {
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         var p = prev.Parent;
         p.Children.Remove(prev);
-        p.Children.Add(SListScreen.RechargeWeapon(prev, player, item, this, callback));
+        p.Children.Add(SMenu.RechargeWeaponFromItem(prev, player, item, this, callback));
         player.cargo.Remove(item);
         callback?.Invoke();
     }
@@ -228,7 +228,7 @@ public record ApplyMod() : ItemUse {
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         var p = prev.Parent;
         p.Children.Remove(prev);
-        p.Children.Add(SListScreen.SetMod(prev, player, item, mod, callback));
+        p.Children.Add(SMenu.SetMod(prev, player, item, mod, callback));
     }
 }
 public record ItemType : IDesignType {
