@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Console = SadConsole.Console;
-using static UI;
 using SadRogue.Primitives;
 using Common;
 using SFML.Audio;
@@ -18,13 +17,13 @@ public interface ITrader {
     //public static implicit operator Dealer(ITrader r) => new(r.name, r.cargo);
 }
 public delegate int GetPrice(Item i);
-public class TradeScene : Console {
+public class TradeMenu : Console {
     ScreenSurface prev;
     Player player;
     ExchangeModel model;
     GetPrice GetBuyPrice, GetSellPrice;
 
-    public TradeScene(ScreenSurface prev, PlayerShip playerShip, ITrader docked, GetPrice GetBuyPrice, GetPrice GetSellPrice) : base(prev.Surface.Width, prev.Surface.Height) {
+    public TradeMenu(ScreenSurface prev, PlayerShip playerShip, ITrader docked, GetPrice GetBuyPrice, GetPrice GetSellPrice) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         this.player = playerShip.person;
         model = new(new(playerShip.name, playerShip.cargo), new(docked.name, docked.cargo), Transact, Exit);

@@ -7,12 +7,12 @@ using Console = SadConsole.Console;
 
 namespace RogueFrontier.Screens;
 
-class ConfigMenu : Console {
+class ConfigPane : Console {
     Settings settings;
     Control? currentSet;
     Dictionary<Control, LabelButton> buttons;
 
-    public ConfigMenu(int Width, int Height, Settings settings) : base(Width, Height) {
+    public ConfigPane(int Width, int Height, Settings settings) : base(Width, Height) {
         this.settings = settings;
 
         UseKeyboard = true;

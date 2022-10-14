@@ -4,7 +4,6 @@ using System.Linq;
 using SadRogue.Primitives;
 using System;
 using SadConsole;
-using static UI;
 using Console = SadConsole.Console;
 using Common;
 namespace RogueFrontier;

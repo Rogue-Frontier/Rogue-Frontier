@@ -6,10 +6,10 @@ using SadRogue.Primitives;
 
 namespace RogueFrontier;
 
-public class DisplayImage : Console {
+public class ImageDisplay : Console {
     public ColorImage image;
     public Point adjust;
-    public DisplayImage(int width, int height, ColorImage image, Point adjust) : base(width, height) {
+    public ImageDisplay(int width, int height, ColorImage image, Point adjust) : base(width, height) {
         this.image = image;
         this.adjust = adjust;
     }

@@ -107,11 +107,11 @@ partial class Program {
         var titleSlide = new TitleSlideOpening(title) { IsFocused = true };
 
         var splashBack = new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText(splash)));
-        var splashBackground = new DisplayImage(Width / 2, Height / 2, splashBack, new Point()) { FontSize = title.FontSize * 2 };
+        var splashBackground = new ImageDisplay(Width / 2, Height / 2, splashBack, new Point()) { FontSize = title.FontSize * 2 };
 
         int index = 0;
-        KeyConsole container = null;
-        container = new KeyConsole(Width, Height, (k) => {
+        KeyWatcher container = null;
+        container = new KeyWatcher(Width, Height, (k) => {
             if (k.IsKeyPressed(Keys.Enter)) {
                 switch (index) {
                     case 1: {
@@ -163,9 +163,9 @@ partial class Program {
             container.Children.Add(c);
         }
         void ShowCrawl(Console prev) {
-            SimpleCrawl c = null;
+            MinimalCrawlScreen c = null;
             string s = "Presents...";
-            c = new SimpleCrawl(s, () => {
+            c = new MinimalCrawlScreen(s, () => {
                 ShowPause(prev);
             }) { Position = new Point(prev.Width / 4 - s.Length / 2 + 1, 13), FontSize = prev.FontSize * 2 };
             prev.Children.Add(c);
@@ -191,7 +191,7 @@ partial class Program {
             prev.Parent.Children.Remove(splashBackground);
 
             Console c = null;
-            c = new SimpleCrawl(
+            c = new MinimalCrawlScreen(
 @"                  
 A reimagining of...
                     
@@ -233,7 +233,7 @@ more than just a dream...
         }
         void ShowPoster(Console prev) {
             index = 3;
-            var display = new DisplayImage(poster.Size.X, poster.Size.Y, poster,
+            var display = new ImageDisplay(poster.Size.X, poster.Size.Y, poster,
                 new Point(Width / 2 - poster.Size.X / 2 + 4, -5)) {
                 FontSize = title.FontSize * 3 / 4
             };

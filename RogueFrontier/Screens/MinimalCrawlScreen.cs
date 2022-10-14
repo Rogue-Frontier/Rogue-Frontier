@@ -7,14 +7,14 @@ using Console = SadConsole.Console;
 
 namespace RogueFrontier;
 
-class SimpleCrawl : Console {
+class MinimalCrawlScreen : Console {
     private Action next;
     private readonly string text;
     bool speedUp;
     int index;
     int tick;
 
-    public SimpleCrawl(string text, Action next) : base(text.Split('\n').Max(l => l.Length), text.Split('\n').Length) {
+    public MinimalCrawlScreen(string text, Action next) : base(text.Split('\n').Max(l => l.Length), text.Split('\n').Length) {
         this.next = next;
         this.text = text;
     }

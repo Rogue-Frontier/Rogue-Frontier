@@ -5,158 +5,52 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Console = SadConsole.Console;
-using static UI;
 using Common;
 using ArchConsole;
 using SFML.Audio;
-using CloudJumper;
 namespace RogueFrontier;
-class ShipMenu : ScreenSurface {
-    public ScreenSurface prev;
-    public PlayerShip playerShip;
-    public PlayerStory story;
-    //Idea: Show an ASCII-art map of the ship where the player can walk around
-    public ShipMenu(ScreenSurface prev, PlayerShip playerShip, PlayerStory story) : base(prev.Surface.Width, prev.Surface.Height) {
-        this.prev = prev;
-        this.playerShip = playerShip;
-        this.story = story;
-        int x = 1, y = Surface.Height - 9;
-        Children.Add(new LabelButton("[A] Active Devices", ShowPower) { Position = (x, y++) });
-        Children.Add(new LabelButton("[C] Cargo", ShowCargo) { Position = (x, y++) });
-        Children.Add(new LabelButton("[D] Devices", ShowCargo) { Position = (x, y++) });
-        Children.Add(new LabelButton("[I] Invoke Items", ShowInvokable) { Position = (x, y++) });
-        Children.Add(new LabelButton("[M] Missions", ShowMissions) { Position = (x, y++) });
-        Children.Add(new LabelButton("[R] Refuel", ShowRefuel) { Position = (x, y++) });
-    }
-    public override void Render(TimeSpan delta) {
-        Surface.Clear();
-        this.RenderBackground();
-        var name = playerShip.shipClass.name;
-        var x = Surface.Width / 4 - name.Length / 2;
-        var y = 4;
-        void Print(int x, int y, string s) =>
-            Surface.Print(x, y, s, Color.White, Color.Black);
-        void Print2(int x, int y, string s) =>
-            Surface.Print(x, y, s, Color.White, Color.Black.SetAlpha(102));
-        Print(x, y, name);
-        var map = playerShip.shipClass.playerSettings?.map ?? new string[] { "" };
-        x = Math.Max(0, Surface.Width / 4 - map.Select(line => line.Length).Max() / 2);
-        y = 2;
-        int width = map.Max(l => l.Length);
-        foreach (var line in map) {
-            var l = line.PadRight(width);
-            Print2(x, y++, l);
-            Print2(x, y++, l);
-        }
-        y++;
-        x = 1;
-        Print(x, y, $"{$"Thrust:    {playerShip.shipClass.thrust}",-16}{$"Rotate acceleration: {playerShip.shipClass.rotationAccel,3} deg/s^2"}");
-        y++;
-        Print(x, y, $"{$"Max Speed: {playerShip.shipClass.maxSpeed}",-16}{$"Rotate deceleration: {playerShip.shipClass.rotationDecel,3} deg/s^2"}");
-        y++;
-        Print(x, y, $"{"",-16}{$"Rotate max speed:    {playerShip.shipClass.rotationMaxSpeed * 30,3} deg/s^2"}");
-        x = Surface.Width / 2;
-        y = 2;
-        var pl = playerShip.person;
-        Print(x, y++, "[Player]");
-        Print(x, y++, $"Name:       {pl.name}");
-        Print(x, y++, $"Identity:   {pl.Genome.name}");
-        Print(x, y++, $"Money:      {pl.money}");
-        Print(x, y++, $"Title:      Harmless");
-        y++;
-        var reactors = playerShip.ship.devices.Reactor;
-        if (reactors.Any()) {
-            Print(x, y++, "[Reactors]");
-            foreach (var r in reactors) {
-                Print(x, y++, $"{r.source.type.name}");
-                Print(x, y++, $"Output:     {-r.energyDelta}");
-                Print(x, y++, $"Max output: {r.desc.maxOutput}");
-                Print(x, y++, $"Fuel:       {r.energy:0}");
-                Print(x, y++, $"Max fuel:   {r.desc.capacity}");
-                y++;
-            }
-        }
-        var ds = playerShip.ship.damageSystem;
-        if (ds is HP hp) {
-            Print(x, y++, "[Health]");
-            Print(x, y++, $"HP: {hp.hp}");
-            y++;
-        } else if (ds is LayeredArmor las) {
-            Print(x, y++, "[Armor]");
-            foreach (var a in las.layers) {
-                Print(x, y++, $"{a.source.type.name}: {a.hp} / {a.maxHP}");
-            }
-            y++;
-        }
-        var weapons = playerShip.ship.devices.Weapon;
-        if (weapons.Any()) {
-            Print(x, y++, "[Weapons]");
-            foreach (var w in weapons) {
-                Print(x, y++, $"{w.source.type.name,-32}{w.GetBar(8)}");
-                Print(x, y++, $"Projectile damage: {w.desc.damageHP.str}");
-                Print(x, y++, $"Projectile speed:  {w.desc.missileSpeed}");
-                Print(x, y++, $"Shots per second:  {60f / w.desc.fireCooldown:0.00}");
-                if (w.ammo is ChargeAmmo c) {
-                    Print(x, y++, $"Ammo Remaining:    {c.charges}");
-                }
-                y++;
-            }
-        }
-        var misc = playerShip.ship.devices.Installed.OfType<Service>();
-        if (misc.Any()) {
-            Print(x, y++, "[Misc]");
-            foreach (var m in misc) {
-                Print(x, y++, $"{m.source.type.name}");
-                y++;
-            }
-        }
-        if (playerShip.messages.Any()) {
-            Print(x, y++, "[Messages]");
-            foreach (var m in playerShip.messages) {
-                Surface.Print(x, y++, m.Draw());
-            }
-            y++;
-        }
-        base.Render(delta);
-    }
-    public override bool ProcessKeyboard(Keyboard info) {
-        Predicate<Keys> pr = info.IsKeyPressed;
-        if (pr(Keys.S) || pr(Keys.Escape)) {
-            Tones.pressed.Play();
-            prev.IsFocused = true;
-            Parent.Children.Remove(this);
-        } else if (pr(Keys.A)) {
-            ShowPower();
-        } else if (pr(Keys.C)) {
-            ShowCargo();
-        } else if (pr(Keys.D)) {
-            ShowLoadout();
-        } else if (pr(Keys.I)) {
-            ShowInvokable();
-        } else if (pr(Keys.L)) {
-            ShowLogs();
-        } else if (pr(Keys.M)) {
-            ShowMissions();
-        } else if (pr(Keys.R)) {
-            ShowRefuel();
-        }
-        return base.ProcessKeyboard(info);
-    }
-    public void ShowInvokable() => Transition(SMenu.Invokables(this, playerShip));
-    public void ShowPower() => Transition(SMenu.DeviceManager(this, playerShip));
-    public void ShowCargo() => Transition(SMenu.Cargo(this, playerShip));
-    public void ShowLoadout() => Transition(SMenu.Loadout(this, playerShip));
-    public void ShowLogs() => Transition(SMenu.Logs(this, playerShip));
-    public void ShowMissions() => Transition(SMenu.Missions(this, playerShip, story));
-    public void ShowRefuel() => Transition(SMenu.RefuelReactor(this, playerShip));
-    public void Transition(ScreenSurface s) {
-        Tones.pressed.Play();
-        Parent.Children.Add(s);
-        Parent.Children.Remove(this);
-        s.IsFocused = true;
-    }
-}
 public static partial class SMenu {
+    public static char indexToLetter(int index) {
+        if (index < 26) {
+            return (char)('a' + index);
+        } else {
+            return '\0';
+        }
+    }
+    public static int letterToIndex(char ch) {
+        ch = char.ToLower(ch);
+        if (ch >= 'a' && ch <= 'z') {
+            return (ch - 'a');
+        } else {
+            return -1;
+        }
+    }
+    public static char indexToKey(int index) {
+        //0 is the last key; 1 is the first
+        if (index < 10) {
+            return (char)('0' + (index + 1) % 10);
+        } else {
+            index -= 10;
+            if (index < 26) {
+                return (char)('a' + index);
+            } else {
+                return '\0';
+            }
+        }
+    }
+    public static int keyToIndex(char ch) {
+        //0 is the last key; 1 is the first
+        if (ch >= '0' && ch <= '9') {
+            return (ch - '0' + 9) % 10;
+        } else {
+            ch = char.ToLower(ch);
+            if (ch >= 'a' && ch <= 'z') {
+                return (ch - 'a') + 10;
+            } else {
+                return -1;
+            }
+        }
+    }
     public static ListMenu<IPlayerMessage> Logs(ScreenSurface prev, PlayerShip player) {
         ListMenu<IPlayerMessage> screen = null;
         List<IPlayerMessage> logs = player.logs;
@@ -268,20 +162,21 @@ public static partial class SMenu {
         var r = GenerateDesc(d.source.type);
         ((Action)(d switch {
             Weapon w => () => {
-                r.Add(new(    $"Fire rate:    {60.0 / w.desc.fireCooldown:0.00}"));
-                r.Add(new(    $"Power rating: {w.desc.powerUse}"));
-                r.Add(new(    $"Recoil force: {w.desc.recoil}"));
-                if(w.ammo is ItemAmmo ia) {
+                r.Add(new($"Fire rate:    {60.0 / w.desc.fireCooldown:0.00}"));
+                r.Add(new($"Power rating: {w.desc.powerUse}"));
+                r.Add(new($"Recoil force: {w.desc.recoil}"));
+                if (w.ammo is ItemAmmo ia) {
                     r.Add(new($"Ammo type:    {ia.itemType.name}"));
-                } else if(w.ammo is ChargeAmmo ca) {
+                } else if (w.ammo is ChargeAmmo ca) {
                     r.Add(new($"Charges left: {ca.charges}"));
                 }
-                if(w.aiming is Omnidirectional o) {
+                if (w.aiming is Omnidirectional o) {
                     r.Add(new($"Aiming:       Omnidirectional"));
-                } else if(w.aiming is Swivel s) {
+                } else if (w.aiming is Swivel s) {
                     r.Add(new($"Aiming:       {(int)((s.leftRange + s.rightRange) * 180 / Math.PI)}-degree swivel"));
                 }
-            },
+            }
+            ,
             Shield s => () => {
 
                 r.AddRange(new ColoredString[] {
@@ -290,15 +185,17 @@ public static partial class SMenu {
                     new($"Stealth:  {s.desc.stealth}"),
                     new($"Idle power rating:   {s.desc.maxHP} EL"),
                     new($"Active power rating: {s.desc.maxHP} EL"),
-                    
+
                 });
-            },
+            }
+            ,
             Solar solar => () => {
                 r.AddRange(new ColoredString[] {
                     new($"Peak output:    {solar.maxOutput} EL"),
                     new($"Current output: {solar.energyDelta} EL")
                 });
-            },
+            }
+            ,
             Reactor reactor => () => {
                 r.AddRange(new ColoredString[] {
                     new($"Peak output:     {reactor.maxOutput, -4} EL"),
@@ -308,9 +205,10 @@ public static partial class SMenu {
                     new($"Energy capacity: {reactor.desc.capacity, -4} EN"),
                     new($"Energy content:  {(int)reactor.energy, -4} EN"),
                     new($"Efficiency:      {reactor.desc.efficiency, -4} EL/EN"),
-                    
-                }) ;
-            },
+
+                });
+            }
+            ,
 
             _ => () => { }
         })).Invoke();
@@ -540,7 +438,7 @@ public static partial class SMenu {
             return result;
         }
         void Repair(Armor a) {
-            if(a.desc.restrictRepair?.Matches(source) == false) {
+            if (a.desc.restrictRepair?.Matches(source) == false) {
                 return;
             }
             var before = a.hp;
@@ -711,7 +609,7 @@ public static partial class SMenu {
         List<ColoredString> GetDesc(ItemType type) {
             var result = GenerateDesc(type);
             var rec = recipes[type];
-            foreach((var compType, var minCount) in rec) {
+            foreach ((var compType, var minCount) in rec) {
                 var count = listing[type][compType].Count;
                 result.Add(new($"{compType.name}: {count} / {minCount}", count >= minCount ? Color.Yellow : Color.Gray, Color.Black));
             }
@@ -728,7 +626,7 @@ public static partial class SMenu {
         }
         void Invoke(ItemType type) {
             if (available[type]) {
-                foreach((var compType, var minCount) in recipes[type]) {
+                foreach ((var compType, var minCount) in recipes[type]) {
                     player.cargo.ExceptWith(listing[type][compType].Take(minCount));
                 }
                 player.cargo.Add(new(type));
@@ -770,13 +668,13 @@ public static partial class SMenu {
             result.Add(new(""));
             if (delta <= 0) {
                 result.Add(new("This reactor is full", Color.Yellow, Color.Black));
-            } else if(job?.active == true) {
-                if(job.reactor == r) {
+            } else if (job?.active == true) {
+                if (job.reactor == r) {
                     result.Add(new("This reactor is currently refueling.", Color.Yellow, Color.Black));
                 } else {
                     result.Add(new("Please wait for current refuel job to finish.", Color.Yellow, Color.Black));
                 }
-            } else if(unitPrice > player.person.money) {
+            } else if (unitPrice > player.person.money) {
                 result.Add(new($"You cannot afford refueling", Color.Yellow, Color.Black));
             } else {
                 result.Add(new($"[Enter] Order refueling", Color.Yellow, Color.Black));
@@ -882,7 +780,7 @@ public static partial class SMenu {
         }
         void Invoke(Armor a) {
             if (job?.active == true) {
-                if(job.armor == a) {
+                if (job.armor == a) {
                     job.active = false;
                     player.AddMessage(new Message($"Repair job terminated."));
 
@@ -896,12 +794,12 @@ public static partial class SMenu {
                 return;
             }
             int unitPrice = GetPrice(a);
-            if(unitPrice < 0) {
+            if (unitPrice < 0) {
                 return;
             }
 
 
-            if(unitPrice > player.person.money) {
+            if (unitPrice > player.person.money) {
                 return;
             }
             job = new RepairEffect(player, a, 2, unitPrice, Done);
@@ -922,7 +820,7 @@ public static partial class SMenu {
             s.Play();
         }
         void Escape() {
-            if(job?.active == true) {
+            if (job?.active == true) {
                 job.active = false;
                 player.world.RemoveEvent(job);
                 job = null;
@@ -973,7 +871,7 @@ public static partial class SMenu {
         }
         void Invoke(Device a) {
             var price = GetPrice(a);
-            if(price < 0) {
+            if (price < 0) {
                 return;
             }
             ref var money = ref player.person.money;
@@ -996,8 +894,8 @@ public static partial class SMenu {
     public static ListMenu<Device> DockDeviceInstall(ScreenSurface prev, PlayerShip player, Func<Device, int> GetPrice, Action callback) {
         ListMenu<Device> screen = null;
         var cargo = player.cargo.Select(i =>
-            i.engine??i.reactor??i.service??i.shield??(Device)i.solar??i.weapon)
-            .Except(new Device[] {null});
+            i.engine ?? i.reactor ?? i.service ?? i.shield ?? (Device)i.solar ?? i.weapon)
+            .Except(new Device[] { null });
         return screen = new(prev,
             player,
             cargo,
@@ -1022,7 +920,7 @@ public static partial class SMenu {
                 result.Add(new("Install service is not available for this device", Color.Yellow, Color.Black));
                 return result;
             }
-            
+
 
             result.Add(new($"Install fee: {price}"));
             result.Add(new($"Your money:  {player.person.money}"));
@@ -1037,7 +935,7 @@ public static partial class SMenu {
         }
         void Invoke(Device d) {
             var price = GetPrice(d);
-            if(price < 0) {
+            if (price < 0) {
                 return;
             }
             ref var money = ref player.person.money;
@@ -1062,7 +960,7 @@ public static partial class SMenu {
 
     public static ListMenu<Armor> DockArmorReplacement(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
         ListMenu<Armor> screen = null;
-        var armor = (player.hull as LayeredArmor)?.layers??new List<Armor>();
+        var armor = (player.hull as LayeredArmor)?.layers ?? new List<Armor>();
         return screen = new(prev,
             player,
             armor,
@@ -1093,7 +991,7 @@ public static partial class SMenu {
         }
         void Invoke(Armor removed) {
             var removalPrice = GetPrice(removed);
-            if(removalPrice < 0) {
+            if (removalPrice < 0) {
                 return;
             }
             ref var money = ref player.person.money;
@@ -1135,7 +1033,7 @@ public static partial class SMenu {
                     result.Add(new($"Install fee: {installPrice}"));
                     result.Add(new($"Total cost:  {totalCost}"));
                     result.Add(new(""));
-                    if(totalCost > player.person.money) {
+                    if (totalCost > player.person.money) {
                         result.Add(new($"You cannot afford service", Color.Yellow, Color.Black));
                         return result;
                     }
@@ -1147,7 +1045,7 @@ public static partial class SMenu {
                         return;
                     }
                     var pr = GetPrice(installed);
-                    if(pr < 0) {
+                    if (pr < 0) {
                         return;
                     }
                     var price = removalPrice + pr;
@@ -1313,7 +1211,6 @@ public class ListMenu<T> : ScreenSurface {
     public delegate List<ColoredString> GetDesc(T t);
     public delegate void Invoke(T t);
     public delegate void Escape();
-
     public ListMenu(ScreenSurface prev, PlayerShip player, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
         this.player = player;
         this.items = items;
@@ -1329,18 +1226,14 @@ public class ListMenu<T> : ScreenSurface {
             .OrderBy(g => l.IndexOf(g.First()))
             .Select(g => (g.Last(), g.Count()))
             .ToHashSet();
-
     }
     public void UpdateIndex() {
         if (groupMode) UpdateGroups();
         index = count > 0 ? Math.Min(index ?? 0, count - 1) : null;
         tick = 0;
     }
-
     public override bool ProcessKeyboard(Keyboard keyboard) {
-
         void Up(int inc) {
-
             Tones.pressed.Play();
             index = count > 0 ?
                 (index == null ? (count - 1) :
@@ -1361,27 +1254,29 @@ public class ListMenu<T> : ScreenSurface {
 
         foreach (var key in keyboard.KeysPressed) {
             ((Action)(key.Key switch {
-                Keys.Up =>      () => Up(1),
-                Keys.PageUp =>  () => Up(26),
-                Keys.Down =>    () => Down(1),
-                Keys.PageDown =>() => Down(26),
-                Keys.Enter =>   () => {
+                Keys.Up => () => Up(1),
+                Keys.PageUp => () => Up(26),
+                Keys.Down => () => Down(1),
+                Keys.PageDown => () => Down(26),
+                Keys.Enter => () => {
                     Tones.pressed.Play();
                     var i = currentItem;
                     if (i != null) {
                         invoke(i);
                         UpdateIndex();
                     }
-                },
-                Keys.Tab =>     () => groupMode = !groupMode,
-                Keys.Escape =>  () => {
+                }
+                ,
+                Keys.Tab => () => groupMode = !groupMode,
+                Keys.Escape => () => {
                     Tones.pressed.Play();
                     escape();
-                },
+                }
+                ,
                 _ when char.ToLower(key.Character) is var ch && ch >= 'a' && ch <= 'z' => () => {
                     Tones.pressed.Play();
                     int start = Math.Max((index ?? 0) - 13, 0);
-                    var letterIndex = start + letterToIndex(ch);
+                    var letterIndex = start + SMenu.letterToIndex(ch);
                     if (letterIndex == index) {
                         invoke(currentItem);
                         UpdateIndex();
@@ -1390,7 +1285,8 @@ public class ListMenu<T> : ScreenSurface {
                         index = letterIndex;
                         tick = 0;
                     }
-                },
+                }
+                ,
                 _ => () => { }
             })).Invoke();
         }
@@ -1421,7 +1317,8 @@ public class ListMenu<T> : ScreenSurface {
         Func<int, string> NameAt = groupMode ? i => {
             var g = groups.ElementAt(i);
             return $"{g.count}x {getName(g.item)}";
-        } : i => getName(items.ElementAt(i));
+        }
+        : i => getName(items.ElementAt(i));
         int end = Math.Min(count, start + 26);
 
         if (count > 0) {
@@ -1437,13 +1334,13 @@ public class ListMenu<T> : ScreenSurface {
 
                         n = n.Substring(index);
                         if (n.Length > lineWidth) {
-                            n = $"{n.Substring(0, lineWidth-3)}...";
+                            n = $"{n.Substring(0, lineWidth - 3)}...";
                         }
                     } else {
-                        n = $"{n.Substring(0, lineWidth-3)}...";
+                        n = $"{n.Substring(0, lineWidth - 3)}...";
                     }
                 }
-                var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", highlightColor, Color.Black)
+                var name = new ColoredString($"{(SMenu.indexToLetter(i - start))}. ", highlightColor, Color.Black)
                          + new ColoredString(n, highlightColor, Color.Black);
                 Surface.Print(x, y, name);
                 i++;
@@ -1456,24 +1353,24 @@ public class ListMenu<T> : ScreenSurface {
 
             for (i = 0; i < height; i++) {
                 ColoredGlyph cg = (i < barStart || i > barEnd) ?
-                    new ColoredGlyph(Color.LightGray, Color.Black, '|') :
-                    new ColoredGlyph(Color.White, Color.Black, '#');
+                    new(Color.LightGray, Color.Black, '|') :
+                    new(Color.White, Color.Black, '#');
                 Surface.SetCellAppearance(barX, 16 + i, cg);
             }
 
-            line(new Point(barX, 16 + 26), new Point(barX + lineWidth + 7, 16 + 26), '-');
+            line(new(barX, 16 + 26), new(barX + lineWidth + 7, 16 + 26), '-');
             barX += lineWidth + 7;
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+            line(new(barX, 16), new(barX, 16 + 25), '|');
         } else {
             var highlightColor = Color.Yellow;
             var name = new ColoredString("<Empty>", highlightColor, Color.Black);
             Surface.Print(x, y, name);
 
             int barX = x - 2;
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
-            line(new Point(barX, 16 + 26), new Point(barX + lineWidth + 7, 16 + 26), '-');
+            line(new(barX, 16), new(barX, 16 + 25), '|');
+            line(new(barX, 16 + 26), new(barX + lineWidth + 7, 16 + 26), '-');
             barX += lineWidth + 7;
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+            line(new(barX, 16), new(barX, 16 + 25), '|');
         }
         //this.DrawLine(new Point(x, y));
         y = Surface.Height - 16;
@@ -1484,7 +1381,7 @@ public class ListMenu<T> : ScreenSurface {
         y = 14;
         var item = currentItem;
         if (item != null) {
-            foreach(var l in getName(item).SplitLine(64)) {
+            foreach (var l in getName(item).SplitLine(64)) {
                 Surface.Print(x, y++, l, Color.Yellow, Color.Black);
             }
             y++;
@@ -1510,7 +1407,6 @@ public static class SListWidget {
         UpdateList();
 
         return screen = new(prev,
-            player,
             usable,
             GetName,
             GetDesc,
@@ -1544,7 +1440,6 @@ public static class SListWidget {
     }
 }
 public class ListWidget<T> : ScreenSurface {
-    PlayerShip player;
     public bool groupMode = true;
     public IEnumerable<T> items;
     public IEnumerable<(T item, int count)> groups;
@@ -1560,8 +1455,7 @@ public class ListWidget<T> : ScreenSurface {
     public delegate List<ColoredString> GetDesc(T t);
     public delegate void Invoke(T t);
     public delegate void Escape();
-    public ListWidget(ScreenSurface prev, PlayerShip player, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
-        this.player = player;
+    public ListWidget(ScreenSurface prev, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
         this.items = items;
         this.getName = getName;
         this.getDesc = getDesc;
@@ -1582,7 +1476,6 @@ public class ListWidget<T> : ScreenSurface {
         index = count > 0 ? Math.Min(index ?? 0, count - 1) : null;
         tick = 0;
     }
-
     public override bool ProcessKeyboard(Keyboard keyboard) {
         foreach (var key in keyboard.KeysPressed) {
             switch (key.Key) {
@@ -1637,7 +1530,7 @@ public class ListWidget<T> : ScreenSurface {
                     var ch = char.ToLower(key.Character);
                     if (ch >= 'a' && ch <= 'z') {
                         int start = Math.Max((index ?? 0) - 13, 0);
-                        var letterIndex = start + letterToIndex(ch);
+                        var letterIndex = start + SMenu.letterToIndex(ch);
                         if (letterIndex == index) {
                             invoke(currentItem);
                             UpdateIndex();
@@ -1694,13 +1587,13 @@ public class ListWidget<T> : ScreenSurface {
 
                         n = n.Substring(index);
                         if (n.Length > WIDTH) {
-                            n = $"{n.Substring(0, WIDTH-3)}...";
+                            n = $"{n.Substring(0, WIDTH - 3)}...";
                         }
                     } else {
-                        n = $"{n.Substring(0, WIDTH-3)}...";
+                        n = $"{n.Substring(0, WIDTH - 3)}...";
                     }
                 }
-                var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", highlightColor, Color.Black)
+                var name = new ColoredString($"{(SMenu.indexToLetter(i - start))}. ", highlightColor, Color.Black)
                          + new ColoredString(n, highlightColor, Color.Black);
                 Surface.Print(x, y, name);
 

@@ -6,10 +6,10 @@ using Console = SadConsole.Console;
 
 namespace RogueFrontier;
 
-public class SceneScan : Console {
+public class ScanTransition : Console {
     ScreenSurface next;
     double y;
-    public SceneScan(ScreenSurface next) : base(next.Surface.Width, next.Surface.Height) {
+    public ScanTransition(ScreenSurface next) : base(next.Surface.Width, next.Surface.Height) {
         y = 0;
         this.next = next;
         next.Render(new TimeSpan());

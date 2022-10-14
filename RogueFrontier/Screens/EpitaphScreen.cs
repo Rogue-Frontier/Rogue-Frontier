@@ -9,10 +9,10 @@ using Console = SadConsole.Console;
 
 namespace RogueFrontier;
 
-public class DeathScreen : Console {
+public class EpitaphScreen : Console {
     PlayerMain playerMain;
     Epitaph epitaph;
-    public DeathScreen(PlayerMain playerMain, Epitaph epitaph) : base(playerMain.Width, playerMain.Height) {
+    public EpitaphScreen(PlayerMain playerMain, Epitaph epitaph) : base(playerMain.Width, playerMain.Height) {
         this.playerMain = playerMain;
         this.epitaph = epitaph;
 

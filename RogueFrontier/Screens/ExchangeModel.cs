@@ -155,7 +155,7 @@ public class ExchangeModel {
                     if (ch >= 'a' && ch <= 'z') {
                         Tones.pressed.Play();
                         int start = Math.Max((index ?? 0) - 13, 0);
-                        var letterIndex = start + UI.letterToIndex(ch);
+                        var letterIndex = start + SMenu.letterToIndex(ch);
                         if(letterIndex == index) {
                             enter();
                             UpdateIndex();
@@ -237,7 +237,7 @@ public class ExchangeModel {
                     }
                 }
                 
-                var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
+                var name = new ColoredString($"{SMenu.indexToLetter(i - start)}. ", playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
                          + new ColoredString(n, highlightColor, Color.Black);
                 con.Print(x, y, name);
                 i++;
@@ -319,7 +319,7 @@ public class ExchangeModel {
                     }
                 }
 
-                var name = new ColoredString($"{UI.indexToLetter(i - start)}. ", !playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
+                var name = new ColoredString($"{(SMenu.indexToLetter(i - start))}. ", !playerSide ? highlightColor : new Color(153, 153, 153, 255), Color.Black)
                          + new ColoredString(n, highlightColor, Color.Black);
                 con.Print(x, y, name);
                 i++;

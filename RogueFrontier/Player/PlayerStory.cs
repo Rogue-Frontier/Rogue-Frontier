@@ -755,7 +755,7 @@ purchases and repair services.
             !a.source.IsAmethyst() ? -1 :
             discount ? 1 :
             3;
-        Con Trade(Con from) => new TradeScene(from, playerShip, source,
+        Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             i => (int)(GetStdPrice(i) * buyAdj),
             i => i.IsAmethyst() ? GetStdPrice(i) / 10 : -1);
         Con ArmorRepair(Con from) => SMenu.DockArmorRepair(from, playerShip, GetRepairPrice, null);
@@ -800,7 +800,7 @@ of civilian gunship pilots.",
 
             return 3;
         }
-        Con Trade(Con from) => new TradeScene(from, playerShip, source,
+        Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             GetStdPrice,
             GetStdPrice);
         Con ArmorServices(Con from) => SMenu.DockArmorRepair(from, playerShip, GetPrice, null);
@@ -834,13 +834,13 @@ craftspersons, and adventurers.",
             });
         }
         int GetRepairPrice(Armor a) => a.source.IsAmethyst() ? 4 : 2;
-        Con Trade(Con from) => new TradeScene(from, playerShip, source,
+        Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             GetStdPrice,
             GetStdPrice);
         Con Workshop(Con from) => SMenu.Workshop(from, playerShip, recipes, null);
         Con ArmorServices(Con from) => SMenu.DockArmorRepair(from, playerShip, GetRepairPrice, null);
     }
-    public TradeScene TradeStation(Con prev, PlayerShip playerShip, Station source) =>
+    public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>
         new (prev, playerShip, source, GetStdPrice, i => GetStdPrice(i) / 2);
 
     public Con CheckConstellationArrest(Con prev, PlayerShip playerShip, Station source) {
@@ -895,7 +895,7 @@ you on the ground before you can invoke SILENCE.
             new("Trade: Armor", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
-        TradeScene Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.8 * GetStdPrice(i) : -1));
+        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.8 * GetStdPrice(i) : -1));
     }
     public Con ArmsDealer(Con prev, PlayerShip playerShip, Station source) {
         return CheckConstellationArrest(prev, playerShip, source) ?? 
@@ -904,7 +904,7 @@ you on the ground before you can invoke SILENCE.
             new("Trade: Weapons", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
-        TradeScene Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
+        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
     }
     public HashSet<IShip> militiaRecordedKills = new();
     public bool constellationMilitiaMember; 
@@ -941,7 +941,7 @@ There is a modest degree of artificial gravity here.",
             }) { background = source.type.heroImage };
         }
         Con Trade(Con from) =>
-            new TradeScene(from, playerShip, source, GetStdPrice,
+            new TradeMenu(from, playerShip, source, GetStdPrice,
                 i => (!i.HasDevice() || friendlyOnly.Matches(i)) ? GetStdPrice(i) / 2 : -1
                 );
         Con ArmorRepair(Con from) => SMenu.DockArmorRepair(from, playerShip, GetRepairPrice, null);

@@ -9,9 +9,9 @@ using Console = SadConsole.Console;
 
 namespace RogueFrontier;
 
-class LoadMenu : Console {
+class LoadPane : Console {
     Profile profile;
-    public LoadMenu(int Width, int Height, Profile profile) : base(Width, Height) {
+    public LoadPane(int Width, int Height, Profile profile) : base(Width, Height) {
         this.profile = profile;
 
         UseKeyboard = true;
@@ -54,7 +54,7 @@ class LoadMenu : Console {
                                 var playerMain = new PlayerMain(Width, Height, profile, dead.playerShip);
                                 playerMain.camera.position = dead.playerShip.position;
                                 playerMain.PlaceTiles(new());
-                                var deathScreen = new DeathScreen(playerMain, dead.epitaph);
+                                var deathScreen = new EpitaphScreen(playerMain, dead.epitaph);
                                 dead.playerShip.onDestroyed +=playerMain;
                                 GameHost.Instance.Screen = deathScreen;
                                 deathScreen.IsFocused = true;

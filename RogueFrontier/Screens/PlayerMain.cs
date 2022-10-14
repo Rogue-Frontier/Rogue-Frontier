@@ -8,7 +8,6 @@ using SadConsole;
 using SadConsole.Input;
 using Console = SadConsole.Console;
 using Helper = Common.Main;
-using static UI;
 using Newtonsoft.Json;
 using ArchConsole;
 using static RogueFrontier.PlayerShip;
@@ -200,7 +199,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
         HideAll();
         Game.Instance.Screen = new ExitTransition(this, EndCrawl()) { IsFocused = true };
         ScreenSurface EndCrawl() {
-            SimpleCrawl ds = null;
+            MinimalCrawlScreen ds = null;
             ds = new("Intermission\n\n", EndPause) {
                 Position = new(Surface.Width / 4, 8), IsFocused = true
             };
@@ -225,7 +224,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
             Game.Instance.Screen = EndCrawl();
         }
         ScreenSurface EndCrawl() {
-            SimpleCrawl ds = null;
+            MinimalCrawlScreen ds = null;
             ds = new("You have left Human Space.\n\n", EndPause) { Position = new(Surface.Width / 4, 8), IsFocused = true };
             void EndPause() {
                 Game.Instance.Screen = new Pause(ds, EndGame, 3) { IsFocused = true };
@@ -233,7 +232,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
             return ds;
         }
         void EndGame() {
-            Game.Instance.Screen = new DeathScreen(this,
+            Game.Instance.Screen = new EpitaphScreen(this,
                 new() {
                     desc = $"Left Human Space",
                     deathFrame = null,
@@ -278,7 +277,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
 
         playerShip.autopilot = false;
         //Bug: Background is not included because it is a separate console
-        var ds = new DeathScreen(this, ep);
+        var ds = new EpitaphScreen(this, ep);
         var dt = new DeathTransition(this, ds);
         var dp = new DeathPause(this, dt) { IsFocused = true };
         SadConsole.Game.Instance.Screen = dp;
@@ -331,7 +330,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
                 if (scene != null) {
                     playerShip.DisengageAutopilot();
                     dock.Clear();
-                    sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
+                    sceneContainer.Children.Add(new ScanTransition(scene) { IsFocused = true });
                 } else {
                     playerShip.AddMessage(new Message($"Stationed on {dock.Target.name}"));
                 }
@@ -401,7 +400,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
                 if (scene != null) {
                     playerShip.DisengageAutopilot();
                     dock.Clear();
-                    sceneContainer.Children.Add(new SceneScan(scene) { IsFocused = true });
+                    sceneContainer.Children.Add(new ScanTransition(scene) { IsFocused = true });
                 } else {
                     playerShip.AddMessage(new Message($"Stationed on {dock.Target.name}"));
                 }
@@ -1983,7 +1982,7 @@ public class CommunicationsWidget : ScreenSurface {
             return menu.ProcessKeyboard(info);
         }
         foreach (var k in info.KeysPressed) {
-            int index = keyToIndex(k.Character);
+            int index = SMenu.keyToIndex(k.Character);
             if (index > -1 && index < 10 && index < playerShip.wingmates.Count) {
                 var w = playerShip.wingmates[index];
                 menu = new(this, playerShip, w) { Position = Position };
@@ -2021,7 +2020,7 @@ public class CommunicationsWidget : ScreenSurface {
 
         int index = 0;
         foreach (var w in playerShip.wingmates.Take(10)) {
-            char key = indexToKey(index++);
+            char key = SMenu.indexToKey(index++);
             Surface.Print(x, y++, $"[{key}] {w.name}: {w.behavior.GetOrderName()}", Color.White, Color.Black);
         }
 
@@ -2103,7 +2102,7 @@ public class CommunicationsWidget : ScreenSurface {
         }
         public override bool ProcessKeyboard(Keyboard info) {
             foreach (var k in info.KeysPressed) {
-                int index = keyToIndex(k.Character);
+                int index = SMenu.keyToIndex(k.Character);
                 if (index > -1 && index < commands.Count) {
                     commands.Values.ElementAt(index)();
                 }
@@ -2132,7 +2131,7 @@ public class CommunicationsWidget : ScreenSurface {
             y++;
             int index = 0;
             foreach (var w in commands.Keys) {
-                char key = indexToKey(index++);
+                char key = SMenu.indexToKey(index++);
                 Surface.Print(x, y++, $"[{key}] {w}", Color.White, Color.Black);
             }
 
@@ -2221,7 +2220,7 @@ public class PowerWidget : ScreenSurface {
         foreach (var k in keyboard.KeysDown) {
             var ch = k.Character;
             //If we're pressing a digit/letter, then we're charging up a power
-            int powerIndex = keyToIndex(ch);
+            int powerIndex = SMenu.keyToIndex(ch);
             //Find the power
             if (powerIndex > -1 && powerIndex < playerShip.powers.Count) {
                 var power = playerShip.powers[powerIndex];
@@ -2277,7 +2276,7 @@ public class PowerWidget : ScreenSurface {
         var gr = Color.Gray;
         var wh = Color.White;
         foreach (var p in playerShip.powers) {
-            char key = indexToKey(index);
+            char key = SMenu.indexToKey(index);
             if (p.cooldownLeft > 0) {
                 int chargeBar = (int)(16 * p.cooldownLeft / p.cooldownPeriod);
                 Surface.Print(x, y++,

@@ -67,7 +67,7 @@ public class Trailer {
             prev.Parent.Children.Remove(prev);
         }
         void ShowPoster(Console prev) {
-            var display = new DisplayImage(Width, Height, poster, new Point(-5, -5));
+            var display = new ImageDisplay(Width, Height, poster, new Point(-5, -5));
 
             Console pause = null;
             pause = new PauseTransition(Width, Height, 2, display, () => ShowPosterFade(pause));

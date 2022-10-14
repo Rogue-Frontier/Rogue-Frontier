@@ -15,8 +15,8 @@ using System.Xml.Linq;
 using SFML.Audio;
 namespace RogueFrontier;
 public class TitleScreen : Console {
-    ConfigMenu config;
-    LoadMenu load;
+    ConfigPane config;
+    LoadPane load;
     Console credits;
     public Profile profile;
     public System World;
@@ -164,7 +164,7 @@ public class TitleScreen : Console {
                 playerMain.PlaceTiles(new());
 
 
-                SimpleCrawl crawl2 = null;
+                MinimalCrawlScreen crawl2 = null;
                 crawl.next = () => (new FlashTransition(Width, Height, crawl, Transition));
 
                 void Transition() {
@@ -173,7 +173,7 @@ public class TitleScreen : Console {
 
 
                 void Transition2() {
-                    GameHost.Instance.Screen = crawl2 = new SimpleCrawl("Today has been a long time in the making.    \n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch {
+                    GameHost.Instance.Screen = crawl2 = new MinimalCrawlScreen("Today has been a long time in the making.    \n\n" + ((new Random(seed).Next(5) + new Random().Next(2)) switch {
                         1 => "Maybe history will remember.",
                         2 => "Tomorrow will be forever.",
                         3 => "The future will not be so far.",
@@ -305,8 +305,8 @@ public class TitleScreen : Console {
             playerMain.PlaceTiles(new());
             playerMain.RenderWorld(new());
 
-            SimpleCrawl ds = null;
-            ds = new SimpleCrawl(
+            MinimalCrawlScreen ds = null;
+            ds = new MinimalCrawlScreen(
 @"You find yourself in the Zone of No Escape.
 
 Unidentified spacecraft appear out of nowhere
