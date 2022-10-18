@@ -133,7 +133,9 @@ public class Armor : Device {
     public bool allowSpecial;
     public int maxHP => Math.Max(0, desc.maxHP - (int)(desc.lifetimeDegrade * lifetimeDamageAbsorbed) + (int)titanHP);
     public bool canAbsorb => hp > 0 || (maxHP > 0 && desc.minAbsorb is { min: >0 });
-    
+
+    public double valueFactor => (hp / desc.maxHP) * (maxHP / desc.maxHP);
+
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
         this.source = source;
@@ -756,6 +758,13 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     public int totalTimesFired;
     public record OnFire(Weapon w, List<Projectile> p);
     public Vi<OnFire> onFire=new();
+
+
+    public double valueFactor =>
+        ammo is ChargeAmmo ca ?
+            (double)ca.charges / desc.initialCharges :
+            1.0;
+
     public Weapon() { }
     public Weapon(Item source, WeaponDesc desc, IAiming aiming = null) {
         this.source = source;

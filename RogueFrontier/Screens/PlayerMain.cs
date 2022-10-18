@@ -1584,7 +1584,7 @@ public class Readout : ScreenSurface {
                                     !armor.allowSpecial ?
                                         Color.Black.Blend(Color.Yellow.SetAlpha(128)) :
                                         b;
-                                int l = BAR * armor.hp / Math.Max(1, armor.maxHP);
+                                int l = BAR * Math.Clamp(armor.hp, 1, armor.maxHP) / Math.Max(1, armor.maxHP);
                                 Surface.Print(x, y, Main.Concat(
                                     ("[", f, b),
                                     (new('=', l), f, b),

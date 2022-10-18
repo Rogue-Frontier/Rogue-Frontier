@@ -162,31 +162,36 @@ public static partial class SMenu {
         var r = GenerateDesc(d.source.type);
         ((Action)(d switch {
             Weapon w => () => {
-                r.Add(new($"Fire rate:    {60.0 / w.desc.fireCooldown:0.00}"));
-                r.Add(new($"Power rating: {w.desc.powerUse}"));
-                r.Add(new($"Recoil force: {w.desc.recoil}"));
-                if (w.ammo is ItemAmmo ia) {
-                    r.Add(new($"Ammo type:    {ia.itemType.name}"));
-                } else if (w.ammo is ChargeAmmo ca) {
-                    r.Add(new($"Charges left: {ca.charges}"));
-                }
-                if (w.aiming is Omnidirectional o) {
-                    r.Add(new($"Aiming:       Omnidirectional"));
-                } else if (w.aiming is Swivel s) {
-                    r.Add(new($"Aiming:       {(int)((s.leftRange + s.rightRange) * 180 / Math.PI)}-degree swivel"));
-                }
-            }
-            ,
+
+                r.AddRange(new ColoredString[] {
+                    new($"Damage range: {w.desc.projectile.damageHP.str}"),
+                    new($"Fire cooldown:{w.desc.fireCooldown/60.0:0.00} SEC"),
+                    new($"Power rating: {w.desc.powerUse}"),
+                    w.desc.recoil != 0 ?
+                        new($"Recoil force: {w.desc.recoil}") : null,
+                    w.ammo switch {
+                        ItemAmmo ia =>      new($"Ammo type:    {ia.itemType.name}"),
+                        ChargeAmmo ca =>    new($"Charges left: {ca.charges}"),
+                        _ => null
+                    },
+                    w.aiming switch {
+                        Omnidirectional =>  new($"Turret:       Omnidirectional"),
+                        Swivel s =>         new($"Turret:       {(int)((s.leftRange + s.rightRange) * 180 / Math.PI)}-degree swivel"),
+                        _ => null
+                    }
+                }.Except(new ColoredString[] { null }));
+            },
             Shield s => () => {
 
                 r.AddRange(new ColoredString[] {
-                    new($"Capacity: {s.desc.maxHP} HP"),
-                    new($"Regen:    {s.desc.maxHP} HP/s"),
-                    new($"Stealth:  {s.desc.stealth}"),
-                    new($"Idle power rating:   {s.desc.maxHP} EL"),
-                    new($"Active power rating: {s.desc.maxHP} EL"),
-
-                });
+                    new(        $"Max HP:  {s.desc.maxHP} HP"),
+                    new(        $"Regen:   {s.desc.regen:0.00} HP/s"),
+                    new(        $"Stealth: {s.desc.stealth}"),
+                    new(        $"Idle power use:  {s.desc.idlePowerUse}"),
+                    new(        $"Regen power use: {s.desc.powerUse}"),
+                    s.desc.reflectFactor is > 0 and var reflectFactor ?
+                        new(  $"Reflect factor:  {reflectFactor}") : null,
+                }.Except(new ColoredString[] {null}));
             }
             ,
             Solar solar => () => {
@@ -207,8 +212,13 @@ public static partial class SMenu {
                     new($"Efficiency:      {reactor.desc.efficiency, -4} EL/EN"),
 
                 });
-            }
-            ,
+            },
+            Armor armor => () => {
+                r.AddRange(new ColoredString[] {
+                    new($"Max HP: {armor.maxHP}"),
+
+                });
+            },
 
             _ => () => { }
         })).Invoke();

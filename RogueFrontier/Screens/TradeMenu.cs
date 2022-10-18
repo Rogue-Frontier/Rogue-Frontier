@@ -26,7 +26,17 @@ public class TradeMenu : Console {
     public TradeMenu(ScreenSurface prev, PlayerShip playerShip, ITrader docked, GetPrice GetBuyPrice, GetPrice GetSellPrice) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         this.player = playerShip.person;
-        model = new(new(playerShip.name, playerShip.cargo), new(docked.name, docked.cargo), Transact, Exit);
+        model = new(new(playerShip.name, playerShip.cargo), new(docked.name, docked.cargo), Transact, Exit) {
+            getNameColor = (side, index) => {
+
+                var gray = new Color(153, 153, 153);
+                var white = Color.White;
+                return
+                    side == 0 ?
+                        (GetSellPrice(model.traders[0].GetItemAt(index, model.traders[0].groupMode)) == -1 ? gray : white) :
+                        (GetBuyPrice(model.traders[1].GetItemAt(index, model.traders[1].groupMode)) > playerShip.person.money ? gray : white);
+            }
+        };
         this.GetBuyPrice = GetBuyPrice;
         this.GetSellPrice = GetSellPrice;
     }

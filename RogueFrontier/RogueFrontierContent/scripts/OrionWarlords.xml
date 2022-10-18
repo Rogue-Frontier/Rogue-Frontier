@@ -34,8 +34,9 @@
 				/>
 		</Weapon>
 	</ItemType>
+	
 	<ItemType	codename=	"item_orion_longbow"
-				name=		"Bronze Longbow"
+				name=		"Bronze longbow"
 				attributes=	"OrionWarlords"
 				mass=		"5000"
 				level=		"3"
@@ -101,6 +102,44 @@
 				/>
 		</Weapon>
 	</ItemType>
+
+	<ItemType	codename=	"item_orion_ballista"
+				name=		"Bronze ballista"
+				attributes=	"OrionWarlords"
+				mass=		"5000"
+				level=		"3"
+				value=		"800"
+				desc=		"The Bronze ballista is the heaviest mass driver created by the Orion Warlords. It fires heavy shots that can travel very far."
+				invoke=		"installWeapon"
+		>
+		<Weapon
+			powerUse=		"60"
+			fireCooldown=	"60"
+			initialCharges=	"200"
+			>
+			<Projectile
+				missileSpeed=	"20"
+				damageType=		"2"
+				damageHP=		"25"
+				lifetime=		"120"
+				glyph=			"+"
+				foreground=		"Orange"
+				
+				shock=			"2"
+				/>
+			<Capacitor
+				dischargeOnFire=		"100"
+				rechargePerTick=		"100/180"
+				maxCharge=				"100"
+
+				bonusSpeedPerCharge=	"70/100"
+				bonusDamagePerCharge=	"30/100"
+				bonusLifetimePerCharge=	"60/100"
+				/>
+		</Weapon>
+	</ItemType>
+	
+	
 	<ItemType	codename=	"item_hunterscale_plate"
 		name=		"Hunter's plate"
 		attributes=	"OrionWarlords"
@@ -282,10 +321,11 @@
 			<Ship	count="2-4"	codename="ship_orion_huntsman"/>
 		</Ships>
 		<Weapons>
-			<Weapon	codename="item_orion_bolter" posX="3" posY="3"	angle="90" leftRange="90" rightRange="135"/>
-			<Weapon	codename="item_orion_bolter" posX="3" posY="-3"	angle="-90" leftRange="135" rightRange="90"/>
-			<Weapon	codename="item_orion_bolter" posX="-3" posY="3"	angle="90" leftRange="135" rightRange="90"/>
-			<Weapon	codename="item_orion_bolter" posX="-3" posY="-3"	angle="-90" leftRange="90" rightRange="135"/>
+			<Weapon	codename="item_orion_ballista" omnidirectional="true"/>
+			<Weapon	codename="item_orion_bolter" posX="3" posY="3"	angle="90" leftRange="45" rightRange="45"/>
+			<Weapon	codename="item_orion_bolter" posX="3" posY="-3"	angle="-90" leftRange="45" rightRange="45"/>
+			<Weapon	codename="item_orion_bolter" posX="-3" posY="3"	angle="90" leftRange="45" rightRange="45"/>
+			<Weapon	codename="item_orion_bolter" posX="-3" posY="-3"	angle="-90" leftRange="45" rightRange="45"/>
 		</Weapons>
 		<Cargo>
 			<Item codename="item_bronze_rice" count="4-16"/>

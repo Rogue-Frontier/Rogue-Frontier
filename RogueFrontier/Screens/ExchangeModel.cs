@@ -20,8 +20,16 @@ public class Trader {
 
     public int count => groupMode ? groups.Count : items.Count;
     public bool groupMode = true;
-    public Item currentItem => index.HasValue ? items.ElementAt(index.Value) : null;
+    public Item currentItem => index.HasValue ?
+        items.ElementAt(index.Value) :
+        null;
     public (Item item, int count) currentGroup => index.HasValue ? groups.ElementAt(index.Value) : default;
+    
+    public Item GetItemAt(int index, bool group = false) {
+        return group ?
+            groups.ElementAt(index).item :
+            items.ElementAt(index);
+    }
     public Trader(string name, HashSet<Item> items) {
         this.name = name;
         this.items = items;
@@ -92,6 +100,12 @@ public class ExchangeModel {
 
     Action enter;
     Action exit;
+    //Func<ItemType, Color> GetNameColor = i => Color.White;
+
+    public delegate Color GetNameColor(int side, int index);
+    public GetNameColor getNameColor = (side, index) => Color.White;
+
+
     int tick;
     public ExchangeModel(Trader player, Trader station, Action enter, Action exit) {
         traders = new() { player, station };
@@ -108,6 +122,10 @@ public class ExchangeModel {
                 case Keys.Tab:
                     Tones.pressed.Play();
                     currentTrader.ToggleGroup();
+                    break;
+                case Keys.RightShift:
+                    Tones.pressed.Play();
+                    traderIndex = (traderIndex + 1) % 2;
                     break;
                 case Keys.PageUp:
                     Tones.pressed.Play();
@@ -168,8 +186,6 @@ public class ExchangeModel {
                     break;
             }
         }
-
-
     }
     public void UpdateIndex() {
         traders.ForEach(d => d.UpdateIndex());
@@ -190,13 +206,17 @@ public class ExchangeModel {
         var playerCount = player.count;
 
 
-        Func<int, string> NameAt = player.groupMode ?
+        Func<int, string> GetNameAt = player.groupMode ?
             (i => {
                 var g = player.groups.ElementAt(i);
                 return $"{g.count}x {g.item.type.name}";
             }) :
             (i => player.items.ElementAt(i).type.name);
-
+        /*
+        Func<int, ItemType> GetTypeAt = player.groupMode ?
+            i => player.groups.ElementAt(i).item.type :
+            i => player.items.ElementAt(i).type;
+        */
 
         var c = playerSide ? Color.Yellow : Color.White;
         con.DrawBox(new Rectangle(x - 2, y - 3, lineWidth + 8, 3), new ColoredGlyph(c, Color.Black, '-'));
@@ -220,8 +240,11 @@ public class ExchangeModel {
         if (playerCount > 0) {
             int i = start;
             while (i < end) {
-                var highlightColor = i == highlight ? Color.Yellow : Color.White;
-                var n = NameAt(i);
+                var highlightColor =
+                    i == highlight ?
+                        Color.Yellow :
+                    getNameColor(0, i);
+                var n = GetNameAt(i);
                 if (n.Length > lineWidth) {
                     if (i == highlight) {
                         //((tick / 15) % (n.Length - 25));
@@ -277,7 +300,7 @@ public class ExchangeModel {
         var dockedCount = docked.count;
 
 
-        NameAt = docked.groupMode ?
+        GetNameAt = docked.groupMode ?
             (i => {
                 var g = docked.groups.ElementAt(i);
                 return $"{g.count}x {g.item.type.name}";
@@ -302,8 +325,11 @@ public class ExchangeModel {
         if (dockedCount > 0) {
             int i = start;
             while (i < end) {
-                var highlightColor = i == highlight ? Color.Yellow : Color.White;
-                var n = NameAt(i);
+                var highlightColor =
+                    i == highlight ?
+                        Color.Yellow :
+                    getNameColor(1, i);
+                var n = GetNameAt(i);
                 if (n.Length > lineWidth) {
                     if (i == highlight) {
                         //((tick / 15) % (n.Length - 25));

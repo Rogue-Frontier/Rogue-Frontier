@@ -573,6 +573,7 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_lightning_cannon = 3500,
         item_orion_bolter = 400,
         item_orion_longbow = 800,
+        item_orion_ballista = 1200,
         item_orion_turret = 900,
         item_orion_skewer = 2700,
         item_hunterscale_plate = 250,
@@ -789,21 +790,33 @@ of the Beowulf Club, a galaxy-wide alliance
 of civilian gunship pilots.",
             new() {
                 new("Trade", Trade),
-                new("Service: Repair Armor", ArmorServices),
+                SNav.DockArmorRepair(playerShip, GetArmorRepairPrice),
+                SNav.DockArmorReplacement(playerShip, GetArmorReplacePrice),
+                SNav.DockDeviceInstall(playerShip, GetDeviceInstallPrice),
+                SNav.DockDeviceRemoval(playerShip, GetDeviceRemovalPrice),
                 new("Undock")
             });
         }
-        int GetPrice(Armor a) {
+        int GetArmorRepairPrice(Armor a) {
             if (a.source.IsAmethyst()) {
                 return 6;
             }
-
             return 3;
         }
+        int GetArmorReplacePrice(Armor a) {
+            return 100;
+        }
+
+        int GetDeviceInstallPrice(Device d) {
+            return 100;
+        }
+        int GetDeviceRemovalPrice(Device d) {
+            return 100;
+        }
+
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             GetStdPrice,
             GetStdPrice);
-        Con ArmorServices(Con from) => SMenu.DockArmorRepair(from, playerShip, GetPrice, null);
     }
     public Con CamperOutpost(Con prev, PlayerShip playerShip, Station source) {
         var lookup = (string s) => playerShip.world.types.Lookup<ItemType>(s);
@@ -829,16 +842,22 @@ craftspersons, and adventurers.",
             new() {
                 new("Trade", Trade),
                 new("Workshop", Workshop),
-                new("Service: Repair Armor", ArmorServices),
+                SNav.DockArmorRepair(playerShip, GetArmorRepairPrice),
+                SNav.DockArmorReplacement(playerShip, GetArmorReplacePrice),
+                SNav.DockDeviceInstall(playerShip, GetDeviceInstallPrice),
+                SNav.DockDeviceRemoval(playerShip, GetDeviceRemovalPrice),
                 new("Undock")
             });
         }
-        int GetRepairPrice(Armor a) => a.source.IsAmethyst() ? 4 : 2;
+        int GetArmorRepairPrice(Armor a) => a.source.IsAmethyst() ? -1 : 2;
+        int GetArmorReplacePrice(Armor a) => a.source.IsAmethyst() ? -1 : 100;
+        int GetDeviceInstallPrice(Device a) => a.source.IsAmethyst() ? -1 : 100;
+        int GetDeviceRemovalPrice(Device a) => a.source.IsAmethyst() ? -1 : 100;
+
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             GetStdPrice,
             GetStdPrice);
         Con Workshop(Con from) => SMenu.Workshop(from, playerShip, recipes, null);
-        Con ArmorServices(Con from) => SMenu.DockArmorRepair(from, playerShip, GetRepairPrice, null);
     }
     public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>
         new (prev, playerShip, source, GetStdPrice, i => GetStdPrice(i) / 2);
@@ -895,7 +914,8 @@ you on the ground before you can invoke SILENCE.
             new("Trade: Armor", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
-        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.armor != null ? 0.8 * GetStdPrice(i) : -1));
+        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice,
+            i => (int)(i.armor is Armor a ? a.valueFactor * 0.5 * GetStdPrice(i) : -1));
     }
     public Con ArmsDealer(Con prev, PlayerShip playerShip, Station source) {
         return CheckConstellationArrest(prev, playerShip, source) ?? 
@@ -904,17 +924,15 @@ you on the ground before you can invoke SILENCE.
             new("Trade: Weapons", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
-        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice, i => (int)(i.type.weapon != null ? 0.8 * GetStdPrice(i) : -1));
+        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice,
+            i => (int)(i.weapon is Weapon w ? w.valueFactor * 0.5 * GetStdPrice(i) : -1));
     }
     public HashSet<IShip> militiaRecordedKills = new();
     public bool constellationMilitiaMember; 
     public Con ConstellationAstra(Con prev, PlayerShip playerShip, Station source) {
         var friendlyOnly = ItemFilter.Parse("-OrionWarlords -IronPirates -Errorists -Perfectrons -DarkStar");
-
         return CheckConstellationArrest(prev, playerShip, source) ??
             Intro(prev);
-
-        
         Dialog Intro(Con prev) {
             return new(prev,
 @"You are docked at a Constellation Astra,
@@ -932,23 +950,18 @@ a spinning pinwheel.
 There is a modest degree of artificial gravity here.",
             new() {
                 new("Trade", Trade),
-                new("Service: Device Install", DeviceInstall),
-                new("Service: Device Removal", DeviceRemoval),
-                new("Service: Armor Repair", ArmorRepair),
-                new("Service: Armor Replacement", ArmorReplace),
+                SNav.DockDeviceInstall(playerShip, GetInstallPrice),
+                SNav.DockDeviceRemoval(playerShip, GetRemovePrice),
+                SNav.DockArmorRepair(playerShip, GetRepairPrice),
+                SNav.DockArmorReplacement(playerShip, GetReplacePrice),
                 new("Militia Headquarters", MilitiaHeadquarters),
                 new("Undock")
             }) { background = source.type.heroImage };
         }
         Con Trade(Con from) =>
             new TradeMenu(from, playerShip, source, GetStdPrice,
-                i => (!i.HasDevice() || friendlyOnly.Matches(i)) ? GetStdPrice(i) / 2 : -1
+                i => (!i.HasDevice() || friendlyOnly.Matches(i)) ? GetStdPrice(i) / 5 : -1
                 );
-        Con ArmorRepair(Con from) => SMenu.DockArmorRepair(from, playerShip, GetRepairPrice, null);
-        Con DeviceInstall(Con from) => SMenu.DockDeviceInstall(from, playerShip, GetInstallPrice, null);
-        Con DeviceRemoval(Con from) => SMenu.DockDeviceRemoval(from, playerShip, GetRemovePrice, null);
-        Con ArmorReplace(Con from) => SMenu.DockArmorReplacement(from, playerShip, GetReplacePrice, null);
-
         int GetRepairPrice(Armor a) => !friendlyOnly.Matches(a.source) ? -1 : a.source.IsAmethyst() ? 9 : 3;
         int GetInstallPrice(Device d) => !friendlyOnly.Matches(d.source) ? -1 : d.source.IsAmethyst() ? 300 : 100;
         int GetRemovePrice(Device d) => !friendlyOnly.Matches(d.source) ? -1 : d.source.IsAmethyst() ? 300 : 100;

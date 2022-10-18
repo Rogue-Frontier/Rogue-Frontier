@@ -11,6 +11,24 @@ using ASECII;
 using System.IO;
 using SFML.Audio;
 namespace RogueFrontier;
+
+public static class SNav {
+
+    public static NavChoice DockArmorRepair(PlayerShip p, int price) =>
+        DockArmorReplacement(p, a => price);
+    public static NavChoice DockArmorRepair(PlayerShip p, Func<Armor, int> GetPrice) =>
+        new("Service: Armor Repair", prev => SMenu.DockArmorRepair(prev, p, GetPrice, null));
+    public static NavChoice DockArmorReplacement(PlayerShip p, int price) =>
+        DockArmorReplacement(p, a => price);
+    public static NavChoice DockArmorReplacement(PlayerShip p, Func<Armor, int> GetPrice) =>
+        new("Service: Armor Replacement", prev => SMenu.DockArmorReplacement(prev, p, GetPrice, null));
+
+    public static NavChoice DockDeviceInstall(PlayerShip p, Func<Device, int> GetPrice) =>
+        new("Service: Device Install", prev => SMenu.DockDeviceInstall(prev, p, GetPrice, null));
+
+    public static NavChoice DockDeviceRemoval(PlayerShip p, Func<Device, int> GetPrice) =>
+        new("Service: Device Removal", prev => SMenu.DockDeviceRemoval(prev, p, GetPrice, null));
+}
 public enum NavFlags : long {
     ESC = 0b1,
     ENTER = 0b10

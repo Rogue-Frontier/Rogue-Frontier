@@ -33,7 +33,7 @@
 			mass=		"3000"
 			level=		"2"
 			invoke=		"installWeapon"
-			desc=		"The Iron Driver is a makeshift kinetic mass driver with crude rapid-fire capabilities."
+			desc=		"The Iron Driver is a makeshift kinetic mass driver with rapid-fire capabilities."
 				>
 		<Weapon		powerUse=		"15"
 					fireCooldown=	"20"
@@ -91,7 +91,7 @@
 			mass=		"3000"
 			level=		"2"
 			invoke=		"installWeapon"
-			desc=		"This cannon launches Iron Hooks which can latch onto an enemy and pull it closer."
+			desc=		"This cannon launches Iron Hooks which can latch onto an enemy and pull them closer."
 				>
 		<Weapon		ammoType=		"item_iron_hook"
 					powerUse=		"15"
@@ -113,14 +113,14 @@
 			attributes=	"IronPirates"
 			mass=		"10"
 			level=		"2"
-			desc=		"This giant hook is fired by the Hook cannon. It is one of many things that the Iron Pirates like to make in their secret foundries."
+			desc=		"This giant hook is fired by the Hook cannon. It is one of various metal products that the Iron Pirates like to make in their secret foundries."
 		/>
 
 	<ItemType	codename=	"item_ironclad_plate"
 				name=		"Ironclad plate"
 				mass=		"1000"
 				level=		"1"
-				desc=		"This armor is made of iron, which is a material that would rust if the Iron Pirates ever visited a planet called Earth."
+				desc=		"This armor is made of iron, which would rust if the Iron Pirates ever visited a planet known as Earth."
 		>
 		<Armor	maxHP=		"60"/>
 	</ItemType>
@@ -128,7 +128,7 @@
 				name=		"Ironside plate"
 				mass=		"5000"
 				level=		"2"
-				desc=		"It takes a very strong attack to bring down the old Ironside plate."
+				desc=		"When this armor is on its last HP, nothing will take it down except for a very strong hit or very severe rusting."
 		>
 		<Armor	maxHP=		"90"
 				killHP=		"6"/>
