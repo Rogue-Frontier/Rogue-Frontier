@@ -41,7 +41,7 @@ public class ListIndex<T> {
         return false;
     }
 
-    public bool Has(out T t) { t = item; return list.Any(); }
+    public bool Has(out T t) => (t = item) != null;
     public ListIndex(List<T> list) {
         this.list = list;
     }

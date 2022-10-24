@@ -46,10 +46,20 @@
 			<Ship	count="3"	codename="ship_clark_merchant" behavior="trader"/>
 		</Ships>
 		<Cargo>
-			<Item count="60"	codename="item_simple_fuel_rod"/>
-			<Item count="16"	codename="item_armor_repair_patch"/>
-			<Item count="8"	codename="item_klaw_missile_launcher"/>
-			<Item count="240"	codename="item_klaw_missile"/>
+			<Item count="80-120"	codename="item_simple_fuel_rod"/>
+			<Item count="16-32"	codename="item_armor_repair_patch"/>
+			<Item count="8-16"	codename="item_klaw_missile_launcher"/>
+			<Item count="240-360"	codename="item_klaw_missile"/>
+
+			<Item count="12-24" codename="item_20mw_generator"/>
+			<Item count="4-8" codename="item_50mw_generator"/>
+
+			<Item count="8-16" codename="item_10mw_battery"/>
+			<Item count="8-16" codename="item_20mw_battery"/>
+			<Item count="8-16" codename="item_30mw_battery"/>
+			<Item count="8-16" codename="item_40mw_battery"/>
+			<Item count="8-16" codename="item_50mw_battery"/>
+			<Item count="8-16" codename="item_60mw_battery"/>
 		</Cargo>
 		<Weapons>
 			<Weapon codename="item_musket_turret"/>

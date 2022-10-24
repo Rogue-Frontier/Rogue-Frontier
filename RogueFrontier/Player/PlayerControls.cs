@@ -121,9 +121,7 @@ public class PlayerControls {
                         .FilterKey(p => (playerShip.position - p).magnitude < 8)
                         .Select(p => p is ISegment s ? s.parent : p)
                         .OfType<IDockable>()
-                        .Where(s => s.GetDockPoint() != null)
-                        .OrderBy(p => playerShip.position.Dist(p.position))
-                        .FirstOrDefault();
+                        .MinBy(d => playerShip.position.Dist(d.position));
                     if (dest != null) {
                         Dock(dest);
                     } else {
@@ -133,7 +131,7 @@ public class PlayerControls {
                 }
                 void Dock(IDockable dest) {
                     playerShip.AddMessage(new Transmission(dest, "Docking initiated"));
-                    playerShip.dock.SetTarget(dest, dest.GetDockPoint());
+                    playerShip.dock.SetTarget(dest, dest.GetDockPoints().MinBy(playerShip.position.Dist));
                     playerMain.audio.PlayDocking(true);
                 }
             }
@@ -175,12 +173,18 @@ public class PlayerControls {
         }
         if (keys != null && keys.IsKeyPressed(U)) {
             playerMain.audio.button_press.Play();
-            playerMain.sceneContainer?.Children.Add(SMenu.Invokables(playerMain.sceneContainer, playerShip));
+            playerMain.sceneContainer.Children.Add(SListWidget.Usables(playerMain, playerShip));
         }
         if (input.NetworkMap && playerMain.networkMap is var nm) {
             playerMain.audio.button_press.Play();
             nm.IsVisible = !nm.IsVisible;
         }
+
+
+        if(keys?.IsKeyPressed(B) == true) {
+            playerMain.sceneContainer.Children.Add(SListWidget.DeviceManager(playerMain, playerShip));
+        }
+
         if (keys != null && keys.IsKeyPressed(F1)) {
             playerMain.audio.button_press.Play();
             SadConsole.Game.Instance.Screen = new IdentityScreen(playerMain) { IsFocused = true };

@@ -260,8 +260,8 @@ public class Maneuver {
     public double maneuver;
     public double maneuverDistance;
     public bool smart = true;
-    private double prevDistance;
-    private bool startApproach;
+    private double prevDistance = double.NegativeInfinity;
+    private bool startApproach = false;
     public Maneuver(ActiveObject target, double maneuver, double maneuverDistance) {
         this.target = target;
         this.maneuver = maneuver;
@@ -274,13 +274,11 @@ public class Maneuver {
         //var uncertainty = XY.Polar(p.world.karma.NextDouble() * 2 * Math.PI, 0);
         var vel = p.velocity;
         var offset = target.position - p.position;
-
         var turn = maneuver * delta * Program.TICKS_PER_SECOND;
         var velLeft = vel.Rotate(turn);
         var velRight = vel.Rotate(-turn);
         var distLeft = (offset - velLeft.normal).magnitude;
         var distRight = (offset - velRight.normal).magnitude;
-
         (var closer, var farther) = distLeft < distRight ? (velLeft, velRight) : (velRight, velLeft);
         if (maneuverDistance == 0) {
             if(smart) {

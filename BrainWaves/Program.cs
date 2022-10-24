@@ -8,7 +8,7 @@ class Program {
     static void Main(string[] args) {
         // Setup the engine and create the main window.
         SadConsole.Game.Create(Width, Height, "BrainWavesContent/IBMCGA.font");
-        SadConsole.Game.Instance.DefaultFontSize = Font.Sizes.One;
+        SadConsole.Game.Instance.DefaultFontSize = IFont.Sizes.One;
         // Hook the start event so we can add consoles to the system.
         SadConsole.Game.Instance.OnStart = Init;
 

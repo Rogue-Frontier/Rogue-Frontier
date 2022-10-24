@@ -5,11 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-
 namespace RogueFrontier;
-
 public record SystemType : IDesignType {
-    public string codename;
+    [Req] public string codename;
     public SystemGroup systemGroup;
     public SystemType() {
 
@@ -18,7 +16,7 @@ public record SystemType : IDesignType {
         this.systemGroup = system;
     }
     public void Initialize(TypeCollection collection, XElement e) {
-        codename = e.ExpectAtt("codename");
+        e.Initialize(this);
         if (e.HasElement("SystemGroup", out var xmlSystem)) {
             systemGroup = new SystemGroup(xmlSystem, SGenerator.ParseFrom(collection, SSystemElement.Create));
         }
@@ -196,7 +194,7 @@ public record SystemOrbital() : SystemElement {
     public IDice increment;
     public bool equidistant;
 
-    public int radius;
+    [Opt] public int radius;
     public SystemOrbital(XElement e, Parse<SystemElement> parse) : this() {
         subelements = e.Elements().Select(e => parse(e)).ToList();
 
@@ -230,7 +228,6 @@ public record SystemOrbital() : SystemElement {
             case var unknown:
                 throw new Exception($"Invalid increment {unknown}");
         }
-        radius = e.TryAttInt(nameof(radius), 0);
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
 
@@ -272,11 +269,10 @@ public record SystemMarker() : SystemElement {
     }
 }
 public record SystemPlanet() : SystemElement {
-    public int radius;
-    public bool showOrbit;
+    [Req] public int radius;
+    [Opt] public bool showOrbit = true;
     public SystemPlanet(XElement e) : this() {
-        radius = e.ExpectAttInt(nameof(radius));
-        showOrbit = e.TryAttBool(nameof(showOrbit), true);
+        e.Initialize(this);
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var diameter = radius * 2;
@@ -358,11 +354,11 @@ public record SystemAsteroids() : SystemElement {
     }
 }
 public record SystemNebula() : SystemElement {
-    public double angle;
-    public int size;
+    [Req] public double angle;
+    [Req] public int size;
     public SystemNebula(XElement e) : this() {
-        angle = e.ExpectAttDouble(nameof(angle)) * Math.PI / 180;
-        size = e.ExpectAttInt(nameof(size));
+        e.Initialize(this);
+        angle *= Math.PI / 180;
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         double arc = lc.radius * angle;
@@ -454,19 +450,15 @@ public record SystemStar() : SystemElement {
     }
 }
 public record SystemShips : SystemElement {
-    //[Opt] public string targetId = "";
-    [Req] public string sovereign;
-    private Sovereign sov;
+    private Sovereign sovereign;
     public ShipGenerator ships;
     public SystemShips() { }
     public SystemShips(TypeCollection tc, XElement e) {
-        e.Initialize(this);
-        sov = tc.Lookup<Sovereign>(sovereign);
+        sovereign = tc.Lookup<Sovereign>(e.ExpectAtt(nameof(sovereign)));
         ships = SGenerator.ShipFrom(tc, e);
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
-        //var target = (ActiveObject)lc.world.universe.named[targetId];
-        var m = new ActiveMarker(lc.world, sov, lc.pos);
+        var m = new ActiveMarker(lc.world, sovereign, lc.pos);
         ships.GenerateAndPlace(tc, m);
     }
 }
@@ -476,15 +468,30 @@ public record SystemStation() : SystemElement {
     
     public ShipGroup ships;
     public StationType stationtype;
+
+    public bool cargoReplace;
+    public IGenerator<Item> cargo;
     public SystemStation(TypeCollection tc, XElement e) : this() {
         e.Initialize(this);
-
-        ships = e.HasElement("Ships", out var xmlShips) ? new(xmlShips, SGenerator.ParseFrom(tc, SGenerator.ShipFrom)) : null;
         stationtype = tc.Lookup<StationType>(codename);
+        ships = e.HasElement("Ships", out var xmlShips) ? new(xmlShips, SGenerator.ParseFrom(tc, SGenerator.ShipFrom)) : null;
+
+        if (e.HasElement("Cargo", out var xmlCargo)) {
+            cargo = SGenerator.ItemFrom(tc, xmlCargo);
+            cargoReplace = xmlCargo.TryAttBool("replace");
+        }
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
         var w = lc.world;
         var s = new Station(w, stationtype, lc.pos);
+
+        if (cargo != null) {
+            if (cargoReplace) {
+                s.cargo.Clear();
+            }
+            s.cargo.UnionWith(cargo.Generate(tc));
+        }
+
         if (id.Any() == true) {
             w.universe.identifiedObjects[id] = s;
         }

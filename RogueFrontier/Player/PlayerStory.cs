@@ -575,6 +575,7 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_orion_longbow = 800,
         item_orion_ballista = 1200,
         item_orion_turret = 900,
+        item_orion_sentry = 2700,
         item_orion_skewer = 2700,
         item_hunterscale_plate = 250,
         item_skullhelm_plate = 600,
@@ -605,6 +606,7 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_sidearm_turret = 3500,
         item_missile_defender = 4000,
         item_scanner_drone = 1500,
+        item_combat_drone_i = 4000,
         item_flintlock = 1500,
         item_sabre = 2500,
         item_knightsteel_plate = 5000,
@@ -685,7 +687,6 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         if (missing.Any()) {
             throw new Exception(string.Join('\n', missing.Select(m => @$"[""{m}""] = 0,")));
         }
-
         mainInteractions = new();
         mainInteractions.Add(new IntroMeeting(this));
         secondaryInteractions = new();
@@ -697,7 +698,6 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         univ.onEntityAdded += this;
     }
     public void Observe(EntityAdded ev) => Register(ev.e);
-    
     public void Register(Entity e) {
         switch(e) {
             case Station s: s.onDestroyed += this; break;
@@ -745,10 +745,10 @@ purchases and repair services.
 ",
             new() {
                 new("Trade", Trade),
-                new("Service: Device Install", DeviceInstall),
-                new("Service: Device Removal", DeviceRemoval),
-                new("Service: Armor Repair", ArmorRepair),
-                new("Service: Armor Replacement", ArmorReplace),
+                SNav.DockDeviceInstall(playerShip, GetInstallPrice),
+                SNav.DockDeviceRemoval(playerShip, GetRemovePrice),
+                SNav.DockArmorRepair(playerShip, GetRepairPrice),
+                SNav.DockArmorReplacement(playerShip, GetReplacePrice),
                 new("Undock")
             });
         }
@@ -759,11 +759,6 @@ purchases and repair services.
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             i => (int)(GetStdPrice(i) * buyAdj),
             i => i.IsAmethyst() ? GetStdPrice(i) / 10 : -1);
-        Con ArmorRepair(Con from) => SMenu.DockArmorRepair(from, playerShip, GetRepairPrice, null);
-        Con DeviceInstall(Con from) => SMenu.DockDeviceInstall(from, playerShip, GetInstallPrice, null);
-        Con DeviceRemoval(Con from) => SMenu.DockDeviceRemoval(from, playerShip, GetRemovePrice, null);
-        Con ArmorReplace(Con from) => SMenu.DockArmorReplacement(from, playerShip, GetReplacePrice, null);
-
         int GetInstallPrice(Device d) =>
             !d.source.IsAmethyst() ? -1 : discount ? 80 : 100;
         int GetRemovePrice(Device i) =>
@@ -806,17 +801,15 @@ of civilian gunship pilots.",
         int GetArmorReplacePrice(Armor a) {
             return 100;
         }
-
         int GetDeviceInstallPrice(Device d) {
             return 100;
         }
         int GetDeviceRemovalPrice(Device d) {
             return 100;
         }
-
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             GetStdPrice,
-            GetStdPrice);
+            i => GetStdPrice(i) / 4);
     }
     public Con CamperOutpost(Con prev, PlayerShip playerShip, Station source) {
         var lookup = (string s) => playerShip.world.types.Lookup<ItemType>(s);
@@ -856,7 +849,7 @@ craftspersons, and adventurers.",
 
         Con Trade(Con from) => new TradeMenu(from, playerShip, source,
             GetStdPrice,
-            GetStdPrice);
+            i => GetStdPrice(i) / 4);
         Con Workshop(Con from) => SMenu.Workshop(from, playerShip, recipes, null);
     }
     public TradeMenu TradeStation(Con prev, PlayerShip playerShip, Station source) =>
@@ -914,8 +907,10 @@ you on the ground before you can invoke SILENCE.
             new("Trade: Armor", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
-        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice,
-            i => (int)(i.armor is Armor a ? a.valueFactor * 0.5 * GetStdPrice(i) : -1));
+        TradeMenu Trade(Con c) =>
+            new(c, playerShip, source, GetStdPrice, i => i.armor is Armor a ?
+                    (int)(a.valueFactor * 0.5 * GetStdPrice(i)) :
+                    -1);
     }
     public Con ArmsDealer(Con prev, PlayerShip playerShip, Station source) {
         return CheckConstellationArrest(prev, playerShip, source) ?? 
@@ -924,8 +919,10 @@ you on the ground before you can invoke SILENCE.
             new("Trade: Weapons", Trade),
             new("Undock")
         }) { background = source.type.heroImage };
-        TradeMenu Trade(Con c) => new(c, playerShip, source, GetStdPrice,
-            i => (int)(i.weapon is Weapon w ? w.valueFactor * 0.5 * GetStdPrice(i) : -1));
+        TradeMenu Trade(Con c) =>
+            new(c, playerShip, source, GetStdPrice, i => i.weapon is Weapon w ?
+                (int)(w.valueFactor * 0.5 * GetStdPrice(i)) :
+                -1);
     }
     public HashSet<IShip> militiaRecordedKills = new();
     public bool constellationMilitiaMember; 
@@ -1346,7 +1343,6 @@ upon you.""",
     }
     public Con OrionWarlordsCamp(Con home, PlayerShip playerShip, Station source) {
         Dialog Intro(Con prev) {
-
             return new(prev,
 source.damageSystem.GetHP() >= 50 ?
 @"You are docked at an Orion Warlords Camp.

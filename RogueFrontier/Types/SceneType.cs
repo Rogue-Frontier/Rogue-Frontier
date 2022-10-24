@@ -334,12 +334,12 @@ public class Dialog : Console {
             x = descX - barLength;
             y = descY + desc.Count(c => c.GlyphCharacter == '\n') + 3;
             foreach(var (c, i) in charge.Select((c, i) => (c, i))) {
-                this.Print(x, y + i, new ColoredString(arrow.Substring(0, (int)(barLength * Math.Min(c / maxCharge, 1))), Color.Gray, Color.Black));
+                this.Print(x, y + i, new ColoredString(arrow.Substring(0, (int)(barLength * Math.Clamp(c / maxCharge, 0, 1))), Color.Gray, Color.Black));
             }
             if (navIndex > -1) {
                 this.Print(x, y + navIndex, new ColoredString(arrow, Color.Gray, Color.Black));
                 var ch = charge[navIndex];
-                this.Print(x, y + navIndex, new ColoredString(arrow.Substring(0, (int)(barLength * Math.Min(ch / maxCharge, 1))), ch < maxCharge ? Color.Yellow : Color.Orange, Color.Black));
+                this.Print(x, y + navIndex, new ColoredString(arrow.Substring(0, (int)(barLength * Math.Clamp(ch / maxCharge, 0, 1))), ch < maxCharge ? Color.Yellow : Color.Orange, Color.Black));
             }
         }
         base.Render(delta);

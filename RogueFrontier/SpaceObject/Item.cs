@@ -134,7 +134,7 @@ public class Armor : Device {
     public int maxHP => Math.Max(0, desc.maxHP - (int)(desc.lifetimeDegrade * lifetimeDamageAbsorbed) + (int)titanHP);
     public bool canAbsorb => hp > 0 || (maxHP > 0 && desc.minAbsorb is { min: >0 });
 
-    public double valueFactor => (hp / desc.maxHP) * (maxHP / desc.maxHP);
+    public double valueFactor => (0.5 * hp / desc.maxHP) + (0.5 * maxHP / desc.maxHP);
 
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
@@ -550,7 +550,13 @@ public class Reactor : Device, PowerSource {
     public Reactor Copy(Item source) => desc.GetReactor(source);
     public void Update(double delta, IShip owner) {
         var e = energy;
-        energy = Math.Clamp(energy + (energyDelta < 0 ? energyDelta / desc.efficiency : energyDelta) * delta, 0, desc.capacity);
+        var energyDeltaAdj = energyDelta;
+        if(energyDelta < 0) {
+            energyDelta = -Math.Max(-energyDelta, desc.minOutput);
+            var efficiencyAdj = (desc.efficiency - 1) * (-energyDelta / desc.maxOutput);
+            energyDeltaAdj = energyDelta / (1 + efficiencyAdj);
+        }
+        energy = Math.Clamp(energy + energyDeltaAdj * delta, 0, desc.capacity);
         lifetimeEnergyUsed += Math.Max(0, e - energy);
     }
 }

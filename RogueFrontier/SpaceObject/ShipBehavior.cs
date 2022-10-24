@@ -521,7 +521,7 @@ public class GuardAt : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, Ob<
         }
         if (ticks % 10 == 0 && approach.currentOffset.magnitude2 < 6 * 6) {
             var offset = home switch {
-                Station s => s.GetDockPoint(),
+                Station s => s.GetDockPoints().MinBy(owner.position.Dist),
                 _ => XY.Zero
             };
             owner.dock.SetTarget(home, offset);

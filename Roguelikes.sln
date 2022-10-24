@@ -24,13 +24,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ANSIMon", "ANSIMon\ANSIMon.csproj", "{5F99CE7E-EBFC-46C2-95D4-6B3FE6F79769}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Common\Common.projitems*{53a7cd49-d4d9-40c7-8992-712a25813c67}*SharedItemsImports = 5
-		Common\Common.projitems*{5f99ce7e-ebfc-46c2-95d4-6b3fe6f79769}*SharedItemsImports = 5
-		Common\Common.projitems*{a0cdbd0e-3a41-42b7-9425-a838bc2c7383}*SharedItemsImports = 13
-		Common\Common.projitems*{d7cf48ec-8f6b-4fab-abc6-921916ea8b9c}*SharedItemsImports = 5
-		Common\Common.projitems*{fd73740f-97c1-4634-9478-4736d3835dba}*SharedItemsImports = 5
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
@@ -92,5 +85,12 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {433D7B7B-5996-47FA-AEB9-01C7D75B7294}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Common\Common.projitems*{53a7cd49-d4d9-40c7-8992-712a25813c67}*SharedItemsImports = 5
+		Common\Common.projitems*{5f99ce7e-ebfc-46c2-95d4-6b3fe6f79769}*SharedItemsImports = 5
+		Common\Common.projitems*{a0cdbd0e-3a41-42b7-9425-a838bc2c7383}*SharedItemsImports = 13
+		Common\Common.projitems*{d7cf48ec-8f6b-4fab-abc6-921916ea8b9c}*SharedItemsImports = 5
+		Common\Common.projitems*{fd73740f-97c1-4634-9478-4736d3835dba}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

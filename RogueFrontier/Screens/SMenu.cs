@@ -225,7 +225,7 @@ public static partial class SMenu {
         r.Add(new(""));
         return r;
     }
-    public static ListMenu<Item> Invokables(ScreenSurface prev, PlayerShip player) {
+    public static ListMenu<Item> Usable(ScreenSurface prev, PlayerShip player) {
         ListMenu<Item> screen = null;
         IEnumerable<Item> cargoInvokable;
         IEnumerable<Item> installedInvokable;
@@ -273,7 +273,7 @@ public static partial class SMenu {
             p.IsFocused = true;
         }
     }
-    public static ListMenu<Device> Loadout(ScreenSurface prev, PlayerShip player) {
+    public static ListMenu<Device> Installed(ScreenSurface prev, PlayerShip player) {
         ListMenu<Device> screen = null;
         var devices = player.devices.Installed;
         return screen = new(prev,
@@ -967,7 +967,6 @@ public static partial class SMenu {
             p.IsFocused = true;
         }
     }
-
     public static ListMenu<Armor> DockArmorReplacement(ScreenSurface prev, PlayerShip player, Func<Armor, int> GetPrice, Action callback) {
         ListMenu<Armor> screen = null;
         var armor = (player.hull as LayeredArmor)?.layers ?? new List<Armor>();
@@ -1403,7 +1402,7 @@ public class ListMenu<T> : ScreenSurface {
     }
 }
 public static class SListWidget {
-    public static ListWidget<Item> InvokableWidget(ScreenSurface prev, PlayerShip player) {
+    public static ListWidget<Item> Usables(ScreenSurface prev, PlayerShip player) {
         ListWidget<Item> screen = null;
         IEnumerable<Item> cargoInvokable;
         IEnumerable<Item> installedInvokable;
@@ -1448,6 +1447,45 @@ public static class SListWidget {
             p.IsFocused = true;
         }
     }
+
+    public static ListWidget<Device> DeviceManager(ScreenSurface prev, PlayerShip player) {
+        ListWidget<Device> screen = null;
+        var disabled = player.energy.off;
+        var powered = player.devices.Powered;
+        return screen = new(prev,
+            powered,
+            GetName,
+            GetDesc,
+            InvokeItem,
+            Escape
+            );
+        string GetName(Device d) => $"{(disabled.Contains(d) ? "[ ]" : "[*]")} {d.source.type.name}";
+        List<ColoredString> GetDesc(Device d) {
+            var result = SMenu.GenerateDesc(d);
+            result.Add(new($"Status: {(disabled.Contains(d) ? "OFF" : "ON")}"));
+            result.Add(new(""));
+            var off = disabled.Contains(d);
+            var word = (off ? "Enable" : "Disable");
+            result.Add(new($"[Enter] {word} this device", Color.Yellow, Color.Black));
+            return result;
+        }
+        void InvokeItem(Device p) {
+            if (disabled.Contains(p)) {
+                disabled.Remove(p);
+                player.AddMessage(new Message($"Enabled {p.source.type.name}"));
+            } else {
+                disabled.Add(p);
+                p.OnDisable();
+                player.AddMessage(new Message($"Disabled {p.source.type.name}"));
+            }
+            screen.UpdateIndex();
+        }
+        void Escape() {
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.IsFocused = true;
+        }
+    }
 }
 public class ListWidget<T> : ScreenSurface {
     public bool groupMode = true;
@@ -1479,7 +1517,6 @@ public class ListWidget<T> : ScreenSurface {
             .OrderBy(g => l.IndexOf(g.First()))
             .Select(g => (g.Last(), g.Count()))
             .ToHashSet();
-
     }
     public void UpdateIndex() {
         if (groupMode) UpdateGroups();
@@ -1529,11 +1566,6 @@ public class ListWidget<T> : ScreenSurface {
                     }
                     break;
                 case Keys.Escape:
-                    /*
-                    var parent = Parent;
-                    parent.Children.Remove(this);
-                    prev.IsFocused = true;
-                    */
                     escape();
                     break;
                 default:
@@ -1560,7 +1592,7 @@ public class ListWidget<T> : ScreenSurface {
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
-        int x = 5;
+        int x = 6;
         int y = 16;
 
         void line(Point from, Point to, int glyph) {
@@ -1624,21 +1656,26 @@ public class ListWidget<T> : ScreenSurface {
                 Surface.SetCellAppearance(barX, 16 + i, cg);
             }
 
+            /*
             line(new(barX, 15), new(barX + WIDTH + 7, 15), '-');
             line(new(barX, 16 + 26), new(barX + WIDTH + 7, 16 + 26), '-');
             barX += WIDTH + 7;
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+            */
         } else {
             var highlightColor = Color.Yellow;
             var name = new ColoredString("<Empty>", highlightColor, Color.Black);
             Surface.Print(x, y, name);
 
+
+            /*
             int barX = x - 2;
             line(new(barX, 15), new(barX + WIDTH + 7, 15), '-');
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
             line(new Point(barX, 16 + 26), new Point(barX + WIDTH + 7, 16 + 26), '-');
             barX += WIDTH + 7;
             line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
+            */
         }
 
         x += WIDTH + 7;

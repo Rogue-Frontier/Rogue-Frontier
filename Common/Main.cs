@@ -19,7 +19,15 @@ namespace Common;
 
 public static class Main {
 
+    public static double Lerp(double x, double fromMin, double fromMax, double toMin, double toMax, double gamma) {
+        var fromRange = fromMax - fromMin;
+        var toRange = toMax - toMin;
+        
+        x = (x - Math.Clamp(x, fromMin, fromMax)) * toRange / fromRange;
+        x = Math.Pow(x / toRange, gamma);
+        return toMin + Math.Sign(toRange) * x;
 
+    }
     public static ColoredString ConcatColored(ColoredString[] parts) {
         var r = new List<ColoredGlyph>();
         foreach(var cs in parts) {

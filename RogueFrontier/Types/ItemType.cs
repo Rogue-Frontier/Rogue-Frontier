@@ -637,6 +637,9 @@ public record ReactorDesc {
     [Req] public int maxOutput;
     [Req] public int capacity;
     [Opt] public double efficiency = 1;
+    [Opt] public double minOutput = 0;
+    //[Opt] public double maxInput = 0;
+    //public bool isBattery => maxInput > 0;
     [Opt] public bool battery = false;        //If true, then we recharge using power from other reactors when available
 
     public Reactor GetReactor(Item i) => new(i, this);

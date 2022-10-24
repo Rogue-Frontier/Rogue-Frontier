@@ -51,9 +51,10 @@
 			<Ship	count="2"	codename="ship_ulysses"/>
 		</Ships>
 		<Cargo>
-			<Item count="240"	codename="item_klaw_missile"/>
-			<Item count="16"	codename="item_scanner_drone"/>
-			<Item count="8"		codename="item_beowulf_dual_laser_upgrade"/>
+			<Item count="480"	codename="item_klaw_missile"/>
+			<Item count="32"	codename="item_scanner_drone"/>
+			<Item count="32"	codename="item_combat_drone_i"/>
+			<Item count="12"	codename="item_beowulf_dual_laser_upgrade"/>
 		</Cargo>
 		<Weapons>
 			<Weapon codename="item_klaw_missile_launcher" posX="2" posY="2"		angle="45"/>
@@ -62,8 +63,6 @@
 			<Weapon codename="item_klaw_missile_launcher" posX="-2" posY="-2"	angle="-135"/>
 		</Weapons>
 	</StationType>
-
-
 	<StationType	codename="station_barricade"
 			name=		"Barricade"
 			sovereign=	"sovereign_beowulf_club"
@@ -72,13 +71,13 @@
 					
 			hp=			"150"
 
-			glyph=		"X"
+			glyph=		"#"
 			foreground=	"White"
 			background=	"Black"
 		>
 	</StationType>
 	<ItemType	codename=	"item_beowulf_dual_laser_upgrade"
-		name=		"Beowulf dual laser upgrade"
+		name=		"Beowulf laser cannon upgrade"
 		level=		"1"
 		mass=		"2000"
 		value=		"3000"
@@ -122,6 +121,40 @@
 			<Armor  codename="item_bumpersteel_plate"/>
 		</LayeredArmorSystem>
 	</ShipClass>
+
+	<ItemType	codename=	"item_combat_drone_i"
+				name=		"Beowulf drone v1"
+				level=		"2"
+				mass=		"12000"
+				value=		"10000"
+
+				invoke=		"deployShip"
+				shipClass=	"ship_combat_drone_i"
+				
+				desc=		""
+		>
+	</ItemType>
+	<ShipClass codename=    "ship_combat_drone_i"
+		   name=                "Beowulf drone v1"
+		   thrust=              "0.4"
+		   maxSpeed=            "25"
+
+		   rotationAccel=       "4"
+		   rotationDecel=       "8"
+		   rotationMaxSpeed=    "4"
+
+		   glyph=                "d"
+		   foreground=          "White"
+        >
+		<Devices>
+			<Weapon codename="item_beowulf_dual_laser_cannon"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="item_knightsteel_plate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
+	
+	
 
 
 

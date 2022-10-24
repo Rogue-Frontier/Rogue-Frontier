@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 namespace RogueFrontier;
 public interface IDockable : StructureObject {
-    XY GetDockPoint();
+    IEnumerable<XY> GetDockPoints();
     ScreenSurface GetDockScene(ScreenSurface prev, PlayerShip player);
 }
 public interface MovingObject : Entity {

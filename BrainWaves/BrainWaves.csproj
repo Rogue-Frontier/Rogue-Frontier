@@ -10,12 +10,15 @@
   <ItemGroup>
     <PackageReference Include="CoreCLR-NCalc" Version="2.2.92" />
     <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
-    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.1.1" />
+    <PackageReference Include="SadConsole.Host.SFML" Version="9.2.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="ArchConsole">
+      <HintPath>..\..\ArchConsole\ArchConsole\bin\Release\net6.0\ArchConsole.dll</HintPath>
+    </Reference>
     <Reference Include="ASECII">
-      <HintPath>..\..\ASECII\ASECII\bin\Debug\netcoreapp3.1\ASECII.dll</HintPath>
+      <HintPath>..\..\ASECII\ASECII\bin\Release\net6.0\ASECII.dll</HintPath>
     </Reference>
   </ItemGroup>
   
@@ -30,7 +33,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
+  
   <Import Project="..\Common\Common.projitems" Label="Shared" />
 
 </Project>

@@ -1,12 +1,12 @@
 ﻿<Module>
 	<ItemType	codename=	"item_20mw_generator"
 				name=		"20MW generator"
-				level=		"1"
+				level=		"2"
 				mass=		"1000"
 		>
 		<Reactor
 			maxOutput=		"20"
-			capacity=		"5000"
+			capacity=		"8000"
 			efficiency=		"0.5"
 			battery=		"false"
 			/>
@@ -14,13 +14,13 @@
 
 	<ItemType	codename=	"item_50mw_generator"
 			name=		"50MW generator"
-			level=		"1"
+			level=		"4"
 			mass=		"1000"
 		>
 		<Reactor
 			maxOutput=		"50"
-			capacity=		"15000"
-			efficiency=		"0.5"
+			capacity=		"20000"
+			efficiency=		"0.6"
 			battery=		"false"
 			/>
 	</ItemType>
@@ -31,7 +31,7 @@
 		>
 		<Reactor
 			maxOutput=		"10"
-			capacity=		"12000"
+			capacity=		"200"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>
@@ -43,7 +43,7 @@
 		>
 		<Reactor
 			maxOutput=		"20"
-			capacity=		"6000"
+			capacity=		"400"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>
@@ -55,7 +55,7 @@
 		>
 		<Reactor
 			maxOutput=		"30"
-			capacity=		"4000"
+			capacity=		"600"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>
@@ -67,7 +67,7 @@
 		>
 		<Reactor
 			maxOutput=		"40"
-			capacity=		"3000"
+			capacity=		"800"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>
@@ -79,7 +79,7 @@
 		>
 		<Reactor
 			maxOutput=		"50"
-			capacity=		"2400"
+			capacity=		"1000"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>
@@ -91,7 +91,7 @@
 		>
 		<Reactor
 			maxOutput=		"60"
-			capacity=		"2000"
+			capacity=		"1200"
 			efficiency=		"1.0"
 			battery=		"true"
 			/>
@@ -99,12 +99,12 @@
 
 
 	<ItemType	codename=	"item_solar_panel"
-			name=		"50MW Solar panel"
+			name=		"20MW Solar panel"
 			level=		"1"
 			mass=		"1000"
 		>
 		<Solar
-			maxOutput=		"50"
+			maxOutput=		"20"
 			/>
 	</ItemType>
 </Module>
