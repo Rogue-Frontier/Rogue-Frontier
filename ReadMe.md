@@ -1,8 +1,6 @@
 # Rogue Frontier
 ![Cover](RogueFrontier/RogueFrontierContent/sprites/PosterNoText.asc.png)
 
-[Itch.io](https://ineedauniqueusername.itch.io/rogue-frontier)
-
 _Rogue Frontier_ is an ambitious ASCII-style roguelike space adventure set in an alternate universe of *Transcendence*, a space-opera roguelike by George Moromisato.
 
 This game is in early beta and planned for release in 2024.
