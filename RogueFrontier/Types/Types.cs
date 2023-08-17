@@ -156,6 +156,8 @@ public class TypeCollection {
         }
         throw new Exception($"Unknown type {codename}");
     }
+
+
     public T Lookup<T>(string codename) where T : class, IDesignType {
         var result = Lookup(codename);
         if (!initialized.Contains(codename)) {

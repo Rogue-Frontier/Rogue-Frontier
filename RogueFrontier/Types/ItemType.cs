@@ -8,6 +8,7 @@ using SadRogue.Primitives;
 using Con = SadConsole.ScreenSurface;
 using Newtonsoft.Json;
 using SFML.Audio;
+using NCalc.Domain;
 
 namespace RogueFrontier;
 public interface ItemUse {
@@ -15,18 +16,18 @@ public interface ItemUse {
     void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) { }
 }
 public record DeployShip : ItemUse {
-    [Req] public string shipClass;
-    public ShipClass shipType;
+    [Req(parse = false)] public ShipClass shipClass;
     public DeployShip() { }
     public DeployShip(TypeCollection tc, XElement e) {
-        e.Initialize(this);
-        shipType = tc.Lookup<ShipClass>(shipClass);
+        e.Initialize(this, convert: new() {
+            [nameof(shipClass)] = (string s) => tc.Lookup<ShipClass>(s)
+        });
     }
-    public string GetDesc(PlayerShip player, Item item) => $"Deploy {shipType.name}";
+    public string GetDesc(PlayerShip player, Item item) => $"Deploy {shipClass.name}";
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         var w = new Wingmate(player);
         var a = new AIShip(
-            new(player.world, shipType, player.position),
+            new(player.world, shipClass, player.position),
             player.sovereign,
             behavior:w
             );
@@ -34,25 +35,25 @@ public record DeployShip : ItemUse {
         player.world.AddEntity(a);
         player.world.AddEffect(new Heading(a));
         player.wingmates.Add(a);
-        player.AddMessage(new Transmission(a, $"Deployed {shipType.name}"));
+        player.AddMessage(new Transmission(a, $"Deployed {shipClass.name}"));
         player.cargo.Remove(item);
         callback?.Invoke();
     }
 }
 public record DeployStation : ItemUse {
-    [Req] public string stationType;
-    public StationType stationTypeDesc;
+    [Req(parse = false)] public StationType stationType;
     public DeployStation() { }
     public DeployStation(TypeCollection tc, XElement e) {
-        e.Initialize(this);
-        stationTypeDesc = tc.Lookup<StationType>(stationType);
+        e.Initialize(this, convert: new() {
+            [nameof(stationType)] = (string s) => tc.Lookup<StationType>(s)
+        });
     }
-    public string GetDesc(PlayerShip player, Item item) => $"Deploy {stationTypeDesc.name}";
+    public string GetDesc(PlayerShip player, Item item) => $"Deploy {stationType.name}";
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
-        var a = new Station(player.world, stationTypeDesc, player.position) { sovereign = player.sovereign };
+        var a = new Station(player.world, stationType, player.position) { sovereign = player.sovereign };
         player.world.AddEntity(a);
         a.CreateSegments();
-        player.AddMessage(new Transmission(a, $"Deployed {stationTypeDesc.name}"));
+        player.AddMessage(new Transmission(a, $"Deployed {stationType.name}"));
         player.cargo.Remove(item);
         callback?.Invoke();
     }
@@ -97,16 +98,16 @@ public record RepairArmor : ItemUse {
     }
 }
 public record InvokePower : ItemUse {
-    [Req] public string powerType;
     [Req] public int charges;
-    public PowerType power;
+    [Req(parse = false)] public PowerType powerType;
     public InvokePower() { }
     public InvokePower(TypeCollection tc, XElement e) {
-        e.Initialize(this);
-        power = tc.Lookup<PowerType>(powerType);
+        e.Initialize(this, convert: new() {
+            [nameof(powerType)] = (string s) => tc.Lookup<PowerType>(s)
+        });
     }
     public string GetDesc(PlayerShip player, Item item) =>
-        $"Invoke {power.name} ({charges} charges remaining)";
+        $"Invoke {powerType.name} ({charges} charges remaining)";
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
         player.AddMessage(new Message($"Invoked the power of {item.type.name}"));
 
@@ -114,7 +115,7 @@ public record InvokePower : ItemUse {
         if (charges == 0) {
             player.cargo.Remove(item);
         }
-        power.Effect.ForEach(e=>e.Invoke(player));
+        powerType.Effect.ForEach(e=>e.Invoke(player));
         callback?.Invoke();
     }
 }
@@ -179,11 +180,13 @@ public record ReplaceDevice() : ItemUse {
     }
 }
 public record RechargeWeapon() : ItemUse {
-    public WeaponDesc weaponType;
+    [Req(parse = false)] public WeaponDesc weaponType;
     [Req] public int charges;
     public RechargeWeapon(TypeCollection tc, XElement e) : this() {
-        weaponType = tc.Lookup<ItemType>(e.ExpectAtt(nameof(weaponType))).Weapon;
-        e.Initialize(this);
+        e.Initialize(this, convert: new() {
+            [nameof(weaponType)] = (string s) => tc.Lookup<ItemType>(s).Weapon
+        });
+        int i = 0;
     }
     public string GetDesc(PlayerShip player, Item item) =>
         $"Recharged {item.name}";
@@ -218,10 +221,9 @@ public record UnlockPrescience() : ItemUse {
     }
 }
 public record ApplyMod() : ItemUse {
-    Modifier mod;
+    [Self] Modifier mod;
     public ApplyMod(XElement e) : this() {
         e.Initialize(this);
-        mod = new(e);
     }
     public string GetDesc(PlayerShip player, Item item) =>
         $"Apply modifier to item (shows menu)";
@@ -238,7 +240,7 @@ public record ItemType : IDesignType {
     [Req] public int level;
     [Req] public int mass;
     [Opt] public int value;
-    [Opt(";")] public HashSet<string> attributes;
+    [Opt(separator = ";")] public HashSet<string> attributes;
     [Sub] public FragmentDesc Ammo;
     [Sub] public ArmorDesc Armor;
     [Sub] public EngineDesc Engine;
@@ -246,9 +248,9 @@ public record ItemType : IDesignType {
     [Sub] public ServiceDesc Service;
     [Sub] public ShieldDesc Shield;
     [Sub] public SolarDesc Solar;
-    public LauncherDesc Launcher;
-    public WeaponDesc Weapon;
-    public ItemUse Invoke;
+    [Sub(construct = false)] public LauncherDesc Launcher;
+    [Sub(construct = false)] public WeaponDesc Weapon;
+    [Self(construct = false, fallback = true)] public ItemUse Invoke;
 
     public bool HasAtt(string att) => attributes.Contains(att);
     public T Get<T>() =>
@@ -278,10 +280,13 @@ public record ItemType : IDesignType {
         unlockPrescience
     }
     public void Initialize(TypeCollection tc, XElement e) {
-        e.Initialize(this);
-        Invoke = e.HasElement("Invoke", out var xmlInvoke) ? ParseInvoke(xmlInvoke) : ParseInvoke(e);
+        e.Initialize(this, convert: new() {
+            [nameof(Launcher)] = (XElement e) => new LauncherDesc(tc, e),
+            [nameof(Weapon)] = (XElement e) => new WeaponDesc(tc, e),
+            [nameof(Invoke)] = (XElement e) => ParseInvoke(e)
+        });
         ItemUse ParseInvoke(XElement e) =>
-            e.TryAttEnum(nameof(Invoke), EItemUse.none) switch {
+            e.TryAttEnum("invoke", EItemUse.none) switch {
                 EItemUse.none => null,
                 EItemUse.deployShip => new DeployShip(tc, e),
                 EItemUse.deployStation => new DeployStation(tc, e),
@@ -294,14 +299,6 @@ public record ItemType : IDesignType {
                 EItemUse.unlockPrescience => new UnlockPrescience(),
                 _ => null
             };
-        foreach (var (tag, action) in new Dictionary<string, Action<XElement>> {
-            ["Launcher"] = e => Launcher = new(tc, e),
-            ["Weapon"] = e =>   Weapon = new(tc, e),
-        }) {
-            if (e.HasElement(tag, out var sub)) {
-                action(sub);
-            }
-        }
     }
 }
 public record ArmorDesc() {
@@ -323,7 +320,6 @@ public record ArmorDesc() {
     public ArmorDesc(XElement e) : this() {
         e.Initialize(this);
     }
-
     public record TitanDesc() {
         [Opt] public double gain = 1.0;
         [Opt] public double factor = 1.0;
@@ -347,20 +343,22 @@ public record EngineDesc {
 }
 public record EnhancerDesc {
     [Req] public int powerUse;
-    public Modifier mod;
+    [Self] public Modifier mod;
     public Enhancer GetEnhancer(Item i) => new(i, this);
     public EnhancerDesc() { }
     public EnhancerDesc(XElement e) {
         e.Initialize(this);
-        mod = new(e);
     }
 }
 public record LaunchDesc {
+    [Req(parse = false)] public ItemType ammoType;
     public FragmentDesc shot;
-    public ItemType ammoType;
     public LaunchDesc() {}
     public LaunchDesc(TypeCollection types, XElement e) {
-        ammoType = types.Lookup<ItemType>(e.ExpectAtt(nameof(ammoType)));
+        e.Initialize(this, convert: new() {
+            [nameof(ammoType)] = (string s) => types.Lookup<ItemType>(s),
+        });
+        
         shot = ammoType.Ammo ?? new(e);
     }
 }
@@ -413,10 +411,10 @@ public record WeaponDesc {
     [Opt] public bool omnidirectional = false;
     [Opt] public double angle = 0, sweep, leftRange, rightRange = 0;
 
-    public ItemType ammoType;
-    public FragmentDesc Projectile;
+    [Opt(parse = false)] public SoundBuffer sound;
+    [Opt(parse = false)] public ItemType ammoType;
+    [Sub(true)] public FragmentDesc Projectile;
     [Sub] public CapacitorDesc Capacitor;
-    public SoundBuffer sound;
 
     public int missileSpeed => Projectile.missileSpeed;
     public int damageType => Projectile.damageType;
@@ -426,16 +424,20 @@ public record WeaponDesc {
     public Weapon GetWeapon(Item i) => new(i, this);
     public WeaponDesc() { }
     public WeaponDesc(TypeCollection types, XElement e) {
-        e.Initialize(this);
-        angle *= Math.PI / 180;
-        sweep *= Math.PI / 180;
-        leftRange *= Math.PI / 180;
-        rightRange *= Math.PI / 180;
-        ammoType = e.TryAtt(nameof(ammoType), out string at) ?
-            types.Lookup<ItemType>(at) : null;
 
-        Projectile = new(e.ExpectElement("Projectile"));
-        sound = e.TryAtt("sound", out string s) ? new SoundBuffer(s) : null;
+        var toRad = (double d) => d * Math.PI / 180;
+        e.Initialize(this, convert:new() {
+            [nameof(angle)] = toRad,
+            [nameof(sweep)] = toRad,
+            [nameof(leftRange)] = toRad,
+            [nameof(rightRange)] = toRad,
+
+            [nameof(ammoType)] = (string at) => types.Lookup<ItemType>(at),
+            [nameof(sound)] = (string s) => new SoundBuffer(s)
+        });
+
+        //Projectile = new(e.ExpectElement("Projectile"));
+        //sound = e.TryAtt("sound", out string s) ? new SoundBuffer(s) : null;
         if (pointDefense) {
             Projectile.hitProjectile = true;
             targetProjectile = true;
@@ -451,6 +453,7 @@ public record FragmentDesc {
     [Opt] public bool? targetLocked;
     [Opt] public bool omnidirectional;
     [Opt] public double spreadAngle;
+    [Opt] public bool spreadOmni;
     [Req] public int missileSpeed;
     [Req] public int damageType;
     [Req] public IDice damageHP;
@@ -498,32 +501,37 @@ public record FragmentDesc {
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
     public double angleInterval => spreadAngle / count;
     public int range2 => range * range;
-    public HashSet<FragmentDesc> Fragment = new();
-    public StaticTile effect;
+    [Sub(false, true)] public HashSet<FragmentDesc> Fragment = new();
+    [Self] public StaticTile effect;
     [Sub] public TrailDesc Trail;
-    public Modifier mod;
 
-    public SoundBuffer detonateSound;
+    [Opt(parse = false)] public SoundBuffer detonateSound;
     public FragmentDesc() { }
     public FragmentDesc(XElement e) {
         Initialize(e);
+        /*
         if(e.HasElements("Fragment", out var xmlFragmentList)) {
             Fragment.UnionWith(xmlFragmentList.Select(xmlFragment => new FragmentDesc(xmlFragment)));
         }
-        detonateSound =
-            e.TryAtt(nameof(detonateSound), out var s) ?
-                new(s) :
-            null;
+        */
     }
     public void Initialize(XElement e) {
-        e.Initialize(this);
-        acquireTarget = acquireTarget || maneuver > 0;
-        if (e.TryAttBool("spreadOmni")) {
-            spreadAngle = (2 * Math.PI) / count;
-        } else {
-            spreadAngle = e.TryAttDouble(nameof(spreadAngle), count == 1 ? 0 : 3) * Math.PI / 180;
-        }
-        maneuver *= Math.PI / (180);
+        e.Initialize(this, convert: new() {
+            [nameof(count)] = (int c) => {
+                //init default
+                this.spreadAngle = count == 1 ? 0 : 3 * Math.PI / 180;
+                return c;
+            },
+            [nameof(detonateSound)] = (string s) => new SoundBuffer(s),
+            [nameof(spreadAngle)] = (double d) => d * Math.PI / 180,
+            [nameof(spreadOmni)] = (bool b) => {
+                spreadAngle = 2 * Math.PI / count;
+                return b;
+            },
+            [nameof(maneuver)] = (double d) => {
+                acquireTarget |= d > 0;
+                return d * Math.PI / 180; },
+        });
         /*
         if(e.HasElement("Flash", out var xmlFlash)) {
             Flash = new(xmlFlash);
@@ -543,7 +551,6 @@ public record FragmentDesc {
         Trail = e.HasElement("Trail", out var xmlTrail) ? 
             new(xmlTrail) : null;
         */
-        effect = new(e);
     }
     public IEnumerable<double> GetAngles(double direction) =>
         Enumerable.Range(0, count).Select(i => direction + ((i + 1) / 2) * angleInterval * (i % 2 == 0 ? -1 : 1));
@@ -589,15 +596,16 @@ public record TrailDesc : ITrail {
     public Effect GetParticle(XY Position, XY Velocity = null) => new FadingTile(Position, new(foreground, background, glyph), lifetime);
 }
 public record DisruptorDesc {
-    bool? thrustMode, turnMode, brakeMode, fireMode;
-    public int lifetime;
+    [Opt(parse = false)] bool? thrustMode, turnMode, brakeMode, fireMode;
+    [Opt] public int lifetime = 60;
     public DisruptorDesc() { }
     public DisruptorDesc(XElement e) {
-        thrustMode = GetMode(e.TryAtt(nameof(thrustMode), null));
-        turnMode = GetMode(e.TryAtt(nameof(turnMode), null));
-        brakeMode = GetMode(e.TryAtt(nameof(brakeMode), null));
-        fireMode = GetMode(e.TryAtt(nameof(fireMode), null));
-        lifetime = e.TryAttInt(nameof(lifetime), 60);
+        e.Initialize(this, convert:new() {
+            [nameof(thrustMode)] = (string b) => GetMode(b),
+            [nameof(turnMode)] = (string b) => GetMode(b),
+            [nameof(brakeMode)] = (string b) => GetMode(b),
+            [nameof(fireMode)] = (string b) => GetMode(b),
+        });
     }
     public Disrupt GetHijack() => new() {
         thrustMode = thrustMode,
@@ -649,14 +657,13 @@ public enum ServiceType {
     grind
 }
 public record ServiceDesc {
-    public ServiceType type;
+    [Req] public ServiceType type;
     [Req] public int powerUse;
     [Req] public int interval;
     public Service GetService(Item i) => new(i, this);
     public ServiceDesc() { }
     public ServiceDesc(XElement e) {
         e.Initialize(this);
-        type = e.ExpectAttEnum<ServiceType>(nameof(type));
     }
 }
 public record ShieldDesc {

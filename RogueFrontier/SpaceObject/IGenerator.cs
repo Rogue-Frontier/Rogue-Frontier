@@ -41,21 +41,19 @@ public enum ShipOrder {
 public class ShipEntry : ShipGenerator {
     [Opt] public IDice count = new Constant(1);
     [Opt] public string id = "";
-    [Req] public string codename;
-    [Opt] public string sovereign;
-    public ShipGroup subordinates;
-    public ShipClass shipClass;
-    public Sovereign sov;
-    public IShipOrderDesc orderDesc;
-    public EShipBehavior behavior;
+    [Opt(alias = "Ships", parse = false)] public ShipGroup subordinates = new();
+    [Req(alias = "codename", parse = false)] public ShipClass shipClass;
+    [Opt(parse = false)] public Sovereign sovereign;
+    [Self(construct = false)] public IShipOrderDesc orderDesc;
+    [Opt] public EShipBehavior behavior;
     public ShipEntry() { }
     public ShipEntry(TypeCollection tc, XElement e) {
-        e.Initialize(this);
-        subordinates = e.HasElement("Ships", out var xmlSub) ? new(xmlSub, SGenerator.ParseFrom(tc, SGenerator.ShipFrom)) : new();
-        shipClass = tc.Lookup<ShipClass>(codename);
-        sov = sovereign?.Any() == true ? tc.Lookup<Sovereign>(sovereign) : null;
-        orderDesc = IShipOrderDesc.Get(e);
-        behavior = e.TryAttEnum("behavior", EShipBehavior.none);
+        e.Initialize(this, convert: new() {
+            [nameof(sovereign)] = (string s) => tc.Lookup<Sovereign>(s),
+            [nameof(shipClass)] = (string s) => tc.Lookup<ShipClass>(s),
+            [nameof(subordinates)] = (XElement xmlSub) => new ShipGroup(xmlSub, SGenerator.ParseFrom(tc, SGenerator.ShipFrom)),
+            [nameof(orderDesc)] = (XElement e) => IShipOrderDesc.Get(e)
+        });
     }
     IShipBehavior GetBehavior() =>
         behavior switch {
@@ -63,7 +61,7 @@ public class ShipEntry : ShipGenerator {
             EShipBehavior.trader => new Merchant()
         };
     public IEnumerable<AIShip> Generate(TypeCollection tc, ActiveObject owner) {
-        Sovereign s = sov ?? owner.sovereign ?? throw new Exception("Sovereign expected");
+        Sovereign s = sovereign ?? owner.sovereign ?? throw new Exception("Sovereign expected");
         var count = this.count.Roll();
         Func<int, XY> GetPos = orderDesc switch {
             PatrolOrbitDesc pod => i => owner.position + XY.Polar(
@@ -132,10 +130,9 @@ public class ShipEntry : ShipGenerator {
 }
 public record ModRoll() {
     [Opt] public double modifierChance = 1;
-    public Modifier modifier;
+    [Self] public Modifier modifier;
     public ModRoll(XElement e) : this() {
         e.Initialize(this);
-        modifier = new Modifier(e);
         if (modifier.empty) {
             modifier = null;
         }
@@ -288,27 +285,27 @@ public record Table<T>() : IGenerator<T> {
     }
 }
 public record ItemEntry() : IGenerator<Item> {
-    [Req] public string codename;
+    
     [Opt] public IDice count = new Constant(1);
-    public ItemType type;
-    public ModRoll mod;
+    [Req(alias = "codename", parse = false)]
+          public ItemType type;
+    [Self]public ModRoll mod;
     public ItemEntry(TypeCollection tc, XElement e) : this() {
-        e.Initialize(this);
-        type = tc.Lookup<ItemType>(codename);
-        mod = new(e);
+        e.Initialize(this, convert: new() {
+            [nameof(type)] = (string s) => tc.Lookup<ItemType>(s)
+        });
     }
     public List<Item> Generate(TypeCollection tc) =>
         new(Enumerable.Range(0, count.Roll()).Select(_ => new Item(type, mod.Generate())));
     //In case we want to make sure immediately that the type is valid
     public void ValidateEager(TypeCollection tc) =>
-        tc.Lookup<ItemType>(codename);
+        tc.Lookup<ItemType>(type.codename);
 }
 public record ArmorEntry() : IGenerator<Armor> {
     [Req] public string codename;
-    public ModRoll mod;
+    [Self] public ModRoll mod;
     public ArmorEntry(XElement e) : this() {
         e.Initialize(this);
-        mod = new(e);
     }
     List<Armor> IGenerator<Armor>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
@@ -327,10 +324,9 @@ public static class SDevice {
 }
 public record ReactorEntry() : IGenerator<Device> {
     [Req] public string codename;
-    public ModRoll mod;
+    [Self] public ModRoll mod;
     public ReactorEntry(XElement e) : this() {
         e.Initialize(this);
-        mod = new(e);
     }
     List<Device> IGenerator<Device>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
@@ -341,10 +337,9 @@ public record ReactorEntry() : IGenerator<Device> {
 
 public record SolarEntry() : IGenerator<Device> {
     [Req] public string codename;
-    public ModRoll mod;
+    [Self]public ModRoll mod;
     public SolarEntry(XElement e) : this() {
         e.Initialize(this);
-        mod = new(e);
     }
     List<Device> IGenerator<Device>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
@@ -354,10 +349,9 @@ public record SolarEntry() : IGenerator<Device> {
 }
 public record ServiceEntry() : IGenerator<Device> {
     [Req] public string codename;
-    public ModRoll mod;
+    [Self]public ModRoll mod;
     public ServiceEntry(XElement e) : this() {
         e.Initialize(this);
-        mod = new(e);
     }
     List<Device> IGenerator<Device>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
@@ -367,10 +361,9 @@ public record ServiceEntry() : IGenerator<Device> {
 
 public record ShieldEntry() : IGenerator<Device>, IGenerator<Shield> {
     [Req] public string codename;
-    public ModRoll mod;
+    [Self]public ModRoll mod;
     public ShieldEntry(XElement e) : this() {
         e.Initialize(this);
-        mod = new(e);
     }
     List<Device> IGenerator<Device>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
@@ -402,15 +395,16 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
     [Opt] public bool omnidirectional;
     [Opt] public bool? structural = null;
     [Opt] public double angle, leftRange, rightRange;
-    public XY offset;
-    public ModRoll mod;
+    [Self(construct = false)] public XY offset;
+    [Self] public ModRoll mod;
     public WeaponEntry(XElement e) : this() {
-        e.Initialize(this);
-        angle *= Math.PI / 180;
-        leftRange *= Math.PI / 180;
-        rightRange *= Math.PI / 180;
-        offset = XY.TryParse(e, new(0, 0));
-        mod = new(e);
+        var toRad = (double d) => d * Math.PI / 180;
+        e.Initialize(this, convert: new() {
+            [nameof(angle)] = toRad,
+            [nameof(leftRange)] = toRad,
+            [nameof(rightRange)] = toRad,
+            [nameof(offset)] = (XElement e) => XY.TryParse(e, new(0, 0))
+        });
     }
     List<Weapon> IGenerator<Weapon>.Generate(TypeCollection tc) =>
         new() { Generate(tc) };
