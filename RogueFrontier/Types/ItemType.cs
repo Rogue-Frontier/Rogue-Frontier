@@ -413,7 +413,7 @@ public record WeaponDesc {
 
     [Opt(parse = false)] public SoundBuffer sound;
     [Opt(parse = false)] public ItemType ammoType;
-    [Sub(true)] public FragmentDesc Projectile;
+    [Sub(required = true)] public FragmentDesc Projectile;
     [Sub] public CapacitorDesc Capacitor;
 
     public int missileSpeed => Projectile.missileSpeed;
@@ -501,7 +501,7 @@ public record FragmentDesc {
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
     public double angleInterval => spreadAngle / count;
     public int range2 => range * range;
-    [Sub(false, true)] public HashSet<FragmentDesc> Fragment = new();
+    [Sub(required = false, multiple = true)] public HashSet<FragmentDesc> Fragment = new();
     [Self] public StaticTile effect;
     [Sub] public TrailDesc Trail;
 

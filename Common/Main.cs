@@ -713,16 +713,27 @@ public static class Main {
             throw new Exception($"Enum value of {fallback.GetType().Name} expected: {a.Name}=\"{a.Value}\"");
         }
     }
-    //Remember to call this to initialize XML properties
-    public static void Initialize(this XElement e, object obj, object source = null, Dictionary<string, object> convert = null) {
+    /// <summary>
+    /// Read data from XML to populate the object fields. For attributes, mark fields with <c>Req</c> and <c>Opt</c>. For elements, mark fields with <c>Self</c> and <c>Sub</c>
+    /// </summary>
+    /// <param name="ele">The XML element to read data from</param>
+    /// <param name="obj">The object to be populated</param>
+    /// <param name="inherit">If a field is missing from </param>
+    /// <param name="convert">Functions to convert values after reading.</param>
+    /// <seealso cref="Req"/>
+    /// <seealso cref="Opt"/>
+    /// <seealso cref="Self"/>
+    /// <seealso cref="Sub"/>
+    /// <exception cref="Exception"></exception>
+    public static void Initialize(this XElement ele, object obj, object inherit = null, Dictionary<string, object> convert = null) {
         var props = obj.GetType().GetFields();
         foreach (var p in props) {
-            var a = p.GetCustomAttributes(true).OfType<IXML>().FirstOrDefault();
+            var a = p.GetCustomAttributes(true).OfType<IXmlInit>().FirstOrDefault();
 
             void Set(object parsed) =>
                     p.SetValue(obj, parsed);
             void Inherit() =>
-                Set(p.GetValue(source));
+                Set(p.GetValue(inherit));
             Type GetItemType() =>
                 p.FieldType.GetGenericTypeDefinition() == typeof(List<>) || p.FieldType.GetGenericTypeDefinition() == typeof(HashSet<>) ?
                     p.FieldType.GetGenericArguments()[0] :
@@ -734,7 +745,7 @@ public static class Main {
                 if(self.fallback && p.GetValue(obj) != null) {
                     continue;
                 }
-                Set(Create(e));
+                Set(Create(ele));
                 object Create(XElement element) {
                     dynamic value = element;
                     if (self.construct) {
@@ -748,12 +759,12 @@ public static class Main {
             } else if (a is Sub sub) {
                 key = sub.alias ?? key;
                 if (sub.multiple) {
-                    var elements = e.Elements(key).ToList();
+                    var elements = ele.Elements(key).ToList();
                     if (!elements.Any()) {
-                        if (source != null) {
+                        if (inherit != null) {
                             Inherit();
                         } else if (sub.required) {
-                            throw new Exception($"<{e.Name}> requires at least one <{key}> subelement: {e} ### {e.Parent.Name}");
+                            throw new Exception($"<{ele.Name}> requires at least one <{key}> subelement: {ele} ### {ele.Parent.Name}");
                         }
                         continue;
                     }
@@ -780,11 +791,11 @@ public static class Main {
 
                     }
                 } else {
-                    if (!e.HasElement(key, out var element)) {
-                        if (source != null) {
+                    if (!ele.HasElement(key, out var element)) {
+                        if (inherit != null) {
                             Inherit();
                         } else if (sub.required) {
-                            throw new Exception($"<{e.Name}> requires one <{key}> subelement: {e} ### {e.Parent.Name}");
+                            throw new Exception($"<{ele.Name}> requires one <{key}> subelement: {ele} ### {ele.Parent.Name}");
                         }
                         continue;
                     }
@@ -817,14 +828,14 @@ public static class Main {
                     }
                 }
 
-                var value = e.Att(key);
+                var value = ele.Att(key);
                 if (value == null) {
 
-                    if(source != null) {
-                        Set(p.GetValue(source));
+                    if(inherit != null) {
+                        Set(p.GetValue(inherit));
                     } else if (a is Opt) {
                     } else {
-                        throw new Exception($"<{e.Name}> requires {key} attribute: {e} ### {e.Parent.Name}");
+                        throw new Exception($"<{ele.Name}> requires {key} attribute: {ele} ### {ele.Parent.Name}");
                     }
                     continue;
                 }
@@ -839,11 +850,11 @@ public static class Main {
 
 
                     [typeof(bool?)] = ParseBoolNullable,
-                    [typeof(int?)] = () => e.ExpectAttIntNullable(key),
+                    [typeof(int?)] = () => ele.ExpectAttIntNullable(key),
 
-                    [typeof(IDice)] = () => e.ExpectAttDice(key),
-                    [typeof(Color)] = () => e.ExpectAttColor(key),
-                    [typeof(Color?)] = () => e.ExpectAttColor(key),
+                    [typeof(IDice)] = () => ele.ExpectAttDice(key),
+                    [typeof(Color)] = () => ele.ExpectAttColor(key),
+                    [typeof(Color?)] = () => ele.ExpectAttColor(key),
                 };
                 if (ia.separator?.Any() == true) {
                     Set(ParseCollection());
@@ -881,7 +892,7 @@ public static class Main {
                     CreateCollectionFrom(value.Split(ia.separator), GetItemType());
                 
                 Exception Error<T>() =>
-                    e.Invalid<T>(key);
+                    ele.Invalid<T>(key);
             }
         }
     }
