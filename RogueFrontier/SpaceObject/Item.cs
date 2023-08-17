@@ -7,14 +7,12 @@ using Helper = Common.Main;
 using SadRogue.Primitives;
 using Newtonsoft.Json;
 using System.Xml.Linq;
+using static Common.ColorCommand;
 
 namespace RogueFrontier;
 public class Item {
     public string name => type.name;
     public ItemType type;
-
-    //These fields are to remain null while the item is not installed and to be populated upon installation
-    
     public Armor armor;
     public Engine engine;
     public Reactor reactor;
@@ -22,9 +20,7 @@ public class Item {
     public Shield shield;
     public Solar solar;
     public Weapon weapon;
-
     public Modifier mod;
-
     public bool HasAtt(string att) => type.attributes.Contains(att);
     public Item() { }
     public Item(Item copy) {
@@ -40,13 +36,12 @@ public class Item {
     public Item(ItemType type, Modifier mod = null) {
         this.type = type;
         this.mod = mod;
-
-        weapon = type.weapon?.GetWeapon(this);
-        armor = type.armor?.GetArmor(this);
-        shield = type.shield?.GetShield(this);
-        reactor = type.reactor?.GetReactor(this);
-        solar = type.solar?.GetSolar(this);
-        service = type.service?.GetService(this);
+        weapon = type.Weapon?.GetWeapon(this);
+        armor = type.Armor?.GetArmor(this);
+        shield = type.Shield?.GetShield(this);
+        reactor = type.Reactor?.GetReactor(this);
+        solar = type.Solar?.GetSolar(this);
+        service = type.Service?.GetService(this);
     }
     public T Get<T>() where T:class, Device{
         return (T)new Dictionary<Type, Device>() {
@@ -94,18 +89,20 @@ public interface PowerSource {
 }
 public class Decay {
     [Req] public double lifetime;
-    [Req] public double rate;
-    [Opt] public bool lethal;
-    [Opt] public double degradeFactor;
-    [Opt] public bool descend;
+    [Req] public double damageRate = 0;
+    [Opt] public bool lethal = false;
+    [Opt] public double degradeFactor = 0;
+    [Opt] public double fixedDegradeRate = 0;
+    [Opt] public bool descend = false;
     public ActiveObject source;
     public Decay() { }
     public Decay(XElement e) => e.Initialize(this);
     public Decay(Decay from, ActiveObject source) {
         this.lifetime = from.lifetime;
-        this.rate = from.rate;
+        this.damageRate = from.damageRate;
         this.lethal = from.lethal;
         this.degradeFactor = from.degradeFactor;
+        this.fixedDegradeRate = from.fixedDegradeRate;
         this.descend = from.descend;
         this.source = source;
     }
@@ -133,9 +130,7 @@ public class Armor : Device {
     public bool allowSpecial;
     public int maxHP => Math.Max(0, desc.maxHP - (int)(desc.lifetimeDegrade * lifetimeDamageAbsorbed) + (int)titanHP);
     public bool canAbsorb => hp > 0 || (maxHP > 0 && desc.minAbsorb is { min: >0 });
-
     public double valueFactor => (0.5 * hp / desc.maxHP) + (0.5 * maxHP / desc.maxHP);
-
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
         this.source = source;
@@ -152,26 +147,23 @@ public class Armor : Device {
     }
     public void Update(double delta, Station st) =>
         UpdateCommon(delta, st, st.damageSystem);
-
     private void UpdateCommon(double delta, ActiveObject owner, HullSystem hull) {
         if (decay.Any()) {
             var expired = new HashSet<Decay>();
-
             //If the armor is down, then degrade it faster
             if (hp == 0) {
-                if (hull.GetHP() == 0 && decay.FirstOrDefault(d => d.lethal) is var kill and not null) {
+                if (hull.GetHP() == 0 && decay.FirstOrDefault(d => d.lethal) is Decay kill) {
                     owner.Destroy(kill.source);
                 } else {
-                    if (decay.Where(d => d.descend).ToList() is { Count: > 0 } descending && hull is LayeredArmor la) {
-                        var index = la.layers.IndexOf(this);
-                        if (la.layers.Reverse<Armor>().Skip(la.layers.Count - index).FirstOrDefault(l => l.hp > 0) is var next and not null) {
-                            decay.ExceptWith(descending);
-                            next.decay.UnionWith(descending);
-                        }
-                    }
+                    if (decay.Where(d => d.descend).ToList() is { Count: > 0 } descending &&
+                        hull is LayeredArmor la &&
+                        la.layers.Reverse<Armor>().Skip(la.layers.Count - la.layers.IndexOf(this)).FirstOrDefault(l => l.hp > 0) is Armor next) {
 
+                        decay.ExceptWith(descending);
+                        next.decay.UnionWith(descending);
+                    }
                     foreach (var d in decay) {
-                        lifetimeDamageAbsorbed += d.rate * delta * 60 * d.degradeFactor;
+                        lifetimeDamageAbsorbed += delta * 60 * (d.damageRate * d.degradeFactor + d.fixedDegradeRate);
                         d.lifetime -= delta;
                         if (d.lifetime <= 0) {
                             expired.Add(d);
@@ -180,8 +172,12 @@ public class Armor : Device {
                 }
                 lastDamageTick = owner.world.tick;
             } else {
+                var totalDegrade = 0d;
                 foreach (var d in decay) {
-                    decayHP += d.rate * delta * 60;
+                    var degrade = delta * 60 * d.fixedDegradeRate;
+                    totalDegrade += degrade;
+
+                    decayHP += d.damageRate * delta * 60;
                     d.lifetime -= delta;
                     if (d.lifetime <= 0) {
                         expired.Add(d);
@@ -196,6 +192,10 @@ public class Armor : Device {
 
                     decayHP = 0;
                 }
+                if (totalDegrade > 0) {
+                    lifetimeDamageAbsorbed += totalDegrade;
+                    UpdateHP();
+                }
             }
             decay.ExceptWith(expired);
         }
@@ -203,11 +203,9 @@ public class Armor : Device {
             if (titanDuration > 0) {
                 titanDuration = Math.Max(0, titanDuration - delta);
             } else {
-                titanHP = Math.Max(0, titanHP - delta * desc.titan.decay);
+                titanHP = Math.Max(0, titanHP - delta * desc.Titan.decay);
             }
         }
-
-
         allowSpecial = desc.powerUse == -1 || owner switch {
             PlayerShip ps => !ps.energy.off.Contains(this),
             _ => true
@@ -216,7 +214,6 @@ public class Armor : Device {
             damageDelay -= delta * Program.TICKS_PER_SECOND;
             return;
         }
-
         powerUse = desc.powerUse == -1 ? -1 : 0;
         if (!allowSpecial) {
             return;
@@ -256,9 +253,12 @@ public class Armor : Device {
             powerUse = desc.powerUse;
         }
     }
+    private void UpdateHP() {
+        hp = Math.Min(hp, maxHP);
+    }
     private void OnAbsorb(int absorbed) {
         lifetimeDamageAbsorbed += absorbed;
-        if (desc.titan is var t and not null) {
+        if (desc.Titan is var t and not null) {
             titanHP = Math.Min(desc.maxHP * t.factor, titanHP + absorbed * t.gain);
             titanDuration = t.duration;
         }
@@ -291,7 +291,6 @@ public class Armor : Device {
     public int Absorb(Projectile p) {
         if (p.damageHP < 1)
             return 0;
-
         //If we have a minAbsorb, then we absorb damage even at 0 hp
         int damageWall = Math.Min(maxHP, desc.minAbsorb.Roll());
         if(hp is 0) {
@@ -331,7 +330,6 @@ public class Armor : Device {
                 return 0;
             }
         }
-
         //Check if we have a kill threshold
         if (hp <= killHP) {
             if (p.damageHP < killHP) {
@@ -352,9 +350,9 @@ public class Armor : Device {
         }
         var multiplier = p.desc.armorFactor;// + lifetimeDamageAbsorbed * desc.lifetimeDegrade;
         var absorbed = (int)Math.Clamp(p.damageHP * multiplier, 0, hp);
-        if(desc.damageGate != -1 && absorbed - desc.damageGate is >0 and var cut) {
-            absorbed = desc.damageGate;
-            lifetimeDamageAbsorbed += cut * 5;
+        if(desc.maxAbsorb > -1 && desc.maxAbsorb < absorbed) {
+            absorbed = desc.maxAbsorb;
+            //lifetimeDamageAbsorbed += (absorbed - desc.maxAbsorb) * 5;
         }
         hp -= absorbed;
         OnAbsorb(absorbed);
@@ -378,7 +376,7 @@ public class Armor : Device {
 
         void ApplyDecay() {
 
-            if (p.desc.decay is Decay d) {
+            if (p.desc.Decay is Decay d) {
                 decay.Add(new(d, p.source));
             }
         }
@@ -481,7 +479,6 @@ public class Enhancer : Device {
     public void Update(double delta, IShip owner) {
     }
 }
-
 public class Launcher : Device {
     public LauncherDesc desc;
     public Weapon weapon;
@@ -514,7 +511,7 @@ public class Launcher : Device {
         this.index = index;
         var l = desc.missiles[index];
         weapon.ammo = new ItemAmmo(l.ammoType);
-        weapon.desc.projectile = l.shot;
+        weapon.desc.Projectile = l.shot;
     }
     public string GetReadoutName() => weapon.GetReadoutName();
     public ColoredString GetBar(int BAR) => weapon.GetBar(BAR);
@@ -633,12 +630,6 @@ public class Shield : Device {
     public int stealth => desc.stealth == 0 ? 0 :
         delay > 0 ? 0 :
         desc.stealth * hp / desc.maxHP;
-    /*
-    public int maxAbsorb => desc.absorbMaxHP == -1 ?
-        hp : Math.Min(hp, absorbHP);
-    public int absorbHP;
-    public double absorbRegenHP;
-    */
     public int powerUse => hp < desc.maxHP ? desc.powerUse : desc.idlePowerUse;
     public Shield() { }
     public Shield(Item source, ShieldDesc desc) {
@@ -648,7 +639,6 @@ public class Shield : Device {
     public Shield Copy(Item source) => desc.GetShield(source);
     public void OnDisable() => Deplete();
     public void Deplete() {
-
         hp = 0;
         regenHP = 0;
         delay = desc.depletionDelay;
@@ -764,8 +754,6 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     public int totalTimesFired;
     public record OnFire(Weapon w, List<Projectile> p);
     public Vi<OnFire> onFire=new();
-
-
     public double valueFactor =>
         ammo is ChargeAmmo ca ?
             (double)ca.charges / desc.initialCharges :
@@ -782,8 +770,8 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         this.desc = desc;
 
         capacitor =
-            desc.capacitor != null ?
-                new(desc.capacitor) :
+            desc.Capacitor != null ?
+                new(desc.Capacitor) :
             null;
         ammo =
             desc.initialCharges > -1 ?
@@ -792,7 +780,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
                 new ItemAmmo(desc.ammoType) :
             null;
         aiming ??=
-            desc.projectile.omnidirectional || desc.omnidirectional ?
+            desc.Projectile.omnidirectional || desc.omnidirectional ?
                 new Omnidirectional() :
             desc.sweep > 0 ?
                 new Swivel(desc.sweep) :
@@ -800,9 +788,9 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
                 new Swivel(desc.leftRange, desc.rightRange) :
             null;
         targeting =
-            desc.projectile.multiTarget ?
+            desc.Projectile.multiTarget ?
                 new(true) :
-            desc.projectile.acquireTarget ?
+            desc.Projectile.acquireTarget ?
                 new(false) :
             aiming != null ?
                 new(false) :
@@ -814,9 +802,9 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     public string GetReadoutName() {
         string name = source.type.name;
         return ammo switch {
-            ChargeAmmo c => $"[{c.charges, 4}] {name}",
-            ItemAmmo i => $"[{i.count, 4}] {name}",
-            _ => name
+            ChargeAmmo c => $"{c.charges, 6} {name}",
+            ItemAmmo i => $"{i.count, 6} {name}",
+            _ => $"------ {name}"
         };
     }
     public ColoredString GetBar(int BAR) {
@@ -849,7 +837,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         }
     }
     public void UpdateProjectileDesc() {
-        projectileDesc = Modifier.Sum(capacitor?.mod, source.mod, mod) * desc.projectile;
+        projectileDesc = Modifier.Sum(capacitor?.mod, source.mod, mod) * desc.Projectile;
     }
     public void Update(double delta, Station owner) {
         if (!blind) {

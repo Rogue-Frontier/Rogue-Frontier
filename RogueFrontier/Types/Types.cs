@@ -97,7 +97,7 @@ public class TypeCollection {
 #if DEBUG
             "Debug" => ProcessSection,
 #else
-            "Debug" => e => { }       
+            "Debug" => e => { },       
 #endif
             "GenomeType" => AddType<GenomeType>,
             "ImageType" => AddType<ImageType>,

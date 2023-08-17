@@ -181,16 +181,16 @@ public class ItemType : DesignType {
             }
         }
         if (e.HasElement(HeadDesc.Tag, out XElement xmlHead)) {
-            this.head = new HeadDesc(xmlHead);
+            head = new(xmlHead);
         }
         if (e.HasElement(GrenadeType.Tag, out XElement xmlGrenade)) {
-            this.grenade = new GrenadeType(collection, xmlGrenade);
+            grenade = new(collection, xmlGrenade);
         }
         if (e.HasElement(GunDesc.Tag, out XElement xmlGun)) {
-            this.gun = new GunDesc(collection, xmlGun);
+            gun = new(collection, xmlGun);
         }
         if (e.HasElement(AmmoDesc.Tag, out XElement xmlAmmo)) {
-            this.ammo = new AmmoDesc(xmlAmmo);
+            ammo = new(xmlAmmo);
         }
 
 
@@ -254,29 +254,26 @@ public class ItemType : DesignType {
             public int range { get; }
         }
         public class GrenadeDesc : ProjectileDesc {
-            public int speed = 150;
+            [Req] public int speed = 150;
             public GrenadeType grenadeType;
             public int range => speed * grenadeType.fuseTime / 30;
             public GrenadeDesc() { }
             public GrenadeDesc(XElement e) {
-                speed = e.ExpectAttInt(nameof(speed));
+                e.Initialize(this);
             }
         }
         public class FlameDesc : ProjectileDesc {
-            public int damage;
-            public int speed = 90;
-            public int lifetime;
-
+            [Req] public int damage;
+            [Req] public int speed = 90;
+            [Req] public int lifetime;
             public int range => speed * lifetime / 30;
             public FlameDesc() { }
             public FlameDesc(XElement e) {
-                damage = e.ExpectAttInt(nameof(damage));
-                speed = e.ExpectAttInt(nameof(speed));
-                lifetime = e.ExpectAttInt(nameof(lifetime));
+                e.Initialize(this);
             }
         }
         public class BulletDesc : ProjectileDesc {
-            public int damage;
+            [Req] public int damage;
             public int speed = 90;
             public int knockback;
             public int lifetime = 90;
@@ -284,7 +281,7 @@ public class ItemType : DesignType {
             public int range => speed * lifetime / 30;
             public BulletDesc() { }
             public BulletDesc(XElement e) {
-                damage = e.ExpectAttInt(nameof(damage));
+                e.Initialize(this);
             }
         }
 

@@ -633,11 +633,16 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_metal_grinder = 6000,
         item_cloaking_shield = 2400,
         item_darkened_knightsteel_plate = 7500,
-        
+
+
+        item_magic_bomb = 15,
+        item_magic_bomb_launcher = 2500,
+
         item_sand_blaster = 1600,
         item_sand_vent = 2400,
         item_sludge_vent = 2400,
-        
+        item_demon_cannon = 6000,
+
         item_hull_puncher = 6000,
         item_iron_hook_cannon = 3200,
         item_iron_hook = 10,

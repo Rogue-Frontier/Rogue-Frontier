@@ -13,15 +13,12 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
 using SFML.Audio;
-
 namespace RogueFrontier;
-
 public static class Tones {
     public static Sound pressed = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) {
         Volume = 33
     };
 }
-
 partial class Program {
     public static int TICKS_PER_SECOND = 60;
     static Program() {
@@ -33,9 +30,6 @@ partial class Program {
     public static string main = ExpectFile("RogueFrontierContent/scripts/Main.xml");
     public static string cover = ExpectFile("RogueFrontierContent/sprites/RogueFrontierPosterV2.asc.cg");
     public static string splash = ExpectFile("RogueFrontierContent/sprites/SplashBackgroundV2.asc.cg");
-
-
-
     static void Main(string[] args) {
         SadConsole.Settings.WindowTitle = "Rogue Frontier";
         /*
@@ -46,8 +40,6 @@ partial class Program {
             s += (@$"{'\n'}{{""{type.codename}"", {type.value}}}");
         }
         */
-
-
         if (args.Any()) {
             switch (args[0]) {
                 case "server": StartGame(StartServer); break;

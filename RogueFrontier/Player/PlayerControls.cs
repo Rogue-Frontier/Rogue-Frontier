@@ -58,7 +58,7 @@ public class PlayerControls {
         if (input.TargetFriendly) {
             playerShip.NextTargetFriendly();
         }
-        if (input.TargetMouse) {
+        if (input.TargetMouse && playerMain.mouseWorldPos != null) {
             playerMain.TargetMouse();
         }
         if (input.ClearTarget) {
@@ -101,7 +101,10 @@ public class PlayerControls {
             playerShip.AddMessage(new Message($"Autopilot {(playerShip.autopilot ? "engaged" : "disengaged")}"));
         }
         if (input.Dock) {
-            if (playerShip.dock.Target != null) {
+            if (input.Shift) {
+                var dockable = playerShip.world.entities.all.OfType<IDockable>().OrderBy(d => (d.position - playerShip.position).magnitude2).ToList();
+                playerMain.sceneContainer.Children.Add(SListWidget.DockMenu(playerMain, dockable, playerShip));
+            } else if (playerShip.dock.Target != null) {
                 if (playerShip.dock.docked) {
                     playerShip.AddMessage(new Message("Undocked"));
                 } else {

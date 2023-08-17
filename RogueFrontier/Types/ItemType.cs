@@ -182,7 +182,7 @@ public record RechargeWeapon() : ItemUse {
     public WeaponDesc weaponType;
     [Req] public int charges;
     public RechargeWeapon(TypeCollection tc, XElement e) : this() {
-        weaponType = tc.Lookup<ItemType>(e.ExpectAtt(nameof(weaponType))).weapon;
+        weaponType = tc.Lookup<ItemType>(e.ExpectAtt(nameof(weaponType))).Weapon;
         e.Initialize(this);
     }
     public string GetDesc(PlayerShip player, Item item) =>
@@ -238,31 +238,31 @@ public record ItemType : IDesignType {
     [Req] public int level;
     [Req] public int mass;
     [Opt] public int value;
-    public HashSet<string> attributes;
-    public FragmentDesc ammo;
-    public ArmorDesc armor;
-    public EngineDesc engine;
-    public LauncherDesc launcher;
-    public ReactorDesc reactor;
-    public ServiceDesc service;
-    public ShieldDesc shield;
-    public SolarDesc solar;
-    public WeaponDesc weapon;
-    public ItemUse invoke;
+    [Opt(";")] public HashSet<string> attributes;
+    [Sub] public FragmentDesc Ammo;
+    [Sub] public ArmorDesc Armor;
+    [Sub] public EngineDesc Engine;
+    [Sub] public ReactorDesc Reactor;
+    [Sub] public ServiceDesc Service;
+    [Sub] public ShieldDesc Shield;
+    [Sub] public SolarDesc Solar;
+    public LauncherDesc Launcher;
+    public WeaponDesc Weapon;
+    public ItemUse Invoke;
 
     public bool HasAtt(string att) => attributes.Contains(att);
     public T Get<T>() =>
         (T)new Dictionary<Type, object>{
-            [typeof(FragmentDesc)] = ammo,
-            [typeof(ArmorDesc)] = armor,
-            [typeof(EngineDesc)] = engine,
-            [typeof(LaunchDesc)] = launcher,
-            [typeof(ReactorDesc)] = reactor,
-            [typeof(ServiceDesc)] = service,
-            [typeof(ShieldDesc)] = shield,
-            [typeof(SolarDesc)] = solar,
-            [typeof(WeaponDesc)] = weapon,
-            [typeof(ItemUse)] = invoke
+            [typeof(FragmentDesc)] = Ammo,
+            [typeof(ArmorDesc)] = Armor,
+            [typeof(EngineDesc)] = Engine,
+            [typeof(LaunchDesc)] = Launcher,
+            [typeof(ReactorDesc)] = Reactor,
+            [typeof(ServiceDesc)] = Service,
+            [typeof(ShieldDesc)] = Shield,
+            [typeof(SolarDesc)] = Solar,
+            [typeof(WeaponDesc)] = Weapon,
+            [typeof(ItemUse)] = Invoke
         }[typeof(T).GetType()];
     public enum EItemUse {
         none,
@@ -278,11 +278,10 @@ public record ItemType : IDesignType {
         unlockPrescience
     }
     public void Initialize(TypeCollection tc, XElement e) {
-        attributes = e.TryAtt("attributes").Split(";").ToHashSet();
         e.Initialize(this);
-        invoke = e.HasElement("Invoke", out var xmlInvoke) ? ParseInvoke(xmlInvoke) : ParseInvoke(e);
+        Invoke = e.HasElement("Invoke", out var xmlInvoke) ? ParseInvoke(xmlInvoke) : ParseInvoke(e);
         ItemUse ParseInvoke(XElement e) =>
-            e.TryAttEnum(nameof(invoke), EItemUse.none) switch {
+            e.TryAttEnum(nameof(Invoke), EItemUse.none) switch {
                 EItemUse.none => null,
                 EItemUse.deployShip => new DeployShip(tc, e),
                 EItemUse.deployStation => new DeployStation(tc, e),
@@ -296,15 +295,8 @@ public record ItemType : IDesignType {
                 _ => null
             };
         foreach (var (tag, action) in new Dictionary<string, Action<XElement>> {
-            ["Ammo"] = e =>     ammo = new(e),
-            ["Armor"] = e =>    armor = new(e),
-            ["Engine"] = e =>   engine = new(e),
-            ["Launcher"] = e => launcher = new(tc, e),
-            ["Reactor"] = e =>  reactor = new(e),
-            ["Service"] = e =>  service = new(e),
-            ["Shield"] = e =>   shield = new(e),
-            ["Solar"] = e =>    solar = new(e),
-            ["Weapon"] = e =>   weapon = new(tc, e),
+            ["Launcher"] = e => Launcher = new(tc, e),
+            ["Weapon"] = e =>   Weapon = new(tc, e),
         }) {
             if (e.HasElement(tag, out var sub)) {
                 action(sub);
@@ -324,15 +316,12 @@ public record ArmorDesc() {
     [Opt] public double reflectFactor;
     [Opt] public IDice minAbsorb = new Constant(0);
     [Opt] public int powerUse = -1;
-    [Opt] public int damageGate = -1;
-    public TitanDesc titan;
-    public ItemFilter restrictRepair;
+    [Opt] public int maxAbsorb = -1;
+    [Sub] public TitanDesc Titan;
+    [Sub] public ItemFilter RestrictRepair;
     public Armor GetArmor(Item i) => new(i, this);
     public ArmorDesc(XElement e) : this() {
         e.Initialize(this);
-        restrictRepair = e.HasElement("RestrictRepair", out var xmlRestrictRepair) ?
-            new(xmlRestrictRepair) : null;
-        titan = e.HasElement("Titan", out var xmlTitan) ? new(xmlTitan) : null;
     }
 
     public record TitanDesc() {
@@ -372,7 +361,7 @@ public record LaunchDesc {
     public LaunchDesc() {}
     public LaunchDesc(TypeCollection types, XElement e) {
         ammoType = types.Lookup<ItemType>(e.ExpectAtt(nameof(ammoType)));
-        shot = ammoType.ammo ?? new(e);
+        shot = ammoType.Ammo ?? new(e);
     }
 }
 public record LauncherDesc {
@@ -380,17 +369,13 @@ public record LauncherDesc {
     [Req] public int fireCooldown;
     [Opt] public int recoil = 0;
     [Opt] public int repeat = 0;
-    public CapacitorDesc capacitor;
+    [Sub] public CapacitorDesc Capacitor;
     public List<LaunchDesc> missiles;
     public Launcher GetLauncher(Item i) => new(i, this);
     public Weapon GetWeapon(Item i) => new(i, weaponDesc);
     public LauncherDesc() { }
     public LauncherDesc(TypeCollection types, XElement e) {
         e.Initialize(this);
-
-        if (e.HasElement("Capacitor", out var xmlCapacitor)) {
-            capacitor = new(xmlCapacitor);
-        }
         missiles = new();
         if(e.HasElements("Missile", out var xmlMissileArr)) {
             missiles.AddRange(xmlMissileArr.Select(m => new LaunchDesc(types, m)));
@@ -402,9 +387,9 @@ public record LauncherDesc {
         fireCooldown = fireCooldown,
         recoil = recoil,
         repeat = repeat,
-        projectile = missiles.First().shot,
+        Projectile = missiles.First().shot,
         initialCharges = -1,
-        capacitor = capacitor,
+        Capacitor = Capacitor,
         ammoType = missiles.First().ammoType,
         targetProjectile = false,
         autoFire = false
@@ -429,15 +414,15 @@ public record WeaponDesc {
     [Opt] public double angle = 0, sweep, leftRange, rightRange = 0;
 
     public ItemType ammoType;
-    public FragmentDesc projectile;
-    public CapacitorDesc capacitor;
+    public FragmentDesc Projectile;
+    [Sub] public CapacitorDesc Capacitor;
     public SoundBuffer sound;
 
-    public int missileSpeed => projectile.missileSpeed;
-    public int damageType => projectile.damageType;
-    public IDice damageHP => projectile.damageHP;
-    public int lifetime => projectile.lifetime;
-    public int minRange => projectile.missileSpeed * projectile.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
+    public int missileSpeed => Projectile.missileSpeed;
+    public int damageType => Projectile.damageType;
+    public IDice damageHP => Projectile.damageHP;
+    public int lifetime => Projectile.lifetime;
+    public int minRange => Projectile.missileSpeed * Projectile.lifetime / (Program.TICKS_PER_SECOND * Program.TICKS_PER_SECOND); //DOES NOT INCLUDE CAPACITOR EFFECTS
     public Weapon GetWeapon(Item i) => new(i, this);
     public WeaponDesc() { }
     public WeaponDesc(TypeCollection types, XElement e) {
@@ -448,12 +433,11 @@ public record WeaponDesc {
         rightRange *= Math.PI / 180;
         ammoType = e.TryAtt(nameof(ammoType), out string at) ?
             types.Lookup<ItemType>(at) : null;
-        projectile = new(e.ExpectElement("Projectile"));
-        capacitor = e.HasElement("Capacitor", out var xmlCapacitor) ?
-            new(xmlCapacitor) : null;
+
+        Projectile = new(e.ExpectElement("Projectile"));
         sound = e.TryAtt("sound", out string s) ? new SoundBuffer(s) : null;
         if (pointDefense) {
-            projectile.hitProjectile = true;
+            Projectile.hitProjectile = true;
             targetProjectile = true;
             autoFire = true;
         }
@@ -495,7 +479,9 @@ public record FragmentDesc {
     [Opt] public double maneuver;
     [Opt] public double maneuverRadius;
     [Opt] public int detonateRadius;
+    [Opt] public int fragmentInitialDelay;
     [Opt] public int fragmentInterval;
+    [Opt] public double fragmentSpin;
     [Opt] public bool hitSource;
     [Opt] public bool hitProjectile;
     [Opt] public bool hitBarrier = true;
@@ -506,21 +492,24 @@ public record FragmentDesc {
     [Opt] public bool beacon;
     [Opt] public bool hook;
     [Opt] public bool lightning;    //On hit, the projectile attaches an overlay that automatically makes future shots hit instantly
-    public FlashDesc flash;
-    public Decay decay;
-    public DisruptorDesc disruptor;
+    [Sub] public FlashDesc Flash;
+    [Sub] public Decay Decay;
+    [Sub] public DisruptorDesc Disruptor;
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
     public double angleInterval => spreadAngle / count;
     public int range2 => range * range;
-    public HashSet<FragmentDesc> fragments;
+    public HashSet<FragmentDesc> Fragment = new();
     public StaticTile effect;
-    public TrailDesc trail;
+    [Sub] public TrailDesc Trail;
     public Modifier mod;
 
     public SoundBuffer detonateSound;
     public FragmentDesc() { }
     public FragmentDesc(XElement e) {
         Initialize(e);
+        if(e.HasElements("Fragment", out var xmlFragmentList)) {
+            Fragment.UnionWith(xmlFragmentList.Select(xmlFragment => new FragmentDesc(xmlFragment)));
+        }
         detonateSound =
             e.TryAtt(nameof(detonateSound), out var s) ?
                 new(s) :
@@ -535,19 +524,25 @@ public record FragmentDesc {
             spreadAngle = e.TryAttDouble(nameof(spreadAngle), count == 1 ? 0 : 3) * Math.PI / 180;
         }
         maneuver *= Math.PI / (180);
-
+        /*
         if(e.HasElement("Flash", out var xmlFlash)) {
-            flash = new(xmlFlash);
+            Flash = new(xmlFlash);
         }
         if(e.HasElement("Decay", out var xmlDecay)) {
-            decay = new(xmlDecay);
+            Decay = new(xmlDecay);
         }
-        fragments = e.HasElements("Fragment", out var fragmentsList) ?
-            new(fragmentsList.Select(f => new FragmentDesc(f))) : null;
+        */
+        /*
+        if (e.HasElements("Fragment", out var fragmentsList)) {
+            Fragment = new(fragmentsList.Select(f => new FragmentDesc(f)));
+        }
+        */
+        /*
         disruptor = e.HasElement("Disruptor", out var xmlDisruptor) ?
             new(xmlDisruptor) : null;
-        trail = e.HasElement("Trail", out var xmlTrail) ? 
+        Trail = e.HasElement("Trail", out var xmlTrail) ? 
             new(xmlTrail) : null;
+        */
         effect = new(e);
     }
     public IEnumerable<double> GetAngles(double direction) =>
@@ -591,7 +586,7 @@ public record TrailDesc : ITrail {
     public TrailDesc(XElement e) {
         e.Initialize(this);
     }
-    public Effect GetParticle(XY Position) => new FadingTile(Position, new(foreground, background, glyph), lifetime);
+    public Effect GetParticle(XY Position, XY Velocity = null) => new FadingTile(Position, new(foreground, background, glyph), lifetime);
 }
 public record DisruptorDesc {
     bool? thrustMode, turnMode, brakeMode, fireMode;

@@ -54,7 +54,6 @@ public static partial class SMenu {
     public static ListMenu<IPlayerMessage> Logs(ScreenSurface prev, PlayerShip player) {
         ListMenu<IPlayerMessage> screen = null;
         List<IPlayerMessage> logs = player.logs;
-
         return screen = new(prev,
             player,
             logs,
@@ -164,7 +163,7 @@ public static partial class SMenu {
             Weapon w => () => {
 
                 r.AddRange(new ColoredString[] {
-                    new($"Damage range: {w.desc.projectile.damageHP.str}"),
+                    new($"Damage range: {w.desc.Projectile.damageHP.str}"),
                     new($"Fire cooldown:{w.desc.fireCooldown/60.0:0.00} SEC"),
                     new($"Power rating: {w.desc.powerUse}"),
                     w.desc.recoil != 0 ?
@@ -231,8 +230,8 @@ public static partial class SMenu {
         IEnumerable<Item> installedInvokable;
         List<Item> usable = new();
         void UpdateList() {
-            cargoInvokable = player.cargo.Where(i => i.type.invoke != null);
-            installedInvokable = player.devices.Installed.Select(d => d.source).Where(i => i.type.invoke != null);
+            cargoInvokable = player.cargo.Where(i => i.type.Invoke != null);
+            installedInvokable = player.devices.Installed.Select(d => d.source).Where(i => i.type.Invoke != null);
             usable.Clear();
             usable.AddRange(installedInvokable.Concat(cargoInvokable));
         }
@@ -248,7 +247,7 @@ public static partial class SMenu {
 
         string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "[*] " : "[c] ")}{i.type.name}";
         List<ColoredString> GetDesc(Item i) {
-            var invoke = i.type.invoke;
+            var invoke = i.type.Invoke;
             var result = GenerateDesc(i);
             if (invoke != null) {
                 string action = $"[Enter] {invoke.GetDesc(player, i)}";
@@ -257,7 +256,7 @@ public static partial class SMenu {
             return result;
         }
         void InvokeItem(Item item) {
-            item.type.invoke?.Invoke(screen, player, item, Update);
+            item.type.Invoke?.Invoke(screen, player, item, Update);
             screen.UpdateIndex();
         }
         void Update() {
@@ -287,7 +286,7 @@ public static partial class SMenu {
         string GetName(Device d) => d.source.type.name;
         List<ColoredString> GetDesc(Device d) {
             var item = d.source;
-            var invoke = item.type.invoke;
+            var invoke = item.type.Invoke;
             var result = GenerateDesc(d);
 
             if (invoke != null) {
@@ -297,7 +296,7 @@ public static partial class SMenu {
         }
         void InvokeDevice(Device d) {
             var item = d.source;
-            var invoke = item.type.invoke;
+            var invoke = item.type.Invoke;
             invoke?.Invoke(screen, player, item);
             screen.UpdateIndex();
         }
@@ -322,7 +321,7 @@ public static partial class SMenu {
 
         string GetName(Item i) => i.type.name;
         List<ColoredString> GetDesc(Item i) {
-            var invoke = i.type.invoke;
+            var invoke = i.type.Invoke;
             var result = GenerateDesc(i);
             if (invoke != null) {
                 result.Add(new($"[Enter] {invoke.GetDesc(player, i)}", Color.Yellow, Color.Black));
@@ -330,7 +329,7 @@ public static partial class SMenu {
             return result;
         }
         void InvokeItem(Item item) {
-            var invoke = item.type.invoke;
+            var invoke = item.type.Invoke;
             invoke?.Invoke(screen, player, item);
             screen.UpdateIndex();
         }
@@ -392,11 +391,10 @@ public static partial class SMenu {
             InvokeDevice,
             Escape
             );
-
         string GetName(Device d) => d.source.type.name;
         List<ColoredString> GetDesc(Device d) {
             var item = d.source;
-            var invoke = item.type.invoke;
+            var invoke = item.type.Invoke;
             var result = GenerateDesc(d);
             if (invoke != null) {
                 result.Add(new($"[Enter] Remove this device", Color.Yellow, Color.Black));
@@ -409,7 +407,6 @@ public static partial class SMenu {
             player.cargo.Add(item);
             screen.UpdateIndex();
         }
-
         void Escape() {
             var p = screen.Parent;
             p.Children.Remove(screen);
@@ -436,9 +433,9 @@ public static partial class SMenu {
         string GetName(Armor a) => $"{$"[{a.hp} / {a.maxHP}]",-12}{a.source.type.name}";
         List<ColoredString> GetDesc(Armor a) {
             var item = a.source;
-            var invoke = item.type.invoke;
+            var invoke = item.type.Invoke;
             var result = GenerateDesc(a);
-            if (a.desc.restrictRepair?.Matches(source) == false) {
+            if (a.desc.RestrictRepair?.Matches(source) == false) {
                 result.Add(new("This armor is not compatible", Color.Yellow, Color.Black));
             } else if (a.hp < a.maxHP) {
                 result.Add(new("[Enter] Repair this armor", Color.Yellow, Color.Black));
@@ -448,7 +445,7 @@ public static partial class SMenu {
             return result;
         }
         void Repair(Armor a) {
-            if (a.desc.restrictRepair?.Matches(source) == false) {
+            if (a.desc.RestrictRepair?.Matches(source) == false) {
                 return;
             }
             var before = a.hp;
@@ -484,7 +481,7 @@ public static partial class SMenu {
         string GetName(Reactor r) => $"{$"[{r.energy:0} / {r.desc.capacity}]",-12} {r.source.type.name}";
         List<ColoredString> GetDesc(Reactor r) {
             var item = r.source;
-            var invoke = item.type.invoke;
+            var invoke = item.type.Invoke;
             var result = GenerateDesc(r);
             result.Add(new($"Refuel amount: {refuel.energy}"));
             result.Add(new($"Fuel needed:   {r.desc.capacity - (int)r.energy}"));
@@ -538,7 +535,7 @@ public static partial class SMenu {
         void Invoke(Device d) {
             d.source.type = replace.to;
             switch (d) {
-                case Weapon w: w.SetWeaponDesc(replace.to.weapon); break;
+                case Weapon w: w.SetWeaponDesc(replace.to.Weapon); break;
                 default:
                     throw new Exception("Unsupported ReplaceDevice type");
             }
@@ -664,7 +661,7 @@ public static partial class SMenu {
         string GetName(Reactor r) => $"{$"[{r.energy:0} / {r.desc.capacity}]",-12} {r.source.type.name}";
         List<ColoredString> GetDesc(Reactor r) {
             var item = r.source;
-            var invoke = item.type.invoke;
+            var invoke = item.type.Invoke;
             var result = GenerateDesc(r);
             int unitPrice = GetPrice(r);
             if (unitPrice < 0) {
@@ -1145,7 +1142,7 @@ public static partial class SMenu {
         string GetName(Reactor r) => $"{$"[{r.energy:0} / {r.desc.capacity}]",-12} {r.source.type.name}";
         List<ColoredString> GetDesc(Reactor r) {
             var item = r.source;
-            var invoke = item.type.invoke;
+            var invoke = item.type.Invoke;
             var result = GenerateDesc(r);
             var a = (string s) => result.Add(new(s));
             if (r.energy < r.desc.capacity) {
@@ -1163,14 +1160,14 @@ public static partial class SMenu {
             }
             ListMenu<Item> ChooseFuel(ScreenSurface prev, PlayerShip player) {
                 ListMenu<Item> screen = null;
-                var items = player.cargo.Where(i => i.type.invoke is Refuel r);
+                var items = player.cargo.Where(i => i.type.Invoke is Refuel r);
                 return screen = new(prev, player, items,
                     GetName, GetDesc, Invoke, Escape
                     ) { IsFocused = true };
                 string GetName(Item i) => i.type.name;
                 List<ColoredString> GetDesc(Item i) {
                     var result = GenerateDesc(i);
-                    result.Add(new($"Fuel amount: {(i.type.invoke as Refuel).energy}"));
+                    result.Add(new($"Fuel amount: {(i.type.Invoke as Refuel).energy}"));
                     result.Add(new(""));
                     result.Add(new(r.energy < r.desc.capacity ?
                         "[Enter] Use this item" : "Reactor is at full capacity",
@@ -1178,7 +1175,7 @@ public static partial class SMenu {
                     return result;
                 }
                 void Invoke(Item i) {
-                    var refuel = i.type.invoke as Refuel;
+                    var refuel = i.type.Invoke as Refuel;
                     var before = r.energy;
                     var refuelEnergy = Math.Min(refuel.energy, r.desc.capacity - r.energy);
                     if (refuelEnergy > 0) {
@@ -1408,8 +1405,8 @@ public static class SListWidget {
         IEnumerable<Item> installedInvokable;
         List<Item> usable = new();
         void UpdateList() {
-            cargoInvokable = player.cargo.Where(i => i.type.invoke != null);
-            installedInvokable = player.devices.Installed.Select(d => d.source).Where(i => i.type.invoke != null);
+            cargoInvokable = player.cargo.Where(i => i.type.Invoke != null);
+            installedInvokable = player.devices.Installed.Select(d => d.source).Where(i => i.type.Invoke != null);
             usable.Clear();
             usable.AddRange(installedInvokable.Concat(cargoInvokable));
         }
@@ -1425,7 +1422,7 @@ public static class SListWidget {
 
         string GetName(Item i) => $"{(installedInvokable.Contains(i) ? "[*] " : "[c] ")}{i.type.name}";
         List<ColoredString> GetDesc(Item i) {
-            var invoke = i.type.invoke;
+            var invoke = i.type.Invoke;
             var result = SMenu.GenerateDesc(i);
             if (invoke != null) {
                 var action = $"[Enter] {invoke.GetDesc(player, i)}";
@@ -1434,7 +1431,7 @@ public static class SListWidget {
             return result;
         }
         void InvokeItem(Item i) {
-            i.type.invoke?.Invoke(screen, player, i, Update);
+            i.type.Invoke?.Invoke(screen, player, i, Update);
             screen.UpdateIndex();
         }
         void Update() {
@@ -1447,7 +1444,6 @@ public static class SListWidget {
             p.IsFocused = true;
         }
     }
-
     public static ListWidget<Device> DeviceManager(ScreenSurface prev, PlayerShip player) {
         ListWidget<Device> screen = null;
         var disabled = player.energy.off;
@@ -1458,7 +1454,7 @@ public static class SListWidget {
             GetDesc,
             InvokeItem,
             Escape
-            );
+            ) { groupMode=false, title="Device Manager" };
         string GetName(Device d) => $"{(disabled.Contains(d) ? "[ ]" : "[*]")} {d.source.type.name}";
         List<ColoredString> GetDesc(Device d) {
             var result = SMenu.GenerateDesc(d);
@@ -1486,8 +1482,34 @@ public static class SListWidget {
             p.IsFocused = true;
         }
     }
+    public static ListWidget<IDockable> DockMenu(ScreenSurface prev, List<IDockable> d, PlayerShip player) {
+        ListWidget<IDockable> screen = null;
+        return screen = new(prev,
+            d,
+            GetName,
+            GetDesc,
+            InvokeItem,
+            Escape
+            ) { groupMode=false, title="Dock At"};
+        string GetName(IDockable d) => $"{d.name, -24}"; //{(d.position - player.position).magnitude,4:0}
+        List<ColoredString> GetDesc(IDockable d) => new() {
+            new($"Distance: {(d.position - player.position).magnitude:0}")
+        };
+        void InvokeItem(IDockable d) {
+            player.dock = new() { Target = d, Offset = d.GetDockPoints().First() };
+            Escape();
+        }
+        void Escape() {
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.IsFocused = true;
+        }
+    }
 }
 public class ListWidget<T> : ScreenSurface {
+
+    public string title = "";
+
     public bool groupMode = true;
     public IEnumerable<T> items;
     public IEnumerable<(T item, int count)> groups;
@@ -1593,20 +1615,23 @@ public class ListWidget<T> : ScreenSurface {
     }
     public override void Render(TimeSpan delta) {
         int x = 6;
-        int y = 16;
+        int y = 14;
 
         void line(Point from, Point to, int glyph) {
             Surface.DrawLine(from, to, '-', Color.White, null);
         }
         const int WIDTH = 36;
         Surface.Clear();
+        Surface.Print(x, y, title);
+        y += 2;
+
+
         int start = 0;
         int? highlight = null;
         if (index.HasValue) {
             start = Math.Max(index.Value - 16, 0);
             highlight = index;
         }
-
         Func<int, string> NameAt = groupMode ? i => {
             var g = groups.ElementAt(i);
             return $"{g.count}x {getName(g.item)}";
@@ -1614,7 +1639,6 @@ public class ListWidget<T> : ScreenSurface {
         : i => getName(items.ElementAt(i));
 
         int end = Math.Min(count, start + 26);
-
 
         if (count > 0) {
             int i = start;

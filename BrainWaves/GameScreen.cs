@@ -10,7 +10,6 @@ using System.Linq;
 namespace BrainWaves;
 
 public class GameScreen : Console {
-
     World World;
     Player Player;
     WorldScreen WorldScreen;

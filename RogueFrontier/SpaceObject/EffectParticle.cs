@@ -5,15 +5,15 @@ using SadRogue.Primitives;
 using System;
 namespace RogueFrontier;
 public class EffectParticle : Effect {
-    public int lifetime;
+    public double lifetime;
     public EffectParticle() { }
-    public EffectParticle(XY Position, ColoredGlyph Tile, int Lifetime) {
+    public EffectParticle(XY Position, ColoredGlyph Tile, double Lifetime) {
         this.position = Position;
         this.Velocity = new XY();
         this.tile = Tile;
         this.lifetime = Lifetime;
     }
-    public EffectParticle(XY Position, XY Velocity, ColoredGlyph Tile, int Lifetime) {
+    public EffectParticle(XY Position, XY Velocity, ColoredGlyph Tile, double Lifetime) {
         this.position = Position;
         this.Velocity = Velocity;
         this.tile = Tile;
@@ -36,7 +36,7 @@ public class EffectParticle : Effect {
     public ColoredGlyph tile { get; private set; }
     public void Update(double delta) {
         position += Velocity / Program.TICKS_PER_SECOND;
-        lifetime--;
+        lifetime -= delta * 60;
     }
 }
 public class FadingTile : Effect {

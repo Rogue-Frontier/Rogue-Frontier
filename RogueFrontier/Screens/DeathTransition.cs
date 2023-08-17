@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using Con = SadConsole.ScreenSurface;
 using SadConsole.Input;
+using ASECII;
+using Common;
 
 namespace RogueFrontier;
 
@@ -103,6 +105,26 @@ public class DeathTransition : ScreenSurface {
         prev.Render(delta);
         base.Render(delta);
         Surface.Clear();
+
+        var borderSize = Math.Max((time - 1) * 4, 0);
+
+        var br = (int)Math.Clamp((time - 1) * 255f, 0, 255);
+        var borderColor = new Color(br, br, br);
+        for (int i = 0; i < borderSize; i++) {
+            var d = 1d * i / borderSize;
+            d = Math.Pow(d, 1.4);
+            byte alpha = (byte)(255 - 255 * d);
+            var c = borderColor.SetAlpha(alpha);
+            var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
+            foreach (var point in screenPerimeter.PerimeterPositions()) {
+                //var back = this.GetBackground(point.X, point.Y).Premultiply();
+                var (x, y) = point;
+                Surface.SetBackground(x, y, c);
+            }
+        }
+
+
+
         int brightness = 0;
         //int brightness = (int)Math.Min(255, 255 * Math.Max(0, time - 6) / 2);
         foreach (var p in particles) {

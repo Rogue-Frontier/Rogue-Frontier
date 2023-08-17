@@ -111,7 +111,6 @@
 				/>
 		</Weapon>
 	</ItemType>
-
 	<ItemType	codename=	"item_scanning_laser"
 			name=		"Scanning laser array"
 			level=		"1"
@@ -147,7 +146,7 @@
 
 				desc=		"The Beowulf dual laser cannon allows you to strike with speed."
 		>
-		<Weapon	initialCharges=	"2000"
+		<Weapon	initialCharges=	"1800"
 				powerUse=		"20"
 				fireCooldown=	"15"
 				sweep=			"30"
@@ -156,7 +155,7 @@
 					count="2"
 					missileSpeed=	"100"
 					damageType=		"1"
-					damageHP=		"1d6"
+					damageHP=		"2d4"
 					lifetime=		"45"
 
 					glyph=			"."
@@ -173,7 +172,7 @@
 
 			desc=		"The Beowulf dual laser repeater allows you to strike with even more speed."
 		>
-		<Weapon	initialCharges=	"3000"
+		<Weapon	initialCharges=	"2700"
 				powerUse=		"30"
 				fireCooldown=	"5"
 				sweep=			"30"
@@ -182,7 +181,7 @@
 					count="2"
 					missileSpeed=	"100"
 					damageType=		"1"
-					damageHP=		"1d6"
+					damageHP=		"2d4"
 					lifetime=		"45"
 
 					glyph=			"."
@@ -304,7 +303,7 @@
 						glyph=			"m"
 						foreground=		"White"
 				>
-				<Decay lifetime="30" rate="1/60" degradeFactor="2.5" lethal="true" descend="true"/>
+				<Decay lifetime="30" damageRate="1/60" degradeFactor="2.5" lethal="true" descend="true"/>
 				<Trail
 					lifetime=	"10"
 					glyph=		"*"

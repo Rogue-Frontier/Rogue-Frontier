@@ -1,5 +1,4 @@
 ﻿<Module>
-
 	<ItemType	codename=	"item_debug_missile"
 				name=		"Debug missile"
 				level=		"2"
@@ -41,7 +40,7 @@
 						glyph=			"m"
 						foreground=		"White"
 				>
-				<Decay lifetime="30" rate="1/60" degradeFactor="2.5" lethal="true" descend="true"/>
+				<Decay lifetime="30" damageRate="1/60" degradeFactor="2.5" lethal="true" descend="true"/>
 				<Trail
 					lifetime=	"120"
 					glyph=		"*"
@@ -50,8 +49,6 @@
 			</Projectile>
 		</Weapon>
 	</ItemType>
-
-
 	<ShipClass    codename="ship_player_test"
 				  name=			"TEST"
 				  attributes=	""
@@ -67,15 +64,11 @@
 				  background="Black"
         >
 		<Items>
-			<Item codename="item_klaw_missile" count="40"/>
-			<Item codename="item_debug_missile" count="400"/>
 			<Item codename="item_simple_fuel_rod" count="24"/>
 			<Item codename="item_armor_repair_patch"	count="6"/>
 		</Items>
 		<Devices>
-			<Weapon codename="item_tipped_orion_longbow"/>
-			<Weapon codename="item_klaw_missile_launcher"/>
-			<Weapon codename="item_debug_missile_launcher"/>
+			<Weapon codename="item_demon_cannon"/>
 			<Shield codename="item_buckler_shield"/>
 			<Reactor codename="item_20mw_generator"/>
 			<Reactor codename="item_10mw_battery"/>

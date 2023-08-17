@@ -15,10 +15,11 @@ using System.Reflection;
 using System.Data;
 using NCalc;
 using Con = SadConsole.Console;
+using RogueFrontier;
+
 namespace Common;
 
 public static class Main {
-
     public static double Lerp(double x, double fromMin, double fromMax, double toMin, double toMax, double gamma) {
         var fromRange = fromMax - fromMin;
         var toRange = toMax - toMin;
@@ -26,7 +27,6 @@ public static class Main {
         x = (x - Math.Clamp(x, fromMin, fromMax)) * toRange / fromRange;
         x = Math.Pow(x / toRange, gamma);
         return toMin + Math.Sign(toRange) * x;
-
     }
     public static ColoredString ConcatColored(ColoredString[] parts) {
         var r = new List<ColoredGlyph>();
@@ -35,6 +35,8 @@ public static class Main {
         }
         return new(r.ToArray());
     }
+    public static string Repeat(this string str, int times) =>
+        string.Join("", Enumerable.Range(0, times).Select(i => str));
     public static ColoredString Concat(params (string str, Color foreground, Color background)[] parts) =>
         new(parts.SelectMany(part => new ColoredString(part.str, part.foreground, part.background)).ToArray());
     public static void Replace(this ScreenSurface c, ScreenSurface next) {
@@ -173,15 +175,15 @@ public static class Main {
         new (Math.Min(c.R, max), Math.Min(c.G, max), Math.Min(c.B, max));
     public static Color Gray(int value) => 
         new (value, value, value, 255);
-    public static Color Gray(this Color c) => 
-        Color.FromHSL(0, 0, c.GetBrightness());
+    public static Color Gray(this Color c) =>
+        SadRogue.Primitives.Color.FromHSL(0, 0, c.GetBrightness());
     public static ColoredGlyph Gray(this ColoredGlyph cg) =>
         new (cg.Foreground.Gray(), cg.Background.Gray(), cg.Glyph);
     public static Color WithValues(this Color c, int? red = null, int? green = null, int? blue = null, int? alpha = null) =>
         new(red ?? c.R, green ?? c.G, blue ?? c.B, alpha ?? c.A);
     
     public static Color SetBrightness(this Color c, float brightness) =>
-        Color.FromHSL(c.GetHue(), c.GetSaturation(), brightness);
+        SadRogue.Primitives.Color.FromHSL(c.GetHue(), c.GetSaturation(), brightness);
     public static double CalcFireAngle(XY posDiff, XY velDiff, double missileSpeed, out double timeToHit) {
         /*
         var timeToHit = posDiff.Magnitude / missileSpeed;
@@ -243,7 +245,7 @@ public static class Main {
     }
     public static void PrintLines(this SadConsole.Console console, int x, int y, string lines, Color? foreground = null, Color? background = null, Mirror mirror = Mirror.None) {
         foreach (var line in lines.Replace("\r\n", "\n").Split('\n')) {
-            console.Print(x, y, line, foreground ?? Color.White, background ?? Color.Black, mirror);
+            console.Print(x, y, line, foreground ?? SadRogue.Primitives.Color.White, background ?? SadRogue.Primitives.Color.Black, mirror);
             y++;
         }
     }
@@ -715,14 +717,73 @@ public static class Main {
         var props = obj.GetType().GetFields();
         foreach (var p in props) {
             var a = p.GetCustomAttributes(true).OfType<IAtt>().FirstOrDefault();
-            if(a != null) {
+
+            void Set(object parsed) =>
+                    p.SetValue(obj, parsed);
+            void Inherit() =>
+                Set(p.GetValue(source));
+            Type GetItemType() =>
+                p.FieldType.GetGenericTypeDefinition() == typeof(List<>) || p.FieldType.GetGenericTypeDefinition() == typeof(HashSet<>) ?
+                    p.FieldType.GetGenericArguments()[0] :
+                p.FieldType.IsArray ?
+                    p.FieldType.GetElementType() :
+                    throw new Exception("Unsupported subelement collection type");
+
+            if (a is Sub sub) {
+                var key = p.Name;
+
+                if(sub.multiple) {
+                    var elements = e.Elements(key).ToList();
+                    if (!elements.Any()) {
+                        if(source != null) {
+                            Inherit();
+                        } else if(sub.required) {
+                            throw new Exception($"<{e.Name}> requires at least one <{p.FieldType.Name}> subelement: {key} ### {e.Parent.Name}");
+                        }
+                        continue;
+                    }
+                    Set(CreateCollectionFrom(elements, GetItemType()));
+                    object CreateCollectionFrom(List<XElement> elements, Type type) {
+                        var con = type.GetConstructor(new[] { typeof(XElement) });
+                        var items = elements.Select(element => con.Invoke(new[] { element })).ToList();
+                        return p.FieldType.GetConstructor(new[] { typeof(IEnumerable<>).MakeGenericType(type) }).Invoke(new[] { items });
+                    }
+                } else {
+                    if(!e.HasElement(key, out var element)) {
+                        if(source != null) {
+                            Inherit();
+                        } else if(sub.required) {
+                            throw new Exception($"<{e.Name}> requires one <{p.FieldType.Name}> subelement: {key} ### {e.Parent.Name}");
+                        }
+                        continue;
+                    }
+                    Set(Create(element));
+                    object Create(XElement element) =>
+                        p.FieldType.GetConstructor(new[] { typeof(XElement) }).Invoke(new[] { element });
+                }
+                
+            } else if(a is IStr ia) {
+                object CreateCollectionFrom(IEnumerable<string> elements, Type type) {
+                    var col = p.FieldType.GetConstructor(new[] { typeof(IEnumerable<>).MakeGenericType(type) });
+                    if (type != typeof(string)) {
+
+                        var con = type.GetConstructor(new[] { typeof(XElement) });
+                        var items = elements.Select(element => con.Invoke(new[] { element })).ToList();
+                        return col.Invoke(new[] { items });
+                    } else {
+                        return col.Invoke(new[] { elements });
+                    }
+                    
+                }
+
+
                 var key = p.Name;
 
                 var value = e.Att(key);
                 if (value == null) {
 
                     if(source != null) {
-                        p.SetValue(obj, p.GetValue(source));
+                        Set(p.GetValue(source));
                     } else if (a is Opt) {
                     } else {
                         throw new Exception($"<{e.Name}> requires {p.FieldType.Name} attribute: {key} ### {e.Parent.Name}");
@@ -730,7 +791,7 @@ public static class Main {
                     continue;
                 }
 
-                object parsed = new Dictionary<Type, Func<object>>() {
+                var parseDict = new Dictionary<Type, Func<object>>() {
                     [typeof(string)] = () => value,
 
                     [typeof(bool)] = ParseBool,
@@ -738,15 +799,19 @@ public static class Main {
                     [typeof(char)] = ParseChar,
                     [typeof(double)] = ParseDouble,
 
+
                     [typeof(bool?)] = ParseBoolNullable,
                     [typeof(int?)] = () => e.ExpectAttIntNullable(key),
 
                     [typeof(IDice)] = () => e.ExpectAttDice(key),
                     [typeof(Color)] = () => e.ExpectAttColor(key),
                     [typeof(Color?)] = () => e.ExpectAttColor(key),
-                }[p.FieldType]();
-                p.SetValue(obj, parsed);
-
+                };
+                if (ia.separator.Any()) {
+                    Set(ParseCollection());
+                } else {
+                    Set(parseDict[p.FieldType]());
+                }
                 object ParseBool() =>
                     bool.TryParse(value, out var result) ? result : throw Error<bool>();
                 object ParseBoolNullable() =>
@@ -761,6 +826,9 @@ public static class Main {
                         throw Error<char>());
                 object ParseDouble() =>
                     value.Any() ? Convert.ToDouble(new Expression(value).Evaluate()) : throw Error<double>();
+                object ParseCollection() =>
+                    CreateCollectionFrom(value.Split(ia.separator), GetItemType());
+                
                 Exception Error<T>() =>
                     e.Invalid<T>(key);
             }
@@ -780,10 +848,10 @@ public static class Main {
     public static bool CalcBlocked(int coverage, int accuracy, Random karma) =>
         karma.Next(coverage) > karma.Next(accuracy);
     public static ColoredGlyph Colored(char c, Color? f = null, Color? b = null) =>
-        new(f??Color.White, b??Color.Black, c);
+        new(f ?? SadRogue.Primitives.Color.White, b?? SadRogue.Primitives.Color.Black, c);
     public static ColoredString WithBackground(this ColoredString c, Color? Background = null) {
         var result = c.SubString(0, c.Count());
-        result.SetBackground(Background ?? Color.Black);
+        result.SetBackground(Background ?? SadRogue.Primitives.Color.Black);
         return result;
     }
     public static ColoredString Adjust(this ColoredString c, Color foregroundInc) {
@@ -812,12 +880,13 @@ public static class Main {
         };
     }
     public static ColoredString ToColoredString(this string s) =>
-        s.Colored();
-    public static ColoredString Colored(this string s, Color? f = null, Color? b = null) =>
-        new(s, f ?? Color.White, b ?? Color.Black);
+        s.Color();
+    public static ColoredString Color(this string s, Color? f = null, Color? b = null) =>
+        new(s, f ?? SadRogue.Primitives.Color.White, b ?? SadRogue.Primitives.Color.Black);
     public static ColoredString ToColoredString(this ColoredGlyph c) =>
         new(c.ToEffect());
-    
+
+
     public static ColoredGlyph Brighten(this ColoredGlyph c, int intensity) {
         var result = c.Clone();
         result.Foreground = Sum(result.Foreground, new Color(intensity, intensity, intensity, 0));
@@ -957,3 +1026,31 @@ public static class Main {
         o == null ? default(T) : result;
 }
 
+public static class ColorCommand {
+    public static string Unparse(Color c) =>
+        $"{c.R},{c.G},{c.B},{c.A}";
+    public static string Front(Color f) => $"[c:r f:{Unparse(f)}]";
+    public static string Front(Color f, string str) => $"{Front(f)}{str}[c:u]";
+    public static string Back(Color b) => $"[c:r b:{Unparse(b)}]";
+    public static string Back(Color b, string str) => $"{Back(b)}{str}[c:u]";
+    public static string Recolor(Color? f, Color? b) {
+        var result = new StringBuilder();
+        if(f.HasValue)
+            result.Append(Front(f.Value));
+        if (b.HasValue)
+            result.Append(Back(b.Value));
+        return result.ToString();
+    }
+    public static string Recolor(Color? f, Color? b, string str) {
+        var result = new StringBuilder();
+        result.Append(Recolor(f, b));
+        result.Append(str);
+        if (f.HasValue)
+            result.Append(Undo());
+        if (b.HasValue)
+            result.Append(Undo());
+        return result.ToString();
+    }
+    public static string Undo() => "[c:u]";
+    public static string Repeat(string s, int n) => string.Join("", Enumerable.Range(0, n).Select(i => s));
+}

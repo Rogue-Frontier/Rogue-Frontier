@@ -132,7 +132,7 @@
 				glyph=			"*"
 				foreground=		"FF55FFFF"
 				>
-				<Decay lifetime="10" rate="1/60" degradeFactor="2.5"/>
+				<Decay lifetime="10" damageRate="1/60" degradeFactor="2.5"/>
 				<Trail
 					lifetime=	"10"
 					glyph=		"*"
@@ -197,7 +197,7 @@
 				glyph=			"*"
 				foreground=		"FF55FFFF"
 				>
-				<Decay lifetime="20" rate="2/60" degradeFactor="2.5"/>
+				<Decay lifetime="20" damageRate="2/60" degradeFactor="2.5"/>
 				<Trail
 					lifetime=	"10"
 					glyph=		"*"
@@ -273,6 +273,10 @@
 			</Projectile>
 		</Weapon>
 	</ItemType>
+
+
+
+
 	<ItemType	codename=	"item_shimmer_shield_i"
 		name=		"Shimmer shield"
 		level=		"2"
@@ -336,7 +340,7 @@
 				stealth=	"-2"
 				lifetimeDegrade="1 / 750"
 			>
-			<RestrictRepair hasAttributes="Amethyst"/>
+			<RestrictRepair require="Amethyst"/>
 		</Armor>
 	</ItemType>
 	<ItemType	codename=	"item_gemsteel_plate_ii"
@@ -354,7 +358,7 @@
 				stealth=	"-2"
 				lifetimeDegrade="1 / 1500"
 			>
-			<RestrictRepair hasAttributes="Amethyst"/>
+			<RestrictRepair require="Amethyst"/>
 		</Armor>
 	</ItemType>
 	<ItemType	codename=	"item_prescience_book"

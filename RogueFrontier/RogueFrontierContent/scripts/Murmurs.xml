@@ -60,7 +60,7 @@
 				glyph=			"*"
 				foreground=		"AA55FFFF"
 				>
-				<Decay lifetime="30" rate="2/60" degradeFactor="5"/>
+				<Decay lifetime="30" damageRate="2/60" degradeFactor="5"/>
 				<Trail
 					lifetime=	"10"
 					glyph=		"*"

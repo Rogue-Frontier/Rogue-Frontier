@@ -39,7 +39,7 @@ public class StationType : IDesignType {
     public void Initialize(TypeCollection tc, XElement e) {
         e.Initialize(this);
         explosionType = e.TryAtt(nameof(explosionType), out var s)
-            ? tc.Lookup<ItemType>(s).weapon.projectile ?? throw new Exception($"Expected Weapon desc")
+            ? tc.Lookup<ItemType>(s).Weapon.Projectile ?? throw new Exception($"Expected Weapon desc")
             : explosionType;
         explosionType = e.HasElement("Explosion", out var xmlExplosion) ? new FragmentDesc(xmlExplosion) : explosionType;
 

@@ -166,7 +166,7 @@ public class BaseShip {
         }
         int knockback = p.desc.knockback * p.damageHP / dmgFull;
         velocity += (p.velocity - velocity).WithMagnitude(knockback);
-        disruption = p.desc.disruptor?.GetHijack() ?? disruption;
+        disruption = p.desc.Disruptor?.GetHijack() ?? disruption;
     }
     public void Destroy(ActiveObject owner) {
         var items = cargo

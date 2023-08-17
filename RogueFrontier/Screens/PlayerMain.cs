@@ -17,6 +17,7 @@ using System.IO;
 using System.Threading;
 using SFML.Audio;
 using Microsoft.Win32.SafeHandles;
+using static Common.ColorCommand;
 
 namespace RogueFrontier;
 public class NotifyStationDestroyed : Ob<Station.Destroyed> {
@@ -66,7 +67,7 @@ public class PlayerMain : ScreenSurface, Ob<PlayerShip.Destroyed> {
     public PlayerControls playerControls;
 
     public Noisemaker audio;
-    XY mouseWorldPos;
+    public XY mouseWorldPos;
     Keyboard prevKeyboard=new();
     MouseScreenObjectState prevMouse=new(null, new());
     public bool sleepMouse = true;
@@ -1067,11 +1068,12 @@ public class Megamap : ScreenSurface {
         base.Render(delta);
     }
 }
-public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged> {
+public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Destroyed> {
     public int Width => Surface.Width;
     public int Height => Surface.Height;
     PlayerShip player;
     public float powerAlpha;
+    public bool armorDecay;
     public HashSet<EffectParticle> particles;
     public XY screenCenter;
     public int ticks;
@@ -1090,6 +1092,9 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged> {
             flash = Math.Max(db, flash);
         }
     }
+    public void Observe(PlayerShip.Destroyed ev) {
+        
+    }
     public Vignette(PlayerShip player, int width, int height) : base(width, height) {
         this.player = player;
         player.onDamaged += this;
@@ -1106,6 +1111,7 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged> {
         }
     }
     public override void Update(TimeSpan delta) {
+        armorDecay = player.hull is LayeredArmor la && la.layers.Any(a => a.decay.Any());
         var charging = player.powers.Where(p => p.charging);
         if (charging.Any()) {
             var charge = Math.Min(1, charging.Max(p => p.invokeCharge / p.invokeDelay));
@@ -1163,39 +1169,41 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged> {
         //XY screenSize = new XY(Width, Height);
         //Set the color of the vignette
         Color borderColor = Color.Black;
-        int borderSize = 2;
+        var borderSize = 2d;
+
         if (powerAlpha > 0) {
             var v = new Color(204, 153, 255, (int)(255 * (float)Math.Min(1, powerAlpha * 1.5)));
             borderColor = borderColor.Blend(v).Premultiply();
-            borderSize += (int)(12 * powerAlpha);
+            borderSize += 12 * powerAlpha;
         }
         Mortal();
         void Mortal() {
             if (player.mortalTime > 0) {
                 borderColor = borderColor.Blend(Color.Red.SetAlpha((byte)(Math.Min(1, player.mortalTime / 4.5) * 255)));
-                var fraction = (player.mortalTime - Math.Truncate(player.mortalTime));
-                borderSize += (int)(6 * fraction);
+                var fraction = player.mortalTime - Math.Truncate(player.mortalTime);
+                borderSize += 6 * fraction;
             }
         }
-        if(flash > 0) {
-            borderSize += Math.Min(5, 5 * flash / 30);
+        if (flash > 0) {
+            borderSize += Math.Min(5, 5 * flash / 30f);
             borderColor = borderColor.Blend(Color.White.SetAlpha((byte)Math.Min(255, 255 * flash / 30)));
         } else if (player.ship.disruption?.ticksLeft > 0) {
             var ticks = player.ship.disruption.ticksLeft;
             var strength = Math.Min(ticks / 60f, 1);
-            borderSize += (int)(5 * strength);
+            borderSize += 5 * strength;
             borderColor = borderColor.Blend(Color.Cyan.SetAlpha((byte)(128 * strength)));
         } else {
             var b = player.world.backdrop.starlight.GetBackgroundFixed(player.position);
             var br = 255 * b.GetBrightness();
-            borderSize += (int)(0*5f * Math.Pow(br / 255, 1.4));
+            borderSize += (0 * 5f * Math.Pow(br / 255, 1.4));
             borderColor = borderColor.Blend(b.SetAlpha((byte)(br)));
         }
-        if(player.ship.blindTicks > 0) {
+
+        if (player.ship.blindTicks > 0) {
             for (int i = 0; i < borderSize; i++) {
                 var d = 1d * i / borderSize;
                 d = Math.Pow(d, 1.4);
-                byte alpha = (byte)(255 - 255 * d);
+                byte alpha = (byte)(255 - d * 255 / 2);
                 var screenPerimeter = new Rectangle(i, i, Width - i * 2, Height - i * 2);
                 foreach (var point in screenPerimeter.PerimeterPositions()) {
                     //var back = this.GetBackground(point.X, point.Y).Premultiply();
@@ -1222,8 +1230,16 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged> {
         }
         if (lightningHit > 0) {
             var i = 2;
-            var c = new Color(255, 0, 0, 200 * lightningHit/5);
+            var c = new Color(255, 0, 0, 225 * lightningHit/5);
             foreach(var p in new Rectangle(i, i, Width - i * 2, Height - i * 2).PerimeterPositions()) {
+                var (x, y) = p;
+                Surface.SetBackground(x, y, c);
+            }
+        }
+        if (armorDecay) {
+            var i = 3;
+            var c = new Color(255, 255, 0, 255 - 48 + (int)(Math.Sin(ticks / 5f) * 24));
+            foreach (var p in new Rectangle(i, i, Width - i * 2, Height - i * 2).PerimeterPositions()) {
                 var (x, y) = p;
                 Surface.SetBackground(x, y, c);
             }
@@ -1233,7 +1249,6 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged> {
             var (fore, glyph) = (p.tile.Foreground, p.tile.Glyph);
             Surface.SetCellAppearance(x, y, new ColoredGlyph(fore, Surface.GetBackground(x, y), glyph));
         }
-
         base.Render(delta);
     }
 }
@@ -1517,7 +1532,6 @@ public class Readout : ScreenSurface {
                         } else {
                             enhancement = "";
                         }
-                        string tag = $"] {w.source.type.name} {enhancement}";
                         Color foreground =
                             false ?
                                 Color.Gray :
@@ -1527,7 +1541,7 @@ public class Readout : ScreenSurface {
                         Surface.Print(x, y,
                             new ColoredString("[", Color.White, b)
                             + w.GetBar(BAR)
-                            + new ColoredString(tag, foreground, b));
+                            + new ColoredString($"] {w.source.type.name} {enhancement}", foreground, b));
                         y++;
                         i++;
                     }
@@ -1568,14 +1582,13 @@ public class Readout : ScreenSurface {
                     case LayeredArmor las: {
                             foreach (var armor in las.layers.Reverse<Armor>()) {
                                 var f =
-                                    (tick - armor.lastDamageTick) < 15 ?
+                                    tick - armor.lastDamageTick < 15 ?
                                         Color.Yellow :
-                                        (armor.hp > 0 ?
-                                            Color.White :
-                                            (armor.canAbsorb ?
-                                                Color.Orange :
-                                                Color.Gray)
-                                            );
+                                    armor.hp > 0 ?
+                                        Color.White :
+                                    armor.canAbsorb ?
+                                        Color.Orange :
+                                    Color.Gray;
                                 var bb =
                                     armor.decay.Any() ?
                                         Color.Black.Blend(Color.Red.SetAlpha(128)) :
@@ -1589,7 +1602,7 @@ public class Readout : ScreenSurface {
                                     ("[", f, b),
                                     (new('=', l), f, b),
                                     (new('=', BAR - l), Color.Gray, b),
-                                    ($"] [{armor.hp,3}/{armor.maxHP,3}] ", f, b),
+                                    ($"] {armor.hp,3}/{armor.maxHP,3} ", f, b),
                                     ($"{armor.source.type.name}", f, bb)
                                 ));
                                 y++;
@@ -1619,32 +1632,27 @@ public class Readout : ScreenSurface {
             var weapons = devices.Weapon;
             var shields = devices.Shield;
             var misc = devices.Installed.OfType<Service>();
-
             {
                 double totalFuel = reactors.Sum(r => r.energy),
                        maxFuel = reactors.Sum(r => r.desc.capacity),
                        netDelta = reactors.Sum(r => r.energyDelta),
                        totalSolar = solars.Sum(s => s.maxOutput);
                 ColoredString bar;
-
                 if (totalFuel > 0) {
                     (var arrow, var f) = netDelta switch {
                         < 0 => ('<', Color.Yellow),
                         > 0 => ('>', Color.Cyan),
                         _   => ('=', Color.White),
                     };
-
                     int length = (int)Math.Ceiling(BAR * totalFuel / maxFuel);
                     bar = new ColoredString(new string('=', length - 1) + arrow, f, b)
                         + new ColoredString(new string('=', BAR - length), Color.Gray, b);
                 } else {
                     bar = new ColoredString(new string('=', BAR), Color.Gray, b);
                 }
-
                 int totalUsed = player.energy.totalOutputUsed,
                     totalMax = player.energy.totalOutputMax;
                 int l;
-
                 l = (int)Math.Ceiling(BAR * (double)totalUsed / totalMax);
                 for (int i = 0; i < l; i++) {
                     bar[i].Background = Color.DarkKhaki;
@@ -1659,10 +1667,9 @@ public class Readout : ScreenSurface {
                     + bar
                     + new ColoredString("]", Color.White, b)
                     + " "
-                    + new ColoredString($"[{totalUsed,3}/{totalMax,3}] Total Power", Color.White, b)
+                    + new ColoredString($"{totalUsed,3}/{totalMax,3} Total Power", Color.White, b)
                     );
             }
-
             if (reactors.Any()) {
                 foreach (var reactor in reactors) {
                     ColoredString bar;
@@ -1690,7 +1697,7 @@ public class Readout : ScreenSurface {
                         + bar
                         + new ColoredString("]", Color.White, b)
                         + " "
-                        + new ColoredString($"[{Math.Abs(reactor.energyDelta),3}/{reactor.maxOutput,3}] {reactor.source.type.name}", reactor.energy > 0 ? Color.White : Color.Gray, b)
+                        + new ColoredString($"{Math.Abs(reactor.energyDelta),3}/{reactor.maxOutput,3} {reactor.source.type.name}", reactor.energy > 0 ? Color.White : Color.Gray, b)
                         );
                     y++;
                 }
@@ -1700,23 +1707,18 @@ public class Readout : ScreenSurface {
                 foreach (var s in solars) {
                     int length = (int)Math.Ceiling(BAR * (double)s.maxOutput / s.desc.maxOutput);
                     int sublength = s.maxOutput > 0 ? (int)Math.Ceiling(length * (-s.energyDelta) / s.maxOutput) : 0;
-                    var bar = new ColoredString(new string('=', sublength), Color.Yellow, Color.DarkKhaki)
-                            + new ColoredString(new string('=', length - sublength), Color.Cyan, b)
-                            + new ColoredString(new string('=', BAR - length), Color.Gray, b);
-                    /*
-                    int l = (int)Math.Ceiling(-16f * s.maxOutput / s.desc.maxOutput);
-                    for (int i = 0; i < l; i++) {
-                        bar[i].Background = Color.DarkKhaki;
-                        bar[i].Foreground = Color.Yellow;
-                    }
-                    */
+                    var bar =
+                        $"[{Back(b,
+                                    Recolor(Color.Yellow, Color.DarkKhaki, Repeat("=", sublength)) +
+                                    Front(Color.Cyan, Repeat("=", length - sublength)) +
+                                    Front(Color.Gray, Repeat("=", BAR - length))
+                            )}]";
+                    var counter = $"{Math.Abs(s.energyDelta),3}/{s.maxOutput,3}";
+                    var name = s.source.type.name;
                     Surface.Print(x, y,
-                        new ColoredString("[", Color.White, b)
-                        + bar
-                        + new ColoredString("]", Color.White, b)
-                        + " "
-                        + new ColoredString($"[{Math.Abs(s.energyDelta),3}/{s.maxOutput,3}] {s.source.type.name}", Color.White, b)
-                        );
+                        ColoredString.Parser.Parse(
+                            Recolor(Color.White, b, $"{bar} {counter} {name}")
+                        ));
                     y++;
                 }
                 y++;
@@ -1724,13 +1726,15 @@ public class Readout : ScreenSurface {
             if (weapons.Any()) {
                 int i = 0;
                 foreach (var w in weapons) {
-                    string enhancement;
-                    if (w.source.mod?.empty == false) {
-                        enhancement = "[+]";
-                    } else {
-                        enhancement = "";
-                    }
-                    var tag = $"{(i == player.primary.index ? "->" : i == player.secondary.index ? "=>" : "  ")}{w.GetReadoutName()} {enhancement}";
+                    var arrow =
+                        i == player.primary.index ?
+                            "->" :
+                        i == player.secondary.index ?
+                            "=>" :
+                            "  ";
+                    var name = w.GetReadoutName();
+                    string enhancement = w.source.mod is { empty:false } ? "[+]" : "";
+                    var tag = $"{arrow} {name} {enhancement}";
                     var foreground =
                         player.energy.off.Contains(w) ?
                             Color.Gray :
@@ -1738,9 +1742,9 @@ public class Readout : ScreenSurface {
                             Color.Yellow :
                         Color.White;
                     Surface.Print(x, y,
-                        new ColoredString("[", Color.White, b)
+                        ColoredString.Parser.Parse(Recolor(Color.White, b, "["))
                         + w.GetBar(BAR)
-                        + new ColoredString(tag, foreground, b));
+                        + ColoredString.Parser.Parse(Recolor(foreground, b, tag)));
                     y++;
                     i++;
                 }
@@ -1750,7 +1754,9 @@ public class Readout : ScreenSurface {
                 foreach (var m in misc) {
                     var tag = m.source.type.name;
                     var f = Color.White;
-                    Surface.Print(x, y, $"[{new string('-', BAR)}] {tag}", f, b);
+                    Surface.Print(x, y, ColoredString.Parser.Parse(
+                        Recolor(f, b, $"[{Repeat("-", BAR)}] {tag}")
+                        ));
                     y++;
                 }
                 y++;
@@ -1763,12 +1769,11 @@ public class Readout : ScreenSurface {
                         s.hp < s.desc.maxHP ? Color.Cyan :
                         Color.White;
                     var l = BAR * s.hp / s.desc.maxHP;
-                    Surface.Print(x, y, Main.Concat(
-                        ("[", f, b),
-                        (new('=', l), f, b),
-                        (new('=', BAR - l), Color.Gray, b),
-                        ($"] [{s.hp,3}/{s.desc.maxHP,3}] {name}", f, b)
-                    ));
+                    var bar =   $"[{Repeat("=", l)}{Front(Color.Gray, Repeat("=", BAR - l))}]";
+                    var counter =    $"{s.hp,3}/{s.desc.maxHP,3}";
+                    Surface.Print(x, y, ColoredString.Parser.Parse(
+                        Recolor(f, b, $"{bar} {counter} {name}")
+                        ));
                     y++;
                 }
             }
@@ -1791,15 +1796,14 @@ public class Readout : ScreenSurface {
                                     Color.Black.Blend(Color.Cyan.SetAlpha(128)) :
                                 !armor.allowSpecial ?
                                     Color.Black.Blend(Color.Yellow.SetAlpha(128)) :
-                                    
                                     b;
-                            int l = BAR * armor.hp / Math.Max(1, armor.maxHP);
-                            Surface.Print(x, y, Main.Concat(
-                                ("[", f, b),
-                                (new('=', l), f, b),
-                                (new('=', BAR - l), Color.Gray, b),
-                                ($"] [{armor.hp,3}/{armor.maxHP,3}] ", f, b),
-                                ($"{armor.source.type.name}", f, bb)
+                            var l = (int)Math.Ceiling(BAR * Math.Min(1, armor.hp / Math.Max(1.0, armor.maxHP)));
+                            string
+                                cooldown =  $"[{Repeat("=", l)}{Front(Color.Gray, Repeat("=", BAR - l))}]",
+                                counter =   $"{armor.hp,3}/{armor.maxHP,3}",
+                                name =      Back(bb, armor.source.type.name);
+                            Surface.Print(x, y, ColoredString.Parser.Parse(
+                                Recolor(f, b, $"{cooldown} {counter} {name}")
                             ));
                             y++;
                         }
@@ -1808,11 +1812,11 @@ public class Readout : ScreenSurface {
                 case HP hp: {
                         var f = Color.White;
                         var l = BAR * hp.hp / hp.maxHP;
-                        Surface.Print(x, y, Main.Concat(
-                            ("[", f, b),
-                            (new('=', l), f, b),
-                            (new('=', BAR - l), Color.Gray, b),
-                            ($"] HP: {hp.hp}", f, b)
+
+                        var bar = $"[{Repeat("=", l)}{Back(Color.Gray, Repeat("=", BAR - l))}]";
+                        var count = $"HP: {hp.hp}";
+                        Surface.Print(x, y, ColoredString.Parser.Parse(
+                            Recolor(f, b, $"{bar} {count}")
                         ));
                         y++;
                         break;
@@ -1864,6 +1868,11 @@ public class Edgemap : ScreenSurface {
                     PrintTile(x, y, dist, entity);
                 }
             });
+
+        if(player.active) {
+            var (x, y) = Helper.GetBoundaryPoint(screenSize, player.rotationRad);
+            Surface.SetCellAppearance(x, Height - y - 1, new ColoredGlyph(Color.White, Color.Transparent, '*'));
+        }
         void PrintTile(int x, int y, double distance, Entity e) {
             switch(e) {
                 case ActiveObject:

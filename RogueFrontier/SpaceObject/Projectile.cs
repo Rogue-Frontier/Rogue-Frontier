@@ -9,10 +9,10 @@ using ASECII;
 
 namespace RogueFrontier;
 public interface ITrail {
-    Effect GetParticle(XY Position);
+    Effect GetParticle(XY Position, XY Velocity = null);
 }
 public record SimpleTrail(StaticTile Tile) : ITrail {
-    public Effect GetParticle(XY Position) => new EffectParticle(Position, Tile, 3);
+    public Effect GetParticle(XY Position, XY Velocity = null) => new EffectParticle(Position, Velocity ?? new XY(0, 0), Tile, 3);
 }
 public class Projectile : MovingObject {
     public ulong id { get; set; }
@@ -21,7 +21,10 @@ public class Projectile : MovingObject {
     public XY position { get; set; }
     public XY velocity { get; set; }
     public double direction;
+
+    public double fragmentRotation;
     public double lifetime { get; set; }
+    public double age;
     public ColoredGlyph tile { get; private set; }
     public ITrail trail;
     public FragmentDesc desc;
@@ -29,6 +32,15 @@ public class Projectile : MovingObject {
     public int damageHP;
     public int armorSkip;
     public int ricochet = 0;
+    class IntervalFragment {
+        public IntervalFragment(FragmentDesc desc) {
+            this.desc = desc;
+        }
+        public FragmentDesc desc;
+        public double elapsed = 0;
+    }
+
+    List<IntervalFragment> intervalFragments;
 
     //Hit results
     public bool hitReflected;
@@ -54,7 +66,8 @@ public class Projectile : MovingObject {
         this.direction = direction ?? velocity.angleRad;
         this.lifetime = desc.lifetime;
         this.desc = desc;
-        this.trail = (ITrail)desc.trail ?? new SimpleTrail(desc.effect.Original);
+        this.intervalFragments = desc.Fragment.Where(f => f.fragmentInterval > 0).Select(f => new IntervalFragment(f)).ToList();
+        this.trail = (ITrail)desc.Trail ?? new SimpleTrail(desc.effect.Original);
         this.maneuver = maneuver;
         this.damageHP = desc.damageHP.Roll();
         this.armorSkip = desc.armorSkip;
@@ -78,16 +91,25 @@ public class Projectile : MovingObject {
     }
     public void Update(double delta) {
         if (lifetime > 0) {
-            lifetime -= delta * 60;
+
+            var deltaTicks = delta * 60;
+            lifetime -= deltaTicks;
+            age += deltaTicks;
+            fragmentRotation += delta * desc.fragmentSpin;
             UpdateMove();
-            foreach (var f in desc.fragments) {
-                if (f.fragmentInterval > 0 && lifetime % f.fragmentInterval == 0) {
-                    Fragment(f);
+            foreach (var f in intervalFragments) {
+                if(age > f.desc.fragmentInitialDelay) {
+                    ref var elapsed = ref f.elapsed;
+                    elapsed += deltaTicks;
+                    var interval = f.desc.fragmentInterval;
+                    while(elapsed > interval) {
+                        elapsed -= interval;
+                        Fragment(f.desc);
+                    }
                 }
             }
         } else if(active) {
             UpdateMove();
-
             if (world.karma.NextDouble() < desc.detonateFailChance) {
                 goto NoDetonate;
             }
@@ -200,17 +222,13 @@ public class Projectile : MovingObject {
     public record Detonated(Projectile source) { };
     public Vi<Detonated> onDetonated = new();
     public void Detonate() {
-
         var d = new Detonated(this);
         onDetonated.Observe(d);
 
-        if (desc.flash is FlashDesc fl) {
+        if (desc.Flash is FlashDesc fl) {
             fl.Create(world, position);
         }
-        if (desc.fragments == null) return;
-
-
-        foreach (var f in desc.fragments) {
+        foreach (var f in desc.Fragment) {
             Fragment(f);
         }
     }
@@ -230,6 +248,7 @@ public class Projectile : MovingObject {
         } else {
             fragmentAngle = direction;
         }
+        fragmentAngle += fragmentRotation;
         HashSet<Entity> exclude = new() { null, this };
         if (fragment.precise) {
             exclude.UnionWith(this.exclude);

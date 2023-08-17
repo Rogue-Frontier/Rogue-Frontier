@@ -46,7 +46,7 @@ public record PowerRechargeWeapon() : PowerEffect {
     WeaponDesc weaponType;
     public PowerRechargeWeapon(TypeCollection tc, XElement e) : this() {
         e.Initialize(this);
-        weaponType = tc.Lookup<ItemType>(e.ExpectAtt("codename")).weapon
+        weaponType = tc.Lookup<ItemType>(e.ExpectAtt("codename")).Weapon
                         ?? throw new Exception();
     }
     public void Invoke(PlayerShip player) {

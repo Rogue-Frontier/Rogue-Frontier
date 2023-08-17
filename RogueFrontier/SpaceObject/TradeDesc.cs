@@ -7,10 +7,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 namespace RogueFrontier;
-public record ItemFilter(HashSet<string> requireAttributes, HashSet<string> rejectAttributes) {
+public record ItemFilter(HashSet<string> require, HashSet<string> reject) {
     public ItemFilter(XElement e) : this(
-        e.TryAtt("requireAttributes").Split(";").ToHashSet(),
-        e.TryAtt("rejectAttributes").Split(";").ToHashSet()
+        e.TryAtt("require").Split(";").ToHashSet(),
+        e.TryAtt("reject").Split(";").ToHashSet()
         ) { }
     public static ItemFilter Parse(string s) {
         var require = new HashSet<string>();
@@ -26,7 +26,7 @@ public record ItemFilter(HashSet<string> requireAttributes, HashSet<string> reje
     }
     public bool Matches(Item i) {
         var f = (string att) => i.type.attributes.Contains(att);
-        return requireAttributes.All(f) && !rejectAttributes.Any(f);
+        return require.All(f) && !reject.Any(f);
     }
 }
 public record TradeEntry(ItemFilter filter, double priceFactor, int priceInc) {

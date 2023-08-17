@@ -198,7 +198,7 @@ public class System {
             Initialize(p).Add(e.tile);
         }
 
-        int time = tick / 30;
+        int time = tick / 20;
         foreach((var p, var set) in all) {
             tiles[p] = set[time % set.Count];
         }

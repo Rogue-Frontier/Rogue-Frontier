@@ -12,7 +12,7 @@
                 glyph="A"
                 foreground="Magenta"
 	    >
-		<RestrictWeapon hasAttributes="Amethyst"/>
+		<RestrictWeapon require="Amethyst"/>
 	    <Devices>
 			<Weapon codename="item_amethyst_laser_i"/>
 			<Weapon codename="item_magic_blaster_i"/>

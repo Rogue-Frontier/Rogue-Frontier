@@ -125,7 +125,13 @@
 				foreground=		"Orange"
 				
 				shock=			"2"
-				/>
+				>
+				<Trail
+					lifetime=	"15"
+					glyph=		"+"
+					foreground=	"Orange"
+					background=	"552200"/>
+			</Projectile>
 			<Capacitor
 				dischargeOnFire=		"100"
 				rechargePerTick=		"100/180"
