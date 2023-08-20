@@ -1,7 +1,7 @@
 # Rogue Frontier
 ![Cover](RogueFrontier/RogueFrontierContent/sprites/PosterNoText.asc.png)
 
-_Rogue Frontier_ is an ambitious ASCII-style roguelike space adventure set in an alternate universe of *Transcendence*, a space-opera roguelike by George Moromisato.
+_Rogue Frontier_ is an ambitious ASCII-style roguelike space adventure set in an alternate timeline of *Transcendence*, a space-opera roguelike by George Moromisato.
 
 This game is in early beta and planned for release in 2024.
 
