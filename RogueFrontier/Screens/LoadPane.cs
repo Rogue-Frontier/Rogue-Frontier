@@ -41,7 +41,7 @@ class LoadPane : Console {
 
                     switch (loaded) {
                         case LiveGame live: {
-                                var playerMain = new PlayerMain(Width, Height, profile, live.playerShip) { IsFocused = true };
+                                var playerMain = new Mainframe(Width, Height, profile, live.playerShip) { IsFocused = true };
                                 //live.playerShip.player.Settings;
 
                                 live.playerShip.onDestroyed += playerMain;
@@ -51,7 +51,7 @@ class LoadPane : Console {
                                 break;
                             }
                         case DeadGame dead: {
-                                var playerMain = new PlayerMain(Width, Height, profile, dead.playerShip);
+                                var playerMain = new Mainframe(Width, Height, profile, dead.playerShip);
                                 playerMain.camera.position = dead.playerShip.position;
                                 playerMain.PlaceTiles(new());
                                 var deathScreen = new EpitaphScreen(playerMain, dead.epitaph);

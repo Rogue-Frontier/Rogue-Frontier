@@ -127,9 +127,13 @@ public class Armor : Device {
     public int lastRegenTick = -1000;
     public HashSet<Decay> decay=new();
     public int powerUse { get; private set; }
-    public bool allowSpecial;
+    public bool allowRecovery;
+    public bool hasRecovery => allowRecovery && Math.Max(hpToRecover, Math.Max(desc.regenRate, killHP)) >= 1;
     public int maxHP => Math.Max(0, desc.maxHP - (int)(desc.lifetimeDegrade * lifetimeDamageAbsorbed) + (int)titanHP);
-    public bool canAbsorb => hp > 0 || (maxHP > 0 && desc.minAbsorb is { min: >0 });
+    public bool canAbsorb => hp > 0 || Math.Min(maxHP, desc.minAbsorb) > 0;
+
+    public int apparentHP => Math.Min(maxHP, Math.Max(killHP, desc.minAbsorb));
+
     public double valueFactor => (0.5 * hp / desc.maxHP) + (0.5 * maxHP / desc.maxHP);
     public Armor() { }
     public Armor(Item source, ArmorDesc desc) {
@@ -206,7 +210,7 @@ public class Armor : Device {
                 titanHP = Math.Max(0, titanHP - delta * desc.Titan.decay);
             }
         }
-        allowSpecial = desc.powerUse == -1 || owner switch {
+        allowRecovery = desc.powerUse == -1 || owner switch {
             PlayerShip ps => !ps.energy.off.Contains(this),
             _ => true
         };
@@ -215,7 +219,7 @@ public class Armor : Device {
             return;
         }
         powerUse = desc.powerUse == -1 ? -1 : 0;
-        if (!allowSpecial) {
+        if (!allowRecovery) {
             return;
         }
         if (hpToRecover >= 1) {
@@ -247,7 +251,7 @@ public class Armor : Device {
             }
         }
         if (hp > 0 && killHP < desc.killHP) {
-            killHP = desc.killHP;
+            killHP = Math.Min(maxHP, desc.killHP);
         }
         if (killHP > 0) {
             powerUse = desc.powerUse;
@@ -292,7 +296,7 @@ public class Armor : Device {
         if (p.damageHP < 1)
             return 0;
         //If we have a minAbsorb, then we absorb damage even at 0 hp
-        int damageWall = Math.Min(maxHP, desc.minAbsorb.Roll());
+        int damageWall = Math.Min(maxHP, desc.minAbsorb);
         if(hp is 0) {
             //If we're down and have nothing to absorb, then give up
             if (damageWall == 0) {
@@ -534,27 +538,34 @@ public class Reactor : Device, PowerSource {
     public double energy;
     [JsonProperty]
     public double energyDelta { get; set; }
+    public double combatEnergyDelta;
     public int rechargeDelay;
+    //public int maxOutput => energy > 0 ? (int)Math.Max(0, desc.maxOutput - Math.Floor(desc.lifetimeDegrade * lifetimeOutput)) : 0;
     public int maxOutput => energy > 0 ? desc.maxOutput : 0;
-    public double lifetimeEnergyUsed;
+    public double lifetimeOutput;
+    public double efficiency => desc.efficiency - 0.01 * desc.lifetimeDegrade * Math.Max(0, lifetimeOutput - desc.degradeDelay);
     public Reactor() { }
     public Reactor(Item source, ReactorDesc desc) {
         this.source = source;
         this.desc = desc;
-        energy = desc.capacity;
+        if (desc.startFull) {
+            energy = desc.capacity;
+        }
         energyDelta = 0;
     }
     public Reactor Copy(Item source) => desc.GetReactor(source);
     public void Update(double delta, IShip owner) {
-        var e = energy;
-        var energyDeltaAdj = energyDelta;
+        var prevEnergy = energy;
+        var effectiveDelta = energyDelta;
         if(energyDelta < 0) {
-            energyDelta = -Math.Max(-energyDelta, desc.minOutput);
-            var efficiencyAdj = (desc.efficiency - 1) * (-energyDelta / desc.maxOutput);
-            energyDeltaAdj = energyDelta / (1 + efficiencyAdj);
+            effectiveDelta = effectiveDelta - combatEnergyDelta + combatEnergyDelta / desc.combatFactor;
+            combatEnergyDelta = 0;
+            //energyDelta = -Math.Max(-energyDelta, desc.minOutput);
+            var efficiencyAdj = (efficiency - 1) * (-effectiveDelta / desc.maxOutput);
+            effectiveDelta /= 1 + efficiencyAdj;
         }
-        energy = Math.Clamp(energy + energyDeltaAdj * delta, 0, desc.capacity);
-        lifetimeEnergyUsed += Math.Max(0, e - energy);
+        energy = Math.Clamp(energy + effectiveDelta * delta, 0, desc.capacity);
+        lifetimeOutput += Math.Max(0, prevEnergy - energy);
     }
 }
 public class Service : Device {

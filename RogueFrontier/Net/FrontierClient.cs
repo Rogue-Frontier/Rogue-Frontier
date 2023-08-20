@@ -66,7 +66,7 @@ class FrontierClient : TcpClient {
                         playerShip.mortalChances = 0;
                         sys.AddEntity(playerShip);
                         sys.UpdatePresent();
-                        client.SetPlayerMain(new PlayerMain(client.Width, client.Height,
+                        client.SetPlayerMain(new Mainframe(client.Width, client.Height,
                             new Profile(), playerShip));
                         TellServer(new TellServer.AssumePlayerShip() { shipId = ai.id });
                     }
@@ -112,7 +112,7 @@ public class ScreenClient : Console {
     public XY camera;
 
     public Console PauseMenu;
-    public PlayerMain playerMain;
+    public Mainframe playerMain;
     public AIShip removed;
     private FrontierClient client;
 
@@ -143,7 +143,7 @@ public class ScreenClient : Console {
 
         UpdateUI();
     }
-    public void SetPlayerMain(PlayerMain playerMain) {
+    public void SetPlayerMain(Mainframe playerMain) {
         this.playerMain = playerMain;
     }
     public void UpdateUI() {

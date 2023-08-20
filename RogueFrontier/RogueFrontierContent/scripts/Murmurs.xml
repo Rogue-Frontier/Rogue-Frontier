@@ -6,13 +6,13 @@
 				name=		"Murmur outpost"
 				sovereign=	"sovereign_murmurs"
 
-				hp=			"800"
-
 				glyph=		"O"
 				foreground= "5511AAFF"
 				background=	"Black"
 				structure="RogueFrontierContent/sprites/MurmurOutpost.asc.cg"
 		>
+
+		<HP	maxHP="800"/>
 		<Segments>
 		</Segments>
 		<Guards>

@@ -18,23 +18,23 @@ public class EnergySystem {
         }
 
         var solars = devices.Solar;
-        var burners = new List<Reactor>();
-        var batteries = new List<Reactor>();
+        var primary = new List<Reactor>();
+        var secondary = new List<Reactor>();
         foreach(var s in solars) {
             s.energyDelta = 0;
         }
         foreach (var r in reactors) {
             r.energyDelta = 0;
-            if (r.desc.battery) {
-                batteries.Add(r);
+            if (r.desc.rechargeable) {
+                secondary.Add(r);
             } else {
-                burners.Add(r);
+                primary.Add(r);
             }
         }
         List<PowerSource> sources = new();
         sources.AddRange(solars);
-        sources.AddRange(burners);
-        sources.AddRange(batteries);
+        sources.AddRange(primary);
+        sources.AddRange(secondary);
 
         totalOutputMax = sources.Sum(r => r.maxOutput);
         totalOutputUsed = 0;
@@ -64,26 +64,36 @@ public class EnergySystem {
             }
             totalOutputUsed += powerUse;
             outputUsed += powerUse;
-
         CheckReactor:
             var source = sources[sourceIndex];
+            //var efficiencyFactor = 1.0;
 
-            if (source is Reactor r && r.desc.battery) {
-                r.rechargeDelay = 60;
+            //var ApplyOutput = (int delta) => source.energyDelta = delta / efficiencyFactor;
+            var ApplyOutput = (int delta) => { source.energyDelta = delta; };
+            if (source is Reactor r) {
+                if (r.desc.rechargeable) {
+                    r.rechargeDelay = 60;
+                }
+                if(powered is Weapon) {
+                    ApplyOutput = (int delta) => {
+                        r.energyDelta = delta;
+                        r.combatEnergyDelta += delta;
+                    };
+                    //efficiencyFactor *= r.desc.combatFactor;
+
+                }
             }
             if (outputUsed > sourceOutput) {
                 outputUsed -= sourceOutput;
-                source.energyDelta = -sourceOutput;
-                //Go to the next reactor
+                ApplyOutput(-sourceOutput);
+                //Go to the next source
                 sourceIndex++;
                 sourceOutput = sources[sourceIndex].maxOutput;
                 goto CheckReactor;
             } else {
-                source.energyDelta = -outputUsed;
+                ApplyOutput(-outputUsed);
             }
         }
-
-
         if (deactivated.Any()) {
             foreach(var d in deactivated) {
                 d.OnDisable();
@@ -94,15 +104,14 @@ public class EnergySystem {
                 player.AddMessage(new Message($"{d.source.type.name} deactivated!"));
             }
         }
-
-        bool solarRechargeOnly = true;
+        //bool solarRechargeOnly = true;
         /*
         if(sources[sourceIndex] is Reactor reactor && (reactor.desc.battery || solarRechargeOnly)) {
             return;
         }
         */
         //Batteries recharge from reactor
-        int maxGeneratorOutputLeft = totalOutputLeft - batteries.Sum(b => b.maxOutput);
+        int maxGeneratorOutputLeft = totalOutputLeft - secondary.Sum(b => b.maxOutput);
         /*
         if (solarRechargeOnly) {
             maxGeneratorOutputLeft -= burners.Sum(b => b.maxOutput + (int)b.energyDelta);
@@ -111,13 +120,13 @@ public class EnergySystem {
         if (maxGeneratorOutputLeft <= 0) {
             return;
         }
-        foreach (var battery in batteries.Where(b => b.energy < b.desc.capacity)) {
+        foreach (var battery in secondary.Where(b => b.energy < b.desc.capacity)) {
             if (battery.rechargeDelay > 0) {
                 battery.rechargeDelay--;
                 continue;
             }
 
-            int delta = Math.Min(battery.desc.maxOutput, maxGeneratorOutputLeft);
+            int delta = Math.Min(battery.desc.maxInput, maxGeneratorOutputLeft);
             battery.energyDelta = delta;
 
             totalOutputUsed += delta;
@@ -126,7 +135,7 @@ public class EnergySystem {
 
         CheckReactor:
 
-            if(sources[sourceIndex] is Reactor r && r.desc.battery) {
+            if(sources[sourceIndex] is Reactor r && r.desc.rechargeable) {
                 sourceIndex++;
                 sourceOutput = sources[sourceIndex].maxOutput;
                 goto CheckReactor;

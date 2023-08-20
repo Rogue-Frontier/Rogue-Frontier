@@ -6,12 +6,13 @@
 				 name=		"Daughters of the Orator"
 				 sovereign=	"sovereign_daughters"
 
-				 hp=		"400"
 				 behavior=  "daughtersOutpost"
 
 				 glyph=		"S"
 				 foreground="Magenta"
 		>
+
+		<HP	maxHP="400"/>
 		<Segments>
 			<Point offsetX="-1"
 				   offsetY="0"

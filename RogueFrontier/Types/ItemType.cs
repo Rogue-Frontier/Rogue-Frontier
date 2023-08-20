@@ -19,7 +19,7 @@ public record DeployShip : ItemUse {
     [Req(parse = false)] public ShipClass shipClass;
     public DeployShip() { }
     public DeployShip(TypeCollection tc, XElement e) {
-        e.Initialize(this, convert: new() {
+        e.Initialize(this, transform: new() {
             [nameof(shipClass)] = (string s) => tc.Lookup<ShipClass>(s)
         });
     }
@@ -44,7 +44,7 @@ public record DeployStation : ItemUse {
     [Req(parse = false)] public StationType stationType;
     public DeployStation() { }
     public DeployStation(TypeCollection tc, XElement e) {
-        e.Initialize(this, convert: new() {
+        e.Initialize(this, transform: new() {
             [nameof(stationType)] = (string s) => tc.Lookup<StationType>(s)
         });
     }
@@ -102,7 +102,7 @@ public record InvokePower : ItemUse {
     [Req(parse = false)] public PowerType powerType;
     public InvokePower() { }
     public InvokePower(TypeCollection tc, XElement e) {
-        e.Initialize(this, convert: new() {
+        e.Initialize(this, transform: new() {
             [nameof(powerType)] = (string s) => tc.Lookup<PowerType>(s)
         });
     }
@@ -183,10 +183,9 @@ public record RechargeWeapon() : ItemUse {
     [Req(parse = false)] public WeaponDesc weaponType;
     [Req] public int charges;
     public RechargeWeapon(TypeCollection tc, XElement e) : this() {
-        e.Initialize(this, convert: new() {
+        e.Initialize(this, transform: new() {
             [nameof(weaponType)] = (string s) => tc.Lookup<ItemType>(s).Weapon
         });
-        int i = 0;
     }
     public string GetDesc(PlayerShip player, Item item) =>
         $"Recharged {item.name}";
@@ -199,7 +198,7 @@ public record RechargeWeapon() : ItemUse {
     }
 }
 public record UnlockPrescience() : ItemUse {
-    Power prescience = new Power(new() {
+    Power prescience = new(new() {
         codename="power_prescience",
         name="PRESCIENCE",
         cooldownTime=9000,
@@ -216,7 +215,6 @@ public record UnlockPrescience() : ItemUse {
             player.powers.Add(prescience);
             player.AddMessage(new Message("You have gained PRESCIENCE!"));
         }
-
         callback?.Invoke();
     }
 }
@@ -239,8 +237,8 @@ public record ItemType : IDesignType {
     [Opt] public string desc = "";
     [Req] public int level;
     [Req] public int mass;
-    [Opt] public int value;
-    [Opt(separator = ";")] public HashSet<string> attributes;
+    [Opt] public int value = 0;
+    [Opt(separator = ";")] public HashSet<string> attributes = new();
     [Sub] public FragmentDesc Ammo;
     [Sub] public ArmorDesc Armor;
     [Sub] public EngineDesc Engine;
@@ -279,26 +277,32 @@ public record ItemType : IDesignType {
         replaceDevice,
         unlockPrescience
     }
+
+    class InvokeFrom {
+        [Opt(type = typeof(EItemUse))] public ItemUse invoke;
+        public InvokeFrom(TypeCollection tc, XElement e) => e.Initialize(this, transform: new() {
+            [nameof(invoke)] = (EItemUse u) => Create(u, tc, e)
+        });
+        public static ItemUse Create(EItemUse u, TypeCollection tc, XElement e) => u switch {
+            EItemUse.none => null,
+            EItemUse.deployShip => new DeployShip(tc, e),
+            EItemUse.deployStation => new DeployStation(tc, e),
+            EItemUse.installWeapon => new InstallWeapon(),
+            EItemUse.repairArmor => new RepairArmor(e),
+            EItemUse.invokePower => new InvokePower(tc, e),
+            EItemUse.refuel => new Refuel(tc, e),
+            EItemUse.depleteTargetShields => new DepleteTargetShields(e),
+            EItemUse.replaceDevice => new ReplaceDevice(tc, e),
+            EItemUse.unlockPrescience => new UnlockPrescience(),
+            _ => throw new Exception("Unsupported use type")
+        };
+    }
     public void Initialize(TypeCollection tc, XElement e) {
-        e.Initialize(this, convert: new() {
+        e.Initialize(this, transform: new() {
             [nameof(Launcher)] = (XElement e) => new LauncherDesc(tc, e),
             [nameof(Weapon)] = (XElement e) => new WeaponDesc(tc, e),
-            [nameof(Invoke)] = (XElement e) => ParseInvoke(e)
+            [nameof(Invoke)] = (XElement e) => new InvokeFrom(tc, e).invoke
         });
-        ItemUse ParseInvoke(XElement e) =>
-            e.TryAttEnum("invoke", EItemUse.none) switch {
-                EItemUse.none => null,
-                EItemUse.deployShip => new DeployShip(tc, e),
-                EItemUse.deployStation => new DeployStation(tc, e),
-                EItemUse.installWeapon => new InstallWeapon(),
-                EItemUse.repairArmor => new RepairArmor(e),
-                EItemUse.invokePower => new InvokePower(tc, e),
-                EItemUse.refuel => new Refuel(tc, e),
-                EItemUse.depleteTargetShields => new DepleteTargetShields(e),
-                EItemUse.replaceDevice => new ReplaceDevice(tc, e),
-                EItemUse.unlockPrescience => new UnlockPrescience(),
-                _ => null
-            };
     }
 }
 public record ArmorDesc() {
@@ -311,7 +315,7 @@ public record ArmorDesc() {
     [Opt] public double stealth;
     [Opt] public double lifetimeDegrade = 1/50.0;
     [Opt] public double reflectFactor;
-    [Opt] public IDice minAbsorb = new Constant(0);
+    [Opt] public int minAbsorb = 0;
     [Opt] public int powerUse = -1;
     [Opt] public int maxAbsorb = -1;
     [Sub] public TitanDesc Titan;
@@ -355,7 +359,7 @@ public record LaunchDesc {
     public FragmentDesc shot;
     public LaunchDesc() {}
     public LaunchDesc(TypeCollection types, XElement e) {
-        e.Initialize(this, convert: new() {
+        e.Initialize(this, transform: new() {
             [nameof(ammoType)] = (string s) => types.Lookup<ItemType>(s),
         });
         
@@ -379,7 +383,6 @@ public record LauncherDesc {
             missiles.AddRange(xmlMissileArr.Select(m => new LaunchDesc(types, m)));
         }
     }
-
     public WeaponDesc weaponDesc => new() {
         powerUse = powerUse,
         fireCooldown = fireCooldown,
@@ -426,7 +429,7 @@ public record WeaponDesc {
     public WeaponDesc(TypeCollection types, XElement e) {
 
         var toRad = (double d) => d * Math.PI / 180;
-        e.Initialize(this, convert:new() {
+        e.Initialize(this, transform:new() {
             [nameof(angle)] = toRad,
             [nameof(sweep)] = toRad,
             [nameof(leftRange)] = toRad,
@@ -516,7 +519,7 @@ public record FragmentDesc {
         */
     }
     public void Initialize(XElement e) {
-        e.Initialize(this, convert: new() {
+        e.Initialize(this, transform: new() {
             [nameof(count)] = (int c) => {
                 //init default
                 this.spreadAngle = count == 1 ? 0 : 3 * Math.PI / 180;
@@ -600,11 +603,11 @@ public record DisruptorDesc {
     [Opt] public int lifetime = 60;
     public DisruptorDesc() { }
     public DisruptorDesc(XElement e) {
-        e.Initialize(this, convert:new() {
-            [nameof(thrustMode)] = (string b) => GetMode(b),
-            [nameof(turnMode)] = (string b) => GetMode(b),
-            [nameof(brakeMode)] = (string b) => GetMode(b),
-            [nameof(fireMode)] = (string b) => GetMode(b),
+        e.Initialize(this, transform:new() {
+            [nameof(thrustMode)] = GetMode,
+            [nameof(turnMode)] = GetMode,
+            [nameof(brakeMode)] = GetMode,
+            [nameof(fireMode)] = GetMode,
         });
     }
     public Disrupt GetHijack() => new() {
@@ -639,17 +642,31 @@ public record CapacitorDesc {
 public record ReactorDesc {
     [Req] public int maxOutput;
     [Req] public int capacity;
+    [Opt] public bool startFull = true;
     [Opt] public double efficiency = 1;
-    [Opt] public double minOutput = 0;
+    [Opt] public double combatFactor = 1.0;
+    //[Opt] public double minOutput = 0;
+    [Opt] public double degradeDelay = 0;
+    [Opt] public double lifetimeDegrade = 0;
     //[Opt] public double maxInput = 0;
     //public bool isBattery => maxInput > 0;
-    [Opt] public bool battery = false;        //If true, then we recharge using power from other reactors when available
+    [Opt] public bool allowRefuel = true;
+
+    /// <summary>
+    /// Recharge using power from other reactors when available
+    /// </summary>
+    [Opt] public bool rechargeable = false;
+    /// <summary>
+    /// Maximum input rate (if this Reactor is a battery). Default is maxOutput.
+    /// </summary>
+    [Opt] public int maxInput = -1;
 
     public Reactor GetReactor(Item i) => new(i, this);
     public ReactorDesc() { }
-    public ReactorDesc(XElement e) {
-        e.Initialize(this);
-    }
+    public ReactorDesc(XElement e) =>
+        e.Initialize(this, fallback: new() {
+            [nameof(maxInput)] = () => this.maxOutput
+        });
 }
 public enum ServiceType {
     missileJack,

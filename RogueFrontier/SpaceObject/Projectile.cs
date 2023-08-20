@@ -225,11 +225,12 @@ public class Projectile : MovingObject {
         var d = new Detonated(this);
         onDetonated.Observe(d);
 
-        if (desc.Flash is FlashDesc fl) {
-            fl.Create(world, position);
-        }
+        
         foreach (var f in desc.Fragment) {
             Fragment(f);
+        }
+        if (desc.Flash is FlashDesc fl) {
+            fl.Create(world, position);
         }
     }
     public void Fragment(FragmentDesc fragment) {

@@ -26,10 +26,10 @@
 
 				behavior=	"none"
 					
-				hp=			"300"
-
 				structure=	"RogueFrontierContent/sprites/BeowulfClub.asc.cg"
 		>
+
+		<HP	maxHP="300"/>
 		<!--
 		<Satellites>
 			<Orbital count="4" angle="0" increment="90">
@@ -69,12 +69,12 @@
 
 			behavior=	"none"
 					
-			hp=			"150"
-
 			glyph=		"#"
 			foreground=	"White"
 			background=	"Black"
 		>
+
+		<HP	maxHP="150"/>
 	</StationType>
 	<ItemType	codename=	"item_beowulf_dual_laser_upgrade"
 		name=		"Beowulf laser cannon upgrade"

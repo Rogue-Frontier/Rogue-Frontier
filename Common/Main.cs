@@ -17,6 +17,7 @@ using NCalc;
 using Con = SadConsole.Console;
 using RogueFrontier;
 using static SFML.Window.Keyboard;
+using ASECII;
 
 namespace Common;
 
@@ -719,181 +720,219 @@ public static class Main {
     /// <param name="ele">The XML element to read data from</param>
     /// <param name="obj">The object to be populated</param>
     /// <param name="inherit">If a field is missing from </param>
-    /// <param name="convert">Functions to convert values after reading.</param>
+    /// <param name="transform">Functions to convert values after reading.</param>
     /// <seealso cref="Req"/>
     /// <seealso cref="Opt"/>
     /// <seealso cref="Self"/>
     /// <seealso cref="Sub"/>
     /// <exception cref="Exception"></exception>
-    public static void Initialize(this XElement ele, object obj, object inherit = null, Dictionary<string, object> convert = null) {
+    public static void Initialize(this XElement ele, object obj, object inherit = null, Dictionary<string, object> transform = null, Dictionary<string, object> fallback = null) {
         var props = obj.GetType().GetFields();
         foreach (var p in props) {
-            var a = p.GetCustomAttributes(true).OfType<IXmlInit>().FirstOrDefault();
+            foreach(var a in p.GetCustomAttributes(true).OfType<IXmlInit>()) {
+                void Post(ref object value, dynamic f) {
+                    var t = (Type)f.GetType();
+                    if (typeof(Action).IsAssignableFrom(t)) {
+                        f();
+                    } else if(typeof(Action<>).IsAssignableFrom(t)) {
+                        f(value as dynamic);
+                    } else {
+                        value = f(value as dynamic);
+                    }
+                }
+                bool Fallback(dynamic f, out dynamic value) {
+                    var t = (Type)f.GetType();
+                    if (typeof(Action).IsAssignableFrom(t)) {
+                        f();
+                        value = default;
+                        return false;
+                    } else {
+                        value = f();
+                        return true;
+                    }
+                }
+                void Set(object parsed) =>
+                        p.SetValue(obj, parsed);
+                void Inherit() =>
+                    Set(p.GetValue(inherit));
+                Type GetItemType() =>
+                    p.FieldType.GetGenericTypeDefinition() == typeof(List<>) || p.FieldType.GetGenericTypeDefinition() == typeof(HashSet<>) ?
+                        p.FieldType.GetGenericArguments()[0] :
+                    p.FieldType.IsArray ?
+                        p.FieldType.GetElementType() :
+                        throw new Exception("Unsupported subelement collection type");
+                var key = p.Name;
 
-            void Set(object parsed) =>
-                    p.SetValue(obj, parsed);
-            void Inherit() =>
-                Set(p.GetValue(inherit));
-            Type GetItemType() =>
-                p.FieldType.GetGenericTypeDefinition() == typeof(List<>) || p.FieldType.GetGenericTypeDefinition() == typeof(HashSet<>) ?
-                    p.FieldType.GetGenericArguments()[0] :
-                p.FieldType.IsArray ?
-                    p.FieldType.GetElementType() :
-                    throw new Exception("Unsupported subelement collection type");
-            var key = p.Name;
-            if (a is Self self) {
-                if(self.fallback && p.GetValue(obj) != null) {
-                    continue;
-                }
-                Set(Create(ele));
-                object Create(XElement element) {
-                    dynamic value = element;
-                    if (self.construct) {
-                        value = p.FieldType.GetConstructor(new[] { typeof(XElement) }).Invoke(new[] { element });
-                    }
-                    if (convert?.TryGetValue(p.Name, out dynamic conv) == true) {
-                        value = conv(element);
-                    }
-                    return value;
-                }
-            } else if (a is Sub sub) {
-                key = sub.alias ?? key;
-                if (sub.multiple) {
-                    var elements = ele.Elements(key).ToList();
-                    if (!elements.Any()) {
-                        if (inherit != null) {
-                            Inherit();
-                        } else if (sub.required) {
-                            throw new Exception($"<{ele.Name}> requires at least one <{key}> subelement: {ele} ### {ele.Parent.Name}");
-                        }
+                if (a is Err err) {
+                    if (p.GetValue(obj) != null) {
                         continue;
                     }
-                    Set(CreateCollectionFrom(elements));
-                    object CreateCollectionFrom(List<XElement> elements) {
-
-                        /*
-                        IEnumerable<object> CreateValues(Type type) {
-                            var con = type.GetConstructor(new[] { typeof(XElement) });
-                            return elements.Select(element => con.Invoke(new[] { element })).ToList();
-                        }
-                        */
-
-                        var type = GetItemType();
-                        var col = p.FieldType.GetConstructor(new[] { typeof(IEnumerable<>).MakeGenericType(type) });
-                        var con = type.GetConstructor(new[] { typeof(XElement) });
-                        var items = elements.Select(element => con.Invoke(new[] { element })).ToList();
-
-                        //this works
-                        var i = typeof(Enumerable).GetMethod("Cast").MakeGenericMethod(type).Invoke(null, new[] { items });
-                        return col.Invoke(new[] { i });
-
-                        //return Activator.CreateInstance(p.FieldType, (dynamic) items);
-
-                    }
-                } else {
-                    if (!ele.HasElement(key, out var element)) {
-                        if (inherit != null) {
-                            Inherit();
-                        } else if (sub.required) {
-                            throw new Exception($"<{ele.Name}> requires one <{key}> subelement: {ele} ### {ele.Parent.Name}");
-                        }
+                    throw new Exception($"{err.msg}: {ele} ## {ele.Parent.Name}");
+                } else if (a is Self self) {
+                    if (self.fallback && p.GetValue(obj) != null) {
                         continue;
                     }
-                    Set(Create(element));
+                    Set(Create(ele));
                     object Create(XElement element) {
-                        dynamic value = element;
-                        if (sub.construct) {
-                            value = p.FieldType.GetConstructor(new[] { typeof(XElement) }).Invoke(new[] { element });
+                        object value = element;
+                        if (self.construct) {
+                            value = (self.type ?? p.FieldType).GetConstructor(new[] { typeof(XElement) }).Invoke(new[] { element });
                         }
-                        if(convert?.TryGetValue(p.Name, out dynamic conv) == true) {
-                            value = conv(element);
+                        if (transform?.TryGetValue(p.Name, out dynamic f) == true) {
+                            Post(ref value, f);
                         }
                         return value;
                     }
-                }
-                
-            } else if(a is IAtt ia) {
-                key = ia.alias ?? key;
+                } else if (a is Sub sub) {
+                    key = sub.alias ?? key;
+                    if (sub.multiple) {
+                        var elements = ele.Elements(key).ToList();
+                        if (!elements.Any()) {
+                            if (inherit != null) {
+                                Inherit();
+                            } else if (sub.required) {
+                                throw new Exception($"<{ele.Name}> requires at least one <{key}> subelement: {ele} ### {ele.Parent.Name}");
+                            } else if(fallback?.TryGetValue(key, out dynamic f) ?? false) {
+                                if(Fallback(f, out dynamic value)) {
+                                    Set(value);
+                                }
+                            }
+                            continue;
+                        }
+                        Set(CreateCollectionFrom(elements));
+                        object CreateCollectionFrom(List<XElement> elements) {
 
+                            /*
+                            IEnumerable<object> CreateValues(Type type) {
+                                var con = type.GetConstructor(new[] { typeof(XElement) });
+                                return elements.Select(element => con.Invoke(new[] { element })).ToList();
+                            }
+                            */
 
-                object CreateCollectionFrom(IEnumerable<string> elements, Type type) {
-                    var col = p.FieldType.GetConstructor(new[] { typeof(IEnumerable<>).MakeGenericType(type) });
-                    if (type != typeof(string)) {
+                            var type = GetItemType();
+                            var col = (sub.type ?? p.FieldType).GetConstructor(new[] { typeof(IEnumerable<>).MakeGenericType(type) });
+                            var con = type.GetConstructor(new[] { typeof(XElement) });
+                            var items = elements.Select(element => con.Invoke(new[] { element })).ToList();
 
-                        var con = type.GetConstructor(new[] { typeof(XElement) });
-                        var items = elements.Select(element => con.Invoke(new[] { element })).ToList();
-                        return col.Invoke(new[] { items });
+                            //this works
+                            var i = typeof(Enumerable).GetMethod("Cast").MakeGenericMethod(type).Invoke(null, new[] { items });
+                            return col.Invoke(new[] { i });
+
+                            //return Activator.CreateInstance(p.FieldType, (dynamic) items);
+
+                        }
                     } else {
-                        return col.Invoke(new[] { elements });
-                    }
-                }
-
-                var value = ele.Att(key);
-                if (value == null) {
-
-                    if(inherit != null) {
-                        Set(p.GetValue(inherit));
-                    } else if (a is Opt) {
-                    } else {
-                        throw new Exception($"<{ele.Name}> requires {key} attribute: {ele} ### {ele.Parent.Name}");
-                    }
-                    continue;
-                }
-
-                var parseDict = new Dictionary<Type, Func<object>>() {
-                    [typeof(string)] = () => value,
-
-                    [typeof(bool)] = ParseBool,
-                    [typeof(int)] = ParseInt,
-                    [typeof(char)] = ParseChar,
-                    [typeof(double)] = ParseDouble,
-
-
-                    [typeof(bool?)] = ParseBoolNullable,
-                    [typeof(int?)] = () => ele.ExpectAttIntNullable(key),
-
-                    [typeof(IDice)] = () => ele.ExpectAttDice(key),
-                    [typeof(Color)] = () => ele.ExpectAttColor(key),
-                    [typeof(Color?)] = () => ele.ExpectAttColor(key),
-                };
-                if (ia.separator?.Any() == true) {
-                    Set(ParseCollection());
-                } else {
-                    dynamic result = value;
-                    if(ia.parse) {
-
-                        if (p.FieldType.IsEnum) {
-                            result = Enum.Parse(p.FieldType, result);
-                        } else {
-                            result = parseDict[p.FieldType]();
+                        if (!ele.HasElement(key, out var element)) {
+                            if (inherit != null) {
+                                Inherit();
+                            } else if (sub.required) {
+                                throw new Exception($"<{ele.Name}> requires one <{key}> subelement: {ele} ### {ele.Parent.Name}");
+                            } else if (fallback?.TryGetValue(key, out dynamic f) ?? false) {
+                                f();
+                            }
+                            continue;
+                        }
+                        Set(Create(element));
+                        object Create(XElement element) {
+                            object value = element;
+                            if (sub.construct) {
+                                value = (sub.type ?? p.FieldType).GetConstructor(new[] { typeof(XElement) }).Invoke(new[] { element });
+                            }
+                            if (transform?.TryGetValue(p.Name, out dynamic f) == true) {
+                                Post(ref value, f);
+                            }
+                            return value;
                         }
                     }
-                    //dynamic result = parseDict[p.FieldType]();
-                    if(convert?.TryGetValue(p.Name, out dynamic conv) == true) {
-                        result = conv(result);
+
+                } else if (a is IAtt ia) {
+                    key = ia.alias ?? key;
+
+
+                    object CreateCollectionFrom(IEnumerable<string> elements, Type type) {
+                        var col = p.FieldType.GetConstructor(new[] { typeof(IEnumerable<>).MakeGenericType(type) });
+                        if (type != typeof(string)) {
+
+                            var con = type.GetConstructor(new[] { typeof(XElement) });
+                            var items = elements.Select(element => con.Invoke(new[] { element })).ToList();
+                            return col.Invoke(new[] { items });
+                        } else {
+                            return col.Invoke(new[] { elements });
+                        }
                     }
-                    Set(result);
+                    var value = ele.Att(key);
+                    if (value == null) {
+                        if (inherit != null) {
+                            Set(p.GetValue(inherit));
+                        } else if(a is Req) {
+                            throw new Exception($"<{ele.Name}> requires {key} attribute: {ele} ### {ele.Parent.Name}");
+                        } else if (fallback?.TryGetValue(key, out var f) ?? false) {
+                            if (Fallback(f, out dynamic result)) {
+                                Set(result);
+                            }
+                        }
+                        continue;
+                    }
+                    var parseDict = new Dictionary<Type, Func<object>>() {
+                        [typeof(string)] = () => value,
+
+                        [typeof(bool)] = ParseBool,
+                        [typeof(int)] = ParseInt,
+                        [typeof(char)] = ParseChar,
+                        [typeof(double)] = ParseDouble,
+                        [typeof(double?)] = ParseDoubleNullable,
+
+
+                        [typeof(bool?)] = ParseBoolNullable,
+                        [typeof(int?)] = () => ele.ExpectAttIntNullable(key),
+
+                        [typeof(IDice)] = () => ele.ExpectAttDice(key),
+                        [typeof(Color)] = () => ele.ExpectAttColor(key),
+                        [typeof(Color?)] = () => ele.ExpectAttColor(key),
+                    };
+                    if (ia.separator?.Any() == true) {
+                        Set(ParseCollection());
+                    } else {
+                        dynamic result = value;
+                        if (ia.parse) {
+                            var type = ia.type ?? p.FieldType;
+
+                            if (type.IsEnum) {
+                                result = Enum.Parse(type, result);
+                            } else {
+                                result = parseDict[type]();
+                            }
+                        }
+                        //dynamic result = parseDict[p.FieldType]();
+                        if (transform?.TryGetValue(p.Name, out dynamic f) == true) {
+                            Post(ref result, f);
+                        }
+                        Set(result);
+                    }
+                    object ParseBool() =>
+                        bool.TryParse(value, out var result) ? result : throw Error<bool>();
+                    object ParseBoolNullable() =>
+                        value == "null" ? null : ParseBool();
+                    object ParseInt() =>
+                        value.Any() ? Convert.ToInt32(new Expression(value).Evaluate()) : throw Error<int>();
+                    object ParseChar() =>
+                        (value.Length == 1 ?
+                            value.First() :
+                        value.StartsWith("\\") && int.TryParse(value.Substring(1), out var result) ?
+                            (char)result :
+                            throw Error<char>());
+                    object ParseDouble() =>
+                        value.Any() ? Convert.ToDouble(new Expression(value).Evaluate()) : throw Error<double>();
+                    object ParseDoubleNullable() =>
+                        value.Any() ? Convert.ToDouble(new Expression(value).Evaluate()) : null;
+                    object ParseCollection() =>
+                        CreateCollectionFrom(value.Split(ia.separator), GetItemType());
+
+                    Exception Error<T>() =>
+                        ele.Invalid<T>(key);
                 }
-                object ParseBool() =>
-                    bool.TryParse(value, out var result) ? result : throw Error<bool>();
-                object ParseBoolNullable() =>
-                    value == "null" ? null : ParseBool();
-                object ParseInt() =>
-                    value.Any() ? Convert.ToInt32(new Expression(value).Evaluate()) : throw Error<int>();
-                object ParseChar() =>
-                    (value.Length == 1 ?
-                        value.First() :
-                    value.StartsWith("\\") && int.TryParse(value.Substring(1), out var result) ?
-                        (char)result :
-                        throw Error<char>());
-                object ParseDouble() =>
-                    value.Any() ? Convert.ToDouble(new Expression(value).Evaluate()) : throw Error<double>();
-                object ParseCollection() =>
-                    CreateCollectionFrom(value.Split(ia.separator), GetItemType());
-                
-                Exception Error<T>() =>
-                    ele.Invalid<T>(key);
             }
+
         }
     }
     public static TValue TryLookup<TKey, TValue>(this Dictionary<TKey, TValue> d, TKey key, TValue fallback = default) =>
@@ -1087,8 +1126,22 @@ public static class Main {
     public static T Elvis<T>(this object o, T result) =>
         o == null ? default(T) : result;
 }
-
+/// <summary>
+/// Helpers for ColoredString
+/// </summary>
 public static class ColorCommand {
+    /*
+    public static string Substring(string s, int start, int count) {
+        int index = start;
+        int remaining = count;
+        StringBuilder result = new();
+        if (Regex.Match(s.Substring(index), "(?<command>\\[c:.+\\])") is Match {Success:true }m) {
+            var c = m.Groups["command"].Value;
+            result.Append(c);
+            index += c.Length;
+        }
+    }
+    */
     public static string Unparse(Color c) =>
         $"{c.R},{c.G},{c.B},{c.A}";
     public static string Front(Color f) => $"[c:r f:{Unparse(f)}]";

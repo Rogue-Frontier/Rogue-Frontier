@@ -10,13 +10,13 @@ using Common;
 namespace RogueFrontier;
 
 public class DeathPause : Con {
-    PlayerMain prev;
+    Mainframe prev;
     DeathTransition next;
 
     public double time;
     public bool done;
     Viewport view;
-    public DeathPause(PlayerMain prev, DeathTransition next) : base(prev.Surface.Width, prev.Surface.Height) {
+    public DeathPause(Mainframe prev, DeathTransition next) : base(prev.Surface.Width, prev.Surface.Height) {
         this.prev = prev;
         this.next = next;
         view = new Viewport(prev, prev.camera, prev.world);
@@ -122,9 +122,6 @@ public class DeathTransition : ScreenSurface {
                 Surface.SetBackground(x, y, c);
             }
         }
-
-
-
         int brightness = 0;
         //int brightness = (int)Math.Min(255, 255 * Math.Max(0, time - 6) / 2);
         foreach (var p in particles) {

@@ -132,10 +132,10 @@ public class Station : ActiveObject, ITrader, IDockable {
         this.position = Position;
         this.velocity = new XY();
         this.active = true;
-        this.sovereign = type.Sovereign;
+        this.sovereign = type.sovereign;
         damageSystem = type.hull.Create(world.types);
-        cargo.UnionWith(type.cargo?.Generate(World.types)??new());
-        weapons.AddRange(this.type.weapons?.Generate(World.types) ?? new());
+        cargo.UnionWith(type.Inventory?.Generate(World.types)??new());
+        weapons.AddRange(this.type.Weapons?.Generate(World.types) ?? new());
         weapons.ForEach(w => {
             w.aiming = w.aiming ?? new Omnidirectional();
             w.targeting = w.targeting ?? new Targeting(true);
@@ -175,14 +175,14 @@ public class Station : ActiveObject, ITrader, IDockable {
     }
     public void CreateGuards() {
         guards.Clear();
-        foreach (var guard in type.ships?.Generate(world.types, this) ?? guards) {
+        foreach (var guard in type.Ships?.Generate(world.types, this) ?? guards) {
             guards.Add(guard);
             world.AddEntity(guard);
             world.AddEffect(new Heading(guard));
         }
     }
     public void CreateSatellites(LocationContext lc) {
-        type.satellites?.Generate(lc, world.types);
+        type.Satellites?.Generate(lc, world.types);
     }
     public IEnumerable<AIShip> GetDocked() =>
         world.entities.FilterKey(p => (position - p).magnitude < 5)
@@ -223,8 +223,8 @@ public class Station : ActiveObject, ITrader, IDockable {
                 ps.crimeRecord.Add(new DestructionCrime(this));
             }
         }
-        if(type.explosionType != null)
-            new Weapon() { projectileDesc = type.explosionType, targeting = new Targeting(false) { target = source } }.Fire(this, rotation);
+        if(type.ExplosionDesc != null)
+            new Weapon() { projectileDesc = type.ExplosionDesc, targeting = new Targeting(false) { target = source } }.Fire(this, rotation);
         var drop = weapons.Where(w => !w.structural).Select(w => w.source)
             .Concat(cargo)
             .Concat((damageSystem as LayeredArmor)?.layers.Select(l => l.source) ?? new List<Item>());
@@ -275,9 +275,9 @@ public class Station : ActiveObject, ITrader, IDockable {
                     guards.Add(s);
                     construction = null;
                 }
-            } else if(type.construction != null) {
-                if(guards.Count < type.construction.max) {
-                    construction = type.construction.catalog.GetRandom(world.karma);
+            } else if(type.Construction != null) {
+                if(guards.Count < type.Construction.max) {
+                    construction = type.Construction.catalog.GetRandom(world.karma);
                 }
             }
         }

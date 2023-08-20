@@ -48,7 +48,7 @@ public class ShipEntry : ShipGenerator {
     [Opt] public EShipBehavior behavior;
     public ShipEntry() { }
     public ShipEntry(TypeCollection tc, XElement e) {
-        e.Initialize(this, convert: new() {
+        e.Initialize(this, transform: new() {
             [nameof(sovereign)] = (string s) => tc.Lookup<Sovereign>(s),
             [nameof(shipClass)] = (string s) => tc.Lookup<ShipClass>(s),
             [nameof(subordinates)] = (XElement xmlSub) => new ShipGroup(xmlSub, SGenerator.ParseFrom(tc, SGenerator.ShipFrom)),
@@ -291,7 +291,7 @@ public record ItemEntry() : IGenerator<Item> {
           public ItemType type;
     [Self]public ModRoll mod;
     public ItemEntry(TypeCollection tc, XElement e) : this() {
-        e.Initialize(this, convert: new() {
+        e.Initialize(this, transform: new() {
             [nameof(type)] = (string s) => tc.Lookup<ItemType>(s)
         });
     }
@@ -399,7 +399,7 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
     [Self] public ModRoll mod;
     public WeaponEntry(XElement e) : this() {
         var toRad = (double d) => d * Math.PI / 180;
-        e.Initialize(this, convert: new() {
+        e.Initialize(this, transform: new() {
             [nameof(angle)] = toRad,
             [nameof(leftRange)] = toRad,
             [nameof(rightRange)] = toRad,

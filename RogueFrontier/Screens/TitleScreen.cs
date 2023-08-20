@@ -155,7 +155,7 @@ public class TitleScreen : Console {
                 }, SaveGame.settings));
                 */
 
-                var playerMain = new PlayerMain(Width, Height, profile, playerShip);
+                var playerMain = new Mainframe(Width, Height, profile, playerShip);
                 playerMain.music = crawlMusic;
                 playerMain.HideUI();
                 playerShip.onDestroyed += playerMain;
@@ -298,7 +298,7 @@ public class TitleScreen : Console {
 
             //playerShip.powers.AddRange(World.types.Get<PowerType>().Select(pt => new Power(pt)));
 
-            var playerMain = new PlayerMain(Width, Height, profile, playerShip);
+            var playerMain = new Mainframe(Width, Height, profile, playerShip);
             playerShip.onDestroyed += playerMain;
 
             playerMain.Update(new());
@@ -601,7 +601,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         w.AddEntity(wingmate);
         w.AddEffect(new Heading(wingmate));
         */
-        var playerMain = new PlayerMain(Width, Height, profile, playerShip);
+        var playerMain = new Mainframe(Width, Height, profile, playerShip);
         playerShip.onDestroyed += playerMain;
         playerMain.IsFocused = true;
         SadConsole.Game.Instance.Screen = playerMain;

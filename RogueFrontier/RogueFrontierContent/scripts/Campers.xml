@@ -7,11 +7,11 @@
 		sovereign=	"sovereign_camper_collective"
 
 		behavior=	"none"
-					
-		hp=			"300"
 
 		structure=	"RogueFrontierContent/sprites/CamperOutpost.asc.cg"
 		>
+
+		<HP	maxHP="300"/>
 		<!--
 		<Satellites>
 			<Orbital count="4" angle="0" increment="90">

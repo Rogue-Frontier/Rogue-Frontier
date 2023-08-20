@@ -18,7 +18,7 @@ public class GalaxyMap : Console {
     public XY camera=new();
     MouseWatch mouse=new();
     private XY center;
-    public GalaxyMap(PlayerMain prev) : base(prev.Width, prev.Height) {
+    public GalaxyMap(Mainframe prev) : base(prev.Width, prev.Height) {
         univ = prev.world.universe;
         center = new XY(prev.Width, prev.Height) / 2;
     }

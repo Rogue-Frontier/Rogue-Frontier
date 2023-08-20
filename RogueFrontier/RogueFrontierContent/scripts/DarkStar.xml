@@ -184,7 +184,7 @@
 			<Weapon codename="item_bomb_launcher"/>
 			<Shield codename="item_cloaking_shield"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_30mw_battery"/>
+			<Reactor codename="item_30mw_secondary"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_darkened_knightsteel_plate"/>
@@ -211,7 +211,7 @@
 			<Weapon codename="item_bomb_launcher"/>
 			<Shield codename="item_cloaking_shield"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_30mw_battery"/>
+			<Reactor codename="item_30mw_secondary"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_darkened_knightsteel_plate"/>
@@ -239,7 +239,7 @@
 			<Weapon codename="item_bomb_launcher"/>
 			<Shield codename="item_cloaking_shield"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_30mw_battery"/>
+			<Reactor codename="item_30mw_secondary"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_bandit_plate"/>
@@ -266,7 +266,7 @@
 			<Weapon codename="item_bomb_launcher"/>
 			<Shield codename="item_cloaking_shield"/>
 			<Reactor codename="item_20mw_generator"/>
-			<Reactor codename="item_30mw_battery"/>
+			<Reactor codename="item_30mw_secondary"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_bandit_plate"/>
@@ -281,10 +281,11 @@
 	<StationType	codename="station_dark_star_fortress"
 					name=		"Dark Star fortress"
 					sovereign=	"sovereign_dark_star"
-					hp=			"600"
+					
 					stealth="2"
 					structure="RogueFrontierContent/sprites/DarkStarFortress.asc.cg"
 		>
+		<HP	maxHP="600"/>
 		<Weapons>
 			<Weapon codename="item_dagger_cannon"	posX="3" posY="0"/>
 			<Weapon codename="item_dagger_cannon"	posX="-3" posY="0"/>
@@ -297,10 +298,11 @@
 	<StationType	codename="station_dark_star_shipyard"
 					name=		"Dark Star shipyard"
 					sovereign=	"sovereign_dark_star"
-					hp=			"900"
 					stealth="2"
 					structure="RogueFrontierContent/sprites/DarkStarShipyard.asc.cg"
 		>
+
+		<HP	maxHP="900"/>
 		<Weapons>
 			<Weapon codename="item_dagger_cannon"	posX="3" posY="0"/>
 			<Weapon codename="item_dagger_cannon"	posX="-3" posY="0"/>

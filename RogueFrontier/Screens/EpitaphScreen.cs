@@ -10,9 +10,9 @@ using Console = SadConsole.Console;
 namespace RogueFrontier;
 
 public class EpitaphScreen : Console {
-    PlayerMain playerMain;
+    Mainframe playerMain;
     Epitaph epitaph;
-    public EpitaphScreen(PlayerMain playerMain, Epitaph epitaph) : base(playerMain.Width, playerMain.Height) {
+    public EpitaphScreen(Mainframe playerMain, Epitaph epitaph) : base(playerMain.Width, playerMain.Height) {
         this.playerMain = playerMain;
         this.epitaph = epitaph;
 
@@ -47,7 +47,7 @@ public class EpitaphScreen : Console {
         playerShip.AddMessage(new Message("A vision of disaster flashes before your eyes"));
         world.entities.all.Add(playerShip);
         world.effects.all.Add(new Heading(playerShip));
-        GameHost.Instance.Screen = new TitleSlideOpening(new Pause(playerMain, Resume, 4), false) { IsFocused = true };
+        GameHost.Instance.Screen = new FadeIn(new Pause(playerMain, Resume, 2)) { IsFocused = true };
         void Resume() {
             GameHost.Instance.Screen = playerMain;
             playerMain.IsFocused = true;
@@ -122,10 +122,10 @@ public class EpitaphScreen : Console {
 }
 
 public class IntermissionScreen : Console {
-    PlayerMain playerMain;
+    Mainframe playerMain;
     LiveGame game;
     string desc;
-    public IntermissionScreen(PlayerMain playerMain, LiveGame game, string desc) : base(playerMain.Width, playerMain.Height) {
+    public IntermissionScreen(Mainframe playerMain, LiveGame game, string desc) : base(playerMain.Width, playerMain.Height) {
         this.playerMain = playerMain;
         this.game = game;
         this.desc = desc;
@@ -166,8 +166,8 @@ public class IntermissionScreen : Console {
 }
 
 public class IdentityScreen : Console {
-    PlayerMain playerMain;
-    public IdentityScreen(PlayerMain playerMain) : base(playerMain.Width, playerMain.Height) {
+    Mainframe playerMain;
+    public IdentityScreen(Mainframe playerMain) : base(playerMain.Width, playerMain.Height) {
         this.playerMain = playerMain;
         Children.Add(new LabelButton("Continue", Continue) {
             Position = new Point(1, Height / 2 - 4), FontSize = playerMain.FontSize * 2

@@ -208,7 +208,7 @@ public static partial class SMenu {
 
                     new($"Energy capacity: {reactor.desc.capacity, -4} EN"),
                     new($"Energy content:  {(int)reactor.energy, -4} EN"),
-                    new($"Efficiency:      {reactor.desc.efficiency, -4} EL/EN"),
+                    new($"Efficiency:      {reactor.efficiency, -4} EL/EN"),
 
                 });
             },
@@ -417,8 +417,6 @@ public static partial class SMenu {
     public static ListMenu<Armor> RepairArmorFromItem(ScreenSurface prev, PlayerShip player, Item source, RepairArmor repair, Action callback) {
         ListMenu<Armor> screen = null;
         Sound s = new();
-
-
         var devices = (player.hull as LayeredArmor).layers;
 
         return screen = new(prev,
@@ -439,6 +437,8 @@ public static partial class SMenu {
                 result.Add(new("This armor is not compatible", Color.Yellow, Color.Black));
             } else if (a.hp < a.maxHP) {
                 result.Add(new("[Enter] Repair this armor", Color.Yellow, Color.Black));
+            } else if(a.maxHP < a.desc.maxHP) {
+                result.Add(new("This armor cannot be repaired any further", Color.Yellow, Color.Black));
             } else {
                 result.Add(new("This armor is at full HP", Color.Yellow, Color.Black));
             }
@@ -486,7 +486,11 @@ public static partial class SMenu {
             result.Add(new($"Refuel amount: {refuel.energy}"));
             result.Add(new($"Fuel needed:   {r.desc.capacity - (int)r.energy}"));
             result.Add(new(""));
-            if (r.energy < r.desc.capacity) {
+
+
+            if(!r.desc.allowRefuel) {
+                result.Add(new("This reactor does not accept fuel", Color.Yellow, Color.Black));
+            } else if (r.energy < r.desc.capacity) {
                 result.Add(new("[Enter] Refuel", Color.Yellow, Color.Black));
             } else {
                 result.Add(new("This reactor is full", Color.Yellow, Color.Black));
@@ -747,9 +751,14 @@ public static partial class SMenu {
             Escape
             ) { IsFocused = true };
 
+        string GetName(Armor a) {
+            var BAR = 8;
+            int available = BAR * Math.Min(a.maxHP, a.desc.maxHP) / Math.Max(1, a.desc.maxHP);
 
+            int active = available * Math.Min(a.hp, a.maxHP) / Math.Max(1, a.maxHP);
 
-        string GetName(Armor a) => $"[{a.hp}/{a.maxHP}] {a.source.type.name}";
+            return $"[{new string('=', active)}{new string('.', available - active)}{new string(' ', BAR - available)}] [{a.hp}/{a.maxHP}] {a.source.type.name}";
+        }
         List<ColoredString> GetDesc(Armor a) {
             var item = a.source;
             var result = GenerateDesc(a);
@@ -765,14 +774,20 @@ public static partial class SMenu {
             result.Add(new($"Full price:   {unitPrice * delta}"));
             result.Add(new(""));
             if (delta <= 0) {
-                result.Add(new("This armor is at full HP", Color.Yellow, Color.Black));
+                if(a.maxHP == 0) {
+                    result.Add(new("This armor cannot be repaired.", Color.Yellow, Color.Black));
+                } else if (a.maxHP < a.desc.maxHP) {
+                    result.Add(new("This armor cannot be repaired any further.", Color.Yellow, Color.Black));
+                } else {
+                    result.Add(new("This armor is at full HP.", Color.Yellow, Color.Black));
+                }
                 goto Done;
             }
             if (job?.active == true) {
                 if (job.armor == a) {
-                    result.Add(new("This armor is currently under repairs", Color.Yellow, Color.Black));
+                    result.Add(new("This armor is currently under repair.", Color.Yellow, Color.Black));
                 } else {
-                    result.Add(new("Please wait for current repair job to finish", Color.Yellow, Color.Black));
+                    result.Add(new("Another armor is currently under repair.", Color.Yellow, Color.Black));
                 }
                 goto Done;
             }
@@ -780,7 +795,7 @@ public static partial class SMenu {
                 result.Add(new($"You cannot afford repairs", Color.Yellow, Color.Black));
                 goto Done;
             }
-            result.Add(new($"Order repairs", Color.Yellow, Color.Black));
+            result.Add(new($"[Enter] Order repairs", Color.Yellow, Color.Black));
 
         Done:
             return result;
@@ -1346,8 +1361,7 @@ public class ListMenu<T> : ScreenSurface {
                         n = $"{n.Substring(0, lineWidth - 3)}...";
                     }
                 }
-                var name = new ColoredString($"{(SMenu.indexToLetter(i - start))}. ", highlightColor, Color.Black)
-                         + new ColoredString(n, highlightColor, Color.Black);
+                var name = ColoredString.Parser.Parse(ColorCommand.Recolor(highlightColor, Color.Black, $"{SMenu.indexToLetter(i - start)}. {n}"));
                 Surface.Print(x, y, name);
                 i++;
                 y++;

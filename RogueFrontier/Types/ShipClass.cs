@@ -9,7 +9,7 @@ public enum EShipBehavior {
     none, sulphin, swift, trader
 }
 public class ShipClass : IDesignType {
-    public static ShipClass empty => new ShipClass() { devices = new(), damageDesc = new HPSystemDesc(), rotationDecel = 1 };
+    public static ShipClass empty => new ShipClass() { devices = new(), damageDesc = new HitPointDesc(), rotationDecel = 1 };
     public HashSet<string> attributes;
     [Req] public string codename;
     [Req] public string name;
@@ -48,7 +48,7 @@ public class ShipClass : IDesignType {
         behavior = e.TryAttEnum(nameof(behavior), parent?.behavior ?? EShipBehavior.none);
 
         damageDesc = e.HasElement("HPSystem", out var xmlHPSystem) ?
-            new HPSystemDesc(xmlHPSystem) :
+            new HitPointDesc(xmlHPSystem) :
             e.HasElement("LayeredArmorSystem", out var xmlLayeredArmor) ?
             new LayeredArmorDesc(xmlLayeredArmor) :
             parent?.damageDesc ??
@@ -74,11 +74,11 @@ public class ShipClass : IDesignType {
 public interface HullSystemDesc {
     HullSystem Create(TypeCollection tc);
 }
-public record HPSystemDesc : HullSystemDesc {
-    public int maxHP;
-    public HPSystemDesc() { }
-    public HPSystemDesc(XElement e) {
-        maxHP = e.ExpectAttInt("maxHP");
+public record HitPointDesc : HullSystemDesc {
+    [Req] public int maxHP;
+    public HitPointDesc() { }
+    public HitPointDesc(XElement e) {
+        e.Initialize(this);
     }
     public HullSystem Create(TypeCollection tc) =>
         new HP(maxHP);

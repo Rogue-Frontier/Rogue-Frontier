@@ -73,7 +73,6 @@ public class GateTransition : Console {
                     ColoredGlyph g = v.GetTile(x, y);
                     //var g = (rect.Contains(p) ? next : prev).GetCellAppearance(x, y);
                     this.SetCellAppearance(x, Height - y, g);
-
                 }
             }
         } else {

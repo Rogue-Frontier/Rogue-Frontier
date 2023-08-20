@@ -5,8 +5,6 @@
 	<StationType	codename="station_constellation_astra"
 					name=		"Constellation Astra"
 					sovereign=	"sovereign_constellation"
-
-					hp=			"600"
 					
 					crimeOnDestroy="true"
 
@@ -15,6 +13,8 @@
 
 					behavior=	"reinforceNearby"
 		>
+
+		<HP	maxHP="600"/>
 		<Segments>
 			<MultiPoint offsetX="2" offsetY="-1" angleInc="90"
 				   glyph="+" foreground="White"/>
@@ -54,12 +54,12 @@
 			<Item count="12-24" codename="item_20mw_generator"/>
 			<Item count="4-8" codename="item_50mw_generator"/>
 
-			<Item count="8-16" codename="item_10mw_battery"/>
-			<Item count="8-16" codename="item_20mw_battery"/>
-			<Item count="8-16" codename="item_30mw_battery"/>
-			<Item count="8-16" codename="item_40mw_battery"/>
-			<Item count="8-16" codename="item_50mw_battery"/>
-			<Item count="8-16" codename="item_60mw_battery"/>
+			<Item count="8-16" codename="item_10mw_secondary"/>
+			<Item count="8-16" codename="item_20mw_secondary"/>
+			<Item count="8-16" codename="item_30mw_secondary"/>
+			<Item count="8-16" codename="item_40mw_secondary"/>
+			<Item count="8-16" codename="item_50mw_secondary"/>
+			<Item count="8-16" codename="item_60mw_secondary"/>
 		</Cargo>
 		<Weapons>
 			<Weapon codename="item_musket_turret"/>
@@ -74,12 +74,13 @@
 				name=		"Constellation missile sentry"
 				sovereign=	"sovereign_constellation"
 
-				hp=			"200"
 				crimeOnDestroy="true"
 
 				glyph=		"M"
 				foreground="BB6633FF"
 		>
+
+		<HP	maxHP="200"/>
 		<Segments>
 			<Point offsetX="0"
 				   offsetY="-1"
@@ -117,12 +118,13 @@
 					name=		"Constellation Habitat"
 					sovereign=	"sovereign_constellation"
 
-					hp=			"250"
 					crimeOnDestroy="true"
 
 					glyph=		"H"
 					foreground="BB6633FF"
 		>
+
+		<HP	maxHP="250"/>
 		<Segments>
 			<Point offsetX="0"
 				   offsetY="-1"
@@ -148,12 +150,13 @@
 					name=		"Armor shop"
 					sovereign=	"sovereign_constellation"
 
-					hp=			"400"
 					crimeOnDestroy="true"
 
 					glyph=		"A"
 					foreground="LightGray"
 		>
+
+		<HP	maxHP="400"/>
 		<Segments>
 			<Point offsetX="2" offsetY="0"
 				   glyph="=" foreground="White"/>
@@ -193,13 +196,13 @@
 	<StationType	codename="station_arms_dealer"
 					name=		"Arms dealer"
 					sovereign=	"sovereign_constellation"
-
-					hp=			"400"
 					crimeOnDestroy="true"
 
 					glyph=		"A"
 					foreground="LightGray"
 		>
+
+		<HP	maxHP="400"/>
 		<Segments>
 			<Point offsetX="2" offsetY="0"
 				   glyph="=" foreground="White"/>
@@ -241,12 +244,13 @@
 				name=		"Constellation bunker"
 				sovereign=	"sovereign_constellation"
 
-				hp=			"450"
 				crimeOnDestroy="true"
 
 				glyph=		"#"
 				foreground="LightGray"
 		>
+
+		<HP	maxHP="450"/>
 		<Segments>
 			<Point offsetX="1" offsetY="0"
 				   glyph="+" foreground="LightGray"/>

@@ -28,9 +28,9 @@ public enum Control {
 }
 public class PlayerControls {
     public PlayerShip playerShip;
-    private PlayerMain playerMain;
+    private Mainframe playerMain;
     public PlayerInput input=new();
-    public PlayerControls(PlayerShip playerShip, PlayerMain playerMain) {
+    public PlayerControls(PlayerShip playerShip, Mainframe playerMain) {
         this.playerShip = playerShip;
         this.playerMain = playerMain;
     }

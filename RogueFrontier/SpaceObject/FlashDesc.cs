@@ -15,8 +15,8 @@ public record FlashDesc(){
         var center = new Center(position, (int)(255 * Math.Sqrt(intensity)), 60);
         world.AddEffect(center);
         int radius = (int)(Math.Sqrt(intensity) * 1.5);
-        var particles = Enumerable.Range(-radius*2, radius * 2*2)
-            .SelectMany(x => Enumerable.Range(-radius*2, radius * 2*2).Select(y => new XY(x, y)))
+        var particles = Enumerable.Range(-radius*2, radius * 2 * 2)
+            .SelectMany(x => Enumerable.Range(-radius*2, radius * 2 * 2).Select(y => new XY(x, y)))
             .Where(p => (p - position).magnitude > radius)
             .Select(p => new Particle(center, center.position + p))
             .Where(p => p.active)
@@ -28,7 +28,7 @@ public record FlashDesc(){
         public int maxBrightness;
         public int maxLifetime;
         public double lifetime;
-        public int brightness => (int) (maxBrightness * lifetime / maxLifetime);
+        public int brightness => (int) (maxBrightness * Math.Sqrt(lifetime / maxLifetime));
         public bool active => brightness>128;
         public ColoredGlyph tile => new(Color.Transparent, new(255, 255, 255, brightness), ' ');
         public Center(XY position, int brightness, int lifetime) {
@@ -44,15 +44,20 @@ public record FlashDesc(){
     public class Particle : Effect {
         public Center parent;
         public XY position { get; set; }
-        public double distance2;
-        public int brightness => (int)(parent.brightness / distance2);
+        public double distance;
+        public int brightness => (int)(parent.brightness / distance);
         public bool active => brightness> 128;
-        public ColoredGlyph tile => new(Color.Transparent, new(255, 255, 255, brightness), ' ');
+        public ColoredGlyph tile => delay > 0 ? null : new(Color.Transparent, new(255, 255, 255, brightness), ' ');
+
+        public double delay;
         public Particle(Center parent, XY position) {
             this.parent = parent;
             this.position = position;
-            distance2 = (parent.position - position).magnitude;
+            distance = (parent.position - position).magnitude;
+            delay = distance / 64;
         }
-        public void Update(double delta) {}
+        public void Update(double delta) {
+            delay -= delta;
+        }
     }
 }

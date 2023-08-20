@@ -214,9 +214,9 @@
 					damageType=		"1"
 					damageHP=		"0-2"
 					lifetime=		"8"
-					glyph=			" "
-					foreground=		"Transparent"
-					background=		"Cyan"
+					glyph=			"."
+					foreground=		"Cyan"
+					background=		"Transparent"
 					>
 					<Decay lifetime="300" damageRate="0" fixedDegradeRate="1/2" descend="true"/>
 				</Fragment>
@@ -273,10 +273,11 @@
 	<StationType	codename="station_errorist_compound"
 		name=		"Errorist compound"
 		sovereign=	"sovereign_errorist"
-		hp=			"250"
+		
 		glyph=		"E"
 		foreground="LightGreen"
 		>
+		<HP maxHP="250"/>
 		<Segments>
 
 			<Point offsetX="-1" offsetY="1"

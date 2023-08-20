@@ -154,14 +154,14 @@ public class LiveGame {
     public PlayerShip playerShip;
     public Lis<LoadHook> hook;
 
-    public delegate void LoadHook(PlayerMain main);
+    public delegate void LoadHook(Mainframe main);
     public LiveGame() { }
     public LiveGame(System world, PlayerShip playerShip, Lis<LoadHook> onLoad = null) {
         this.world = world;
         this.playerShip = playerShip;
         this.hook = onLoad;
     }
-    public void OnLoad(PlayerMain main) => hook?.Value?.Invoke(main);
+    public void OnLoad(Mainframe main) => hook?.Value?.Invoke(main);
     public void Save() {
         var s = SaveGame.Serialize(this);
         File.WriteAllText(player.file, s);

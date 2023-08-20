@@ -261,9 +261,10 @@
 					sovereign=	"sovereign_orion_warlords"
 					stealth=	"4"
 					behavior=	"orionWarlords"
-					hp=			"250"
 					structure=	"RogueFrontierContent/sprites/OrionWarlordsCamp.asc.cg"
 		>
+
+		<HP	maxHP="250"/>
 		<Ships>
 			<Ship	count="7-10"	codename="ship_orion_raider"/>
 		</Ships>
@@ -292,11 +293,12 @@
 					name=		"Bronze turret"
 					sovereign=	"sovereign_orion_warlords"
 					stealth=	"8"
-					hp=			"100"
 					glyph=		"T"
 					foreground="70AEFFFF"
 					background="Black"
 		>
+
+		<HP	maxHP="100"/>
 		<Segments>
 			<Point offsetX="1" offsetY="1"	glyph="/" foreground="LightBlue"/>
 			<Point offsetX="1" offsetY="-1"	glyph="\" foreground="LightBlue"/>
@@ -324,11 +326,12 @@
 				name=		"Bronze sentry"
 				sovereign=	"sovereign_orion_warlords"
 				stealth=	"4"
-				hp=			"200"
 				glyph=		"S"
 				foreground="70AEFFFF"
 				background="Black"
 		>
+
+		<HP	maxHP="200"/>
 		<Segments>
 			<Point offsetX="1" offsetY="1"	glyph="/" foreground="LightBlue"/>
 			<Point offsetX="0" offsetY="1"	glyph="-" foreground="LightBlue"/>
@@ -353,11 +356,11 @@
 					stealth=	"4"
 					
 					behavior=	"orionWarlords"
-					
-					hp=			"500"
 
 					structure=	"RogueFrontierContent/sprites/OrionWarlordsStronghold.asc.cg"
 		>
+
+		<HP	maxHP="500"/>
 		<Ships>
 			<Ship	count="13-20"	codename="ship_orion_raider"/>
 			<Ship	count="2-4"	codename="ship_orion_huntsman"/>
@@ -378,11 +381,11 @@
 				name=		"William Sulphin's container habitat"
 				sovereign=	"sovereign_orion_warlords"
 
-				hp=			"200"
-
 				glyph=		"H"
 				foreground= "3366BBFF"
 		>
+
+		<HP	maxHP="200"/>
 		<Segments>
 			<Point offsetX="0"
 				   offsetY="-1"

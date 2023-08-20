@@ -7,10 +7,9 @@
 					
 					structure=	"RogueFrontierContent/sprites/AmethystStore.asc.cg"
 					
-					hp=			"300"
-					
 					crimeOnDestroy="true"
 		>
+		<HP	maxHP="300"/>
 		<Dock>
 			<MultiPoint offsetX="2" offsetY="0" angleInc="90"/>
 		</Dock>
@@ -73,7 +72,7 @@
 			maxOutput=		"25"
 			capacity=		"4000"
 			efficiency=		"1.2"
-			battery=		"false"
+			rechargeable=		"false"
 			/>
 	</ItemType>
 	<ItemType	codename=	"item_amethyst_laser_i"

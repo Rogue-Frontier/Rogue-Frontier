@@ -34,17 +34,29 @@ public class XY {
     public XY(Point p) {
         (x, y) = p;
     }
+
+
     public Vector3f ToVector3f(float z = 0) => new(xf, yf, z);
     public XY To(XY dest) => dest - this;
+
+    struct FromPolar {
+        [Opt] double? posAngle = null;
+        [Opt] double? posRadius = null;
+        public FromPolar(XElement e) =>
+            e.Initialize(this, transform: new() {
+                [nameof(posAngle)] = (double d) => d * Math.PI / 180
+            });
+        public XY Pos => (posAngle, posRadius) is (double a, double r) ? Polar(a, r) : null;
+    }
+    struct FromRectangular {
+        [Opt] double? posX = null;
+        [Opt] double? posY = null;
+        public FromRectangular(XElement e) => e.Initialize(this);
+        
+        public XY Pos => (posX, posY) is (double x, double y) ? new XY(x, y) : null;
+    }
     public static XY TryParse(XElement e, XY fallback) {
-        var p = (string s) => double.Parse(s);
-        if (e.TryAtt("posAngle", out var posAngle) && e.TryAtt("posRadius", out var posRadius)) {
-            return Polar(p(posAngle) * Math.PI / 180, p(posRadius));
-        }
-        if (e.TryAtt("posX", out var posX) && e.TryAtt("posY", out var posY)) {
-            return new(p(posX), p(posY));
-        }
-        return fallback;
+        return new FromPolar(e).Pos ?? new FromRectangular(e).Pos ?? fallback;
     }
     public XY(double x, double y) {
         this.x = x;
@@ -120,9 +132,9 @@ public class XY {
     public static implicit operator (int, int)(XY p) => (p.xi, p.yi);
     public static implicit operator (float, float)(XY p) => (p.xf, p.yf);
     public static implicit operator (double, double)(XY p) => (p.x, p.y);
-    public static explicit operator XY((int x, int y) p) => new(p.x, p.y);
-    public static explicit operator XY((float x, float y) p) => new(p.x, p.y);
-    public static explicit operator XY((double x, double y) p) => new(p.x, p.y);
+    public static implicit operator XY((int x, int y) p) => new(p.x, p.y);
+    public static implicit operator XY((float x, float y) p) => new(p.x, p.y);
+    public static implicit operator XY((double x, double y) p) => new(p.x, p.y);
 
     public double Dist(XY other) => To(other).magnitude;
     public double Dot(XY other) => x * other.x + y * other.y;

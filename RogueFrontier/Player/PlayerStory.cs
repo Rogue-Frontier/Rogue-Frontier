@@ -21,7 +21,7 @@ public class IntroMeeting : IPlayerInteraction {
         var t = (d as Station)?.type;
         if(t?.codename != "station_daughters_outpost")
             return null;
-        var heroImage = t.heroImage;
+        var heroImage = t.HeroImage;
         return Intro();
         Dialog Intro() {
             var t =
@@ -303,7 +303,7 @@ class IntroTraining : IPlayerInteraction {
     public Con GetScene(Con prev, PlayerShip playerShip, IDockable d) {
         if (d == station) {
             var s = station;
-            var heroImage = s.type.heroImage;
+            var heroImage = s.type.HeroImage;
             var count = drones.Count(d => d.active);
             if (count > 0) {
                 return InProgress();
@@ -377,7 +377,7 @@ class IntroExploration : IPlayerInteraction {
         var s = station;
         if (d != s) return null;
 
-        var heroImage = s.type.heroImage;
+        var heroImage = s.type.HeroImage;
         int c = targets.Count - targets.Intersect(playerShip.known).Count();
         if (c > 0) {
             return new Dialog(prev,
@@ -441,7 +441,7 @@ class IntroOuterEnemy : IPlayerInteraction {
             return null;
         }
         var s = station;
-        var heroImage = s.type.heroImage;
+        var heroImage = s.type.HeroImage;
 
         if (target.active) {
 
@@ -618,7 +618,7 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_amethyst_member_card = 200,
         item_shield_bash = 3000,
         item_20mw_generator = 5000,
-        item_solar_panel = 500,
+        item_20mw_solar = 500,
 
         item_amethyst_25mw_generator = 6000,
         item_magic_blaster_i = 2000,
@@ -654,13 +654,16 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_nova_missile = 24,
         item_nova_missile_launcher = 4800,
 
+        item_10mw_loneheart = 8000,
+        item_20mw_primary = 8000,
+
         item_50mw_generator = 12000,
-        item_10mw_battery = 8000,
-        item_20mw_battery = 16000,
-        item_30mw_battery = 24000,
-        item_40mw_battery = 32000,
-        item_50mw_battery = 40000,
-        item_60mw_battery = 48000,
+        item_10mw_secondary = 8000,
+        item_20mw_secondary = 16000,
+        item_30mw_secondary = 24000,
+        item_40mw_secondary = 32000,
+        item_50mw_secondary = 40000,
+        item_60mw_secondary = 48000,
 
         item_prescience_book = 1999,
         item_book_founders = 1999,
@@ -911,7 +914,7 @@ you on the ground before you can invoke SILENCE.
 @"You are docked at an armor shop station.", new() {
             new("Trade: Armor", Trade),
             new("Undock")
-        }) { background = source.type.heroImage };
+        }) { background = source.type.HeroImage };
         TradeMenu Trade(Con c) =>
             new(c, playerShip, source, GetStdPrice, i => i.armor is Armor a ?
                     (int)(a.valueFactor * 0.5 * GetStdPrice(i)) :
@@ -923,7 +926,7 @@ you on the ground before you can invoke SILENCE.
 @"You are docked at an arms dealer station", new() {
             new("Trade: Weapons", Trade),
             new("Undock")
-        }) { background = source.type.heroImage };
+        }) { background = source.type.HeroImage };
         TradeMenu Trade(Con c) =>
             new(c, playerShip, source, GetStdPrice, i => i.weapon is Weapon w ?
                 (int)(w.valueFactor * 0.5 * GetStdPrice(i)) :
@@ -958,7 +961,7 @@ There is a modest degree of artificial gravity here.",
                 SNav.DockArmorReplacement(playerShip, GetReplacePrice),
                 new("Militia Headquarters", MilitiaHeadquarters),
                 new("Undock")
-            }) { background = source.type.heroImage };
+            }) { background = source.type.HeroImage };
         }
         Con Trade(Con from) =>
             new TradeMenu(from, playerShip, source, GetStdPrice,

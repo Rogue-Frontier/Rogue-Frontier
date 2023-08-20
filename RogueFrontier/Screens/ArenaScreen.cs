@@ -28,7 +28,7 @@ public class ArenaScreen : Console, Ob<PlayerShip.Destroyed> {
     MouseWatch mouse;
     public ActiveObject pov;
     ActiveObject nearest;
-    public PlayerMain playerMain;
+    public Mainframe mainframe;
 
     bool passTime = true;
     public ArenaScreen(TitleScreen prev, Settings settings, System World) : base(prev.Width, prev.Height) {
@@ -309,11 +309,11 @@ public class ArenaScreen : Console, Ob<PlayerShip.Destroyed> {
             c.IsVisible = !c.IsVisible;
         }
     }
-    public void Reset() => Reset(playerMain.camera.position);
+    public void Reset() => Reset(mainframe.camera.position);
     public void Reset(XY camera) {
 
         this.camera = camera;
-        playerMain = null;
+        mainframe = null;
         IsFocused = true;
         foreach (var c in Children) {
             c.IsVisible = true;
@@ -326,9 +326,9 @@ public class ArenaScreen : Console, Ob<PlayerShip.Destroyed> {
         World.PlaceTiles(tiles);
     }
     public override void Update(TimeSpan timeSpan) {
-        if (playerMain != null) {
-            playerMain.IsFocused = true;
-            playerMain.Update(timeSpan);
+        if (mainframe != null) {
+            mainframe.IsFocused = true;
+            mainframe.Update(timeSpan);
             IsFocused = true;
             base.Update(timeSpan);
             return;
@@ -385,8 +385,8 @@ public class ArenaScreen : Console, Ob<PlayerShip.Destroyed> {
         }
     }
     public override void Render(TimeSpan drawTime) {
-        if (playerMain != null) {
-            playerMain.Render(drawTime);
+        if (mainframe != null) {
+            mainframe.Render(drawTime);
             return;
         }
 
@@ -418,19 +418,19 @@ public class ArenaScreen : Console, Ob<PlayerShip.Destroyed> {
     public override bool ProcessKeyboard(Keyboard info) {
 
         if (info.IsKeyPressed(Escape)) {
-            if (playerMain != null) {
+            if (mainframe != null) {
 
-                if (playerMain.sceneContainer.Children.Any()) {
-                    return playerMain.ProcessKeyboard(info);
+                if (mainframe.sceneContainer.Children.Any()) {
+                    return mainframe.ProcessKeyboard(info);
                 }
 
-                World.RemoveEntity(playerMain.playerShip);
-                var aiShip = new AIShip(playerMain.playerShip.ship, playerMain.playerShip.sovereign, new AttackNearby());
+                World.RemoveEntity(mainframe.playerShip);
+                var aiShip = new AIShip(mainframe.playerShip.ship, mainframe.playerShip.sovereign, new AttackNearby());
                 World.AddEntity(aiShip);
                 World.AddEffect(new Heading(aiShip));
 
                 pov = aiShip;
-                Reset(playerMain.camera.position);
+                Reset(mainframe.camera.position);
 
 
             } else {
@@ -439,8 +439,8 @@ public class ArenaScreen : Console, Ob<PlayerShip.Destroyed> {
                 SadConsole.Game.Instance.Screen = prev;
                 prev.IsFocused = true;
             }
-        } else if (playerMain != null) {
-            return playerMain.ProcessKeyboard(info);
+        } else if (mainframe != null) {
+            return mainframe.ProcessKeyboard(info);
         }
 
         if (info.IsKeyPressed(Tab)) {
@@ -457,8 +457,8 @@ public class ArenaScreen : Console, Ob<PlayerShip.Destroyed> {
                 var p = new Player() { Settings = settings, Genome = new GenomeType() { name = "Human" } };
                 var playerShip = new PlayerShip(p, new BaseShip(a.ship), a.sovereign);
 
-                playerMain = new PlayerMain(Width, Height, null, playerShip) { IsFocused = true };
-                playerMain.camera.position = camera;
+                mainframe = new Mainframe(Width, Height, null, playerShip) { IsFocused = true };
+                mainframe.camera.position = camera;
                 playerShip.onDestroyed += this;
                 World.AddEntity(playerShip);
                 World.AddEffect(new Heading(playerShip));
@@ -505,8 +505,8 @@ public class ArenaScreen : Console, Ob<PlayerShip.Destroyed> {
         return base.ProcessKeyboard(info);
     }
     public override bool ProcessMouse(MouseScreenObjectState state) {
-        if (playerMain != null) {
-            return playerMain.ProcessMouse(state);
+        if (mainframe != null) {
+            return mainframe.ProcessMouse(state);
         }
 
         mouse.Update(state, IsMouseOver);

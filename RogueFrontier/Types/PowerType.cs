@@ -59,7 +59,7 @@ public record PowerRechargeWeapon() : PowerEffect {
 public record PowerJump() : PowerEffect {
     [Opt] public int distance = 100;
     public PowerJump(XElement e) : this() => e.Initialize(this);
-    public void Invoke(PlayerMain main) {
+    public void Invoke(Mainframe main) {
         main.Jump();
         Invoke(main.playerShip);
     }

@@ -242,10 +242,11 @@
 	<StationType	codename=	"station_iron_pirates_hideout"
 					name=		"Iron Pirates hideout"
 					sovereign=	"sovereign_iron_pirates"
-					hp=			"250"
 					behavior=	"pirate"
 					structure=	"RogueFrontierContent/sprites/station_iron_pirates_hideout.asc.cg"
 		>
+
+		<HP	maxHP="250"/>
 		<Ships>
 			<Ship	count="10"	codename="ship_iron_gunboat"/>
 			<Ship	count="2"	codename="ship_iron_missileship" order="patrol" patrolRadius="25"/>
@@ -257,10 +258,11 @@
 	<StationType	codename="station_iron_pirates_foundry"
 		name=		"Iron Pirates foundry"
 		sovereign=	"sovereign_iron_pirates"
-		hp=			"500"
 		behavior=	"pirate"
 		structure=	"RogueFrontierContent/sprites/station_iron_pirates_foundry.asc.cg"
 		>
+
+		<HP	maxHP="500"/>
 		<Ships>
 			<Ship	count="15"	codename="ship_iron_gunboat"/>
 			<Ship	count="3"	codename="ship_iron_missileship" order="patrol" patrolRadius="15">

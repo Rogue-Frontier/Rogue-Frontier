@@ -5,11 +5,12 @@
 
 					behavior=	"constellationShipyard"
 
-					hp=			"700"
 					crimeOnDestroy="true"
 
 					structure=	"RogueFrontierContent/sprites/station_constellation_shipyard.asc.cg"
 		>
+
+		<HP	maxHP="700"/>
 		<Ships>
 			<Ship	count="2"	codename="ship_clark"/>
 		</Ships>

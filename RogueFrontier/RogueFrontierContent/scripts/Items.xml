@@ -483,7 +483,7 @@
 		mass=		"6000"
 		level=		"1"
 		value=		"5000"
-		desc=		"This strong armor is made for the Knight series of gunships."
+		desc=		"This strong armor is made for the Knight series of gunships. Knightscale can continue absorbing damage after knockdown."
 		>
 		<Armor
 			minAbsorb=		"1"
@@ -497,7 +497,7 @@
 		mass=		"9000"
 		level=		"2"
 		value=		"4500"
-		desc=		"This heavy armor is the main choice of plating for the Clark-class transport."
+		desc=		"This heavy armor lets you 'bump into' things such as powerful missiles without dying, which is useful for large ships like the Clark-class transport."
 		>
 		<Armor
 			reflectFactor=	"0.75"

@@ -115,6 +115,10 @@ public class LayeredArmor : HullSystem {
     public int GetHP() => layers.Sum(l => l.hp);
     public int GetMaxHP() => layers.Sum(l => l.source.armor.maxHP);
     public void Restore() {
-        layers.ForEach(l => l.hp = l.source.armor.maxHP);
+        layers.ForEach(l => {
+            l.decay.Clear();
+            l.lifetimeDamageAbsorbed = 0;
+            l.hp = l.source.armor.maxHP;
+        });
     }
 }

@@ -159,8 +159,8 @@
 			<Weapon codename="item_flashbang_cannon"/>
 			<Weapon codename="item_lightning_cannon" omnidirectional="true"/>
 			<Reactor codename="item_50mw_generator"/>
-			<Reactor codename="item_30mw_battery"/>
-			<Reactor codename="item_30mw_battery"/>
+			<Reactor codename="item_30mw_secondary"/>
+			<Reactor codename="item_30mw_secondary"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_shining_armor"/>
@@ -171,9 +171,10 @@
 	<StationType	codename="station_perfectron_fortress"
 					name=		"Perfectron fortress"
 					sovereign=	"sovereign_perfectron"
-					hp=			"600"
 					structure="RogueFrontierContent/sprites/NRobotFortress.asc.cg"
 		>
+
+		<HP	maxHP="600"/>
 		<Weapons>
 			<Weapon codename="item_lightning_cannon"	posX="4" posY="-4"/>
 			<Weapon codename="item_lightning_cannon"	posX="-4" posY="4"/>
@@ -185,9 +186,9 @@
 	<StationType	codename="station_perfectron_power_station"
 					name=		"Perfectron generator"
 					sovereign=	"sovereign_perfectron"
-					hp=			"400"
 					structure="RogueFrontierContent/sprites/NRobotPowerStation.asc.cg"
 		>
+		<HP	maxHP="400"/>
 		<Weapons>
 			<Weapon codename="item_lightning_vent"	posX="3" posY="0" angle="0" leftRange="75" rightRange="75"/>
 			<Weapon codename="item_lightning_vent"	posX="-3" posY="0" angle="180" leftRange="75" rightRange="75"/>

@@ -21,7 +21,7 @@ public class EffectParticle : Effect {
     }
     public static void DrawArrow(System world, XY worldPos, XY offset, Color color) {
         //Draw an effect for the cursor
-        world.AddEffect(new EffectParticle(worldPos, new ColoredGlyph(color, Color.Transparent, '+'), 1));
+        world.AddEffect(new EffectParticle(worldPos, new ColoredGlyph(color, Color.Transparent, 7), 1));
         //Draw a trail leading back to the player
         var trailNorm = offset.normal;
         var trailLength = Math.Min(3, offset.magnitude / 4) + 1;

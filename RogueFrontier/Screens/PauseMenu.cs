@@ -12,9 +12,9 @@ using System.Linq;
 namespace RogueFrontier;
 
 public class PauseScreen : Console {
-    public PlayerMain playerMain;
+    public Mainframe playerMain;
     public SparkleFilter sparkle;
-    public PauseScreen(PlayerMain playerMain) : base(playerMain.Width, playerMain.Height) {
+    public PauseScreen(Mainframe playerMain) : base(playerMain.Width, playerMain.Height) {
         this.playerMain = playerMain;
         this.sparkle = new SparkleFilter(Width, Height);
 
@@ -107,7 +107,10 @@ public class PauseScreen : Console {
     }
 
     public void SelfDestruct() {
+        
+        
         var p = playerMain.playerShip;
+        p.ship.active = false;
         var items = p.cargo
             .Concat(p.devices.Installed.Select(d => d.source).Where(i => i != null))
             .Concat((p.hull as LayeredArmor)?.layers.Select(l => l.source)??new List<Item>());
@@ -115,7 +118,6 @@ public class PauseScreen : Console {
         playerMain.world.AddEntity(w);
 
         playerMain.world.RemoveEntity(p);
-
         playerMain.OnPlayerDestroyed("Self destructed", w);
     }
     public void Quit() {
