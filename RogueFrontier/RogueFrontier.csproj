@@ -149,6 +149,9 @@
     <None Update="RogueFrontierContent\sounds\autopilot_off.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="RogueFrontierContent\sounds\vent_fire.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="RogueFrontierContent\sprites\AmethystStore.asc">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>

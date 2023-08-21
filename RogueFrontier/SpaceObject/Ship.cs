@@ -810,23 +810,16 @@ public class PlayerShip : IShip {
 
         if(ticks%15 == 0) {
             visibleDistanceLeft.Clear();
-
             foreach (var e in world.entities.all) {
                 visibleDistanceLeft[e.id] = SStealth.GetVisibleDistanceLeft(e, this);
             }
             foreach(var e in tracking.Keys) {
                 visibleDistanceLeft[e.id] = 16;
-                tracking[e] -= 15;
-                if(!e.active || tracking[e] < 1) {
+                tracking[e] -= 1;
+                if(!e.active || tracking[e] == 0) {
                     tracking.Remove(e);
                 }
             }
-            /*
-            world.entities.all.Select(e => e switch {
-                Station st => visibleDistanceLeft[st] = SStealth.GetVisibleRange(st.type.stealth) - (e.position - position).magnitude,
-                AIShip ai => visibleDistanceLeft[ai] = SStealth.GetVisibleRange(ai.ship.stealth) - (e.position - position).magnitude,
-            });
-            */
         }
         if (ticks % 60 == 0) {
             visible = new(world.entities.FilterKey(p => (position - p).maxCoord < 50).Where(CanSee));

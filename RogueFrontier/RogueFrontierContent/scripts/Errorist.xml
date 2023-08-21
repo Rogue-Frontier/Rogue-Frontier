@@ -114,6 +114,8 @@
 			fireCooldown=	"5"
 			spray=			"true"
 			structural=		"true"
+			
+			sound=			"RogueFrontierContent/sounds/vent_fire.wav"
 			>
 			<Projectile
 				omnidirectional="true"

@@ -280,7 +280,7 @@
 				glyph=			"+"
 				foreground=		"Violet"
 				
-				tracker=		"true"
+				tracker=		"8"
 				>
 				<Flash intensity="8"/>
 			</Projectile>

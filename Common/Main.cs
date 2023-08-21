@@ -575,32 +575,21 @@ public static class Main {
         var halfWidth = dimensions.x / 2;
         var halfHeight = dimensions.y / 2;
         var diagonalAngle = dimensions.angleRad;
-        if ((angleRad < diagonalAngle || angleRad > Math.PI * 2 - diagonalAngle)  //Right side
-            || (angleRad < Math.PI + diagonalAngle && angleRad > Math.PI - diagonalAngle) //Left side
-            ) {
-            var cos = Math.Cos(angleRad);
-            var sin = Math.Sin(angleRad);
 
-            var factor = Math.Abs(halfWidth / cos);
-            return center + new XY(cos * factor, sin * factor);
-        } else /* if((angle < Math.PI - diagonalAngle && angle > diagonalAngle)	//Top side
-				|| (angle < 2 * Math.PI - diagonalAngle && angle > Math.PI + diagonalAngle)
-				) */ {
-            var cos = Math.Cos(angleRad);
-            var sin = Math.Sin(angleRad);
-            var factor = Math.Abs(halfHeight / sin);
-            return center + new XY(cos * factor, sin * factor);
-        } /* else if(angle == diagonalAngle) {
-				return new XY(dimensions.x, dimensions.y);
-			} else if(angle == Math.PI - diagonalAngle) {
-				return new XY(0, dimensions.y);
-			} else if(angle == Math.PI + diagonalAngle) {
-				return new XY(0, 0);
-			} else if(angle == 2 * Math.PI - diagonalAngle) {
-				return new XY(dimensions.x, 0);
-			} else {
-				throw new Exception($"Invalid angle: {angle}");
-			} */
+
+        var cos = Math.Cos(angleRad);
+        var sin = Math.Sin(angleRad);
+
+        bool horizontal = (angleRad < diagonalAngle || angleRad > Math.PI * 2 - diagonalAngle)
+            || (angleRad < Math.PI + diagonalAngle && angleRad > Math.PI - diagonalAngle);
+
+        double factor =
+            horizontal ?
+                Math.Abs(halfWidth / cos) :
+                Math.Abs(halfHeight / sin);
+        var offset = new XY(cos * factor, sin * factor);
+        var result = center + offset;
+        return result;
     }
 
     public static List<string> Wrap(this string s, int width) {

@@ -1187,8 +1187,8 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
             }
         }
         if (flash > 0) {
-            borderSize += Math.Min(5, 5 * flash / 30f);
-            borderColor = borderColor.Blend(Color.White.SetAlpha((byte)Math.Min(255, 255 * flash / 30)));
+            borderSize += Math.Min(8, 8 * flash / 30f);
+            borderColor = borderColor.Blend(Color.Gray.SetAlpha((byte)Math.Min(255, 255 * flash / 30)));
         } else if (player.ship.disruption?.ticksLeft > 0) {
             var ticks = player.ship.disruption.ticksLeft;
             var strength = Math.Min(ticks / 60f, 1);
@@ -1201,6 +1201,7 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
             borderColor = borderColor.Blend(b.SetAlpha((byte)(br)));
         }
 
+        //Cover the border in visual snow
         if (player.ship.blindTicks > 0) {
             for (int i = 0; i < borderSize; i++) {
                 var d = 1d * i / borderSize;
@@ -1231,11 +1232,12 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
             }
         }
         if (lightningHit > 0) {
-            var i = 2;
-            var c = new Color(255, 0, 0, 225 * lightningHit/5);
+            var i = 1;
+            var c = new Color(255, 0, 0, 153 * lightningHit/5);
             foreach(var p in new Rectangle(i, i, Width - i * 2, Height - i * 2).PerimeterPositions()) {
                 var (x, y) = p;
-                Surface.SetBackground(x, y, c);
+                Surface.SetBackground(x, y, Surface.GetBackground(x, y).Blend(c));
+                //Surface.SetBackground(x, y, c);
             }
         }
         if (armorDecay) {
@@ -1871,7 +1873,7 @@ public class Edgemap : ScreenSurface {
     }
     public override void Render(TimeSpan drawTime) {
         Surface.Clear();
-        var screenSize = new XY(Width - 2, Height - 2);
+        var screenSize = new XY(Width - 1, Height - 1);
         var screenCenter = screenSize / 2;
         var halfWidth = Width / 2;
         var halfHeight = Height / 2;

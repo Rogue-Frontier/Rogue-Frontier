@@ -926,11 +926,17 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             goto Cancel;
         }
         UpdateProjectileDesc();
-        delay = 
-            beginRepeat ?
+        delay =
+            //No repeats
+            desc.repeat == 0 ?
                 desc.fireCooldown :
-            endRepeat ? 
-                desc.repeatDelayEnd :
+            //Begin
+            beginRepeat ?
+                desc.repeatDelay :
+            //End
+            endRepeat ?
+                desc.fireCooldown :
+            //Middle
                 desc.repeatDelay;
         if (beginRepeat) {
             repeatsLeft = desc.repeat;
@@ -992,11 +998,17 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             goto Cancel;
         }
         UpdateProjectileDesc();
-        delay = 
-            beginRepeat ?
+        delay =
+            //No repeats
+            desc.repeat == 0 ?
                 desc.fireCooldown :
+            //Begin
+            beginRepeat ?
+                desc.repeatDelay :
+            //End
             endRepeat ?
-                desc.repeatDelayEnd :
+                desc.fireCooldown :
+                //Middle
                 desc.repeatDelay;
         if (beginRepeat) {
             repeatsLeft = desc.repeat;
@@ -1114,7 +1126,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
                     if (pl.tracking.TryGetValue(hit, out var t)) {
                         time = Math.Max(t, time);
                     }
-                    pl.tracking[hit] = projectileDesc.tracker;
+                    pl.tracking[hit] = time;
                 }
             }
         }
