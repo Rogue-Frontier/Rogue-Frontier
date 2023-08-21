@@ -158,13 +158,11 @@ public class Projectile : MovingObject {
                             lifetime = 0;
                             destroyed = true;
                             break;
-                        case ActiveObject hit when !destroyed && hit.active:
-
+                        case ActiveObject {active:true } hit when !destroyed && (desc.hitNonTarget || new[] {null, hit}.Contains(maneuver?.target)):
                             hitReflected |= world.karma.NextDouble() < desc.detonateFailChance;
                             var angle = (position - hit.position).angleRad;
                             var cg = new ColoredGlyph(hitHull ? Color.Yellow : Color.LimeGreen, Color.Transparent, 'x');
                             world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle), hit.velocity, cg, 10));
-
 
                             hit.Damage(this);                            
                             onHitActive.Observe(new(this, hit));

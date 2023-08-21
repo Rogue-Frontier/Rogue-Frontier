@@ -7,6 +7,7 @@
 		invokeDelay=	"90"
 		cooldownTime=	"3600"
 		message=		"You channel the energy of SILENCE"
+		voice=			"Orator"
 		>
 		<RechargeWeapon codename="item_magic_blaster_i" maxCharges="200"/>
 		<RechargeWeapon codename="item_magic_blaster_ii" maxCharges="200"/>
@@ -34,6 +35,7 @@
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
 		message=		"You RECITE the healing words"
+		voice=			"Orator"
 		>
 		<Heal/>
 	</PowerType>
@@ -42,6 +44,7 @@
 		invokeDelay=	"150"
 		cooldownTime=	"3600"
 		message=		"You PROTECT yourself from bad faith"
+		voice=			"Orator"
 		>
 		<ProjectileBarrier barrierType="shield" lifetime="900" radius="4"/>
 	</PowerType>
@@ -50,6 +53,7 @@
 		invokeDelay=	"180"
 		cooldownTime=	"3600"
 		message=		"You ENLIGHTEN yourself about nearby threats"
+		voice=			"Orator"
 		>
 		<Reveal/>
 	</PowerType>
@@ -59,6 +63,7 @@
 		cooldownTime=	"3600"
 		message=		"In the face of death, you REFLECT on past events"
 		onDestroyCheck=	"true"
+		voice=			"Orator"
 		>
 		<ProjectileBarrier barrierType="bubble" lifetime="900" radius="1"/>
 		<!--
@@ -87,6 +92,7 @@
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
 		message=		"You channel the energy of SILENCE"
+		voice=			"Dictator"
 		>
 		<Projectile
 			count=			"120"
@@ -105,12 +111,12 @@
 				background=	"BB1111FF"/>
 		</Projectile>
 	</PowerType>
-
 	<PowerType codename="power_deflect_dictator"
 		name=			"DEFLECT"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
-		message=		"You DEFLECT incoming attacks"
+		message=		"You DEFLECT oncoming attacks"
+		voice=			"Dictator"
 		>
 		<ProjectileBarrier barrierType="bounce" lifetime="900" radius="4"/>
 	</PowerType>
@@ -119,6 +125,7 @@
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
 		message=		"You DECRY the actions of your attackers"
+		voice=			"Dictator"
 		>
 		<ProjectileBarrier barrierType="multiplyAttack" lifetime="900" radius="4"/>
 	</PowerType>
@@ -126,7 +133,8 @@
 		name=			"JUMP"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
-		message=		""
+		message=		"You JUMP to conclusions."
+		voice=			"Dictator"
 		>
 		<Jump/>
 	</PowerType>
@@ -136,6 +144,7 @@
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
 		message=		"You EXECUTE anyone who dares to oppose you"
+		voice=			"Dictator"
 		>
 		<Clonewall/>
 	</PowerType>
@@ -154,7 +163,7 @@
 			>
 		</PowerType>
 		
-		<!--The Rhetor-->
+		<!--The Instigator-->
 		<PowerType codename="power_silence"
 			name=			"RIOT"
 			invokeDelay=	"120"

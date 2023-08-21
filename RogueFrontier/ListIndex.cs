@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 namespace RogueFrontier;
-public class ListIndex<T> {
+public class ListTracker<T> {
     private int _index = 0;
     public int index {
         get => _index;
@@ -42,8 +42,15 @@ public class ListIndex<T> {
     }
 
     public bool Has(out T t) => (t = item) != null;
-    public ListIndex(List<T> list) {
+    public ListTracker(List<T> list) {
         this.list = list;
+    }
+    public ListTracker(ListTracker<T> tracker) {
+        (list, index) = tracker;
+    }
+    public void Deconstruct(out List<T> list, out int index) {
+        list = this.list;
+        index = this.index;
     }
 
     public void Adjust(T item) {
@@ -60,17 +67,22 @@ public class ListIndex<T> {
         index += count;
         return l;
     }
+    public List<T> GetAllNext() {
+        if (list.Count == 0) return list;
+        var l = Enumerable.Range(index, list.Count).Select(i => list[i % list.Count]).ToList();
+        return l;
+    }
     public T GetNext() {
         var f = list[index];
         index++;
         return f;
     }
     public T GetFirstOrNext(Func<T, bool> f) => list.FirstOrDefault(f) ?? GetNext();
-    public static ListIndex<T> operator+(ListIndex<T> i, int n) {
+    public static ListTracker<T> operator+(ListTracker<T> i, int n) {
         i.index += n;
         return i;
     }
-    public static ListIndex<T> operator++(ListIndex<T> i) {
+    public static ListTracker<T> operator++(ListTracker<T> i) {
         i.index++;
         return i;
     }

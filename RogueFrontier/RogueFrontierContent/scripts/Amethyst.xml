@@ -72,6 +72,18 @@
 			maxOutput=		"25"
 			capacity=		"4000"
 			efficiency=		"1.2"
+			rechargeable=	"false"
+			/>
+	</ItemType>
+	<ItemType	codename=	"item_amethyst_50mw_generator"
+				name=		"Amethyst 50MW generator"
+				level=		"1"
+				mass=		"3000"
+		>
+		<Reactor
+			maxOutput=		"50"
+			capacity=		"8000"
+			efficiency=		"1.2"
 			rechargeable=		"false"
 			/>
 	</ItemType>
@@ -260,6 +272,8 @@
 				damageHP=		"1d8"
 				shieldFactor=	"2"
 				
+				hitNonTarget=	"false"
+				
 				multiTarget=	"true"
 				
 				lifetime=		"180"
@@ -296,6 +310,28 @@
 			>
 		</Shield>
 	</ItemType>
+	<ItemType	codename=	"item_shimmer_shield_ii"
+		name=		"Shimmer shield II"
+		level=		"3"
+		mass=		"200"
+		value=		"800"
+		
+		attributes= "Amethyst"
+				
+		desc=		"Fight faster. Recover faster. Repeat. Shimmer shield is designed for the pilot that boldly goes."
+		>
+		<Shield
+			powerUse=		"30"
+			idlePowerUse=	"3"
+			maxHP=			"120"
+			damageDelay=	"60"
+			depletionDelay=	"120"
+			regen=			"60 / 150"
+			>
+		</Shield>
+	</ItemType>
+	
+	
 	<ItemType	codename=	"item_amethyst_repair_kit_i"
 				name=		"Amethyst Armor Repair Kit"
 				level=		"1"
@@ -388,7 +424,8 @@
 		name=			"SHINE"
 		invokeDelay=	"120"
 		cooldownTime=	"3600"
-		message=		"You SHINE bright in the light of fire"
+		message=		"You SHINE bright in the fire"
+		voice=			"Orator"
 		>
 		<ProjectileBarrier barrierType="shield" lifetime="900" radius="6" shape="diamond" color="FF55FFFF"/>
 		<ProjectileBarrier barrierType="shield" lifetime="900" radius="5" shape="diamond" color="FF55FFFF"/>

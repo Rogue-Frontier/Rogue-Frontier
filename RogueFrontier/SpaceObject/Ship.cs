@@ -484,8 +484,8 @@ public class PlayerShip : IShip {
     private void FireOnTargetChanged() => onTargetChanged.ForEach(f => f(this));
     public bool firingPrimary = false;
     public bool firingSecondary = false;
-    public ListIndex<Weapon> primary;
-    public ListIndex<Weapon> secondary;
+    public ListTracker<Weapon> primary;
+    public ListTracker<Weapon> secondary;
     public int mortalChances = 3;
     public double mortalTime = 0;
     public bool autopilot = false;
@@ -502,7 +502,7 @@ public class PlayerShip : IShip {
     public Vi<Destroyed> onDestroyed = new();
     public record Damaged(PlayerShip playerShip, Projectile p);
     public Vi<Damaged> onDamaged = new();
-    public record WeaponFired(PlayerShip playerShip, Weapon w, List<Projectile> p);
+    public record WeaponFired(PlayerShip playerShip, Weapon w, List<Projectile> p, bool sound = true);
     public Vi<WeaponFired> onWeaponFire = new();
     public List<AIShip> wingmates = new();
     public Dictionary<ulong, double> visibleDistanceLeft=new();

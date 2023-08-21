@@ -89,7 +89,7 @@ public class LightningRod : Entity, Ob<Weapon.OnFire>, Ob<Projectile.OnHitActive
         source.onFire += this;
     }
     public void Observe(Weapon.OnFire o) {
-        (var weapon, var projectiles) = o;
+        var (weapon, projectiles) = o;
         if (!active) {
             weapon.onFire -= this;
             return;
@@ -105,7 +105,7 @@ public class LightningRod : Entity, Ob<Weapon.OnFire>, Ob<Projectile.OnHitActive
 
         if (!p.active) { return; }
         var source = p.source;
-        var direction = Main.CalcFireAngle(target.position - p.position, target.velocity - source.velocity, 300, out var _);
+        var direction = Main.CalcFireAngle(target.position - p.position, target.velocity - source.velocity, 300, out var timeToHit);
         p.velocity = source.velocity + XY.Polar(direction, 300);
         p.onHitActive -= weapon;
         p.onHitActive += this;

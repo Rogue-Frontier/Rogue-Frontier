@@ -7,6 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 namespace RogueFrontier;
+
+public enum Voice {
+    Orator,
+    Dictator,
+    Debater,
+    Instigator
+}
 public record PowerType() : IDesignType {
     [Req] public string codename;
     [Req] public string name;
@@ -16,11 +23,26 @@ public record PowerType() : IDesignType {
     [Opt] public string message = null;
     //public HashSet<string> attributes;
     [Opt] public bool scareEnemies;
+
+    [Req] public Voice voice;
+
+    public static Dictionary<Voice, Color> glowColors = new() {
+        [Voice.Orator] = new Color(204, 153, 255),
+        [Voice.Dictator] = Color.OrangeRed,
+        [Voice.Debater] = Color.Yellow,
+        [Voice.Instigator] = Color.Green
+    };
+    public Color glowColor;
+
     public List<PowerEffect> Effect;
     public void Initialize(TypeCollection collection, XElement e) {
         var parent = e.TryAtt("inherit", out var inherit) ? collection.Lookup<PowerType>(inherit) : null;
-        e.Initialize(this, parent);
-        //attributes = new(e.TryAtt("Attributes", "").Split("; "));
+        e.Initialize(this, parent, transform: new() {
+            [nameof(voice)] = (Voice v) => {
+                glowColor = glowColors[v];
+                return v;
+            }
+        });
         Effect = new(e.Elements().Select(e => (PowerEffect)(e.Name.LocalName switch {
             "Projectile" => new PowerProjectile(e),
             "Heal" => new PowerHeal(),
@@ -91,10 +113,10 @@ public record PowerStorm() : PowerEffect {
     }
 }
 public record Clonewall() : PowerEffect {
-    [Opt] public int lifetime = 60 * 60;
+    [Opt] public int lifetime = 20;
     public Clonewall(XElement e) : this() => e.Initialize(this);
     public void Invoke(PlayerShip player) {
-        var o = new Overlay(player);
+        var o = new Overlay(player, lifetime);
         player.world.AddEffect(o);
         player.onWeaponFire += o;
     }
@@ -102,7 +124,7 @@ public record Clonewall() : PowerEffect {
         int ticks;
         PlayerShip owner;
         public XY position => owner.position;
-        public bool active => owner.active && owner.world.effects.Contains(this);
+        public bool active => owner.active && owner.world.effects.Contains(this) && lifetime > 0;
         public ColoredGlyph tile => null;
 
 
@@ -110,8 +132,10 @@ public record Clonewall() : PowerEffect {
         private double[] directions;
         private FragmentDesc ready;
         private bool busy = false;
-        public Overlay(PlayerShip owner) {
+        private double lifetime;
+        public Overlay(PlayerShip owner, double lifetime) {
             this.owner = owner;
+            this.lifetime = lifetime;
             UpdateOffsets();
             directions = new double[offsets.Count];
         }
@@ -125,7 +149,7 @@ public record Clonewall() : PowerEffect {
                         XY.Polar(owner.rotationRad + Math.PI / 2, 6),
                     };
          public void Observe(PlayerShip.WeaponFired ev){
-            var (p, w, pr) = ev;
+            var (p, w, pr, _) = ev;
             if (!active) {
                 p.onWeaponFire -= this;
                 return;
@@ -141,7 +165,7 @@ public record Clonewall() : PowerEffect {
             var target = w.targeting?.GetMultiTarget().ToList();
             busy = true;
             offsets.ForEach(o => {
-                var l = w.CreateProjectiles(owner, target, directions[i++]);
+                var l = w.CreateProjectiles(owner, target, directions[i++], false);
                 l.ForEach(p => p.position += o);
                 l.ForEach(owner.world.AddEntity);
                 w.ammo?.OnFire();
@@ -152,6 +176,7 @@ public record Clonewall() : PowerEffect {
         }
         public void Update(double delta) {
             ticks++;
+            lifetime -= delta;
             if(owner.GetPrimary() is Weapon w) {
                 if (w.delay == 0) {
                     ready = w.projectileDesc;

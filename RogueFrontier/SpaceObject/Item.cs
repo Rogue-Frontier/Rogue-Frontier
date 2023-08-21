@@ -1030,7 +1030,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         (user.position - target.position).magnitude < projectileDesc.range;
     public bool AllowFire => ammo?.AllowFire ?? true;
     public bool ReadyToFire => delay == 0 && (capacitor?.AllowFire ?? true) && (ammo?.AllowFire ?? true);
-    public List<Projectile> CreateProjectiles(ActiveObject owner, List<ActiveObject> targets, double direction) {
+    public List<Projectile> CreateProjectiles(ActiveObject owner, List<ActiveObject> targets, double direction, bool sound = true) {
         HashSet<Entity> exclude = new() { null };
         if (!projectileDesc.hitSource) {
             exclude.Add(owner);
@@ -1049,7 +1049,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             case PlayerShip p:
                 exclude.UnionWith(p.avoidHit);
                 AllowWeaponTargets(p.devices.Weapon);
-                p.onWeaponFire.Observe(new(p, this, projectiles));
+                p.onWeaponFire.Observe(new(p, this, projectiles, sound));
                 break;
             case AIShip ai:
                 exclude.UnionWith(ai.avoidHit);
@@ -1171,31 +1171,32 @@ public class Targeting : IDestroyedListener {
     public void Observe(IDestroyedListener.Destroyed ev) {
         var (s, d) = ev;
         targets.Remove(s);
-        index.Adjust(s);
+        tracker.Adjust(s);
         ticks = 0;
     }
     public IEnumerable<ActiveObject> GetMultiTarget() {
         if (cycleTargets) {
-            foreach(var t in index.list) {
+            //Put the current index first
+            foreach(var t in tracker.GetAllNext()) {
                 yield return t;
             }
         } else {
             yield return target;
         }
     }
-    public List<ActiveObject> targets => index.list;
-    public ListIndex<ActiveObject> index;
+    public List<ActiveObject> targets => tracker.list;
+    public ListTracker<ActiveObject> tracker;
     public ActiveObject target {
-        get => index.item;
+        get => tracker.item;
         set {
-            index.list.Clear();
-            index.list.Add(value);
-            index.Reset();
+            tracker.list.Clear();
+            tracker.list.Add(value);
+            tracker.Reset();
         }
     }
     public Targeting(bool cycleTargets) {
         this.cycleTargets = cycleTargets;
-        index = new(new());
+        tracker = new(new List<ActiveObject>());
     }
     public void Update(ActiveObject owner, Weapon weapon, Func<ActiveObject, bool> filter) {
         if (ticks++ % 30 != 0) {
@@ -1205,21 +1206,25 @@ public class Targeting : IDestroyedListener {
             && owner.CanSee(t)
             && weapon.IsInRange(owner.position - t.position)
             ));
-        index.Adjust(target);
+        
+        if(ticks%60 == 0) {
+            targets.AddRange(AcquireTargets(owner, weapon, filter));
+        }
+        tracker.Adjust(target);
         if (targets.Any()) {
             return;
         }
-        var current = SSpaceObject.GetTargets(owner);
+        var currentTargets = SSpaceObject.GetWeaponTargets(owner);
         targets.AddRange(AcquireTargets(owner, weapon, filter));
-        index.Reset();
-        index.Skip(current);
+        tracker.Reset();
+        tracker.Skip(currentTargets);
         foreach (var t in targets) {
             ((IDestroyedListener)this).Register(t);
         }
     }
     public void OnFire() {
         if (cycleTargets) {
-            index++;
+            tracker++;
         }
     }
     public void Update(Station owner, Weapon weapon) =>
@@ -1302,7 +1307,7 @@ public class Swivel : IAiming {
     public void Update(ActiveObject owner, Weapon weapon) {
         if (weapon.targeting.cycleTargets) {
             direction = null;
-            weapon.targeting.index.CycleWhile(t => {
+            weapon.targeting.tracker.CycleWhile(t => {
                 var dir = Omnidirectional.GetFireAngle(owner, t, weapon);
                 var deltaRad = Main.AngleDiffRad(facing, dir);
                 if (deltaRad > 0 ? deltaRad > leftRange : -deltaRad > rightRange) {

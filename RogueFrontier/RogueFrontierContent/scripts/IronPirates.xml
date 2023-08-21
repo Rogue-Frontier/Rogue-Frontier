@@ -34,7 +34,7 @@
 			level=		"2"
 			invoke=		"installWeapon"
 			desc=		"The Iron Driver is a makeshift kinetic mass driver with rapid-fire capabilities."
-				>
+			>
 		<Weapon		powerUse=		"15"
 					fireCooldown=	"20"
 					initialCharges=	"300"
@@ -128,7 +128,7 @@
 				name=		"Ironside plate"
 				mass=		"5000"
 				level=		"2"
-				desc=		"When this armor is on its last HP, nothing will take it down except for a very strong hit or very severe rusting."
+				desc=		"When this armor is on its last HP, nothing will take it down except for a very strong hit (likely) or very severe rusting (unlikely)."
 		>
 		<Armor	maxHP=		"90"
 				killHP=		"6"/>

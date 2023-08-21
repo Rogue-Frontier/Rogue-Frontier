@@ -29,6 +29,29 @@
 			<Weapon	codename="item_dark_magic_blaster" posX="6" posY="-6" angle="315" leftRange="15" rightRange="15"/>
 		</Weapons>
 	</StationType>
+	<ShipClass  codename="ship_quietus"
+			name="Quietus"
+			attributes=	"Murmurs"
+			thrust="1"
+			maxSpeed="30"
+			rotationAccel="8"
+			rotationDecel="15"
+			rotationMaxSpeed="10"
+
+			glyph="q"
+			foreground="5511AAFF"
+			background="Black"
+        >
+		<Devices>
+			<Weapon	codename="item_dark_lightning_cannon"/>
+		</Devices>
+		<LayeredArmorSystem>
+			<Armor  codename="item_darkened_knightsteel_plate"/>
+			<Armor  codename="item_darkened_knightsteel_plate"/>
+			<Armor  codename="item_darkened_knightsteel_plate"/>
+			<Armor  codename="item_darkened_knightsteel_plate"/>
+		</LayeredArmorSystem>
+	</ShipClass>
 
 	<ItemType	codename=	"item_dark_magic_blaster"
 		name=		"Dark magic blaster"
@@ -82,6 +105,14 @@
 			
 			shieldDrill=		"0.1"
 			>
+			<!--
+			
+				count=			"3"
+				spreadAngle=	"15"
+				multiTarget=	"true"
+				omnidirectional="true"
+			
+			-->
 			<Projectile
 				missileSpeed=	"50"
 				damageType=		"1"

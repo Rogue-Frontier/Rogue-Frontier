@@ -419,6 +419,7 @@ public record WeaponDesc {
     [Sub(required = true)] public FragmentDesc Projectile;
     [Sub] public CapacitorDesc Capacitor;
 
+    public int barrageSize => (repeat + 1) * Projectile.count;
     public int missileSpeed => Projectile.missileSpeed;
     public int damageType => Projectile.damageType;
     public IDice damageHP => Projectile.damageHP;
@@ -491,6 +492,7 @@ public record FragmentDesc {
     [Opt] public bool hitSource;
     [Opt] public bool hitProjectile;
     [Opt] public bool hitBarrier = true;
+    [Opt] public bool hitNonTarget = true;
     [Opt] public bool magic;
     [Opt] public IDice blind;
     [Opt] public int ricochet;

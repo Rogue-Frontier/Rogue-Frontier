@@ -578,7 +578,7 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         var seed = player.name.GetHashCode();
         Universe u = new Universe(universeDesc, World.types, new Rand(seed));
 
-        var quickStartClass = "ship_player_test";
+        var quickStartClass = "ship_quietus";
         var ent = u.GetAllEntities().OfType<Marker>().ToList();
         var marker = ent.First(e => e.Name == "Start");
         var w = marker.world;
@@ -589,6 +589,9 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
         //playerShip.powers.Add(new Power(w.types.Lookup<PowerType>("power_declare")));
         //playerShip.powers.AddRange(w.types.Get<PowerType>().Select(pt => new Power(pt)));
         playerShip.AddMessage(new Message("Welcome to the Rogue Frontier!"));
+
+        playerShip.powers.Add(new(w.types.Lookup<PowerType>("power_silence_dictator")));
+        playerShip.powers.Add(new(w.types.Lookup<PowerType>("power_execute_dictator")));
 
         w.AddEffect(new Heading(playerShip));
         w.AddEntity(playerShip);

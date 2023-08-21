@@ -559,6 +559,7 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_amethyst_laser_i = 4000,
         item_amethyst_laser_ii = 6000,
         item_shimmer_shield_i = 800,
+        item_shimmer_shield_ii = 1200,
         item_gemsteel_plate_i = 2000,
         item_gemsteel_plate_ii = 3000,
         item_radiant_plate = 3200,
@@ -621,6 +622,7 @@ public class PlayerStory : Ob<EntityAdded>, Ob<Station.Destroyed>, Ob<AIShip.Des
         item_20mw_solar = 500,
 
         item_amethyst_25mw_generator = 6000,
+        item_amethyst_50mw_generator = 12000,
         item_magic_blaster_i = 2000,
         item_magic_blaster_ii = 3000,
         item_amethyst_laser_iii = 8000,

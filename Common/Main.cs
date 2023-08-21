@@ -730,14 +730,14 @@ public static class Main {
         var props = obj.GetType().GetFields();
         foreach (var p in props) {
             foreach(var a in p.GetCustomAttributes(true).OfType<IXmlInit>()) {
-                void Post(ref object value, dynamic f) {
-                    var t = (Type)f.GetType();
+                void Transform(ref object value, object f) {
+                    var t = f.GetType();
                     if (typeof(Action).IsAssignableFrom(t)) {
-                        f();
+                        (f as dynamic)();
                     } else if(typeof(Action<>).IsAssignableFrom(t)) {
-                        f(value as dynamic);
+                        (f as dynamic)(value as dynamic);
                     } else {
-                        value = f(value as dynamic);
+                        value = (f as dynamic)(value as dynamic);
                     }
                 }
                 bool Fallback(dynamic f, out dynamic value) {
@@ -778,8 +778,8 @@ public static class Main {
                         if (self.construct) {
                             value = (self.type ?? p.FieldType).GetConstructor(new[] { typeof(XElement) }).Invoke(new[] { element });
                         }
-                        if (transform?.TryGetValue(p.Name, out dynamic f) == true) {
-                            Post(ref value, f);
+                        if (transform?.TryGetValue(p.Name, out object f) == true) {
+                            Transform(ref value, f);
                         }
                         return value;
                     }
@@ -838,8 +838,8 @@ public static class Main {
                             if (sub.construct) {
                                 value = (sub.type ?? p.FieldType).GetConstructor(new[] { typeof(XElement) }).Invoke(new[] { element });
                             }
-                            if (transform?.TryGetValue(p.Name, out dynamic f) == true) {
-                                Post(ref value, f);
+                            if (transform?.TryGetValue(p.Name, out object f) == true) {
+                                Transform(ref value, f);
                             }
                             return value;
                         }
@@ -904,8 +904,8 @@ public static class Main {
                             }
                         }
                         //dynamic result = parseDict[p.FieldType]();
-                        if (transform?.TryGetValue(p.Name, out dynamic f) == true) {
-                            Post(ref result, f);
+                        if (transform?.TryGetValue(p.Name, out object f) == true) {
+                            Transform(ref result, f);
                         }
                         Set(result);
                     }

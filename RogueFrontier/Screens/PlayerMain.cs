@@ -91,7 +91,7 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
     public bool autopilotUpdate;
     //public bool frameRendered = true;
     public int updatesSinceRender = 0;
-    private ListIndex<System> systems;
+    private ListTracker<System> systems;
 
     public Sound music;
     //EventWaitHandle smooth = new(true, EventResetMode.AutoReset);
@@ -121,7 +121,7 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         pauseScreen = new(this) { IsVisible = false };
         networkMap = new(this) { IsVisible = false };
         crosshair = new(playerShip, "Mouse Cursor", new());
-        systems = new(new(playerShip.world.universe.systems.Values));
+        systems = new(new List<System>(playerShip.world.universe.systems.Values));
         //Don't allow anyone to get focus via mouse click
         FocusOnMouseClick = false;
     }
@@ -152,7 +152,7 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         transition = new GateTransition(prevViewport, nextViewport, () => {
             transition = null;
             if (playerShip.mortalTime <= 0) {
-                vignette.powerAlpha = 0f;
+                vignette.glowAlpha = 0f;
             }
         });
     }
@@ -184,9 +184,6 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         viewport = nextViewport;
         transition = new GateTransition(prevViewport, nextViewport, () => {
             transition = null;
-            if (playerShip.mortalTime <= 0) {
-                vignette.powerAlpha = 0f;
-            }
         });
     }
     public void OnIntermission(Lis<LiveGame.LoadHook> hook = null) {
@@ -732,10 +729,10 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         autopilot_off=Load(nameof(autopilot_off)),
         dock_start = Load(nameof(dock_start)),
         dock_end = Load(nameof(dock_end));
-    ListIndex<Sound> exhaust = new(new(Enumerable.Range(0, 16).Select(i => new Sound() { Volume = 10 })));
-    ListIndex<Sound> gunfire = new(new(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 })));
-    ListIndex<Sound> damage = new(new(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 })));
-    ListIndex<Sound> explosion = new(new(Enumerable.Range(0, 4).Select(i => new Sound() { Volume = 75 })));
+    ListTracker<Sound> exhaust = new(new List<Sound>(Enumerable.Range(0, 16).Select(i => new Sound() { Volume = 10 })));
+    ListTracker<Sound> gunfire = new(new List<Sound>(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 })));
+    ListTracker<Sound> damage = new(new List<Sound>(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 })));
+    ListTracker<Sound> explosion = new(new List<Sound>(Enumerable.Range(0, 4).Select(i => new Sound() { Volume = 75 })));
     Sound targeting = new() { Volume = 50 },
         autopilot = new() { Volume = 50 },
         dock = new() { Volume = 50 };
@@ -803,7 +800,7 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
             ((IWeaponListener)this).Register(a);
         }
     }
-    public Sound GetNextChannel(ListIndex<Sound> i) => i.GetFirstOrNext(s => s.Status == SoundStatus.Stopped);
+    public Sound GetNextChannel(ListTracker<Sound> i) => i.GetFirstOrNext(s => s.Status == SoundStatus.Stopped);
     public void Observe(EntityAdded ev) {
         Register(ev.e);
     }
@@ -823,16 +820,17 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
             p.hitHull ? generic_damage : generic_shield_damage);
     }
     public void Observe(IWeaponListener.WeaponFired ev) {
-        var (e, w, pr) = ev;
+        var (e, w, pr, sound) = ev;
         if (e.world != player.world) {
             return;
         }
         foreach (var p in pr) {
             p.onDetonated += this;
         }
-
-        PlaySoundFrom(gunfire, e,
-            w.desc?.sound ?? generic_fire);
+        if (sound) {
+            PlaySoundFrom(gunfire, e,
+                w.desc?.sound ?? generic_fire);
+        }
     }
     public void Observe(Projectile.Detonated d) {
         var sb = d.source.desc.detonateSound;
@@ -843,7 +841,7 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
             d.source,
             sb);
     }
-    private void PlaySoundFrom(ListIndex<Sound> s, Entity e, SoundBuffer sb) =>
+    private void PlaySoundFrom(ListTracker<Sound> s, Entity e, SoundBuffer sb) =>
         PlaySoundFrom(GetNextChannel(s), e, sb);
     private void PlaySoundFrom(Sound s, Entity e, SoundBuffer sb) {
 
@@ -1065,7 +1063,7 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
     public int Width => Surface.Width;
     public int Height => Surface.Height;
     PlayerShip player;
-    public float powerAlpha;
+    public float glowAlpha;
     public bool armorDecay;
     public HashSet<EffectParticle> particles;
     public XY screenCenter;
@@ -1076,6 +1074,8 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
     int recoveryTime;
     public int lightningHit;
     public int flash;
+    Color glowColor = PowerType.glowColors[Voice.Orator];
+
     public void Observe(PlayerShip.Damaged ev) {
         var (pl, pr) = ev;
         if (pr.desc.lightning) {
@@ -1093,7 +1093,7 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
         player.onDamaged += this;
         player.onDestroyed += this;
         FocusOnMouseClick = false;
-        powerAlpha = 0;
+        glowAlpha = 0;
         particles = new();
         screenCenter = new(width / 2, height / 2);
         r = new();
@@ -1108,9 +1108,12 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
         armorDecay = false && player.hull is LayeredArmor la && la.layers.Any(a => a.decay.Any());
         var charging = player.powers.Where(p => p.charging);
         if (charging.Any()) {
-            var charge = Math.Min(1, charging.Max(p => p.invokeCharge / p.invokeDelay));
-            if (powerAlpha < charge) {
-                powerAlpha += (float)((charge - powerAlpha) / 10f);
+            var (power, charge) = charging.Select(p => (power:p, charge: p.invokeCharge / p.invokeDelay)).MaxBy(p => p.charge);
+            if (glowAlpha < charge) {
+                glowAlpha += (float)((charge - glowAlpha) / 10f);
+            }
+            if(power != null) {
+                glowColor = glowColor.Blend(power.type.glowColor.SetAlpha((byte)(255 * delta.TotalSeconds)));
             }
             if (recoveryTime < 360) {
                 recoveryTime++;
@@ -1119,13 +1122,14 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
         } else {
             if (player.CheckGate(out Stargate gate)) {
                 float targetAlpha = 1;
-                if (powerAlpha < targetAlpha) {
-                    powerAlpha += (targetAlpha - powerAlpha) / 30;
+                if (glowAlpha < targetAlpha) {
+                    glowAlpha += (targetAlpha - glowAlpha) / 30;
                 }
+                glowColor = glowColor.Blend(Color.White.SetAlpha((byte)(255 * delta.TotalSeconds)));
             } else {
                 chargingUp = false;
-                powerAlpha -= (float)(powerAlpha * delta.TotalSeconds);
-                if (powerAlpha < 0.01 && recoveryTime > 0) {
+                glowAlpha -= (float)(glowAlpha * delta.TotalSeconds);
+                if (glowAlpha < 0.01 && recoveryTime > 0) {
                     recoveryTime -= (int)(60 * delta.TotalSeconds);
                 }
             }
@@ -1169,10 +1173,10 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
         Color borderColor = Color.Black;
         var borderSize = 2d;
 
-        if (powerAlpha > 0) {
-            var v = new Color(204, 153, 255, (int)(255 * (float)Math.Min(1, powerAlpha * 1.5)));
+        if (glowAlpha > 0) {
+            var v = glowColor.SetAlpha((byte)(255 * (float)Math.Min(1, glowAlpha * 1.5)));
             borderColor = borderColor.Blend(v).Premultiply();
-            borderSize += 12 * powerAlpha;
+            borderSize += 12 * glowAlpha;
         }
         Mortal();
         void Mortal() {
@@ -1298,8 +1302,12 @@ public class Readout : ScreenSurface {
             DrawTargetArrow(t, Color.SpringGreen);
         }
         //var autoTarget = player.devices.Weapons.Select(w => w.target).FirstOrDefault();
-        foreach (var autoTarget in player.devices.Weapon.Select(w => w.target).Except(new ActiveObject[] { null, playerTarget })) {
-            DrawTargetArrow(autoTarget, Color.Yellow);
+        var autoTargets = player.primary.item?.targeting?.GetMultiTarget()
+            .Except(new ActiveObject[] { null })
+            .Except(player.tracking.Keys)
+            .Take(player.primary.item.desc.barrageSize);
+        foreach (var at in autoTargets ?? Enumerable.Empty<ActiveObject>()) {
+            DrawTargetArrow(at, Color.LightYellow);
         }
         void DrawTargetArrow(ActiveObject target, Color c) {
             var o = (target.position - player.position);
@@ -1445,7 +1453,7 @@ public class Readout : ScreenSurface {
         ActiveObject target;
         if (player.GetTarget(out target)) {
             Surface.Print(targetX, targetY++, "[Target]", Color.White, Color.Black);
-        } else if(player.devices.Weapon.Select(w => w.target).Except(new ActiveObject[] { null }).FirstOrDefault() is ActiveObject found) {
+        } else if(player.primary.item?.target is ActiveObject found) {
             target = found;
             Surface.Print(targetX, targetY++, "[Auto]", Color.White, Color.Black);
         } else {

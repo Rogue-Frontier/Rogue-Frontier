@@ -211,7 +211,7 @@ public class AmethystStore : StationBehavior, Ob<Station.Destroyed>, Ob<Station.
     HashSet<PlayerShip> banned = new();
     int damageTaken;
     public void Observe(Weapon.OnFire ff) {
-        (var weapon, var projectiles) = ff;
+        var(weapon, _) = ff;
         weapon.delay /= 2;
     }
     public void Observe(Station.Destroyed ev) {

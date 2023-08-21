@@ -210,9 +210,9 @@ public interface IWeaponListener : Ob<PlayerShip.WeaponFired>, Ob<AIShip.WeaponF
 
     void Ob<Station.WeaponFired>.Observe(Station.WeaponFired ev) => Observe(new(ev.station, ev.w, ev.p));
     void Ob<AIShip.WeaponFired>.Observe(AIShip.WeaponFired ev) => Observe(new (ev.ship, ev.w, ev.p));
-    void Ob<PlayerShip.WeaponFired>.Observe(PlayerShip.WeaponFired ev) => Observe(new (ev.playerShip, ev.w, ev.p));
+    void Ob<PlayerShip.WeaponFired>.Observe(PlayerShip.WeaponFired ev) => Observe(new (ev.playerShip, ev.w, ev.p, ev.sound));
 
-    public record WeaponFired(ActiveObject source, Weapon w, List<Projectile> proj);
+    public record WeaponFired(ActiveObject source, Weapon w, List<Projectile> proj, bool sound = true);
     public void Observe(WeaponFired ev);
 
     public void Register(ActiveObject target) {

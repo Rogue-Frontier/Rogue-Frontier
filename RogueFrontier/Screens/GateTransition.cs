@@ -39,11 +39,14 @@ public class GateTransition : Console {
         prev.Update(delta);
         //next.Update(delta);
         base.Update(delta);
-        amount += delta.TotalSeconds * 1.2;
+        amount += delta.TotalSeconds * 1;
 
         if (amount < 1) {
             rect = new Rectangle(new(Width / 2, Height / 2), (int)(amount * Width / 2), (int)(amount * Height / 2));
             particles.AddRange(rect.PerimeterPositions().Select(p => new Particle(15, p)));
+            particles.ForEach(p => p.lifetime--);
+            particles.RemoveAll(p => p.lifetime < 1);
+        } else if(particles.Any()) {
             particles.ForEach(p => p.lifetime--);
             particles.RemoveAll(p => p.lifetime < 1);
         } else {
@@ -55,7 +58,7 @@ public class GateTransition : Console {
         Console particleLayer = new Console(Width, Height);
         particles.ForEach(p => {
             var pos = p.pos;
-            particleLayer.SetBackground(pos.X, pos.Y, new Color(204, 160, 255, p.lifetime * 255 / 15));
+            particleLayer.SetBackground(pos.X, pos.Y, new Color(255, 255, 255, p.lifetime * 255 / 15));
         });
 
 

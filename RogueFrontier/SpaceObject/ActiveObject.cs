@@ -31,8 +31,13 @@ public static class SSpaceObject {
         
         return o1 == o2;
     }
-    public static IEnumerable<ActiveObject> GetTargets(ActiveObject o) {
-        IEnumerable<Weapon> weapons = o switch {
+    /// <summary>
+    /// Get all objects targeted by at least one weapon on <c>actor</c>
+    /// </summary>
+    /// <param name="actor"></param>
+    /// <returns></returns>
+    public static IEnumerable<ActiveObject> GetWeaponTargets(ActiveObject actor) {
+        IEnumerable<Weapon> weapons = actor switch {
             Station st => st.weapons,
             AIShip ai => ai.devices.Weapon,
             PlayerShip pl => pl.devices.Weapon,
