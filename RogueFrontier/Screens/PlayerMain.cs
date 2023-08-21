@@ -79,7 +79,7 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
     public Console sceneContainer;
     public Readout uiMain;  //If this is visible, then all other ui Consoles are visible
     public Edgemap uiEdge;
-    //public Minimap uiMinimap;
+    public Minimap uiMinimap;
     public CommunicationsWidget communicationsWidget;
     public PowerWidget powerWidget;
     public ListWidget<Item> invokeWidget;
@@ -115,7 +115,7 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         sceneContainer.Focused += (e, o) => this.IsFocused = true;
         uiMain = new(camera, playerShip, Width, Height);
         uiEdge = new(camera, playerShip, Width, Height);
-        //uiMinimap = new(this, playerShip, 16, camera);
+        uiMinimap = new(this, playerShip, 16, camera);
         communicationsWidget = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
         powerWidget = new(31, 16, this) { IsVisible = false, Position = new(3, 32) };
         pauseScreen = new(this) { IsVisible = false };
@@ -424,8 +424,8 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
                 uiEdge.viewScale = uiMegamap.viewScale;
                 uiEdge.Update(delta);
 
-                //uiMinimap.alpha = (byte)(255 - uiMegamap.alpha);
-                //uiMinimap.Update(delta);
+                uiMinimap.alpha = (byte)(255 - uiMegamap.alpha);
+                uiMinimap.Update(delta);
             } else {
                 uiMegamap.Update(delta);
                 vignette.Update(delta);
@@ -484,7 +484,7 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
 
                     uiMain.Render(drawTime);
                     uiEdge.Render(drawTime);
-                    //uiMinimap.Render(drawTime);
+                    uiMinimap.Render(drawTime);
                 } else {
                     uiMegamap.Render(drawTime);
                     vignette.Render(drawTime);
@@ -1927,9 +1927,12 @@ public class Minimap : ScreenSurface {
 
     public int Width => Surface.Width;
     public int Height => Surface.Height;
+    List<(int x, int y)> area = new();
+
     XY screenSize, screenCenter;
     public Minimap(ScreenSurface parent, PlayerShip playerShip, int size, Camera camera) : base(size, size) {
-        this.Position = new Point(parent.Surface.Width - size, 0);
+
+        this.Position = new Point(parent.Surface.Width - size - 2, 2);
         this.player = playerShip;
         this.size = size;
         this.camera = camera;
@@ -1938,53 +1941,50 @@ public class Minimap : ScreenSurface {
         screenCenter = screenSize / 2;
 
         alpha = 255;
+
+        var center = new XY(Width, Height) / 2;
+        area = new(Enumerable.Range(0, Width)
+            .SelectMany(x => Enumerable.Range(0, Height).Select(y => (x, y)))
+            .Where(((int x, int y) p) => true || center.Dist(new(p.x, p.y)) < Width / 2));
     }
     public override void Update(TimeSpan delta) {
         base.Update(delta);
         time += delta.TotalSeconds;
     }
-
     public override void Render(TimeSpan delta) {
         var halfSize = size / 2;
-
         var range = 192;
         var mapScale = (range / halfSize);
-
         var mapSample = player.world.entities.space.DownsampleSet(mapScale);
-
-
         var scaledEntities = player.world.entities.TransformSelectList<(Entity entity, double distance)?>(
             e => (screenCenter + ((e.position - player.position) / mapScale).Rotate(-camera.rotation)).flipY + (0, Height),
             ((int x, int y) p) => p is (> -1, > -1) && p.x < Width && p.y < Height,
             ent => ent is { tile:not null } and not ISegment && player.GetVisibleDistanceLeft(ent) is var dist && dist > 0 ? (ent, dist) : null
         );
 
+        var b = new Color(102, 102, 102, 153);
+        foreach(var(x, y) in area) {
+            if (scaledEntities.TryGetValue((x, y), out var entities)) {
+                (var entity, var distance) = entities[(int)time % entities.Count()].Value;
 
-        for (int x = 0; x < Surface.Width; x++) {
+                var g = entity.tile.Glyph;
+                var f = entity.tile.Foreground;
 
-            for (int y = 0; y < Surface.Height; y++) {
-                if (scaledEntities.TryGetValue((x, y), out var entities)) {
-                    (var entity, var distance) = entities[(int)time % entities.Count()].Value;
-
-                    var g = entity.tile.Glyph;
-                    var f = entity.tile.Foreground;
-
-                    const double threshold = 16;
-                    if(distance < threshold) {
-                        f = f.SetAlpha((byte)(255 * distance / threshold));
-                    }
-
-                    Surface.SetCellAppearance(x, y, new ColoredGlyph(f, Color.Black, g).PremultiplySet(alpha));
-                } else {
-                    var foreground = new Color(
-                                255, 255, 255,
-                                51 + ((x + y) % 2 == 0 ? 0 : 12));
-                    Surface.SetCellAppearance(x, y,
-                        new ColoredGlyph(foreground, Color.Black, '#')
-                            .PremultiplySet(alpha)
-                        );
-                    
+                const double threshold = 16;
+                if (distance < threshold) {
+                    f = f.SetAlpha((byte)(255 * distance / threshold));
                 }
+
+                Surface.SetCellAppearance(x, y, new ColoredGlyph(f, b, g).PremultiplySet(alpha));
+            } else {
+                var foreground = new Color(
+                            255, 255, 255,
+                            51 + ((x + y) % 2 == 0 ? 0 : 12));
+                Surface.SetCellAppearance(x, y,
+                    new ColoredGlyph(foreground, b, '#')
+                        .PremultiplySet(alpha)
+                    );
+
             }
         }
         /*
