@@ -18,6 +18,7 @@ using Con = SadConsole.Console;
 using RogueFrontier;
 using static SFML.Window.Keyboard;
 using ASECII;
+using Namotion.Reflection;
 
 namespace Common;
 
@@ -703,6 +704,91 @@ public static class Main {
             throw new Exception($"Enum value of {fallback.GetType().Name} expected: {a.Name}=\"{a.Value}\"");
         }
     }
+
+    static Dictionary<Type, string> TransgenesisTypes = new() {
+        [typeof(int)] = "INTEGER",
+        [typeof(string)] = "STRING",
+        [typeof(double)] = "DOUBLE",
+        [typeof(char)] = "CHAR",
+        [typeof(bool)] = "BOOLEAN",
+        [typeof(bool?)] = "BOOLEAN",
+        [typeof(IDice)] = "DICE_RANGE",
+        [typeof(Color)] = "COLOR"
+    };
+
+    public static void WriteSchema(Type type, Dictionary<Type, XElement> dict) {
+
+        var inst = Activator.CreateInstance(type);
+
+        void GetItemType(ref Type t) {
+            var g = t.GetGenericTypeDefinition();
+            if (g == typeof(HashSet<>) || g == typeof(List<>)) {
+                t = t.GetGenericArguments()[0];
+            }
+        }
+        if (type.IsEnum) {
+            var root = new XElement("Enum") { Value = $"\n{string.Join('\n', type.GetEnumNames())}\n" };
+            root.SetAttributeValue("name", type.Name);
+            dict[type] = root;
+        } else {
+            var root = new XElement(type.Name);
+            dict[type] = root;
+            foreach (var f in type.GetFields()) {
+                foreach (var a in f.GetCustomAttributes(true).OfType<IXmlInit>()) {
+                    if (a is IAtt att) {
+                        var el = new XElement("A");
+                        el.SetAttributeValue("name", att.alias ?? f.Name);
+                        var t = att.parse ? (att.type ?? f.FieldType) : typeof(string);
+                        if (att.separator != null) {
+                            GetItemType(ref t);
+                            el.SetAttributeValue("type", $"{TransgenesisTypes[t]}_ARRAY");
+                        } else {
+                            if (t.IsEnum) {
+                                if (!dict.ContainsKey(t)) {
+                                    WriteSchema(t, dict);
+                                }
+                                el.SetAttributeValue("type", t.Name);
+                            } else {
+                                el.SetAttributeValue("type", TransgenesisTypes[t]);
+                            }
+
+                        }
+                        if (att is Req) {
+                            el.SetAttributeValue("required", true);
+                        } else if (att is Opt o) {
+                            el.SetAttributeValue("default", f.GetValue(inst));
+                        }
+                        if (f.GetXmlDocsSummary() is { Length: > 0 } str) {
+                            el.Add(new XElement("D") { Value = str });
+                        }
+                        root.Add(el);
+                    } else if (a is Sub sub) {
+                        var el = new XElement("E");
+                        var t = sub.type ?? f.FieldType;
+                        el.SetAttributeValue("name", sub.alias ?? f.Name);
+                        el.SetAttributeValue("count", (sub.required, sub.multiple) switch {
+                            (false, false) => "?",
+                            (false, true) => "*",
+                            (true, false) => "1",
+                            (true, true) => "+"
+                        });
+
+                        if (sub.construct) {
+                            if (sub.multiple) {
+                                GetItemType(ref t);
+                            }
+                            if (!dict.ContainsKey(t)) {
+                                WriteSchema(t, dict);
+                            }
+                            el.SetAttributeValue("inherit", t.Name);
+                        }
+                        root.Add(el);
+                    }
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Read data from XML to populate the object fields. For attributes, mark fields with <c>Req</c> and <c>Opt</c>. For elements, mark fields with <c>Self</c> and <c>Sub</c>
     /// </summary>

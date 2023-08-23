@@ -7,7 +7,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 namespace RogueFrontier;
-public record ItemFilter(HashSet<string> require, HashSet<string> reject) {
+public record ItemFilter([Opt(separator = ";")] HashSet<string> require, [Opt(separator = ";")] HashSet<string> reject) {
+    public ItemFilter() : this(new(), new()) { }
     public ItemFilter(XElement e) : this(
         e.TryAtt("require").Split(";").ToHashSet(),
         e.TryAtt("reject").Split(";").ToHashSet()

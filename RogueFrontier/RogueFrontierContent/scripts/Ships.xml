@@ -90,7 +90,7 @@
 			<Armor  codename="item_gemsteel_plate_ii"/>
         </LayeredArmorSystem>
         <PlayerSettings
-            startingClass="true"
+            startingClass="false"
             description="The Amethyst-class yacht (64 ton edition) (second generation), more than just a symbol of middle-class conspicuous consumption, is a well-rounded multipurpose starship designed for the everyday pilot."
             >
             <Map>                                     
@@ -105,15 +105,15 @@
                /++#####..#####++\               
               /+/-----#..#-----\+\              
              //#/  /###..###\  \#\\             
-            //#/   |--|--|--|   \#\\            
-           //=/    |--|--|--|    \=\\           
-          //#/    /|--|--|--|\    \#\\          
-         //#/    //\########/\\    \#\\         
-        //#/     //    ||    \\     \#\\        
-       /#/      //     ||     \\      \#\       
-     /#/        //     ||     \\        \#\     
-   /#/         //      ||      \\         \#\   
- /#/          //       ||       \\          \#\ 
+            //#/   |--------|   \#\\            
+           //=/    |--------|    \=\\           
+          //#/    /|--------|\    \#\\          
+         //#/    /|\########/|\    \#\\         
+        //#/    /|     ||     |\    \#\\        
+       /#/      ||     ||     ||      \#\       
+     /#/       /|      ||      |\       \#\     
+   /#/        /|       ||       |\        \#\   
+ /#/         /|        ||        |\         \#\ 
             </Map>
         </PlayerSettings>
     </ShipClass>
@@ -167,11 +167,11 @@
   |||........|========||========|........|||  
   |||==\\\....\\_=====||=====_//....///==|||  
   ||||OOOO\\....|\____||____/|....//OOOO||||  
-     |TTTT|\\...| | | || | | |...//|TTTT|     
-     |TTTT|  |__|_|_|_||_|_|_|__|  |TTTT|     
-     |TTTT|  |_|_|_|TTTTTT|_|_|_|  |TTTT|     
-     |TTTT|        |TTTTTT|        |TTTT|     
-     |TTTT|        |TTTTTT|        |TTTT|     
+     |T||T|\\...| | | || | | |...//|T||T|     
+     |T||T|  |__|_|_|_||_|_|_|__|  |T||T|     
+     |T||T|  |_|_|_|T/TT\T|_|_|_|  |T||T|     
+     |T||T|        |T|TT|T|        |T||T|     
+     |T||T|        |T|TT|T|        |T||T|     
      |/--\|        |/----\|        |/--\|     
             </Map>
 		</PlayerSettings>

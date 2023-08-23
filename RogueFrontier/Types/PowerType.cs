@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using SadConsole;
 using SadRogue.Primitives;
+using SFML.Audio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +26,7 @@ public record PowerType() : IDesignType {
     [Opt] public bool scareEnemies;
 
     [Req] public Voice voice;
-
+    [Opt(parse = false)] public SoundBuffer sound;
     public static Dictionary<Voice, Color> glowColors = new() {
         [Voice.Orator] = new Color(204, 153, 255),
         [Voice.Dictator] = Color.OrangeRed,
@@ -41,7 +42,8 @@ public record PowerType() : IDesignType {
             [nameof(voice)] = (Voice v) => {
                 glowColor = glowColors[v];
                 return v;
-            }
+            },
+            [nameof(sound)] = (string s) => new SoundBuffer(s)
         });
         Effect = new(e.Elements().Select(e => (PowerEffect)(e.Name.LocalName switch {
             "Projectile" => new PowerProjectile(e),
@@ -130,7 +132,6 @@ public record Clonewall() : PowerEffect {
 
         private List<XY> offsets;
         private double[] directions;
-        private FragmentDesc ready;
         private bool busy = false;
         private double lifetime;
         public Overlay(PlayerShip owner, double lifetime) {
@@ -139,17 +140,18 @@ public record Clonewall() : PowerEffect {
             UpdateOffsets();
             directions = new double[offsets.Count];
         }
-        private void UpdateOffsets() =>
+        private void UpdateOffsets() {
+            XY  up = XY.Polar(owner.rotationRad - Math.PI / 2),
+                down = XY.Polar(owner.rotationRad + Math.PI / 2);
             offsets = new() {
-                        XY.Polar(owner.rotationRad - Math.PI / 2, 6),
-                        XY.Polar(owner.rotationRad - Math.PI / 2, 4),
-                        XY.Polar(owner.rotationRad - Math.PI / 2, 2),
-                        XY.Polar(owner.rotationRad + Math.PI / 2, 2),
-                        XY.Polar(owner.rotationRad + Math.PI / 2, 4),
-                        XY.Polar(owner.rotationRad + Math.PI / 2, 6),
-                    };
+                up * 2, down * 2,
+                up * 4, down * 4,
+                up * 6, down * 6
+            };
+        }
          public void Observe(PlayerShip.WeaponFired ev){
             var (p, w, pr, _) = ev;
+            //Deactivate
             if (!active) {
                 p.onWeaponFire -= this;
                 return;
@@ -158,48 +160,51 @@ public record Clonewall() : PowerEffect {
             if(w.desc == null) {
                 return;
             }
+            //Don't clone the clones
             if(busy) {
                 return;
             }
-            int i = 0;
-            var target = w.targeting?.GetMultiTarget().ToList();
             busy = true;
-            offsets.ForEach(o => {
-                var l = w.CreateProjectiles(owner, target, directions[i++], false);
-                l.ForEach(p => p.position += o);
-                l.ForEach(owner.world.AddEntity);
+            var targets = w.targeting?.GetMultiTarget().ToList();
+
+            foreach(var i in Enumerable.Range(0, offsets.Count)) {
+                var o = offsets[i];
+                var salvo = w.CreateProjectiles(owner, targets, directions[i], false);
+                foreach (var pp in salvo) {
+                    pp.position += o;
+                    owner.world.AddEntity(pp);
+                }
+                w.onFire.Observe(new(w, salvo));
                 w.ammo?.OnFire();
-                w.onFire.Observe(new(w, l));
                 w.totalTimesFired++;
-            });
+            }
             busy = false;
         }
         public void Update(double delta) {
             ticks++;
             lifetime -= delta;
             if(owner.GetPrimary() is Weapon w) {
-                if (w.delay == 0) {
-                    ready = w.projectileDesc;
-                }
-                const int interval = 6;
+                const int interval = 5;
                 if (ticks % interval != 0) {
                     return;
                 }
-                int i = 0;
                 UpdateOffsets();
-                var tile = owner.tile;
-                var cg = new ColoredGlyph(Color.Transparent, Color.White.Blend(Color.Red.SetAlpha(204)).SetAlpha(204), ' ');
-                offsets.ForEach(o => {
-                    var p = owner.position + o;
-                    owner.world.AddEffect(new EffectParticle(p, tile, interval + 2));
-                    if (ready != null) {
-                        var t = w.target ?? owner.GetTarget();
-                        directions[i] = t == null ? owner.rotationRad :
-                            Main.CalcFireAngle(t.position - p, t.velocity - owner.velocity, ready.missileSpeed, out var _);
+                var points = offsets.Select((o, i) => (owner.position + o, i));
+                //If we have target, update the clone facings
+                if ((w.target ?? owner.GetTarget()) is ActiveObject t) {
+                    var desc = w.projectileDesc;
+                    var msp = desc.missileSpeed;
+                    var dv = t.velocity - owner.velocity;
+                    foreach (var (p, i) in points) {
+                        directions[i] = Main.CalcFireAngle(t.position - p, dv, msp, out var _);
                     }
-                    Heading.AimLine(owner.world, p, directions[i], interval);
-                    i++;
-                });
+                } else {
+                    Array.Fill(directions, owner.rotationRad);
+                }
+                foreach (var (p, i) in points) {
+                    owner.world.AddEffect(new EffectParticle(p, owner.tile, interval + 3));
+                    Heading.AimLine(owner.world, p, directions[i], interval + 2);
+                }
             }
         }
     }

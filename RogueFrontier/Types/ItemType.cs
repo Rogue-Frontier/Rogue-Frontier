@@ -469,18 +469,16 @@ public record FragmentDesc {
     [Opt] public int shock = 1;
     [Req] public int lifetime;
     [Opt] public bool passthrough;
+    ///<summary>Subfragments cannot hit objects that are excluded by this fragment</summary>
     [Opt] public bool precise = true;
     [Opt] public int armorSkip = 0;
+    /// <summary>If armor integrity ratio is below this amount, then we bypass the shield completely</summary>
     [Opt] public double shieldDrill;
-    /// <summary>
-    /// If armor integrity ratio is below this amount, then we bypass the armor completely and go to the next layer
-    /// </summary>
-    [Opt] public double armorDrill;
+    /// <summary>If armor integrity ratio is below this amount, then we bypass the armor completely and go to the next layer</summary>
+    [Opt] public double armorDrill = 0;
     [Opt] public double shieldFactor = 1;
     [Opt] public double armorFactor = 1;
-    /// <summary>
-    /// If true, then the weapon has Targeting
-    /// </summary>
+    /// <summary>If true, then the weapon has Targeting</summary>
     [Opt] public bool acquireTarget;
     [Opt] public bool multiTarget;
     [Opt] public double maneuver;
@@ -499,7 +497,8 @@ public record FragmentDesc {
     [Opt] public int tracker;
     [Opt] public bool beacon;
     [Opt] public bool hook;
-    [Opt] public bool lightning;    //On hit, the projectile attaches an overlay that automatically makes future shots hit instantly
+    /// <summary>On hit, the projectile attaches an overlay that automatically makes future shots hit instantly</summary>
+    [Opt] public bool lightning;
     [Sub] public FlashDesc Flash;
     [Sub] public Decay Decay;
     [Sub] public DisruptorDesc Disruptor;

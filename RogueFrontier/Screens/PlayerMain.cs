@@ -18,6 +18,7 @@ using System.Threading;
 using SFML.Audio;
 using Microsoft.Win32.SafeHandles;
 using static Common.ColorCommand;
+using System.Reflection;
 
 namespace RogueFrontier;
 public class NotifyStationDestroyed : Ob<Station.Destroyed> {
@@ -714,41 +715,73 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         return base.ProcessMouse(state);
     }
 }
+
+
 public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener, IWeaponListener, Ob<Projectile.Detonated> {
-    PlayerShip player;
+    private class AutoLoad : Attribute {}
+    [AutoLoad]
     public static readonly SoundBuffer
-        generic_fire = Load(nameof(generic_fire)),
-        generic_explosion = Load(nameof(generic_explosion)),
-        generic_exhaust = Load(nameof(generic_exhaust)),
-        generic_damage = Load(nameof(generic_damage)),
-        generic_shield_damage = Load(nameof(generic_shield_damage)),
-        target_set = Load(nameof(target_set)),
-        target_clear = Load(nameof(target_clear)),
-        generic_missile = Load(nameof(generic_missile)),
-        autopilot_on = Load(nameof(autopilot_on)),
-        autopilot_off=Load(nameof(autopilot_off)),
-        dock_start = Load(nameof(dock_start)),
-        dock_end = Load(nameof(dock_end));
-    ListTracker<Sound> exhaust = new(new List<Sound>(Enumerable.Range(0, 16).Select(i => new Sound() { Volume = 10 })));
-    ListTracker<Sound> gunfire = new(new List<Sound>(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 })));
-    ListTracker<Sound> damage = new(new List<Sound>(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 })));
-    ListTracker<Sound> explosion = new(new List<Sound>(Enumerable.Range(0, 4).Select(i => new Sound() { Volume = 75 })));
-    Sound targeting = new() { Volume = 50 },
-        autopilot = new() { Volume = 50 },
-        dock = new() { Volume = 50 };
-    public Sound button_press = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) {
-        Volume = 33 };
-    
+        generic_fire,
+        generic_explosion,
+        generic_exhaust,
+        generic_damage,
+        generic_shield_damage,
+        target_set,
+        target_clear,
+        generic_missile,
+        autopilot_on,
+        autopilot_off,
+        dock_start,
+        dock_end,
+        power_charge, power_release;
+    public static SoundBuffer Load(string file) => new($"RogueFrontierContent/Sounds/{file}.wav");
+    static Noisemaker() {
+        var props = typeof(Noisemaker)
+            .GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
+            .Where(p => p.GetCustomAttributes(true).OfType<AutoLoad>().Any()).ToList();
+        foreach (var p in props) {
+            p.SetValue(null, Load(p.Name));
+        }
+    }
+    PlayerShip player;
     List<IShip> exhaustList = new();
     const float distScale = 1 / 16f;
-    public static SoundBuffer Load(string file) => new($"RogueFrontierContent/Sounds/{file}.wav");
+    public Sound button_press = new(new SoundBuffer("RogueFrontierContent/sounds/button_press.wav")) {
+        Volume = 33
+    };
+    private ListTracker<Sound>
+        exhaust = new(new List<Sound>(Enumerable.Range(0, 16).Select(i => new Sound() { Volume = 10 }))),
+        gunfire = new(new List<Sound>(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 }))),
+        damage = new(new List<Sound>(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 }))),
+        explosion = new(new List<Sound>(Enumerable.Range(0, 4).Select(i => new Sound() { Volume = 75 })));
+    private class Vol : Attribute {
+    }
+    [Vol]
+    public Sound targeting, autopilot, dock, powerCharge;
     public Noisemaker(PlayerShip player) {
+
+        var props = typeof(Noisemaker)
+            .GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
+            .Where(p => p.GetCustomAttributes(true).OfType<Vol>().Any()).ToList();
+        foreach (var p in props) {
+            p.SetValue(this, new Sound() { Volume = 50});
+        }
+
+
         this.player = player;
 
         player.onTargetChanged += new Container<PlayerShip.TargetChanged>(pl => {
             targeting.SoundBuffer = pl.targetIndex == -1 ? target_clear : target_set;
             targeting.Play();
         });
+    }
+    public void PlayPowerCharge() {
+        powerCharge.SoundBuffer = power_charge;
+        powerCharge.Play();
+    }
+    public void PlayPowerRelease() {
+        powerCharge.SoundBuffer = power_release;
+        powerCharge.Play();
     }
     public void PlayAutopilot(bool active) {
         autopilot.SoundBuffer = active ? autopilot_on : autopilot_off;
@@ -759,7 +792,6 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         targeting.Play();
     }
     public void PlayDocking(bool start) {
-
         dock.SoundBuffer = start ? dock_start : dock_end;
         dock.Play();
     }
@@ -2183,7 +2215,6 @@ public class PowerWidget : ScreenSurface {
     public bool blockMouse {
         set {
             _blockMouse = value;
-
             Surface.DefaultBackground = value ? new Color(0, 0, 0, 127) : Color.Transparent;
         }
         get => _blockMouse;
@@ -2218,12 +2249,15 @@ public class PowerWidget : ScreenSurface {
     }
     public override void Update(TimeSpan delta) {
         ticks++;
+
+        bool charging = false;
         foreach (var p in playerShip.powers) {
             if (p.charging) {
                 //We don't need to check ready because we already do that before we set charging
                 //Charging up
                 p.invokeCharge += (int)(60 * delta.TotalSeconds);
 
+                charging = true;
                 if (ticks % 3 == 0) {
                     p.charging = false;
                 }
@@ -2244,10 +2278,19 @@ public class PowerWidget : ScreenSurface {
                     if (p.type.message != null) {
                         playerShip.AddMessage(new Message(p.type.message));
                     }
+
+                    main.audio.PlayPowerRelease();
+
                     //Reset charge
                     p.invokeCharge = 0;
                     p.charging = false;
                 }
+            }
+        }
+
+        if(charging) {
+            if (main.audio.powerCharge.Status == SoundStatus.Stopped) {
+                main.audio.PlayPowerCharge();
             }
         }
         base.Update(delta);
