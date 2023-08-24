@@ -139,35 +139,35 @@ public record DepleteTargetShields() : ItemUse {
     public string GetDesc(PlayerShip player, Item item) =>
         player.GetTarget(out var t) ? $"Deplete shields on {t.name}" : "Deplete shields on target";
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
-        if(!player.GetTarget(out var t)) {
-            player.AddMessage(new Message($"No target available"));
-            return;
-        } 
-        
-        if(!(t is IShip s)) {
-            player.AddMessage(new Message($"Target must be a ship"));
-            return;
-        }
 
-        if (s.devices.Shield.Count == 0) {
-            player.AddMessage(new Message($"Target does not have installed shields"));
-            return;
-        }
-        if(!s.devices.Shield.Any(s => s.hp > 0)) {
-            player.AddMessage(new Message($"Target does not have active shields"));
-            return;
-        }
-        s.devices.Shield.ForEach(s => s.Deplete());
-        player.AddMessage(new Message($"Depleted shields on {s.name}"));
+        //var am = Common.Main.PreBind(player.AddMessage, (string s) => new Message(s));
+        var am = Main.PreBind((string s) => player.AddMessage(new Message(s)));
+        (
+            !player.GetTarget(out var t) ?
+                am($"No target available") :
+            !(t is IShip s) ?
+                am($"Target must be a ship") :
+            s.devices.Shield.Count == 0 ?
+                am($"Target does not have installed shields") :
+            !s.devices.Shield.Any(s => s.hp > 0) ?
+                am($"Target does not have active shields") + (() => { }) :
+            () => {
+                s.devices.Shield.ForEach(s => s.Deplete());
+                player.AddMessage(new Message($"Depleted shields on {s.name}"));
 
-        player.cargo.Remove(item);
-        callback?.Invoke();
+                player.cargo.Remove(item);
+                callback?.Invoke();
+            }
+        ).Invoke();
     }
 }
 public record ReplaceDevice() : ItemUse {
-    public ItemType from, to;
-    public ReplaceDevice(TypeCollection tc, XElement e) : this() =>
-        (from, to) = (tc.Lookup<ItemType>(e.ExpectAtt("from")), tc.Lookup<ItemType>(e.ExpectAtt("to")));
+    [Req(parse =false)]public ItemType from, to;
+    public ReplaceDevice(TypeCollection tc, XElement e) : this() => e.Initialize(this, transform: new() {
+        [nameof(from)] = tc.Lookup<ItemType>,
+        [nameof(to)] = tc.Lookup<ItemType>,
+    });
+        
     public string GetDesc(PlayerShip player, Item item) =>
         $"Replace installed {from.name}";
     public void Invoke(Con prev, PlayerShip player, Item item, Action callback = null) {
@@ -313,11 +313,17 @@ public record ArmorDesc() {
     [Opt] public double regenRate;
     [Opt] public int killHP;
     [Opt] public double stealth;
+    /// <summary>For every damage HP taken, the maxHP decreases by this amount.</summary>
     [Opt] public double lifetimeDegrade = 1/50.0;
     [Opt] public double reflectFactor;
     [Opt] public int minAbsorb = 0;
     [Opt] public int powerUse = -1;
     [Opt] public int maxAbsorb = -1;
+
+    /// <summary>This armor is more resistant to attacks in the silent dimension</summary>
+    [Opt] public bool silenceStrength;
+    /// <summary>This armor protects its user from Silence attacks</summary>
+    [Opt] public double silenceResist;
     [Sub] public TitanDesc Titan;
     [Sub] public ItemFilter RestrictRepair;
     public Armor GetArmor(Item i) => new(i, this);
@@ -325,9 +331,13 @@ public record ArmorDesc() {
         e.Initialize(this);
     }
     public record TitanDesc() {
+        /// <summary>Of the damage taken, this proportion converts to titan HP</summary>
         [Opt] public double gain = 1.0;
+        /// <summary>Titan HP can be raised up to <c>desc.maxHP * factor</c></summary>
         [Opt] public double factor = 1.0;
+        /// <summary>Titan HP decreases by this amount each second</summary>
         [Opt] public double decay = 1.0;
+        /// <summary>The amount of damage-free time before Titan HP starts decaying</summary>
         [Opt] public double duration = 1.0;
         public TitanDesc(XElement e) : this() => e.Initialize(this);
     }
@@ -428,7 +438,6 @@ public record WeaponDesc {
     public Weapon GetWeapon(Item i) => new(i, this);
     public WeaponDesc() { }
     public WeaponDesc(TypeCollection types, XElement e) {
-
         var toRad = (double d) => d * Math.PI / 180;
         e.Initialize(this, transform:new() {
             [nameof(angle)] = toRad,
@@ -439,7 +448,6 @@ public record WeaponDesc {
             [nameof(ammoType)] = (string at) => types.Lookup<ItemType>(at),
             [nameof(sound)] = (string s) => new SoundBuffer(s)
         });
-
         //Projectile = new(e.ExpectElement("Projectile"));
         //sound = e.TryAtt("sound", out string s) ? new SoundBuffer(s) : null;
         if (pointDefense) {
@@ -495,13 +503,43 @@ public record FragmentDesc {
     [Opt] public IDice blind;
     [Opt] public int ricochet;
     [Opt] public int tracker;
-    [Opt] public bool beacon;
+    //[Opt] public bool beacon;
     [Opt] public bool hook;
     /// <summary>On hit, the projectile attaches an overlay that automatically makes future shots hit instantly</summary>
     [Opt] public bool lightning;
+
+    [Opt] public double silenceFactor;
+    /// <summary>Inflicts silence on the target</summary>
+    [Opt] public double silenceInflict;
     [Sub] public FlashDesc Flash;
     [Sub] public Decay Decay;
     [Sub] public DisruptorDesc Disruptor;
+
+
+    public double CalcSilenceRatio(double targetSilence) => FragmentDesc.GetSilenceMatch(silenceFactor, targetSilence);
+    /// <summary>Calculates the total damage dealt (silent plus non-silent)</summary>
+    public static double GetSilenceMatch(double silenceFactor, double targetSilence) {
+        var s = Math.Min(1, targetSilence);
+        return (silenceFactor * s) + ((1 - silenceFactor) * (1 - s));
+        //0.0 * 1.0 + 1.0 * 1.0
+
+        //.30 * .70 + .70 * .3
+        //.21 + .21
+        //.42
+        
+        //.70 * .70 + .30 * .30
+        //.49 + .9
+        //.58
+
+        //.90 * .10 + .10 * .90
+        //.09 + .09
+        //.18
+
+        //.40 * .80 + .60 * .20
+        //.32 + .12
+        //.44
+    }
+
     public int range => missileSpeed * lifetime / Program.TICKS_PER_SECOND;
     public double angleInterval => spreadAngle / count;
     public int range2 => range * range;

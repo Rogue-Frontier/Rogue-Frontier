@@ -503,12 +503,11 @@ public record SystemStation() : SystemElement {
     }
 }
 public record SystemStargate() : SystemElement {
-    public string gateId;
-    public string destGateId;
+    [Req] public string gateId;
+    [Opt] public string destGateId = "";
     public ShipGenerator ships;
     public SystemStargate(TypeCollection tc, XElement e) : this() {
-        gateId = e.ExpectAtt(nameof(gateId));
-        destGateId = e.TryAtt(nameof(destGateId));
+        e.Initialize(this);
         if (e.HasElement("Ships", out XElement xmlShips)) {
             ships = new ShipGroup(xmlShips, SGenerator.ParseFrom(tc, SGenerator.ShipFrom));
         }

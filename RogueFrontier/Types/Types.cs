@@ -143,9 +143,9 @@ public class TypeCollection {
             all[type].Initialize(this, sources[type]);
         }
     }
-    public bool Lookup(string codename, out IDesignType result) =>
+    public bool TryLookup(string codename, out IDesignType result) =>
         all.TryGetValue(codename, out result);
-    public bool Lookup<T>(string type, out T result) where T : class, IDesignType =>
+    public bool TryLookup<T>(string type, out T result) where T : class, IDesignType =>
         (result = Lookup<T>(type)) != null;
     public IDesignType Lookup(string codename) {
         if (codename == null || codename.Trim().Length == 0) {

@@ -561,6 +561,16 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
     }
 #if DEBUG
     public void QuickStart() {
+
+        /*
+        if (true) {
+            Game.Instance.Screen = new CreditsCrawl(Width, Height, () => {
+                Game.Instance.Screen = new TitleScreen(Width, Height, World);
+            });
+            return;
+        }
+        */
+
         var loc = $"{AppDomain.CurrentDomain.BaseDirectory}/save/Debug";
         string file;
         do { file = $"{loc}-{new Random().Next(9999)}.sav"; }

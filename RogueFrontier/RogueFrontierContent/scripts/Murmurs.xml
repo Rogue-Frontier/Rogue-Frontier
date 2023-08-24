@@ -5,7 +5,9 @@
 	<StationType	codename="station_murmur_outpost"
 				name=		"Murmur outpost"
 				sovereign=	"sovereign_murmurs"
-
+				
+				attributes=	"Murmurs"
+					
 				glyph=		"O"
 				foreground= "5511AAFF"
 				background=	"Black"
@@ -16,6 +18,7 @@
 		<Segments>
 		</Segments>
 		<Guards>
+			<Ship codename="ship_quietus" count="5"/>
 		</Guards>
 		<Weapons>
 			<Weapon	codename="item_dark_lightning_cannon" posX="5" posY="0" angle="0" leftRange="60" rightRange="60"/>
@@ -43,7 +46,7 @@
 			background="Black"
         >
 		<Devices>
-			<Weapon	codename="item_dark_lightning_cannon"/>
+			<Weapon	codename="item_dark_magic_blaster"/>
 		</Devices>
 		<LayeredArmorSystem>
 			<Armor  codename="item_darkened_knightsteel_plate"/>
@@ -82,6 +85,9 @@
 				lifetime=		"75"
 				glyph=			"*"
 				foreground=		"AA55FFFF"
+				
+				silenceFactor=	"1.0"
+				silenceInflict=	"1/100"
 				>
 				<Decay lifetime="30" damageRate="2/60" degradeFactor="5"/>
 				<Trail
@@ -124,6 +130,9 @@
 				lightning=		"true"
 				
 				shock=			"3"
+				
+				silenceFactor=	"1.0"
+				silenceInflict=	"1/100"
 				>
 			</Projectile>
 			<Capacitor

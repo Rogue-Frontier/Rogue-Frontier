@@ -66,7 +66,6 @@ public class Backdrop {
         }
 
         BlendBack(starlight.GetBackgroundFixed(point));
-        //Blend(orbits.GetTile(point, camera));
         Blend(planets.GetTile(point, camera));
         Blend(nebulae.GetTile(point, camera));
         return new ColoredGlyph(f, b, g);

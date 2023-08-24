@@ -564,7 +564,10 @@ public static class Main {
             }
         }
     }
-
+    public static void PrintCenter(this ScreenSurface c, int y, string s) =>
+        c.Surface.Print(c.Surface.Width / 2 - s.Length / 2, y, s);
+    public static void PrintCenter(this ScreenSurface c, int y, ColoredString s) =>
+        c.Surface.Print(c.Surface.Width / 2 - s.Length / 2, y, s);
     public static XY GetBoundaryPoint(XY dimensions, double angleRad) {
         while (angleRad < 0) {
             angleRad += 2 * Math.PI;
@@ -1010,6 +1013,13 @@ public static class Main {
 
         }
     }
+
+    public static Action Bind<T>(this Action<T> f, T arg0) => () => f(arg0);
+    public static void Switch(params (bool, Action)[] actions) {
+
+    }
+    public static Func<T, Action> PreBind<T>(Action<T> a) => (T t) => () => a(t);
+    public static Func<U, Action> PreBind<T, U>(Action<T> a, Func<U, T> tr) => (U u) => () => a(tr(u));
     public static TValue TryLookup<TKey, TValue>(this Dictionary<TKey, TValue> d, TKey key, TValue fallback = default) =>
         d.ContainsKey(key) ? d[key] : fallback;
     public static int CalcAccuracy(int difficulty, int skill, Random karma) {

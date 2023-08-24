@@ -45,8 +45,11 @@ public class EpitaphScreen : Console {
         }
         playerShip.ship.active = true;
         playerShip.AddMessage(new Message("A vision of disaster flashes before your eyes"));
-        world.entities.all.Add(playerShip);
-        world.effects.all.Add(new Heading(playerShip));
+        world.AddEntity(playerShip);
+        world.AddEffect(new Heading(playerShip));
+
+        playerMain.silenceSystem.AddEntity(playerShip);
+
         GameHost.Instance.Screen = new FadeIn(new Pause(playerMain, Resume, 2)) { IsFocused = true };
         void Resume() {
             GameHost.Instance.Screen = playerMain;

@@ -267,7 +267,7 @@ public class Pause : ScreenSurface {
     Action next;
     ScreenSurface background;
     double time;
-    public Pause(ScreenSurface background, Action next, int time = 5) : base(background.Surface.Width, background.Surface.Height) {
+    public Pause(ScreenSurface background, Action next, double time = 5) : base(background.Surface.Width, background.Surface.Height) {
         this.background = background;
         this.time = time;
         this.next = next;

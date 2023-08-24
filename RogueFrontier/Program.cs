@@ -84,7 +84,7 @@ partial class Program {
     public static System GenerateIntroSystem() {
         var w = new System();
         w.types.LoadFile(main);
-        if(w.types.Lookup<SystemType>("system_intro", out var s)) {
+        if(w.types.TryLookup<SystemType>("system_intro", out var s)) {
             s.Generate(w);
         }
         return w;

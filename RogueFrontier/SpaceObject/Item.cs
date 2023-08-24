@@ -94,17 +94,19 @@ public class Decay {
     [Opt] public double degradeFactor = 0;
     [Opt] public double fixedDegradeRate = 0;
     [Opt] public bool descend = false;
+    public double silenceFactor;
     public ActiveObject source;
     public Decay() { }
     public Decay(XElement e) => e.Initialize(this);
-    public Decay(Decay from, ActiveObject source) {
+    public Decay(Decay from, Projectile p) {
         this.lifetime = from.lifetime;
         this.damageRate = from.damageRate;
         this.lethal = from.lethal;
         this.degradeFactor = from.degradeFactor;
         this.fixedDegradeRate = from.fixedDegradeRate;
         this.descend = from.descend;
-        this.source = source;
+        silenceFactor = p.desc.silenceFactor;
+        this.source = p.source;
     }
 }
 public class Armor : Device {
@@ -112,7 +114,7 @@ public class Armor : Device {
     public Item source { get; private set; }
     public ArmorDesc desc;
     public int hp;
-    //Temporarily increase max HP upon absorbing damage. Titan HP decays over time.
+    /// <summary>Titan is a temporary maxHP bonus that increases upon taking damage and decays over time</summary>
     public double titanHP;
     public double titanDuration;
     public double hpToRecover;
@@ -153,6 +155,13 @@ public class Armor : Device {
         UpdateCommon(delta, st, st.damageSystem);
     private void UpdateCommon(double delta, ActiveObject owner, HullSystem hull) {
         if (decay.Any()) {
+            var ownerSilence = owner switch {
+                AIShip ai => ai.ship.silence,
+                PlayerShip ps => ps.ship.silence,
+                _ => 0
+            };
+
+
             var expired = new HashSet<Decay>();
             //If the armor is down, then degrade it faster
             if (hp == 0) {
@@ -167,7 +176,8 @@ public class Armor : Device {
                         next.decay.UnionWith(descending);
                     }
                     foreach (var d in decay) {
-                        lifetimeDamageAbsorbed += delta * 60 * (d.damageRate * d.degradeFactor + d.fixedDegradeRate);
+                        var silenceMatch = FragmentDesc.GetSilenceMatch(d.silenceFactor, ownerSilence);
+                        lifetimeDamageAbsorbed += delta * 60 * (d.damageRate * d.degradeFactor + d.fixedDegradeRate) * silenceMatch;
                         d.lifetime -= delta;
                         if (d.lifetime <= 0) {
                             expired.Add(d);
@@ -178,10 +188,12 @@ public class Armor : Device {
             } else {
                 var totalDegrade = 0d;
                 foreach (var d in decay) {
-                    var degrade = delta * 60 * d.fixedDegradeRate;
+                    var silenceMatch = FragmentDesc.GetSilenceMatch(d.silenceFactor, ownerSilence);
+
+                    var degrade = delta * 60 * d.fixedDegradeRate * silenceMatch;
                     totalDegrade += degrade;
 
-                    decayHP += d.damageRate * delta * 60;
+                    decayHP += d.damageRate * delta * 60 * silenceMatch;
                     d.lifetime -= delta;
                     if (d.lifetime <= 0) {
                         expired.Add(d);
@@ -262,7 +274,7 @@ public class Armor : Device {
     }
     private void OnAbsorb(int absorbed) {
         lifetimeDamageAbsorbed += absorbed;
-        if (desc.Titan is var t and not null) {
+        if (desc.Titan is { } t) {
             titanHP = Math.Min(desc.maxHP * t.factor, titanHP + absorbed * t.gain);
             titanDuration = t.duration;
         }
@@ -364,24 +376,17 @@ public class Armor : Device {
             killHP = 0;
         }
         lastDamageTick = p.world.tick;
-
         ApplyDecay();
-
         double reflectChance = desc.reflectFactor * hp / desc.maxHP - p.desc.antiReflect;
         if (p.world.karma.NextDouble() < reflectChance) {
             p.hitReflected = true;
             return absorbed;
         }
-
         p.damageHP = Math.Max(0, p.damageHP - (int)Math.Ceiling(Math.Max(absorbed, damageWall) / multiplier));
-        
         return absorbed;
-
-
         void ApplyDecay() {
-
             if (p.desc.Decay is Decay d) {
-                decay.Add(new(d, p.source));
+                decay.Add(new(d, p));
             }
         }
     }
@@ -1105,13 +1110,6 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         projectile.onHitActive -= this;
         onHitActive.Observe(new(this, projectile, hit));
         if (projectile.hitHull) {
-            if (projectileDesc.lightning) {
-                //delay = 5;
-                hit.world.AddEntity(new LightningRod(hit, this, projectile));
-            }
-            if (projectileDesc.hook) {
-                hit.world.AddEntity(new Hook(hit, projectile.source));
-            }
             if (projectileDesc.tracker != 0) {
                 switch (projectile.source) {
                     case PlayerShip pl:
@@ -1128,6 +1126,13 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
                     }
                     pl.tracking[hit] = time;
                 }
+            }
+            if (projectileDesc.hook) {
+                hit.world.AddEntity(new Hook(hit, projectile.source));
+            }
+            if (projectileDesc.lightning) {
+                //delay = 5;
+                hit.world.AddEntity(new LightningRod(hit, this, projectile));
             }
         }
     }

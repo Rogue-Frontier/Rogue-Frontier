@@ -8,12 +8,12 @@ using Console = SadConsole.Console;
 namespace RogueFrontier;
 
 public class Viewport : ScreenSurface {
-
     public int Width => Surface.Width;
     public int Height => Surface.Height;
     public Camera camera;
     public System world;
     public Dictionary<(int, int), ColoredGlyph> tiles=new();
+
     public Viewport(ScreenSurface prev, Camera camera, System world) : base(prev.Surface.Width, prev.Surface.Height) {
         this.camera = camera;
         this.world = world;
@@ -23,7 +23,6 @@ public class Viewport : ScreenSurface {
         world.PlaceTiles(tiles);
         base.Update(delta);
     }
-
     public void UpdateVisible(TimeSpan delta, Func<Entity, double> getVisibleDistanceLeft) {
         tiles.Clear();
         world.PlaceTilesVisible(tiles, getVisibleDistanceLeft);
@@ -47,10 +46,6 @@ public class Viewport : ScreenSurface {
                 }
             }
         }
-        /*
-        Parallel.For(-HalfViewWidth, HalfViewWidth, x => {
-        });
-        */
         base.Render(delta);
     }
     public ColoredGlyph GetTile(int x, int y) {

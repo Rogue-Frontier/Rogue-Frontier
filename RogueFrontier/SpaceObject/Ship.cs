@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static RogueFrontier.BaseShip;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace RogueFrontier;
 
@@ -110,6 +111,7 @@ public class BaseShip {
     public HullSystem damageSystem;
     public double stealth;
     public int blindTicks;
+    public double silence = 0;
     public Disrupt disruption;
     public Rand destiny;
     public double rotationDeg;
@@ -154,17 +156,26 @@ public class BaseShip {
     }
     public void SetDecelerating(bool decelerating = true) => this.decelerating = decelerating;
     public void ReduceDamage(Projectile p) {
-        int dmgFull = p.damageHP;
-        foreach (var s in devices.Shield) {
+        var dmgMatched = (int)(p.damageHP * p.desc.CalcSilenceRatio(silence));
+        //var dmgSilence = p.damageHP - dmgMatched;
+        var silenceInc = p.desc.silenceInflict * p.damageHP * Math.Min(1, 1 - silence);
+        p.damageHP = dmgMatched;
+
+        if (devices.Shield.Any()) {
+            foreach (var s in devices.Shield) {
+
+                if (p.hitHandled) return;
+                s.Absorb(p);
+            }
+
             if (p.hitHandled) return;
-            s.Absorb(p);
         }
-        if (p.hitHandled) return;
+        silence += silenceInc;
         if (p.desc.blind is IDice blind) {
             blindTicks += blind.Roll();
             blindTicks = Math.Min(blindTicks, 300);
         }
-        int knockback = p.desc.knockback * p.damageHP / dmgFull;
+        int knockback = p.desc.knockback * p.damageHP / Math.Max(1, dmgMatched);
         velocity += (p.velocity - velocity).WithMagnitude(knockback);
         disruption = p.desc.Disruptor?.GetHijack() ?? disruption;
     }
@@ -196,6 +207,9 @@ public class BaseShip {
 
             stealth = Math.Max(stealth, 0);
         }
+
+        silence = Math.Max(0, silence - delta / 20);
+
         UpdateControl(delta);
         UpdateMotion(delta);
         //Devices.Update(this);
@@ -388,6 +402,10 @@ public class AIShip : IShip {
         onDestroyed.Observe(new(this, source, ship.wreck));
     }
     public void Update(double delta) {
+
+        if(ship.shipClass.codename == "ship_quietus") {
+            int i = 0;
+        }
         ship.ResetControl();
         behavior?.Update(delta, this);
         ship.UpdatePhysics(delta);
@@ -779,7 +797,14 @@ public class PlayerShip : IShip {
     }
     public bool CanSee(Entity e) => GetVisibleDistanceLeft(e) > 0;
     public double GetVisibleDistanceLeft(Entity e) => visibleDistanceLeft.TryGetValue(e.id, out var d) ? d : double.PositiveInfinity;
+    public bool updated;
     public void Update(double delta) {
+        /*
+        if (updated) {
+            return;
+        }
+        updated = true;
+        */
         messages.ForEach(m => m.Update(delta));
         messages.RemoveAll(m => !m.Active);
         var target = GetTarget();
@@ -796,14 +821,14 @@ public class PlayerShip : IShip {
                 w.SetFiring(true, target);
                 w.aiming?.Update(this, w);
             }
-            firingPrimary = false;
+            //firingPrimary = false;
         }
         if (firingSecondary) {
             if (secondary.Has(out var w) && !energy.off.Contains(w)) {
                 w.SetFiring(true, target);
                 w.aiming?.Update(this, w);
             }
-            firingSecondary = false;
+            //firingSecondary = false;
         }
 
         ticks++;
@@ -832,7 +857,7 @@ public class PlayerShip : IShip {
         dock.Update(delta, this);
 
         ship.UpdatePhysics(delta);
-        ship.ResetControl();
+        //ship.ResetControl();
 
         //We update the ship's devices as ourselves because they need to know who the exact owner is
         //In case someone other than us needs to know who we are through our devices
@@ -841,6 +866,11 @@ public class PlayerShip : IShip {
         }
         energy.Update(this);
         (ship.damageSystem as LayeredArmor)?.layers.ForEach(l => l.Update(delta, this));
+    }
+    public void ResetActiveControls() {
+        firingPrimary = false;
+        firingSecondary = false;
+        ship.ResetControl();
     }
     public void AddMessage(IPlayerMessage message) {
         var existing = messages.FirstOrDefault(m => m.Equals(message));

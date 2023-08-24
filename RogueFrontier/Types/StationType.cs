@@ -18,6 +18,8 @@ public class StationType : IDesignType {
     [Opt] public double stealth;
 
 
+    [Opt(separator = ";")] public HashSet<string> attributes = new();
+
     [Sub(alias = "HP", type = typeof(HitPointDesc))]
     [Sub(alias = "LayeredArmor", type = typeof(LayeredArmorDesc), fallback = true)]
     [Err(msg = "Hull system expected")]

@@ -53,6 +53,17 @@ public class Camera {
         right = right.Rotate(angle);
     }
 }
+
+
+public class SilenceListener : IWeaponListener {
+    public void Observe(IWeaponListener.WeaponFired ev) => Add(ev.proj);
+    private void Add(List<Projectile> p) =>
+        p.ForEach(silence.AddEntity);
+    System silence;
+    public SilenceListener(System s){
+        this.silence = s;
+    }
+}
 public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
     public void Observe(PlayerShip.Destroyed ev) {
         var (p, d, w) = ev;
@@ -96,6 +107,11 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
 
     public Sound music;
     //EventWaitHandle smooth = new(true, EventResetMode.AutoReset);
+
+
+
+    public System silenceSystem;
+
     public Mainframe(int Width, int Height, Profile profile, PlayerShip playerShip) : base(Width, Height) {
         UseMouse = true;
         UseKeyboard = true;
@@ -105,18 +121,36 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         this.playerShip = playerShip;
         this.playerControls = new(playerShip, this);
 
+
+        silenceSystem = new System(world.universe);
+        var tc = silenceSystem.types;
+        silenceSystem.AddEntity(playerShip);
+
+        IWeaponListener silenceListener = new SilenceListener(silenceSystem);
+        foreach(var e in world.universe.GetAllEntities()) {
+            var owner = e;
+            if(owner is ISegment s) {
+                owner = s.parent;
+            }
+            if(owner is Station st && st.type.attributes.Contains("Murmurs")) {
+                silenceSystem.AddEntity(e);
+                silenceListener.Register(st);
+            }
+        }
+        silenceListener.Register(playerShip);
+
         audio = new(playerShip);
         audio.Register(playerShip.world.universe);
 
         back = new(Width, Height, world.backdrop, camera);
         viewport = new(this, camera, world);
         uiMegamap = new(camera, playerShip, world.backdrop.layers.Last(), Width, Height);
-        vignette = new(playerShip, Width, Height);
+        vignette = new(this, playerShip, Width, Height);
         sceneContainer = new(Width, Height);
         sceneContainer.Focused += (e, o) => this.IsFocused = true;
         uiMain = new(camera, playerShip, Width, Height);
         uiEdge = new(camera, playerShip, Width, Height);
-        uiMinimap = new(this, playerShip, 16, camera);
+        uiMinimap = new(camera, playerShip, 16, this);
         communicationsWidget = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
         powerWidget = new(31, 16, this) { IsVisible = false, Position = new(3, 32) };
         pauseScreen = new(this) { IsVisible = false };
@@ -163,11 +197,10 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         }
         var destGate = gate.destGate;
         if (destGate == null) {
-            //OnPlayerLeft(true);
             world.entities.Remove(playerShip);
             transition = new GateTransition(new(this, new(playerShip.position), world), null, () => {
                 transition = null;
-                OnPlayerLeft(false);
+                OnPlayerLeft();
             });
             return;
         }
@@ -207,22 +240,10 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
             return ds;
         }
     }
-    public void OnPlayerLeft(bool transition) {
+    public void OnPlayerLeft() {
         HideAll();
         world.entities.Remove(playerShip);
-        if (transition) {
-            Game.Instance.Screen = new ExitTransition(this, EndCrawl()) { IsFocused = true };
-        } else {
-            Game.Instance.Screen = EndCrawl();
-        }
-        ScreenSurface EndCrawl() {
-            MinimalCrawlScreen ds = null;
-            ds = new("You have left Human Space.\n\n", EndPause) { Position = new(Surface.Width / 4, 8), IsFocused = true };
-            void EndPause() {
-                Game.Instance.Screen = new Pause(ds, EndGame, 3) { IsFocused = true };
-            }
-            return ds;
-        }
+        Game.Instance.Screen = new CreditsCrawl(Width, Height, EndGame);
         void EndGame() {
             Game.Instance.Screen = new EpitaphScreen(this,
                 new() {
@@ -237,6 +258,7 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         wreck.cargo.Clear();
         playerShip.mortalTime = 0;
         playerShip.ship.blindTicks = 0;
+        playerShip.ship.silence = 0;
         HideAll();
         //Get a snapshot of the player
         var size = Surface.Height;
@@ -345,15 +367,21 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
             networkMap.Update(delta);
             return;
         }
-        var gameDelta = delta.TotalSeconds * (playerShip.autopilot ? 3 : 1);
+        var gameDelta = delta.TotalSeconds * (playerShip.autopilot ? 3 : 1) * Math.Max(0, 1 - playerShip.ship.silence);
         if(playerShip is { active:true, mortalTime: > 0 }) {
             playerShip.mortalTime -= gameDelta;
             gameDelta /= (1 + playerShip.mortalTime/2);
         }
         void UpdateUniverse() {
+            //playerShip.updated = false;
 
-            world.UpdateActive(gameDelta);
             world.UpdatePresent();
+            world.UpdateActive(gameDelta);
+            
+            silenceSystem.UpdatePresent();
+            silenceSystem.UpdateActive(delta.TotalSeconds * Math.Min(1, playerShip.ship.silence));
+            
+
             systems.GetNext(1).ForEach(s => {
                 if (s != world) {
                     s.UpdateActive(gameDelta);
@@ -366,7 +394,8 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
             back.Update(delta);
             lock (world) {
 
-                if(!sceneContainer.Children.Any()) {
+                //Need to fix this for silence system
+                if (!sceneContainer.Children.Any()) {
                     playerControls.ProcessAll();
                     playerControls.input = new();
                 }
@@ -375,7 +404,9 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
 
                 AddCrosshair();
                 UpdateUniverse();
-                
+
+                playerShip.ResetActiveControls();
+
                 PlaceTiles(delta);
                 transition?.Update(delta);
 
@@ -400,6 +431,10 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         }
         UpdateUI(delta);
         camera.position = playerShip.position;
+
+
+        playerControls.input = new();
+
         //frameRendered = false;
         //Required to update children
         base.Update(delta);
@@ -458,6 +493,7 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         if (pauseScreen.IsVisible) {
             back.Render(drawTime);
             viewport.Render(drawTime);
+
             vignette.Render(drawTime);
             pauseScreen.Render(drawTime);
         } else if (networkMap.IsVisible) {
@@ -626,14 +662,11 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
             if(sleepMouse) {
                 sleepMouse = state.SurfacePixelPosition.Equals(prevMouse.SurfacePixelPosition);
             }
-
             //bool moved = mouseScreenPos != state.SurfaceCellPosition;
             //var mouseScreenPos = state.SurfaceCellPosition;
             var mouseScreenPos = new XY(state.SurfacePixelPosition) / FontSize - new XY(0.5, 0.75);
-
+            
             //(var a, var b) = (state.SurfaceCellPosition, state.SurfacePixelPosition);
-
-
             //Placeholder for mouse wheel-based weapon selection
             if (state.Mouse.ScrollWheelValueChange > 0) {
                 if (playerControls.input.Shift) {
@@ -641,7 +674,6 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
                 } else {
                     playerShip.NextPrimary();
                 }
-
                 playerControls.input.UsingMouse = true;
             } else if (state.Mouse.ScrollWheelValueChange < 0) {
                 if (playerControls.input.Shift) {
@@ -715,8 +747,6 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         return base.ProcessMouse(state);
     }
 }
-
-
 public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener, IWeaponListener, Ob<Projectile.Detonated> {
     private class AutoLoad : Attribute {}
     [AutoLoad]
@@ -758,6 +788,9 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
     }
     [Vol]
     public Sound targeting, autopilot, dock, powerCharge;
+
+
+    private Dictionary<Sound, float> regular_volumes = new();
     public Noisemaker(PlayerShip player) {
 
         var props = typeof(Noisemaker)
@@ -765,6 +798,12 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
             .Where(p => p.GetCustomAttributes(true).OfType<Vol>().Any()).ToList();
         foreach (var p in props) {
             p.SetValue(this, new Sound() { Volume = 50});
+        }
+        var sounds = new[] { exhaust.list, gunfire.list, damage.list, explosion.list }.SelectMany(l => l)
+            //.Concat(new[] { targeting, autopilot, dock, powerCharge })
+            ;
+        foreach(var s in sounds) {
+            regular_volumes[s] = s.Volume;
         }
 
 
@@ -809,7 +848,7 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
             }
             exhaustList.Clear();
             foreach ((var ship, var sound) in s) {
-                PlaySoundFrom(sound, ship, generic_exhaust);
+                PlayWorldSound(sound, ship, generic_exhaust);
                 exhaustList.Add(ship);
             }
         } else {
@@ -841,14 +880,14 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         if(e.world != player.world) {
             return;
         }
-        PlaySoundFrom(explosion, e, generic_explosion);
+        PlayWorldSound(explosion, e, generic_explosion);
     }
     public void Observe(IDamagedListener.Damaged ev) {
         var (e, p) = ev;
         if (e.world != player.world) {
             return;
         }
-        PlaySoundFrom(damage, e,
+        PlayWorldSound(damage, e,
             p.hitHull ? generic_damage : generic_shield_damage);
     }
     public void Observe(IWeaponListener.WeaponFired ev) {
@@ -860,7 +899,7 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
             p.onDetonated += this;
         }
         if (sound) {
-            PlaySoundFrom(gunfire, e,
+            PlayWorldSound(gunfire, e,
                 w.desc?.sound ?? generic_fire);
         }
     }
@@ -869,16 +908,17 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         if (sb == null) {
             return;
         }
-        PlaySoundFrom(gunfire,
+        PlayWorldSound(gunfire,
             d.source,
             sb);
     }
-    private void PlaySoundFrom(ListTracker<Sound> s, Entity e, SoundBuffer sb) =>
-        PlaySoundFrom(GetNextChannel(s), e, sb);
-    private void PlaySoundFrom(Sound s, Entity e, SoundBuffer sb) {
-
+    private void PlayWorldSound(ListTracker<Sound> s, Entity e, SoundBuffer sb) =>
+        PlayWorldSound(GetNextChannel(s), e, sb);
+    private void PlayWorldSound(Sound s, Entity e, SoundBuffer sb) {
         s.Position = player.position.To(e.position).Scale(distScale).ToVector3f();
         s.SoundBuffer = sb;
+
+        s.Volume = regular_volumes[s] * (float)Math.Max(0, 1 - player.ship.silence);
         s.Play();
     }
 }
@@ -1040,7 +1080,7 @@ public class Megamap : ScreenSurface {
                     var glyph = cg.Glyph;
                     var background = cg.Background.BlendPremultiply(starlight, alpha);
                     var foreground = cg.Foreground.PremultiplySet(alpha);
-                    Surface.SetCellAppearance(x, Height - y, new ColoredGlyph(foreground, background, glyph));
+                    Surface.SetCellAppearance(x, Height - y - 1, new ColoredGlyph(foreground, background, glyph));
                 }
             }
             var visiblePerimeter = new Rectangle(new(Width / 2, Height / 2), (int)(Width / (viewScale * 2) - 1), (int)(Height / (viewScale * 2) - 1));
@@ -1106,7 +1146,14 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
     int recoveryTime;
     public int lightningHit;
     public int flash;
+
     Color glowColor = PowerType.glowColors[Voice.Orator];
+
+    double silence;
+    double[,] silenceGrid;
+
+    Viewport silenceViewport;
+
 
     public void Observe(PlayerShip.Damaged ev) {
         var (pl, pr) = ev;
@@ -1120,7 +1167,7 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
     public void Observe(PlayerShip.Destroyed ev) {
         
     }
-    public Vignette(PlayerShip player, int width, int height) : base(width, height) {
+    public Vignette(Mainframe main, PlayerShip player, int width, int height) : base(width, height) {
         this.player = player;
         player.onDamaged += this;
         player.onDestroyed += this;
@@ -1130,13 +1177,22 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
         screenCenter = new(width / 2, height / 2);
         r = new();
         grid = new int[width, height];
+        silenceGrid = new double[width, height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 grid[x, y] = r.Next(0, 240);
+
+                silenceGrid[x, y] = r.NextDouble();
             }
         }
+
+
+        silenceViewport = new Viewport(this, main.camera, main.silenceSystem);
     }
     public override void Update(TimeSpan delta) {
+
+        silenceViewport.Update(delta);
+
         armorDecay = false && player.hull is LayeredArmor la && la.layers.Any(a => a.decay.Any());
         var charging = player.powers.Where(p => p.charging);
         if (charging.Any()) {
@@ -1284,6 +1340,20 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
             var (x, y) = p.position;
             var (fore, glyph) = (p.tile.Foreground, p.tile.Glyph);
             Surface.SetCellAppearance(x, y, new ColoredGlyph(fore, Surface.GetBackground(x, y), glyph));
+        }
+
+        silence += (player.ship.silence - silence) * delta.TotalSeconds * 10;
+        if(silence > 0) {
+            for(int x = 0; x < Width; x++) {
+                for(int y = 0; y < Height; y++) {
+                    var alpha = (byte)(255 * Math.Min(1, silence / silenceGrid[x, y]));
+                    if(alpha < 2) {
+                        continue;
+                    }
+                    var t = silenceViewport.GetTile(x, y);
+                    Surface.SetCellAppearance(x, Height - y - 1, new(t.Foreground.SetAlpha(alpha), t.Background.SetAlpha(alpha), t.Glyph));
+                }
+            }
         }
         base.Render(delta);
     }
@@ -1884,6 +1954,7 @@ public class Readout : ScreenSurface {
             y++;
             Surface.Print(x, y++, $"Stealth: {ship.stealth:0.00}");
             Surface.Print(x, y++, $"Visibility: {SStealth.GetVisibleRangeOf(player):0.00}");
+            Surface.Print(x, y++, $"Darkness: {player.ship.silence:0.00}");
         }
         base.Render(drawTime);
     }
@@ -1962,7 +2033,7 @@ public class Minimap : ScreenSurface {
     List<(int x, int y)> area = new();
 
     XY screenSize, screenCenter;
-    public Minimap(ScreenSurface parent, PlayerShip playerShip, int size, Camera camera) : base(size, size) {
+    public Minimap(Camera camera, PlayerShip playerShip, int size, ScreenSurface parent) : base(size, size) {
 
         this.Position = new Point(parent.Surface.Width - size - 2, 2);
         this.player = playerShip;
