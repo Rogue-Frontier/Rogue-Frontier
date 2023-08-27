@@ -25,14 +25,18 @@ using Col = SadRogue.Primitives.Color;
 namespace Common;
 
 public static class Main {
-    public static double Lerp(double x, double fromMin, double fromMax, double toMin, double toMax, double gamma) {
+    public static double Lerp(double x, double fromMin, double fromMax, double toMin, double toMax, double pow) {
         var fromRange = fromMax - fromMin;
         var toRange = toMax - toMin;
         
-        x = (x - Math.Clamp(x, fromMin, fromMax)) * toRange / fromRange;
-        x = Math.Pow(x / toRange, gamma);
-        return toMin + Math.Sign(toRange) * x;
+        var toDist = (Math.Clamp(x, fromMin, fromMax) - fromMin) * toRange / fromRange;
+        toDist = Math.Pow(toDist / toRange, pow);
+        return toMin + toRange * toDist;
     }
+    public static string LerpString(this string str, double x, double fromMin, double fromMax, double pow) =>
+        str.Substring(0, (int)Main.Lerp(x, fromMin, fromMax, 0, str.Length, pow));
+    public static ColoredString LerpString(this ColoredString str, double x, double fromMin, double fromMax, double gamma) =>
+        str.SubString(0, (int)Main.Lerp(x, fromMin, fromMax, 0, str.Length, gamma));
     public static ColoredString ConcatColored(ColoredString[] parts) {
         var r = new List<ColoredGlyph>();
         foreach(var cs in parts) {
@@ -247,22 +251,21 @@ public static class Main {
 
             var vert = Box(n: width, s: width);
             var hori = Box(e: width, w: width);
-            
-            if (dx == 1 || dy == 1) {
+
+            if (dx == 1) {
                 var n = Box(e: Line.Single, w: Line.Single, s: width, n: connectAbove ? width : Line.None);
                 var s = Box(e: Line.Single, w: Line.Single, n: width, s: connectBelow ? width : Line.None);
+
+                yield return $"{n}";
+                yield return $"{vert}";
+                yield return $"{s}";
+                yield break;
+            } else if(dy == 1) {
                 var e = Box(n: connectAbove ? width : Line.None, s: connectBelow ? width : Line.None, w: width);
                 var w = Box(n: connectAbove ? width : Line.None, s: connectBelow ? width : Line.None, e: width);
 
-                if (dx == 1) {
-                    yield return $"{n}";
-                    yield return $"{vert}";
-                    yield return $"{s}";
-                    yield break;
-                } else {
-                    yield return $"{w}{new string(hori, dx - 2)}{e}";
-                    yield break;
-                }
+                yield return $"{w}{new string(hori, dx - 2)}{e}";
+                yield break;
             } else {
                 var nw = Box(e: width, s: width, n: connectAbove ? width : Line.None);
                 var ne = Box(w: width, s: width, n: connectAbove ? width : Line.None);

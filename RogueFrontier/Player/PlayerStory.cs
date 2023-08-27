@@ -1321,7 +1321,7 @@ You didn't read it, did you?""",
                 item_gem_of_monologue = a(Regular)
             }.ToDict<Action>();
             void Regular() {
-                status.funds += stdPrice[screen.currentItem.type];
+                status.funds += stdPrice[screen.list.currentItem.type];
                 screen.Replace(new Dialog(prev,
 @"""Thank you for your donation of this
 resonant artifact - may The Orator smile
