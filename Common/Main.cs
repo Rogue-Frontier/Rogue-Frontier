@@ -241,36 +241,46 @@ public static class Main {
     public static int LineCount(this string lines) =>
         lines.Split('\n').Length;
 
-    public static void DrawRect(this ICellSurface surf, int xStart, int yStart, int dx, int dy, bool connectBelow = false, bool connectAbove = false) {
+
+    public class RectOptions {
+        public bool connectBelow, connectAbove;
+        public Line width = Line.Single;
+        public Col f = Col.White, b = Col.Black;
+    }
+
+    public static void DrawRect(this ICellSurface surf, int xStart, int yStart, int dx, int dy, RectOptions op) {
         char Box(Line n = Line.None, Line e = Line.None, Line s = Line.None, Line w = Line.None) =>
             (char)BoxInfo.IBMCGA.glyphFromInfo[new(n, e, s, w)];
 
-        var width = Line.Single;
-
+        var width = op.width;
+        var aboveWidth = op.connectAbove ? width : Line.None;
+        var belowWidth = op.connectBelow ? width : Line.None;
         IEnumerable<string> GetLines() {
 
             var vert = Box(n: width, s: width);
             var hori = Box(e: width, w: width);
 
             if (dx == 1) {
-                var n = Box(e: Line.Single, w: Line.Single, s: width, n: connectAbove ? width : Line.None);
-                var s = Box(e: Line.Single, w: Line.Single, n: width, s: connectBelow ? width : Line.None);
+                var n = Box(e: Line.Single, w: Line.Single, s: width, n: aboveWidth);
+                var s = Box(e: Line.Single, w: Line.Single, n: width, s: belowWidth);
 
                 yield return $"{n}";
-                yield return $"{vert}";
+                for (int i = 0; i < dy - 2; i++) {
+                    yield return $"{vert}";
+                }
                 yield return $"{s}";
                 yield break;
             } else if(dy == 1) {
-                var e = Box(n: connectAbove ? width : Line.None, s: connectBelow ? width : Line.None, w: width);
-                var w = Box(n: connectAbove ? width : Line.None, s: connectBelow ? width : Line.None, e: width);
+                var e = Box(n: aboveWidth, s: belowWidth, w: width);
+                var w = Box(n: aboveWidth, s: belowWidth, e: width);
 
                 yield return $"{w}{new string(hori, dx - 2)}{e}";
                 yield break;
             } else {
-                var nw = Box(e: width, s: width, n: connectAbove ? width : Line.None);
-                var ne = Box(w: width, s: width, n: connectAbove ? width : Line.None);
-                var sw = Box(e: width, n: width, s: connectBelow ? width : Line.None);
-                var se = Box(w: width, n: width, s: connectBelow ? width : Line.None);
+                var nw = Box(e: width, s: width, n: aboveWidth);
+                var ne = Box(w: width, s: width, n: aboveWidth);
+                var sw = Box(e: width, n: width, s: belowWidth);
+                var se = Box(w: width, n: width, s: belowWidth);
                 yield return $"{nw}{new string(hori, dx - 2)}{ne}";
                 for (int i = 0; i < dy - 2; i++) {
                     yield return $"{vert}{new string(' ', dx - 2)}{vert}";
@@ -280,7 +290,7 @@ public static class Main {
         }
         int y = yStart;
         foreach(var line in GetLines()) {
-            surf.Print(xStart, y++, new ColoredString(line, Col.White, Col.Black));
+            surf.Print(xStart, y++, new ColoredString(line, op.f, op.b));
         }
     }
     public static T LastItem<T>(this List<T> list) => list[list.Count - 1];

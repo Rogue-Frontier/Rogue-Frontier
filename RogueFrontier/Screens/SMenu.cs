@@ -1338,9 +1338,15 @@ public class ListPane<T> : ScreenSurface {
     private bool enterDown = false;
     private double time;
 
+    private ScrollBar scroll = new(26);
     public int? index {
         set {
             _index = value;
+
+            if(value != null) {
+                scroll.ScrollToShow(value.Value);
+            }
+
             indexChanged?.Invoke(currentItem);
         }
         get => _index;
@@ -1352,6 +1358,10 @@ public class ListPane<T> : ScreenSurface {
         this.items = items;
         this.getName = getName;
         this.indexChanged = indexChanged;
+
+        scroll = new(26) { Position = new(0, 3) };
+        Children.Add(scroll);
+
         UpdateIndex();
         time = -0.1;
     }
@@ -1366,7 +1376,12 @@ public class ListPane<T> : ScreenSurface {
         if (groupMode) {
             UpdateGroups();
         }
-        index = count > 0 ? Math.Min(index ?? 0, count - 1) : null;
+        scroll.count = count;
+        if(count > 0) {
+            index = Math.Min(index ?? 0, count - 1);
+        } else {
+            index = null;
+        }
         time = 0;
     }
     public override bool ProcessKeyboard(Keyboard keyboard) {
@@ -1408,7 +1423,7 @@ public class ListPane<T> : ScreenSurface {
                         UpdateIndex();
                     }
                     break;
-                case Keys.Tab: groupMode = !groupMode; break;
+                case Keys.Tab: groupMode = !groupMode; UpdateIndex(); break;
                 default:
                     if(char.ToLower(key.Character) is var ch and >= 'a' and <= 'z') {
                         Tones.pressed.Play();
@@ -1433,7 +1448,7 @@ public class ListPane<T> : ScreenSurface {
         
         var paneRect = new Rectangle(1, 3, lineWidth + 8, 26);
         if (mouseOnItem = paneRect.Contains(state.SurfaceCellPosition)) {
-            var (start, _) = GetVisibleRange();
+            var (start, _) = scroll.GetIndexRange();
             var ind = start + state.SurfaceCellPosition.Y - 3;
             if(ind < count) {
                 index = ind;
@@ -1447,16 +1462,9 @@ public class ListPane<T> : ScreenSurface {
     }
     public override void Update(TimeSpan delta) {
         time += delta.TotalSeconds;
-
-
         base.Update(delta);
     }
     const int lineWidth = 36;
-    public (int, int) GetVisibleRange() {
-        int start = Math.Max((index ?? 0) - 25, 0),
-            end = Math.Min(count, start + 26);
-        return (start, end);
-    }
     public override void Render(TimeSpan delta) {
         int x = 0;
         int y = 0;
@@ -1467,10 +1475,10 @@ public class ListPane<T> : ScreenSurface {
             w = (int) Main.Lerp(time, -0.1, -0.0, 1, w, 1);
             t = title.LerpString(time, -0.1, 0, 1);
         }
-        Surface.DrawRect(x, y, w, 3);
+        Surface.DrawRect(x, y, w, 3, new());
 
         Surface.Print(x + 2, y + 1, t, active ? Color.Yellow : Color.White, Color.Black);
-        Surface.DrawRect(x, y + 2, w, 26 + 2, connectAbove: true);
+        Surface.DrawRect(x, y + 2, w, 26 + 2, new() { connectAbove = true });
         x += 2;
         y += 3;
         if (count > 0) {
@@ -1483,10 +1491,10 @@ public class ListPane<T> : ScreenSurface {
                         return $"{count}x {getName(item)}";
                     } :
                     i => getName(singles[i]);
-            var (start, end) = GetVisibleRange();
+            var (start, end) = scroll.GetIndexRange();
             for(int i = start; i < end; i++) {
                 var n = nameAt(i);
-                var (f, b) = (Color.White, Color.Black);
+                var (f, b) = (Color.White, i%2 == 0 ? Color.Black : Color.Black.Blend(Color.White.SetAlpha(36)));
                 if (active && i == highlight) {
                     if (n.Length > lineWidth) {
                         double initialDelay = 1;
@@ -1510,28 +1518,6 @@ public class ListPane<T> : ScreenSurface {
                 } else {
                     Surface.Print(x, y++, name);
                 }
-                
-
-
-            }
-            const int height = 26;
-            int barStart = height * start / count;
-            int barEnd = Math.Min(height - 1, height * end / count);
-            int barX = x - 2;
-
-            int Box(BoxGlyph desc) => BoxInfo.IBMCGA.glyphFromInfo[desc];
-            ColoredGlyph BarGlyph(BoxGlyph bg) =>
-                new(Color.White, Color.Black, Box(bg));
-            for (int i = 0; i < height; i++) {
-                var cg =
-                    (i < barStart || i > barEnd) ?
-                        new(Color.LightGray, Color.Black, Box(new() { n = Line.Single, s = Line.Single })) :
-                    i == barStart ?
-                        BarGlyph(new() { s = Line.Double, e = Line.Single, w = Line.Single }) :
-                    i == barEnd ?
-                        BarGlyph(new() { n = Line.Double, e = Line.Single, w = Line.Single }) :
-                        BarGlyph(new() { n = Line.Double, s = Line.Double });
-                Surface.SetCellAppearance(barX, 3 + i, cg);
             }
         } else {
             Surface.Print(x, y, new ColoredString("<Empty>", Color.Yellow, Color.Black));
@@ -1548,13 +1534,98 @@ public class ScrollBar : ScreenSurface {
     public ScrollBar(int windowSize) : base(1, windowSize) {
         this.windowSize = windowSize;
     }
-    public (int, int) GetVisibleRange() {
-        int start = Math.Max(index - 25, 0),
+    public (int, int) GetIndexRange() {
+        int start = Math.Max(index, 0),
             end = Math.Min(count, start + 26);
         return (start, end);
     }
-    public override void Render(TimeSpan delta) {
+    public (int barStart, int barEnd) GetBarRange() {
+        if (count <= 26) {
+            return (0, windowSize - 1);
+        }
+        var (start, end) = GetIndexRange();
+        return (windowSize * start / count, Math.Min(windowSize - 1, windowSize * end / count));
+    }
+    public void ScrollToShow(int index) {
+        if(index < this.index) {
+            this.index = index;
+        } else if(index >= this.index + 25) {
+            this.index = Math.Max(0, index - 25);
+        }
+    }
+    public void Scroll(int delta) {
+        index += delta * count / windowSize;
+        index = Math.Clamp(index, 0, count - 25);
+    }
 
+    bool mouseOnBar;
+    bool clickOnBar;
+    int prevClick = 0;
+    public override bool ProcessMouse(MouseScreenObjectState state) {
+        if (IsMouseOver) {
+            var (barStart, barEnd) = GetBarRange();
+            var y = state.SurfaceCellPosition.Y;
+            if (state.Mouse.LeftButtonDown) {
+
+                if (clickOnBar) {
+                    int delta = y - prevClick;
+                    Scroll(delta);
+
+                    prevClick = y;
+                } else {
+                    mouseOnBar = clickOnBar = false;
+                    if (y < barStart) {
+                        Scroll(Math.Sign(y - barStart));
+                    } else if (y > barEnd) {
+                        Scroll(Math.Sign(y - barEnd));
+                    } else {
+                        prevClick = y;
+                        mouseOnBar = clickOnBar = true;
+                    }
+                }
+            } else {
+                mouseOnBar = y >= barStart && y <= barEnd;
+                clickOnBar = false;
+            }
+        } else {
+            if(clickOnBar && state.Mouse.LeftButtonDown) {
+                var y = state.SurfaceCellPosition.Y;
+                int delta = y - prevClick;
+                Scroll(delta);
+
+                prevClick = y;
+            } else {
+                mouseOnBar = clickOnBar = false;
+            }
+
+            if(state.Mouse.ScrollWheelValueChange != 0) {
+                Scroll(state.Mouse.ScrollWheelValueChange);
+            }
+        }
+        
+        return base.ProcessMouse(state);
+    }
+    public override void Render(TimeSpan delta) {
+        Surface.Clear();
+        if(count <= 26) {
+            return;
+        }
+        Surface.DrawRect(0, 0, 1, 26, new() { width = Line.Single, f = Color.Gray });
+
+        var (barStart, barEnd) = GetBarRange();
+
+        var (f, b) =
+            clickOnBar ?
+                (Color.Black, Color.White) :
+            mouseOnBar ?
+                (Color.White, Color.Gray) :
+                (Color.White, Color.Black);
+
+        Surface.DrawRect(0, barStart, 1, barEnd - barStart + 1, new() {
+            width = Line.Double,
+            f = f,
+            b = b
+        });
         base.Render(delta);
     }
 }
