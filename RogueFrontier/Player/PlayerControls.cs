@@ -103,7 +103,7 @@ public class PlayerControls {
         if (input.Dock) {
             if (input.Shift) {
                 var dockable = playerShip.world.entities.all.OfType<IDockable>().OrderBy(d => (d.position - playerShip.position).magnitude2).ToList();
-                playerMain.sceneContainer.Children.Add(SListWidget.DockMenu(playerMain, dockable, playerShip));
+                playerMain.sceneContainer.Children.Add(SListWidget.DockList(playerMain, dockable, playerShip));
             } else if (playerShip.dock.Target != null) {
                 if (playerShip.dock.docked) {
                     playerShip.AddMessage(new Message("Undocked"));
@@ -155,13 +155,10 @@ public class PlayerControls {
         ProcessTargeting();
         ProcessCommon();
         var pw = playerMain.powerWidget;
-        var cw = playerMain.communicationsWidget;
         if (input.Escape) {
             playerMain.audio.button_press.Play();
             if (pw?.IsVisible == true) {
                 pw.IsVisible = false;
-            } else if (cw.IsVisible == true) {
-                cw.IsVisible = false;
             } else {
                 playerMain.pauseScreen.IsVisible = true;
             }
@@ -170,13 +167,9 @@ public class PlayerControls {
             playerMain.audio.button_press.Play();
             pw.IsVisible = !pw.IsVisible;
         }
-        if (input.Communications && cw != null) {
-            playerMain.audio.button_press.Play();
-            cw.IsVisible = !cw.IsVisible;
-        }
         if (keys != null && keys.IsKeyPressed(U)) {
             playerMain.audio.button_press.Play();
-            playerMain.sceneContainer.Children.Add(SListWidget.Usables(playerMain, playerShip));
+            playerMain.sceneContainer.Children.Add(SListWidget.UsefulItems(playerMain, playerShip));
         }
         if (input.NetworkMap && playerMain.networkMap is var nm) {
             playerMain.audio.button_press.Play();
@@ -185,8 +178,14 @@ public class PlayerControls {
 
 
         if(keys?.IsKeyPressed(B) == true) {
-            playerMain.sceneContainer.Children.Add(SListWidget.DeviceManager(playerMain, playerShip));
+            playerMain.audio.button_press.Play();
+            playerMain.sceneContainer.Children.Add(SListWidget.ManageDevices(playerMain, playerShip));
         }
+        if (keys?.IsKeyPressed(C) == true) {
+            playerMain.audio.button_press.Play();
+            playerMain.sceneContainer.Children.Add(SListWidget.Communications(playerMain, playerShip));
+        }
+
 
         if (keys != null && keys.IsKeyPressed(F1)) {
             playerMain.audio.button_press.Play();

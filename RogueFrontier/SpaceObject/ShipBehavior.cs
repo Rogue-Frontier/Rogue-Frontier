@@ -750,7 +750,7 @@ public class AttackTarget : IShipOrder {
                 gate = null;
             }
         }
-        if(!owner.world.entities.Contains(target) && target.active) {
+        if(!owner.world.entities.Contains(target) && target.active && owner.world != target.world) {
             gate = new(owner.world.FindGateTo(target.world));
             gate.Update(delta, owner);
             return;

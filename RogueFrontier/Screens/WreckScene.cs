@@ -30,7 +30,7 @@ public class WreckScene : Console {
         
         playerPane = new(playerShip.name, playerShip.cargo, i => i.name, SetDesc) {
             Position = new(4, 16),
-            active = true,
+            active = false,
             invoke = i => {
                 playerShip.cargo.Remove(i);
                 docked.cargo.Add(i);
@@ -38,8 +38,8 @@ public class WreckScene : Console {
             },
         };
         dockedPane = new(docked.name, docked.cargo, i => i.name, SetDesc) {
-            Position = new(44, 16),
-            active = false,
+            Position = new(47, 16),
+            active = true,
             invoke = i => {
                 playerShip.cargo.Add(i);
                 docked.cargo.Remove(i);

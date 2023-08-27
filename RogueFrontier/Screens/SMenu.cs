@@ -1253,7 +1253,7 @@ public class ListMenu<T> : ScreenSurface {
     public ListMenu(ScreenSurface prev, PlayerShip player, string title, IEnumerable<T> items, ListPane<T>.GetName getName, DescPanel<T>.GetDesc getDesc, ListPane<T>.Invoke invoke, Action escape):base(prev.Surface.Width, prev.Surface.Height) {
         this.player = player;
 
-        descPane = new DescPanel<T>(40, 26) { Position = new(45, 17) };
+        descPane = new DescPanel<T>(40, 26) { Position = new(48, 17) };
         this.list = new(title, items, getName, UpdateDesc) {
             Position = new(4, 16),
             invoke = invoke,
@@ -1353,7 +1353,7 @@ public class ListPane<T> : ScreenSurface {
     }
     public int count => groupMode ? groups.Length : singles.Count();
     public T currentItem => index is { } i ? (groupMode ? groups[i].item : singles[i]) : default;
-    public ListPane(string title, IEnumerable<T> items, GetName getName, IndexChanged indexChanged) : base(42, 30) {
+    public ListPane(string title, IEnumerable<T> items, GetName getName, IndexChanged indexChanged) : base(45, 30) {
         this.title = title;
         this.items = items;
         this.getName = getName;
@@ -1468,7 +1468,7 @@ public class ListPane<T> : ScreenSurface {
     public override void Render(TimeSpan delta) {
         int x = 0;
         int y = 0;
-        int w = lineWidth + 4;
+        int w = lineWidth + 7;
 
         var t = title;
         if(time < 0) {
@@ -1520,7 +1520,7 @@ public class ListPane<T> : ScreenSurface {
                 }
             }
         } else {
-            Surface.Print(x, y, new ColoredString("<Empty>", Color.Yellow, Color.Black));
+            Surface.Print(x, y, new ColoredString("<Empty>", Color.White, Color.Black));
         }
         base.Render(delta);
     }
@@ -1631,7 +1631,7 @@ public class ScrollBar : ScreenSurface {
 }
 
 public static class SListWidget {
-    public static ListWidget<Item> Usables(ScreenSurface prev, PlayerShip player) {
+    public static ListWidget<Item> UsefulItems(ScreenSurface prev, PlayerShip player) {
         ListWidget<Item> screen = null;
         IEnumerable<Item> cargoInvokable;
         IEnumerable<Item> installedInvokable;
@@ -1645,6 +1645,7 @@ public static class SListWidget {
         UpdateList();
 
         return screen = new(prev,
+            "Use Item",
             usable,
             GetName,
             GetDesc,
@@ -1664,11 +1665,11 @@ public static class SListWidget {
         }
         void InvokeItem(Item i) {
             i.type.Invoke?.Invoke(screen, player, i, Update);
-            screen.UpdateIndex();
+            screen.list.UpdateIndex();
         }
         void Update() {
             UpdateList();
-            screen.UpdateIndex();
+            screen.list.UpdateIndex();
         }
         void Escape() {
             var p = screen.Parent;
@@ -1676,17 +1677,18 @@ public static class SListWidget {
             p.IsFocused = true;
         }
     }
-    public static ListWidget<Device> DeviceManager(ScreenSurface prev, PlayerShip player) {
+    public static ListWidget<Device> ManageDevices(ScreenSurface prev, PlayerShip player) {
         ListWidget<Device> screen = null;
         var disabled = player.energy.off;
         var powered = player.devices.Powered;
         return screen = new(prev,
+            "Manage Devices",
             powered,
             GetName,
             GetDesc,
             InvokeItem,
             Escape
-            ) { groupMode=false, title="Device Manager" };
+            ) { groupMode=false };
         string GetName(Device d) => $"{(disabled.Contains(d) ? "[ ]" : "[*]")} {d.source.type.name}";
         List<ColoredString> GetDesc(Device d) {
             var result = SMenu.GenerateDesc(d);
@@ -1706,7 +1708,7 @@ public static class SListWidget {
                 p.OnDisable();
                 player.AddMessage(new Message($"Disabled {p.source.type.name}"));
             }
-            screen.UpdateIndex();
+            screen.list.UpdateIndex();
         }
         void Escape() {
             var p = screen.Parent;
@@ -1714,15 +1716,16 @@ public static class SListWidget {
             p.IsFocused = true;
         }
     }
-    public static ListWidget<IDockable> DockMenu(ScreenSurface prev, List<IDockable> d, PlayerShip player) {
+    public static ListWidget<IDockable> DockList(ScreenSurface prev, List<IDockable> d, PlayerShip player) {
         ListWidget<IDockable> screen = null;
         return screen = new(prev,
+            "Docking",
             d,
             GetName,
             GetDesc,
             InvokeItem,
             Escape
-            ) { groupMode=false, title="Dock At"};
+            ) { groupMode=false};
         string GetName(IDockable d) => $"{d.name, -24}"; //{(d.position - player.position).magnitude,4:0}
         List<ColoredString> GetDesc(IDockable d) => new() {
             new($"Distance: {(d.position - player.position).magnitude:0}")
@@ -1737,215 +1740,171 @@ public static class SListWidget {
             p.IsFocused = true;
         }
     }
-}
-public class ListWidget<T> : ScreenSurface {
+    public static ListWidget<AIShip> Communications(ScreenSurface prev, PlayerShip player) {
+        ListWidget<AIShip> screen = null;
 
-    public string title = "";
 
-    public bool groupMode = true;
-    public IEnumerable<T> items;
-    public IEnumerable<(T item, int count)> groups;
-    public int count => groupMode ? groups.Count() : items.Count();
-    public T currentItem => index.HasValue ? (groupMode ? groups.ElementAt(index.Value).item : items.ElementAt(index.Value)) : default;
-    int? index;
-    GetName getName;
-    GetDesc getDesc;
-    Invoke invoke;
-    Escape escape;
-    int tick;
-    public delegate string GetName(T t);
-    public delegate List<ColoredString> GetDesc(T t);
-    public delegate void Invoke(T t);
-    public delegate void Escape();
-    public ListWidget(ScreenSurface prev, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
-        this.items = items;
-        this.getName = getName;
-        this.getDesc = getDesc;
-        this.invoke = invoke;
-        this.escape = escape;
-        UpdateIndex();
-    }
-    public void UpdateGroups() {
-        var l = items.ToList();
-        groups = items.GroupBy(i => getName(i))
-            .OrderBy(g => l.IndexOf(g.First()))
-            .Select(g => (g.Last(), g.Count()))
-            .ToHashSet();
-    }
-    public void UpdateIndex() {
-        if (groupMode) UpdateGroups();
-        index = count > 0 ? Math.Min(index ?? 0, count - 1) : null;
-        tick = 0;
-    }
-    public override bool ProcessKeyboard(Keyboard keyboard) {
-        foreach (var key in keyboard.KeysPressed) {
-            switch (key.Key) {
-                case Keys.Up:
-                    index = count > 0 ?
-                        (index == null ? (count - 1) :
-                            index == 0 ? null :
-                            Math.Max(index.Value - 1, 0))
-                        : null;
-                    tick = 0;
-                    break;
-                case Keys.PageUp:
-                    index = count > 0 ?
-                        (index == null ? (count - 1) :
-                            index == 0 ? null :
-                            Math.Max(index.Value - 26, 0))
-                        : null;
-                    tick = 0;
-                    break;
-                case Keys.Down:
-                    index = count > 0 ?
-                        (index == null ? 0 :
-                            index == count - 1 ? null :
-                            Math.Min(index.Value + 1, count - 1))
-                        : null;
-                    tick = 0;
-                    break;
-                case Keys.PageDown:
-                    index = count > 0 ?
-                        (index == null ? 0 :
-                            index == count - 1 ? null :
-                            Math.Min(index.Value + 26, count - 1))
-                        : null;
-                    tick = 0;
-                    break;
-                case Keys.Enter:
-                    var i = currentItem;
-                    if (i != null) {
-                        invoke(i);
-                        UpdateIndex();
+        screen = new(prev,
+            "Communications",
+            player.wingmates,
+            GetName,
+            GetDesc,
+            InvokeItem,
+            Escape
+            );
+
+        Dictionary<string, Action> commands = new();
+        var buttons = new ButtonPane(16, 8) { Position = new(48, 24) };
+        void UpdateButtons(AIShip s) {
+            buttons.Children.Clear();
+            if(s == null) {
+                return;
+            }
+            EscortShip GetEscortOrder(int i) {
+                int root = (int)Math.Sqrt(i);
+                int lower = root * root;
+                int upper = (root + 1) * (root + 1);
+                int range = upper - lower;
+                int index = i - lower;
+                return new EscortShip(player, XY.Polar(
+                        -(Math.PI * index / range), root * 2));
+            }
+            switch (s.behavior) {
+                case Wingmate w:
+                    commands["Form Up"] = () => {
+                        player.AddMessage(new Transmission(s, $"Ordered {s.name} to Form Up"));
+                        w.order = GetEscortOrder(0);
+                    };
+                    if (s.devices.Weapon.FirstOrDefault(w => w.projectileDesc.tracker != 0) is Weapon weapon) {
+                        commands["Fire Tracker"] = () => {
+                            if (!player.GetTarget(out ActiveObject target)) {
+                                player.AddMessage(new Transmission(s, $"{s.name}: Firing tracker at nearby enemies"));
+                                w.order = new FireTrackerNearby(weapon);
+                                return;
+                            }
+                            player.AddMessage(new Transmission(s, $"{s.name}: Firing tracker at target"));
+                            w.order = new FireTrackerAt(weapon, target);
+                        };
                     }
-                    break;
-                case Keys.Escape:
-                    escape();
+                    commands["Attack Target"] = () => {
+                        if (player.GetTarget(out ActiveObject target)) {
+                            w.order = new AttackTarget(target);
+                            player.AddMessage(new Transmission(s, $"{s.name}: Attacking target"));
+                        } else {
+                            player.AddMessage(new Transmission(s, $"{s.name}: No target selected"));
+                        }
+                    };
+                    commands["Wait"] = () => {
+                        w.order = new GuardAt(new TargetingMarker(player, "Wait", s.position));
+                        player.AddMessage(new Transmission(s, $"Ordered {s.name} to Wait"));
+                    };
                     break;
                 default:
-                    var ch = char.ToLower(key.Character);
-                    if (ch >= 'a' && ch <= 'z') {
-                        int start = Math.Max((index ?? 0) - 13, 0);
-                        var letterIndex = start + SMenu.letterToIndex(ch);
-                        if (letterIndex == index) {
-                            invoke(currentItem);
-                            UpdateIndex();
-                        } else if (letterIndex < count) {
-                            //var item = items.ElementAt(letterIndex);
-                            index = letterIndex;
-                            tick = 0;
+                    commands["Form Up"] = () => {
+                        player.AddMessage(new Message($"Ordered {s.name} to Form Up"));
+                        s.behavior = GetEscortOrder(0);
+                    };
+                    commands["Attack Target"] = () => {
+                        if (player.GetTarget(out ActiveObject target)) {
+                            var attack = new AttackTarget(target);
+                            var escort = GetEscortOrder(0);
+                            s.behavior = attack;
+                            OrderOnDestroy.Register(s, attack, escort, target);
+                            player.AddMessage(new Message($"Ordered {s.name} to Attack Target"));
+                        } else {
+                            player.AddMessage(new Message($"No target selected"));
                         }
-                    }
+                    };
                     break;
             }
+            foreach(var(key, action) in commands) {
+                buttons.Add(key, () => {
+                    action();
+                    screen.list.UpdateIndex();
+                });
+            }
+        }
+        screen.Children.Add(buttons);
+        screen.list.indexChanged += UpdateButtons;
+        return screen;
+
+        string GetName(AIShip s) => $"{s.name,-24}";
+        List<ColoredString> GetDesc(AIShip s) => new() {
+            new($"Distance: {(s.position - player.position).magnitude:0}"),
+            new($"Order: {s.behavior.GetOrderName()}")
+        };
+        void InvokeItem(AIShip d) {
+            
+        }
+        void Escape() {
+            var p = screen.Parent;
+            p.Children.Remove(screen);
+            p.IsFocused = true;
+        }
+    }
+}
+
+public class ButtonPane : Console {
+    public ButtonPane(int width, int height): base(width, height) {}
+    public override bool ProcessKeyboard(Keyboard keyboard) {
+        int i = 0;
+        foreach(var button in buttons) {
+            if(keyboard.IsKeyPressed(Keys.NumPad1 + i)){
+                button.leftClick?.Invoke();
+            }
+            i++;
         }
         return base.ProcessKeyboard(keyboard);
     }
-    public override void Update(TimeSpan delta) {
-        tick++;
-        base.Update(delta);
+    List<LabelButton> buttons = new();
+    public void Add(string label, Action clicked) {
+        var index = Children.Count + 1;
+        var b = new LabelButton($"{index}> {label}", clicked) {
+            Position = new Point(0, index),
+        };
+        buttons.Add(b);
+        Children.Add(b);
     }
-    public override void Render(TimeSpan delta) {
-        int x = 6;
-        int y = 14;
+    public void Clear() {
+        buttons.Clear();
+        Children.Clear();
+    }
+}
 
-        void line(Point from, Point to, int glyph) {
-            Surface.DrawLine(from, to, '-', Color.White, null);
-        }
-        const int WIDTH = 36;
-        Surface.Clear();
-        Surface.Print(x, y, title);
-        y += 2;
+public class ListWidget<T> : ScreenSurface {
+    public ListPane<T> list;
+    public DescPanel<T> descPane;
 
+    public ref string title => ref list.title;
+    public ref bool groupMode => ref list.groupMode;
 
-        int start = 0;
-        int? highlight = null;
-        if (index.HasValue) {
-            start = Math.Max(index.Value - 16, 0);
-            highlight = index;
-        }
-        Func<int, string> NameAt = groupMode ? i => {
-            var g = groups.ElementAt(i);
-            return $"{g.count}x {getName(g.item)}";
-        }
-        : i => getName(items.ElementAt(i));
+    public Action escape;
+    public ListWidget(ScreenSurface prev, string title, IEnumerable<T> items, ListPane<T>.GetName getName, DescPanel<T>.GetDesc getDesc, ListPane<T>.Invoke invoke, Action escape) : base(prev.Surface.Width, prev.Surface.Height) {
+        descPane = new DescPanel<T>(40, 26) { Position = new(48, 17) };
+        list = new(title, items, getName, UpdateDesc) {
+            Position = new(4, 16),
+            invoke = invoke,
+        };
 
-        int end = Math.Min(count, start + 26);
-
-        if (count > 0) {
-            int i = start;
-            while (i < end) {
-                var highlightColor = i == highlight ? Color.Yellow : Color.White;
-                var n = NameAt(i);
-                if (n.Length > WIDTH) {
-                    if (i == highlight) {
-                        //((tick / 15) % (n.Length - 25));
-                        int initialDelay = 60;
-                        int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - WIDTH);
-
-                        n = n.Substring(index);
-                        if (n.Length > WIDTH) {
-                            n = $"{n.Substring(0, WIDTH - 3)}...";
-                        }
-                    } else {
-                        n = $"{n.Substring(0, WIDTH - 3)}...";
-                    }
-                }
-                var name = new ColoredString($"{(SMenu.indexToLetter(i - start))}. ", highlightColor, Color.Black)
-                         + new ColoredString(n, highlightColor, Color.Black);
-                Surface.Print(x, y, name);
-
-                i++;
-                y++;
+        void UpdateDesc(T i) {
+            if (i != null) {
+                descPane.SetInfo(getName(i), getDesc(i));
+            } else {
+                descPane.SetInfo("", new());
             }
+        }
 
+        this.escape = escape;
+        Children.Add(list);
 
-            int height = 26;
-            int barStart = (height * (start)) / count;
-            int barEnd = (height * (end)) / count;
-            int barX = x - 2;
-
-            for (i = 0; i < height; i++) {
-                ColoredGlyph cg = (i < barStart || i > barEnd) ?
-                    new ColoredGlyph(Color.LightGray, Color.Black, '|') :
-                    new ColoredGlyph(Color.White, Color.Black, '#');
-                Surface.SetCellAppearance(barX, 16 + i, cg);
-            }
-
-            /*
-            line(new(barX, 15), new(barX + WIDTH + 7, 15), '-');
-            line(new(barX, 16 + 26), new(barX + WIDTH + 7, 16 + 26), '-');
-            barX += WIDTH + 7;
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
-            */
+        Children.Add(descPane);
+    }
+    public override bool ProcessKeyboard(Keyboard keyboard) {
+        if (keyboard.IsKeyPressed(Keys.Escape)) {
+            escape?.Invoke();
         } else {
-            var highlightColor = Color.Yellow;
-            var name = new ColoredString("<Empty>", highlightColor, Color.Black);
-            Surface.Print(x, y, name);
-
-
-            /*
-            int barX = x - 2;
-            line(new(barX, 15), new(barX + WIDTH + 7, 15), '-');
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
-            line(new Point(barX, 16 + 26), new Point(barX + WIDTH + 7, 16 + 26), '-');
-            barX += WIDTH + 7;
-            line(new Point(barX, 16), new Point(barX, 16 + 25), '|');
-            */
+            list.ProcessKeyboard(keyboard);
         }
-
-        x += WIDTH + 7;
-        y = 16;
-        var item = currentItem;
-        if (item != null) {
-            Surface.Print(x, y, getName(item), Color.Yellow, Color.Black);
-            y += 2;
-            foreach (var l in getDesc(item)) {
-                Surface.Print(x, y++, l);
-            }
-        }
-
-        base.Render(delta);
+        return base.ProcessKeyboard(keyboard);
     }
-
 }

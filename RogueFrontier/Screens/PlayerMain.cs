@@ -91,7 +91,6 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
     public Readout uiMain;  //If this is visible, then all other ui Consoles are visible
     public Edgemap uiEdge;
     public Minimap uiMinimap;
-    public CommunicationsWidget communicationsWidget;
     public PowerWidget powerWidget;
     public ListWidget<Item> invokeWidget;
     public PauseScreen pauseScreen;
@@ -143,7 +142,6 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         uiMain = new(camera, playerShip, Width, Height);
         uiEdge = new(camera, playerShip, Width, Height);
         uiMinimap = new(camera, playerShip, 16, this);
-        communicationsWidget = new(63, 15, playerShip) { IsVisible = false, Position = new(3, 32) };
         powerWidget = new(31, 16, this) { IsVisible = false, Position = new(3, 32) };
         pauseScreen = new(this) { IsVisible = false };
         networkMap = new(this) { IsVisible = false };
@@ -164,7 +162,6 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         sceneContainer.Children.Clear();
         //Force exit power menu
         powerWidget.IsVisible = false;
-        communicationsWidget.IsVisible = false;
         uiMain.IsVisible = false;
 
         //Pretty sure this can't happen but make sure
@@ -461,9 +458,6 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
             if (powerWidget.IsVisible) {
                 powerWidget.Update(delta);
             }
-            if (communicationsWidget.IsVisible) {
-                communicationsWidget.Update(delta);
-            }
         }
     }
     public void PlaceTiles(TimeSpan delta) {
@@ -549,9 +543,6 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
             if (powerWidget.IsVisible) {
                 powerWidget.Render(drawTime);
             }
-            if (communicationsWidget.IsVisible) {
-                communicationsWidget.Render(drawTime);
-            }
         } else {
             back.Render(drawTime);
             viewport.Render(drawTime);
@@ -587,9 +578,6 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         } else if (powerWidget.IsVisible) {
             playerControls.UpdateInput(info);
             powerWidget.ProcessKeyboard(info);
-        } else if (communicationsWidget.IsVisible) {
-            playerControls.UpdateInput(info);
-            communicationsWidget.ProcessKeyboard(info);
         } else {
             playerControls.UpdateInput(info);
             var p = (Keys k) => info.IsKeyPressed(k);

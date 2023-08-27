@@ -56,8 +56,6 @@ public class HP : HullSystem {
 public class LayeredArmor : HullSystem {
     public List<Armor> layers;
     public int tick;
-
-
     public record Destroyed(LayeredArmor hull, Projectile p);
     public Vi<Destroyed> onDestroyed = new();
     public LayeredArmor(List<Armor> layers) {
@@ -98,13 +96,11 @@ public class LayeredArmor : HullSystem {
                     factor--;
                 }
             }
-
         CheckDamage:
             if (p.hitHandled) {
                 return;
             }
         }
-
         p.hitKill = true;
         Destroy();
         onDestroyed.Observe(new(this, p));

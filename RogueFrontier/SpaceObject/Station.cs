@@ -199,8 +199,8 @@ public class Station : ActiveObject, ITrader, IDockable {
             }));
     }
     public void Damage(Projectile p) {
-        onDamaged.Observe(new(this, p));
         damageSystem.Damage(world.tick, p, () => Destroy(p.source));
+        onDamaged.Observe(new(this, p));
         if (!active) {
             return;
         }

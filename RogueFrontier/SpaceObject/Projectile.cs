@@ -89,6 +89,7 @@ public class Projectile : MovingObject {
         }
         //exclude.UnionWith(source.world.entities.all.OfType<ActiveObject>().Where(a => a.sovereign == source.sovereign));
     }
+
     public void Update(double delta) {
         if (lifetime > 0) {
 
@@ -117,6 +118,7 @@ public class Projectile : MovingObject {
 
             NoDetonate:
             active = false;
+
         }
         void UpdateMove() {
             maneuver?.Update(delta, this);
@@ -161,11 +163,13 @@ public class Projectile : MovingObject {
                         case ActiveObject {active:true } hit when !destroyed && (desc.hitNonTarget || new[] {null, hit}.Contains(maneuver?.target)):
                             hitReflected |= world.karma.NextDouble() < desc.detonateFailChance;
                             var angle = (position - hit.position).angleRad;
+                            
+                            hit.Damage(this);                            
+                            onHitActive.Observe(new(this, hit));
+
                             var cg = new ColoredGlyph(hitHull ? Color.Yellow : Color.LimeGreen, Color.Transparent, 'x');
                             world.AddEffect(new EffectParticle(hit.position + XY.Polar(angle), hit.velocity, cg, 10));
 
-                            hit.Damage(this);                            
-                            onHitActive.Observe(new(this, hit));
 
                             if (hitReflected) {
                                 hitReflected = false;
