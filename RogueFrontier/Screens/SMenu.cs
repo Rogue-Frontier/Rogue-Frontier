@@ -1244,7 +1244,7 @@ public class ListMenu<T> : ScreenSurface {
     public PlayerShip player;
 
     public ListPane<T> list;
-    public Console descPane;
+    public DescPanel<T> descPane;
 
     public ref string title => ref list.title;
 
@@ -1252,16 +1252,26 @@ public class ListMenu<T> : ScreenSurface {
     public Action escape;
     public ListMenu(ScreenSurface prev, PlayerShip player, string title, IEnumerable<T> items, ListPane<T>.GetName getName, DescPanel<T>.GetDesc getDesc, ListPane<T>.Invoke invoke, Action escape):base(prev.Surface.Width, prev.Surface.Height) {
         this.player = player;
-        this.list = new(title, items, getName) {
+
+        descPane = new DescPanel<T>(40, 26) { Position = new(45, 17) };
+        this.list = new(title, items, getName, UpdateDesc) {
             Position = new(4, 16),
             invoke = invoke,
             IsFocused = true
         };
+
+        void UpdateDesc(T i) {
+            if(i != null) {
+                descPane.SetInfo(getName(i), getDesc(i));
+            } else {
+                descPane.SetInfo("", new());
+            }
+        }
+
         this.escape = escape;
         Children.Add(list);
-        Children.Add(new DescPanel<T>(40, 26, list, getDesc) { Position = new(45, 17)});
 
-        descPane = new(48, 30);
+        Children.Add(descPane);
     }
     public override bool ProcessKeyboard(Keyboard keyboard) {
         if (keyboard.IsKeyPressed(Keys.Escape)) {
@@ -1284,14 +1294,17 @@ public class DescPanel<T> : ScreenSurface {
     private string name = "";
     private List<ColoredString> desc = new();
     public DescPanel(int width, int height, ListPane<T> list, GetDesc getDesc) : base(width, height) {
-        list.indexChanged += () => {
-            if (list.currentItem is { } i) {
+        list.indexChanged += i => {
+            if (i != null) {
                 (name, desc) = (list.getName(i), getDesc(i));
             } else {
                 (name, desc) = ("", new());
             }
         };
     }
+    public DescPanel(int width, int height) : base(width, height) {}
+    public void SetInfo(string name, List<ColoredString> desc) =>
+        (this.name, this.desc) = (name, desc);
     public override void Render(TimeSpan delta) {
         Surface.Clear();
         Surface.Print(0, 0, name, Color.Yellow, Color.Black);
@@ -1306,8 +1319,8 @@ public class DescPanel<T> : ScreenSurface {
 }
 public class ListPane<T> : ScreenSurface {
     public string title;
-    public bool active = true;
     public bool groupMode = true;
+    public bool active = true;
     public IEnumerable<T> items;
 
     public T[] singles;
@@ -1319,7 +1332,7 @@ public class ListPane<T> : ScreenSurface {
 
     public delegate string GetName(T t);
     public delegate void Invoke(T t);
-    public delegate void IndexChanged();
+    public delegate void IndexChanged(T t);
 
     private int? _index;
     private bool enterDown = false;
@@ -1328,16 +1341,17 @@ public class ListPane<T> : ScreenSurface {
     public int? index {
         set {
             _index = value;
-            indexChanged?.Invoke();
+            indexChanged?.Invoke(currentItem);
         }
         get => _index;
     }
     public int count => groupMode ? groups.Length : singles.Count();
     public T currentItem => index is { } i ? (groupMode ? groups[i].item : singles[i]) : default;
-    public ListPane(string title, IEnumerable<T> items, GetName getName) : base(42, 30) {
+    public ListPane(string title, IEnumerable<T> items, GetName getName, IndexChanged indexChanged) : base(42, 30) {
         this.title = title;
         this.items = items;
         this.getName = getName;
+        this.indexChanged = indexChanged;
         UpdateIndex();
         time = -0.1;
     }
@@ -1419,7 +1433,8 @@ public class ListPane<T> : ScreenSurface {
         
         var paneRect = new Rectangle(1, 3, lineWidth + 8, 26);
         if (mouseOnItem = paneRect.Contains(state.SurfaceCellPosition)) {
-            var ind = state.SurfaceCellPosition.Y - 3;
+            var (start, _) = GetVisibleRange();
+            var ind = start + state.SurfaceCellPosition.Y - 3;
             if(ind < count) {
                 index = ind;
                 enterDown = state.Mouse.LeftButtonDown;
@@ -1438,7 +1453,7 @@ public class ListPane<T> : ScreenSurface {
     }
     const int lineWidth = 36;
     public (int, int) GetVisibleRange() {
-        int start = Math.Max((index ?? 0) - 16, 0),
+        int start = Math.Max((index ?? 0) - 25, 0),
             end = Math.Min(count, start + 26);
         return (start, end);
     }
@@ -1453,7 +1468,8 @@ public class ListPane<T> : ScreenSurface {
             t = title.LerpString(time, -0.1, 0, 1);
         }
         Surface.DrawRect(x, y, w, 3);
-        Surface.Print(x + 2, y + 1, t, Color.Yellow, Color.Black);
+
+        Surface.Print(x + 2, y + 1, t, active ? Color.Yellow : Color.White, Color.Black);
         Surface.DrawRect(x, y + 2, w, 26 + 2, connectAbove: true);
         x += 2;
         y += 3;
@@ -1471,7 +1487,7 @@ public class ListPane<T> : ScreenSurface {
             for(int i = start; i < end; i++) {
                 var n = nameAt(i);
                 var (f, b) = (Color.White, Color.Black);
-                if (i == highlight) {
+                if (active && i == highlight) {
                     if (n.Length > lineWidth) {
                         double initialDelay = 1;
                         int index = time < initialDelay ? 0 : (int)Math.Min((time - initialDelay) * 15, n.Length - lineWidth);
@@ -1486,10 +1502,9 @@ public class ListPane<T> : ScreenSurface {
                 if (n.Length > lineWidth) {
                     n = $"{n.Substring(0, lineWidth - 3)}...";
                 }
+                var key = ColorCommand.Front(active ? Color.White : Color.Gray, $"{SMenu.indexToLetter(i - start)}.");
                 var name = ColoredString.Parser.Parse(
-                    ColorCommand.Recolor(f, b, $"{SMenu.indexToLetter(i - start)}. {n}".PadRight(lineWidth)))
-                    ;
-                
+                    ColorCommand.Recolor(f, b, $"{key} {n}".PadRight(lineWidth)));
                 if(time < 0) {
                     Surface.Print(x, y++, name.LerpString(time, -0.1, 0, 1));
                 } else {
@@ -1524,6 +1539,26 @@ public class ListPane<T> : ScreenSurface {
         base.Render(delta);
     }
 }
+
+public class ScrollBar : ScreenSurface {
+    public int index;
+    public int windowSize;
+    public int count;
+
+    public ScrollBar(int windowSize) : base(1, windowSize) {
+        this.windowSize = windowSize;
+    }
+    public (int, int) GetVisibleRange() {
+        int start = Math.Max(index - 25, 0),
+            end = Math.Min(count, start + 26);
+        return (start, end);
+    }
+    public override void Render(TimeSpan delta) {
+
+        base.Render(delta);
+    }
+}
+
 public static class SListWidget {
     public static ListWidget<Item> Usables(ScreenSurface prev, PlayerShip player) {
         ListWidget<Item> screen = null;

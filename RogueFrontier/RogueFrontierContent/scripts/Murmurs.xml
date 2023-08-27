@@ -48,6 +48,9 @@
 		<Devices>
 			<Weapon	codename="item_dark_magic_blaster"/>
 		</Devices>
+		<Cargo>
+			<Item codename="item_dark_magic_blaster" count="100"/>
+		</Cargo>
 		<LayeredArmorSystem>
 			<Armor  codename="item_darkened_knightsteel_plate"/>
 			<Armor  codename="item_darkened_knightsteel_plate"/>

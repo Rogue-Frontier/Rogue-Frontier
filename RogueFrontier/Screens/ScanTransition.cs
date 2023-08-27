@@ -23,7 +23,7 @@ public class ScanTransition : Console {
     }
     public override void Update(TimeSpan delta) {
         if (y < next.Surface.Height) {
-            y += delta.TotalSeconds * Height * 1.5;
+            y += delta.TotalSeconds * Height * 3;
         } else {
             Transition();
         }
