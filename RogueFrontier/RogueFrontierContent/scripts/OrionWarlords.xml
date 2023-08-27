@@ -120,7 +120,7 @@
 			fireCooldown=	"60"
 			initialCharges=	"200"
 			
-			sound=			"RogueFrontierContent/sounds/crossbow_light.wav"
+			sound=			"RogueFrontierContent/sounds/crossbow_heavy.wav"
 			>
 			<Projectile
 				missileSpeed=	"20"
