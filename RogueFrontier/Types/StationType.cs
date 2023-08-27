@@ -6,8 +6,8 @@ using System;
 using SadConsole;
 using System.Linq;
 using ASECII;
-using NLua;
 using Newtonsoft.Json;
+using SFML.Audio;
 
 namespace RogueFrontier;
 
@@ -16,6 +16,7 @@ public class StationType : IDesignType {
     [Req] public string name;
     [Opt] public bool crimeOnDestroy;
     [Opt] public double stealth;
+    [Opt(parse = false)] public SoundBuffer discoverySound;
 
 
     [Opt(separator = ";")] public HashSet<string> attributes = new();
@@ -102,7 +103,8 @@ public class StationType : IDesignType {
                     var heroImageTint = x.TryAttColor("tint", Color.White);
                     return heroImageText.ToImage(heroImageTint);
                 }
-            }
+            },
+            [nameof(discoverySound)] = (string s) => new SoundBuffer(s)
         });
         dockPoints = new();
 

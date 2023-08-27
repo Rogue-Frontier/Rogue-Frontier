@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreCLR-NCalc" Version="2.2.110" />
+    <PackageReference Include="CoreCLR-NCalc" Version="2.2.113" />
     <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
     <PackageReference Include="SadConsole.Host.SFML" Version="9.2.1" />
   </ItemGroup>

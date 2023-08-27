@@ -77,7 +77,6 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
     public PlayerStory story;
     public PlayerShip playerShip;
     public PlayerControls playerControls;
-
     public Noisemaker audio;
     public XY mouseWorldPos;
     Keyboard prevKeyboard=new();
@@ -104,14 +103,8 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
     //public bool frameRendered = true;
     public int updatesSinceRender = 0;
     private ListTracker<System> systems;
-
     public Sound music;
-    //EventWaitHandle smooth = new(true, EventResetMode.AutoReset);
-
-
-
     public System silenceSystem;
-
     public Mainframe(int Width, int Height, Profile profile, PlayerShip playerShip) : base(Width, Height) {
         UseMouse = true;
         UseKeyboard = true;
@@ -120,7 +113,6 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
         this.story = new(playerShip);
         this.playerShip = playerShip;
         this.playerControls = new(playerShip, this);
-
 
         silenceSystem = new System(world.universe);
         var tc = silenceSystem.types;
@@ -243,7 +235,7 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
     public void OnPlayerLeft() {
         HideAll();
         world.entities.Remove(playerShip);
-        Game.Instance.Screen = new CreditsCrawl(Width, Height, EndGame);
+        Game.Instance.Screen = new OutroCrawl(Width, Height, EndGame);
         void EndGame() {
             Game.Instance.Screen = new EpitaphScreen(this,
                 new() {
@@ -783,7 +775,8 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         exhaust = new(new List<Sound>(Enumerable.Range(0, 16).Select(i => new Sound() { Volume = 10 }))),
         gunfire = new(new List<Sound>(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 }))),
         damage = new(new List<Sound>(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 50 }))),
-        explosion = new(new List<Sound>(Enumerable.Range(0, 4).Select(i => new Sound() { Volume = 75 })));
+        explosion = new(new List<Sound>(Enumerable.Range(0, 4).Select(i => new Sound() { Volume = 75 }))),
+        discovery = new(new List<Sound>(Enumerable.Range(0, 8).Select(i => new Sound() { Volume = 20 })));
     private class Vol : Attribute {
     }
     [Vol]
@@ -799,20 +792,24 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         foreach (var p in props) {
             p.SetValue(this, new Sound() { Volume = 50});
         }
-        var sounds = new[] { exhaust.list, gunfire.list, damage.list, explosion.list }.SelectMany(l => l)
+        var sounds = new[] { exhaust.list, gunfire.list, damage.list, explosion.list, discovery.list }.SelectMany(l => l)
             //.Concat(new[] { targeting, autopilot, dock, powerCharge })
             ;
         foreach(var s in sounds) {
             regular_volumes[s] = s.Volume;
         }
-
-
         this.player = player;
 
-        player.onTargetChanged += new Container<PlayerShip.TargetChanged>(pl => {
+        player.onTargetChanged += new Container<TargetChanged>(pl => {
             targeting.SoundBuffer = pl.targetIndex == -1 ? target_clear : target_set;
             targeting.Play();
         });
+    }
+    public void PlayDiscoverySound(SoundBuffer sb) {
+        if(discovery.list.Any(s => s.SoundBuffer == sb)) {
+            return;
+        }
+        PlayWorldSound(GetNextChannel(discovery), sb);
     }
     public void PlayPowerCharge() {
         powerCharge.SoundBuffer = power_charge;
@@ -916,8 +913,10 @@ public class Noisemaker : Ob<EntityAdded>, IDestroyedListener, IDamagedListener,
         PlayWorldSound(GetNextChannel(s), e, sb);
     private void PlayWorldSound(Sound s, Entity e, SoundBuffer sb) {
         s.Position = player.position.To(e.position).Scale(distScale).ToVector3f();
+        PlayWorldSound(s, sb);
+    }
+    private void PlayWorldSound(Sound s, SoundBuffer sb) {
         s.SoundBuffer = sb;
-
         s.Volume = regular_volumes[s] * (float)Math.Max(0, 1 - player.ship.silence);
         s.Play();
     }

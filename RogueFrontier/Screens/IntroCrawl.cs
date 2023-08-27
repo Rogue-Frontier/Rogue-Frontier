@@ -13,7 +13,7 @@ using CloudJumper;
 
 namespace RogueFrontier;
 
-class CrawlScreen : Console {
+class IntroCrawl : Console {
     private readonly ColorImage[] images = {
             new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/sprites/NewEra.cg"))),
             new ColorImage(ASECIILoader.DeserializeObject<Dictionary<(int, int), TileValue>>(File.ReadAllText("RogueFrontierContent/sprites/PillarsOfCreation.cg")))
@@ -67,7 +67,7 @@ Was more than a dream after all." }.Select(line => line.Replace("\r", "")).ToArr
     List<CloudParticle> clouds;
 
     Random random = new Random();
-    public CrawlScreen(int width, int height, Func<Console> next) : base(width, height) {
+    public IntroCrawl(int width, int height, Func<Console> next) : base(width, height) {
         this.next = next;
         backgroundSlideX = Width;
         lines = text.Sum(line => line.Count(c => c == '\n')) + text.Length * 2;

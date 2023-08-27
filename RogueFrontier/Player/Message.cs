@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using SadConsole;
 using SadRogue.Primitives;
+using SFML.Audio;
 using System;
 using System.Linq;
 
@@ -11,7 +12,7 @@ public interface IPlayerMessage {
     bool Active { get; }
     ColoredString message { get; }
     string text => message.String;
-    void Reset();
+    void Flash();
     void Update(double delta);
     ColoredString Draw();
     bool Equals(IPlayerMessage other);
@@ -19,6 +20,7 @@ public interface IPlayerMessage {
 public class Transmission : IPlayerMessage {
     public Entity source;
     public Message info;
+    public Sound sound;
     public Transmission() { }
     public Transmission(Entity source, string message) {
         this.source = source;
@@ -31,7 +33,7 @@ public class Transmission : IPlayerMessage {
     public bool Active => info.Active;
     public ColoredString message => info.message;
     public string text => message.String;
-    public void Reset() => info.Reset();
+    public void Flash() => info.Flash();
     public ColoredString Draw() => info.Draw();
     public void Update(double delta) => info.Update(delta);
     public bool Equals(IPlayerMessage other) {
@@ -42,43 +44,39 @@ public class Message : IPlayerMessage {
     [JsonProperty]
     public ColoredString message { get; private set; }
     public string text => message.String;
-    public int index;
-    public double ticks;
-    public double ticksRemaining;
-    public double flashTicks;
+    public double index;
+    public double timeRemaining;
+    public double flash;
     public Message() { }
     public Message(string text) : this(
         new ColoredString(text, Color.White, Color.Black)) {
-
     }
     public Message(ColoredString message) {
         this.message = message;
         index = 0;
-        ticks = 0;
-        ticksRemaining = 5;
+        timeRemaining = 5;
     }
 
-    public void Reset() {
-        ticksRemaining = 2.5;
-        flashTicks = 0.25;
+    public void Flash() {
+        timeRemaining = 2.5;
+        flash = 0.25;
     }
     public void Update(double delta) {
         if (index < message.Length) {
-            ticks += delta;
-            index = Math.Min((int)(ticks * 20), message.Length);
-        } else if (ticksRemaining > 0) {
-            ticksRemaining -= delta;
+            index += Math.Max(20, 3 * (message.Length - index)) * delta;
+        } else if (timeRemaining > 0) {
+            timeRemaining -= delta;
         }
-        if (flashTicks > 0) {
-            flashTicks -= delta;
+        if (flash > 0) {
+            flash -= delta;
         }
     }
-    public bool Scrolling => ticks < message.Count();
-    public bool Active => ticksRemaining > 0;
+    public bool Scrolling => index < message.Length;
+    public bool Active => timeRemaining > 0;
     public ColoredString Draw() {
-        var a = (byte)Math.Min(255, ticksRemaining * 255);
-        var result = message.SubString(0, Math.Min(index, message.Length)).WithOpacity(a, a);
-        if (flashTicks > 0) {
+        var a = (byte)Math.Min(255, timeRemaining * 255);
+        var result = message.SubString(0, (int)Math.Min(index, message.Length)).WithOpacity(a, a);
+        if (flash > 0) {
             var value = 255;
             result.SetBackground(new Color(value, 0, 0));
         }

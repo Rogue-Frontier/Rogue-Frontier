@@ -15,7 +15,7 @@ using SFML.Audio;
 
 namespace RogueFrontier;
 
-class CreditsCrawl : Console {
+class OutroCrawl : Console {
 
     public static readonly SoundBuffer music = new SoundBuffer("RogueFrontierContent/music/IntroductionToTheSnow.wav");
     public Sound bgm = new Sound() { Volume = 50, SoundBuffer = music };
@@ -29,11 +29,8 @@ class CreditsCrawl : Console {
     List<CloudParticle> clouds;
 
     Random random = new Random();
-    public CreditsCrawl(int width, int height, Action next) : base(width, height) {
-        
-
+    public OutroCrawl(int width, int height, Action next) : base(width, height) {
         Console Scale(int s) => new Console(Width / s, Height / s) { FontSize = FontSize * s };
-
         ScreenSurface Pane(string headingStr, string subheadingStr) {
             var pane = new Console(Width, Height);
 
@@ -49,12 +46,8 @@ class CreditsCrawl : Console {
             pane.Children.Add(subheading);
             return pane;
         }
-
         Console Empty() => new Console(Width, Height);
-
-
         EndCrawl();
-
         void EndCrawl() {
             MinimalCrawlScreen ds = null;
             ds = new("You have left Human Space.\n\n", () => {

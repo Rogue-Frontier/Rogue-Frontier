@@ -8,6 +8,9 @@ using Console = SadConsole.Console;
 using Common;
 using ArchConsole;
 using SFML.Audio;
+using System.ComponentModel.DataAnnotations;
+using CloudJumper;
+
 namespace RogueFrontier;
 public static partial class SMenu {
     public static char indexToLetter(int index) {
@@ -55,7 +58,8 @@ public static partial class SMenu {
         ListMenu<IPlayerMessage> screen = null;
         List<IPlayerMessage> logs = player.logs;
         return screen = new(prev,
-            player,
+        player,
+            $"{player.name}: Logs",
             logs,
             GetName,
             GetDesc,
@@ -99,6 +103,7 @@ public static partial class SMenu {
         UpdateList();
         return screen = new(prev,
             player,
+            $"{player.name}: Missions",
             missions,
             GetName,
             GetDesc,
@@ -238,6 +243,7 @@ public static partial class SMenu {
         UpdateList();
         return screen = new(prev,
             player,
+            $"{player.name}: Useful Items",
             usable,
             GetName,
             GetDesc,
@@ -277,6 +283,7 @@ public static partial class SMenu {
         var devices = player.devices.Installed;
         return screen = new(prev,
             player,
+            $"{player.name}: Device System",
             devices,
             GetName,
             GetDesc,
@@ -312,6 +319,7 @@ public static partial class SMenu {
         var items = player.cargo;
         return screen = new ListMenu<Item>(prev,
             player,
+            $"{player.name}: Cargo",
             items,
             GetName,
             GetDesc,
@@ -346,6 +354,7 @@ public static partial class SMenu {
         var powered = player.devices.Powered;
         return screen = new(prev,
             player,
+            $"{player.name}: Device Power",
             powered,
             GetName,
             GetDesc,
@@ -385,6 +394,7 @@ public static partial class SMenu {
         var devices = player.devices.Installed;
         return screen = new(prev,
             player,
+            $"{player.name}: Device Removal",
             devices,
             GetName,
             GetDesc,
@@ -421,6 +431,7 @@ public static partial class SMenu {
 
         return screen = new(prev,
             player,
+            $"{player.name}: Armor Repair",
             devices,
             GetName,
             GetDesc,
@@ -471,6 +482,7 @@ public static partial class SMenu {
         var devices = player.devices.Reactor;
         return screen = new(prev,
             player,
+            $"{player.name}: Refuel Reactor",
             devices,
             GetName,
             GetDesc,
@@ -522,6 +534,7 @@ public static partial class SMenu {
         var devices = player.devices.Installed.Where(i => i.source.type == replace.from);
         return screen = new(prev,
             player,
+            $"{player.name}: Device Replacement",
             devices,
             GetName,
             GetDesc,
@@ -559,6 +572,7 @@ public static partial class SMenu {
         var devices = player.devices.Weapon.Where(i => i.desc == recharge.weaponType);
         return screen = new(prev,
             player,
+            $"{player.name}: Recharge Weapon",
             devices,
             GetName,
             GetDesc,
@@ -610,6 +624,7 @@ public static partial class SMenu {
         }
         return screen = new(prev,
             player,
+            $"Workshop",
             recipes.Keys,
             GetName,
             GetDesc,
@@ -659,6 +674,7 @@ public static partial class SMenu {
         RefuelEffect job = null;
         return screen = new(prev,
             player,
+            $"Refuel Service",
             reactors,
             GetName,
             GetDesc, Invoke, Escape) { IsFocused = true };
@@ -744,6 +760,7 @@ public static partial class SMenu {
 
         return screen = new(prev,
             player,
+            $"Armor Repair",
             layers,
             GetName,
             GetDesc,
@@ -864,6 +881,7 @@ public static partial class SMenu {
         var installed = player.devices.Installed;
         return screen = new(prev,
             player,
+            $"Device Removal",
             installed,
             GetName,
             GetDesc,
@@ -920,6 +938,7 @@ public static partial class SMenu {
             .Except(new Device[] { null });
         return screen = new(prev,
             player,
+            $"Device Install",
             cargo,
             GetName,
             GetDesc,
@@ -984,6 +1003,7 @@ public static partial class SMenu {
         var armor = (player.hull as LayeredArmor)?.layers ?? new List<Armor>();
         return screen = new(prev,
             player,
+            $"Armor Replacement",
             armor,
             GetName,
             GetDesc,
@@ -1029,6 +1049,7 @@ public static partial class SMenu {
                 var armor = player.cargo.Select(i => i.armor).Where(i => i != null);
                 return screen = new(prev,
                     player,
+                    $"Armor Replacement (continued)",
                     armor,
                     GetName,
                     GetDesc,
@@ -1115,6 +1136,7 @@ public static partial class SMenu {
 
         return screen = new ListMenu<Item>(prev,
             player,
+            $"{player.name}: Item Modify",
             all,
             GetName,
             GetDesc,
@@ -1147,6 +1169,7 @@ public static partial class SMenu {
         var devices = player.devices.Reactor;
         return screen = new(prev,
             player,
+            $"{player.name}: Refuel",
             devices,
             GetName,
             GetDesc,
@@ -1176,7 +1199,7 @@ public static partial class SMenu {
             ListMenu<Item> ChooseFuel(ScreenSurface prev, PlayerShip player) {
                 ListMenu<Item> screen = null;
                 var items = player.cargo.Where(i => i.type.Invoke is Refuel r);
-                return screen = new(prev, player, items,
+                return screen = new(prev, player, $"{player.name}: Refuel (continued)", items,
                     GetName, GetDesc, Invoke, Escape
                     ) { IsFocused = true };
                 string GetName(Item i) => i.type.name;
@@ -1217,6 +1240,7 @@ public static partial class SMenu {
 }
 public class ListMenu<T> : ScreenSurface {
     PlayerShip player;
+    string title;
     public bool groupMode = true;
     public IEnumerable<T> items;
     public IEnumerable<(T item, int count)> groups;
@@ -1227,14 +1251,16 @@ public class ListMenu<T> : ScreenSurface {
     GetDesc getDesc;
     Invoke invoke;
     Escape escape;
+    bool enterDown = false;
     int tick;
     public delegate string GetName(T t);
     public delegate List<ColoredString> GetDesc(T t);
     public delegate void Invoke(T t);
     public delegate void Escape();
-    public ListMenu(ScreenSurface prev, PlayerShip player, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
+    public ListMenu(ScreenSurface prev, PlayerShip player, string title, IEnumerable<T> items, GetName getName, GetDesc getDesc, Invoke invoke, Escape escape) : base(prev.Surface.Width, prev.Surface.Height) {
         this.player = player;
         this.items = items;
+        this.title = title;
         this.getName = getName;
         this.getDesc = getDesc;
         this.invoke = invoke;
@@ -1254,11 +1280,14 @@ public class ListMenu<T> : ScreenSurface {
         tick = 0;
     }
     public override bool ProcessKeyboard(Keyboard keyboard) {
+        enterDown = keyboard.IsKeyDown(Keys.Enter);
         void Up(int inc) {
             Tones.pressed.Play();
             index = count > 0 ?
-                (index == null ? (count - 1) :
-                    index == 0 ? null :
+                (index == null ?
+                    (count - 1) :
+                index == 0 ?
+                    null :
                     Math.Max(index.Value - inc, 0))
                 : null;
             tick = 0;
@@ -1266,8 +1295,10 @@ public class ListMenu<T> : ScreenSurface {
         void Down(int inc) {
             Tones.pressed.Play();
             index = count > 0 ?
-                (index == null ? 0 :
-                    index == count - 1 ? null :
+                (index == null ?
+                    0 :
+                index == count - 1 ?
+                    null :
                     Math.Min(index.Value + inc, count - 1))
                 : null;
             tick = 0;
@@ -1280,9 +1311,9 @@ public class ListMenu<T> : ScreenSurface {
                 Keys.Down => () => Down(1),
                 Keys.PageDown => () => Down(26),
                 Keys.Enter => () => {
-                    Tones.pressed.Play();
                     var i = currentItem;
                     if (i != null) {
+                        Tones.pressed.Play();
                         invoke(i);
                         UpdateIndex();
                     }
@@ -1318,8 +1349,8 @@ public class ListMenu<T> : ScreenSurface {
         base.Update(delta);
     }
     public override void Render(TimeSpan delta) {
-        int x = 6;
-        int y = 16;
+        int x = 4;
+        int y = 13;
 
         void line(Point from, Point to, int glyph) {
             Surface.DrawLine(from, to, '-', Color.White, null);
@@ -1327,70 +1358,79 @@ public class ListMenu<T> : ScreenSurface {
         this.RenderBackground();
         //this.Fill(new Rectangle(x, y, 32, 26), Color.Gray, null, '.');
         const int lineWidth = 36;
-        Surface.DrawBox(new Rectangle(x - 2, y - 3, lineWidth + 8, 3), new ColoredGlyph(Color.Yellow, Color.Black, '-'));
-        Surface.Print(x, y - 2, player.name, Color.Yellow, Color.Black);
+        Surface.DrawRect(x, y, lineWidth + 8, 3);
+        Surface.DrawRect(x, y + 2, lineWidth + 8, 26 + 2, connectAbove: true);
+        x += 2;
+        y += 3;
+        
+        Surface.Print(x, y - 2, title, Color.Yellow, Color.Black);
         int start = 0;
         int? highlight = null;
         if (index.HasValue) {
             start = Math.Max(index.Value - 16, 0);
             highlight = index;
         }
-        Func<int, string> NameAt = groupMode ? i => {
-            var g = groups.ElementAt(i);
-            return $"{g.count}x {getName(g.item)}";
-        }
-        : i => getName(items.ElementAt(i));
+        Func<int, string> NameAt =
+            groupMode ?
+                i => {
+                    var g = groups.ElementAt(i);
+                    return $"{g.count}x {getName(g.item)}";
+                } :
+                i => getName(items.ElementAt(i));
         int end = Math.Min(count, start + 26);
 
         if (count > 0) {
             int i = start;
             while (i < end) {
-                var highlightColor = i == highlight ? Color.Yellow : Color.White;
+                var hg = i == highlight;
                 var n = NameAt(i);
-                if (n.Length > lineWidth) {
-                    if (i == highlight) {
-                        //((tick / 15) % (n.Length - 25));
+                var (f, b) = (Color.White, Color.Black);
+
+                if (hg) {
+                    if(n.Length > lineWidth) {
                         int initialDelay = 60;
                         int index = tick < initialDelay ? 0 : Math.Min((tick - initialDelay) / 15, n.Length - lineWidth);
 
                         n = n.Substring(index);
-                        if (n.Length > lineWidth) {
-                            n = $"{n.Substring(0, lineWidth - 3)}...";
-                        }
-                    } else {
-                        n = $"{n.Substring(0, lineWidth - 3)}...";
+                    }
+
+                    (f, b) = (Color.Yellow, Color.Black.Blend(Color.Yellow.SetAlpha(51)));
+                    if (enterDown) {
+                        (f, b) = (b, f);
                     }
                 }
-                var name = ColoredString.Parser.Parse(ColorCommand.Recolor(highlightColor, Color.Black, $"{SMenu.indexToLetter(i - start)}. {n}"));
+                if (n.Length > lineWidth) {
+                    n = $"{n.Substring(0, lineWidth - 3)}...";
+                }
+                var name = ColoredString.Parser.Parse(
+                    ColorCommand.Recolor(f, b, $"{SMenu.indexToLetter(i - start)}. {n}"));
                 Surface.Print(x, y, name);
                 i++;
                 y++;
             }
-            int height = 26;
-            int barStart = (height * (start)) / count;
-            int barEnd = (height * (end)) / count;
+            const int height = 26;
+            int barStart = (height * start) / count;
+            int barEnd = Math.Min(height - 1, (height * end) / count);
             int barX = x - 2;
 
+            int Box(BoxGlyph desc) => BoxInfo.IBMCGA.glyphFromInfo[desc];
+
             for (i = 0; i < height; i++) {
-                ColoredGlyph cg = (i < barStart || i > barEnd) ?
-                    new(Color.LightGray, Color.Black, '|') :
-                    new(Color.White, Color.Black, '#');
+                ColoredGlyph cg =
+                    (i < barStart || i > barEnd) ?
+                        new(Color.LightGray, Color.Black, Box(new() { n = Line.Single, s = Line.Single })) :
+                    i == barStart ?
+                        new(Color.White, Color.Black, Box(new() { s = Line.Double, e = Line.Single, w = Line.Single })) :
+                    i == barEnd ?
+                        new(Color.White, Color.Black, Box(new() { n = Line.Double, e = Line.Single, w = Line.Single })) :
+                        new(Color.White, Color.Black, Box(new() { n = Line.Double, s = Line.Double }));
                 Surface.SetCellAppearance(barX, 16 + i, cg);
             }
 
-            line(new(barX, 16 + 26), new(barX + lineWidth + 7, 16 + 26), '-');
-            barX += lineWidth + 7;
-            line(new(barX, 16), new(barX, 16 + 25), '|');
         } else {
             var highlightColor = Color.Yellow;
             var name = new ColoredString("<Empty>", highlightColor, Color.Black);
             Surface.Print(x, y, name);
-
-            int barX = x - 2;
-            line(new(barX, 16), new(barX, 16 + 25), '|');
-            line(new(barX, 16 + 26), new(barX + lineWidth + 7, 16 + 26), '-');
-            barX += lineWidth + 7;
-            line(new(barX, 16), new(barX, 16 + 25), '|');
         }
         //this.DrawLine(new Point(x, y));
         y = Surface.Height - 16;

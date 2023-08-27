@@ -19,12 +19,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CoreCLR-NCalc" Version="2.2.110" />
-    <PackageReference Include="CsvHelper" Version="28.0.1" />
+    <PackageReference Include="CoreCLR-NCalc" Version="2.2.113" />
     <PackageReference Include="Kodi.IEnumerable.Extensions" Version="0.1.0" />
     <PackageReference Include="Namotion.Reflection" Version="3.0.0" />
-    <PackageReference Include="NetCoreServer" Version="6.5.0" />
-    <PackageReference Include="NLua" Version="1.6.0" />
     <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
     <PackageReference Include="SadConsole.Host.SFML" Version="9.2.1" />
   </ItemGroup>

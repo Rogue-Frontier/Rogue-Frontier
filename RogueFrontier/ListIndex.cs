@@ -77,6 +77,7 @@ public class ListTracker<T> {
         index++;
         return f;
     }
+    /// <summary>Attempts to get the first item matching the predicate. Otherwise, returns the current item and advances the index</summary>
     public T GetFirstOrNext(Func<T, bool> f) => list.FirstOrDefault(f) ?? GetNext();
     public static ListTracker<T> operator+(ListTracker<T> i, int n) {
         i.index += n;

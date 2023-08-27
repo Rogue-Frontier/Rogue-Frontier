@@ -111,7 +111,6 @@
 								<Orbital	radius="5"
 											angle="random"
 											>
-									<Stargate gateId="Something"/>
 									<!---->
 									<Group>
 										<Marker		name="Start"/>

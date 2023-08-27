@@ -62,8 +62,6 @@ public class TitleScreen : Console {
         Button("[Shift-C] Controls", StartConfig);
         Button("[Shift-L] Load Game", StartLoad);
         Button("[Shift-S] Survival Mode", StartSurvival);
-        Button("[Shift-N] Multiplayer Server", Server);
-        Button("[Shift-M] Multiplayer Client", Client);
         Button("[Shift-Z] Credits", StartCredits);
         Button("[Escape]  Exit", Exit);
         void Button(string s, Action a) =>
@@ -82,7 +80,6 @@ public class TitleScreen : Console {
         credits.Children.Add(new Label("[Credits]") { Position = new(0, y++) });
         y++;
         credits.Children.Add(new Label("     Developer: Alex Chen") { Position = new(0, y++) });
-        credits.Children.Add(new Label("Special Thanks: Abdirahman Abdi") { Position = new(0, y++) });
         credits.Children.Add(new Label("Special Thanks: Andy De George") { Position = new(0, y++) });
         credits.Children.Add(new Label("Special Thanks: George Moromisato") { Position = new(0, y++) });
 
@@ -99,9 +96,6 @@ public class TitleScreen : Console {
             string file;
             do { file = $"{loc}-{new Rand().NextInteger(9999)}.sav"; }
             while (File.Exists(file));
-
-
-
             var player = new Player() {
                 Settings = settings,
                 file = file,
@@ -113,7 +107,7 @@ public class TitleScreen : Console {
             var (playable, index) = (context.playable, context.shipIndex);
             var playerClass = playable[index];
 
-            CrawlScreen crawl = null;
+            IntroCrawl crawl = null;
             crawl = new(Width, Height, () => null) { IsFocused = true };
             SadConsole.Game.Instance.Screen = crawl;
 
@@ -233,14 +227,6 @@ public class TitleScreen : Console {
             load.Reset();
         }
     }
-    public void Server() =>
-        Game.Instance.Screen = new ServerMain(Width, Height, this) {
-            IsFocused = true
-        };
-    public void Client() =>
-        Game.Instance.Screen = new ScreenClient(Width, Height, this) {
-            IsFocused = true
-        };
     private void StartProfile() {
         if (Children.Contains(load)) {
             Children.Remove(load);
@@ -535,12 +521,6 @@ Survive as long as you can.".Replace("\r", null), IntroPause) { Position = new P
             }
             if (info.IsKeyPressed(L)) {
                 StartLoad();
-            }
-            if (info.IsKeyPressed(N)) {
-                Server();
-            }
-            if (info.IsKeyPressed(M)) {
-                Client();
             }
             if (info.IsKeyPressed(P)) {
                 StartProfile();

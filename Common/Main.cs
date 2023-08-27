@@ -19,6 +19,8 @@ using RogueFrontier;
 using static SFML.Window.Keyboard;
 using ASECII;
 using Namotion.Reflection;
+using ArchConsole;
+using Col = SadRogue.Primitives.Color;
 
 namespace Common;
 
@@ -40,7 +42,7 @@ public static class Main {
     }
     public static string Repeat(this string str, int times) =>
         string.Join("", Enumerable.Range(0, times).Select(i => str));
-    public static ColoredString Concat(params (string str, Color foreground, Color background)[] parts) =>
+    public static ColoredString Concat(params (string str, Col foreground, Col background)[] parts) =>
         new(parts.SelectMany(part => new ColoredString(part.str, part.foreground, part.background)).ToArray());
     public static void Replace(this ScreenSurface c, ScreenSurface next) {
         var p = c.Parent;
@@ -146,46 +148,46 @@ public static class Main {
             return roundedUp;
         }
     }
-    public static Color NextGray(this Random r, int range) {
+    public static Col NextGray(this Random r, int range) {
         var value = r.Next(range);
         return new (value, value, value);
     }
-    public static Color Noise(this Color c, Random r, double range) {
+    public static Col Noise(this Col c, Random r, double range) {
         double increaseFactor = r.NextDouble() * range;
         double multiplier = 1 + increaseFactor;
         return new ((int)Math.Min(255, c.R * multiplier), (int)Math.Min(255, c.G * multiplier), (int)Math.Min(255, c.B * multiplier));
     }
-    public static Color NextColor(this Random r, int range) => 
+    public static Col NextColor(this Random r, int range) => 
         new (r.Next(range), r.Next(range), r.Next(range));
-    public static Color Round(this Color c, int factor) => 
+    public static Col Round(this Col c, int factor) => 
         new (factor * (c.R / factor), factor * (c.G / factor), factor * (c.B / factor));
     //public static Color Add(this Color c, int value) => c.Add(new Color(value, value, value));
-    public static Color Add(this Color c1, int r = 0, int g = 0, int b = 0) => 
+    public static Col Add(this Col c1, int r = 0, int g = 0, int b = 0) => 
         new (Math.Min(255, c1.R + r), Math.Min(255, c1.G + g), Math.Min(255, c1.B + b));
-    public static Color Add(this Color c1, Color c2) => 
+    public static Col Add(this Col c1, Col c2) => 
         new (Math.Min(255, c1.R + c2.R), Math.Min(255, c1.G + c2.G), Math.Min(255, c1.B + c2.B));
-    public static Color Subtract(this Color c, int value) => 
-        c.Subtract(new Color(value, value, value));
-    public static Color Subtract(this Color c1, Color c2) =>
+    public static Col Subtract(this Col c, int value) => 
+        c.Subtract(new Col(value, value, value));
+    public static Col Subtract(this Col c1, Col c2) =>
         new (Math.Max(0, c1.R - c2.R), Math.Max(0, c1.G - c2.G), Math.Max(0, c1.B - c2.B));
-    public static Color Divide(this Color c, int scale) =>
+    public static Col Divide(this Col c, int scale) =>
         new (c.R / scale, c.G / scale, c.B / scale);
-    public static Color Multiply(this Color c, double r = 1, double g = 1, double b = 1, double a = 1) =>
+    public static Col Multiply(this Col c, double r = 1, double g = 1, double b = 1, double a = 1) =>
         new ((int)(c.R * r), (int)(c.G * g), (int)(c.B * b), (int)(c.A * a));
-    public static Color Divide(this Color c, double scale) =>
+    public static Col Divide(this Col c, double scale) =>
         new ((int)(c.R / scale), (int)(c.G / scale), (int)(c.B / scale));
-    public static Color Clamp(this Color c, int max) =>
+    public static Col Clamp(this Col c, int max) =>
         new (Math.Min(c.R, max), Math.Min(c.G, max), Math.Min(c.B, max));
-    public static Color Gray(int value) => 
+    public static Col Gray(int value) => 
         new (value, value, value, 255);
-    public static Color Gray(this Color c) =>
+    public static Col Gray(this Col c) =>
         SadRogue.Primitives.Color.FromHSL(0, 0, c.GetBrightness());
     public static ColoredGlyph Gray(this ColoredGlyph cg) =>
         new (cg.Foreground.Gray(), cg.Background.Gray(), cg.Glyph);
-    public static Color WithValues(this Color c, int? red = null, int? green = null, int? blue = null, int? alpha = null) =>
+    public static Col WithValues(this Col c, int? red = null, int? green = null, int? blue = null, int? alpha = null) =>
         new(red ?? c.R, green ?? c.G, blue ?? c.B, alpha ?? c.A);
     
-    public static Color SetBrightness(this Color c, float brightness) =>
+    public static Col SetBrightness(this Col c, float brightness) =>
         SadRogue.Primitives.Color.FromHSL(c.GetHue(), c.GetSaturation(), brightness);
     public static double CalcFireAngle(XY posDiff, XY velDiff, double missileSpeed, out double timeToHit) {
         /*
@@ -234,6 +236,50 @@ public static class Main {
         lines.IndexOf('\n');
     public static int LineCount(this string lines) =>
         lines.Split('\n').Length;
+
+    public static void DrawRect(this ICellSurface surf, int xStart, int yStart, int dx, int dy, bool connectBelow = false, bool connectAbove = false) {
+        char Box(Line n = Line.None, Line e = Line.None, Line s = Line.None, Line w = Line.None) =>
+            (char)BoxInfo.IBMCGA.glyphFromInfo[new(n, e, s, w)];
+
+        var width = Line.Single;
+
+        IEnumerable<string> GetLines() {
+
+            var vert = Box(n: width, s: width);
+            var hori = Box(e: width, w: width);
+            
+            if (dx == 1 || dy == 1) {
+                var n = Box(e: Line.Single, w: Line.Single, s: width, n: connectAbove ? width : Line.None);
+                var s = Box(e: Line.Single, w: Line.Single, n: width, s: connectBelow ? width : Line.None);
+                var e = Box(n: connectAbove ? width : Line.None, s: connectBelow ? width : Line.None, w: width);
+                var w = Box(n: connectAbove ? width : Line.None, s: connectBelow ? width : Line.None, e: width);
+
+                if (dx == 1) {
+                    yield return $"{n}";
+                    yield return $"{vert}";
+                    yield return $"{s}";
+                    yield break;
+                } else {
+                    yield return $"{w}{new string(hori, dx - 2)}{e}";
+                    yield break;
+                }
+            } else {
+                var nw = Box(e: width, s: width, n: connectAbove ? width : Line.None);
+                var ne = Box(w: width, s: width, n: connectAbove ? width : Line.None);
+                var sw = Box(e: width, n: width, s: connectBelow ? width : Line.None);
+                var se = Box(w: width, n: width, s: connectBelow ? width : Line.None);
+                yield return $"{nw}{new string(hori, dx - 2)}{ne}";
+                for (int i = 0; i < dy - 2; i++) {
+                    yield return $"{vert}{new string(' ', dx - 2)}{vert}";
+                }
+                yield return $"{sw}{new string(hori, dx - 2)}{se}";
+            }
+        }
+        int y = yStart;
+        foreach(var line in GetLines()) {
+            surf.Print(xStart, y++, new ColoredString(line, Col.White, Col.Black));
+        }
+    }
     public static T LastItem<T>(this List<T> list) => list[list.Count - 1];
     public static T FirstItem<T>(this List<T> list) => list[0];
     public static string FlipLines(this string s) {
@@ -246,7 +292,7 @@ public static class Main {
         result.Append(lines.LastItem());
         return result.ToString();
     }
-    public static void PrintLines(this SadConsole.Console console, int x, int y, string lines, Color? foreground = null, Color? background = null, Mirror mirror = Mirror.None) {
+    public static void PrintLines(this Con console, int x, int y, string lines, Col? foreground = null, Col? background = null, Mirror mirror = Mirror.None) {
         foreach (var line in lines.Replace("\r\n", "\n").Split('\n')) {
             console.Print(x, y, line, foreground ?? SadRogue.Primitives.Color.White, background ?? SadRogue.Primitives.Color.Black, mirror);
             y++;
@@ -359,15 +405,15 @@ public static class Main {
                 (char)result :
             throw e.Invalid<char>(attribute)
             ) : throw e.Invalid<char>(attribute);
-    public static Color TryAttColor(this XElement e, string attribute, Color fallback) {
+    public static Col TryAttColor(this XElement e, string attribute, Col fallback) {
         if (e.TryAtt(attribute, out string s)) {
             if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
-                return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
+                return new Col((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
             } else try {
-                    var f = typeof(Color).GetField(s);
-                    return (Color)(f?.GetValue(null) ?? throw e.Invalid<Color>(attribute));
+                    var f = typeof(Col).GetField(s);
+                    return (Col)(f?.GetValue(null) ?? throw e.Invalid<Col>(attribute));
                 } catch {
-                    throw e.Invalid<Color>(attribute);
+                    throw e.Invalid<Col>(attribute);
                 }
         } else {
             return fallback;
@@ -400,17 +446,17 @@ public static class Main {
         value.Any() ? Convert.ToInt32(new Expression(value).Evaluate()) :
         throw e.Invalid<int?>(key)) :
     throw e.Missing<int?>(key);
-    public static Color ExpectAttColor(this XElement e, string key) {
+    public static Col ExpectAttColor(this XElement e, string key) {
         if (e.TryAtt(key, out string s)) {
             if (int.TryParse(s, NumberStyles.HexNumber, null, out var packed)) {
-                return new Color((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
+                return new Col((packed >> 24) & 0xFF, (packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
             } else try {
-                return (Color)typeof(Color).GetField(s).GetValue(null);
+                return (Col)typeof(Col).GetField(s).GetValue(null);
             } catch {
-                throw e.Invalid<Color>(key);
+                throw e.Invalid<Col>(key);
             }
         } else {
-            throw e.Missing<Color>(key);
+            throw e.Missing<Col>(key);
         }
     }
     public static int ExpectAttInt(this XElement e, string key) =>
@@ -716,7 +762,7 @@ public static class Main {
         [typeof(bool)] = "BOOLEAN",
         [typeof(bool?)] = "BOOLEAN",
         [typeof(IDice)] = "DICE_RANGE",
-        [typeof(Color)] = "COLOR"
+        [typeof(Col)] = "COLOR"
     };
 
     public static void WriteSchema(Type type, Dictionary<Type, XElement> dict) {
@@ -965,8 +1011,8 @@ public static class Main {
                         [typeof(int?)] = () => ele.ExpectAttIntNullable(key),
 
                         [typeof(IDice)] = () => ele.ExpectAttDice(key),
-                        [typeof(Color)] = () => ele.ExpectAttColor(key),
-                        [typeof(Color?)] = () => ele.ExpectAttColor(key),
+                        [typeof(Col)] = () => ele.ExpectAttColor(key),
+                        [typeof(Col?)] = () => ele.ExpectAttColor(key),
                     };
                     if (ia.separator?.Any() == true) {
                         Set(ParseCollection());
@@ -1033,14 +1079,14 @@ public static class Main {
     //Chance that the shot is blocked by an obstacle
     public static bool CalcBlocked(int coverage, int accuracy, Random karma) =>
         karma.Next(coverage) > karma.Next(accuracy);
-    public static ColoredGlyph Colored(char c, Color? f = null, Color? b = null) =>
+    public static ColoredGlyph Colored(char c, Col? f = null, Col? b = null) =>
         new(f ?? SadRogue.Primitives.Color.White, b?? SadRogue.Primitives.Color.Black, c);
-    public static ColoredString WithBackground(this ColoredString c, Color? Background = null) {
+    public static ColoredString WithBackground(this ColoredString c, Col? Background = null) {
         var result = c.SubString(0, c.Count());
         result.SetBackground(Background ?? SadRogue.Primitives.Color.Black);
         return result;
     }
-    public static ColoredString Adjust(this ColoredString c, Color foregroundInc) {
+    public static ColoredString Adjust(this ColoredString c, Col foregroundInc) {
         var result = c.SubString(0, c.Count());
         foreach (var g in result) {
             g.Foreground = Sum(g.Foreground, foregroundInc);
@@ -1067,7 +1113,7 @@ public static class Main {
     }
     public static ColoredString ToColoredString(this string s) =>
         s.Color();
-    public static ColoredString Color(this string s, Color? f = null, Color? b = null) =>
+    public static ColoredString Color(this string s, Col? f = null, Col? b = null) =>
         new(s, f ?? SadRogue.Primitives.Color.White, b ?? SadRogue.Primitives.Color.Black);
     public static ColoredString ToColoredString(this ColoredGlyph c) =>
         new(c.ToEffect());
@@ -1075,10 +1121,10 @@ public static class Main {
 
     public static ColoredGlyph Brighten(this ColoredGlyph c, int intensity) {
         var result = c.Clone();
-        result.Foreground = Sum(result.Foreground, new Color(intensity, intensity, intensity, 0));
+        result.Foreground = Sum(result.Foreground, new Col(intensity, intensity, intensity, 0));
         return result;
     }
-    public static ColoredString Adjust(this ColoredString c, Color foregroundInc, Color backgroundInc) {
+    public static ColoredString Adjust(this ColoredString c, Col foregroundInc, Col backgroundInc) {
         var result = c.SubString(0, c.Count());
         foreach (var g in result) {
             g.Foreground = Sum(g.Foreground, foregroundInc);
@@ -1086,21 +1132,21 @@ public static class Main {
         }
         return result;
     }
-    public static ColoredGlyph Adjust(this ColoredGlyph c, Color foregroundInc) {
+    public static ColoredGlyph Adjust(this ColoredGlyph c, Col foregroundInc) {
         var result = c.Clone();
         result.Foreground = Sum(result.Foreground, foregroundInc);
         return result;
     }
-    public static Color Sum(Color c, Color c2) =>
+    public static Col Sum(Col c, Col c2) =>
         new(Range(0, 255, c.R + c2.R), Range(0, 255, c.G + c2.G), Range(0, 255, c.B + c2.B), Range(0, 255, c.A + c2.A));
     
     //Essentially the same as blending this color over Color.Black
-    public static Color Premultiply(this Color c) => new((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, c.A);
+    public static Col Premultiply(this Col c) => new((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, c.A);
     //Premultiply and also set the alpha
-    public static Color PremultiplySet(this Color c, int alpha) => new((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, alpha);
+    public static Col PremultiplySet(this Col c, int alpha) => new((c.R * c.A) / 255, (c.G * c.A) / 255, (c.B * c.A) / 255, alpha);
 
     //Premultiplies this color and the blends another color over it
-    public static Color BlendPremultiply(this Color background, Color foreground, byte setAlpha = 0xff) {
+    public static Col BlendPremultiply(this Col background, Col foreground, byte setAlpha = 0xff) {
 
         var alpha = (byte)(foreground.A);
         var inv_alpha = (byte)(255 - foreground.A);
@@ -1114,7 +1160,7 @@ public static class Main {
 
     //https://stackoverflow.com/a/12016968
     //Blend another color over this color
-    public static Color Blend(this Color background, Color foreground, byte setAlpha = 0xff) {
+    public static Col Blend(this Col background, Col foreground, byte setAlpha = 0xff) {
         //Background should be premultiplied because we ignore its alpha value
         var alpha = (byte)(foreground.A);
         var inv_alpha = (byte)(255 - foreground.A);
@@ -1227,13 +1273,13 @@ public static class ColorCommand {
         }
     }
     */
-    public static string Unparse(Color c) =>
+    public static string Unparse(Col c) =>
         $"{c.R},{c.G},{c.B},{c.A}";
-    public static string Front(Color f) => $"[c:r f:{Unparse(f)}]";
-    public static string Front(Color f, string str) => $"{Front(f)}{str}[c:u]";
-    public static string Back(Color b) => $"[c:r b:{Unparse(b)}]";
-    public static string Back(Color b, string str) => $"{Back(b)}{str}[c:u]";
-    public static string Recolor(Color? f, Color? b) {
+    public static string Front(Col f) => $"[c:r f:{Unparse(f)}]";
+    public static string Front(Col f, string str) => $"{Front(f)}{str}[c:u]";
+    public static string Back(Col b) => $"[c:r b:{Unparse(b)}]";
+    public static string Back(Col b, string str) => $"{Back(b)}{str}[c:u]";
+    public static string Recolor(Col? f, Col? b) {
         var result = new StringBuilder();
         if(f.HasValue)
             result.Append(Front(f.Value));
@@ -1241,7 +1287,7 @@ public static class ColorCommand {
             result.Append(Back(b.Value));
         return result.ToString();
     }
-    public static string Recolor(Color? f, Color? b, string str) {
+    public static string Recolor(Col? f, Col? b, string str) {
         var result = new StringBuilder();
         result.Append(Recolor(f, b));
         result.Append(str);

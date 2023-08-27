@@ -9,8 +9,6 @@ using ASECII;
 using SadConsole.Input;
 using static Common.Main;
 using System;
-using CsvHelper;
-using CsvHelper.Configuration;
 using System.Globalization;
 using SFML.Audio;
 using System.Xml.Linq;
@@ -55,23 +53,7 @@ partial class Program {
             s += (@$"{'\n'}{{""{type.codename}"", {type.value}}}");
         }
         */
-        if (args.Any()) {
-            switch (args[0]) {
-                case "server": StartGame(StartServer); break;
-                case "client": StartGame(StartClient); break;
-                case "data": StartData(); break;
-            }
-        } else {
-            //StartData();
-            StartGame(StartRegular);
-        }
-    }
-    public static void StartData() {
-        using (var s = new StreamWriter("data.csv"))
-        using (var c = new CsvWriter(s, new(CultureInfo.InvariantCulture))) {
-            var tc = new TypeCollection(main);
-            c.WriteRecords(tc.Get<ItemType>());
-        }
+        StartGame(StartRegular);
     }
     public static void StartGame(Action OnStart) {
         if (!Directory.Exists("save"))
@@ -88,14 +70,6 @@ partial class Program {
             s.Generate(w);
         }
         return w;
-    }
-    public static void StartServer() {
-        var t = new TitleScreen(Width, Height, GenerateIntroSystem());
-        for(int i = 0; i < 100; i++) t.Update(new());
-        t.Server();
-    }
-    public static void StartClient() {
-        new TitleScreen(Width, Height, GenerateIntroSystem()).Client();
     }
     public static void StartRegular() {
 #if false

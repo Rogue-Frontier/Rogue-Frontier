@@ -1331,7 +1331,7 @@ upon you.""",
                     }));
             }
 
-            return screen = new(prev, playerShip, playerShip.cargo.Where(i => dict.ContainsKey(i.type.codename)), i => i.name, GetDesc, Choose, Escape);
+            return screen = new(prev, playerShip, $"{playerShip.name}: Cargo", playerShip.cargo.Where(i => dict.ContainsKey(i.type.codename)), i => i.name, GetDesc, Choose, Escape);
             List<ColoredString> GetDesc(Item i) {
                 List<ColoredString> result = new();
                 var desc = i.type.desc.SplitLine(64);

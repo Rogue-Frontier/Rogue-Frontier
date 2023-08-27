@@ -7,6 +7,7 @@ using System.Linq;
 using static RogueFrontier.BaseShip;
 using Newtonsoft.Json;
 using System.Text;
+using SFML.Audio;
 
 namespace RogueFrontier;
 
@@ -849,7 +850,8 @@ public class PlayerShip : IShip {
         if (ticks % 60 == 0) {
             visible = new(world.entities.FilterKey(p => (position - p).maxCoord < 50).Where(CanSee));
             foreach (var s in visible.OfType<Station>().Except(known)) {
-                AddMessage(new Transmission(s, $"Discovered: {s.type.name}"));
+                //SoundBuffer snd = s.type.discoverySound
+                AddMessage(new Transmission(s, $"[{s.type.name}]"));
                 known.Add(s);
             }
         }
@@ -875,7 +877,7 @@ public class PlayerShip : IShip {
     public void AddMessage(IPlayerMessage message) {
         var existing = messages.FirstOrDefault(m => m.Equals(message));
         if (existing != null) {
-            existing.Reset();
+            existing.Flash();
         } else {
             messages.Add(message);
             logs.Add(message);
