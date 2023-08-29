@@ -5,7 +5,7 @@ _Rogue Frontier_ is an ambitious ASCII-style roguelike space adventure set in an
 
 This game is in early beta and planned for release in 2024.
 
-(C) 2020-2022 by Alex Chen. _Transcendence_ is property of Kronosaur Productions.
+_Transcendence_ is property of Kronosaur Productions.
 
 ## Play
 Download and extract the ZIP archive. Run RogueFrontier.exe to play.
