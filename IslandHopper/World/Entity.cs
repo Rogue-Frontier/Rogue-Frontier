@@ -62,8 +62,8 @@ public static class EntityHelper {
             }
         }
         void UpdateFriction() {
-            g.Velocity.x *= 0.9;
-            g.Velocity.y *= 0.9;
+            g.Velocity.x *= 29/30f;
+            g.Velocity.y *= 29/30f;
         }
         void StopFalling() {
             if (g.Velocity.z < 0) {
@@ -205,7 +205,7 @@ public static class EntityHelper {
     Done:
         g.Position = final;
     }
-    public static void Witness(this Entity e, PlayerMessage we) {
+    public static void Witness(this Entity e, IPlayerMessage we) {
         if (e is ICharacter w)
             w.AddMessage(we);
     }

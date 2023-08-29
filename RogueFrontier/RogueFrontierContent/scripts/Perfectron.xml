@@ -1,4 +1,5 @@
 ﻿<Module>
+	<!--We need an anti-stealth capability to counter Dark Star-->
 	<Sovereign	codename=	"sovereign_perfectron"
 				alignment=	"DestructiveOrder"
 	/>

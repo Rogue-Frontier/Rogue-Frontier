@@ -167,6 +167,8 @@ public class BaseShip {
 
                 if (p.hitHandled) return;
                 s.Absorb(p);
+
+                s.delay = Math.Max(s.delay, p.desc.shieldDelay);
             }
 
             if (p.hitHandled) return;
@@ -391,6 +393,11 @@ public class AIShip : IShip {
         onDamaged.Observe(new(this, p));
         ship.ReduceDamage(p);
         ship.damageSystem.Damage(world.tick, p, () => Destroy(p.source));
+        if(p.hitHull) {
+            if (p.desc.shieldSuppress > 0) {
+                ship.devices.Shield.ForEach(s => s.delay = Math.Max(s.delay, p.desc.shieldSuppress));
+            }
+        }
     }
     public void Destroy(ActiveObject source) {
         if (source is PlayerShip ps) {
@@ -774,7 +781,6 @@ public class PlayerShip : IShip {
             ship.ReduceDamage(p);
             ship.damageSystem.Damage(world.tick, p, () => Destroy(p.source));
         }
-
         if (!active) {
             goto Done;
         }

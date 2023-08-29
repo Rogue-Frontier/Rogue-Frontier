@@ -3,11 +3,11 @@ using SadConsole;
 
 namespace IslandHopper;
 
-public interface PlayerMessage {
+public interface IPlayerMessage {
     ColoredString Desc { get; }
     int ScreenTime { get; set; }
 }
-public class InfoEvent : PlayerMessage {
+public class InfoEvent : IPlayerMessage {
     public int ScreenTime { get; set; } = 150;
     public ColoredString Desc { get; }
     public InfoEvent(ColoredString Desc) {

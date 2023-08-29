@@ -10,7 +10,7 @@ namespace IslandHopper;
 public interface ICharacter : Entity, Damageable {
     HashSet<IItem> Inventory { get; }
     HashSet<EntityAction> Actions { get; }
-    void AddMessage(PlayerMessage we);
+    void AddMessage(IPlayerMessage we);
 }
 public class Player : ICharacter {
     public XYZ Velocity { get; set; }
@@ -98,7 +98,7 @@ public class Player : ICharacter {
         //HistoryRecent.RemoveAll(e => e.ScreenTime < 1);
     }
 
-    public void AddMessage(PlayerMessage e) {
+    public void AddMessage(IPlayerMessage e) {
         var desc = e.Desc;
         if (HistoryLog.Count == 0) {
             var entry = new HistoryEntry(desc);
@@ -128,15 +128,17 @@ public class Player : ICharacter {
 
     public void OnDamaged(Damager source) {
         if (source is Bullet b) {
+            AddMessage(new InfoEvent(new ColoredString($"You are hit by a bullet!", Color.Red, Color.Black)));
             health.Damage(b.damage);
         } else if (source is ExplosionDamage e) {
             health.Damage(e.damage);
             Velocity += e.knockback;
-            AddMessage(new InfoEvent(new ColoredString($"You are caught in an explosion and take {e.damage} damage!")));
+            AddMessage(new InfoEvent(new ColoredString($"You are caught in an explosion and take {e.damage} damage!", Color.Red, Color.Black)));
         } else if (source is Flame f) {
             health.Damage(f.damage);
-            AddMessage(new InfoEvent(new ColoredString($"You are caught in flames!")));
+            AddMessage(new InfoEvent(new ColoredString($"You are caught in flames!", Color.Orange, Color.Black)));
         } else if (source is Fire fire) {
+            AddMessage(new InfoEvent(new ColoredString($"You step on fire!", Color.Orange, Color.Black)));
             health.Damage(1);
             World.AddEffect(new Burn(this, 20));
         }

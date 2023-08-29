@@ -79,21 +79,24 @@ public class LaunchedGrenade : Entity {
     }
     public void Detonate() {
         Active = false;
-        World.AddEffect(new ExplosionSource(World, Position, 6));
+        World.AddEffect(new ExplosionSource(World, Position, grenadeType.explosionRadius));
+
+        var radius = grenadeType.explosionRadius;
+        var radius2 = radius * radius;
         foreach (var offset in Main.GetWithin(grenadeType.explosionRadius)) {
             var pos = Position + offset;
-            var displacement = pos - Position;
-            var dist2 = displacement.Magnitude2;
-            var radius2 = grenadeType.explosionRadius * grenadeType.explosionRadius;
+            
+            var dist2 = offset.Magnitude2;
             if (dist2 > radius2) {
                 continue;
             }
+            var dist = Math.Sqrt(dist2);
             foreach (var hit in World.entities[pos]) {
                 if (hit is ICharacter d && hit != this) {
-                    var multiplier = (radius2 - displacement.Magnitude2) / radius2;
+                    var multiplier = (radius - dist) / radius;
                     ExplosionDamage damage = new() {
                         damage = (int)(grenadeType.explosionDamage * multiplier),
-                        knockback = displacement.Normal * grenadeType.explosionForce * multiplier
+                        knockback = offset.Normal * grenadeType.explosionForce * multiplier
                     };
                     Source.Witness(new InfoEvent(Name + new ColoredString(" explosion damages ", Color.White, Color.Black) + d.Name));
                     d.OnDamaged(damage);
@@ -515,8 +518,11 @@ class ExplosionSource : Entity {
             Active = false;
         }
 
+
+
         this.DebugInfo("UpdateStep");
         this.DebugInfo($"Current Radius: {currentRadius}");
+
 
         //See if we need to calculate more surrounding tiles now (the farthest tile calculated so far is within the current radius)
         while (explosionOffsets.Last().Magnitude < currentRadius) {
@@ -528,11 +534,14 @@ class ExplosionSource : Entity {
                 this.DebugInfo($"Added surrounding tiles for radius: {rectRadius}");
             }
         }
-        while (explosionOffsets[tileIndex].Magnitude < currentRadius) {
+        XYZ o;
+        while ((o = explosionOffsets[tileIndex]).Magnitude < currentRadius) {
             //Expand to this tile
-            World.AddEffect(new ExplosionBlock(World, Position + explosionOffsets[tileIndex]) {
+            World.AddEffect(new ExplosionBlock(World, Position + o) {
                 lifetime = (int)(expansionTime * (1 - currentRadius / maxRadius) * 5 + World.karma.NextInteger(0, 20))
             });
+
+            var farthest = explosionOffsets.MaxBy(o => o.Magnitude);
 
             this.DebugInfo($"Expanded to tile index: {tileIndex}");
 

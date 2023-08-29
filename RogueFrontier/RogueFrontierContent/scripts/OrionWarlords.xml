@@ -8,7 +8,7 @@
 				mass=		"3000"
 				level=		"2"
 				value=		"400"
-				desc=		"This specialized kinetic cannon is designed to accomodate both close-range fighters and long-range snipers. While idle, it charges up power for the next shot. The shells from this weapon can fly scary fast when fully charged."
+				desc=		"The Orion bolter is a crossbow designed to accomodate both close-range fighters and long-range snipers. While idle, it charges up power for the next shot. The shells from this weapon can fly scary fast when fully charged."
 				invoke=		"installWeapon"
 		>
 		<Weapon
@@ -42,7 +42,7 @@
 				mass=		"5000"
 				level=		"3"
 				value=		"800"
-				desc=		"A fully charged shot from this kinetic cannon can be lethal to small gunships. As most of its destructive power comes from charged up shots, it has a relatively complicated design compared to other weapons."				
+				desc=		"A fully charged shot from this crossbow can be lethal to small gunships. As most of its destructive power comes from charged up shots, it has a relatively complicated design compared to other weapons."				
 				invoke=		"installWeapon"
 		>
 		<Weapon	
@@ -112,7 +112,7 @@
 				mass=		"5000"
 				level=		"3"
 				value=		"800"
-				desc=		"The Bronze ballista is the heaviest mass driver created by the Orion Warlords. It fires heavy shots that can travel very far."
+				desc=		"The Bronze ballista is the strongest crossbow created by the Orion Warlords. It fires heavy shots that can severely hurt targets from afar."
 				invoke=		"installWeapon"
 		>
 		<Weapon
@@ -181,7 +181,7 @@
 		mass=		"1000"
 		level=		"2"
 		value=		"400"
-		desc=		"Bronze rice is a genetically modified rice variant containing boosted mineral content."
+		desc=		"Bronze rice is a bioengineered rice designed to provide high protein."
 		>
 	</ItemType>
 	<ShipClass	codename=			"ship_orion_raider"
@@ -210,7 +210,7 @@
 		</LayeredArmorSystem>
 		<PlayerSettings
 			startingClass=  "false"
-			description=    "Besides being a patched-up rustbucket, the Orion raider is known for its Orion bolter, a kinetic weapon that hits harder and faster when fully charged."
+			description=    "Besides being a patched-up rustbucket, the Orion raider is known for its Orion bolter, a kinetic weapon that hits hard and fast when fully charged."
             />
 	</ShipClass>
 	<ShipClass	codename=			"ship_orion_huntsman"
@@ -292,7 +292,7 @@
 		mass=		"8000"
 		level=		"2"
 		value=		"800"
-		desc=		"The Orion Warlords deploy this turret near enemy stations to catch departing ships off-guard."
+		desc=		"The Orion Warlords deploy this turret near enemy stations to catch passing travelers off-guard."
 		>
 	</ItemType>
 	<StationType	codename="station_orion_turret"
@@ -390,7 +390,6 @@
 				glyph=		"H"
 				foreground= "3366BBFF"
 		>
-
 		<HP	maxHP="200"/>
 		<Segments>
 			<Point offsetX="0"

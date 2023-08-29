@@ -165,12 +165,12 @@ public class Armor : Device {
             var expired = new HashSet<Decay>();
             //If the armor is down, then degrade it faster
             if (hp == 0) {
-                if (hull.GetHP() == 0 && decay.FirstOrDefault(d => d.lethal) is Decay kill) {
+                if (hull.GetHP() == 0 && decay.FirstOrDefault(d => d.lethal) is { } kill) {
                     owner.Destroy(kill.source);
                 } else {
-                    if (decay.Where(d => d.descend).ToList() is { Count: > 0 } descending &&
-                        hull is LayeredArmor la &&
-                        la.layers.Reverse<Armor>().Skip(la.layers.Count - la.layers.IndexOf(this)).FirstOrDefault(l => l.hp > 0) is Armor next) {
+                    if (decay.Where(d => d.descend).ToList() is { Count:>0 } descending &&
+                        hull is LayeredArmor { layers: { } layers } &&
+                        layers.Reverse<Armor>().Skip(layers.Count - layers.IndexOf(this)).FirstOrDefault(l => l.hp > 0) is { } next) {
 
                         decay.ExceptWith(descending);
                         next.decay.UnionWith(descending);
@@ -385,7 +385,7 @@ public class Armor : Device {
         p.damageHP = Math.Max(0, p.damageHP - (int)Math.Ceiling(Math.Max(absorbed, damageWall) / multiplier));
         return absorbed;
         void ApplyDecay() {
-            if (p.desc.Decay is Decay d) {
+            if (p.desc.Decay is { } d) {
                 decay.Add(new(d, p));
             }
         }
@@ -404,7 +404,13 @@ public class Engine : Device {
     public Engine Copy(Item source) => desc.GetEngine(source);
     public void Update(double delta, IShip owner) {
         var rotationDeg = owner.rotationDeg;
-        var ship = (owner is PlayerShip ps ? ps.ship : owner is AIShip a ? a.ship : null);
+
+
+        var ship = owner switch {
+            PlayerShip { ship: { } sh } => sh,
+            AIShip { ship: { } sh } => sh,
+            _ => null
+        };
         var sc = ship.shipClass;
         UpdateThrust();
         UpdateTurn();

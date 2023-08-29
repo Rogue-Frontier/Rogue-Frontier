@@ -26,7 +26,7 @@ public class WreckScene : Console {
         this.player = playerShip.person;
         this.prev = prev;
 
-        descPane = new DescPanel<Item>(40, 26) { Position = new(4, 4) };
+        descPane = new DescPanel<Item>(40, 26) { Position = new(24, 4) };
         
         playerPane = new(playerShip.name, playerShip.cargo, i => i.name, SetDesc) {
             Position = new(4, 16),

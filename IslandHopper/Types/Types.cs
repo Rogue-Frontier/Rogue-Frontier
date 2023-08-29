@@ -225,7 +225,7 @@ public class ItemType : DesignType {
             canArm = e.TryAttBool(nameof(canArm), true);
             fuseTime = e.TryAttInt(nameof(fuseTime), 5);
             explosionDamage = e.TryAttInt(nameof(explosionDamage), 5);
-            explosionForce = e.TryAttInt(nameof(explosionForce), 5);
+            explosionForce = e.TryAttInt(nameof(explosionForce), 30);
             explosionRadius = e.TryAttInt(nameof(explosionRadius), 5);
         }
     }

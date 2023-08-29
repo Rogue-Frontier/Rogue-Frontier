@@ -39,8 +39,8 @@
 		<Weapon		powerUse=		"15"
 					fireCooldown=	"20"
 					initialCharges=	"300"
-					armorDrill=	"0.1"
-					sound=		"RogueFrontierContent/sounds/iron_driver.wav"
+					armorDrill=		"0.1"
+					sound=			"RogueFrontierContent/sounds/iron_driver.wav"
 			>
 			<Projectile	missileSpeed=	"60"
 						damageType=		"2"

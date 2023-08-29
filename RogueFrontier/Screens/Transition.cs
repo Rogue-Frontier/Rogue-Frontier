@@ -111,7 +111,6 @@ public class TitleSlideOut : Console {
         next.Render(delta);
         base.Render(delta);
         this.Clear();
-        var blank = new ColoredGlyph(Color.Black, Color.Black);
         for (int y = 0; y < Height; y++) {
             for (int x = 0; x < this.x; x++) {
                 this.SetCellAppearance(x, y, prev.GetCellAppearance(x, y));

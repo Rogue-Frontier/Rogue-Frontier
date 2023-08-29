@@ -503,6 +503,13 @@ public record FragmentDesc {
     [Opt] public IDice blind;
     [Opt] public int ricochet;
     [Opt] public int tracker;
+
+    /// <summary>If the target shield is up, sets the remaining delay to at least this value</summary>
+    [Opt] public int shieldDelay = 0;
+    /// <summary>If the target shield is down, sets the remaining depletion delay to at least this value</summary>
+    [Opt] public int shieldSuppress = 0;
+
+
     //[Opt] public bool beacon;
     [Opt] public bool hook;
     /// <summary>On hit, the projectile attaches an overlay that automatically makes future shots hit instantly</summary>

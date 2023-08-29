@@ -157,7 +157,7 @@ EASTER EGGS
 			fuseTime=				"40"
 			explosionRadius=		"30"
 			explosionDamage=		"20"
-			explosionForce=			"10"
+			explosionForce=			"20"
 			/>
 	</Source>
 	<ItemType
@@ -290,7 +290,7 @@ EASTER EGGS
 			detonateOnImpact=		"true"
 			explosionRadius=		"40"
 			explosionDamage=		"30"
-			explosionForce=			"15"
+			explosionForce=			"30"
 			/>
 	</ItemType>
 	<ItemType

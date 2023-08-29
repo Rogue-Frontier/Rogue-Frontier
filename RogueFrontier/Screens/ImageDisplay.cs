@@ -12,15 +12,13 @@ public class ImageDisplay : Console {
     public ImageDisplay(int width, int height, ColorImage image, Point adjust) : base(width, height) {
         this.image = image;
         this.adjust = adjust;
+        Draw();
     }
-    public override void Render(TimeSpan delta) {
-        //var adj = (new Point(Width, Height) - dimensions.Size) / 2 - dimensions.Position;
+    public void Draw() {
         foreach (((int x, int y) p, ColoredGlyph t) in image.Sprite) {
             var pos = (Point)p + adjust;
 
             this.SetCellAppearance(pos.X, pos.Y, t);
         }
-
-        base.Render(delta);
     }
 }

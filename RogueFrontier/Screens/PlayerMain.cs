@@ -1874,8 +1874,16 @@ public class Readout : ScreenSurface {
                         s.hp == 0 || s.delay > 0 ? Color.Yellow :
                         s.hp < s.desc.maxHP ? Color.Cyan :
                         Color.White;
-                    var l = BAR * s.hp / s.desc.maxHP;
-                    var bar =   $"[{Repeat("=", l)}{Front(Color.Gray, Repeat("=", BAR - l))}]";
+
+                    string bar;
+                    if(s.delay > 0) {
+                        var l = (int)(BAR * s.delay / s.desc.depletionDelay);
+                        bar = $"[{Front(Color.Gray, Repeat("=", BAR - l))}{Repeat(" ", l)}]";
+                    } else {
+                        var l = BAR * s.hp / s.desc.maxHP;
+                        bar = $"[{Repeat("=", l)}{Front(Color.Gray, Repeat("=", BAR - l))}]";
+                    }
+                    
                     var counter =    $"{s.hp,3}/{s.desc.maxHP,3}";
                     Surface.Print(x, y, ColoredString.Parser.Parse(
                         Recolor(f, b, $"{bar} {counter} {name}")

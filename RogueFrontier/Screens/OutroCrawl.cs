@@ -29,19 +29,27 @@ class OutroCrawl : Console {
     List<CloudParticle> clouds;
 
     Random random = new Random();
+
+    Console cloudLayer;
     public OutroCrawl(int width, int height, Action next) : base(width, height) {
+        var frame1 = new ImageDisplay(width, height, ColorImage.FromFile("RogueFrontierContent/epilogue_1.asc.cg"), new());
+
+        Children.Add(cloudLayer = new(width, height));
+
         Console Scale(int s) => new Console(Width / s, Height / s) { FontSize = FontSize * s };
         ScreenSurface Pane(string headingStr, string subheadingStr) {
             var pane = new Console(Width, Height);
 
+
             var heading = Scale(4);
-            heading.PrintCenter(heading.Height / 2, headingStr);
+            heading.PrintCenter(heading.Height / 2, new ColoredString(headingStr, Color.White, new(0, 0, 0, 153)));
+
             pane.Children.Add(heading);
 
             var subheading = Scale(2);
             var y = subheading.Height / 2 + 2;
             foreach(var line in subheadingStr.Replace("\r","").Split("\n")) {
-                subheading.PrintCenter(y++, line);
+                subheading.PrintCenter(y++, new ColoredString(line, Color.White, new(0, 0, 0, 153)));
             }
             pane.Children.Add(subheading);
             return pane;
@@ -77,19 +85,42 @@ class OutroCrawl : Console {
                 ("Music Used",  "\"Introduction to the Snow\" by Miracle Musical"),
                 ("Thank you", "for playing Rogue Frontier"),
             };
+
+            ImageDisplay prevFrame = null;
             Show();
             void Show(int i = 0) {
-                var (h, h2) = parts[i];
-                var pane = Pane(h, h2);
 
-                double textTime = 4, emptyTime = 0.5;
-                Pause(pane, () => Pause(Empty(), () => {
+                if (prevFrame != null) {
+                    Children.Remove(prevFrame);
+                }
+                ImageDisplay frame = i == 0 ? frame1 : null;
+                Slide slide = null;
+                if(frame != prevFrame) {
+                    slide = new Slide(prevFrame, frame, () => { });
+                    Children.Insert(0, slide);
+
+                    prevFrame = frame;
+                }
+
+
+                var (h, h2) = parts[i];
+                double textTime = 4.2, emptyTime = 0.3;
+                Pause(Pane(h, h2), () => Pause(Empty(), () => {
+
+                    if (slide != null) {
+                        Children.Remove(slide);
+                    }
+                    if (frame != null) {
+                        Children.Insert(0, frame);
+                    }
                     if(i < parts.Length - 1) {
                         Show(i + 1);
                     } else {
                         next();
                     }
                 }, emptyTime), textTime);
+
+
             }
         }
         int effectWidth = Width * 3 / 5;
@@ -146,13 +177,13 @@ class OutroCrawl : Console {
         }
     }
     public override void Render(TimeSpan drawTime) {
-        this.Clear();
+        cloudLayer.Clear();
 
         var top = Height - 1;
         foreach (var cloud in clouds) {
             var (x, y) = cloud.pos;
-            this.SetForeground(x, top - y, cloud.symbol.Foreground);
-            this.SetGlyph(x, top - y, cloud.symbol.Glyph);
+            cloudLayer.SetForeground(x, top - y, cloud.symbol.Foreground);
+            cloudLayer.SetGlyph(x, top - y, cloud.symbol.Glyph);
         }
         base.Render(drawTime);
     }
@@ -160,5 +191,41 @@ class OutroCrawl : Console {
         
 
         return base.ProcessKeyboard(info);
+    }
+}
+
+
+public class Slide : Console {
+    public Console prev, next;
+    public Action done;
+    int x = 0;
+    public Slide(Console prev, Console next, Action done) : base((prev??next).Width, (prev??next).Height) {
+        this.prev = prev;
+        this.next = next;
+        this.done = done;
+    }
+    public override void Update(TimeSpan delta) {
+        base.Update(delta);
+
+        if (x < Width) {
+            x += (int)(Width * delta.TotalSeconds);
+        } else {
+            done();
+        }
+    }
+    public override void Render(TimeSpan delta) {
+        base.Render(delta);
+        this.Clear();
+
+        var blank = new ColoredGlyph(Color.Black, Color.Black);
+        for (int y = 0; y < Height; y++) {
+            for (int x = 0; x < Width; x++) {
+                var cell =
+                    x < this.x ?
+                        next?.GetCellAppearance(x, y) ?? blank :
+                        prev?.GetCellAppearance(x, y) ?? blank;
+                this.SetCellAppearance(x, y, cell);
+            }
+        }
     }
 }

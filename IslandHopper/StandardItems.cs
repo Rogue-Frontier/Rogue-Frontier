@@ -26,7 +26,7 @@ public static class StandardTypes {
                     detonateOnDamage = true,
                     detonateOnImpact = true,
                     explosionDamage = 20,
-                    explosionForce = 10,
+                    explosionForce = 20,
                     explosionRadius = 20,
                     fuseTime = 45
                 }
@@ -72,7 +72,7 @@ public static class StandardTypes {
         },
     }, itSameOldShotgun = new ItemType() {
         name = "Same Old Shotgun",
-        desc = "This is the same shotgun that your grandpa used back when this whole war started.",
+        desc = "This is the shotgun that your grandpa used back when this whole war started.",
         image = ColorImage.FromFile("IslandHopperContent/SameOldShotgun.asc.cg"),
         gun = new GunDesc() {
             projectileCount = 6,
@@ -96,17 +96,6 @@ public static class StandardTypes {
         }
     };
     public static ItemType[] stdWeapons = new ItemType[] {
-            itHotRod, itSeventhStriker, itStoppedClock, itSameOldShotgun, itStandardAmmo
-
-        };
+        itHotRod, itSeventhStriker, itStoppedClock, itSameOldShotgun, itStandardAmmo
+    };
 }
-/*
-		<Gun
-			projectileCount="8"
-			clipSize=		"50"
-			maxAmmo=		"150"
-			reloadTime=		"120"
-			fireTime=		"4"
-			>
-			<Flame damage="3" lifetime="30" speed="20"/>
-*/

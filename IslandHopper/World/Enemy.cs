@@ -76,7 +76,7 @@ class Enemy : ICharacter {
             World.AddEffect(new Burn(this, 20));
         }
     }
-    public void AddMessage(PlayerMessage we) {
+    public void AddMessage(IPlayerMessage we) {
 
     }
 }

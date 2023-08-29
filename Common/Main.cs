@@ -15,7 +15,6 @@ using System.Reflection;
 using System.Data;
 using NCalc;
 using Con = SadConsole.Console;
-using RogueFrontier;
 using static SFML.Window.Keyboard;
 using ASECII;
 using Namotion.Reflection;
