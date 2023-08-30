@@ -192,9 +192,9 @@ public class Station : ActiveObject, ITrader, IDockable {
     public List<AIShip> UpdateGuardList() {
         return guards = new(world.universe.GetAllEntities().OfType<AIShip>()
             .Where(s => s.behavior switch {
-                GuardAt g => g.home == this,
-                PatrolAt p => p.patrolTarget == this,
-                PatrolAround p => p.patrolTarget == this,
+                GuardAt { home: { }home } => home == this,
+                PatrolAt { patrolTarget: { }target } => target == this,
+                PatrolAround{patrolTarget:{ }target } => target == this,
                 _ => false
             }));
     }
@@ -208,7 +208,7 @@ public class Station : ActiveObject, ITrader, IDockable {
         if (source != null && source.sovereign != sovereign) {
             var guards = world.entities.all.OfType<AIShip>()
                 .Select(s => s.behavior.GetOrder())
-                .OfType<GuardAt>()
+                .OfType <GuardAt>()
                 .Where(g => g.home == this);
             foreach (var order in guards) {
                 order.SetAttack(source, 300);

@@ -42,9 +42,9 @@ public static class SStealth {
     public static double GetVisibleDistanceLeft(this Entity watched, Entity watcher) =>
         GetVisibleRange(GetStealth(watched)) - watcher.position.Dist(watched.position);
     public static double GetStealth(this Entity e) => e switch {
-        PlayerShip pl => pl.ship.stealth,
-        AIShip ai => ai.ship.stealth,
-        Station st => st.stealth,
+        PlayerShip {ship:{stealth:{ }stealth } } => stealth,
+        AIShip { ship: { stealth: { } stealth } } => stealth,
+        Station { stealth: { }stealth } => stealth,
         ISegment s => GetStealth(s.parent),
         _ => 0
     };

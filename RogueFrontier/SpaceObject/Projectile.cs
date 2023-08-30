@@ -81,9 +81,9 @@ public class Projectile : MovingObject {
                 new() { null, this } :
                 new() { null, source, this };
             this.exclude.UnionWith(source switch {
-                PlayerShip ps => ps.avoidHit,
-                AIShip ai => ai.avoidHit,
-                Station st => st.guards,
+                PlayerShip { avoidHit: { }ah } => ah,
+                AIShip { avoidHit: { }ah } => ah,
+                Station {guards:{ }g } => g,
                 _ => new HashSet<Entity>()
             });
         }
@@ -129,9 +129,9 @@ public class Projectile : MovingObject {
 
             bool InDetonateRange() {
                 var r = detonateRadius * detonateRadius;
-                return r > 0 && world.entities.FilterKey(p => (position - p).magnitude2 < r).Select(e => e is ISegment s ? s.parent : e)
+                return r > 0 && world.entities.FilterKey(p => (position - p).magnitude2 < r).Select(e => e is ISegment { parent: { } p } ? p : e)
                     .Distinct().Except(exclude).Any(e => e switch {
-                        ActiveObject a => a.active,
+                        ActiveObject {active:true } => true,
                         Projectile p => !exclude.Contains(p.source) && desc.hitProjectile,
                         //TargetingMarker marker => marker.Owner == source,
                         _ => false
@@ -153,18 +153,18 @@ public class Projectile : MovingObject {
                 bool destroyed = false;
                 bool stop = false;
 
-                var entities = world.entities[position].Select(e => e is ISegment s ? s.parent : e).Distinct().Except(exclude);
+                var entities = world.entities[position].Select(e => e is ISegment { parent: { }p } ? p : e).Distinct().Except(exclude);
                 foreach (var other in entities) {
                     switch (other) {
                         case Asteroid a:
                             lifetime = 0;
                             destroyed = true;
                             break;
-                        case ActiveObject {active:true } hit when !destroyed && (desc.hitNonTarget || new[] {null, hit}.Contains(maneuver?.target)):
+                        case ActiveObject { active: true } hit when !destroyed && (desc.hitNonTarget || new[] { null, hit }.Contains(maneuver?.target)):
                             hitReflected |= world.karma.NextDouble() < desc.detonateFailChance;
                             var angle = (position - hit.position).angleRad;
-                            
-                            hit.Damage(this);                            
+
+                            hit.Damage(this);
                             onHitActive.Observe(new(this, hit));
 
                             var cg = new ColoredGlyph(hitHull ? Color.Yellow : Color.LimeGreen, Color.Transparent, 'x');
@@ -176,7 +176,7 @@ public class Projectile : MovingObject {
                                 velocity = -velocity;
 
                                 exclude = new();
-                            } else if(ricochet > 0) {
+                            } else if (ricochet > 0) {
                                 ricochet--;
                                 velocity = -velocity;
                                 //velocity += (hit.velocity - velocity) / 2;
@@ -185,7 +185,7 @@ public class Projectile : MovingObject {
                                 exclude = new();
                             } else {
                                 Detonate();
-                                
+
                                 lifetime = 0;
                                 destroyed = true;
                             }
@@ -231,7 +231,7 @@ public class Projectile : MovingObject {
         foreach (var f in desc.Fragment) {
             Fragment(f);
         }
-        if (desc.Flash is FlashDesc fl) {
+        if (desc.Flash is { } fl) {
             fl.Create(world, position);
         }
     }
@@ -243,11 +243,10 @@ public class Projectile : MovingObject {
         double angleInterval = fragment.spreadAngle / fragment.count;
         double fragmentAngle;
         if (fragment.omnidirectional
-            && maneuver?.target is ActiveObject target
-            && target.active == true
-            && (target.position - position) is XY offset
+            && maneuver?.target is { active:true } target
+            && (target.position - position) is { } offset
             && offset.magnitude < fragment.range) {
-            fragmentAngle = Main.CalcFireAngle((target.position - position), (target.velocity - velocity), fragment.missileSpeed, out var _);
+            fragmentAngle = Main.CalcFireAngle(offset, (target.velocity - velocity), fragment.missileSpeed, out var _);
         } else {
             fragmentAngle = direction;
         }
@@ -324,9 +323,6 @@ public class Maneuver {
                     if (timeToTurn < timeToHit) {
                         startApproach = true;
 
-                        if(p.source is PlayerShip) {
-                            int i = 0;
-                        }
                     }
                 }
                 prevDistance = dist;

@@ -284,8 +284,8 @@ public class EscortShip : IShipOrder {
             var attacker = owner.world.entities.all
                 .OfType<IShip>()
                 .FirstOrDefault(s => (s.position - owner.position).magnitude < 100 && s switch {
-                    AIShip ai => ai.behavior.CanTarget(follow.target) || ai.behavior.CanTarget(owner),
-                    PlayerShip pl => s.sovereign.IsEnemy(follow.target.sovereign),
+                    AIShip { behavior: { }be } => be.CanTarget(follow.target) || be.CanTarget(owner),
+                    PlayerShip => s.sovereign.IsEnemy(follow.target.sovereign),
                     _ => false
                 });
             if (attacker != null) {
@@ -443,9 +443,9 @@ public class GuardAt : IShipOrder, Ob<Docking.OnDocked>, Ob<AIShip.Damaged>, Ob<
         owner.onDamaged += this;
     }
     public override string ToString() => $"guard {home.name}{errand switch {
-        AttackTarget a => $": attack {a.target.name}",
-        LootWreck l => $": loot {l.target.name}",
-        GateThrough g => $": gate {g.gate.destWorld.name}",
+        AttackTarget { target: { name: { }n } }             => $": attack {n}",
+        LootWreck { target: { name: { }n } }                => $": loot {n}",
+        GateThrough { gate: { destWorld: { name: { }n } } } => $": gate {n}",
         _ => ""
     }}";
     public void SetHome(ActiveObject home) {

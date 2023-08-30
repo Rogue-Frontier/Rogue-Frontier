@@ -156,12 +156,10 @@ public class Armor : Device {
     private void UpdateCommon(double delta, ActiveObject owner, HullSystem hull) {
         if (decay.Any()) {
             var ownerSilence = owner switch {
-                AIShip ai => ai.ship.silence,
-                PlayerShip ps => ps.ship.silence,
+                AIShip {ship:{silence:{ } s } } => s,
+                PlayerShip { ship: { silence: { }s } } => s,
                 _ => 0
             };
-
-
             var expired = new HashSet<Decay>();
             //If the armor is down, then degrade it faster
             if (hp == 0) {
@@ -223,7 +221,7 @@ public class Armor : Device {
             }
         }
         allowRecovery = desc.powerUse == -1 || owner switch {
-            PlayerShip ps => !ps.energy.off.Contains(this),
+            PlayerShip { energy: { off: { } off } } => !off.Contains(this),
             _ => true
         };
         if (damageDelay > 0) {
@@ -407,8 +405,8 @@ public class Engine : Device {
 
 
         var ship = owner switch {
-            PlayerShip { ship: { } sh } => sh,
-            AIShip { ship: { } sh } => sh,
+            PlayerShip { ship: { } s } => s,
+            AIShip { ship: { } s } => s,
             _ => null
         };
         var sc = ship.shipClass;
@@ -824,8 +822,8 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
     public string GetReadoutName() {
         string name = source.type.name;
         return ammo switch {
-            ChargeAmmo c => $"{c.charges, 6} {name}",
-            ItemAmmo i => $"{i.count, 6} {name}",
+            ChargeAmmo { charges: { }charges } => $"{charges, 6} {name}",
+            ItemAmmo { count: { } count } => $"{count, 6} {name}",
             _ => $"------ {name}"
         };
     }
@@ -916,7 +914,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         var p = owner.position;
         for (int i = 0; i < projectileDesc.range; i++) {
             p += d;
-            foreach (var other in owner.world.entities[p].Select(s => s is ISegment seg ? seg.parent : s).Distinct()) {
+            foreach (var other in owner.world.entities[p].Select(s => s is ISegment { parent: { }p } ? p : s).Distinct()) {
                 switch (other) {
                     case ActiveObject a when (targeting?.HasTarget(a) == true) || owner.CanTarget(a):
                         goto LineCheckDone;
@@ -977,7 +975,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
         }
         double direction = owner.rotationRad + angle;
         var hasAimAngle = false;
-        if (aiming?.GetFireAngle() is double aimAngle) {
+        if (aiming?.GetFireAngle() is { } aimAngle) {
             hasAimAngle = true;
             direction = aimAngle;
         }
@@ -990,7 +988,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
             endRepeat = repeatsLeft == 0;
         } else if (desc.autoFire) {
             bool CheckProjectile() {
-                if (desc.targetProjectile && !blind && Targeting.AcquireMissile(owner, this, s => s != null && SShip.IsEnemy(owner, s)) is Projectile target) {
+                if (desc.targetProjectile && !blind && Targeting.AcquireMissile(owner, this, s => s != null && SShip.IsEnemy(owner, s)) is { } target) {
                     direction = Omnidirectional.GetFireAngle(owner, target, this);
                     return true;
                 }
@@ -1121,7 +1119,7 @@ public class Weapon : Device, Ob<Projectile.OnHitActive> {
                     case PlayerShip pl:
                         HandlePlayer(pl);
                         break;
-                    case AIShip ai when ai.behavior is Wingmate w:
+                    case AIShip {behavior: Wingmate w }:
                         HandlePlayer(w.player);
                         break;
                 }

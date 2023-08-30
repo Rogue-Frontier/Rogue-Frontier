@@ -68,13 +68,13 @@ public static partial class SMenu {
             );
 
         string GetName(IPlayerMessage i) => i switch {
-            Message m => m.text,
-            Transmission t => $"{t.text}",
+            Message { text: { }t } => t,
+            Transmission { text: { }t } => $"{t}",
             _ => throw new NotImplementedException()
         };
         List<ColoredString> GetDesc(IPlayerMessage i) {
             return i switch {
-                Message m => new(),
+                Message => new(),
                 Transmission t => new() {
                     new ColoredString("Source: ") + (t.source as ActiveObject)?.name ?? new("N/A"),
                 },
@@ -111,7 +111,7 @@ public static partial class SMenu {
             Escape
             );
         string GetName(IPlayerInteraction i) => i switch {
-            DestroyTarget dt => "Destroy Target",
+            DestroyTarget => "Destroy Target",
             _ => "Mission"
         };
         List<ColoredString> GetDesc(IPlayerInteraction i) {
