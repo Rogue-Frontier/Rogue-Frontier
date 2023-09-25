@@ -1,10 +1,10 @@
 # Rogue Frontier
 ![Cover](RogueFrontier/RogueFrontierContent/sprites/PosterNoText.asc.png)
 
-_Rogue Frontier_ is an ambitious ASCII-style space adventure set in an alternate timeline of *Transcendence* (and its predecessor, *Frontier*) - a space-opera roguelike by George Moromisato.
+_Rogue Frontier_ is an ambitious ASCII-style space adventure set in an alternate timeline of *Transcendence* (and its predecessor, *Frontier*) - a space-opera roguelike by George Moromisato. The player receives an invitation from a deity known as The Orator to travel towards the Galactic Core. 
 
-
-- Simulation: Factions engage in dynamic warfare. Systems update even while the player is in another system. Enemies can pursue the player across stargates.
+There are three main themes in the design of Rogue Frontier:
+- Persistence: Factions engage in dynamic warfare. Systems update even while the player is in another system. Enemies can pursue the player across stargates.
 - Mortality: All resources are limited. Armor degrades over time. Weapons run out of ammo. Reactors run out of fuel.
 - Aesthetic: The world is painted with colored, extended ASCII tiles in order to push the limits of art.
 
