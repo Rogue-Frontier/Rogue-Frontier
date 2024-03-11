@@ -47,7 +47,9 @@ partial class Program {
     static void Main(string[] args) {
         XSave x = null;
 
-        GenerateIntroSystem().Save(ref x);
+        var s = GenerateIntroSystem();
+        s.Save(ref x);
+        var str = x.root.ToString();
         Console.WriteLine(x.root);
 
         if (true) return;

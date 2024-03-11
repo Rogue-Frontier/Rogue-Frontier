@@ -23,6 +23,9 @@ using Col = SadRogue.Primitives.Color;
 using System.Numerics;
 using Newtonsoft.Json.Linq;
 using System.Text.Json;
+using System.Collections;
+using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace Common;
 public static class Main {
@@ -850,31 +853,57 @@ public static class Main {
         }
     }
 
+
+    public static bool IsCollection(this Type t) {
+
+        HashSet<Type> tt = [typeof(List<>), typeof(HashSet<>), typeof(Dictionary<,>)];
+        return t.IsGenericType ?
+            tt.Contains(t.GetGenericTypeDefinition()) :
+            t.IsArray;
+    }
     public record XSave(XElement root, Dictionary<object, int> table);
     public static int Save(this object o, ref XSave d) {
-        int index = -2;
-        var b = d?.table.TryGetValue(o, out index);
+        int i = 0;
+        var b = d?.table.TryGetValue(o, out i);
         if(b is true) {
-            return index;
+            return i;
         }
+        d ??= new(new("X"), new());
+
+
+		i = d.table.Count;
+		d.table[o] = i;
+
 		var t = o.GetType();
-		var element = new XElement(t.AssemblyQualifiedName);
-        if(b is false) {
-            index = d.table.Count - 1;
-			d.table[element] = index;
-			d.root.Add(element);
-		} else {
-            index = -1;
-			d = new(element, new() { [element] = index });
+		var e = new XElement("O") { Value = t.AssemblyQualifiedName };
+		
+        string SaveItem(object val, ref XSave d) =>
+			val == null ?
+				"null" :
+			val.GetType().IsPrimitive ?
+				JsonSerializer.Serialize(val) :
+				$"{Save(val, ref d)}";
+        if (o is XElement ox) {
+            e.Add(ox);
+        } else if(o is string os) {
+            e.Add(new XElement("S") { Value = os });
+        } else if(o is Type ot) {
+            e.Add(new XElement("T") { Value = ot.AssemblyQualifiedName });
+        } else if (t.IsCollection()) {
+            foreach(var item in o as IEnumerable) {
+                e.Add(new XElement("E") { Value = SaveItem(item, ref d) });
+            }
+        } else {
+            var fields = t.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f => !f.GetCustomAttributes<CompilerGeneratedAttribute>().Any());
+			foreach (var f in fields) {
+				object val = f.GetValue(o);
+                val = SaveItem(val, ref d);
+				e.SetAttributeValue(f.Name, val);
+			}
 		}
-		foreach (var p in t.GetFields(BindingFlags.NonPublic)){
-            object val = p.GetValue(o);
-            val = p.FieldType.IsPrimitive ?
-                JsonSerializer.Serialize(val) :
-                Save(val, ref d);
-            element.SetAttributeValue(p.Name, val);
-        }
-        return index;
+		d.root.Add(e);
+		return i;
+
     }
     public record XLoad(int index, XElement[] children, Dictionary<int, object> table);
     public static object Load(this XElement root, XLoad d = null) {
@@ -882,26 +911,45 @@ public static class Main {
         var b = d?.table.TryGetValue(d.index, out o);
         if(b is true)
             return o;
+        d ??= new(0, root.Elements().ToArray(), new() { });
+        var e = d.children[d.index];
 
-		var t = Type.GetType(root.Name.LocalName);
+		var t = Type.GetType(root.Value);
 		o = Activator.CreateInstance(t);
-        XElement e;
-		if (b is false) {
-            e = d.children[d.index];
-            d.table[d.index] = o;
+		d.table[d.index] = o;
+
+        object LoadItem(string v, Type t, XLoad d) =>
+			v is "null" ?
+				null :
+			t.IsPrimitive ?
+				JsonSerializer.Deserialize(v, t) :
+				Load(root, new(int.Parse(v), d.children, d.table));
+        if (o is XElement) {
+            o = e.Elements().First();
+        } else if(o is string) {
+            o = e.Elements().First().Value;
+        } else if(o is Type) {
+            o = Type.GetType(e.Elements().First().Value);
+        } else if (t.IsCollection()) {
+            var pt =
+                t.IsArray ?
+                    t.GetElementType() :
+                t.GetGenericArguments()[0];
+
+            //TO DO: populate collection
+            e.Elements().Select(sub => LoadItem(sub.Value, pt, d));
         } else {
-            e = root;
-            d = new(-1, root.Elements().ToArray(), new() { [-1] = o });
-        }
-        foreach(var p in t.GetFields(BindingFlags.NonPublic)) {
-            if(e.TryAtt(p.Name, out string v)) {
-                var pt = p.FieldType;
-                object val = pt.IsPrimitive ?
-                    JsonSerializer.Deserialize(v, pt) :
-                    Load(root, new(int.Parse(v), d.children, d.table));
-				p.SetValue(o, val);
+			var fields = t.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f => !f.GetCustomAttributes<CompilerGeneratedAttribute>().Any());
+			foreach (var f in fields) {
+                if (e.TryAtt(f.Name, out var v)) {
+                    var pt = f.FieldType;
+                    object val = LoadItem(v, pt, d);
+                    f.SetValue(o, val);
+                }
             }
-		}
+        }
+
+        
         return o;
 	}
     
