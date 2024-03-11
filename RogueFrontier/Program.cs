@@ -48,9 +48,11 @@ partial class Program {
         XSave x = null;
 
         var s = GenerateIntroSystem();
-        s.Save(ref x);
-        var str = x.root.ToString();
-        Console.WriteLine(x.root);
+        s.Save(out var d);
+        var str = d.root.ToString();
+
+        var l = d.root.Load();
+        Console.WriteLine(d.root);
 
         if (true) return;
         OutputSchema();

@@ -450,15 +450,22 @@ public class Space<T> {
     }
     public bool InBounds(XYZ p) => p.xi > -1 && p.xi < Width && p.yi > -1 && p.yi < Height && p.zi > -1 && p.zi < Depth;
 }
+
+
+public class AutoDict {
+
+}
 public interface ILocator<T, U> {
     U Locate(T t);
 }
+
 public class LocatorDict<TValue, TKey> {
     public HashSet<TValue> all=new();
 
     public Dictionary<TKey, HashSet<TValue>> space { get; private set; } = new();
     public ILocator<TValue, TKey> locator;
     public HashSet<TValue> this[TKey u] => space.TryGetValue(u, out var value) ? value : new HashSet<TValue>();
+    public LocatorDict() { }
     public LocatorDict(ILocator<TValue, TKey> locator) {
         this.locator = locator;
     }

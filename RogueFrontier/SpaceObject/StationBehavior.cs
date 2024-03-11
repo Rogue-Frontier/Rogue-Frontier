@@ -180,6 +180,7 @@ public class ConstellationAstra : StationBehavior {
 }
 public class ConstellationShipyard : StationBehavior {
     public HashSet<ShipClass> guardTypes;
+    public ConstellationShipyard() { }
     public ConstellationShipyard(Station owner) {
         Func<string, ShipClass> f = owner.world.types.Lookup<ShipClass>;
         guardTypes = new() {
