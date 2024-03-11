@@ -868,39 +868,36 @@ public static class Main {
         if(b is true) {
             return i;
         }
-        d ??= new(new("X"), new());
+        d ??= new(new("R"), new());
 
 
 		i = d.table.Count;
 		d.table[o] = i;
 
 		var t = o.GetType();
-		var e = new XElement("O") { Value = t.AssemblyQualifiedName };
 		
-        string SaveItem(object val, ref XSave d) =>
+        string SaveItem(object val, XSave d) =>
 			val == null ?
 				"null" :
 			val.GetType().IsPrimitive ?
 				JsonSerializer.Serialize(val) :
 				$"{Save(val, ref d)}";
-        if (o is XElement ox) {
-            e.Add(ox);
-        } else if(o is string os) {
-            e.Add(new XElement("S") { Value = os });
-        } else if(o is Type ot) {
-            e.Add(new XElement("T") { Value = ot.AssemblyQualifiedName });
-        } else if (t.IsCollection()) {
-            foreach(var item in o as IEnumerable) {
-                e.Add(new XElement("E") { Value = SaveItem(item, ref d) });
-            }
-        } else {
-            var fields = t.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f => !f.GetCustomAttributes<CompilerGeneratedAttribute>().Any());
-			foreach (var f in fields) {
-				object val = f.GetValue(o);
-                val = SaveItem(val, ref d);
-				e.SetAttributeValue(f.Name, val);
-			}
-		}
+
+		
+        var dd = d;
+        XElement e = o switch
+        {
+            XElement ox =>  new("X", ox),
+            string os =>    new("S") { Value=os},
+            Type ot =>      new("T") { Value = ot.AssemblyQualifiedName},
+            IEnumerable ie when t.IsCollection() =>
+                new("C", ie.Cast<object>().Select(item => new XElement("I") { Value = SaveItem(item, dd) })) { Value = t.AssemblyQualifiedName},
+            _ => new("O", t
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .Where(f => !f.GetCustomAttributes<CompilerGeneratedAttribute>().Any())
+                .Select(f => new XAttribute(f.Name, SaveItem(f.GetValue(o), dd))))
+            { Value = t.AssemblyQualifiedName }
+        };
 		d.root.Add(e);
 		return i;
 
