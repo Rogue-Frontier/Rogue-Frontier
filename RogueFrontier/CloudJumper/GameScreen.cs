@@ -96,12 +96,12 @@ class GameScreen : Console {
 
         if (playership.thrusting) {
             var p = pos + XY.Polar(playership.rotationDegrees * Math.PI / 180, -1);
-            Draw(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, '.'));
+            Draw(p.xi, p.yi, new ColoredGlyph(Color.Yellow, Color.Transparent, (char)249));
         }
 
         for (int i = 0; i < 10; i++) {
             pos += XY.Polar(playership.rotationDegrees * Math.PI / 180, 1);
-            Draw(pos.xi, pos.yi, new ColoredGlyph(Color.White, Color.Transparent, '.'));
+            Draw(pos.xi, pos.yi, new ColoredGlyph(Color.White, Color.Transparent, (char)249));
         }
 
         this.Print(1, 1, $"{new string('=', playership.fuel / 15)}");

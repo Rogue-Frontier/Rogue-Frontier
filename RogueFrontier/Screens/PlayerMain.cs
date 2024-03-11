@@ -264,7 +264,7 @@ public class Mainframe : ScreenSurface, Ob<PlayerShip.Destroyed> {
             //Round down to ensure we don't get duplicated tiles along the origin
 
             if (viewport.tiles.TryGetValue(xy.roundDown, out var g)) {
-                g = g.Clone();          //Don't modify the source
+                g = g.Clone() as ColoredGlyph;          //Don't modify the source
                 g.Background = back.Background.Premultiply().Blend(g.Background);
                 return g;
             } else {
@@ -1338,7 +1338,7 @@ public class Vignette : ScreenSurface, Ob<PlayerShip.Damaged>, Ob<PlayerShip.Des
                         continue;
                     }
                     var t = silenceViewport.GetTile(x, y);
-                    Surface.SetCellAppearance(x, Height - y - 1, new(t.Foreground.SetAlpha(alpha), t.Background.SetAlpha(alpha), t.Glyph));
+                    Surface.SetCellAppearance(x, Height - y - 1, new ColoredGlyph(t.Foreground.SetAlpha(alpha), t.Background.SetAlpha(alpha), t.Glyph));
                 }
             }
         }

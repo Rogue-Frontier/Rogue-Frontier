@@ -238,7 +238,6 @@ public class FadeOut : Console {
         this.prev = prev;
         this.next = next;
         this.time = time;
-        DefaultBackground = Color.Transparent;
         Render(new TimeSpan());
     }
     public override void Update(TimeSpan delta) {

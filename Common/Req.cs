@@ -4,11 +4,11 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace Common;
-public interface IXmlInit { }
+public interface IXml { }
 /// <summary>
 /// Reads from XML attribute
 /// </summary>
-public interface IAtt : IXmlInit {
+public interface IAtt : IXml {
     /// <summary>
     /// Split the value according to <c>separator</c> before parsing
     /// </summary>
@@ -48,7 +48,7 @@ public class Opt : Attribute, IAtt {
 /// <summary>
 /// Reads from XML element
 /// </summary>
-public interface IEle : IXmlInit {
+public interface IEle : IXml {
     /// <summary>
     /// Auto construct the object from <c>XElement</c> using reflection before passing into <c>convert</c>. Otherwise, <c>convert</c> receives the raw <c>XElement</c>
     /// </summary>
@@ -62,7 +62,7 @@ public interface IEle : IXmlInit {
 /// <summary>
 /// Reads from the XML element used in initialization.
 /// </summary>
-public class Self : Attribute, IEle {
+public class Par : Attribute, IEle {
     public bool construct { get; set; } = true;
     
     public bool fallback { get; set; } = false;
@@ -91,7 +91,7 @@ public class Sub : Attribute, IEle {
 
     public Type type { get; set; } = null;
 }
-public class Err : Attribute, IXmlInit {
+public class Err : Attribute, IXml {
     public bool fallback { get; set; } = true;
     public string msg { get; set; } = "Error";
 }

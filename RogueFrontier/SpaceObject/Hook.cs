@@ -14,7 +14,7 @@ public class Cable : Entity {
     public ulong id { get; set; }
     public XY position { get; set; }
     public bool active { get; set; } = true;
-    public ColoredGlyph tile => new(Color.LightGray, Color.Transparent, '.');
+    public ColoredGlyph tile => new(Color.LightGray, Color.Transparent, (char)249);
     public Cable(Hook parent, XY position) {
         this.parent = parent;
         id = parent.attached.world.nextId++;

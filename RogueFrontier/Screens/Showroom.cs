@@ -31,8 +31,6 @@ class Showroom : ControlsConsole {
     public Showroom(Console prev, List<BaseShip> available, Action<ShowroomModel> next) : base(prev.Width, prev.Height) {
         this.prev = prev;
         this.next = next;
-        DefaultBackground = Color.Black;
-        DefaultForeground = Color.White;
         context = new() {
             available = available,
             shipIndex = 0,

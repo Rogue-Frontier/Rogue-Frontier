@@ -56,7 +56,7 @@
 			name=		"EMP cannon"
 			level=		"3"
 			mass=		"4000"
-			desc=		"."
+			desc=		"\249"
 		>
 		<Weapon	initialCharges="900"
 				powerUse=		"30"
@@ -158,7 +158,7 @@
 					damageHP=		"2d4"
 					lifetime=		"45"
 
-					glyph=			"."
+					glyph=			"\249"
 					foreground=		"Red"
 					background=		"Black"
 				/>
@@ -184,7 +184,7 @@
 					damageHP=		"2d4"
 					lifetime=		"45"
 
-					glyph=			"."
+					glyph=			"\249"
 					foreground=		"Red"
 					background=		"Black"
 				>
@@ -373,7 +373,7 @@
 				damageType=		"2"
 				damageHP=		"12"
 				lifetime=		"120"
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"White"
 				/>
 		</Weapon>
@@ -426,7 +426,7 @@
 				damageType=		"2"
 				damageHP=		"12"
 				lifetime=		"120"
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"White"
 				/>
 		</Weapon>
@@ -448,7 +448,7 @@
 					damageHP=		"6"
 					lifetime=		"90"
 
-					glyph=			"."
+					glyph=			"\249"
 					foreground=		"Gray"
 				/>
 		</Weapon>
@@ -470,7 +470,7 @@
 				damageHP=		"12"
 				lifetime=		"120"
 
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"White"
 				/>
 		</Weapon>

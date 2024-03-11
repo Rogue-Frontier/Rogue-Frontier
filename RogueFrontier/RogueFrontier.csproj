@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>RogueFrontier</RootNamespace>
 	<ApplicationManifest>app.manifest</ApplicationManifest>
 	<StartupObject>RogueFrontier.Program</StartupObject>
@@ -21,19 +21,20 @@
   <ItemGroup>
     <PackageReference Include="CoreCLR-NCalc" Version="2.2.113" />
     <PackageReference Include="Kodi.IEnumerable.Extensions" Version="0.1.0" />
-    <PackageReference Include="Namotion.Reflection" Version="3.0.0" />
+    <PackageReference Include="Namotion.Reflection" Version="3.1.0" />
     <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
-    <PackageReference Include="SadConsole.Host.SFML" Version="9.2.1" />
+    <PackageReference Include="SadConsole" Version="10.0.2" />
+    <PackageReference Include="SadConsole.Host.SFML" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ArchConsole">
-      <HintPath>..\..\ArchConsole\ArchConsole\bin\Release\net6.0\ArchConsole.dll</HintPath>
+      <HintPath>..\..\ArchConsole\ArchConsole\bin\Release\net7.0\ArchConsole.dll</HintPath>
     </Reference>
     <Reference Include="ASECII">
-      <HintPath>..\..\ASECII\ASECII\bin\Release\net6.0\ASECII.dll</HintPath>
+      <HintPath>..\..\ASECII\ASECII\bin\Release\net7.0\ASECII.dll</HintPath>
     </Reference>
     <Reference Include="Transgenesis">
-      <HintPath>..\..\Transgenesis\Transgenesis\bin\Release\net6.0\Transgenesis.dll</HintPath>
+      <HintPath>..\..\Transgenesis\Transgenesis\bin\Release\net7.0\Transgenesis.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -72,9 +73,6 @@
     </None>
     <None Update="RogueFrontierContent\scripts\Murmurs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="RogueFrontierContent\scripts\_Olympus.xml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\scripts\OutlawMiners.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -174,9 +172,6 @@
     </None>
     <None Update="RogueFrontierContent\sounds\vent_fire.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="RogueFrontierContent\sprites\AmethystStore.asc">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="RogueFrontierContent\sprites\AmethystStore.asc.cg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

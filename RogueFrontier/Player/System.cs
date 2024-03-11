@@ -164,7 +164,7 @@ public class System {
             var t = e.tile;
             const double threshold = 8;
             if (dist < threshold) {
-                t = t.Clone();
+                t = t.Clone() as ColoredGlyph;
                 t.Foreground = t.Foreground.SetAlpha((byte)(255 * dist / threshold));
             }
             var p = e.position.roundDown;
@@ -197,7 +197,7 @@ public class System {
             var t = e.tile;
             const double threshold = 16;
             if (dist < threshold) {
-                t = t.Clone();
+                t = t.Clone() as ColoredGlyph;
                 t.Background = t.Background.SetAlpha((byte)(255 * dist / threshold));
             }
 

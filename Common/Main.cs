@@ -20,9 +20,11 @@ using ASECII;
 using Namotion.Reflection;
 using ArchConsole;
 using Col = SadRogue.Primitives.Color;
+using System.Numerics;
+using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace Common;
-
 public static class Main {
     public static double Lerp(double x, double fromMin, double fromMax, double toMin, double toMax, double pow) {
         var fromRange = fromMax - fromMin;
@@ -765,7 +767,6 @@ public static class Main {
             throw new Exception($"Enum value of {fallback.GetType().Name} expected: {a.Name}=\"{a.Value}\"");
         }
     }
-
     static Dictionary<Type, string> TransgenesisTypes = new() {
         [typeof(int)] = "INTEGER",
         [typeof(string)] = "STRING",
@@ -776,7 +777,6 @@ public static class Main {
         [typeof(IDice)] = "DICE_RANGE",
         [typeof(Col)] = "COLOR"
     };
-
     public static void WriteSchema(Type type, Dictionary<Type, XElement> dict) {
 
         var inst = Activator.CreateInstance(type);
@@ -795,7 +795,7 @@ public static class Main {
             var root = new XElement(type.Name);
             dict[type] = root;
             foreach (var f in type.GetFields()) {
-                foreach (var a in f.GetCustomAttributes(true).OfType<IXmlInit>()) {
+                foreach (var a in f.GetCustomAttributes(true).OfType<IXml>()) {
                     if (a is IAtt att) {
                         var el = new XElement("A");
                         el.SetAttributeValue("name", att.alias ?? f.Name);
@@ -850,22 +850,77 @@ public static class Main {
         }
     }
 
-    /// <summary>
-    /// Read data from XML to populate the object fields. For attributes, mark fields with <c>Req</c> and <c>Opt</c>. For elements, mark fields with <c>Self</c> and <c>Sub</c>
-    /// </summary>
-    /// <param name="ele">The XML element to read data from</param>
-    /// <param name="obj">The object to be populated</param>
-    /// <param name="inherit">If a field is missing from </param>
-    /// <param name="transform">Functions to convert values after reading.</param>
-    /// <seealso cref="Req"/>
-    /// <seealso cref="Opt"/>
-    /// <seealso cref="Self"/>
-    /// <seealso cref="Sub"/>
-    /// <exception cref="Exception"></exception>
-    public static void Initialize(this XElement ele, object obj, object inherit = null, Dictionary<string, object> transform = null, Dictionary<string, object> fallback = null) {
+    public record XSave(XElement root, Dictionary<object, int> table);
+    public static int Save(this object o, ref XSave d) {
+        int index = -2;
+        var b = d?.table.TryGetValue(o, out index);
+        if(b is true) {
+            return index;
+        }
+		var t = o.GetType();
+		var element = new XElement(t.AssemblyQualifiedName);
+        if(b is false) {
+            index = d.table.Count - 1;
+			d.table[element] = index;
+			d.root.Add(element);
+		} else {
+            index = -1;
+			d = new(element, new() { [element] = index });
+		}
+		foreach (var p in t.GetFields(BindingFlags.NonPublic)){
+            object val = p.GetValue(o);
+            val = p.FieldType.IsPrimitive ?
+                JsonSerializer.Serialize(val) :
+                Save(val, ref d);
+            element.SetAttributeValue(p.Name, val);
+        }
+        return index;
+    }
+    public record XLoad(int index, XElement[] children, Dictionary<int, object> table);
+    public static object Load(this XElement root, XLoad d = null) {
+        object o = null;
+        var b = d?.table.TryGetValue(d.index, out o);
+        if(b is true)
+            return o;
+
+		var t = Type.GetType(root.Name.LocalName);
+		o = Activator.CreateInstance(t);
+        XElement e;
+		if (b is false) {
+            e = d.children[d.index];
+            d.table[d.index] = o;
+        } else {
+            e = root;
+            d = new(-1, root.Elements().ToArray(), new() { [-1] = o });
+        }
+        foreach(var p in t.GetFields(BindingFlags.NonPublic)) {
+            if(e.TryAtt(p.Name, out string v)) {
+                var pt = p.FieldType;
+                object val = pt.IsPrimitive ?
+                    JsonSerializer.Deserialize(v, pt) :
+                    Load(root, new(int.Parse(v), d.children, d.table));
+				p.SetValue(o, val);
+            }
+		}
+        return o;
+	}
+    
+	/// <summary>
+	/// Read data from XML to populate the object fields. For attributes, mark fields with <c>Req</c> and <c>Opt</c>. For elements, mark fields with <c>Self</c> and <c>Sub</c>
+	/// </summary>
+	/// <param name="ele">The XML element to read data from</param>
+	/// <param name="obj">The object to be populated</param>
+	/// <param name="inherit">If a field is missing from </param>
+	/// <param name="transform">Functions to convert values after reading.</param>
+	/// <seealso cref="Req"/>
+	/// <seealso cref="Opt"/>
+	/// <seealso cref="Par"/>
+	/// <seealso cref="Sub"/>
+	/// <exception cref="Exception"></exception>
+	public static void Initialize(this XElement ele, object obj, object inherit = null, Dictionary<string, object> transform = null, Dictionary<string, object> fallback = null) {
         var props = obj.GetType().GetFields();
         foreach (var p in props) {
-            foreach(var a in p.GetCustomAttributes(true).OfType<IXmlInit>()) {
+            foreach(var a in p.GetCustomAttributes(true).OfType<IXml>()) {
                 void Transform(ref object value, object f) {
                     var t = f.GetType();
                     if (typeof(Action).IsAssignableFrom(t)) {
@@ -904,7 +959,7 @@ public static class Main {
                         continue;
                     }
                     throw new Exception($"{err.msg}: {ele} ## {ele.Parent.Name}");
-                } else if (a is Self self) {
+                } else if (a is Par self) {
                     if (self.fallback && p.GetValue(obj) != null) {
                         continue;
                     }
@@ -1116,7 +1171,7 @@ public static class Main {
     public static ColoredString Brighten(this ColoredString s, int intensity) {
         return s.Adjust(new(intensity, intensity, intensity, 0));
     }
-    public static ColoredGlyphEffect ToEffect(this ColoredGlyph cg) {
+    public static ColoredGlyphAndEffect ToEffect(this ColoredGlyph cg) {
         return new() {
             Foreground = cg.Foreground,
             Background = cg.Background,
@@ -1132,7 +1187,7 @@ public static class Main {
 
 
     public static ColoredGlyph Brighten(this ColoredGlyph c, int intensity) {
-        var result = c.Clone();
+        var result = new ColoredGlyph(c.Foreground, c.Background, c.Glyph);
         result.Foreground = Sum(result.Foreground, new Col(intensity, intensity, intensity, 0));
         return result;
     }
@@ -1145,7 +1200,7 @@ public static class Main {
         return result;
     }
     public static ColoredGlyph Adjust(this ColoredGlyph c, Col foregroundInc) {
-        var result = c.Clone();
+        var result = new ColoredGlyph(c.Foreground, c.Background, c.Glyph);
         result.Foreground = Sum(result.Foreground, foregroundInc);
         return result;
     }
@@ -1197,7 +1252,7 @@ public static class Main {
         }
         b = b.Premultiply().Blend(front.Background);
 
-        return new(f, b, g) { Decorators = d.ToArray() };
+        return new(f, b, g) { Decorators = d.ToList() };
     }
 
     public static ColoredGlyph PremultiplySet(this ColoredGlyph cg, int alpha) {

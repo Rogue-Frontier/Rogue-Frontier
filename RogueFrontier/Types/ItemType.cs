@@ -219,7 +219,7 @@ public record UnlockPrescience() : ItemUse {
     }
 }
 public record ApplyMod() : ItemUse {
-    [Self] Modifier mod;
+    [Par] Modifier mod;
     public ApplyMod(XElement e) : this() {
         e.Initialize(this);
     }
@@ -248,7 +248,7 @@ public record ItemType : IDesignType {
     [Sub] public SolarDesc Solar;
     [Sub(construct = false)] public LauncherDesc Launcher;
     [Sub(construct = false)] public WeaponDesc Weapon;
-    [Self(construct = false, fallback = true)] public ItemUse Invoke;
+    [Par(construct = false, fallback = true)] public ItemUse Invoke;
 
     public bool HasAtt(string att) => attributes.Contains(att);
     public T Get<T>() =>
@@ -357,7 +357,7 @@ public record EngineDesc {
 }
 public record EnhancerDesc {
     [Req] public int powerUse;
-    [Self] public Modifier mod;
+    [Par] public Modifier mod;
     public Enhancer GetEnhancer(Item i) => new(i, this);
     public EnhancerDesc() { }
     public EnhancerDesc(XElement e) {
@@ -551,7 +551,7 @@ public record FragmentDesc {
     public double angleInterval => spreadAngle / count;
     public int range2 => range * range;
     [Sub(required = false, multiple = true)] public HashSet<FragmentDesc> Fragment = new();
-    [Self] public StaticTile effect;
+    [Par] public StaticTile effect;
     [Sub] public TrailDesc Trail;
 
     [Opt(parse = false)] public SoundBuffer detonateSound;

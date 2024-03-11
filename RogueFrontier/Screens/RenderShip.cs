@@ -13,9 +13,9 @@ class RenderShip : Console {
 
     static void Main2(string[] args) {
         // Setup the engine and create the main window.
-        SadConsole.Game.Create(Width, Height, "RogueFrontierContent/sprites/IBMCGA.font");
+        SadConsole.Game.Create(Width, Height, "RogueFrontierContent/sprites/IBMCGA.font", (o, gh) => { });
         SadConsole.Game.Instance.DefaultFontSize = IFont.Sizes.Two;
-        SadConsole.Game.Instance.OnStart = Init;
+        SadConsole.Game.Instance.Started += (o, gh) => Init();
         SadConsole.Game.Instance.Run();
         SadConsole.Game.Instance.Dispose();
     }

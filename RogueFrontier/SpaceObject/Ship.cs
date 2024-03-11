@@ -252,7 +252,7 @@ public class BaseShip {
 
                 var exhaust = new EffectParticle(position + XY.Polar(rotationRads, -1),
                     velocity + XY.Polar(rotationRads, -shipClass.thrust),
-                    new ColoredGlyph(Color.Yellow, Color.Transparent, '.'),
+                    new ColoredGlyph(Color.Yellow, Color.Transparent, (char)249),
                     4);
                 world.AddEffect(exhaust);
 

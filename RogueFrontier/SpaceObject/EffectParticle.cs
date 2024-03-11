@@ -26,7 +26,7 @@ public class EffectParticle : Effect {
         var trailNorm = offset.normal;
         var trailLength = Math.Min(3, offset.magnitude / 4) + 1;
         for (int i = 1; i < trailLength; i++) {
-            world.AddEffect(new EffectParticle(worldPos - trailNorm * i, new ColoredGlyph(color, Color.Transparent, '.'), 1));
+            world.AddEffect(new EffectParticle(worldPos - trailNorm * i, new ColoredGlyph(color, Color.Transparent, (char)249), 1));
         }
     }
     public XY position { get; set; }

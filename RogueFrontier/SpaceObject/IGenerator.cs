@@ -44,7 +44,7 @@ public class ShipEntry : ShipGenerator {
     [Opt(alias = "Ships", parse = false)] public ShipGroup subordinates = new();
     [Req(alias = "codename", parse = false)] public ShipClass shipClass;
     [Opt(parse = false)] public Sovereign sovereign;
-    [Self(construct = false)] public IShipOrderDesc orderDesc;
+    [Par(construct = false)] public IShipOrderDesc orderDesc;
     [Opt] public EShipBehavior behavior;
     public ShipEntry() { }
     public ShipEntry(TypeCollection tc, XElement e) {
@@ -130,7 +130,7 @@ public class ShipEntry : ShipGenerator {
 }
 public record ModRoll() {
     [Opt] public double modifierChance = 1;
-    [Self] public Modifier modifier;
+    [Par] public Modifier modifier;
     public ModRoll(XElement e) : this() {
         e.Initialize(this);
         if (modifier.empty) {
@@ -289,7 +289,7 @@ public record ItemEntry() : IGenerator<Item> {
     [Opt] public IDice count = new Constant(1);
     [Req(alias = "codename", parse = false)]
           public ItemType type;
-    [Self]public ModRoll mod;
+    [Par]public ModRoll mod;
     public ItemEntry(TypeCollection tc, XElement e) : this() {
         e.Initialize(this, transform: new() {
             [nameof(type)] = (string s) => tc.Lookup<ItemType>(s)
@@ -303,7 +303,7 @@ public record ItemEntry() : IGenerator<Item> {
 }
 public record ArmorEntry() : IGenerator<Armor> {
     [Req] public string codename;
-    [Self] public ModRoll mod;
+    [Par] public ModRoll mod;
     public ArmorEntry(XElement e) : this() {
         e.Initialize(this);
     }
@@ -324,7 +324,7 @@ public static class SDevice {
 }
 public record ReactorEntry() : IGenerator<Device> {
     [Req] public string codename;
-    [Self] public ModRoll mod;
+    [Par] public ModRoll mod;
     public ReactorEntry(XElement e) : this() {
         e.Initialize(this);
     }
@@ -337,7 +337,7 @@ public record ReactorEntry() : IGenerator<Device> {
 
 public record SolarEntry() : IGenerator<Device> {
     [Req] public string codename;
-    [Self]public ModRoll mod;
+    [Par]public ModRoll mod;
     public SolarEntry(XElement e) : this() {
         e.Initialize(this);
     }
@@ -349,7 +349,7 @@ public record SolarEntry() : IGenerator<Device> {
 }
 public record ServiceEntry() : IGenerator<Device> {
     [Req] public string codename;
-    [Self]public ModRoll mod;
+    [Par]public ModRoll mod;
     public ServiceEntry(XElement e) : this() {
         e.Initialize(this);
     }
@@ -361,7 +361,7 @@ public record ServiceEntry() : IGenerator<Device> {
 
 public record ShieldEntry() : IGenerator<Device>, IGenerator<Shield> {
     [Req] public string codename;
-    [Self]public ModRoll mod;
+    [Par]public ModRoll mod;
     public ShieldEntry(XElement e) : this() {
         e.Initialize(this);
     }
@@ -395,8 +395,8 @@ public record WeaponEntry() : IGenerator<Device>, IGenerator<Weapon> {
     [Opt] public bool omnidirectional;
     [Opt] public bool? structural = null;
     [Opt] public double angle, leftRange, rightRange;
-    [Self(construct = false)] public XY offset;
-    [Self] public ModRoll mod;
+    [Par(construct = false)] public XY offset;
+    [Par] public ModRoll mod;
     public WeaponEntry(XElement e) : this() {
         var toRad = (double d) => d * Math.PI / 180;
         e.Initialize(this, transform: new() {

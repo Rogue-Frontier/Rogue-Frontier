@@ -25,7 +25,6 @@ public class GateTransition : Console {
     public GateTransition(Viewport prev, Viewport next, Action Transition) : base(prev.Width, prev.Height) {
         this.prev = prev;
         this.next = next;
-        DefaultBackground = Color.Transparent;
         rect = new(new(Width / 2, Height / 2), 0, 0);
         this.Transition = Transition;
     }
@@ -85,7 +84,7 @@ public class GateTransition : Console {
                 foreach (var x in Enumerable.Range(0, Width)) {
                     Point p = new(x, y);
                     if (rect.Contains(p)) {
-                        this.SetCellAppearance(x, Height - y, new(Color.Black, Color.Black, 0));
+                        this.SetCellAppearance(x, Height - y, new ColoredGlyph(Color.Black, Color.Black, 0));
                     } else {
                         (var v, var b) = (prev, prevBack);
                         back.SetCellAppearance(x, y, b.GetTile(x, y));

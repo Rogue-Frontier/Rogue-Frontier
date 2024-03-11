@@ -64,7 +64,7 @@
 				damageType=		"2"
 				damageHP=		"12"
 				lifetime=		"120"
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"White"
 				/>
 		</Weapon>
@@ -228,7 +228,7 @@
 				damageType=		"2"
 				damageHP=		"12"
 				lifetime=		"120"
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"White"
 				/>
 		</Weapon>

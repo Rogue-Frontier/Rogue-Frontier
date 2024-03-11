@@ -420,7 +420,7 @@ public class Engine : Device {
 
                 var exhaust = new EffectParticle(ship.position + XY.Polar(rotationRads, -1),
                     ship.velocity + XY.Polar(rotationRads, -sc.thrust),
-                    new ColoredGlyph(Color.Yellow, Color.Transparent, '.'),
+                    new ColoredGlyph(Color.Yellow, Color.Transparent, (char)249),
                     4);
                 ship.world.AddEffect(exhaust);
 

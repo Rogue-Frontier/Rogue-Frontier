@@ -1,5 +1,7 @@
-﻿using SadConsole;
-using Console = SadConsole.Console;
+﻿using System;
+using Console = System.Console;
+using SadConsole;
+using Con = SadConsole.Console;
 using System.IO;
 using System.Collections.Generic;
 using Common;
@@ -8,10 +10,10 @@ using System.Linq;
 using ASECII;
 using SadConsole.Input;
 using static Common.Main;
-using System;
 using System.Globalization;
 using SFML.Audio;
 using System.Xml.Linq;
+using System.Reflection;
 
 namespace RogueFrontier;
 public static class Tones {
@@ -43,8 +45,14 @@ partial class Program {
         File.WriteAllText("RogueFrontierSchema.xml", module.ToString());
     }
     static void Main(string[] args) {
+        XSave x = null;
+
+        GenerateIntroSystem().Save(ref x);
+        Console.WriteLine(x.root);
+
+        if (true) return;
         OutputSchema();
-        SadConsole.Settings.WindowTitle = "Rogue Frontier";
+        SadConsole.Settings.WindowTitle = $"Rogue Frontier v{Assembly.GetExecutingAssembly().GetName().Version}";
         /*
         var w = new System();
         w.types.LoadFile(main);
@@ -58,8 +66,9 @@ partial class Program {
     public static void StartGame(Action OnStart) {
         if (!Directory.Exists("save"))
             Directory.CreateDirectory("save");
-        Game.Create(Width, Height, font);
-        Game.Instance.OnStart = OnStart;
+        //SadConsole.Host.Settings.SFMLSurfaceBlendMode = SFML.Graphics.BlendMode.Add;
+        Game.Create(Width, Height, font, (o, gh) => { });
+        Game.Instance.Started += (o, gh)=>OnStart();
         Game.Instance.Run();
         Game.Instance.Dispose();
     }
@@ -97,14 +106,14 @@ partial class Program {
                 switch (index) {
                     case 1: {
                             container.Children.Clear();
-                            Console c = new(Width, Height);
+                            Con c = new(Width, Height);
                             container.Children.Add(c);
                             ShowOpening(c);
                             break;
                         }
                     case 2: {
                             container.Children.Clear();
-                            Console c = new(Width, Height);
+                            Con c = new(Width, Height);
                             container.Children.Add(c);
                             ShowPoster(c);
                             break;
@@ -143,7 +152,7 @@ partial class Program {
             c = new SplashScreen(() => ShowCrawl(c));
             container.Children.Add(c);
         }
-        void ShowCrawl(Console prev) {
+        void ShowCrawl(Con prev) {
             MinimalCrawlScreen c = null;
             string s = "Presents...";
             c = new MinimalCrawlScreen(s, () => {
@@ -151,27 +160,27 @@ partial class Program {
             }) { Position = new Point(prev.Width / 4 - s.Length / 2 + 1, 13), FontSize = prev.FontSize * 2 };
             prev.Children.Add(c);
         }
-        void ShowPause(Console prev) {
-            Console c = null;
+        void ShowPause(Con prev) {
+            Con c = null;
             c = new PauseTransition(Width, Height, 1, prev, () => ShowFade(c));
 
             prev.Parent.Children.Add(c);
             prev.Parent.Children.Remove(prev);
         }
-        void ShowFade(Console prev) {
-            Console c = null;
+        void ShowFade(Con prev) {
+            Con c = null;
             c = new FadeOut(prev, () => ShowOpening(c), 1);
 
             prev.Parent.Children.Add(c);
             prev.Parent.Children.Remove(prev);
         }
 
-        void ShowOpening(Console prev) {
+        void ShowOpening(Con prev) {
             splashMusic.Play();
             index = 2;
             prev.Parent.Children.Remove(splashBackground);
 
-            Console c = null;
+            Con c = null;
             c = new MinimalCrawlScreen(
 @"                  
 A reimagining of...
@@ -198,28 +207,28 @@ more than just a dream...
             prev.Parent.Children.Remove(prev);
         }
         */
-        void ShowFade2(Console prev) {
-            Console c = null;
+        void ShowFade2(Con prev) {
+            Con c = null;
             c = new FadeOut(prev, () => ShowPause2(c), 1);
 
             prev.Parent.Children.Add(c);
             prev.Parent.Children.Remove(prev);
         }
-        void ShowPause2(Console prev) {
-            Console c = null;
+        void ShowPause2(Con prev) {
+            Con c = null;
             c = new PauseTransition(Width, Height, 1, prev, () => ShowPoster(c));
 
             prev.Parent.Children.Add(c);
             prev.Parent.Children.Remove(prev);
         }
-        void ShowPoster(Console prev) {
+        void ShowPoster(Con prev) {
             index = 3;
             var display = new ImageDisplay(poster.Size.X, poster.Size.Y, poster,
                 new Point(Width / 2 - poster.Size.X / 2 + 4, -5)) {
                 FontSize = title.FontSize * 3 / 4
             };
 
-            Console pause = null;
+            Con pause = null;
             pause = new PauseTransition(display.Width, display.Height, 2, display, () => ShowPosterFade(pause)) {
                 FontSize = display.FontSize
             };
@@ -230,7 +239,7 @@ more than just a dream...
             prev.Parent.Children.Add(c);
             prev.Parent.Children.Remove(prev);
         }
-        void ShowPosterFade(Console prev) {
+        void ShowPosterFade(Con prev) {
             var c = new FadeOut(prev, ShowTitle, 1);
 
             prev.Parent.Children.Add(c);

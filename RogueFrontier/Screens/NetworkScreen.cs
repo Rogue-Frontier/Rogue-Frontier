@@ -28,10 +28,10 @@ public class GalaxyMap : Console {
     public override void Render(TimeSpan drawTime) {
         this.Clear();
         var visible = univ.grid.Select(pair => (id: univ.systems[pair.Key], pos: pair.Value - camera + center))
-            .Where(pair => Area.Contains(pair.pos));
+            .Where(pair => true);
         foreach((var system, var p) in visible) {
             (var x, var y) = p;
-            this.SetCellAppearance(x, Height - y, new(Color.White, Color.Transparent, '*'));
+            this.SetCellAppearance(x, Height - y, new ColoredGlyph(Color.White, Color.Transparent, '*'));
 
         }
         base.Render(drawTime);

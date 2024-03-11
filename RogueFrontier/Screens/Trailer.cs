@@ -14,9 +14,9 @@ public class Trailer {
 
     public static void Main2(string[] args) {
         // Setup the engine and create the main window.
-        SadConsole.Game.Create(Width, Height, "RogueFrontierContent/sprites/IBMCGA.font");
+        SadConsole.Game.Create(Width, Height, "RogueFrontierContent/sprites/IBMCGA.font", (o, gh) => { });
         // Hook the start event so we can add consoles to the system.
-        SadConsole.Game.Instance.OnStart = Init;
+        SadConsole.Game.Instance.Started += (o, gh) => Init();
 #if DEBUG
         // Start the game.
         SadConsole.Game.Instance.Run();

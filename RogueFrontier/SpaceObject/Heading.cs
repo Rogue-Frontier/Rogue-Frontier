@@ -36,7 +36,7 @@ class Heading : Effect {
             for (int i = 0; i < count; i++) {
                 var point = start + inc * (i + 1);
                 var value = 153 - Math.Max(1, i) * 153 / length;
-                var cg = new ColoredGlyph(new Color(value, value, value), Color.Transparent, '.');
+                var cg = new ColoredGlyph(new Color(value, value, value), Color.Transparent, (char)249);
                 var particle = new EffectParticle(point, cg, interval + 1);
                 particles[i] = particle;
                 parent.world.AddEffect(particle);
@@ -52,8 +52,8 @@ class Heading : Effect {
 
     }
     public static void AimLine(System World, XY start, double angle, int lifetime = 1) {
-        //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
-        var pointEffect = new ColoredGlyph(new Color(255, 255, 0, 204), Color.Transparent, '.');
+        //ColoredGlyph pointEffect = new ColoredGlyph((char)249, new Color(153, 153, 76), Color.Transparent);
+        var pointEffect = new ColoredGlyph(new Color(255, 255, 0, 204), Color.Transparent, (char)249);
         var point = start;
         var inc = XY.Polar(angle);
         int length = 20;
@@ -69,9 +69,9 @@ class Heading : Effect {
         var start = owner.position;
         var World = owner.world;
 
-        //ColoredGlyph pointEffect = new ColoredGlyph('.', new Color(153, 153, 76), Color.Transparent);
-        //ColoredGlyph dark = new ColoredGlyph(new Color(255, 255, 0, 102), Color.Transparent, '.');
-        var bright = new ColoredGlyph(new(255, 255, 0, 204), Color.Transparent, '.');
+        //ColoredGlyph pointEffect = new ColoredGlyph((char)249, new Color(153, 153, 76), Color.Transparent);
+        //ColoredGlyph dark = new ColoredGlyph(new Color(255, 255, 0, 102), Color.Transparent, (char)249);
+        var bright = new ColoredGlyph(new(255, 255, 0, 204), Color.Transparent, (char)249);
         var point = start;
         var inc = XY.Polar(angle);
         //var length = w.target == null ? 20 : (w.target.Position - owner.Position).Magnitude;

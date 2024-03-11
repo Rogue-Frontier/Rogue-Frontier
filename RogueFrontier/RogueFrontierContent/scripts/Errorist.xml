@@ -35,7 +35,7 @@
 				ricochet=		"4"
 				hitProjectile=	"true"
 
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"SpringGreen"
 				background=		"Transparent"
 				/>
@@ -60,7 +60,7 @@
 				lifetime=		"240"
 				spreadAngle=	"15/2"
 				count=			"18"
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"FF7777FF"
 				background=		"Transparent"
 				>
@@ -93,7 +93,7 @@
 				hitProjectile=	"true"					
 				ricochet=		"4"
 					
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"SpringGreen"
 				background=		"Transparent"
 				>
@@ -130,7 +130,7 @@
 
 				hitProjectile=	"true"
 						
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"Green"
 				background=		"Transparent"
 				/>
@@ -172,7 +172,7 @@
 					damageHP=		"1"
 					lifetime=		"90"
 					
-					glyph=			"."
+					glyph=			"\249"
 					foreground=		"FF7777FF"
 					background=		"Transparent"
 					>
@@ -216,7 +216,7 @@
 					damageType=		"1"
 					damageHP=		"0-2"
 					lifetime=		"8"
-					glyph=			"."
+					glyph=			"\249"
 					foreground=		"Cyan"
 					background=		"Transparent"
 					>
@@ -322,7 +322,7 @@
 
 			hitProjectile=	"true"
 						
-			glyph=			"."
+			glyph=			"\249"
 			foreground=		"SpringGreen"
 			background=		"Transparent"
 			/>

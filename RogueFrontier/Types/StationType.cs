@@ -53,14 +53,14 @@ public class StationType : IDesignType {
 
 
     class MultiPointFrom {
-        [Self] public StaticTile tile;
+        [Par] public StaticTile tile;
         [Req] public int angleInc;
         [Req] public double offsetX, offsetY;
         public MultiPointFrom(XElement e) => e.Initialize(this);
     }
     class LineFrom {
         [Req] public double offsetX, offsetY;
-        [Self] public StaticTile tile;
+        [Par] public StaticTile tile;
 
 
         public bool delta;
@@ -226,7 +226,7 @@ public class StationType : IDesignType {
 
     public class SegmentDesc {
         public XY offset;
-        [Self] public StaticTile tile;
+        [Par] public StaticTile tile;
 
         class Offset {
             [Req] public double offsetX;

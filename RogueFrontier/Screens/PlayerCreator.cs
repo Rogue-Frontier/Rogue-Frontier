@@ -43,8 +43,6 @@ class PlayerCreator : ControlsConsole {
     public PlayerCreator(Console prev, System World, Settings settings, Action<ShipSelectorModel> next) : base(prev.Width, prev.Height) {
         this.prev = prev;
         this.next = next;
-        DefaultBackground = Color.Black;
-        DefaultForeground = Color.White;
 
         context = new ShipSelectorModel() {
             World = World,

@@ -72,7 +72,7 @@ public class ColoredStringConverter : TypeConverter {
         ColoredString result = new ColoredString(elements.Length / 3);
         for (int i = 0; i + 2 < elements.Length; i += 3) {
 
-            result[i / 3] = new ColoredGlyphEffect() {
+            result[i / 3] = new ColoredGlyphAndEffect() {
                 Foreground = new Color(uint.Parse(elements[i])),
                 Background = new Color(uint.Parse(elements[i + 1])),
                 Glyph = (int)uint.Parse(elements[i + 2])

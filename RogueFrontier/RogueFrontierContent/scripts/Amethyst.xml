@@ -95,7 +95,7 @@
 				
 				attributes= "Amethyst"
 
-				desc=		"The Amethyst laser cannon (manufactured by Amethyst, Inc. for the Amethyst-class yacht) is the only one that fires a magenta-colored beam (which deals more damage to shields). Not that you'll ever get to see it."
+				desc=		"The Amethyst laser cannon fires a magenta-colored beam that deals more damage to shields. Its internal specifications are a trade secret."
 		>
 		<Weapon
 			initialCharges=	"1200"
@@ -111,7 +111,7 @@
 				damageHP=		"4d2"
 				shieldFactor=	"2"
 				lifetime=		"75"
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"Magenta"
 				/>
 		</Weapon>
@@ -124,7 +124,7 @@
 				
 			attributes= "Amethyst"
 
-			desc=		"The directed-energy technology of the Magic Blaster is sufficiently proprietary as to be indistinguishable from magic."
+			desc=		"The first-generation Magic Blaster fires a burst of corrosive energy. Its directed-energy technology is sufficiently proprietary as to be indistinguishable from magic."
 		>
 		<Weapon
 			initialCharges=	"240"
@@ -176,7 +176,7 @@
 				damageHP=		"4d3"
 				shieldFactor=	"2"
 				lifetime=		"90"
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"Magenta"
 				/>
 		</Weapon>
@@ -189,7 +189,7 @@
 				
 		attributes= "Amethyst"
 
-		desc=		"The second-generation Magic Blaster is even more proprietary (and therefore more magical)."
+		desc=		"The second-generation Magic Blaster features stronger corrosion. Its directed-energy technology is incomprehensibly advanced."
 		>
 		<Weapon
 			initialCharges=	"240"
@@ -240,7 +240,7 @@
 				damageType=		"1"
 				damageHP=		"4d4"
 				lifetime=		"90"
-				glyph=			"."
+				glyph=			"\249"
 				foreground=		"Magenta"
 				
 				shieldFactor=	"2"
@@ -286,9 +286,6 @@
 			</Projectile>
 		</Weapon>
 	</ItemType>
-
-
-
 
 	<ItemType	codename=	"item_shimmer_shield_i"
 		name=		"Shimmer shield"

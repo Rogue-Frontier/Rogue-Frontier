@@ -91,10 +91,10 @@ public static class SSystemElement {
     }
 }
 public record SystemGroup() : SystemElement {
-    public LocationMod loc;
+    [Par] public LocationMod loc;
     public List<SystemElement> subelements;
     public SystemGroup(XElement e, Parse<SystemElement> parse):this() {
-        loc = new(e);
+        e.Initialize(this);
         subelements = e.Elements().Select(e => parse(e)).ToList();
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {
@@ -378,11 +378,10 @@ public record SystemNebula() : SystemElement {
 public record SystemSibling() : SystemElement {
     [Opt] public IDice count = new Constant(1);
     [Opt] public IDice increment = new IntRange(0, 360);
-    public LocationMod mod;
+    [Par] public LocationMod mod;
     public List<SystemElement> subelements;
     public SystemSibling(XElement e, Parse<SystemElement> parse) : this() {
         e.Initialize(this);
-        mod = new(e);
         subelements = e.Elements().Select(e => parse(e)).ToList();
     }
     public void Generate(LocationContext lc, TypeCollection tc, List<Entity> result = null) {

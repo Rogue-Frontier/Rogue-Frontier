@@ -87,7 +87,7 @@
 					damageType=			"1"
 					damageHP=			"6"
 				
-					glyph=				"."
+					glyph=				"\249"
 					foreground=			"Red"
 					/>
 				<Fragment
@@ -100,7 +100,7 @@
 					damageType=			"1"
 					damageHP=			"6"
 				
-					glyph=				"."
+					glyph=				"\249"
 					foreground=			"Red"
 					/>
 			</Projectile>

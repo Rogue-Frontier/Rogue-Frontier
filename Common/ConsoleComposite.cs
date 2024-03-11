@@ -29,7 +29,7 @@ public class ConsoleComposite {
             if (d.Any()) {
                 int i = 0;
             }
-            return new ColoredGlyph(f, b, g) { Decorators = d.ToArray() };
+            return new ColoredGlyph(f, b, g) { Decorators = d.ToList() };
         }
     }
     public ConsoleComposite(params Console[] consoles) => this.consoles = new List<Console>(consoles);

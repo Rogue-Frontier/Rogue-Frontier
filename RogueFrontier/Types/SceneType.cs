@@ -325,7 +325,7 @@ public class Dialog : Console {
             }
         }
         if (descIndex < desc.Length) {
-            this.SetCellAppearance(x, y, new(Color.LightBlue, Color.Black, '>'));
+            this.SetCellAppearance(x, y, new ColoredGlyph(Color.LightBlue, Color.Black, '>'));
         } else {
             var barLength = 4;
             var arrow = $"{new string('-', barLength - 1)}>";

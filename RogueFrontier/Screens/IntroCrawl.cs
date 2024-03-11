@@ -92,7 +92,7 @@ Was more than a dream after all." }.Select(line => line.Replace("\r", "")).ToArr
             //return new Color(255 - value, 255 - value, 255 - value).Noise(r, 0.3).Round(17).Subtract(25);
             return new Color(204 - value, 204 - value, 255 - value).Noise(random, 0.3).Round(17).Subtract(25);
         }
-        ColoredGlyphEffect GetGlyph(int x, int y) {
+        ColoredGlyphAndEffect GetGlyph(int x, int y) {
             Color front = Front(255 * x / effectWidth);
             Color back = Back(255 * x / effectWidth);
             char c;
@@ -106,7 +106,7 @@ Was more than a dream after all." }.Select(line => line.Replace("\r", "")).ToArr
             }
 
 
-            return new ColoredGlyphEffect() { Foreground = front, Background = back, Glyph = c };
+            return new ColoredGlyphAndEffect() { Foreground = front, Background = back, Glyph = c };
         }
     }
     public override void Update(TimeSpan time) {
