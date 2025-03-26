@@ -18,7 +18,7 @@ There are three main themes in the design of Rogue Frontier:
 - Mortality: All resources are limited. Armor degrades over time. Weapons run out of ammo. Reactors run out of fuel.
 - Aesthetic: The world is painted with colored, extended ASCII tiles to blur the boundary between pixels and paint.
 
-This game is in early development and set to release at least prior to the heat death of the universe.
+This game is set to complete at least prior to the heat death of the universe.
 
 
 ## Attribution
